@@ -1,0 +1,42 @@
+{
+    "recommendations": [
+        // ========== Python Development ==========
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "ms-python.black-formatter",
+        "matangover.mypy",
+        // ========== Testing ==========
+        "littlefoxteam.vscode-python-test-adapter",
+        // ========== Docker ==========
+        "ms-azuretools.vscode-docker",
+        // ========== Git ==========
+        "eamodio.gitlens",
+        "donjayamanne.githistory",
+        // ========== Database ==========
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-pg",
+        // ========== Markdown & Documentation ==========
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint",
+        // ========== Code Quality ==========
+        "streetsidesoftware.code-spell-checker",
+        "streetsidesoftware.code-spell-checker-russian",
+        // ========== Productivity ==========
+        "usernamehw.errorlens",
+        "oderwat.indent-rainbow",
+        "PKief.material-icon-theme",
+        // ========== YAML/JSON ==========
+        "redhat.vscode-yaml",
+        // ========== GitHub ==========
+        "github.copilot",
+        "github.copilot-chat",
+        // ========== REST API Testing ==========
+        "humao.rest-client"
+    ],
+    "unwantedRecommendations": [
+        "ms-python.pylint",
+        "ms-python.flake8",
+        "ms-python.isort"
+    ]
+}

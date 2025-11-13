@@ -1,0 +1,416 @@
+"""Модуль с обработчиками для работы с историей продаж и анализа ликвидности."""
+
+import logging
+
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.constants import ParseMode
+from telegram.ext import CallbackContext
+
+from src.dmarket.arbitrage_sales_analysis import (
+    analyze_item_liquidity,
+    enhanced_arbitrage_search,
+    get_sales_volume_stats,
+)
+from src.dmarket.sales_history import analyze_sales_history
+from src.telegram_bot.utils.formatters import (
+    format_arbitrage_with_sales,
+    format_liquidity_analysis,
+    format_sales_analysis,
+    format_sales_volume_stats,
+    get_trend_emoji,
+)
+from src.utils.api_error_handling import APIError
+from src.utils.dmarket_api_utils import execute_api_request
+
+# Настройка логирования
+logger = logging.getLogger(__name__)
+
+# Экспортируемые функции и объекты
+__all__ = [
+    "GAMES",
+    "get_liquidity_emoji",
+    "get_trend_emoji",
+    "handle_arbitrage_with_sales",
+    "handle_liquidity_analysis",
+    "handle_sales_analysis",
+    "handle_sales_volume_stats",
+]
+
+# Константы для games.py
+GAMES = {
+    "csgo": "CS2",
+    "dota2": "Dota 2",
+    "tf2": "Team Fortress 2",
+    "rust": "Rust",
+}
+
+
+def get_liquidity_emoji(liquidity_score: float) -> str:
+    """Возвращает эмодзи для уровня ликвидности.
+
+    Args:
+        liquidity_score: Оценка ликвидности (0-100)
+
+    Returns:
+        str: Эмодзи, соответствующий уровню ликвидности
+
+    """
+    if liquidity_score >= 80:
+        return "💎"  # Очень высокая ликвидность
+    if liquidity_score >= 60:
+        return "💧"  # Высокая ликвидность
+    if liquidity_score >= 40:
+        return "💦"  # Средняя ликвидность
+    if liquidity_score >= 20:
+        return "🌊"  # Низкая ликвидность
+    return "❄️"  # Очень низкая ликвидность
+
+
+async def handle_sales_analysis(update: Update, context: CallbackContext) -> None:
+    """Обрабатывает команду /sales_analysis для анализа истории продаж предмета.
+
+    Пример использования:
+    /sales_analysis AWP | Asiimov (Field-Tested)
+
+    Args:
+        update: Объект обновления Telegram
+        context: Контекст бота
+
+    """
+    # Извлекаем название предмета из сообщения
+    message = update.message.text.strip()
+    parts = message.split(" ", 1)
+
+    if len(parts) < 2:
+        await update.message.reply_text(
+            "⚠️ <b>Необходимо указать название предмета!</b>\n\n"
+            "Пример: <code>/sales_analysis AWP | Asiimov (Field-Tested)</code>",
+            parse_mode=ParseMode.HTML,
+        )
+        return
+
+    item_name = parts[1].strip()
+
+    # Отправляем сообщение о начале анализа
+    reply_message = await update.message.reply_text(
+        f"🔍 Анализ истории продаж для предмета:\n<code>{item_name}</code>\n\n"
+        "⏳ Пожалуйста, подождите...",
+        parse_mode=ParseMode.HTML,
+    )
+
+    try:
+        # Создаем функцию для запроса анализа продаж
+        async def get_analysis():
+            return await analyze_sales_history(
+                item_name=item_name,
+                days=14,  # Анализируем за 2 недели
+            )
+
+        # Выполняем запрос с использованием обработки ошибок API
+        analysis = await execute_api_request(
+            request_func=get_analysis,
+            endpoint_type="last_sales",
+            max_retries=2,
+        )
+
+        # Форматируем результаты анализа с использованием функции форматирования
+        formatted_message = format_sales_analysis(analysis, item_name)
+
+        # Добавляем кнопку для показа полной истории продаж
+        keyboard = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton(
+                        "📊 Подробная история",
+                        callback_data=f"sales_history:{item_name}",
+                    ),
+                ],
+                [
+                    InlineKeyboardButton(
+                        "💧 Анализ ликвидности",
+                        callback_data=f"liquidity:{item_name}",
+                    ),
+                ],
+            ],
+        )
+
+        # Отправляем результаты анализа
+        await reply_message.edit_text(
+            text=formatted_message,
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML,
+        )
+
+    except APIError as e:
+        # Обработка ошибок API
+        logger.exception(f"Ошибка API при анализе продаж: {e}")
+        await reply_message.edit_text(
+            f"❌ <b>Ошибка при получении данных о продажах:</b> {e.message}",
+            parse_mode=ParseMode.HTML,
+        )
+    except Exception as e:
+        # Обработка прочих ошибок
+        logger.exception(f"Ошибка при анализе продаж: {e!s}")
+        await reply_message.edit_text(
+            f"❌ <b>Произошла ошибка:</b> {e!s}",
+            parse_mode=ParseMode.HTML,
+        )
+
+
+async def handle_arbitrage_with_sales(update: Update, context: CallbackContext) -> None:
+    """Обрабатывает команду /arbitrage_sales для поиска арбитражных возможностей
+    с учетом истории продаж.
+
+    Args:
+        update: Объект обновления Telegram
+        context: Контекст бота
+
+    """
+    # Получаем текущую игру из контекста или используем CSGO по умолчанию
+    game = "csgo"
+    if hasattr(context, "user_data") and "current_game" in context.user_data:
+        game = context.user_data["current_game"]
+
+    # Отправляем сообщение о начале поиска
+    reply_message = await update.message.reply_text(
+        f"🔍 Поиск арбитражных возможностей с учетом истории продаж для {GAMES.get(game, game)}...\n\n"
+        "⏳ Пожалуйста, подождите...",
+        parse_mode=ParseMode.HTML,
+    )
+
+    try:
+        # Создаем функцию для запроса арбитражных возможностей
+        async def search_arbitrage():
+            return await enhanced_arbitrage_search(
+                game=game,
+                max_items=10,
+                min_profit=1.0,
+                min_profit_percent=5.0,
+                min_sales_per_day=0.3,  # Минимум 1 продажа за 3 дня
+                time_period_days=7,
+            )
+
+        # Выполняем запрос с использованием обработки ошибок API
+        results = await execute_api_request(
+            request_func=search_arbitrage,
+            endpoint_type="market",
+            max_retries=2,
+        )
+
+        # Форматируем результаты поиска с использованием функции форматирования
+        formatted_message = format_arbitrage_with_sales(results, game)
+
+        # Добавляем кнопки управления
+        keyboard = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton(
+                        "📊 Все возможности",
+                        callback_data=f"all_arbitrage_sales:{game}",
+                    ),
+                    InlineKeyboardButton(
+                        "🔍 Обновить",
+                        callback_data=f"refresh_arbitrage_sales:{game}",
+                    ),
+                ],
+                [
+                    InlineKeyboardButton(
+                        "⚙️ Настроить фильтры",
+                        callback_data=f"setup_sales_filters:{game}",
+                    ),
+                ],
+            ],
+        )
+
+        # Отправляем результаты поиска
+        await reply_message.edit_text(
+            text=formatted_message,
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML,
+        )
+
+    except APIError as e:
+        # Обработка ошибок API
+        logger.exception(f"Ошибка API при поиске арбитража с учетом продаж: {e}")
+        await reply_message.edit_text(
+            f"❌ <b>Ошибка при поиске арбитражных возможностей:</b> {e.message}",
+            parse_mode=ParseMode.HTML,
+        )
+    except Exception as e:
+        # Обработка прочих ошибок
+        logger.exception(f"Ошибка при поиске арбитража с учетом продаж: {e!s}")
+        await reply_message.edit_text(
+            f"❌ <b>Произошла ошибка:</b> {e!s}",
+            parse_mode=ParseMode.HTML,
+        )
+
+
+async def handle_liquidity_analysis(update: Update, context: CallbackContext) -> None:
+    """Обрабатывает команду /liquidity для анализа ликвидности предмета.
+
+    Пример использования:
+    /liquidity AWP | Asiimov (Field-Tested)
+
+    Args:
+        update: Объект обновления Telegram
+        context: Контекст бота
+
+    """
+    # Извлекаем название предмета из сообщения
+    message = update.message.text.strip()
+    parts = message.split(" ", 1)
+
+    if len(parts) < 2:
+        await update.message.reply_text(
+            "⚠️ <b>Необходимо указать название предмета!</b>\n\n"
+            "Пример: <code>/liquidity AWP | Asiimov (Field-Tested)</code>",
+            parse_mode=ParseMode.HTML,
+        )
+        return
+
+    item_name = parts[1].strip()
+    game = "csgo"  # По умолчанию используем CS2
+
+    # Если в контексте задана игра, используем её
+    if hasattr(context, "user_data") and "current_game" in context.user_data:
+        game = context.user_data["current_game"]
+
+    # Отправляем сообщение о начале анализа
+    reply_message = await update.message.reply_text(
+        f"🔍 Анализ ликвидности предмета:\n<code>{item_name}</code>\n\n"
+        "⏳ Пожалуйста, подождите...",
+        parse_mode=ParseMode.HTML,
+    )
+
+    try:
+        # Создаем функцию для запроса анализа ликвидности
+        async def get_liquidity_analysis():
+            return await analyze_item_liquidity(
+                item_name=item_name,
+                game=game,
+            )
+
+        # Выполняем запрос с использованием обработки ошибок API
+        analysis = await execute_api_request(
+            request_func=get_liquidity_analysis,
+            endpoint_type="market",
+            max_retries=2,
+        )
+
+        # Форматируем результаты анализа с использованием функции форматирования
+        formatted_message = format_liquidity_analysis(analysis, item_name)
+
+        # Добавляем кнопки управления
+        keyboard = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton(
+                        "📊 История продаж",
+                        callback_data=f"sales_history:{item_name}",
+                    ),
+                    InlineKeyboardButton(
+                        "🔍 Обновить анализ",
+                        callback_data=f"refresh_liquidity:{item_name}",
+                    ),
+                ],
+            ],
+        )
+
+        # Отправляем результаты анализа
+        await reply_message.edit_text(
+            text=formatted_message,
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML,
+        )
+
+    except APIError as e:
+        # Обработка ошибок API
+        logger.exception(f"Ошибка API при анализе ликвидности: {e}")
+        await reply_message.edit_text(
+            f"❌ <b>Ошибка при анализе ликвидности:</b> {e.message}",
+            parse_mode=ParseMode.HTML,
+        )
+    except Exception as e:
+        # Обработка прочих ошибок
+        logger.exception(f"Ошибка при анализе ликвидности: {e!s}")
+        await reply_message.edit_text(
+            f"❌ <b>Произошла ошибка:</b> {e!s}",
+            parse_mode=ParseMode.HTML,
+        )
+
+
+async def handle_sales_volume_stats(update: Update, context: CallbackContext) -> None:
+    """Обрабатывает команду /sales_volume для просмотра статистики объема продаж.
+
+    Args:
+        update: Объект обновления Telegram
+        context: Контекст бота
+
+    """
+    # Получаем текущую игру из контекста или используем CSGO по умолчанию
+    game = "csgo"
+    if hasattr(context, "user_data") and "current_game" in context.user_data:
+        game = context.user_data["current_game"]
+
+    # Отправляем сообщение о начале запроса
+    reply_message = await update.message.reply_text(
+        f"🔍 Получение статистики объема продаж для {GAMES.get(game, game)}...\n\n"
+        "⏳ Пожалуйста, подождите...",
+        parse_mode=ParseMode.HTML,
+    )
+
+    try:
+        # Создаем функцию для запроса статистики объема продаж
+        async def get_volume_stats():
+            return await get_sales_volume_stats(
+                game=game,
+                top_items=30,  # Анализируем 30 популярных предметов
+            )
+
+        # Выполняем запрос с использованием обработки ошибок API
+        stats = await execute_api_request(
+            request_func=get_volume_stats,
+            endpoint_type="market",
+            max_retries=2,
+        )
+
+        # Форматируем результаты с использованием функции форматирования
+        formatted_message = format_sales_volume_stats(stats, game)
+
+        # Добавляем кнопки управления
+        keyboard = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton(
+                        "📊 Показать все предметы",
+                        callback_data=f"all_volume_stats:{game}",
+                    ),
+                    InlineKeyboardButton(
+                        "🔍 Обновить",
+                        callback_data=f"refresh_volume_stats:{game}",
+                    ),
+                ],
+            ],
+        )
+
+        # Отправляем результаты
+        await reply_message.edit_text(
+            text=formatted_message,
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML,
+        )
+
+    except APIError as e:
+        # Обработка ошибок API
+        logger.exception(f"Ошибка API при получении статистики объема продаж: {e}")
+        await reply_message.edit_text(
+            f"❌ <b>Ошибка при получении статистики:</b> {e.message}",
+            parse_mode=ParseMode.HTML,
+        )
+    except Exception as e:
+        # Обработка прочих ошибок
+        logger.exception(f"Ошибка при получении статистики объема продаж: {e!s}")
+        await reply_message.edit_text(
+            f"❌ <b>Произошла ошибка:</b> {e!s}",
+            parse_mode=ParseMode.HTML,
+        )

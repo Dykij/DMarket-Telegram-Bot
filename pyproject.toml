@@ -1,0 +1,484 @@
+# ============================================================================
+# PROJECT METADATA (PEP 621)
+# ============================================================================
+
+[project]
+name = "dmarket-bot"
+version = "0.1.0"
+description = "Бот для торговли игровыми предметами на площадке DMarket"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "DMarket Bot Team", email = "example@example.com"}
+]
+keywords = ["telegram", "bot", "dmarket", "trading", "arbitrage"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: AsyncIO",
+    "Topic :: Communications :: Chat",
+]
+
+dependencies = [
+    "python-telegram-bot>=20.0",
+    "python-dotenv>=1.0.0",
+    "requests>=2.30.0",
+    "httpx>=0.27.0",
+    "psutil>=7.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8.0",
+    "mypy>=1.11.0",
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0",
+    "pytest-xdist>=3.0",
+    "pytest-mock>=3.10.0",
+    "black>=24.0",
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=2.0",
+    "pre-commit>=3.0",
+    "bandit>=1.7.0",
+    "safety>=3.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/example/dmarket-bot"
+Documentation = "https://github.com/example/dmarket-bot/docs"
+Repository = "https://github.com/example/dmarket-bot"
+Issues = "https://github.com/example/dmarket-bot/issues"
+
+[project.scripts]
+dmarket-bot = "src.__main__:main"
+dmarket-run = "src.telegram_bot.bot_v2:main"
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# ============================================================================
+# BANDIT - SECURITY SCANNING
+# ============================================================================
+
+[tool.bandit]
+# Directories to scan
+# paths = ["src"]
+
+# Tests to skip (comma-separated list)
+skips = [
+    # "B101",  # Test for use of assert (common in tests)
+    # "B603",  # subprocess without shell equals true (sometimes needed)
+    # "B607",  # Starting a process with a partial executable path
+]
+
+# Tests to run (comma-separated list) - if empty, all tests run
+# tests = []
+
+# Exclude directories
+exclude_dirs = [
+    "tests",
+    ".venv",
+    "venv",
+    "env",
+    "build",
+    "dist",
+    ".git",
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+]
+
+# Confidence levels: LOW, MEDIUM, HIGH
+# Only report issues with specified confidence level or higher
+# confidence = "MEDIUM"
+
+# Severity levels: LOW, MEDIUM, HIGH
+# Only report issues with specified severity level or higher
+# severity = "LOW"
+
+# Output format: json, txt, html, xml, csv
+# format = "json"
+
+# Include full file paths in report
+# include_paths = true
+
+# Show code snippets in report
+# show_source = true
+
+# Recursive scanning
+# recursive = true
+
+# Assert checking
+# assert_used = true
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+include = '\.pyi?$'
+# Принудительно использовать одинарные кавычки для совместимости с Ruff
+skip-string-normalization = false
+# Включить режим предварительного просмотра для новых функций
+preview = false
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | venv
+  | env
+  | _build
+  | buck-out
+  | build
+  | dist
+  | \.pytest_cache
+  | \.ruff_cache
+  | htmlcov
+  | \.eggs
+  | \.egg-info
+)/
+'''
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+# Директории для исключения
+extend-exclude = [
+    ".venv",
+    "venv",
+    "env",
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".eggs",
+    "*.egg-info",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    "htmlcov",
+]
+
+[tool.ruff.lint]
+# Категории правил для проверки
+select = [
+    "E",     # pycodestyle errors
+    "F",     # Pyflakes
+    "W",     # pycodestyle warnings
+    "I",     # isort
+    "N",     # pep8-naming
+    "UP",    # pyupgrade
+    "ANN",   # flake8-annotations
+    "ASYNC", # flake8-async
+    "S",     # flake8-bandit (security)
+    "BLE",   # flake8-blind-except
+    "B",     # flake8-bugbear
+    "A",     # flake8-builtins
+    "C4",    # flake8-comprehensions
+    "DTZ",   # flake8-datetimez
+    "T10",   # flake8-debugger
+    "EM",    # flake8-errmsg
+    "ISC",   # flake8-implicit-str-concat
+    "ICN",   # flake8-import-conventions
+    "G",     # flake8-logging-format
+    "PIE",   # flake8-pie
+    "T20",   # flake8-print
+    "PT",    # flake8-pytest-style
+    "Q",     # flake8-quotes
+    "RSE",   # flake8-raise
+    "RET",   # flake8-return
+    "SIM",   # flake8-simplify
+    "TID",   # flake8-tidy-imports
+    "TCH",   # flake8-type-checking
+    "ARG",   # flake8-unused-arguments
+    "PTH",   # flake8-use-pathlib
+    "ERA",   # eradicate (commented code)
+    "PD",    # pandas-vet
+    "PGH",   # pygrep-hooks
+    "PL",    # Pylint
+    "TRY",   # tryceratops
+    "FLY",   # flynt (f-strings)
+    "NPY",   # NumPy-specific rules
+    "PERF",  # Perflint (performance)
+    "RUF",   # Ruff-specific rules
+]
+
+# Игнорируемые правила
+ignore = [
+    "ANN101",   # Missing type annotation for self in method
+    "ANN102",   # Missing type annotation for cls in classmethod
+    "ANN401",   # Dynamically typed expressions (Any) are disallowed
+    "S101",     # Use of assert detected (используется в pytest)
+    "PLR0913",  # Too many arguments to function call
+    "RUF001",   # String contains ambiguous unicode character (кириллица)
+    "RUF002",   # Docstring contains ambiguous unicode character (кириллица)
+    "RUF003",   # Comment contains ambiguous unicode character (кириллица)
+    "T201",     # print() found (иногда нужен для логирования)
+    "EM101",    # Exception must not use a string literal (разрешаем литералы)
+    "TRY003",   # Avoid specifying long messages outside the exception class
+]
+
+# Разрешить автоисправление для этих правил
+fixable = [
+    "I",    # isort (сортировка импортов)
+    "F401", # unused imports
+    "UP",   # pyupgrade
+    "RUF100", # unused noqa
+]
+
+# Никогда не исправлять автоматически
+unfixable = [
+    "F841",  # unused variable (может быть намеренно)
+    "ERA001", # commented-out code (может быть нужно)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Тесты могут использовать assert и иметь другие особенности
+"tests/**/*.py" = [
+    "S101",     # assert
+    "ANN",      # аннотации типов не обязательны в тестах
+    "ARG",      # неиспользуемые аргументы (фикстуры)
+    "PLR2004",  # magic values
+]
+# Скрипты миграции могут быть менее строгими
+"scripts/**/*.py" = ["ANN", "T201"]
+# __init__.py файлы
+"__init__.py" = ["F401"]  # unused imports (re-exports)
+
+[tool.ruff.lint.isort]
+# Конфигурация сортировки импортов
+known-first-party = ["src"]
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
+lines-after-imports = 2
+
+[tool.ruff.lint.flake8-quotes]
+# Использовать двойные кавычки
+inline-quotes = "double"
+multiline-quotes = "double"
+docstring-quotes = "double"
+
+[tool.ruff.lint.mccabe]
+# Максимальная сложность функции (McCabe complexity)
+max-complexity = 10
+
+[tool.ruff.lint.pydocstyle]
+# Google-style docstrings
+convention = "google"
+
+[tool.ruff.format]
+# Конфигурация форматтера Ruff (альтернатива Black)
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.mypy]
+python_version = "3.11"
+# Общие настройки
+warn_return_any = true              # Предупреждать о возврате Any
+warn_unused_configs = true          # Предупреждать о неиспользуемых настройках
+show_error_codes = true             # Показывать коды ошибок
+pretty = true                       # Красивый вывод ошибок
+
+# Строгость определений функций
+disallow_untyped_defs = true        # Требовать типы для всех функций
+disallow_incomplete_defs = true     # Требовать полные аннотации
+check_untyped_defs = true           # Проверять нетипизированные функции
+disallow_untyped_calls = false      # Разрешить вызовы нетипизированных функций (постепенная типизация)
+disallow_untyped_decorators = false # Разрешить нетипизированные декораторы
+
+# Работа с Any
+disallow_any_generics = false       # Разрешить Any в generics
+warn_unused_ignores = true          # Предупреждать о неиспользуемых # type: ignore
+
+# Optional и None
+no_implicit_optional = true         # Запретить неявный Optional
+strict_optional = true              # Строгая проверка Optional
+
+# Предупреждения
+warn_redundant_casts = true         # Предупреждать о лишних cast
+warn_no_return = true               # Предупреждать об отсутствии return
+warn_unreachable = true             # Предупреждать о недостижимом коде
+
+# Строгость
+strict_equality = true              # Строгая проверка равенства
+strict_concatenate = true           # Строгая проверка конкатенации
+
+# Импорты
+follow_imports = "normal"           # Следовать за импортами
+ignore_missing_imports = false      # Не игнорировать отсутствующие импорты
+namespace_packages = true           # Поддержка namespace packages
+
+# Производительность
+incremental = true                  # Инкрементальная проверка (кэширование)
+cache_dir = ".mypy_cache"          # Директория кэша
+
+# Плагины
+plugins = []                        # Плагины MyPy (например, для Pydantic)
+
+# Исключения
+exclude = [
+    "tests/",
+    "scripts/migrate_users.py",
+    "create_env_file.py",
+    "build/",
+    "dist/",
+    ".venv/",
+]
+
+# Переопределение для конкретных модулей
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true                # Игнорировать ошибки в тестах
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "scripts.*"
+ignore_errors = false
+disallow_untyped_defs = false       # Менее строгие требования для скриптов
+
+# Игнорировать отсутствующие типы для сторонних библиотек
+[[tool.mypy.overrides]]
+module = [
+    "telegram.*",
+    "httpx.*",
+    "aiohttp.*",
+    "redis.*",
+]
+ignore_missing_imports = true
+
+[tool.coverage.run]
+branch = true                       # Покрытие ветвлений (if/else)
+source = ["src"]                    # Какой код измерять
+parallel = true                     # Параллельный сбор данных
+concurrency = ["thread", "greenlet"] # Поддержка async/threading
+omit = [
+    "tests/*",
+    "*/__pycache__/*",
+    "*/site-packages/*",
+    "*/.venv/*",
+    "*/venv/*",
+    "scripts/*",
+]
+
+[tool.coverage.report]
+precision = 2                       # Точность процентов (XX.XX%)
+fail_under = 80                    # Минимальное покрытие (текущая цель)
+show_missing = true                # Показать пропущенные строки
+skip_covered = false               # Показывать полностью покрытые файлы
+skip_empty = true                  # Пропускать пустые файлы
+sort = "Cover"                     # Сортировка по покрытию
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "def __str__",
+    "if TYPE_CHECKING:",
+    "if typing.TYPE_CHECKING:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "@abstractmethod",
+    "@abc.abstractmethod",
+    "@overload",
+    "class .*\\bProtocol\\):",
+    "except ImportError:",
+]
+
+[tool.coverage.html]
+directory = "htmlcov"              # Директория для HTML отчета
+show_contexts = true               # Показать контексты тестов
+
+[tool.coverage.json]
+output = "coverage.json"           # JSON отчет для CI/CD
+show_contexts = true
+
+[tool.coverage.xml]
+output = "coverage.xml"            # XML отчет для CI/CD
+
+[tool.vulture]
+paths = ["src"]
+min_confidence = 80
+exclude = ["tests/", ".venv/", "venv/"]
+ignore_names = ["test_*", "setUp", "tearDown"]
+
+[tool.interrogate]
+ignore-init-method = true
+ignore-init-module = false
+ignore-magic = false
+ignore-semiprivate = false
+ignore-private = false
+ignore-property-decorators = false
+ignore-module = false
+ignore-nested-functions = false
+ignore-nested-classes = true
+ignore-setters = false
+fail-under = 85
+exclude = ["setup.py", "docs", "build", "tests"]
+verbose = 2
+quiet = false
+whitelist-regex = []
+color = true
+generate-badge = "."
+badge-format = "svg"
+
+# ============================================================================
+# PYTEST CONFIGURATION
+# ============================================================================
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--cov=src",
+    "--cov-report=html",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-report=xml",
+    "--cov-branch",
+    "--cov-fail-under=80",
+    "-vv",
+    "--tb=short",
+    "--maxfail=1",
+    "-ra",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "asyncio: marks tests as async",
+]
+asyncio_mode = "auto"
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+]
+

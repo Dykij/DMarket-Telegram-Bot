@@ -1,0 +1,218 @@
+"""Configuration management utilities for DMarket Bot.
+
+This module provides utilities for loading and managing configuration
+from various sources including environment variables, YAML files, and defaults.
+"""
+
+import contextlib
+import logging
+import os
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not installed, skip
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class DatabaseConfig:
+    """Database configuration."""
+
+    url: str = "sqlite:///data/dmarket_bot.db"
+    echo: bool = False
+    pool_size: int = 5
+    max_overflow: int = 10
+
+
+@dataclass
+class BotConfig:
+    """Telegram bot configuration."""
+
+    token: str = ""
+    username: str = "dmarket_bot"
+    webhook_url: str = ""
+    webhook_secret: str = ""
+
+
+@dataclass
+class DMarketConfig:
+    """DMarket API configuration."""
+
+    api_url: str = "https://api.dmarket.com"
+    public_key: str = ""
+    secret_key: str = ""
+    rate_limit: int = 30
+
+
+@dataclass
+class SecurityConfig:
+    """Security configuration."""
+
+    allowed_users: list[str] = field(default_factory=list)
+    admin_users: list[str] = field(default_factory=list)
+
+
+@dataclass
+class LoggingConfig:
+    """Logging configuration."""
+
+    level: str = "INFO"
+    file: str = "logs/dmarket_bot.log"
+    format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    rotation: str = "1 week"
+    retention: str = "1 month"
+
+
+@dataclass
+class Config:
+    """Main application configuration."""
+
+    bot: BotConfig = field(default_factory=BotConfig)
+    dmarket: DMarketConfig = field(default_factory=DMarketConfig)
+    database: DatabaseConfig = field(default_factory=DatabaseConfig)
+    security: SecurityConfig = field(default_factory=SecurityConfig)
+    logging: LoggingConfig = field(default_factory=LoggingConfig)
+    debug: bool = False
+    testing: bool = False
+
+    @classmethod
+    def load(cls, config_path: str | None = None) -> "Config":
+        """Load configuration from file and environment variables.
+
+        Args:
+            config_path: Path to configuration file (YAML)
+
+        Returns:
+            Config: Loaded configuration
+
+        """
+        config = cls()
+
+        # Load from YAML file if provided
+        if config_path and Path(config_path).exists():
+            try:
+                with open(config_path) as f:
+                    yaml_config = yaml.safe_load(f)
+                config._update_from_dict(yaml_config)
+                logger.info(f"Configuration loaded from {config_path}")
+            except Exception as e:
+                logger.warning(f"Failed to load config from {config_path}: {e}")
+
+        # Override with environment variables
+        config._update_from_env()
+
+        return config
+
+    def _update_from_dict(self, data: dict[str, Any]) -> None:
+        """Update configuration from dictionary."""
+        if "bot" in data:
+            bot_data = data["bot"]
+            self.bot.token = bot_data.get("token", self.bot.token)
+            self.bot.username = bot_data.get("username", self.bot.username)
+            if "webhook" in bot_data:
+                webhook = bot_data["webhook"]
+                self.bot.webhook_url = webhook.get("url", self.bot.webhook_url)
+                self.bot.webhook_secret = webhook.get("secret", self.bot.webhook_secret)
+
+        if "dmarket" in data:
+            dmarket_data = data["dmarket"]
+            self.dmarket.api_url = dmarket_data.get("api_url", self.dmarket.api_url)
+            self.dmarket.public_key = dmarket_data.get(
+                "public_key",
+                self.dmarket.public_key,
+            )
+            self.dmarket.secret_key = dmarket_data.get(
+                "secret_key",
+                self.dmarket.secret_key,
+            )
+            self.dmarket.rate_limit = dmarket_data.get(
+                "rate_limit",
+                self.dmarket.rate_limit,
+            )
+
+        if "database" in data:
+            db_data = data["database"]
+            self.database.url = db_data.get("url", self.database.url)
+            self.database.echo = db_data.get("echo", self.database.echo)
+
+        if "security" in data:
+            security_data = data["security"]
+            allowed = security_data.get("allowed_users", "")
+            if allowed:
+                self.security.allowed_users = [u.strip() for u in allowed.split(",")]
+            admin = security_data.get("admin_users", "")
+            if admin:
+                self.security.admin_users = [u.strip() for u in admin.split(",")]
+
+        if "logging" in data:
+            log_data = data["logging"]
+            self.logging.level = log_data.get("level", self.logging.level)
+            self.logging.file = log_data.get("file", self.logging.file)
+
+    def _update_from_env(self) -> None:
+        """Update configuration from environment variables."""
+        # Bot configuration
+        self.bot.token = os.getenv("TELEGRAM_BOT_TOKEN", self.bot.token)
+        self.bot.username = os.getenv("BOT_USERNAME", self.bot.username)
+        self.bot.webhook_url = os.getenv("WEBHOOK_URL", self.bot.webhook_url)
+        self.bot.webhook_secret = os.getenv("WEBHOOK_SECRET", self.bot.webhook_secret)
+
+        # DMarket configuration
+        self.dmarket.api_url = os.getenv("DMARKET_API_URL", self.dmarket.api_url)
+        self.dmarket.public_key = os.getenv(
+            "DMARKET_PUBLIC_KEY",
+            self.dmarket.public_key,
+        )
+        self.dmarket.secret_key = os.getenv(
+            "DMARKET_SECRET_KEY",
+            self.dmarket.secret_key,
+        )
+
+        rate_limit = os.getenv("API_RATE_LIMIT")
+        if rate_limit:
+            with contextlib.suppress(ValueError):
+                self.dmarket.rate_limit = int(rate_limit)
+
+        # Database configuration
+        self.database.url = os.getenv("DATABASE_URL", self.database.url)
+
+        # Security configuration
+        allowed_users = os.getenv("ALLOWED_USERS", "")
+        if allowed_users:
+            self.security.allowed_users = [u.strip() for u in allowed_users.split(",")]
+
+        admin_users = os.getenv("ADMIN_USERS", "")
+        if admin_users:
+            self.security.admin_users = [u.strip() for u in admin_users.split(",")]
+
+        # Logging configuration
+        self.logging.level = os.getenv("LOG_LEVEL", self.logging.level)
+        self.logging.file = os.getenv("LOG_FILE", self.logging.file)
+
+        # Debug and testing flags
+        self.debug = os.getenv("DEBUG", "false").lower() == "true"
+        self.testing = os.getenv("TESTING", "false").lower() == "true"
+
+    def validate(self) -> None:
+        """Validate configuration and raise errors for required missing values."""
+        if not self.bot.token:
+            msg = "TELEGRAM_BOT_TOKEN is required"
+            raise ValueError(msg)
+
+        if not self.testing and not self.dmarket.public_key:
+            msg = "DMARKET_PUBLIC_KEY is required (unless in testing mode)"
+            raise ValueError(msg)
+
+        if not self.testing and not self.dmarket.secret_key:
+            msg = "DMARKET_SECRET_KEY is required (unless in testing mode)"
+            raise ValueError(msg)
