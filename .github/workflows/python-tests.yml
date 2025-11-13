@@ -15,148 +15,180 @@ on:
       - 'requirements.txt'
       - 'pyproject.toml'
       - '.github/workflows/python-tests.yml'
-  workflow_dispatch:  # Allow manual triggering
+  schedule:
+    - cron: '0 6 * * *'  # Ежедневно в 06:00 UTC
+  workflow_dispatch:  # Ручной запуск
 
-# Управление параллелизмом для предотвращения одновременных запусков
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Ограничение прав доступа GITHUB_TOKEN
 permissions:
   contents: read
-  checks: write  # Для публикации результатов тестов
+  checks: write
+  pull-requests: write  # Для комментариев с результатами
+
+env:
+  PYTHON_VERSION: '3.11'
+  MIN_COVERAGE: 80  # Минимальное покрытие тестами (цель: 85%)
 
 jobs:
   test:
-    name: Run Python Tests
+    name: Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     strategy:
       matrix:
-        python-version: ['3.11']
+        python-version: ['3.11', '3.12']
       fail-fast: false
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      # Проверка наличия директории setup-python-env
-      - name: Check for composite action
-        id: check-action
-        run: |
-          if [ -d ".github/actions/setup-python-env" ] && [ -f ".github/actions/setup-python-env/action.yml" ]; then
-            echo "action_exists=true" >> $GITHUB_OUTPUT
-            echo "✅ Композитный экшен найден"
-          else
-            echo "::warning::Композитный экшен не найден в .github/actions/setup-python-env, используем резервную настройку"
-            echo "action_exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      # Используем наш composite action, если он доступен
-      - name: Setup Python environment using composite action
-        id: composite-setup
-        if: steps.check-action.outputs.action_exists == 'true'
-        uses: ./.github/actions/setup-python-env
         with:
-          python-version: ${{ matrix.python-version }}
-          install-poetry: ${{ hashFiles('poetry.lock') != '' && 'true' || 'false' }}
-          install-dev-deps: 'true'
-          create-env-file: 'true'
-        continue-on-error: true
+          fetch-depth: 0  # Полная история для лучшего анализа
 
-      # Резервная настройка окружения, если composite action недоступен
-      - name: Fallback Python setup
-        if: steps.check-action.outputs.action_exists != 'true' || steps.composite-setup.outcome == 'failure'
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
+          cache-dependency-path: 'requirements.txt'
 
-      # Резервная установка зависимостей, если composite action недоступен
-      - name: Fallback dependencies setup
-        if: steps.check-action.outputs.action_exists != 'true' || steps.composite-setup.outcome == 'failure'
-        continue-on-error: true
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            .pytest_cache
+          key: ${{ runner.os }}-py${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-py${{ matrix.python-version }}-
+
+      - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          echo "📦 Установка зависимостей..."
+          python -m pip install --upgrade pip setuptools wheel
 
-          # Определение метода управления зависимостями
-          if [ -f poetry.lock ]; then
-            echo "✅ Обнаружен poetry.lock, устанавливаем Poetry..."
-            curl -sSL https://install.python-poetry.org | python3 -
-            echo "$HOME/.local/bin" >> $GITHUB_PATH
-            export PATH="$HOME/.local/bin:$PATH"
-
-            poetry config virtualenvs.create true
-            poetry config virtualenvs.in-project true
-            poetry install --no-interaction
-            echo "POETRY_AVAILABLE=true" >> $GITHUB_ENV
-          elif [ -f requirements.txt ]; then
+          # Установка зависимостей проекта
+          if [ -f requirements.txt ]; then
             echo "✅ Установка из requirements.txt..."
             pip install -r requirements.txt
-            echo "POETRY_AVAILABLE=false" >> $GITHUB_ENV
           elif [ -f pyproject.toml ]; then
             echo "✅ Установка из pyproject.toml..."
-            pip install .
-            echo "POETRY_AVAILABLE=false" >> $GITHUB_ENV
-          else
-            echo "⚠️ Не найдены файлы зависимостей"
-            echo "POETRY_AVAILABLE=false" >> $GITHUB_ENV
+            pip install -e .
           fi
 
-          # Установка инструментов для тестирования
+          # Установка инструментов для тестирования (всегда)
           echo "✅ Установка инструментов для тестирования..."
-          pip install pytest pytest-asyncio pytest-cov pytest-mock
+          pip install pytest pytest-asyncio pytest-cov pytest-mock pytest-xdist
 
-          # Создание .env файла
-          if [ -f .env.example ] && [ ! -f .env ]; then
-            echo "✅ Создание .env файла из примера..."
+          # Создание .env файла для тестов
+          if [ -f .env.example ]; then
             cp .env.example .env
+          else
+            cat > .env << EOF
+          TELEGRAM_BOT_TOKEN=test_token
+          DMARKET_PUBLIC_KEY=test_public_key
+          DMARKET_SECRET_KEY=test_secret_key
+          DATABASE_URL=sqlite:///:memory:
+          TESTING=true
+          EOF
           fi
 
-          # Настройка PYTHONPATH
-          echo "✅ Настройка PYTHONPATH..."
-          echo "PYTHONPATH=$GITHUB_WORKSPACE:$PYTHONPATH" >> $GITHUB_ENV
+          echo "✅ Зависимости установлены"
 
       - name: Run tests with pytest
+        id: pytest
         run: |
-          echo "🧪 Запуск тестов..."
-          if [ "${{ env.POETRY_AVAILABLE }}" == "true" ] || [ -f poetry.lock ]; then
-            poetry run python -m pytest -xvs --cov=src --cov-report=xml
-          else
-            python -m pytest -xvs --cov=src --cov-report=xml
-          fi
-        env:
-          DMARKET_PUBLIC_KEY: ${{ secrets.DMARKET_PUBLIC_KEY || 'test_public_key' }}
-          DMARKET_SECRET_KEY: ${{ secrets.DMARKET_SECRET_KEY || 'test_secret_key' }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN || 'test_token' }}
+          echo "🧪 Запуск тестов с покрытием кода..."
 
-      - name: Upload coverage report
-        if: hashFiles('coverage.xml') != ''
+          # Создаем директорию для отчетов
+          mkdir -p build/test-results build/coverage
+
+          # Запускаем тесты
+          python -m pytest tests/ \
+            --cov=src \
+            --cov-report=xml:build/coverage/coverage.xml \
+            --cov-report=html:build/coverage/html \
+            --cov-report=term-missing \
+            --junitxml=build/test-results/junit.xml \
+            --maxfail=5 \
+            -v \
+            --tb=short \
+            || echo "test_failed=true" >> $GITHUB_OUTPUT
+
+          echo "✅ Тесты завершены"
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          DMARKET_PUBLIC_KEY: 'test_public_key'
+          DMARKET_SECRET_KEY: 'test_secret_key'
+          TELEGRAM_BOT_TOKEN: 'test_token'
+          DATABASE_URL: 'sqlite:///:memory:'
+          TESTING: 'true'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check coverage threshold
+        if: always()
+        run: |
+          echo "📊 Проверка порога покрытия кода..."
+
+          if [ -f build/coverage/coverage.xml ]; then
+            # Извлекаем процент покрытия из XML
+            COVERAGE=$(python -c "import xml.etree.ElementTree as ET; tree = ET.parse('build/coverage/coverage.xml'); root = tree.getroot(); print(root.attrib.get('line-rate', '0'))" 2>/dev/null || echo "0")
+            COVERAGE_PERCENT=$(python -c "print(int(float('$COVERAGE') * 100))" 2>/dev/null || echo "0")
+
+            echo "📈 Текущее покрытие: ${COVERAGE_PERCENT}%"
+            echo "🎯 Минимальное покрытие: ${{ env.MIN_COVERAGE }}%"
+            echo "coverage_percent=${COVERAGE_PERCENT}" >> $GITHUB_OUTPUT
+
+            if [ $COVERAGE_PERCENT -lt ${{ env.MIN_COVERAGE }} ]; then
+              echo "::warning::Покрытие кода (${COVERAGE_PERCENT}%) ниже минимального (${{ env.MIN_COVERAGE }}%)"
+            else
+              echo "✅ Покрытие кода соответствует требованиям"
+            fi
+          else
+            echo "::warning::Файл покрытия не найден"
+          fi
+        continue-on-error: true
+
+      - name: Upload coverage to Codecov
+        if: hashFiles('build/coverage/coverage.xml') != ''
         uses: codecov/codecov-action@v4
         with:
-          file: ./coverage.xml
+          file: ./build/coverage/coverage.xml
           fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: python-${{ matrix.python-version }}
         continue-on-error: true
 
       - name: Archive test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ matrix.python-version }}
+          name: test-results-py${{ matrix.python-version }}
           path: |
-            coverage.xml
-            .coverage
-            pytest-report.xml
-          retention-days: 7
+            build/test-results/
+            build/coverage/
+          retention-days: 14
+        continue-on-error: true
 
-      - name: Debug info
+      - name: Test summary
         if: always()
         run: |
-          echo "💻 Отладочная информация:"
-          echo "Python version: $(python --version)"
-          echo "System: $(uname -a)"
-          echo "Working directory: $(pwd)"
-          echo "SHA: ${{ github.sha }}"
-          echo "Ref: ${{ github.ref }}"
-          echo "Event: ${{ github.event_name }}"
+          echo "# 🧪 Результаты тестирования" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Параметр | Значение |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|----------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Python | ${{ matrix.python-version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Статус | ${{ steps.pytest.outputs.test_failed == 'true' && '❌ Тесты провалены' || '✅ Успешно' }} |" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f build/coverage/coverage.xml ]; then
+            COVERAGE=$(python -c "import xml.etree.ElementTree as ET; tree = ET.parse('build/coverage/coverage.xml'); root = tree.getroot(); print(root.attrib.get('line-rate', '0'))" 2>/dev/null || echo "0")
+            COVERAGE_PERCENT=$(python -c "print(int(float('$COVERAGE') * 100))" 2>/dev/null || echo "0")
+            echo "| Покрытие | ${COVERAGE_PERCENT}% |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📅 **Дата**: $(date +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

@@ -28,103 +28,60 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python
-        id: set-up-python
-        uses: ./.github/actions/setup-python-env
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          install-poetry: ${{ hashFiles('poetry.lock') != '' && 'true' || 'false' }}
-          install-dev-deps: 'true'
-          create-env-file: 'false'
-        continue-on-error: true
-
-      - name: Fallback Python setup
-        id: fallback-python
-        if: steps.set-up-python.outcome == 'failure' || steps.set-up-python.outcome == 'skipped'
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
 
-      - name: Fallback dependencies installation
-        if: steps.set-up-python.outcome == 'failure' || steps.set-up-python.outcome == 'skipped'
+      - name: Install dependencies
         run: |
           echo "Установка зависимостей для линтинга..."
           python -m pip install --upgrade pip
 
-          if [ -f poetry.lock ]; then
-            echo "✅ Обнаружен poetry.lock, устанавливаем Poetry..."
-            curl -sSL https://install.python-poetry.org | python3 -
-            echo "$HOME/.local/bin" >> $GITHUB_PATH
-            export PATH="$HOME/.local/bin:$PATH"
+          # Установка инструментов для проверки кода
+          pip install ruff mypy
 
-            poetry config virtualenvs.create true
-            poetry config virtualenvs.in-project true
-            poetry install --no-interaction
-            echo "POETRY_AVAILABLE=true" >> $GITHUB_ENV
-          elif [ -f requirements.txt ]; then
+          # Установка зависимостей проекта (необязательно, но полезно для MyPy)
+          if [ -f requirements.txt ]; then
             echo "✅ Установка из requirements.txt..."
-            pip install -r requirements.txt
-            echo "POETRY_AVAILABLE=false" >> $GITHUB_ENV
+            pip install -r requirements.txt || echo "::warning::Некоторые зависимости из requirements.txt не удалось установить"
           elif [ -f pyproject.toml ]; then
             echo "✅ Установка из pyproject.toml..."
-            pip install .
-            echo "POETRY_AVAILABLE=false" >> $GITHUB_ENV
-          else
-            echo "⚠️ Не найдены файлы зависимостей"
-            echo "POETRY_AVAILABLE=false" >> $GITHUB_ENV
+            pip install -e . || echo "::warning::Ошибка при установке из pyproject.toml"
           fi
 
-          # Всегда устанавливаем основные инструменты для проверки кода
-          pip install ruff mypy
           echo "✅ Зависимости для линтинга установлены"
 
       - name: Run Ruff Format Check
         run: |
           echo "Проверка форматирования с помощью Ruff..."
-          if [ -f poetry.lock ] && command -v poetry &> /dev/null; then
-            poetry run ruff format --check . || echo "::warning::Ruff format выявил проблемы форматирования"
-          else
-            ruff format --check . || echo "::warning::Ruff format выявил проблемы форматирования"
-          fi
+          ruff format --check src tests scripts || echo "::warning::Ruff format выявил проблемы форматирования"
+        continue-on-error: true
 
       - name: Run Ruff Linting
         run: |
           echo "Проверка стиля кода с помощью Ruff..."
-          if [ -f poetry.lock ] && command -v poetry &> /dev/null; then
-            poetry run ruff check . --output-format=github || echo "::warning::Ruff check выявил проблемы стиля кода"
-          else
-            ruff check . --output-format=github || echo "::warning::Ruff check выявил проблемы стиля кода"
-          fi
+          ruff check src tests scripts --output-format=github || echo "::warning::Ruff check выявил проблемы стиля кода"
+        continue-on-error: true
 
       - name: Run MyPy
         run: |
           echo "Проверка типов с помощью MyPy..."
-          if [ -f poetry.lock ] && command -v poetry &> /dev/null; then
-            poetry run mypy src --config-file=pyproject.toml || echo "::warning::MyPy выявил проблемы с типами"
-          else
-            mypy src --config-file=pyproject.toml || echo "::warning::MyPy выявил проблемы с типами"
-          fi
+          mypy src --config-file=pyproject.toml --install-types --non-interactive || echo "::warning::MyPy выявил проблемы с типами"
+        continue-on-error: true
 
       - name: Generate code quality report
         if: always()
         run: |
           echo "Генерация отчета о качестве кода..."
-
-          # Создаем директорию для отчетов
           mkdir -p reports
 
-          # Сохраняем результаты проверок
-          if [ -f poetry.lock ] && command -v poetry &> /dev/null; then
-            poetry run ruff format --check . > reports/ruff-format-report.txt 2>&1 || true
-            poetry run ruff check . > reports/ruff-check-report.txt 2>&1 || true
-            poetry run mypy src --config-file=pyproject.toml > reports/mypy-report.txt 2>&1 || true
-          else
-            ruff format --check . > reports/ruff-format-report.txt 2>&1 || true
-            ruff check . > reports/ruff-check-report.txt 2>&1 || true
-            mypy src --config-file=pyproject.toml > reports/mypy-report.txt 2>&1 || true
-          fi
+          ruff format --check src tests scripts > reports/ruff-format-report.txt 2>&1 || true
+          ruff check src tests scripts > reports/ruff-check-report.txt 2>&1 || true
+          mypy src --config-file=pyproject.toml --install-types --non-interactive > reports/mypy-report.txt 2>&1 || true
 
           echo "✅ Отчеты о качестве кода сохранены"
+        continue-on-error: true
 
       - name: Upload code quality report
         if: always()
@@ -216,74 +173,72 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python
-        id: set-up-docs-python
-        uses: ./.github/actions/setup-python-env
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          install-poetry: ${{ hashFiles('poetry.lock') != '' && 'true' || 'false' }}
-          install-dev-deps: 'true'
-        continue-on-error: true
-
-      - name: Fallback Python setup
-        id: fallback-docs-python
-        if: steps.set-up-docs-python.outcome == 'failure' || steps.set-up-docs-python.outcome == 'skipped'
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
 
-      - name: Fallback dependencies installation
-        if: steps.set-up-docs-python.outcome == 'failure' || steps.set-up-docs-python.outcome == 'skipped'
+      - name: Check docs structure
+        id: check-docs
         run: |
-          echo "Установка зависимостей для сборки документации..."
-          python -m pip install --upgrade pip
+          echo "Проверка структуры документации..."
 
-          # Установка зависимостей проекта
-          if [ -f poetry.lock ]; then
-            curl -sSL https://install.python-poetry.org | python3 -
-            echo "$HOME/.local/bin" >> $GITHUB_PATH
-            export PATH="$HOME/.local/bin:$PATH"
-            poetry config virtualenvs.create true
-            poetry config virtualenvs.in-project true
-            poetry install --no-interaction
-          elif [ -f requirements.txt ]; then
-            pip install -r requirements.txt
-          elif [ -f pyproject.toml ]; then
-            pip install .
-          fi
-
-          # Установка зависимостей для документации
-          pip install sphinx sphinx-rtd-theme
-
-          # Если есть requirements-docs.txt, установим его тоже
-          if [ -f "docs/requirements-docs.txt" ]; then
-            pip install -r docs/requirements-docs.txt
-          fi
-
-      - name: Build documentation
-        continue-on-error: true
-        run: |
-          if [ -d "docs" ]; then
-            echo "Сборка документации..."
-            cd docs
-            if [ -f "Makefile" ]; then
-              make html || echo "::warning::Ошибка при сборке документации, но продолжаем"
-            elif [ -d "source" ] && [ -f "source/conf.py" ]; then
-              python -m sphinx.cmd.build -b html source build/html || echo "::warning::Ошибка при сборке документации, но продолжаем"
-            else
-              echo "::warning::Не найдена структура Sphinx (source/conf.py), документация не будет собрана"
-              echo "::notice::Для сборки документации нужен source/conf.py или Makefile"
-            fi
-            echo "✅ Попытка сборки документации завершена"
+          if [ -d "docs/source" ] && [ -f "docs/source/conf.py" ]; then
+            echo "has_sphinx=true" >> $GITHUB_OUTPUT
+            echo "✅ Найдена Sphinx документация"
           else
-            echo "::warning::Директория docs не найдена, документация не будет собрана"
-            echo "::notice::Документация в формате Markdown уже присутствует в docs/"
+            echo "has_sphinx=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ Sphinx документация не найдена, используется Markdown"
           fi
 
-      - name: Upload documentation
-        if: success() && hashFiles('docs/build/html/**') != ''
+      - name: Install dependencies for Sphinx
+        if: steps.check-docs.outputs.has_sphinx == 'true'
+        run: |
+          echo "Установка зависимостей для Sphinx..."
+          python -m pip install --upgrade pip
+          pip install sphinx sphinx-rtd-theme sphinx-autodoc-typehints
+
+          # Установка зависимостей проекта для autodoc
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt || echo "::warning::Некоторые зависимости не установлены"
+          fi
+
+      - name: Build Sphinx documentation
+        if: steps.check-docs.outputs.has_sphinx == 'true'
+        run: |
+          echo "Сборка Sphinx документации..."
+          cd docs
+          python -m sphinx.cmd.build -b html source build/html || {
+            echo "::warning::Ошибка при сборке документации"
+            exit 0
+          }
+          echo "✅ Sphinx документация собрана"
+        continue-on-error: true
+
+      - name: Create docs summary
+        if: always()
+        run: |
+          echo "# 📚 Документация" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.check-docs.outputs.has_sphinx }}" == "true" ]; then
+            echo "- **Тип**: Sphinx HTML" >> $GITHUB_STEP_SUMMARY
+            if [ -d "docs/build/html" ]; then
+              echo "- **Статус**: ✅ Собрана успешно" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- **Статус**: ⚠️ Ошибка сборки" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "- **Тип**: Markdown" >> $GITHUB_STEP_SUMMARY
+            echo "- **Расположение**: \`docs/*.md\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **Статус**: ✅ Доступна" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload Sphinx documentation
+        if: steps.check-docs.outputs.has_sphinx == 'true' && hashFiles('docs/build/html/**') != ''
         uses: actions/upload-artifact@v4
         with:
-          name: documentation
+          name: sphinx-documentation
           path: docs/build/html
           retention-days: 7
+        continue-on-error: true

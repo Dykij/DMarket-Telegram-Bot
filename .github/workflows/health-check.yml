@@ -1,0 +1,165 @@
+name: CI/CD Health Check
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Каждые 6 часов
+  workflow_dispatch:  # Ручной запуск
+
+permissions:
+  contents: read
+  issues: write  # Для создания issue при проблемах
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  monitor:
+    name: Monitor CI/CD Health
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests python-dotenv
+
+      - name: Run GitHub Actions monitor
+        id: monitor
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Запуск мониторинга GitHub Actions..."
+
+          # Создаем директорию для отчетов
+          mkdir -p build/reports
+
+          # Запускаем монитор
+          python scripts/github_actions_monitor.py || {
+            echo "monitor_failed=true" >> $GITHUB_OUTPUT
+            echo "::warning::Ошибка при запуске монитора"
+          }
+
+          echo "✅ Мониторинг завершен"
+
+      - name: Check for critical issues
+        id: check-issues
+        run: |
+          echo "📊 Проверка критических проблем..."
+
+          # Проверяем наличие отчета
+          if [ -f "build/reports/github_actions_report_*.md" ]; then
+            REPORT_FILE=$(ls -t build/reports/github_actions_report_*.md | head -1)
+
+            # Извлекаем success rate
+            SUCCESS_RATE=$(grep -oP 'Success Rate: \K[0-9.]+' "$REPORT_FILE" | head -1 || echo "0")
+
+            echo "success_rate=$SUCCESS_RATE" >> $GITHUB_OUTPUT
+            echo "📈 Success Rate: $SUCCESS_RATE%"
+
+            # Проверяем критический порог
+            if (( $(echo "$SUCCESS_RATE < 60.0" | bc -l) )); then
+              echo "critical=true" >> $GITHUB_OUTPUT
+              echo "::error::Критически низкий success rate: $SUCCESS_RATE%"
+            else
+              echo "critical=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "::warning::Отчет не найден"
+            echo "critical=unknown" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload monitoring report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-health-report
+          path: build/reports/
+          retention-days: 30
+
+      - name: Create summary
+        if: always()
+        run: |
+          echo "# 🏥 CI/CD Health Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Дата проверки**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.check-issues.outputs.success_rate }}" != "" ]; then
+            echo "## 📊 Метрики" >> $GITHUB_STEP_SUMMARY
+            echo "- **Success Rate**: ${{ steps.check-issues.outputs.success_rate }}%" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            if [ "${{ steps.check-issues.outputs.critical }}" == "true" ]; then
+              echo "## ⚠️ Критические Проблемы" >> $GITHUB_STEP_SUMMARY
+              echo "Success rate ниже 60%. Требуется срочное вмешательство!" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "## ✅ Статус" >> $GITHUB_STEP_SUMMARY
+              echo "CI/CD pipeline в нормальном состоянии" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "## ⚠️ Предупреждение" >> $GITHUB_STEP_SUMMARY
+            echo "Не удалось получить метрики" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📁 Полный отчет доступен в artifacts" >> $GITHUB_STEP_SUMMARY
+
+      - name: Create issue for critical problems
+        if: steps.check-issues.outputs.critical == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const successRate = '${{ steps.check-issues.outputs.success_rate }}';
+
+            // Проверяем, есть ли уже открытый issue
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'ci-health-critical'
+            });
+
+            if (issues.data.length === 0) {
+              // Создаем новый issue
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `🚨 Критический Success Rate в CI/CD: ${successRate}%`,
+                body: `
+            ## 🚨 Критическая Проблема CI/CD
+
+            **Success Rate**: ${successRate}%
+            **Порог**: 60%
+            **Дата обнаружения**: ${new Date().toISOString()}
+
+            ### 📊 Детали
+
+            CI/CD pipeline показывает критически низкий success rate. Это указывает на серьезные проблемы с тестами или инфраструктурой.
+
+            ### 🔧 Рекомендуемые Действия
+
+            1. Проверьте последние failed workflows
+            2. Изучите логи ошибок
+            3. Исправьте failing tests
+            4. Обновите устаревшие зависимости
+
+            ### 📁 Отчеты
+
+            Полный отчет доступен в [GitHub Actions artifacts](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+
+            ---
+
+            *Этот issue создан автоматически системой мониторинга*
+                `,
+                labels: ['ci-health-critical', 'automated']
+              });
+            }

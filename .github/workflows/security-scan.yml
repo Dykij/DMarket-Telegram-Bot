@@ -66,16 +66,75 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Security Check
-        uses: ./.github/actions/security-check
-        continue-on-error: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          scan-dependencies: 'true'
-          scan-code: 'true'
-          src-directory: './src'
-          fail-on-high: 'false'
-          generate-report: 'true'
+          cache: 'pip'
+
+      - name: Install security tools
+        run: |
+          echo "Установка инструментов для анализа безопасности..."
+          python -m pip install --upgrade pip
+          pip install safety bandit pip-audit || {
+            echo "::warning::Не удалось установить все инструменты безопасности"
+            pip install safety || echo "::warning::Safety не установлен"
+            pip install bandit || echo "::warning::Bandit не установлен"
+            pip install pip-audit || echo "::warning::pip-audit не установлен"
+          }
+          echo "✅ Инструменты для анализа безопасности установлены"
+
+      - name: Check for dependency files
+        id: check-deps
+        run: |
+          echo "Проверка наличия файлов зависимостей..."
+          if [ -f "requirements.txt" ]; then
+            echo "has_requirements=true" >> $GITHUB_OUTPUT
+            echo "✅ Найден файл requirements.txt"
+          else
+            echo "has_requirements=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Файл requirements.txt не найден"
+          fi
+
+      - name: Run Safety check
+        if: steps.check-deps.outputs.has_requirements == 'true'
+        run: |
+          echo "Проверка зависимостей на уязвимости с помощью Safety..."
+          mkdir -p security-reports
+          safety check -r requirements.txt --output json > security-reports/safety.json || echo "::warning::Safety обнаружил уязвимости"
+          safety check -r requirements.txt --output text > security-reports/safety.txt || true
+        continue-on-error: true
+
+      - name: Run Bandit code scan
+        run: |
+          echo "Сканирование кода на уязвимости с помощью Bandit..."
+          mkdir -p security-reports
+          if [ -d "./src" ]; then
+            bandit -r ./src -f json -o security-reports/bandit.json || echo "::warning::Bandit обнаружил потенциальные уязвимости"
+            bandit -r ./src -f txt -o security-reports/bandit.txt || true
+          else
+            echo "::warning::Директория ./src не найдена"
+          fi
+        continue-on-error: true
+
+      - name: Generate security summary
+        if: always()
+        run: |
+          echo "# 🔒 Результаты анализа безопасности" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Проверка зависимостей" >> $GITHUB_STEP_SUMMARY
+          if [ -f security-reports/safety.json ]; then
+            echo "- **Safety**: Проверка выполнена" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Safety**: ⚠️ Пропущена" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Сканирование кода" >> $GITHUB_STEP_SUMMARY
+          if [ -f security-reports/bandit.json ]; then
+            echo "- **Bandit**: Сканирование выполнено" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Bandit**: ⚠️ Пропущено" >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Upload security results
         if: always()
@@ -84,3 +143,4 @@ jobs:
           name: security-results
           path: security-reports/
           retention-days: 7
+        continue-on-error: true
