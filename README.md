@@ -1,12 +1,13 @@
 # 🤖 DMarket Telegram Bot
 
 ![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)
-![CI/CD Pipeline](https://github.com/Dykij/BotDmarket/workflows/CI%2FCD%20Pipeline/badge.svg)
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+[![CI/CD Pipeline](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/ci.yml/badge.svg)](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/ci.yml)
+[![Code Quality](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/code-quality.yml/badge.svg)](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/code-quality.yml)
+[![Python Tests](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/python-tests.yml/badge.svg)](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/python-tests.yml)
+[![Security Scan](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/security-scan.yml/badge.svg)](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/security-scan.yml)
 ![Coverage](https://img.shields.io/badge/coverage-85%25-green)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Code Style](https://img.shields.io/badge/code%20style-black-black)
-![Security](https://img.shields.io/badge/security-bandit-yellow)
 ![Docker](https://img.shields.io/badge/docker-ready-blue)
 
 A comprehensive Telegram bot for DMarket platform operations, market analytics, and automated trading opportunities. Built with modern Python, async/await, and enterprise-grade architecture.
