@@ -16,10 +16,12 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+
 # Импортируем необходимые модули для тестирования
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.dmarket.dmarket_api import DMarketAPI
+
 
 # Тестовые константы
 TEST_PUBLIC_KEY = "test_public_key"

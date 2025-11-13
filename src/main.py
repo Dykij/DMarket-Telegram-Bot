@@ -15,6 +15,7 @@ from src.utils.config import Config
 from src.utils.database import DatabaseManager
 from src.utils.logging_utils import setup_logging
 
+
 logger = logging.getLogger(__name__)
 
 

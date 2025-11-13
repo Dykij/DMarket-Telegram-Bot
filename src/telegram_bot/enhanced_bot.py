@@ -14,6 +14,7 @@ from src.telegram_bot.initialization import initialize_bot_application
 from src.utils.config import Config
 from src.utils.database import DatabaseManager
 
+
 logger = logging.getLogger(__name__)
 
 

@@ -16,6 +16,7 @@ from typing import Any
 # Импортируем DMarketAPI для взаимодействия с API
 from src.dmarket.dmarket_api import DMarketAPI
 
+
 # Настраиваем логирование
 logger = logging.getLogger(__name__)
 

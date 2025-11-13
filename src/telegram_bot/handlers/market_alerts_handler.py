@@ -26,6 +26,7 @@ from src.telegram_bot.notifier import (
     remove_price_alert,
 )
 
+
 # Настройка логирования
 logger = logging.getLogger(__name__)
 

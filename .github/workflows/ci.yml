@@ -43,18 +43,18 @@ jobs:
 
       - name: Run Ruff linting
         run: |
-          ruff check src tests scripts --output-format=github || echo "::warning::Ruff обнаружил проблемы"
-        continue-on-error: true
+          ruff check src tests scripts --output-format=github
+        continue-on-error: false
 
       - name: Run Ruff format check
         run: |
-          ruff format --check src tests scripts || echo "::warning::Требуется форматирование"
-        continue-on-error: true
+          ruff format --check src tests scripts
+        continue-on-error: false
 
       - name: Run MyPy type checking
         run: |
-          mypy src --install-types --non-interactive --ignore-missing-imports || echo "::warning::MyPy обнаружил проблемы с типами"
-        continue-on-error: true
+          mypy src --install-types --non-interactive --ignore-missing-imports
+        continue-on-error: true  # Оставляем true т.к. mypy может иметь ложные срабатывания
 
   test:
     name: Run Tests
@@ -95,14 +95,15 @@ jobs:
           # Устанавливаем PYTHONPATH
           export PYTHONPATH=$GITHUB_WORKSPACE:$PYTHONPATH
 
-          # Запускаем тесты (не падаем при ошибках - покажем результат)
+          # Запускаем тесты с реалистичными требованиями
           pytest tests/ \
             --cov=src \
             --cov-report=xml \
             --cov-report=term \
+            --cov-fail-under=15 \
             --maxfail=10 \
-            -v || echo "::warning::Некоторые тесты не прошли"
-        continue-on-error: true
+            -v
+        continue-on-error: false
         env:
           PYTHONPATH: ${{ github.workspace }}
 
@@ -143,20 +144,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install bandit safety pip-audit
 
-      - name: Run Bandit security scan
+      - name: Bandit Security Scan
         run: |
-          mkdir -p security-reports
-          bandit -r src/ -f json -o security-reports/bandit.json || echo "::warning::Bandit обнаружил потенциальные проблемы"
-        continue-on-error: true
-
-      - name: Run Safety check
-        run: |
-          if [ -f requirements.txt ]; then
-            safety check -r requirements.txt || echo "::warning::Safety обнаружил уязвимости"
+          # Сканируем только существующие директории
+          if [ -d "src" ]; then
+            bandit -r src/ -f json -o bandit-report.json || echo "::warning::Bandit обнаружил потенциальные проблемы безопасности"
           else
-            echo "::warning::requirements.txt не найден"
+            echo "::warning::Директория src/ не найдена, пропускаем Bandit scan"
           fi
-        continue-on-error: true
+        continue-on-error: false
+
+      - name: Safety Check
+        run: |
+          safety check --json || echo "::warning::Safety обнаружил уязвимости в зависимостях"
+        continue-on-error: false
 
       - name: Upload security reports
         if: always()

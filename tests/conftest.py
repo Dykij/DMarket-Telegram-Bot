@@ -19,6 +19,7 @@ from src.telegram_bot.enhanced_bot import DMarketBot
 from src.utils.config import BotConfig, Config, DatabaseConfig, DMarketConfig
 from src.utils.database import DatabaseManager
 
+
 # Test configuration
 TEST_CONFIG = {
     "bot": {

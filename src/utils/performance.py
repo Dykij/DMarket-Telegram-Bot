@@ -7,6 +7,7 @@ import time
 from collections.abc import Callable
 from typing import Any, TypeVar
 
+
 logger = logging.getLogger(__name__)
 
 # Типы для аннотаций

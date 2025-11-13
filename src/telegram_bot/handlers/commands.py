@@ -19,6 +19,7 @@ from src.telegram_bot.keyboards import (
     get_webapp_button,
 )
 
+
 logger = logging.getLogger(__name__)
 
 

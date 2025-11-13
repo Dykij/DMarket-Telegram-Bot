@@ -18,6 +18,7 @@ from src.telegram_bot.sales_analysis_handlers import (
 from src.utils.api_error_handling import APIError
 from src.utils.dmarket_api_utils import execute_api_request
 
+
 # Настройка логирования
 logger = logging.getLogger(__name__)
 

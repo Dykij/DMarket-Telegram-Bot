@@ -28,6 +28,7 @@ from src.telegram_bot.utils.formatters import (
 )
 from src.utils.market_analyzer import MarketAnalyzer, analyze_market_opportunity
 
+
 # Logger
 logger = logging.getLogger(__name__)
 

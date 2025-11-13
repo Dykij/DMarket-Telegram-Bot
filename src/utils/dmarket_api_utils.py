@@ -7,6 +7,7 @@ from typing import Any, TypeVar
 from src.utils.api_error_handling import APIError, retry_request
 from src.utils.rate_limiter import RateLimiter
 
+
 # Тип для обобщенного результата запроса
 T = TypeVar("T")
 

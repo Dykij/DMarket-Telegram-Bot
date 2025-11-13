@@ -2,17 +2,35 @@
 
 ## Быстрый запуск
 
+### Рекомендуемый способ (с wrapper-скриптом)
+
+**Windows PowerShell:**
+```powershell
+.\scripts\run_monitor.ps1
+```
+
+**Linux/macOS:**
+```bash
+chmod +x scripts/run_monitor.sh  # Только первый раз
+./scripts/run_monitor.sh
+```
+
+### Альтернативный способ (напрямую)
+
 ```bash
 # Установка зависимостей (один раз)
 pip install httpx rich
 
-# Запуск монитора
+# Windows (с настройкой кодировки)
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+python scripts/github_actions_monitor.py
+
+# Linux/macOS
 python scripts/github_actions_monitor.py
 
 # С GitHub Token для снятия rate limit
 export GITHUB_TOKEN=your_token  # Linux/Mac
 $env:GITHUB_TOKEN="your_token"   # Windows PowerShell
-python scripts/github_actions_monitor.py
 ```
 
 ## Что получаете

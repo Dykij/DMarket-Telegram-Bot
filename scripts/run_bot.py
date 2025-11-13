@@ -9,6 +9,7 @@ import os
 import sys
 from pathlib import Path
 
+
 # Настраиваем логирование
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",

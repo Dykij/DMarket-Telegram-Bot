@@ -9,6 +9,7 @@ from typing import Any, TypeVar
 import aiohttp
 from aiohttp import ClientResponse
 
+
 # Настройки логирования
 logger = logging.getLogger(__name__)
 

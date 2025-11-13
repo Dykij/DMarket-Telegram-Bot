@@ -10,6 +10,7 @@ import logging
 from .api import DMarketAPI
 from .arbitrage import GAMES
 
+
 __all__ = ["GAMES", "DMarketAPI"]
 
 logging.getLogger(__name__).info("DMarketAPI с улучшенным балансом загружен успешно")

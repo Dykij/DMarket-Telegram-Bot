@@ -16,6 +16,7 @@ from typing import Any
 
 import matplotlib as mpl
 
+
 mpl.use("Agg")  # Non-interactive backend for server use
 import contextlib
 
@@ -24,6 +25,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.patches import Rectangle
 from PIL import Image, ImageDraw, ImageFont
+
 
 # Logger
 logger = logging.getLogger(__name__)

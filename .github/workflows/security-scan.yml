@@ -103,7 +103,7 @@ jobs:
           mkdir -p security-reports
           safety check -r requirements.txt --output json > security-reports/safety.json || echo "::warning::Safety обнаружил уязвимости"
           safety check -r requirements.txt --output text > security-reports/safety.txt || true
-        continue-on-error: true
+        continue-on-error: false
 
       - name: Run Bandit code scan
         run: |
@@ -113,9 +113,9 @@ jobs:
             bandit -r ./src -f json -o security-reports/bandit.json || echo "::warning::Bandit обнаружил потенциальные уязвимости"
             bandit -r ./src -f txt -o security-reports/bandit.txt || true
           else
-            echo "::warning::Директория ./src не найдена"
+            echo "::error::Директория ./src не найдена, пропускаем Bandit scan"
           fi
-        continue-on-error: true
+        continue-on-error: false
 
       - name: Generate security summary
         if: always()

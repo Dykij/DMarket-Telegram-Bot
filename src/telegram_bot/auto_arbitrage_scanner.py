@@ -12,6 +12,7 @@ from src.dmarket.arbitrage import (
 from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.rate_limiter import RateLimiter
 
+
 # Настраиваем логирование
 logger = logging.getLogger(__name__)
 

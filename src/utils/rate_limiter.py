@@ -4,6 +4,7 @@ import asyncio
 import logging
 import time
 
+
 # Настройка логирования
 logger = logging.getLogger(__name__)
 

@@ -10,6 +10,7 @@ from src.telegram_bot.profiles import get_user_profile
 from src.telegram_bot.settings_handlers import get_localized_text
 from src.utils.api_error_handling import APIError
 
+
 # Загружаем переменные окружения
 load_dotenv()
 

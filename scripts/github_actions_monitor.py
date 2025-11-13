@@ -1,25 +1,36 @@
 #!/usr/bin/env python3
-"""GitHub Actions Monitor and Improvement Suggestions.
+"""GitHub Actions Monitor and Success Rate Tracker.
 
-Этот скрипт анализирует результаты GitHub Actions workflows
-и предоставляет конкретные рекомендации по улучшению проекта.
+Этот скрипт анализирует результаты GitHub Actions workflows,
+рассчитывает success rate и предоставляет рекомендации по улучшению.
+
+Цель: Success Rate >= 80% для всех workflows
 """
 
 import asyncio
 import os
 import sys
+import traceback
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import httpx
+from dotenv import load_dotenv
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.table import Table
 
-
 console = Console()
+
+# Константы для success rate thresholds
+EXCELLENT_RATE = 95.0
+GOOD_RATE = 80.0
+POOR_WORKFLOW_RATE = 70.0
+MIN_RUNS_FOR_ANALYSIS = 3
+MAX_DURATION_MINUTES = 15
+WARN_DURATION_MINUTES = 10
 
 
 class GitHubActionsMonitor:
@@ -38,6 +49,7 @@ class GitHubActionsMonitor:
         self.repo_name = repo_name
         self.token = token
         self.base_url = "https://api.github.com"
+        self.target_success_rate = 80.0  # Целевой success rate в процентах
 
         self.headers = {
             "Accept": "application/vnd.github.v3+json",
@@ -45,6 +57,80 @@ class GitHubActionsMonitor:
         }
         if token:
             self.headers["Authorization"] = f"token {token}"
+
+    def calculate_success_rate(self, runs: list[dict[str, Any]]) -> dict[str, Any]:
+        """
+        Рассчитать success rate для списка запусков.
+
+        Args:
+            runs: Список запусков workflows
+
+        Returns:
+            Словарь с метриками success rate
+        """
+        if not runs:
+            return {
+                "total": 0,
+                "success": 0,
+                "failure": 0,
+                "cancelled": 0,
+                "success_rate": 0.0,
+                "meets_target": False,
+            }
+
+        total = len(runs)
+        success = sum(1 for r in runs if r["conclusion"] == "success")
+        failure = sum(1 for r in runs if r["conclusion"] == "failure")
+        cancelled = sum(1 for r in runs if r["conclusion"] == "cancelled")
+
+        success_rate = (success / total * 100) if total > 0 else 0.0
+        meets_target = success_rate >= self.target_success_rate
+
+        return {
+            "total": total,
+            "success": success,
+            "failure": failure,
+            "cancelled": cancelled,
+            "success_rate": success_rate,
+            "meets_target": meets_target,
+        }
+
+    def get_success_rate_color(self, rate: float) -> str:
+        """
+        Получить цвет для отображения success rate.
+
+        Args:
+            rate: Success rate в процентах
+
+        Returns:
+            Цвет для Rich Console
+        """
+        if rate >= 95:
+            return "green"
+        elif rate >= self.target_success_rate:
+            return "yellow"
+        else:
+            return "red"
+
+    async def check_rate_limit(self) -> dict[str, Any]:
+        """
+        Проверить текущий rate limit GitHub API.
+
+        Returns:
+            Информация о rate limit
+        """
+        url = f"{self.base_url}/rate_limit"
+        timeout = httpx.Timeout(10.0, connect=5.0)
+
+        try:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                response = await client.get(url, headers=self.headers)
+                response.raise_for_status()
+                data = response.json()
+                return data.get("rate", {})
+        except Exception as e:
+            console.print(f"[yellow]⚠️  Не удалось проверить rate limit: {e}[/yellow]")
+            return {}
 
     async def get_workflow_runs(
         self, status: str | None = None, limit: int = 10
@@ -65,11 +151,18 @@ class GitHubActionsMonitor:
             params["status"] = status
 
         timeout = httpx.Timeout(30.0, connect=10.0)
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            response = await client.get(url, headers=self.headers, params=params)
-            response.raise_for_status()
-            data = response.json()
-            return data.get("workflow_runs", [])
+        try:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                response = await client.get(url, headers=self.headers, params=params)
+                response.raise_for_status()
+                data = response.json()
+                return data.get("workflow_runs", [])
+        except asyncio.CancelledError:
+            console.print("[yellow]⚠️  Запрос прерван пользователем[/yellow]")
+            raise
+        except (httpx.TimeoutException, httpx.NetworkError) as e:
+            console.print(f"[yellow]⚠️  Ошибка сети: {e}[/yellow]")
+            return []
 
     async def get_workflow_jobs(self, run_id: int) -> list[dict[str, Any]]:
         """
@@ -93,6 +186,9 @@ class GitHubActionsMonitor:
                     response.raise_for_status()
                     data = response.json()
                     return data.get("jobs", [])
+            except asyncio.CancelledError:
+                console.print("[yellow]⚠️  Запрос прерван пользователем[/yellow]")
+                raise
             except (httpx.TimeoutException, httpx.NetworkError) as e:
                 if attempt == max_retries - 1:
                     console.print(
@@ -108,17 +204,29 @@ class GitHubActionsMonitor:
 
     async def analyze_workflow_health(self) -> dict[str, Any]:
         """
-        Анализировать общее состояние workflows.
+        Анализировать общее состояние workflows с расчетом success rate.
 
         Returns:
-            Статистика и метрики workflows
+            Статистика и метрики workflows включая success rate
         """
-        runs = await self.get_workflow_runs(limit=50)
+        console.print("\n[bold]📊 Анализ GitHub Actions Workflows[/bold]\n")
+
+        with console.status("[bold green]Загрузка данных...") as status:
+            runs = await self.get_workflow_runs(limit=50)
+
+        if not runs:
+            console.print("[red]❌ Не удалось получить данные workflows[/red]")
+            return {}
 
         total_runs = len(runs)
         successful_runs = sum(1 for r in runs if r["conclusion"] == "success")
         failed_runs = sum(1 for r in runs if r["conclusion"] == "failure")
         cancelled_runs = sum(1 for r in runs if r["conclusion"] == "cancelled")
+
+        # Расчет success rate
+        overall_success_rate = (
+            (successful_runs / total_runs * 100) if total_runs > 0 else 0
+        )
 
         # Расчет времени выполнения
         durations = []
@@ -135,7 +243,7 @@ class GitHubActionsMonitor:
 
         avg_duration = sum(durations) / len(durations) if durations else 0
 
-        # Группировка по workflow
+        # Группировка по workflow с расчетом success rate
         workflow_stats = {}
         for run in runs:
             workflow_name = run["name"]
@@ -145,6 +253,7 @@ class GitHubActionsMonitor:
                     "success": 0,
                     "failure": 0,
                     "success_rate": 0.0,
+                    "meets_target": False,
                 }
             workflow_stats[workflow_name]["total"] += 1
             if run["conclusion"] == "success":
@@ -152,19 +261,79 @@ class GitHubActionsMonitor:
             elif run["conclusion"] == "failure":
                 workflow_stats[workflow_name]["failure"] += 1
 
-        # Расчет success rate
+        # Расчет success rate для каждого workflow
         for stats in workflow_stats.values():
             if stats["total"] > 0:
                 stats["success_rate"] = (stats["success"] / stats["total"]) * 100
+                stats["meets_target"] = (
+                    stats["success_rate"] >= self.target_success_rate
+                )
+
+        # Отображение таблицы по workflows
+        table = Table(title="📈 Success Rate по Workflows", show_header=True)
+        table.add_column("Workflow", style="cyan", no_wrap=True)
+        table.add_column("Total", justify="right", style="white")
+        table.add_column("✅ Success", justify="right", style="green")
+        table.add_column("❌ Failed", justify="right", style="red")
+        table.add_column("Success Rate", justify="right")
+        table.add_column("Status", justify="center")
+
+        for workflow_name, stats in sorted(
+            workflow_stats.items(),
+            key=lambda x: x[1]["success_rate"],
+            reverse=True,
+        ):
+            rate = stats["success_rate"]
+            color = self.get_success_rate_color(rate)
+            status = "✅" if stats["meets_target"] else "⚠️"
+
+            table.add_row(
+                workflow_name,
+                str(stats["total"]),
+                str(stats["success"]),
+                str(stats["failure"]),
+                f"[{color}]{rate:.1f}%[/{color}]",
+                status,
+            )
+
+        console.print(table)
+
+        # Общая статистика
+        overall_color = self.get_success_rate_color(overall_success_rate)
+        console.print("\n[bold]📊 Общая статистика:[/bold]")
+        console.print(f"  • Всего запусков: {total_runs}")
+        console.print(f"  • Успешных: [green]{successful_runs}[/green]")
+        console.print(f"  • Провалено: [red]{failed_runs}[/red]")
+        console.print(f"  • Отменено: [yellow]{cancelled_runs}[/yellow]")
+        console.print(
+            f"  • Overall Success Rate: "
+            f"[{overall_color}]{overall_success_rate:.1f}%"
+            f"[/{overall_color}]"
+        )
+        console.print(f"  • Среднее время: {avg_duration / 60:.1f} мин")
+
+        # Проверка достижения цели
+        if overall_success_rate >= self.target_success_rate:
+            console.print(
+                f"\n[green]✅ Цель достигнута! "
+                f"Success rate >= {self.target_success_rate}%"
+                "[/green]"
+            )
+        else:
+            diff = self.target_success_rate - overall_success_rate
+            console.print(
+                f"\n[yellow]⚠️ До цели: {diff:.1f}% "
+                f"(цель: {self.target_success_rate}%)[/yellow]"
+            )
 
         return {
             "total_runs": total_runs,
             "successful_runs": successful_runs,
             "failed_runs": failed_runs,
             "cancelled_runs": cancelled_runs,
-            "success_rate": (successful_runs / total_runs * 100)
-            if total_runs > 0
-            else 0,
+            "success_rate": overall_success_rate,
+            "target_success_rate": self.target_success_rate,
+            "meets_target": overall_success_rate >= self.target_success_rate,
             "avg_duration_seconds": avg_duration,
             "avg_duration_minutes": avg_duration / 60,
             "workflow_stats": workflow_stats,
@@ -188,7 +357,8 @@ class GitHubActionsMonitor:
 
             for i, run in enumerate(failed_runs, 1):
                 console.print(
-                    f"[dim]  [{i}/{len(failed_runs)}] {run['name']} #{run['run_number']}[/dim]"
+                    f"[dim]  [{i}/{len(failed_runs)}] "
+                    f"{run['name']} #{run['run_number']}[/dim]"
                 )
 
                 try:
@@ -256,7 +426,8 @@ class GitHubActionsMonitor:
         # Проверка времени выполнения
         if health_data["avg_duration_minutes"] > 15:
             recommendations.append(
-                "⏱️ **ПРОИЗВОДИТЕЛЬНОСТЬ**: Среднее время выполнения > 15 минут. "
+                "⏱️ **ПРОИЗВОДИТЕЛЬНОСТЬ**: "
+                "Среднее время выполнения > 15 минут. "
                 "Рекомендации:\n"
                 "  - Используйте кэширование зависимостей\n"
                 "  - Параллелизуйте тесты (pytest -n auto)\n"
@@ -272,7 +443,8 @@ class GitHubActionsMonitor:
         for workflow_name, stats in health_data["workflow_stats"].items():
             if stats["success_rate"] < 70 and stats["total"] > 3:
                 recommendations.append(
-                    f"🔧 **{workflow_name}**: Success rate {stats['success_rate']:.1f}%. "
+                    f"🔧 **{workflow_name}**: "
+                    f"Success rate {stats['success_rate']:.1f}%. "
                     f"Нестабильный workflow - требует внимания."
                 )
 
@@ -317,7 +489,8 @@ class GitHubActionsMonitor:
 ## 📈 Текущая Статистика
 
 - **Всего запусков**: {health_data["total_runs"]}
-- **Успешных**: {health_data["successful_runs"]} ({health_data["success_rate"]:.1f}%)
+- **Успешных**: {health_data["successful_runs"]} "
+            f"({health_data["success_rate"]:.1f}%)
 - **Провалено**: {health_data["failed_runs"]}
 - **Отменено**: {health_data["cancelled_runs"]}
 - **Среднее время**: {health_data["avg_duration_minutes"]:.1f} минут
@@ -360,7 +533,7 @@ class GitHubActionsMonitor:
 
         # Рекомендации
         report += "## 💡 Рекомендации по Улучшению\n\n"
-        for i, rec in enumerate(recommendations, 1):
+        for rec in recommendations:
             report += f"{rec}\n\n"
 
         # План действий
@@ -427,7 +600,10 @@ class GitHubActionsMonitor:
         )
         table.add_row("Провалено", str(health_data["failed_runs"]))
         table.add_row("Отменено", str(health_data["cancelled_runs"]))
-        table.add_row("Среднее время", f"{health_data['avg_duration_minutes']:.1f} мин")
+        table.add_row(
+            "Среднее время",
+            f"{health_data['avg_duration_minutes']:.1f} мин",
+        )
 
         console.print(table)
 
@@ -462,6 +638,9 @@ class GitHubActionsMonitor:
 
 async def main():
     """Основная функция для запуска мониторинга."""
+    # Загрузка переменных окружения из .env файла
+    load_dotenv()
+
     # Настройки репозитория
     REPO_OWNER = "Dykij"
     REPO_NAME = "DMarket-Telegram-Bot"
@@ -476,9 +655,53 @@ async def main():
     monitor = GitHubActionsMonitor(REPO_OWNER, REPO_NAME, GITHUB_TOKEN)
 
     try:
-        # Анализ workflow health
+        # Проверка rate limit
+        console.print("[yellow]🔍 Проверяю GitHub API rate limit...[/yellow]")
+        rate_limit = await monitor.check_rate_limit()
+
+        if rate_limit:
+            remaining = rate_limit.get("remaining", 0)
+            limit = rate_limit.get("limit", 0)
+            reset_time = rate_limit.get("reset", 0)
+
+            if remaining == 0:
+                from datetime import datetime as dt
+
+                reset_dt = dt.fromtimestamp(reset_time)
+                console.print(f"\n[red]❌ Rate limit исчерпан! (0/{limit})[/red]")
+                console.print(
+                    f"[yellow]⏰ Сброс через: {reset_dt.strftime('%H:%M:%S')}[/yellow]"
+                )
+                console.print("\n[cyan]💡 Решение: Установите GitHub Token[/cyan]")
+                console.print(
+                    "[dim]   1. Создайте токен: "
+                    "https://github.com/settings/tokens[/dim]"
+                )
+                console.print(
+                    "[dim]   2. Установите: $env:GITHUB_TOKEN = 'your_token'[/dim]"
+                )
+                console.print(
+                    "[dim]   3. Запустите снова: .\\scripts\\run_monitor.ps1[/dim]\n"
+                )
+                sys.exit(1)
+            elif remaining < 10:
+                console.print(
+                    f"[yellow]⚠️  Осталось запросов: {remaining}/{limit}[/yellow]"
+                )
+                console.print(
+                    "[yellow]   Рекомендуется установить GitHub Token[/yellow]"
+                )
+            else:
+                console.print(
+                    f"[green]✅ Rate limit: {remaining}/{limit} запросов[/green]\n"
+                )
+
+        # Анализ workflow health с таймаутом
         console.print("[yellow]📊 Анализирую workflows...[/yellow]")
-        health_data = await monitor.analyze_workflow_health()
+        health_data = await asyncio.wait_for(
+            monitor.analyze_workflow_health(),
+            timeout=45.0,  # 45 секунд на анализ
+        )
 
         # Отображение сводки в консоли
         monitor.display_summary(health_data)
@@ -492,7 +715,8 @@ async def main():
             )
         except TimeoutError:
             console.print(
-                "[yellow]⚠️  Таймаут при генерации детального отчета, создаю упрощенную версию...[/yellow]"
+                "[yellow]⚠️  Таймаут при генерации детального отчета, "
+                "создаю упрощенную версию...[/yellow]"
             )
             # Создаем упрощенный отчет без failed jobs
             recommendations = monitor.generate_recommendations(health_data)
@@ -516,8 +740,8 @@ async def main():
         report_dir.mkdir(parents=True, exist_ok=True)
 
         report_file = (
-            report_dir
-            / f"github_actions_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+            report_dir / f"github_actions_report_"
+            f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         )
         report_file.write_text(report, encoding="utf-8")
 
@@ -537,13 +761,15 @@ async def main():
             console.print("[yellow]Проверьте правильность имени репозитория[/yellow]")
         elif e.response.status_code == 403:
             console.print(
-                "[yellow]Rate limit превышен. Используйте GITHUB_TOKEN для увеличения лимита[/yellow]"
+                "[yellow]Rate limit превышен. Используйте GITHUB_TOKEN "
+                "для увеличения лимита[/yellow]"
             )
         sys.exit(1)
+    except asyncio.CancelledError:
+        console.print("\n[yellow]⚠️  Операция отменена[/yellow]")
+        sys.exit(0)
     except TimeoutError:
-        console.print(
-            "\n[yellow]⚠️  Превышен таймаут выполнения. Попробуйте позже.[/yellow]"
-        )
+        console.print("\n[yellow]⚠️  Превышен таймаут. Попробуйте позже.[/yellow]")
         sys.exit(1)
     except (httpx.TimeoutException, httpx.NetworkError) as e:
         console.print(f"\n[yellow]⚠️  Проблемы с сетью: {e}[/yellow]")
@@ -554,9 +780,7 @@ async def main():
         sys.exit(0)
     except Exception as e:
         console.print(f"\n[red]❌ Непредвиденная ошибка: {e}[/red]")
-        import traceback
-
-        traceback.print_exc()
+        console.print(f"[dim]{traceback.format_exc()}[/dim]")
         sys.exit(1)
 
 

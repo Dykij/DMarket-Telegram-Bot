@@ -19,6 +19,7 @@ import pytest
 
 from src.dmarket.dmarket_api import DMarketAPI
 
+
 # Константы для тестов
 TEST_PUBLIC_KEY = "test_public_key"
 TEST_SECRET_KEY = "test_secret_key"

@@ -15,6 +15,7 @@ import requests
 
 from src.dmarket.models.market_models import Balance, MarketItem, SalesHistory
 
+
 logger = logging.getLogger(__name__)
 
 

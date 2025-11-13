@@ -15,6 +15,7 @@ from src.telegram_bot.keyboards import (
 )
 from src.telegram_bot.localization import LANGUAGES, LOCALIZATIONS
 
+
 # Настраиваем логирование
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",

@@ -11,6 +11,7 @@ from typing import Any, TypeVar, cast
 
 from src.utils.logging_utils import get_logger
 
+
 # Определение универсального типа для декораторов
 F = TypeVar("F", bound=Callable[..., Any])
 

@@ -10,6 +10,7 @@ from typing import Any
 
 from .dmarket_api import DMarketAPI
 
+
 # Настройка логирования
 logger = logging.getLogger(__name__)
 

@@ -16,6 +16,7 @@ from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.performance import cached, profile_performance
 from src.utils.rate_limiter import RateLimiter
 
+
 # Загружаем переменные окружения
 load_dotenv()
 

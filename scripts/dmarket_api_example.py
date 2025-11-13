@@ -12,12 +12,14 @@ import os
 import sys
 from typing import Any
 
+
 # Add the src directory to the path
 src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
 if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
 from dmarket.dmarket_api import DMarketAPI  # noqa: E402
+
 
 # Load environment variables
 try:

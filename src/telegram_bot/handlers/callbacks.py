@@ -27,6 +27,7 @@ from src.telegram_bot.keyboards import (
 from src.telegram_bot.utils.api_client import setup_api_client
 from src.telegram_bot.utils.formatters import format_opportunities
 
+
 logger = logging.getLogger(__name__)
 
 

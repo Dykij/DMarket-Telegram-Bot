@@ -14,6 +14,7 @@ from src.telegram_bot.keyboards import (
 from src.telegram_bot.pagination import pagination_manager
 from src.telegram_bot.utils.formatters import format_opportunities
 
+
 # Configure logging
 logger = logging.getLogger(__name__)
 

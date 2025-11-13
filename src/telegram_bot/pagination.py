@@ -9,6 +9,7 @@ from telegram import InlineKeyboardMarkup
 from src.telegram_bot.keyboards import create_pagination_keyboard
 from src.telegram_bot.utils.formatters import format_opportunities
 
+
 logger = logging.getLogger(__name__)
 
 

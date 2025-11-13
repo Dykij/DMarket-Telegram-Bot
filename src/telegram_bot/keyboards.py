@@ -20,6 +20,7 @@ from telegram import (
 
 from src.dmarket.arbitrage import GAMES
 
+
 logger = logging.getLogger(__name__)
 
 # Константы для callback_data

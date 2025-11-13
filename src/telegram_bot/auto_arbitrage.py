@@ -44,6 +44,7 @@ from src.telegram_bot.keyboards import (
 from src.telegram_bot.pagination import pagination_manager
 from src.utils.api_error_handling import APIError, RetryStrategy, handle_api_error
 
+
 # Настройка логирования
 logger = logging.getLogger(__name__)
 

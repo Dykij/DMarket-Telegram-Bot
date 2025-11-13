@@ -19,6 +19,7 @@ from src.dmarket.game_filters import (
     FilterFactory,
 )
 
+
 # Logger
 logger = logging.getLogger(__name__)
 

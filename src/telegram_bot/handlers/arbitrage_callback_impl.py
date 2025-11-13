@@ -27,6 +27,7 @@ from src.telegram_bot.utils.formatting import (
 from src.utils.api_error_handling import APIError
 from src.utils.dmarket_api_utils import execute_api_request
 
+
 logger = logging.getLogger(__name__)
 
 # Состояния для ConversationHandler

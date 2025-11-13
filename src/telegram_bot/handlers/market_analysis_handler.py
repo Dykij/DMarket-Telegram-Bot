@@ -26,6 +26,7 @@ from src.utils.price_analyzer import (
     get_investment_recommendations,
 )
 
+
 # Настройка логирования
 logger = logging.getLogger(__name__)
 

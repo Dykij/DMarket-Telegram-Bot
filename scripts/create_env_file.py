@@ -13,6 +13,7 @@ import sys
 from getpass import getpass
 from typing import Any
 
+
 # Определяем необходимые переменные окружения
 ENV_VARS = [
     {

@@ -25,6 +25,7 @@ from telegram.error import (
 )
 from telegram.ext import Application, ContextTypes
 
+
 logger = logging.getLogger(__name__)
 
 # ID администраторов (пользователи, получающие уведомления об ошибках)

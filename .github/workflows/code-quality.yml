@@ -56,19 +56,19 @@ jobs:
         run: |
           echo "Проверка форматирования с помощью Ruff..."
           ruff format --check src tests scripts || echo "::warning::Ruff format выявил проблемы форматирования"
-        continue-on-error: true
+        continue-on-error: false
 
       - name: Run Ruff Linting
         run: |
           echo "Проверка стиля кода с помощью Ruff..."
           ruff check src tests scripts --output-format=github || echo "::warning::Ruff check выявил проблемы стиля кода"
-        continue-on-error: true
+        continue-on-error: false
 
       - name: Run MyPy
         run: |
           echo "Проверка типов с помощью MyPy..."
           mypy src --config-file=pyproject.toml --install-types --non-interactive || echo "::warning::MyPy выявил проблемы с типами"
-        continue-on-error: true
+        continue-on-error: true  # Type checking can have false positives
 
       - name: Generate code quality report
         if: always()

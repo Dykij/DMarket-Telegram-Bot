@@ -29,6 +29,7 @@ from src.telegram_bot.utils.error_handler import (
     setup_error_handler,
 )
 
+
 logger = logging.getLogger(__name__)
 
 

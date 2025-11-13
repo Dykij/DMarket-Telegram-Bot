@@ -5,6 +5,7 @@ from datetime import datetime
 from sqlalchemy import JSON, BigInteger, Column, DateTime, Float, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
+
 Base = declarative_base()
 
 

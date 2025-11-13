@@ -28,6 +28,7 @@ from src.utils.price_analyzer import (
     get_item_price_history,
 )
 
+
 # Настраиваем логирование
 logger = logging.getLogger(__name__)
 

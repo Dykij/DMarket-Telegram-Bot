@@ -20,6 +20,7 @@ from src.dmarket.dmarket_api import DMarketAPI
 from src.dmarket.realtime_price_watcher import PriceAlert, RealtimePriceWatcher
 from src.telegram_bot.constants import PRICE_ALERT_STORAGE_KEY
 
+
 # Состояния для ConversationHandler
 ITEM_NAME, ALERT_PRICE, ALERT_CONDITION = range(3)
 

@@ -3,6 +3,7 @@
 import logging
 from pathlib import Path
 
+
 # Настройка логирования
 logging.basicConfig(
     level=logging.INFO,

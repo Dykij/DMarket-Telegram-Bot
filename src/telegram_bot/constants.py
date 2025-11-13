@@ -3,6 +3,7 @@
 # Основные константы и настройки для Telegram-бота DMarket
 import os
 
+
 # Путь к .env файлу
 ENV_PATH = os.path.join(os.path.dirname(__file__), ".env")
 

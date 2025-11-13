@@ -5,6 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+
 # Настройка логирования
 logging.basicConfig(
     level=logging.INFO,

@@ -10,6 +10,7 @@ import asyncio
 import random
 from typing import Any
 
+
 GAMES = {
     "csgo": "Counter-Strike: Global Offensive",
     "dota2": "Dota 2",

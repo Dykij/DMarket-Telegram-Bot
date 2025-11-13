@@ -11,6 +11,7 @@ from typing import Any
 
 import numpy as np
 
+
 # Logger
 logger = logging.getLogger(__name__)
 

@@ -17,6 +17,7 @@ from unittest.mock import AsyncMock, MagicMock, call, patch
 import pytest
 from telegram.ext import CallbackContext
 
+
 # Импортируем необходимые модули для тестирования
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
@@ -31,6 +32,7 @@ from dmarket.auto_arbitrage import (
 from dmarket.auto_arbitrage import (
     main as auto_arbitrage_main,
 )
+
 
 try:
     from src.telegram_bot.auto_arbitrage import (

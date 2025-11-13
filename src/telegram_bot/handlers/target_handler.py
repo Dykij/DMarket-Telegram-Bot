@@ -6,6 +6,7 @@ from typing import Any
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackContext, CallbackQueryHandler, CommandHandler
 
+
 logger = logging.getLogger(__name__)
 
 # Константы для callback данных
