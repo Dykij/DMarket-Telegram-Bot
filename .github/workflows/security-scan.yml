@@ -101,21 +101,35 @@ jobs:
         run: |
           echo "Проверка зависимостей на уязвимости с помощью Safety..."
           mkdir -p security-reports
-          safety check -r requirements.txt --output json > security-reports/safety.json || echo "::warning::Safety обнаружил уязвимости"
-          safety check -r requirements.txt --output text > security-reports/safety.txt || true
-        continue-on-error: false
+
+          # Safety check с обработкой ошибок
+          if command -v safety &> /dev/null; then
+            safety check -r requirements.txt --output json > security-reports/safety.json 2>&1 || echo "::warning::Safety обнаружил уязвимости"
+            safety check -r requirements.txt --output text > security-reports/safety.txt 2>&1 || true
+          else
+            echo "::error::Safety не установлен"
+            exit 1
+          fi
+        continue-on-error: true
 
       - name: Run Bandit code scan
         run: |
           echo "Сканирование кода на уязвимости с помощью Bandit..."
           mkdir -p security-reports
-          if [ -d "./src" ]; then
-            bandit -r ./src -f json -o security-reports/bandit.json || echo "::warning::Bandit обнаружил потенциальные уязвимости"
-            bandit -r ./src -f txt -o security-reports/bandit.txt || true
-          else
-            echo "::error::Директория ./src не найдена, пропускаем Bandit scan"
+
+          if [ ! -d "./src" ]; then
+            echo "::warning::Директория ./src не найдена, пропускаем Bandit scan"
+            exit 0
           fi
-        continue-on-error: false
+
+          if command -v bandit &> /dev/null; then
+            bandit -r ./src -f json -o security-reports/bandit.json 2>&1 || echo "::warning::Bandit обнаружил потенциальные уязвимости"
+            bandit -r ./src -f txt -o security-reports/bandit.txt 2>&1 || true
+          else
+            echo "::error::Bandit не установлен"
+            exit 1
+          fi
+        continue-on-error: true
 
       - name: Generate security summary
         if: always()

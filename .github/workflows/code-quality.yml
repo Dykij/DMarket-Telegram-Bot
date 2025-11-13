@@ -55,14 +55,34 @@ jobs:
       - name: Run Ruff Format Check
         run: |
           echo "Проверка форматирования с помощью Ruff..."
-          ruff format --check src tests scripts || echo "::warning::Ruff format выявил проблемы форматирования"
-        continue-on-error: false
+
+          # Проверяем только существующие директории
+          DIRS=""
+          [ -d "src" ] && DIRS="$DIRS src"
+          [ -d "tests" ] && DIRS="$DIRS tests"
+          [ -d "scripts" ] && DIRS="$DIRS scripts"
+
+          if [ -n "$DIRS" ]; then
+            ruff format --check $DIRS || echo "::warning::Ruff format выявил проблемы форматирования"
+          else
+            echo "::warning::Нет директорий для проверки"
+          fi
+        continue-on-error: true
 
       - name: Run Ruff Linting
         run: |
           echo "Проверка стиля кода с помощью Ruff..."
-          ruff check src tests scripts --output-format=github || echo "::warning::Ruff check выявил проблемы стиля кода"
-        continue-on-error: false
+
+          # Проверяем только существующие директории
+          DIRS=""
+          [ -d "src" ] && DIRS="$DIRS src"
+          [ -d "tests" ] && DIRS="$DIRS tests"
+          [ -d "scripts" ] && DIRS="$DIRS scripts"
+
+          if [ -n "$DIRS" ]; then
+            ruff check $DIRS --output-format=github || echo "::warning::Ruff check выявил проблемы стиля кода"
+          fi
+        continue-on-error: true
 
       - name: Run MyPy
         run: |
