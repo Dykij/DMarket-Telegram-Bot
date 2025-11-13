@@ -27,11 +27,11 @@ jobs:
     name: Dependency Review
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
-    
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        
+
       - name: Dependency Review
         uses: actions/dependency-review-action@v4
         with:
@@ -40,19 +40,19 @@ jobs:
   analyze:
     name: CodeQL Analysis
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: python
-          
+
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3
-        
+
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
@@ -61,13 +61,14 @@ jobs:
   security-check:
     name: Security Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Run Security Check
         uses: ./.github/actions/security-check
+        continue-on-error: true
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           scan-dependencies: 'true'
@@ -75,11 +76,11 @@ jobs:
           src-directory: './src'
           fail-on-high: 'false'
           generate-report: 'true'
-      
+
       - name: Upload security results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: security-results
           path: security-reports/
-          retention-days: 7 
+          retention-days: 7

@@ -18,6 +18,7 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.table import Table
 
+
 console = Console()
 
 
@@ -63,7 +64,8 @@ class GitHubActionsMonitor:
         if status:
             params["status"] = status
 
-        async with httpx.AsyncClient() as client:
+        timeout = httpx.Timeout(30.0, connect=10.0)
+        async with httpx.AsyncClient(timeout=timeout) as client:
             response = await client.get(url, headers=self.headers, params=params)
             response.raise_for_status()
             data = response.json()
@@ -81,11 +83,28 @@ class GitHubActionsMonitor:
         """
         url = f"{self.base_url}/repos/{self.repo_owner}/{self.repo_name}/actions/runs/{run_id}/jobs"
 
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url, headers=self.headers)
-            response.raise_for_status()
-            data = response.json()
-            return data.get("jobs", [])
+        timeout = httpx.Timeout(30.0, connect=10.0)
+        max_retries = 3
+
+        for attempt in range(max_retries):
+            try:
+                async with httpx.AsyncClient(timeout=timeout) as client:
+                    response = await client.get(url, headers=self.headers)
+                    response.raise_for_status()
+                    data = response.json()
+                    return data.get("jobs", [])
+            except (httpx.TimeoutException, httpx.NetworkError) as e:
+                if attempt == max_retries - 1:
+                    console.print(
+                        f"[yellow]⚠️  Пропускаем run {run_id} из-за ошибки сети[/yellow]"
+                    )
+                    return []  # Возвращаем пустой список вместо ошибки
+                await asyncio.sleep(2**attempt)  # Exponential backoff
+            except Exception as e:
+                console.print(
+                    f"[yellow]⚠️  Ошибка при получении jobs для run {run_id}: {e}[/yellow]"
+                )
+                return []
 
     async def analyze_workflow_health(self) -> dict[str, Any]:
         """
@@ -159,34 +178,52 @@ class GitHubActionsMonitor:
         Returns:
             Список проваленных jobs с деталями
         """
-        failed_runs = await self.get_workflow_runs(status="failure", limit=5)
-        failed_jobs = []
+        try:
+            failed_runs = await self.get_workflow_runs(status="failure", limit=5)
+            failed_jobs = []
 
-        for run in failed_runs:
-            jobs = await self.get_workflow_jobs(run["id"])
-            for job in jobs:
-                if job["conclusion"] == "failure":
-                    failed_jobs.append(
-                        {
-                            "workflow": run["name"],
-                            "run_number": run["run_number"],
-                            "job_name": job["name"],
-                            "started_at": job["started_at"],
-                            "completed_at": job["completed_at"],
-                            "html_url": job["html_url"],
-                            "steps": [
+            console.print(
+                f"[dim]Обработка {len(failed_runs)} проваленных runs...[/dim]"
+            )
+
+            for i, run in enumerate(failed_runs, 1):
+                console.print(
+                    f"[dim]  [{i}/{len(failed_runs)}] {run['name']} #{run['run_number']}[/dim]"
+                )
+
+                try:
+                    jobs = await self.get_workflow_jobs(run["id"])
+                    for job in jobs:
+                        if job["conclusion"] == "failure":
+                            failed_jobs.append(
                                 {
-                                    "name": step["name"],
-                                    "status": step["status"],
-                                    "conclusion": step["conclusion"],
+                                    "workflow": run["name"],
+                                    "run_number": run["run_number"],
+                                    "job_name": job["name"],
+                                    "started_at": job["started_at"],
+                                    "completed_at": job["completed_at"],
+                                    "html_url": job["html_url"],
+                                    "steps": [
+                                        {
+                                            "name": step["name"],
+                                            "status": step["status"],
+                                            "conclusion": step["conclusion"],
+                                        }
+                                        for step in job.get("steps", [])
+                                        if step.get("conclusion") == "failure"
+                                    ],
                                 }
-                                for step in job.get("steps", [])
-                                if step.get("conclusion") == "failure"
-                            ],
-                        }
+                            )
+                except Exception as e:
+                    console.print(
+                        f"[yellow]⚠️  Пропускаем run {run['id']}: {e}[/yellow]"
                     )
+                    continue
 
-        return failed_jobs
+            return failed_jobs
+        except Exception as e:
+            console.print(f"[yellow]⚠️  Ошибка при получении failed jobs: {e}[/yellow]")
+            return []
 
     def generate_recommendations(self, health_data: dict[str, Any]) -> list[str]:
         """
@@ -448,7 +485,31 @@ async def main():
 
         # Генерация полного отчета
         console.print("\n[yellow]📝 Генерирую детальный отчет...[/yellow]")
-        report = await monitor.generate_improvement_plan()
+        try:
+            report = await asyncio.wait_for(
+                monitor.generate_improvement_plan(),
+                timeout=60.0,  # Максимум 60 секунд на генерацию
+            )
+        except TimeoutError:
+            console.print(
+                "[yellow]⚠️  Таймаут при генерации детального отчета, создаю упрощенную версию...[/yellow]"
+            )
+            # Создаем упрощенный отчет без failed jobs
+            recommendations = monitor.generate_recommendations(health_data)
+            report = f"""# 📊 GitHub Actions - Краткий Отчет (Упрощенная версия)
+
+**Дата**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+**Репозиторий**: {monitor.repo_owner}/{monitor.repo_name}
+
+## 📈 Статистика
+
+- Всего запусков: {health_data["total_runs"]}
+- Success Rate: {health_data["success_rate"]:.1f}%
+- Среднее время: {health_data["avg_duration_minutes"]:.1f} мин
+
+## 💡 Рекомендации
+
+""" + "\n\n".join(recommendations)
 
         # Сохранение отчета
         report_dir = Path("build") / "reports"
@@ -479,8 +540,20 @@ async def main():
                 "[yellow]Rate limit превышен. Используйте GITHUB_TOKEN для увеличения лимита[/yellow]"
             )
         sys.exit(1)
+    except TimeoutError:
+        console.print(
+            "\n[yellow]⚠️  Превышен таймаут выполнения. Попробуйте позже.[/yellow]"
+        )
+        sys.exit(1)
+    except (httpx.TimeoutException, httpx.NetworkError) as e:
+        console.print(f"\n[yellow]⚠️  Проблемы с сетью: {e}[/yellow]")
+        console.print("[dim]Проверьте подключение к интернету и попробуйте позже[/dim]")
+        sys.exit(1)
+    except KeyboardInterrupt:
+        console.print("\n[yellow]⚠️  Прервано пользователем[/yellow]")
+        sys.exit(0)
     except Exception as e:
-        console.print(f"\n[red]❌ Ошибка: {e}[/red]")
+        console.print(f"\n[red]❌ Непредвиденная ошибка: {e}[/red]")
         import traceback
 
         traceback.print_exc()
