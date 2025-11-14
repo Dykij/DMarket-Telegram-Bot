@@ -172,10 +172,9 @@ async def handle_liquidity_callback(update: Update, context: CallbackContext) ->
     )
 
     try:
-        # Выполняем прямой анализ ликвидности
+        # Выполняем прямой анализ ликвидности (используем item_name как item_id)
         analysis = await analyze_item_liquidity(
-            item_name=item_name,
-            game=game,
+            item_id=item_name,
         )
 
         # Проверяем результаты анализа
@@ -411,16 +410,11 @@ async def handle_all_arbitrage_sales_callback(
         # Выполняем прямой поиск арбитражных возможностей
         results = await enhanced_arbitrage_search(
             game=game,
-            max_items=20,  # Получаем больше предметов
             min_profit=1.0,
-            min_profit_percent=5.0,
-            min_sales_per_day=0.3,  # Минимум 1 продажа за 3 дня
-            time_period_days=7,
         )
 
-        # Проверяем результаты поиска
-        opportunities = results.get("opportunities", [])
-        if not opportunities:
+        # results уже является списком opportunities
+        if not results:
             await query.edit_message_text(
                 f"⚠️ Не найдено арбитражных возможностей с учетом истории продаж для {game}.\n\n"
                 "Попробуйте изменить параметры фильтрации или выбрать другую игру.",
@@ -431,12 +425,11 @@ async def handle_all_arbitrage_sales_callback(
         # Форматируем результаты поиска
         formatted_message = (
             f"📊 Все арбитражные возможности с учетом продаж для {game}\n\n"
-            f"🔎 Найдено предметов: {len(opportunities)}\n"
-            f"📆 Период анализа: {results['filters']['time_period_days']} дней\n\n"
+            f"🔎 Найдено предметов: {len(results)}\n\n"
         )
 
         # Добавляем информацию о найденных предметах
-        for i, item in enumerate(opportunities, 1):
+        for i, item in enumerate(results, 1):
             sales_analysis = item.get("sales_analysis", {})
 
             formatted_message += (
@@ -449,9 +442,9 @@ async def handle_all_arbitrage_sales_callback(
             )
 
             # Если список слишком длинный, добавляем кнопку "Показать еще"
-            if i == 10 and len(opportunities) > 10:
+            if i == 10 and len(results) > 10:
                 formatted_message += (
-                    f"_Показаны 10 из {len(opportunities)} найденных возможностей._\n\n"
+                    f"_Показаны 10 из {len(results)} найденных возможностей._\n\n"
                 )
                 break
 
@@ -636,7 +629,6 @@ async def handle_all_volume_stats_callback(
         # Выполняем прямой запрос статистики объемов
         stats = await get_sales_volume_stats(
             game=game,
-            top_items=30,  # Анализируем 30 популярных предметов
         )
 
         # Проверяем результаты запроса

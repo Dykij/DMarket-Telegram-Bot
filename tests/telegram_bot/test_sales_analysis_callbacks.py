@@ -42,13 +42,26 @@ def mock_context():
 
 
 @pytest.mark.asyncio()
-@patch("src.dmarket.sales_history.get_sales_history")
+@patch("src.dmarket.sales_history.DMarketAPI")
+@patch("src.dmarket.arbitrage_sales_analysis.SalesAnalyzer")
+@patch("src.telegram_bot.sales_analysis_callbacks.get_sales_history")
 async def test_handle_sales_history_callback_success(
     mock_get_sales,
+    mock_analyzer_class,
+    mock_api_class,
     mock_update,
     mock_context,
 ):
     """Тестирует успешную обработку запроса истории продаж."""
+    # Настройка мока DMarketAPI
+    mock_api = AsyncMock()
+    mock_api.request = AsyncMock(return_value={"LastSales": []})
+    mock_api_class.return_value.__aenter__.return_value = mock_api
+    mock_api_class.return_value.__aexit__.return_value = AsyncMock()
+    
+    # Настройка мока SalesAnalyzer
+    mock_analyzer_class.return_value = AsyncMock()
+    
     # Настройка мока для get_sales_history
     mock_sales_data = {
         "LastSales": [
@@ -112,15 +125,20 @@ async def test_handle_sales_history_callback_success(
 
 
 @pytest.mark.asyncio()
-@patch("src.dmarket.sales_history.execute_api_request")
+@patch("src.dmarket.arbitrage_sales_analysis.SalesAnalyzer")
+@patch("src.dmarket.sales_history.get_sales_history")
 async def test_handle_sales_history_callback_no_data(
-    mock_execute_api,
+    mock_get_sales,
+    mock_analyzer_class,
     mock_update,
     mock_context,
 ):
     """Тестирует обработку запроса, когда данные о продажах отсутствуют."""
-    # Настройка мока для execute_api_request
-    mock_execute_api.return_value = {"LastSales": []}
+    # Настройка мока SalesAnalyzer
+    mock_analyzer_class.return_value = AsyncMock()
+    
+    # Настройка мока для get_sales_history
+    mock_get_sales.return_value = {"LastSales": []}
 
     # Вызываем тестируемую функцию
     await handle_sales_history_callback(mock_update, mock_context)
@@ -138,17 +156,17 @@ async def test_handle_sales_history_callback_no_data(
 
 
 @pytest.mark.asyncio()
-@patch("src.dmarket.sales_history.execute_api_request")
+@patch("src.dmarket.sales_history.get_sales_history")
 async def test_handle_sales_history_callback_api_error(
-    mock_execute_api,
+    mock_get_sales,
     mock_update,
     mock_context,
 ):
     """Тестирует обработку ошибки API при запросе истории продаж."""
-    # Настройка мока для execute_api_request
-    from src.utils.api_error_handling import APIError
+    # Настройка мока для get_sales_history
+    from src.utils.exceptions import APIError
 
-    mock_execute_api.side_effect = APIError("Ошибка API", status_code=500)
+    mock_get_sales.side_effect = APIError("Ошибка API", status_code=500)
 
     # Вызываем тестируемую функцию
     await handle_sales_history_callback(mock_update, mock_context)
@@ -166,17 +184,22 @@ async def test_handle_sales_history_callback_api_error(
 
 
 @pytest.mark.asyncio()
-@patch("src.dmarket.sales_history.execute_api_request")
+@patch("src.dmarket.arbitrage_sales_analysis.SalesAnalyzer")
+@patch("src.dmarket.arbitrage_sales_analysis.analyze_item_liquidity")
 async def test_handle_liquidity_callback_success(
-    mock_execute_api,
+    mock_analyze_liquidity,
+    mock_analyzer_class,
     mock_update,
     mock_context,
 ):
     """Тестирует успешную обработку запроса анализа ликвидности."""
     # Настройка данных callback
     mock_update.callback_query.data = "liquidity:AWP | Asiimov (Field-Tested)"
+    
+    # Настройка мока SalesAnalyzer
+    mock_analyzer_class.return_value = AsyncMock()
 
-    # Настройка мока для execute_api_request
+    # Настройка мока для analyze_item_liquidity
     mock_analysis_data = {
         "liquidity_category": "Высокая",
         "liquidity_score": 6,
@@ -193,7 +216,7 @@ async def test_handle_liquidity_callback_success(
             "highest_price": 120.0,
         },
     }
-    mock_execute_api.return_value = mock_analysis_data
+    mock_analyze_liquidity.return_value = mock_analysis_data
 
     # Вызываем тестируемую функцию
     await handle_liquidity_callback(mock_update, mock_context)
@@ -225,9 +248,9 @@ async def test_handle_liquidity_callback_success(
 
 
 @pytest.mark.asyncio()
-@patch("src.dmarket.sales_history.execute_api_request")
+@patch("src.dmarket.arbitrage_sales_analysis.analyze_item_liquidity")
 async def test_handle_liquidity_callback_no_data(
-    mock_execute_api,
+    mock_analyze_liquidity,
     mock_update,
     mock_context,
 ):
@@ -235,7 +258,7 @@ async def test_handle_liquidity_callback_no_data(
     # Настройка данных callback
     mock_update.callback_query.data = "liquidity:AWP | Asiimov (Field-Tested)"
 
-    # Настройка мока для execute_api_request
+    # Настройка мока для analyze_item_liquidity
     mock_analysis_data = {
         "liquidity_category": "Низкая",
         "liquidity_score": 1,
@@ -243,7 +266,7 @@ async def test_handle_liquidity_callback_no_data(
             "has_data": False,
         },
     }
-    mock_execute_api.return_value = mock_analysis_data
+    mock_analyze_liquidity.return_value = mock_analysis_data
 
     # Вызываем тестируемую функцию
     await handle_liquidity_callback(mock_update, mock_context)
@@ -261,17 +284,22 @@ async def test_handle_liquidity_callback_no_data(
 
 
 @pytest.mark.asyncio()
-@patch("src.dmarket.sales_history.execute_api_request")
+@patch("src.dmarket.arbitrage_sales_analysis.SalesAnalyzer")
+@patch("src.dmarket.sales_history.analyze_sales_history")
 async def test_handle_refresh_sales_callback(
-    mock_execute_api,
+    mock_analyze_sales,
+    mock_analyzer_class,
     mock_update,
     mock_context,
 ):
     """Тестирует обработку запроса на обновление анализа продаж."""
     # Настройка данных callback
     mock_update.callback_query.data = "refresh_sales:AWP | Asiimov (Field-Tested)"
+    
+    # Настройка мока SalesAnalyzer
+    mock_analyzer_class.return_value = AsyncMock()
 
-    # Настройка мока для execute_api_request
+    # Настройка мока для analyze_sales_history
     mock_analysis_data = {
         "has_data": True,
         "avg_price": 100.0,
@@ -286,7 +314,7 @@ async def test_handle_refresh_sales_callback(
             {"date": "2023-01-02", "price": 98.0, "currency": "USD"},
         ],
     }
-    mock_execute_api.return_value = mock_analysis_data
+    mock_analyze_sales.return_value = mock_analysis_data
 
     # Вызываем тестируемую функцию
     await handle_refresh_sales_callback(mock_update, mock_context)
@@ -312,47 +340,47 @@ async def test_handle_refresh_sales_callback(
 
 
 @pytest.mark.asyncio()
-@patch("src.dmarket.sales_history.execute_api_request")
+@patch("src.dmarket.arbitrage_sales_analysis.SalesAnalyzer")
+@patch("src.dmarket.arbitrage_sales_analysis.enhanced_arbitrage_search")
 async def test_handle_all_arbitrage_sales_callback(
-    mock_execute_api,
+    mock_arbitrage_search,
+    mock_analyzer_class,
     mock_update,
     mock_context,
 ):
     """Тестирует обработку запроса на показ всех арбитражных возможностей."""
     # Настройка данных callback
     mock_update.callback_query.data = "all_arbitrage_sales:csgo"
+    
+    # Настройка мока SalesAnalyzer
+    mock_analyzer_class.return_value = AsyncMock()
 
-    # Настройка мока для execute_api_request
-    mock_opportunities = {
-        "opportunities": [
-            {
-                "market_hash_name": "AWP | Asiimov (Field-Tested)",
-                "profit": 5.0,
-                "profit_percent": 10.0,
-                "buy_price": 50.0,
-                "sell_price": 55.0,
-                "sales_analysis": {
-                    "price_trend": "up",
-                    "sales_per_day": 5.0,
-                },
+    # Настройка мока для enhanced_arbitrage_search
+    mock_opportunities = [
+        {
+            "market_hash_name": "AWP | Asiimov (Field-Tested)",
+            "profit": 5.0,
+            "profit_percent": 10.0,
+            "buy_price": 50.0,
+            "sell_price": 55.0,
+            "sales_analysis": {
+                "price_trend": "up",
+                "sales_per_day": 5.0,
             },
-            {
-                "market_hash_name": "AK-47 | Redline (Field-Tested)",
-                "profit": 3.0,
-                "profit_percent": 15.0,
-                "buy_price": 20.0,
-                "sell_price": 23.0,
-                "sales_analysis": {
-                    "price_trend": "stable",
-                    "sales_per_day": 8.0,
-                },
-            },
-        ],
-        "filters": {
-            "time_period_days": 7,
         },
-    }
-    mock_execute_api.return_value = mock_opportunities
+        {
+            "market_hash_name": "AK-47 | Redline (Field-Tested)",
+            "profit": 3.0,
+            "profit_percent": 15.0,
+            "buy_price": 20.0,
+            "sell_price": 23.0,
+            "sales_analysis": {
+                "price_trend": "stable",
+                "sales_per_day": 8.0,
+            },
+        },
+    ]
+    mock_arbitrage_search.return_value = mock_opportunities
 
     # Вызываем тестируемую функцию
     await handle_all_arbitrage_sales_callback(mock_update, mock_context)
@@ -420,19 +448,22 @@ async def test_handle_setup_sales_filters_callback(mock_update, mock_context):
 
 
 @pytest.mark.asyncio()
-@patch("src.dmarket.sales_history.execute_api_request")
-@patch("src.telegram_bot.sales_analysis_callbacks.get_sales_volume_stats")
+@patch("src.dmarket.arbitrage_sales_analysis.SalesAnalyzer")
+@patch("src.dmarket.arbitrage_sales_analysis.get_sales_volume_stats")
 async def test_handle_all_volume_stats_callback(
     mock_get_volume_stats,
-    mock_execute_api,
+    mock_analyzer_class,
     mock_update,
     mock_context,
 ):
     """Тестирует обработку запроса на показ статистики объемов продаж."""
     # Настройка данных callback
     mock_update.callback_query.data = "all_volume_stats:csgo"
+    
+    # Настройка мока SalesAnalyzer
+    mock_analyzer_class.return_value = AsyncMock()
 
-    # Настройка мока для execute_api_request
+    # Настройка мока для get_sales_volume_stats
     mock_volume_stats = {
         "items": [
             {
@@ -455,7 +486,7 @@ async def test_handle_all_volume_stats_callback(
             "stable_trend_count": 1,
         },
     }
-    mock_execute_api.return_value = mock_volume_stats
+    mock_get_volume_stats.return_value = mock_volume_stats
 
     # Вызываем тестируемую функцию
     await handle_all_volume_stats_callback(mock_update, mock_context)
