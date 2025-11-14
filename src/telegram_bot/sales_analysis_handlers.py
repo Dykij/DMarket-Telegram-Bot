@@ -11,7 +11,7 @@ from src.dmarket.arbitrage_sales_analysis import (
     enhanced_arbitrage_search,
     get_sales_volume_stats,
 )
-from src.dmarket.sales_history import analyze_sales_history
+from src.dmarket.sales_history import analyze_sales_history, execute_api_request
 from src.telegram_bot.utils.formatters import (
     format_arbitrage_with_sales,
     format_liquidity_analysis,
@@ -20,7 +20,6 @@ from src.telegram_bot.utils.formatters import (
     get_trend_emoji,
 )
 from src.utils.exceptions import APIError
-# Removed: execute_api_request - использовать прямые вызовы API
 
 
 # Настройка логирования

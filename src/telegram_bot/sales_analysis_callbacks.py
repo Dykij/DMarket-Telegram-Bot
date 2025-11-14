@@ -10,13 +10,15 @@ from src.dmarket.arbitrage_sales_analysis import (
     enhanced_arbitrage_search,
     get_sales_volume_stats,
 )
-from src.dmarket.sales_history import analyze_sales_history, get_sales_history
+from src.dmarket.sales_history import (
+    analyze_sales_history,
+    get_sales_history,
+)
 from src.telegram_bot.sales_analysis_handlers import (
     get_liquidity_emoji,
     get_trend_emoji,
 )
 from src.utils.exceptions import APIError
-# Removed: execute_api_request - использовать прямые вызовы API
 
 
 # Настройка логирования
@@ -51,18 +53,9 @@ async def handle_sales_history_callback(
     )
 
     try:
-        # Создаем функцию для запроса истории продаж
-        async def fetch_history():
-            return await get_sales_history(
-                item_names=[item_name],
-                limit=20,
-            )
-
-        # Выполняем запрос с использованием обработки ошибок API
-        sales_data = await execute_api_request(
-            request_func=fetch_history,
-            endpoint_type="last_sales",
-            max_retries=2,
+        # Выполняем прямой запрос истории продаж
+        sales_data = await get_sales_history(
+            items=[item_name],
         )
 
         # Проверяем результаты запроса
@@ -179,18 +172,10 @@ async def handle_liquidity_callback(update: Update, context: CallbackContext) ->
     )
 
     try:
-        # Создаем функцию для запроса анализа ликвидности
-        async def get_liquidity_analysis():
-            return await analyze_item_liquidity(
-                item_name=item_name,
-                game=game,
-            )
-
-        # Выполняем запрос с использованием обработки ошибок API
-        analysis = await execute_api_request(
-            request_func=get_liquidity_analysis,
-            endpoint_type="market",
-            max_retries=2,
+        # Выполняем прямой анализ ликвидности
+        analysis = await analyze_item_liquidity(
+            item_name=item_name,
+            game=game,
         )
 
         # Проверяем результаты анализа
@@ -304,18 +289,10 @@ async def handle_refresh_sales_callback(
     )
 
     try:
-        # Создаем функцию для запроса анализа продаж
-        async def get_analysis():
-            return await analyze_sales_history(
-                item_name=item_name,
-                days=14,  # Анализируем за 2 недели
-            )
-
-        # Выполняем запрос с использованием обработки ошибок API
-        analysis = await execute_api_request(
-            request_func=get_analysis,
-            endpoint_type="last_sales",
-            max_retries=2,
+        # Выполняем прямой анализ истории продаж
+        analysis = await analyze_sales_history(
+            item_name=item_name,
+            days=14,  # Анализируем за 2 недели
         )
 
         # Проверяем результаты анализа
@@ -431,22 +408,14 @@ async def handle_all_arbitrage_sales_callback(
     )
 
     try:
-        # Создаем функцию для запроса арбитражных возможностей
-        async def search_arbitrage():
-            return await enhanced_arbitrage_search(
-                game=game,
-                max_items=20,  # Получаем больше предметов
-                min_profit=1.0,
-                min_profit_percent=5.0,
-                min_sales_per_day=0.3,  # Минимум 1 продажа за 3 дня
-                time_period_days=7,
-            )
-
-        # Выполняем запрос с использованием обработки ошибок API
-        results = await execute_api_request(
-            request_func=search_arbitrage,
-            endpoint_type="market",
-            max_retries=2,
+        # Выполняем прямой поиск арбитражных возможностей
+        results = await enhanced_arbitrage_search(
+            game=game,
+            max_items=20,  # Получаем больше предметов
+            min_profit=1.0,
+            min_profit_percent=5.0,
+            min_sales_per_day=0.3,  # Минимум 1 продажа за 3 дня
+            time_period_days=7,
         )
 
         # Проверяем результаты поиска
@@ -664,18 +633,10 @@ async def handle_all_volume_stats_callback(
     )
 
     try:
-        # Создаем функцию для запроса статистики объема продаж
-        async def get_volume_stats():
-            return await get_sales_volume_stats(
-                game=game,
-                top_items=30,  # Анализируем 30 популярных предметов
-            )
-
-        # Выполняем запрос с использованием обработки ошибок API
-        stats = await execute_api_request(
-            request_func=get_volume_stats,
-            endpoint_type="market",
-            max_retries=2,
+        # Выполняем прямой запрос статистики объемов
+        stats = await get_sales_volume_stats(
+            game=game,
+            top_items=30,  # Анализируем 30 популярных предметов
         )
 
         # Проверяем результаты запроса

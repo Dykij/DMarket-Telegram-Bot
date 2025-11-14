@@ -42,14 +42,14 @@ def mock_context():
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.sales_analysis_callbacks.execute_api_request")
+@patch("src.dmarket.sales_history.get_sales_history")
 async def test_handle_sales_history_callback_success(
-    mock_execute_api,
+    mock_get_sales,
     mock_update,
     mock_context,
 ):
     """Тестирует успешную обработку запроса истории продаж."""
-    # Настройка мока для execute_api_request
+    # Настройка мока для get_sales_history
     mock_sales_data = {
         "LastSales": [
             {
@@ -71,7 +71,7 @@ async def test_handle_sales_history_callback_success(
             },
         ],
     }
-    mock_execute_api.return_value = mock_sales_data
+    mock_get_sales.return_value = mock_sales_data
 
     # Вызываем тестируемую функцию
     await handle_sales_history_callback(mock_update, mock_context)
@@ -112,7 +112,7 @@ async def test_handle_sales_history_callback_success(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.sales_analysis_callbacks.execute_api_request")
+@patch("src.dmarket.sales_history.execute_api_request")
 async def test_handle_sales_history_callback_no_data(
     mock_execute_api,
     mock_update,
@@ -138,7 +138,7 @@ async def test_handle_sales_history_callback_no_data(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.sales_analysis_callbacks.execute_api_request")
+@patch("src.dmarket.sales_history.execute_api_request")
 async def test_handle_sales_history_callback_api_error(
     mock_execute_api,
     mock_update,
@@ -166,7 +166,7 @@ async def test_handle_sales_history_callback_api_error(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.sales_analysis_callbacks.execute_api_request")
+@patch("src.dmarket.sales_history.execute_api_request")
 async def test_handle_liquidity_callback_success(
     mock_execute_api,
     mock_update,
@@ -225,7 +225,7 @@ async def test_handle_liquidity_callback_success(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.sales_analysis_callbacks.execute_api_request")
+@patch("src.dmarket.sales_history.execute_api_request")
 async def test_handle_liquidity_callback_no_data(
     mock_execute_api,
     mock_update,
@@ -261,7 +261,7 @@ async def test_handle_liquidity_callback_no_data(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.sales_analysis_callbacks.execute_api_request")
+@patch("src.dmarket.sales_history.execute_api_request")
 async def test_handle_refresh_sales_callback(
     mock_execute_api,
     mock_update,
@@ -312,7 +312,7 @@ async def test_handle_refresh_sales_callback(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.sales_analysis_callbacks.execute_api_request")
+@patch("src.dmarket.sales_history.execute_api_request")
 async def test_handle_all_arbitrage_sales_callback(
     mock_execute_api,
     mock_update,
@@ -420,7 +420,7 @@ async def test_handle_setup_sales_filters_callback(mock_update, mock_context):
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.sales_analysis_callbacks.execute_api_request")
+@patch("src.dmarket.sales_history.execute_api_request")
 @patch("src.telegram_bot.sales_analysis_callbacks.get_sales_volume_stats")
 async def test_handle_all_volume_stats_callback(
     mock_get_volume_stats,
