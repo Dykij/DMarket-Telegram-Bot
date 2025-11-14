@@ -125,20 +125,15 @@ async def test_handle_sales_history_callback_success(
 
 
 @pytest.mark.asyncio()
-@patch("src.dmarket.arbitrage_sales_analysis.SalesAnalyzer")
-@patch("src.dmarket.sales_history.get_sales_history")
+@patch("src.telegram_bot.sales_analysis_callbacks.get_sales_history")
 async def test_handle_sales_history_callback_no_data(
     mock_get_sales,
-    mock_analyzer_class,
     mock_update,
     mock_context,
 ):
     """Тестирует обработку запроса, когда данные о продажах отсутствуют."""
-    # Настройка мока SalesAnalyzer
-    mock_analyzer_class.return_value = AsyncMock()
-    
-    # Настройка мока для get_sales_history
-    mock_get_sales.return_value = {"LastSales": []}
+    # Настройка мока для get_sales_history - возвращаем пустой список
+    mock_get_sales.return_value = {"LastSales": [], "Total": 0}
 
     # Вызываем тестируемую функцию
     await handle_sales_history_callback(mock_update, mock_context)
@@ -184,25 +179,20 @@ async def test_handle_sales_history_callback_api_error(
 
 
 @pytest.mark.asyncio()
-@patch("src.dmarket.arbitrage_sales_analysis.SalesAnalyzer")
-@patch("src.dmarket.arbitrage_sales_analysis.analyze_item_liquidity")
+@patch("src.telegram_bot.sales_analysis_callbacks.analyze_item_liquidity")
 async def test_handle_liquidity_callback_success(
     mock_analyze_liquidity,
-    mock_analyzer_class,
     mock_update,
     mock_context,
 ):
     """Тестирует успешную обработку запроса анализа ликвидности."""
     # Настройка данных callback
     mock_update.callback_query.data = "liquidity:AWP | Asiimov (Field-Tested)"
-    
-    # Настройка мока SalesAnalyzer
-    mock_analyzer_class.return_value = AsyncMock()
 
     # Настройка мока для analyze_item_liquidity
     mock_analysis_data = {
         "liquidity_category": "Высокая",
-        "liquidity_score": 6,
+        "liquidity_score": 85.0,  # Должен быть float/int, а не 6 из 7
         "sales_analysis": {
             "has_data": True,
             "price_trend": "up",
@@ -238,8 +228,8 @@ async def test_handle_liquidity_callback_success(
     assert "Анализ ликвидности" in message_text
     assert "AWP | Asiimov (Field-Tested)" in message_text
     assert "Высокая" in message_text
-    assert "6/7" in message_text
-    assert "5.20" in message_text
+    assert "85.0" in message_text  # liquidity_score
+    assert "5.20" in message_text  # sales_per_day
 
     # Проверяем, что клавиатура содержит нужные кнопки
     keyboard = call_args.kwargs.get("reply_markup")
@@ -284,20 +274,15 @@ async def test_handle_liquidity_callback_no_data(
 
 
 @pytest.mark.asyncio()
-@patch("src.dmarket.arbitrage_sales_analysis.SalesAnalyzer")
-@patch("src.dmarket.sales_history.analyze_sales_history")
+@patch("src.telegram_bot.sales_analysis_callbacks.analyze_sales_history")
 async def test_handle_refresh_sales_callback(
     mock_analyze_sales,
-    mock_analyzer_class,
     mock_update,
     mock_context,
 ):
     """Тестирует обработку запроса на обновление анализа продаж."""
     # Настройка данных callback
     mock_update.callback_query.data = "refresh_sales:AWP | Asiimov (Field-Tested)"
-    
-    # Настройка мока SalesAnalyzer
-    mock_analyzer_class.return_value = AsyncMock()
 
     # Настройка мока для analyze_sales_history
     mock_analysis_data = {
@@ -340,20 +325,15 @@ async def test_handle_refresh_sales_callback(
 
 
 @pytest.mark.asyncio()
-@patch("src.dmarket.arbitrage_sales_analysis.SalesAnalyzer")
-@patch("src.dmarket.arbitrage_sales_analysis.enhanced_arbitrage_search")
+@patch("src.telegram_bot.sales_analysis_callbacks.enhanced_arbitrage_search")
 async def test_handle_all_arbitrage_sales_callback(
     mock_arbitrage_search,
-    mock_analyzer_class,
     mock_update,
     mock_context,
 ):
     """Тестирует обработку запроса на показ всех арбитражных возможностей."""
     # Настройка данных callback
     mock_update.callback_query.data = "all_arbitrage_sales:csgo"
-    
-    # Настройка мока SalesAnalyzer
-    mock_analyzer_class.return_value = AsyncMock()
 
     # Настройка мока для enhanced_arbitrage_search
     mock_opportunities = [
@@ -448,20 +428,15 @@ async def test_handle_setup_sales_filters_callback(mock_update, mock_context):
 
 
 @pytest.mark.asyncio()
-@patch("src.dmarket.arbitrage_sales_analysis.SalesAnalyzer")
-@patch("src.dmarket.arbitrage_sales_analysis.get_sales_volume_stats")
+@patch("src.telegram_bot.sales_analysis_callbacks.get_sales_volume_stats")
 async def test_handle_all_volume_stats_callback(
     mock_get_volume_stats,
-    mock_analyzer_class,
     mock_update,
     mock_context,
 ):
     """Тестирует обработку запроса на показ статистики объемов продаж."""
     # Настройка данных callback
     mock_update.callback_query.data = "all_volume_stats:csgo"
-    
-    # Настройка мока SalesAnalyzer
-    mock_analyzer_class.return_value = AsyncMock()
 
     # Настройка мока для get_sales_volume_stats
     mock_volume_stats = {

@@ -187,9 +187,9 @@ async def handle_liquidity_callback(update: Update, context: CallbackContext) ->
             )
             return
 
-        # Получаем эмодзи для категории ликвидности
+        # Получаем эмодзи для оценки ликвидности (числовое значение 0-100)
         liquidity_emoji = get_liquidity_emoji(
-            analysis.get("liquidity_category", "Низкая"),
+            analysis.get("liquidity_score", 0),
         )
 
         # Форматируем результаты анализа
