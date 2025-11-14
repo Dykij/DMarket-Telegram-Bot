@@ -191,7 +191,7 @@ async def handle_enhanced_arbitrage_callback(
 
         try:
             # Create progress tracking function
-            async def report_progress(items_found, total_items, status_message):
+            async def report_progress(items_found, total_items, status_message) -> None:
                 try:
                     # Only update every 3 seconds to avoid flood limits
                     current_time = asyncio.get_event_loop().time()
@@ -451,7 +451,7 @@ async def update_enhanced_arbitrage_keyboard(query, context: CallbackContext) ->
     )
 
 
-def register_enhanced_arbitrage_handlers(dispatcher):
+def register_enhanced_arbitrage_handlers(dispatcher) -> None:
     """Register handlers for enhanced arbitrage functionality."""
     dispatcher.add_handler(
         CommandHandler("enhanced_arbitrage", handle_enhanced_arbitrage_command),

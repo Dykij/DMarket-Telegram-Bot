@@ -429,7 +429,9 @@ async def check_good_deal_alerts(
                     )
 
         except Exception as e:
-            logger.exception(f"Ошибка при проверке выгодных предложений для {item_id}: {e}")
+            logger.exception(
+                f"Ошибка при проверке выгодных предложений для {item_id}: {e}"
+            )
 
     return triggered_alerts
 
@@ -478,14 +480,13 @@ async def check_all_alerts(
                 if quiet_hours["start"] <= current_hour < quiet_hours["end"]:
                     logger.debug(f"Тихие часы для пользователя {user_id_str}")
                     continue
-            else:
-                # Интервал через полночь (например, с 23 до 8)
-                if (
-                    quiet_hours["start"] <= current_hour
-                    or current_hour < quiet_hours["end"]
-                ):
-                    logger.debug(f"Тихие часы для пользователя {user_id_str}")
-                    continue
+            # Интервал через полночь (например, с 23 до 8)
+            elif (
+                quiet_hours["start"] <= current_hour
+                or current_hour < quiet_hours["end"]
+            ):
+                logger.debug(f"Тихие часы для пользователя {user_id_str}")
+                continue
 
             # Проверяем минимальный интервал между оповещениями
             min_interval = user_data["settings"].get("min_interval", 3600)

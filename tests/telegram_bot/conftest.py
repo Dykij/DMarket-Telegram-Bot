@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_update():
     """Создает мок объекта Update из библиотеки python-telegram-bot."""
     update = MagicMock()
@@ -30,7 +30,7 @@ def mock_update():
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context():
     """Создает мок объекта Context из библиотеки python-telegram-bot."""
     context = MagicMock()
@@ -51,7 +51,7 @@ def mock_context():
     return context
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_dmarket_api_for_telegram():
     """Создает мок DMarket API для использования в тестах телеграм бота."""
     api = MagicMock()
@@ -63,7 +63,7 @@ def mock_dmarket_api_for_telegram():
     return api
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_keyboards():
     """Создает мок клавиатур для интерфейса Telegram."""
     keyboards = MagicMock()

@@ -243,7 +243,7 @@ async def scan_multiple_games_enhanced(
             progress_callback(0, 0, f"Starting scan for {game_name}")
 
         # Create progress callback for this game
-        def game_progress(items_found, total_items, status):
+        def game_progress(items_found, total_items, status) -> None:
             if progress_callback:
                 progress_callback(
                     items_found,
@@ -306,7 +306,7 @@ async def start_auto_arbitrage_enhanced(
 
     # Combine and sort all results
     all_results = []
-    for _game, items in results_by_game.items():
+    for items in results_by_game.values():
         all_results.extend(items)
 
     # Sort by profit percentage

@@ -109,7 +109,6 @@ async def initialize_bot(token: str, setup_persistence: bool = True) -> Applicat
         ApplicationBuilder()
         .token(token)
         .concurrent_updates(True)  # Включаем параллельную обработку обновлений
-        .rate_limiter(group_size=20, max_retries=3)  # Настройка rate limiter
         .connection_pool_size(8)  # Размер пула соединений
     )
 
@@ -154,21 +153,28 @@ def setup_signal_handlers(application: Application) -> None:
         application: Экземпляр приложения бота
 
     """
+    import platform
 
     # Обработчик сигнала завершения
-    async def signal_handler():
+    async def signal_handler() -> None:
         logger.info("Получен сигнал завершения, закрываем бота...")
         await application.stop()
         await application.shutdown()
 
     # Регистрируем обработчики для разных сигналов
-    for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGABRT):
-        asyncio.get_event_loop().add_signal_handler(
-            sig,
-            lambda: asyncio.create_task(signal_handler()),
-        )
-
-    logger.debug("Обработчики сигналов настроены")
+    # На Windows add_signal_handler не поддерживается
+    if platform.system() != "Windows":
+        try:
+            for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGABRT):
+                asyncio.get_event_loop().add_signal_handler(
+                    sig,
+                    lambda: asyncio.create_task(signal_handler()),
+                )
+            logger.debug("Обработчики сигналов настроены")
+        except NotImplementedError:
+            logger.warning("add_signal_handler не поддерживается на этой платформе")
+    else:
+        logger.debug("Обработчики сигналов пропущены (Windows)")
 
 
 def register_handlers(

@@ -10,6 +10,11 @@ on:
 
 env:
   PYTHON_VERSION: "3.11"
+  # Версии для параллельной проверки совместимости
+  PYTHON_VERSIONS: "3.10, 3.11, 3.12"
+  # Кэширование
+  CACHE_VERSION: v1
+  PIP_CACHE_DIR: ~/.cache/pip
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -33,6 +38,18 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
+          cache-dependency-path: |
+            requirements.txt
+            pyproject.toml
+
+      - name: Cache linting tools
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-lint-${{ env.CACHE_VERSION }}-${{ hashFiles('requirements.txt', 'pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-lint-${{ env.CACHE_VERSION }}-
+            ${{ runner.os }}-lint-
 
       - name: Install linting tools
         run: |
@@ -50,11 +67,12 @@ jobs:
           [ -d "scripts" ] && DIRS="$DIRS scripts"
 
           if [ -n "$DIRS" ]; then
-            ruff check $DIRS --output-format=github || echo "::warning::Ruff обнаружил проблемы стиля"
+            echo "Checking directories: $DIRS"
+            ruff check $DIRS --output-format=github
           else
             echo "::warning::Нет директорий для проверки"
           fi
-        continue-on-error: true
+        continue-on-error: false  # Фейлим при обнаружении проблем
 
       - name: Run Ruff format check
         run: |
@@ -65,9 +83,10 @@ jobs:
           [ -d "scripts" ] && DIRS="$DIRS scripts"
 
           if [ -n "$DIRS" ]; then
-            ruff format --check $DIRS || echo "::warning::Требуется форматирование кода"
+            echo "Checking format for directories: $DIRS"
+            ruff format --check $DIRS
           fi
-        continue-on-error: true
+        continue-on-error: false  # Фейлим если требуется форматирование
 
       - name: Run MyPy type checking
         run: |
@@ -76,18 +95,39 @@ jobs:
 
   test:
     name: Run Tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     needs: lint-and-format
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.10", "3.11", "3.12"]
+        include:
+          - os: ubuntu-latest
+            python-version: "3.11"
+            coverage: true
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: ${{ matrix.python-version }}
           cache: 'pip'
+          cache-dependency-path: |
+            requirements.txt
+            pyproject.toml
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ env.CACHE_VERSION }}-py${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ env.CACHE_VERSION }}-py${{ matrix.python-version }}-
+            ${{ runner.os }}-pip-${{ env.CACHE_VERSION }}-
 
       - name: Install dependencies
         run: |
@@ -116,7 +156,8 @@ jobs:
             echo "TESTING=true" >> .env
           fi
 
-      - name: Run tests
+      - name: Run tests (with coverage for Python 3.11)
+        if: matrix.coverage
         run: |
           # Устанавливаем PYTHONPATH
           export PYTHONPATH=$GITHUB_WORKSPACE:$PYTHONPATH
@@ -127,13 +168,39 @@ jobs:
             exit 0
           fi
 
-          # Запускаем тесты с мягкими требованиями
+          # Запускаем тесты с покрытием и параллельно (pytest-xdist)
           pytest tests/ \
             --cov=src \
             --cov-report=xml \
             --cov-report=term \
+            --cov-report=html \
             --maxfail=10 \
             -v \
+            -n auto \
+            -k "not integration and not slow" \
+            --tb=short \
+            || { echo "::warning::Некоторые тесты провалились, но продолжаем"; exit 0; }
+        continue-on-error: false
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+      - name: Run tests (without coverage for other Python versions)
+        if: ${{ !matrix.coverage }}
+        run: |
+          # Устанавливаем PYTHONPATH
+          export PYTHONPATH=$GITHUB_WORKSPACE:$PYTHONPATH
+
+          # Проверяем наличие тестов
+          if [ ! -d "tests" ] || [ -z "$(find tests -name 'test_*.py' -o -name '*_test.py' 2>/dev/null)" ]; then
+            echo "::warning::Тесты не найдены, считаем workflow успешным"
+            exit 0
+          fi
+
+          # Запускаем тесты параллельно без покрытия (быстрее)
+          pytest tests/ \
+            --maxfail=10 \
+            -v \
+            -n auto \
             -k "not integration and not slow" \
             --tb=short \
             || { echo "::warning::Некоторые тесты провалились, но продолжаем"; exit 0; }
@@ -142,21 +209,22 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}
 
       - name: Upload coverage report
-        if: always()
+        if: matrix.coverage && always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
+          name: coverage-report-py${{ matrix.python-version }}
           path: |
             coverage.xml
             .coverage
+            htmlcov/
           retention-days: 7
         continue-on-error: true
 
       - name: Check coverage (non-blocking)
-        if: always()
+        if: matrix.coverage && always()
         run: |
           if command -v coverage &> /dev/null; then
-            coverage report || echo "::warning::Не удалось сгенерировать отчет покрытия"
+            coverage report --fail-under=80 || echo "::warning::Покрытие ниже 80%"
           fi
         continue-on-error: true
 
@@ -172,6 +240,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Cache security tools
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-security-${{ env.CACHE_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-security-
 
       - name: Install security tools
         run: |

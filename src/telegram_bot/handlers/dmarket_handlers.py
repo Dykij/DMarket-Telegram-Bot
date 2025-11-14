@@ -8,7 +8,7 @@ import logging
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-from src.dmarket.api.client import DMarketAPI
+from src.dmarket.dmarket_api import DMarketAPI
 
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class DMarketHandler:
     """Обработчик команд для работы с DMarket."""
 
-    def __init__(self, public_key: str, secret_key: str, api_url: str):
+    def __init__(self, public_key: str, secret_key: str, api_url: str) -> None:
         """Инициализирует обработчик команд DMarket.
 
         Args:

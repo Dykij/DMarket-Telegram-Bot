@@ -15,6 +15,7 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
+
 # Импортируем необходимые модули для тестирования
 sys.path.insert(
     0,
@@ -23,6 +24,7 @@ sys.path.insert(
 
 from dmarket.dmarket_api import DMarketAPI
 
+
 # Тестовые константы
 TEST_PUBLIC_KEY = "test_public_key"
 TEST_SECRET_KEY = "test_secret_key"
@@ -30,7 +32,7 @@ TEST_SECRET_KEY = "test_secret_key"
 # Фикстуры для тестирования
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_httpx_client():
     """Создает мок для httpx.AsyncClient."""
     client = AsyncMock(spec=httpx.AsyncClient)
@@ -39,7 +41,7 @@ def mock_httpx_client():
     return client
 
 
-@pytest.fixture
+@pytest.fixture()
 def api(mock_httpx_client):
     """Создает экземпляр API с моком клиента."""
     api_instance = DMarketAPI(TEST_PUBLIC_KEY, TEST_SECRET_KEY)
@@ -49,7 +51,7 @@ def api(mock_httpx_client):
     return api_instance
 
 
-@pytest.fixture
+@pytest.fixture()
 def balance_response():
     """Возвращает пример ответа на запрос баланса."""
     return {
@@ -58,7 +60,7 @@ def balance_response():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def market_items_response():
     """Возвращает пример ответа с предметами маркета."""
     return {
@@ -85,7 +87,7 @@ def market_items_response():
 # Тесты основной функциональности API
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_api_initialization():
     """Тестирует инициализацию API клиента."""
     api = DMarketAPI(TEST_PUBLIC_KEY, TEST_SECRET_KEY)
@@ -94,7 +96,7 @@ async def test_api_initialization():
     await api._close_client()  # Закрываем клиент после теста
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_generate_headers(api):
     """Тестирует генерацию заголовков для запросов."""
     method = "GET"
@@ -109,7 +111,7 @@ async def test_generate_headers(api):
 # Тесты для получения баланса
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_user_balance(api, mock_httpx_client, balance_response):
     """Тестирует получение баланса пользователя."""
     # Создаем мок ответа
@@ -131,7 +133,7 @@ async def test_get_user_balance(api, mock_httpx_client, balance_response):
     assert mock_httpx_client.get.called
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_user_balance_error(api, mock_httpx_client):
     """Тестирует обработку ошибки при получении баланса."""
     # Создаем мок ответа с ошибкой
@@ -156,7 +158,7 @@ async def test_get_user_balance_error(api, mock_httpx_client):
 # Тесты для получения предметов с маркета
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_market_items(api, mock_httpx_client, market_items_response):
     """Тестирует получение предметов с маркета."""
     # Создаем мок ответа
@@ -181,7 +183,7 @@ async def test_get_market_items(api, mock_httpx_client, market_items_response):
 # Тесты для обработки ошибок API
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_handle_rate_limit(api, mock_httpx_client):
     """Тестирует обработку ограничения частоты запросов."""
     # Создаем мок ответы
@@ -226,7 +228,7 @@ async def test_handle_rate_limit(api, mock_httpx_client):
     assert result is not None
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_api_timeout(api, mock_httpx_client):
     """Тестирует обработку тайм-аута API."""
     # Устанавливаем мок, который вызовет исключение тайм-аута
@@ -244,7 +246,7 @@ async def test_api_timeout(api, mock_httpx_client):
 # Тесты для парсинга баланса
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_parse_balance_format1(api, mock_httpx_client):
     """Тестирует парсинг баланса в формате 1 (usd/dmc)."""
     balance_data = {
@@ -266,7 +268,7 @@ async def test_parse_balance_format1(api, mock_httpx_client):
     assert "balance" in result or "usd" in result
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_parse_balance_format2(api, mock_httpx_client):
     """Тестирует парсинг баланса в формате 2 (USD)."""
     balance_data = {
@@ -286,7 +288,7 @@ async def test_parse_balance_format2(api, mock_httpx_client):
     assert "balance" in result or "USD" in result
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_parse_balance_empty(api, mock_httpx_client):
     """Тестирует парсинг пустого ответа баланса."""
     balance_data = {}

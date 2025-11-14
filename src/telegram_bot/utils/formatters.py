@@ -262,7 +262,7 @@ def format_sales_history(
         date_str = sale.get("createdAt", "")
         if date_str:
             try:
-                date = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+                date = datetime.fromisoformat(date_str)
                 date_formatted = date.strftime("%d.%m.%Y %H:%M")
             except (ValueError, TypeError):
                 date_formatted = date_str
@@ -528,6 +528,100 @@ def format_arbitrage_with_sales(results: dict[str, Any], game: str) -> str:
         message.append(
             f"<i>Показаны 5 из {len(opportunities)} найденных возможностей.</i>",
         )
+
+    return "\n".join(message)
+
+
+def format_dmarket_results(
+    results: dict[str, Any],
+    result_type: str = "market_items",
+) -> str:
+    """Форматирует результаты запроса к DMarket API.
+
+    Args:
+        results: Словарь с результатами запроса
+        result_type: Тип результатов (market_items, opportunities, balance, etc.)
+
+    Returns:
+        str: Отформатированный текст с результатами
+
+    """
+    if not results:
+        return "⚠️ <b>Результаты не найдены</b>"
+
+    if result_type == "market_items":
+        items = results.get("objects", [])
+        total = results.get("total", {}).get("items", 0)
+        if not items:
+            return "🔍 <b>Предметы не найдены</b>"
+
+        message = [f"📋 <b>Найдено предметов: {total}</b>\n"]
+        for i, item in enumerate(items[:10], 1):
+            title = item.get("title", "Неизвестный предмет")
+            price_cents = item.get("price", {}).get("USD", 0)
+            price_usd = price_cents / 100 if price_cents else 0
+            message.append(f"{i}. <b>{title}</b> - ${price_usd:.2f}")
+
+        if total > 10:
+            message.append(f"\n<i>Показаны 10 из {total} предметов</i>")
+
+        return "\n".join(message)
+
+    if result_type == "opportunities":
+        return format_best_opportunities(results.get("opportunities", []))
+
+    if result_type == "balance":
+        return format_balance(results)
+
+    return "⚠️ <b>Неизвестный тип результатов</b>"
+
+
+def format_best_opportunities(
+    opportunities: list[dict[str, Any]],
+    limit: int = 10,
+) -> str:
+    """Форматирует лучшие арбитражные возможности.
+
+    Args:
+        opportunities: Список возможностей для арбитража
+        limit: Максимальное количество возможностей для отображения
+
+    Returns:
+        str: Отформатированный текст с лучшими возможностями
+
+    """
+    if not opportunities:
+        return "🔍 <b>Арбитражные возможности не найдены</b>"
+
+    # Ограничиваем количество возможностей
+    top_opportunities = opportunities[:limit]
+
+    message = [f"🏆 <b>Топ-{len(top_opportunities)} арбитражных возможностей</b>\n"]
+
+    for i, opportunity in enumerate(top_opportunities, 1):
+        # Извлекаем данные
+        item_name = opportunity.get("item_name", opportunity.get("market_hash_name", "Неизвестный предмет"))
+        buy_price = opportunity.get("buy_price", 0)
+        sell_price = opportunity.get("sell_price", 0)
+        profit = opportunity.get("profit", 0)
+        profit_percent = opportunity.get("profit_percent", 0)
+
+        # Форматируем
+        message.append(f"{i}. <b>{item_name}</b>")
+        message.append(
+            f"💲 Покупка: <b>${buy_price:.2f}</b> ➡️ Продажа: <b>${sell_price:.2f}</b>",
+        )
+        message.append(f"📈 Прибыль: <b>${profit:.2f}</b> ({profit_percent:.2f}%)")
+
+        # Добавляем информацию о ликвидности если есть
+        if "sales_per_day" in opportunity:
+            message.append(f"🔄 Продаж в день: <b>{opportunity['sales_per_day']:.2f}</b>")
+
+        message.append("")  # Пустая строка между возможностями
+
+    # Добавляем время анализа
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    message.append(f"🕒 <i>Время анализа: {current_time}</i>")
 
     return "\n".join(message)
 

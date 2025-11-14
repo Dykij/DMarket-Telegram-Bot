@@ -10,6 +10,9 @@ import sys
 from pathlib import Path
 
 
+# Создаем директорию для логов, если её нет (ДО настройки логирования!)
+os.makedirs("logs", exist_ok=True)
+
 # Настраиваем логирование
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -21,10 +24,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Добавляем директорию src в путь поиска модулей
-src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "src"))
-if src_path not in sys.path:
-    sys.path.insert(0, src_path)
+# Добавляем корневую директорию проекта в путь поиска модулей
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 # Загрузка переменных окружения из .env файла
 try:
@@ -62,10 +65,10 @@ async def run_bot():
         await bot_main()
 
     except Exception as e:
-        logger.error(f"Ошибка при запуске бота: {e}")
+        logger.exception(f"Ошибка при запуске бота: {e}")
         import traceback
 
-        logger.error(f"Трассировка: {traceback.format_exc()}")
+        logger.exception(f"Трассировка: {traceback.format_exc()}")
 
         # Делаем паузу перед повторной попыткой
         logger.info("Пауза 10 секунд перед повторной попыткой...")
@@ -79,15 +82,14 @@ async def run_bot():
 def parse_arguments():
     """Обрабатывает аргументы командной строки"""
     parser = argparse.ArgumentParser(description="DMarket Telegram Bot")
-    parser.add_argument("--no-lock", action="store_true", help="Не использовать файл блокировки")
+    parser.add_argument(
+        "--no-lock", action="store_true", help="Не использовать файл блокировки"
+    )
     parser.add_argument("--debug", action="store_true", help="Включить режим отладки")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
-    # Создаем директорию для логов, если её нет
-    os.makedirs("logs", exist_ok=True)
-
     # Обрабатываем аргументы командной строки
     args = parse_arguments()
 
@@ -116,14 +118,16 @@ if __name__ == "__main__":
                     import psutil
 
                     if psutil.pid_exists(pid):
-                        logger.warning(f"Бот уже запущен с PID {pid}. Завершаем текущий экземпляр.")
+                        logger.warning(
+                            f"Бот уже запущен с PID {pid}. Завершаем текущий экземпляр."
+                        )
                         sys.exit(1)
                     else:
                         logger.warning(
                             "Обнаружен недействительный файл блокировки. Перезаписываем."
                         )
                 except Exception as e:
-                    logger.error(f"Ошибка при чтении файла блокировки: {e}")
+                    logger.exception(f"Ошибка при чтении файла блокировки: {e}")
 
             # Создаем файл блокировки с текущим PID
             with open(lock_file, "w") as f:
@@ -146,10 +150,10 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         logger.info("Бот остановлен пользователем.")
     except Exception as e:
-        logger.error(f"Критическая ошибка: {e}")
+        logger.exception(f"Критическая ошибка: {e}")
         import traceback
 
-        logger.error(f"Трассировка: {traceback.format_exc()}")
+        logger.exception(f"Трассировка: {traceback.format_exc()}")
     finally:
         # Удаляем файл блокировки при выходе, если он используется
         if not args.no_lock:

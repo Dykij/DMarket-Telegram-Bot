@@ -607,7 +607,7 @@ async def get_sales_history(
         return {"LastSales": all_sales, "Total": len(all_sales)}
 
     except Exception as e:
-        logger.error(f"Error getting sales history: {e}")
+        logger.exception(f"Error getting sales history: {e}")
         return {"Error": str(e), "LastSales": [], "Total": 0}
 
 
@@ -686,7 +686,7 @@ async def analyze_sales_history(
         }
 
     except Exception as e:
-        logger.error(f"Error analyzing sales history: {e}")
+        logger.exception(f"Error analyzing sales history: {e}")
         return {
             "item_name": item_name,
             "has_data": False,
@@ -731,7 +731,7 @@ async def execute_api_request(
                 params=params or {},
             )
     except Exception as e:
-        logger.error(f"Error executing API request: {e}")
+        logger.exception(f"Error executing API request: {e}")
         return {"Error": str(e)}
 
 
@@ -786,5 +786,5 @@ async def get_arbitrage_opportunities_with_sales_history(
         return filtered_items
 
     except Exception as e:
-        logger.error(f"Error getting arbitrage opportunities: {e}")
+        logger.exception(f"Error getting arbitrage opportunities: {e}")
         return []

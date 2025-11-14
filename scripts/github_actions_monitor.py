@@ -22,6 +22,7 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.table import Table
 
+
 console = Console()
 
 # Константы для success rate thresholds
@@ -107,10 +108,9 @@ class GitHubActionsMonitor:
         """
         if rate >= 95:
             return "green"
-        elif rate >= self.target_success_rate:
+        if rate >= self.target_success_rate:
             return "yellow"
-        else:
-            return "red"
+        return "red"
 
     async def check_rate_limit(self) -> dict[str, Any]:
         """
@@ -201,6 +201,7 @@ class GitHubActionsMonitor:
                     f"[yellow]⚠️  Ошибка при получении jobs для run {run_id}: {e}[/yellow]"
                 )
                 return []
+        return None
 
     async def analyze_workflow_health(self) -> dict[str, Any]:
         """
@@ -232,12 +233,8 @@ class GitHubActionsMonitor:
         durations = []
         for run in runs:
             if run.get("created_at") and run.get("updated_at"):
-                created = datetime.fromisoformat(
-                    run["created_at"].replace("Z", "+00:00")
-                )
-                updated = datetime.fromisoformat(
-                    run["updated_at"].replace("Z", "+00:00")
-                )
+                created = datetime.fromisoformat(run["created_at"])
+                updated = datetime.fromisoformat(run["updated_at"])
                 duration = (updated - created).total_seconds()
                 durations.append(duration)
 

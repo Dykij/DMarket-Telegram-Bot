@@ -17,7 +17,7 @@ def run_command(cmd: str, description: str) -> bool:
     Returns:
         True если команда выполнена успешно, иначе False
     """
-    print(f"\n{'-'*80}\n{description}\n{'-'*80}")
+    print(f"\n{'-' * 80}\n{description}\n{'-' * 80}")
     result = subprocess.run(cmd, shell=True, text=True, check=False)
     return result.returncode == 0
 

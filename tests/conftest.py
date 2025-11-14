@@ -179,7 +179,7 @@ async def test_bot(
         await bot.stop()
 
 
-@pytest.fixture
+@pytest.fixture()
 def temp_config_file() -> Generator[str, None, None]:
     """Create temporary config file."""
     with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
@@ -195,7 +195,7 @@ def temp_config_file() -> Generator[str, None, None]:
         os.unlink(temp_path)
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_telegram_update():
     """Create mock Telegram update object."""
     update = MagicMock()
@@ -210,7 +210,7 @@ def mock_telegram_update():
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_telegram_context():
     """Create mock Telegram context object."""
     context = MagicMock()
@@ -305,9 +305,9 @@ def assert_api_response_valid(response: dict[str, Any]) -> None:
     """Assert that API response is valid."""
     assert isinstance(response, dict)
     if "error" in response:
-        assert (
-            response["error"] is False
-        ), f"API error: {response.get('error_message', 'Unknown')}"
+        assert response["error"] is False, (
+            f"API error: {response.get('error_message', 'Unknown')}"
+        )
 
 
 def assert_balance_response_valid(balance: dict[str, Any]) -> None:

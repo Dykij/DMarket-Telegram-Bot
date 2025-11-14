@@ -464,7 +464,6 @@ async def generate_market_report(
             },
         }
 
-
     except Exception as e:
         logger.exception(f"Ошибка при создании отчета о рынке: {e}")
         return {

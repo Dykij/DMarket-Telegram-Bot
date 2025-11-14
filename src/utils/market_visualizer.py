@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 class MarketVisualizer:
     """Creates visual representations of market data for analysis."""
 
-    def __init__(self, theme: str = "dark"):
+    def __init__(self, theme: str = "dark") -> None:
         """Initialize the market visualizer.
 
         Args:
@@ -266,7 +266,7 @@ class MarketVisualizer:
                         df.index,
                         normalized,
                         linewidth=2,
-                        label=item.get("title", f"Item {i+1}"),
+                        label=item.get("title", f"Item {i + 1}"),
                     )
 
         # Format the chart
@@ -521,7 +521,9 @@ class MarketVisualizer:
         trend_color = (
             (0, 200, 100)
             if trend == "up"
-            else (255, 80, 80) if trend == "down" else (170, 170, 170)
+            else (255, 80, 80)
+            if trend == "down"
+            else (170, 170, 170)
         )
         draw.text(
             (20, y_pos),
@@ -538,12 +540,16 @@ class MarketVisualizer:
         price_24h_color = (
             (0, 200, 100)
             if price_change_24h > 0
-            else (255, 80, 80) if price_change_24h < 0 else text_color
+            else (255, 80, 80)
+            if price_change_24h < 0
+            else text_color
         )
         price_7d_color = (
             (0, 200, 100)
             if price_change_7d > 0
-            else (255, 80, 80) if price_change_7d < 0 else text_color
+            else (255, 80, 80)
+            if price_change_7d < 0
+            else text_color
         )
 
         draw.text(
@@ -566,7 +572,9 @@ class MarketVisualizer:
         volatility_color = (
             (170, 170, 170)
             if volatility == "low"
-            else (255, 170, 0) if volatility == "medium" else (255, 80, 80)
+            else (255, 170, 0)
+            if volatility == "medium"
+            else (255, 80, 80)
         )
         draw.text(
             (20, y_pos),
@@ -660,7 +668,7 @@ class MarketVisualizer:
                     # Try to parse string timestamp
                     try:
                         timestamp = datetime.fromisoformat(
-                            timestamp.replace("Z", "+00:00"),
+                            timestamp,
                         )
                     except ValueError:
                         try:

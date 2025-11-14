@@ -13,7 +13,7 @@ from src.telegram_bot.handlers.error_handlers import error_handler
 from src.utils.api_error_handling import APIError
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_update():
     """Создает мок объекта Update для тестирования."""
     update = MagicMock(spec=Update)
@@ -22,13 +22,13 @@ def mock_update():
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context():
     """Создает мок объекта CallbackContext для тестирования."""
     return MagicMock(spec=CallbackContext)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_error_handler_rate_limit_error(mock_update, mock_context):
     """Тестирует обработку ошибки превышения лимита запросов (429)."""
     # Настраиваем ошибку в контексте
@@ -41,13 +41,13 @@ async def test_error_handler_rate_limit_error(mock_update, mock_context):
     mock_update.effective_message.reply_text.assert_called_once()
 
     # Проверяем содержимое сообщения
-    args, kwargs = mock_update.effective_message.reply_text.call_args
+    args, _kwargs = mock_update.effective_message.reply_text.call_args
     message_text = args[0]
     assert "Превышен лимит запросов" in message_text
     assert "подождите" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_error_handler_auth_error(mock_update, mock_context):
     """Тестирует обработку ошибки авторизации (401)."""
     # Настраиваем ошибку в контексте
@@ -57,13 +57,13 @@ async def test_error_handler_auth_error(mock_update, mock_context):
     await error_handler(mock_update, mock_context)
 
     # Проверяем содержимое сообщения
-    args, kwargs = mock_update.effective_message.reply_text.call_args
+    args, _kwargs = mock_update.effective_message.reply_text.call_args
     message_text = args[0]
     assert "Ошибка авторизации" in message_text
     assert "Проверьте API-ключи" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_error_handler_not_found_error(mock_update, mock_context):
     """Тестирует обработку ошибки "не найдено" (404)."""
     # Настраиваем ошибку в контексте
@@ -73,12 +73,12 @@ async def test_error_handler_not_found_error(mock_update, mock_context):
     await error_handler(mock_update, mock_context)
 
     # Проверяем содержимое сообщения
-    args, kwargs = mock_update.effective_message.reply_text.call_args
+    args, _kwargs = mock_update.effective_message.reply_text.call_args
     message_text = args[0]
     assert "не найден" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_error_handler_server_error(mock_update, mock_context):
     """Тестирует обработку серверной ошибки (5xx)."""
     # Настраиваем ошибку в контексте
@@ -88,13 +88,13 @@ async def test_error_handler_server_error(mock_update, mock_context):
     await error_handler(mock_update, mock_context)
 
     # Проверяем содержимое сообщения
-    args, kwargs = mock_update.effective_message.reply_text.call_args
+    args, _kwargs = mock_update.effective_message.reply_text.call_args
     message_text = args[0]
     assert "Серверная ошибка" in message_text
     assert "попробуйте позже" in message_text.lower()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_error_handler_other_api_error(mock_update, mock_context):
     """Тестирует обработку других ошибок API."""
     # Настраиваем ошибку в контексте
@@ -105,13 +105,13 @@ async def test_error_handler_other_api_error(mock_update, mock_context):
     await error_handler(mock_update, mock_context)
 
     # Проверяем содержимое сообщения
-    args, kwargs = mock_update.effective_message.reply_text.call_args
+    args, _kwargs = mock_update.effective_message.reply_text.call_args
     message_text = args[0]
     assert "Ошибка DMarket API" in message_text
     assert error_message in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_error_handler_generic_error(mock_update, mock_context):
     """Тестирует обработку обычной ошибки (не APIError)."""
     # Настраиваем обычную ошибку в контексте
@@ -121,13 +121,13 @@ async def test_error_handler_generic_error(mock_update, mock_context):
     await error_handler(mock_update, mock_context)
 
     # Проверяем содержимое сообщения
-    args, kwargs = mock_update.effective_message.reply_text.call_args
+    args, _kwargs = mock_update.effective_message.reply_text.call_args
     message_text = args[0]
     assert "Произошла ошибка" in message_text
     assert "Попробуйте позже" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_error_handler_no_update(mock_context):
     """Тестирует обработку ошибки без объекта update."""
     # Настраиваем ошибку в контексте
@@ -140,7 +140,7 @@ async def test_error_handler_no_update(mock_context):
     # В этом случае сообщение не отправляется, поэтому нет assert для reply_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_error_handler_no_effective_message(mock_update, mock_context):
     """Тестирует обработку ошибки без effective_message."""
     # Настраиваем ошибку в контексте

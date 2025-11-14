@@ -111,7 +111,7 @@ class ArbitrageScanner:
         opportunities = await scanner.scan_game("csgo", "medium", 10)
     """
 
-    def __init__(self, api_client: DMarketAPI | None = None):
+    def __init__(self, api_client: DMarketAPI | None = None) -> None:
         """Инициализирует сканер арбитража.
 
         Args:
@@ -1206,7 +1206,7 @@ class ArbitrageScanner:
         """
         stats = {}
         for level, config in ARBITRAGE_LEVELS.items():
-            min_price, max_price = config["price_range"]
+            _min_price, max_price = config["price_range"]
             stats[level] = {
                 "name": config["name"],
                 "min_profit": config["min_profit_percent"],
@@ -1279,7 +1279,7 @@ class ArbitrageScanner:
                 "timestamp": time.time(),
             }
         except Exception as e:
-            logger.error(f"Ошибка получения обзора рынка: {e}")
+            logger.exception(f"Ошибка получения обзора рынка: {e}")
             return {
                 "game": game,
                 "total_items": 0,

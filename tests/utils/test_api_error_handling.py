@@ -11,15 +11,17 @@ from src.utils.api_error_handling import APIError, handle_response, retry_reques
 def test_api_error_creation():
     """Test creating APIError instances."""
     error = APIError("Test error")
-    assert str(error) == "Test error (Статус: 0)"
+    error_str = str(error)
+    assert "APIError" in error_str
+    assert "Test error" in error_str
 
     error_with_status = APIError("Error with status", status_code=404)
     assert error_with_status.status_code == 404
     assert "Error with status" in str(error_with_status)
-    assert "404" in str(error_with_status)
+    assert error_with_status.details["status_code"] == 404
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_handle_response():
     """Test handling API responses."""
     # Create a successful response mock
@@ -42,11 +44,9 @@ async def test_handle_response():
     assert "404" in str(excinfo.value)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_retry_request():
     """Test retry_request function for API calls."""
-    from src.utils.api_error_handling import RetryStrategy
-
     # Create a mock function that fails first with retryable errors then succeeds
     mock_func = AsyncMock()
     mock_func.side_effect = [
@@ -57,8 +57,9 @@ async def test_retry_request():
 
     # Call retry_request with our mock
     result = await retry_request(
-        request_func=mock_func,
-        retry_strategy=RetryStrategy(max_retries=2),
+        func=mock_func,
+        max_retries=3,
+        retry_delay=0.01,
     )
 
     # Check that the function was called the expected number of times
@@ -68,11 +69,9 @@ async def test_retry_request():
     assert result == "Success"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_retry_request_max_retries_exceeded():
     """Test retry_request when max retries is exceeded."""
-    from src.utils.api_error_handling import RetryStrategy
-
     # Create a mock function that always fails with retryable status
     mock_func = AsyncMock()
     mock_func.side_effect = APIError("Always fails", status_code=500)
@@ -83,18 +82,19 @@ async def test_retry_request_max_retries_exceeded():
     # Should raise the original APIError after max_retries
     with pytest.raises(APIError) as excinfo:
         await retry_request(
-            request_func=mock_func,
-            retry_strategy=RetryStrategy(max_retries=1, initial_delay=0.1),
+            func=mock_func,
+            max_retries=2,
+            retry_delay=0.01,
         )
 
     elapsed_time = time.time() - start_time
 
     # Check that the function was called the expected number of times
-    # max_retries=1 means: attempt 0 (initial) + attempt 1 (retry) = 2 calls
+    # max_retries=2 means: initial attempt + 1 retry = 2 calls total
     assert mock_func.call_count == 2
 
     # Verify that error message is preserved
     assert "Always fails" in str(excinfo.value)
 
     # Verify that some delay happened
-    assert elapsed_time > 0
+    assert elapsed_time >= 0

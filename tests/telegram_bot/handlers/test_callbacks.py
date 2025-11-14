@@ -18,9 +18,18 @@ from src.telegram_bot.handlers.callbacks import (
 from src.telegram_bot.handlers.callbacks import (
     handle_dmarket_arbitrage_impl as handle_dmarket_arbitrage,
 )
+from src.telegram_bot.handlers.callbacks import (
+    handle_game_selected_impl as handle_game_selected,
+)
+from src.telegram_bot.handlers.callbacks import (
+    handle_game_selection_impl as handle_game_selection,
+)
+from src.telegram_bot.handlers.callbacks import (
+    show_arbitrage_opportunities,
+)
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_update():
     """Создает мок объекта Update для тестирования."""
     update = MagicMock(spec=Update)
@@ -33,7 +42,7 @@ def mock_update():
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context():
     """Создает мок объекта CallbackContext для тестирования."""
     context = MagicMock(spec=CallbackContext)
@@ -41,7 +50,7 @@ def mock_context():
     return context
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_arbitrage_callback(mock_update, mock_context):
     """Тестирует, что arbitrage_callback вызывает edit_message_text."""
     # Вызываем тестируемую функцию (реальную, без моков)
@@ -51,9 +60,9 @@ async def test_arbitrage_callback(mock_update, mock_context):
     mock_update.callback_query.edit_message_text.assert_called_once()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.handlers.callbacks.setup_api_client")
-@patch("src.telegram_bot.handlers.callbacks.find_arbitrage_opportunities")
+@patch("src.telegram_bot.handlers.callbacks.find_arbitrage_opportunities_advanced")
 async def test_handle_dmarket_arbitrage(
     mock_find_arb,
     mock_setup_api,
@@ -76,9 +85,9 @@ async def test_handle_dmarket_arbitrage(
     mock_update.callback_query.edit_message_text.assert_called()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.handlers.callbacks.setup_api_client")
-@patch("src.telegram_bot.handlers.callbacks.find_arbitrage_opportunities")
+@patch("src.telegram_bot.handlers.callbacks.find_arbitrage_opportunities_advanced")
 async def test_handle_best_opportunities(
     mock_find_arb,
     mock_setup_api,
@@ -98,9 +107,9 @@ async def test_handle_best_opportunities(
     mock_update.callback_query.edit_message_text.assert_called()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.handlers.callbacks.setup_api_client")
-@patch("src.telegram_bot.handlers.callbacks.find_arbitrage_opportunities")
+@patch("src.telegram_bot.handlers.callbacks.find_arbitrage_opportunities_advanced")
 async def test_handle_dmarket_arbitrage_different_modes(
     mock_find_arb,
     mock_setup_api,
@@ -123,3 +132,57 @@ async def test_handle_dmarket_arbitrage_different_modes(
 
         # Проверяем, что edit_message_text был вызван
         mock_update.callback_query.edit_message_text.assert_called()
+
+
+@pytest.mark.asyncio()
+async def test_handle_game_selection(mock_update, mock_context):
+    """Тестирует handle_game_selection."""
+    # Вызываем тестируемую функцию
+    await handle_game_selection(mock_update, mock_context)
+
+    # Проверяем, что edit_message_text был вызван
+    mock_update.callback_query.edit_message_text.assert_called_once()
+
+
+@pytest.mark.asyncio()
+@patch("src.telegram_bot.handlers.callbacks.setup_api_client")
+@patch("src.telegram_bot.handlers.callbacks.find_arbitrage_opportunities_advanced")
+async def test_handle_game_selected(
+    mock_find_arb,
+    mock_setup_api,
+    mock_update,
+    mock_context,
+):
+    """Тестирует handle_game_selected с выбором игры."""
+    # Настраиваем моки
+    mock_api = MagicMock()
+    mock_setup_api.return_value = mock_api
+    mock_find_arb.return_value = []
+
+    # Вызываем тестируемую функцию с выбранной игрой
+    await handle_game_selected(mock_update, mock_context, game="csgo")
+
+    # Проверяем, что edit_message_text был вызван
+    mock_update.callback_query.edit_message_text.assert_called()
+
+
+@pytest.mark.asyncio()
+@patch("src.telegram_bot.handlers.callbacks.format_opportunities")
+async def test_show_arbitrage_opportunities(
+    mock_format,
+    mock_update,
+    mock_context,
+):
+    """Тестирует show_arbitrage_opportunities."""
+    # Настраиваем моки
+    mock_format.return_value = "Test opportunities"
+    mock_context.user_data = {"arbitrage_opportunities": []}
+
+    # Создаем mock для query
+    query = mock_update.callback_query
+
+    # Вызываем тестируемую функцию
+    await show_arbitrage_opportunities(query, mock_context, page=0)
+
+    # Проверяем, что edit_message_text был вызван
+    query.edit_message_text.assert_called()

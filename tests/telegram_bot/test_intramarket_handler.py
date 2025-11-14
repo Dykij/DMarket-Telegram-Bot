@@ -18,19 +18,19 @@ from src.telegram_bot.handlers.intramarket_arbitrage_handler import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def user():
     """Фикстура для пользователя Telegram."""
     return User(id=123456789, first_name="Test", is_bot=False)
 
 
-@pytest.fixture
+@pytest.fixture()
 def chat():
     """Фикстура для чата Telegram."""
     return Chat(id=123456789, type="private")
 
 
-@pytest.fixture
+@pytest.fixture()
 def message(user, chat):
     """Фикстура для сообщения Telegram."""
     return Message(
@@ -42,7 +42,7 @@ def message(user, chat):
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def callback_query(user, message):
     """Фикстура для объекта callback query."""
     return CallbackQuery(
@@ -54,7 +54,7 @@ def callback_query(user, message):
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def update(callback_query):
     """Фикстура для объекта Update с callback_query."""
     update = MagicMock(spec=Update)
@@ -63,7 +63,7 @@ def update(callback_query):
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def context():
     """Фикстура для объекта CallbackContext."""
     context = MagicMock(spec=CallbackContext)
@@ -154,7 +154,7 @@ class TestFormatting:
         assert "item1" in result
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestStartArbitrage:
     """Тесты для функции запуска внутрирыночного арбитража."""
 
@@ -170,7 +170,7 @@ class TestStartArbitrage:
         context.bot.send_message.assert_awaited_once()
 
         # Проверяем, что текст содержит правильные элементы
-        args, kwargs = context.bot.send_message.call_args
+        _args, kwargs = context.bot.send_message.call_args
         message_text = kwargs.get("text", "")
         reply_markup = kwargs.get("reply_markup", None)
 
@@ -192,7 +192,7 @@ class TestStartArbitrage:
         assert f"{INTRA_ARBITRAGE_ACTION}_{RARE_ACTION}" in button_data
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestHandleIntramarketCallback:
     """Тесты для обработчика callback-запросов внутрирыночного арбитража."""
 

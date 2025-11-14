@@ -220,7 +220,7 @@ def setup_structlog(json_format: bool = False) -> None:
 class BotLogger:
     """Enhanced logger for bot operations with context."""
 
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         """Initialize bot logger.
 
         Args:
@@ -331,4 +331,17 @@ class BotLogger:
             **kwargs,
         }
 
-        self.logger.error("Error occurred", **error_context, exc_info=True)
+        self.logger.error("Error occurred", **error_context)
+
+
+def get_logger(name: str) -> logging.Logger:
+    """Get a logger instance by name.
+
+    Args:
+        name: Logger name
+
+    Returns:
+        logging.Logger: Configured logger instance
+
+    """
+    return logging.getLogger(name)

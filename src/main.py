@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class Application:
     """Main application class for DMarket Bot."""
 
-    def __init__(self, config_path: str | None = None):
+    def __init__(self, config_path: str | None = None) -> None:
         """Initialize application.
 
         Args:

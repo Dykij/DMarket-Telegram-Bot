@@ -10,7 +10,7 @@ from src.dmarket.realtime_price_watcher import PriceAlert, RealtimePriceWatcher
 from src.utils.websocket_client import DMarketWebSocketClient
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_api_client():
     """Мок для DMarketAPI."""
     api_client = MagicMock(spec=DMarketAPI)
@@ -20,7 +20,7 @@ def mock_api_client():
     return api_client
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_websocket_client():
     """Мок для DMarketWebSocketClient."""
     ws_client = MagicMock(spec=DMarketWebSocketClient)
@@ -33,7 +33,7 @@ def mock_websocket_client():
     return ws_client
 
 
-@pytest.fixture
+@pytest.fixture()
 def price_watcher(mock_api_client, mock_websocket_client):
     """Создает экземпляр RealtimePriceWatcher для тестирования."""
     with patch(
@@ -43,7 +43,7 @@ def price_watcher(mock_api_client, mock_websocket_client):
         return RealtimePriceWatcher(mock_api_client)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_start_watcher(price_watcher, mock_websocket_client):
     """Тест запуска наблюдателя за ценами."""
     result = await price_watcher.start()
@@ -58,7 +58,7 @@ async def test_start_watcher(price_watcher, mock_websocket_client):
     assert isinstance(price_watcher.ws_task, asyncio.Task)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_stop_watcher(price_watcher, mock_websocket_client):
     """Тест остановки наблюдателя за ценами."""
     # Запускаем наблюдатель
@@ -149,7 +149,7 @@ def test_register_alert_handler(price_watcher):
     assert handler in price_watcher.alert_handlers
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_handle_market_update(price_watcher):
     """Тест обработки сообщения об обновлении рынка."""
     # Добавляем предмет для отслеживания
@@ -184,7 +184,7 @@ async def test_handle_market_update(price_watcher):
     price_change_handler.assert_called_once_with("123456", None, 100.0)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_check_alerts(price_watcher):
     """Тест проверки оповещений."""
     # Создаем оповещение
@@ -242,7 +242,7 @@ def test_price_alert_check_condition():
     assert above_alert.check_condition(60.0) is True
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_process_price_change(price_watcher):
     """Тест обработки изменения цены предмета."""
     # Регистрируем обработчик для конкретного предмета

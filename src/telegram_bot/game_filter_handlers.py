@@ -291,7 +291,8 @@ def get_game_filter_keyboard(game: str) -> InlineKeyboardMarkup:
     keyboard.append(
         [
             InlineKeyboardButton(
-                "💰 Диапазон цен", callback_data=f"price_range:{game}",
+                "💰 Диапазон цен",
+                callback_data=f"price_range:{game}",
             ),
         ],
     )
@@ -784,7 +785,8 @@ async def handle_set_rarity_callback(update: Update, context: CallbackContext) -
     for i, rarity in enumerate(rarities):
         row.append(
             InlineKeyboardButton(
-                rarity, callback_data=f"filter:rarity:{rarity}:{game}",
+                rarity,
+                callback_data=f"filter:rarity:{rarity}:{game}",
             ),
         )
 

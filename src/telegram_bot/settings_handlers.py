@@ -84,7 +84,7 @@ def get_localized_text(user_id: int, key: str, **kwargs) -> str:
 
     """
     profile = get_user_profile(user_id)
-    lang = profile["language"]
+    lang = profile.get("language", profile.get("settings", {}).get("language", "ru"))
 
     # Если язык не поддерживается, используем русский
     if lang not in LOCALIZATIONS:
@@ -106,7 +106,7 @@ def get_localized_text(user_id: int, key: str, **kwargs) -> str:
     return text
 
 
-def save_user_profiles():
+def save_user_profiles() -> None:
     """Сохраняет профили пользователей в файл"""
     try:
         import json
@@ -184,7 +184,10 @@ async def settings_callback(update: Update, context: CallbackContext) -> None:
         lang_code = data.split(":")[1]
         if lang_code in LANGUAGES:
             profile = get_user_profile(user_id)
-            profile["language"] = lang_code
+            if "settings" in profile:
+                profile["settings"]["language"] = lang_code
+            else:
+                profile["language"] = lang_code
             save_user_profiles()
 
             # Получаем название языка для отображения
@@ -425,7 +428,7 @@ async def handle_setup_input(update: Update, context: CallbackContext) -> None:
 
 
 # Функции для интеграции в основной модуль bot_v2.py
-def register_localization_handlers(application):
+def register_localization_handlers(application) -> None:
     """Регистрирует обработчики для локализации и настроек в приложении.
 
     Args:

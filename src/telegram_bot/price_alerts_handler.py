@@ -36,7 +36,7 @@ CALLBACK_CONDITION_ABOVE = "cond_above"
 class PriceAlertsHandler:
     """Обработчик уведомлений о ценах в Telegram боте."""
 
-    def __init__(self, api_client: DMarketAPI):
+    def __init__(self, api_client: DMarketAPI) -> None:
         """Инициализация обработчика уведомлений о ценах.
 
         Args:

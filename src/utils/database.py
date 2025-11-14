@@ -168,7 +168,7 @@ class AnalyticsEvent(Base):
 class DatabaseManager:
     """Database connection and operations manager."""
 
-    def __init__(self, database_url: str, echo: bool = False):
+    def __init__(self, database_url: str, echo: bool = False) -> None:
         """Initialize database manager.
 
         Args:
@@ -296,7 +296,7 @@ class DatabaseManager:
                 )
                 await session.commit()
 
-                # Return existing user
+                # Return updated user with new data
                 return User(
                     id=(
                         UUID(user_row.id)
@@ -304,9 +304,9 @@ class DatabaseManager:
                         else user_row.id
                     ),
                     telegram_id=user_row.telegram_id,
-                    username=user_row.username,
-                    first_name=user_row.first_name,
-                    last_name=user_row.last_name,
+                    username=username or user_row.username,
+                    first_name=first_name or user_row.first_name,
+                    last_name=last_name or user_row.last_name,
                     language_code=user_row.language_code,
                     is_active=user_row.is_active,
                     is_admin=user_row.is_admin,

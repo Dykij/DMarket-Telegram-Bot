@@ -23,7 +23,7 @@ from src.telegram_bot.keyboards import (
 logger = logging.getLogger(__name__)
 
 
-async def start_command(update, context):
+async def start_command(update, context) -> None:
     """Обрабатывает команду /start.
 
     Args:
@@ -50,7 +50,7 @@ async def start_command(update, context):
         context.user_data["keyboard_enabled"] = True
 
 
-async def help_command(update, context):
+async def help_command(update, context) -> None:
     """Обрабатывает команду /help.
 
     Args:
@@ -69,7 +69,7 @@ async def help_command(update, context):
     )
 
 
-async def webapp_command(update, context):
+async def webapp_command(update, context) -> None:
     """Обрабатывает команду /webapp.
 
     Args:
@@ -85,7 +85,7 @@ async def webapp_command(update, context):
     )
 
 
-async def markets_command(update, context):
+async def markets_command(update, context) -> None:
     """Обрабатывает команду /markets.
 
     Args:
@@ -94,13 +94,13 @@ async def markets_command(update, context):
 
     """
     await update.message.reply_text(
-        "📊 <b>Сравнение рынков</b>\n\n" "Выберите рынки для сравнения:",
+        "📊 <b>Сравнение рынков</b>\n\nВыберите рынки для сравнения:",
         reply_markup=get_marketplace_comparison_keyboard(),
         parse_mode=ParseMode.HTML,
     )
 
 
-async def dmarket_status_command(update, context):
+async def dmarket_status_command(update, context) -> None:
     """Обрабатывает команду /status или /dmarket.
 
     Args:
@@ -162,7 +162,7 @@ async def handle_text_buttons(
         )
     elif text == "⚙️ Настройки":
         await update.message.reply_text(
-            "⚙️ <b>Настройки</b>\n\n" "Функция находится в разработке.",
+            "⚙️ <b>Настройки</b>\n\nФункция находится в разработке.",
             parse_mode=ParseMode.HTML,
             reply_markup=get_modern_arbitrage_keyboard(),
         )

@@ -45,7 +45,7 @@
     "python.analysis.diagnosticMode": "workspace",
     "python.analysis.inlayHints.functionReturnTypes": true,
     "python.analysis.inlayHints.variableTypes": true,
-    "python.languageServer": "Pylance",
+    "python.languageServer": "None",
     // ==================== Python Formatting (Ruff + Black) ====================
     "[python]": {
         "editor.formatOnSave": true,
@@ -235,5 +235,10 @@
     "[powershell]": {
         "editor.formatOnSave": true,
         "editor.tabSize": 4
-    }
+    },
+    "cursorpyright.analysis.autoImportCompletions": true,
+    "cursorpyright.analysis.diagnosticMode": "workspace",
+    "cursorpyright.analysis.inlayHints.functionReturnTypes": true,
+    "cursorpyright.analysis.inlayHints.variableTypes": true,
+    "cursorpyright.analysis.typeCheckingMode": "basic"
 }

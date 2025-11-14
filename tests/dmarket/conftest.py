@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_api_client():
     """Создает мок объект DMarket API клиента."""
     client = AsyncMock()
@@ -19,7 +19,7 @@ def mock_api_client():
     return client
 
 
-@pytest.fixture
+@pytest.fixture()
 def dmarket_api():
     """Фикстура для создания инстанса DMarketAPI с моками.
     Обходит необходимость наличия реальных ключей API.
@@ -47,7 +47,7 @@ def dmarket_api():
         return api
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_dmarket_api_module():
     """Создает мок для модуля dmarket_api с методом create_api_client."""
     mock_module = MagicMock()
@@ -57,7 +57,7 @@ def mock_dmarket_api_module():
     return mock_module, mock_client
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_game_filters():
     """Возвращает мок для фильтров и настроек игр."""
     return {

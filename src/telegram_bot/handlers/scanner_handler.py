@@ -167,14 +167,13 @@ async def start_scanner_menu(
             parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(keyboard),
         )
-    else:
-        if update.effective_user:
-            await context.bot.send_message(
-                chat_id=update.effective_user.id,
-                text=text,
-                parse_mode="Markdown",
-                reply_markup=InlineKeyboardMarkup(keyboard),
-            )
+    elif update.effective_user:
+        await context.bot.send_message(
+            chat_id=update.effective_user.id,
+            text=text,
+            parse_mode="Markdown",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
 
 
 async def handle_level_scan(

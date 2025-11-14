@@ -31,7 +31,7 @@ class PriceAlert:
         target_price: float,
         condition: str = "below",
         game: str = "csgo",
-    ):
+    ) -> None:
         """Инициализация оповещения о цене.
 
         Args:
@@ -78,7 +78,7 @@ class PriceAlert:
 class RealtimePriceWatcher:
     """Класс для отслеживания цен в реальном времени."""
 
-    def __init__(self, api_client: DMarketAPI):
+    def __init__(self, api_client: DMarketAPI) -> None:
         """Инициализация наблюдателя за ценами.
 
         Args:
@@ -296,7 +296,9 @@ class RealtimePriceWatcher:
                         }
 
         except Exception as e:
-            logger.exception(f"Ошибка при обработке сообщения обновления предметов: {e}")
+            logger.exception(
+                f"Ошибка при обработке сообщения обновления предметов: {e}"
+            )
 
     def _add_to_price_history(self, item_id: str, price: float) -> None:
         """Добавление записи в историю цен предмета.
@@ -690,7 +692,7 @@ class RealtimePriceWatcher:
 
         """
         triggered = []
-        for _item_id, alerts in self.price_alerts.items():
+        for alerts in self.price_alerts.values():
             for alert in alerts:
                 if alert.is_triggered:
                     triggered.append(alert)
@@ -704,7 +706,7 @@ class RealtimePriceWatcher:
 
         """
         reset_count = 0
-        for _item_id, alerts in self.price_alerts.items():
+        for alerts in self.price_alerts.values():
             for alert in alerts:
                 if alert.is_triggered:
                     alert.reset()

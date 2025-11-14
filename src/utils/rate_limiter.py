@@ -32,7 +32,7 @@ class RateLimiter:
     - Реализовывать экспоненциальную задержку для обработки ошибок 429
     """
 
-    def __init__(self, is_authorized: bool = True):
+    def __init__(self, is_authorized: bool = True) -> None:
         """Инициализирует контроллер лимитов запросов.
 
         Args:

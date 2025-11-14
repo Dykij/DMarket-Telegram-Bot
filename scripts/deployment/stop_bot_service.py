@@ -69,7 +69,7 @@ def stop_bot_service() -> bool:
                 )
                 return True
             logger.warning(
-                "Процесс с PID %s не найден. Удаляем файл.",  # noqa: RUF001
+                "Процесс с PID %s не найден. Удаляем файл.",
                 pid,
             )
             if lock_file.exists():

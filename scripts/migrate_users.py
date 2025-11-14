@@ -190,7 +190,7 @@ def create_backup(user_files: dict[str, str], backup_dir: str) -> bool:
         logger.info(f"Создана директория для резервных копий: {backup_path}")
 
         # Копируем каждый файл
-        for _user_id, filepath in user_files.items():
+        for filepath in user_files.values():
             if not os.path.exists(filepath):  # type: ignore[attr-defined]
                 continue
 

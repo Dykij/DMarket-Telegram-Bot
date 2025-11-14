@@ -34,7 +34,9 @@ sns.set_palette("husl")
 class ChartGenerator:
     """Utility class for generating charts and visualizations."""
 
-    def __init__(self, style: str = "default", figsize: tuple[int, int] = (12, 8)):
+    def __init__(
+        self, style: str = "default", figsize: tuple[int, int] = (12, 8)
+    ) -> None:
         """Initialize chart generator.
 
         Args:

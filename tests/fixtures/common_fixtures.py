@@ -13,7 +13,7 @@ from telegram.ext import CallbackContext
 
 
 # Группа фикстур для Telegram-бота
-@pytest.fixture
+@pytest.fixture()
 def mock_telegram_update() -> MagicMock:
     """Создает мок объекта Update для команд сообщений."""
     update = MagicMock(spec=Update)
@@ -29,7 +29,7 @@ def mock_telegram_update() -> MagicMock:
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_telegram_callback_query() -> MagicMock:
     """Создает мок объекта Update с CallbackQuery для коллбэков кнопок."""
     update = MagicMock(spec=Update)
@@ -50,7 +50,7 @@ def mock_telegram_callback_query() -> MagicMock:
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_telegram_context() -> MagicMock:
     """Создает мок объекта Context."""
     context = MagicMock(spec=CallbackContext)
@@ -59,7 +59,7 @@ def mock_telegram_context() -> MagicMock:
 
 
 # Группа фикстур для DMarket API
-@pytest.fixture
+@pytest.fixture()
 def mock_dmarket_api() -> Generator[MagicMock, None, None]:
     """Создает мок DMarket API."""
     with patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api:
@@ -71,7 +71,7 @@ def mock_dmarket_api() -> Generator[MagicMock, None, None]:
 
 
 # Группа фикстур для тестирования арбитража
-@pytest.fixture
+@pytest.fixture()
 def mock_arbitrage_data() -> dict[str, Any]:
     """Предоставляет тестовые данные для арбитража."""
     return {
@@ -93,7 +93,7 @@ def mock_arbitrage_data() -> dict[str, Any]:
 
 
 # Вспомогательная функция для всех тестов
-@pytest.fixture
+@pytest.fixture()
 def helper_setup_test_environment() -> bool:
     """Настройка тестового окружения для многократного использования."""
     # Здесь можно добавить общие настройки для тестов

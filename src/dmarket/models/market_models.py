@@ -1,78 +1,342 @@
-"""Модели данных для работы с DMarket API.
+"""Модели данных для работы с DMarket API согласно официальной документации.
 
-Этот модуль содержит классы для работы с данными DMarket API,
-включая модели для предметов, цен, продаж и других сущностей.
+Этот модуль содержит pydantic модели для работы с данными DMarket API v1.1.0,
+включая модели для предметов, цен, продаж, баланса и других сущностей.
+
+Documentation: https://docs.dmarket.com/v1/swagger.html
 """
+
+from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, TypedDict
+from enum import Enum
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 
-class MarketPrice(TypedDict):
-    """Модель цены на предмет."""
-
-    USD: str
-    EUR: str | None
+# ==================== ENUMS ====================
 
 
-@dataclass
-class MarketItem:
-    """Модель предмета на маркете."""
+class OfferStatus(str, Enum):
+    """Статусы предложений согласно DMarket API."""
 
-    itemId: str
-    title: str
-    price: MarketPrice
-    classId: str
-    gameId: str
-    inMarket: bool
-    lockStatus: bool | None = None
-    createdAt: datetime | None = None
+    DEFAULT = "OfferStatusDefault"
+    ACTIVE = "OfferStatusActive"
+    SOLD = "OfferStatusSold"
+    INACTIVE = "OfferStatusInactive"
+    IN_TRANSFER = "OfferStatusIn_transfer"
+
+
+class TargetStatus(str, Enum):
+    """Статусы таргетов (buy orders) согласно DMarket API."""
+
+    ACTIVE = "TargetStatusActive"
+    INACTIVE = "TargetStatusInactive"
+
+
+class TransferStatus(str, Enum):
+    """Статусы трансфера согласно DMarket API."""
+
+    PENDING = "TransferStatusPending"
+    COMPLETED = "TransferStatusCompleted"
+    FAILED = "TransferStatusFailed"
+
+
+class TradeStatus(str, Enum):
+    """Статусы сделок согласно DMarket API."""
+
+    SUCCESSFUL = "successful"
+    REVERTED = "reverted"
+    TRADE_PROTECTED = "trade_protected"
+
+
+# ==================== PRICE MODELS ====================
+
+
+class Price(BaseModel):
+    """Модель цены согласно DMarket API."""
+
+    Currency: str = Field(default="USD", description="Валюта (USD, EUR, etc)")
+    Amount: int = Field(description="Сумма в центах (для USD) или эквиваленте")
+
+    @property
+    def dollars(self) -> float:
+        """Конвертирует цену из центов в доллары."""
+        return self.Amount / 100.0
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "MarketItem":
+    def from_dollars(cls, amount: float, currency: str = "USD") -> Price:
+        """Создает объект Price из суммы в долларах.
+
+        Args:
+            amount: Сумма в долларах
+            currency: Валюта
+
+        Returns:
+            Объект Price
+
+        """
+        return cls(Currency=currency, Amount=int(amount * 100))
+
+
+class MarketPrice(BaseModel):
+    """Модель цены предмета на маркете (упрощенная версия)."""
+
+    USD: str = Field(description="Цена в USD")
+    EUR: str | None = Field(None, description="Цена в EUR")
+
+
+# ==================== ACCOUNT MODELS ====================
+
+
+class Balance(BaseModel):
+    """Модель баланса пользователя согласно DMarket API.
+
+    Response format: /account/v1/balance
+    {
+        "usd": "string",
+        "dmcAvailableToWithdraw": "string",
+        "dmc": "string",
+        "usdAvailableToWithdraw": "string"
+    }
+    """
+
+    usd: str = Field(description="USD баланс в центах (строка)")
+    usdAvailableToWithdraw: str = Field(description="Доступный для вывода USD в центах")
+    dmc: str | None = Field(None, description="DMC баланс")
+    dmcAvailableToWithdraw: str | None = Field(
+        None, description="Доступный для вывода DMC"
+    )
+
+    @property
+    def usd_dollars(self) -> float:
+        """Конвертирует USD баланс из центов в доллары."""
+        try:
+            # Может быть строкой или числом
+            amount = int(self.usd) if isinstance(self.usd, str) else self.usd
+            return amount / 100.0
+        except (ValueError, TypeError):
+            return 0.0
+
+    @property
+    def available_usd_dollars(self) -> float:
+        """Конвертирует доступный USD из центов в доллары."""
+        try:
+            amount = (
+                int(self.usdAvailableToWithdraw)
+                if isinstance(self.usdAvailableToWithdraw, str)
+                else self.usdAvailableToWithdraw
+            )
+            return amount / 100.0
+        except (ValueError, TypeError):
+            return 0.0
+
+
+class UserProfile(BaseModel):
+    """Модель профиля пользователя согласно DMarket API.
+
+    Response format: /account/v1/user
+    """
+
+    id: str = Field(description="ID пользователя")
+    username: str = Field(description="Имя пользователя")
+    email: str = Field(description="Email пользователя")
+    isEmailVerified: bool = Field(description="Email подтвержден")
+    countryCode: str | None = Field(None, description="Код страны")
+    publicKey: str | None = Field(None, description="Публичный ключ API")
+
+
+# ==================== MARKET ITEM MODELS ====================
+
+
+class MarketItem(BaseModel):
+    """Модель предмета на маркете согласно DMarket API.
+
+    Response format: /exchange/v1/market/items
+    """
+
+    itemId: str = Field(description="ID предмета")
+    title: str = Field(description="Название предмета")
+    price: dict[str, Any] = Field(description="Цена предмета")
+    gameId: str = Field(description="ID игры")
+    image: str | None = Field(None, description="URL изображения")
+    categoryPath: str | None = Field(None, description="Путь категории")
+    tradable: bool | None = Field(None, description="Можно торговать")
+    type: str | None = Field(None, description="Тип предмета")
+    tags: list[str] | None = Field(None, description="Теги предмета")
+    extra: dict[str, Any] | None = Field(None, description="Дополнительные данные")
+
+    @property
+    def price_usd(self) -> float:
+        """Получает цену в USD как float."""
+        try:
+            price_data = self.price.get("USD", "0")
+            if isinstance(price_data, dict):
+                # Формат: {"USD": {"amount": 1234}}
+                return float(price_data.get("amount", 0)) / 100.0
+            # Формат: {"USD": "12.34"}
+            return float(price_data)
+        except (ValueError, TypeError):
+            return 0.0
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> MarketItem:
         """Создает объект MarketItem из словаря.
 
         Args:
-            data: Словарь с данными предмета.
+            data: Словарь с данными предмета
 
         Returns:
-            Объект MarketItem.
+            Объект MarketItem
 
         """
-        # Преобразуем timestamp в datetime, если он есть
-        created_at = data.get("createdAt")
-        if created_at and isinstance(created_at, int | float):
-            created_at = datetime.fromtimestamp(created_at / 1000)
+        return cls(**data)
 
-        return cls(
-            itemId=data.get("itemId", ""),
-            title=data.get("title", ""),
-            price=data.get("price", {"USD": "0.0"}),
-            classId=data.get("classId", ""),
-            gameId=data.get("gameId", ""),
-            inMarket=data.get("inMarket", False),
-            lockStatus=data.get("lockStatus"),
-            createdAt=created_at,
-        )
+
+# ==================== OFFER MODELS ====================
+
+
+class Offer(BaseModel):
+    """Модель предложения пользователя согласно DMarket API.
+
+    Response format: /marketplace-api/v1/user-offers
+    """
+
+    OfferID: str = Field(description="ID предложения")
+    AssetID: str = Field(description="ID актива")
+    Title: str = Field(description="Название предмета")
+    GameID: str = Field(description="ID игры")
+    GameType: str | None = Field(None, description="Тип игры")
+    price: dict[str, Any] = Field(description="Цена предложения")
+    status: str = Field(description="Статус предложения")
+    CreatedAt: str | None = Field(None, description="Дата создания")
+    UpdatedAt: str | None = Field(None, description="Дата обновления")
+
+
+# ==================== TARGET MODELS ====================
+
+
+class TargetAttrs(BaseModel):
+    """Дополнительные атрибуты для таргета."""
+
+    paintSeed: int | None = Field(None, description="Paint seed (CS:GO)")
+    phase: str | None = Field(None, description="Phase (Doppler, etc)")
+    floatPartValue: str | None = Field(None, description="Float value")
+
+
+class Target(BaseModel):
+    """Модель таргета (buy order) согласно DMarket API.
+
+    Request/Response format: /marketplace-api/v1/user-targets
+    """
+
+    TargetID: str | None = Field(None, description="ID таргета")
+    Title: str = Field(description="Название предмета")
+    Amount: str = Field(description="Количество")
+    price: dict[str, Any] = Field(description="Цена покупки")
+    Attrs: TargetAttrs | None = Field(None, description="Дополнительные атрибуты")
+    status: str | None = Field(None, description="Статус таргета")
+
+
+class CreateTargetRequest(BaseModel):
+    """Запрос на создание таргетов."""
+
+    GameID: str = Field(description="ID игры (a8db для CS:GO, 9a92 для Dota 2)")
+    Targets: list[Target] = Field(description="Список таргетов для создания")
+
+
+# ==================== SALES HISTORY MODELS ====================
+
+
+class SalesHistory(BaseModel):
+    """Модель истории продаж предмета согласно DMarket API.
+
+    Response format: /trade-aggregator/v1/last-sales
+    """
+
+    price: str = Field(description="Цена продажи")
+    date: str = Field(description="Дата продажи (ISO format)")
+    txOperationType: str | None = Field(None, description="Тип операции")
+    offerAttributes: dict[str, Any] | None = Field(None, description="Атрибуты оффера")
+    orderAttributes: dict[str, Any] | None = Field(None, description="Атрибуты ордера")
+
+    @property
+    def price_float(self) -> float:
+        """Конвертирует цену в float."""
+        try:
+            return float(self.price) / 100.0  # Предполагаем цена в центах
+        except (ValueError, TypeError):
+            return 0.0
+
+    @property
+    def date_datetime(self) -> datetime | None:
+        """Конвертирует дату в datetime."""
+        try:
+            return datetime.fromisoformat(self.date.replace("Z", "+00:00"))
+        except (ValueError, AttributeError):
+            return None
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SalesHistory:
+        """Создает объект SalesHistory из словаря.
+
+        Args:
+            data: Словарь с данными истории продаж
+
+        Returns:
+            Объект SalesHistory
+
+        """
+        return cls(**data)
+
+
+# ==================== DEPOSIT/WITHDRAW MODELS ====================
+
+
+class DepositAsset(BaseModel):
+    """Модель актива в депозите."""
+
+    InGameAssetID: str = Field(description="ID актива в игре")
+    DmarketAssetID: str = Field(description="ID актива на DMarket")
+
+
+class DepositStatus(BaseModel):
+    """Статус депозита согласно DMarket API.
+
+    Response format: /marketplace-api/v1/deposit-status/{DepositID}
+    """
+
+    DepositID: str = Field(description="ID депозита")
+    AssetID: list[str] = Field(description="Список ID активов")
+    status: TransferStatus = Field(description="Статус трансфера")
+    Error: str | None = Field(None, description="Сообщение об ошибке")
+    Assets: list[DepositAsset] | None = Field(None, description="Список активов")
+    SteamDepositInfo: dict[str, Any] | None = Field(
+        None, description="Информация о Steam депозите"
+    )
+
+
+# ==================== LEGACY MODELS (для обратной совместимости) ====================
 
 
 @dataclass
-class Balance:
-    """Модель баланса пользователя."""
+class BalanceLegacy:
+    """Устаревшая модель баланса (для обратной совместимости)."""
 
     totalBalance: float
     blockedBalance: float
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Balance":
+    def from_dict(cls, data: dict[str, Any]) -> BalanceLegacy:
         """Создает объект Balance из словаря.
 
         Args:
-            data: Словарь с данными баланса.
+            data: Словарь с данными баланса
 
         Returns:
-            Объект Balance.
+            Объект Balance
 
         """
         return cls(
@@ -81,28 +345,32 @@ class Balance:
         )
 
 
-@dataclass
-class SalesHistory:
-    """Модель истории продаж предмета."""
-
-    itemId: str
-    timestamp: datetime
-    price: float
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "SalesHistory":
-        """Создает объект SalesHistory из словаря.
-
-        Args:
-            data: Словарь с данными истории продаж.
-
-        Returns:
-            Объект SalesHistory.
-
-        """
-        timestamp = datetime.fromtimestamp(data.get("date", 0) / 1000)
-        return cls(
-            itemId=data.get("itemId", ""),
-            timestamp=timestamp,
-            price=float(data.get("price", {}).get("USD", 0.0)),
-        )
+# Экспортируем все модели
+__all__ = [
+    # Enums
+    "OfferStatus",
+    "TargetStatus",
+    "TransferStatus",
+    "TradeStatus",
+    # Price models
+    "Price",
+    "MarketPrice",
+    # Account models
+    "Balance",
+    "UserProfile",
+    # Market item models
+    "MarketItem",
+    # Offer models
+    "Offer",
+    # Target models
+    "Target",
+    "TargetAttrs",
+    "CreateTargetRequest",
+    # Sales history models
+    "SalesHistory",
+    # Deposit/Withdraw models
+    "DepositAsset",
+    "DepositStatus",
+    # Legacy models
+    "BalanceLegacy",
+]

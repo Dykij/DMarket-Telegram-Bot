@@ -806,7 +806,7 @@ def get_back_to_market_analysis_keyboard(game: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(keyboard)
 
 
-def register_market_analysis_handlers(dispatcher):
+def register_market_analysis_handlers(dispatcher) -> None:
     """Регистрирует обработчики для анализа рынка.
 
     Args:

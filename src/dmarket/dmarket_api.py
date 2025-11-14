@@ -34,6 +34,8 @@ from datetime import datetime
 from typing import Any
 
 import httpx
+import nacl.encoding
+import nacl.signing
 import requests
 
 from src.utils.rate_limiter import RateLimiter
@@ -132,7 +134,7 @@ class DMarketAPI:
         pool_limits: httpx.Limits = None,
         retry_codes: list[int] | None = None,
         enable_cache: bool = True,
-    ):
+    ) -> None:
         """Initialize DMarket API client.
 
         Args:
@@ -148,8 +150,14 @@ class DMarketAPI:
         """
         self.public_key = public_key
         self._public_key = public_key  # Store for test access
-        self._secret_key = secret_key  # Store original string for test access
-        self.secret_key = secret_key.encode("utf-8") if secret_key else b""
+        self._secret_key = secret_key if isinstance(secret_key, str) else secret_key.decode("utf-8")  # Store original string for test access
+        # Convert secret_key to bytes if it's a string
+        if isinstance(secret_key, str):
+            self.secret_key = secret_key.encode("utf-8")
+        elif isinstance(secret_key, bytes):
+            self.secret_key = secret_key
+        else:
+            self.secret_key = b""
         self.api_url = api_url
         self.max_retries = max_retries
         self.connection_timeout = connection_timeout
@@ -199,7 +207,7 @@ class DMarketAPI:
             )
         return self._client
 
-    async def _close_client(self):
+    async def _close_client(self) -> None:
         """Close HTTP client if it exists."""
         if self._client and not self._client.is_closed:
             await self._client.aclose()
@@ -213,9 +221,12 @@ class DMarketAPI:
     ) -> dict[str, str]:
         """Генерирует подпись для приватных запросов DMarket API согласно документации.
 
+        DMarket API использует Ed25519 для подписи запросов.
+        Формат: timestamp + method + path + body
+
         Args:
             method: HTTP-метод ("GET", "POST" и т.д.)
-            path: Путь запроса (например, "/exchange/v1/target/create")
+            path: Путь запроса (например, "/account/v1/balance")
             body: Тело запроса (строка JSON)
 
         Returns:
@@ -225,21 +236,106 @@ class DMarketAPI:
         if not self.public_key or not self.secret_key:
             return {"Content-Type": "application/json"}
 
-        # Generate signature string
+        try:
+            # Generate timestamp
+            timestamp = str(int(time.time()))
+
+            # Build string to sign: method + path + timestamp (+ body if present)
+            # NOTE: DMarket API format is METHOD + PATH + TIMESTAMP (without spaces)
+            string_to_sign = f"{method.upper()}{path}{timestamp}"
+            if body:
+                string_to_sign += body
+
+            logger.debug(f"String to sign: {string_to_sign}")
+
+            # Convert secret key from string to bytes
+            # DMarket API keys can be in different formats
+            if isinstance(self.secret_key, str):
+                secret_key_str = self._secret_key
+            else:
+                secret_key_str = self.secret_key.decode('utf-8')
+
+            # Try different formats for secret key
+            try:
+                # Format 1: HEX format (64 chars = 32 bytes)
+                if len(secret_key_str) == 64:
+                    secret_key_bytes = bytes.fromhex(secret_key_str)
+                    logger.debug(f"Using HEX format secret key (32 bytes)")
+                # Format 2: Base64 format
+                elif len(secret_key_str) == 44 or '=' in secret_key_str:
+                    import base64
+                    secret_key_bytes = base64.b64decode(secret_key_str)
+                    logger.debug(f"Using Base64 format secret key ({len(secret_key_bytes)} bytes)")
+                # Format 3: Raw string - take first 32 bytes
+                else:
+                    # If longer than 64 hex chars, try to take first 64
+                    if len(secret_key_str) >= 64:
+                        secret_key_bytes = bytes.fromhex(secret_key_str[:64])
+                        logger.debug(f"Using first 32 bytes of long HEX key")
+                    else:
+                        # Fallback: encode string to bytes and pad/truncate to 32
+                        secret_key_bytes = secret_key_str.encode('utf-8')[:32].ljust(32, b'\0')
+                        logger.warning(f"Secret key format unknown, using padded bytes")
+            except Exception as conv_error:
+                logger.error(f"Error converting secret key: {conv_error}")
+                raise
+
+            # Create Ed25519 signing key
+            signing_key = nacl.signing.SigningKey(secret_key_bytes)
+
+            # Sign the message
+            signed = signing_key.sign(string_to_sign.encode('utf-8'))
+
+            # Extract signature in hex format
+            signature = signed.signature.hex()
+
+            logger.debug(f"Generated signature: {signature[:20]}...")
+
+            # Return headers with signature in DMarket format
+            return {
+                "X-Api-Key": self.public_key,
+                "X-Request-Sign": f"dmar ed25519 {signature}",
+                "X-Sign-Date": timestamp,
+                "Content-Type": "application/json",
+            }
+
+        except Exception as e:
+            logger.error(f"Error generating signature: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            # Fallback to old HMAC method if Ed25519 fails
+            return self._generate_signature_hmac(method, path, body)
+
+    def _generate_signature_hmac(
+        self,
+        method: str,
+        path: str,
+        body: str = "",
+    ) -> dict[str, str]:
+        """Fallback метод с HMAC-SHA256 (старый формат).
+
+        Args:
+            method: HTTP-метод
+            path: Путь запроса
+            body: Тело запроса
+
+        Returns:
+            dict: Заголовки с HMAC подписью
+
+        """
         timestamp = str(int(time.time()))
         string_to_sign = timestamp + method + path
 
         if body:
             string_to_sign += body
 
-        # Generate HMAC-SHA256 signature
+        secret_key = self.secret_key if isinstance(self.secret_key, bytes) else self.secret_key.encode('utf-8')
+
         signature = hmac.new(
-            self.secret_key,
+            secret_key,
             string_to_sign.encode("utf-8"),
             hashlib.sha256,
         ).hexdigest()
 
-        # Return headers with signature
         return {
             "X-Api-Key": self.public_key,
             "X-Request-Sign": signature,
@@ -717,18 +813,25 @@ class DMarketAPI:
                 "total_balance": 0.0,
                 "error": True,
                 "error_message": "API ключи не настроены",
+                "status_code": 401,
+                "code": "MISSING_API_KEYS",
             }
 
         try:
             # 2024 обновление: сначала пробуем прямой REST API запрос через requests
             # Этот подход может быть более надежен для некоторых эндпоинтов
             try:
+                logger.debug("🔍 Пытаемся получить баланс через прямой REST API запрос...")
                 direct_response = await self.direct_balance_request()
+                logger.debug(f"🔍 Прямой ответ API: {direct_response}")
+
                 if direct_response and direct_response.get("success", False):
-                    logger.info("Успешно получили баланс через прямой REST API запрос")
+                    logger.info("✅ Успешно получили баланс через прямой REST API запрос")
 
                     # Извлекаем данные из успешного ответа
                     balance_data = direct_response.get("data", {})
+                    logger.debug(f"📊 Данные баланса: {balance_data}")
+
                     usd_amount = (
                         balance_data.get("balance", 0) * 100
                     )  # конвертируем в центы
@@ -739,10 +842,13 @@ class DMarketAPI:
                     usd_total = (
                         balance_data.get("total", balance_data.get("balance", 0)) * 100
                     )
+                    usd_locked = balance_data.get("locked", 0) * 100
+                    usd_trade_protected = balance_data.get("trade_protected", 0) * 100
 
                     # Определяем результат
                     min_required_balance = 1.0  # Минимальный требуемый баланс
-                    has_funds = usd_available >= min_required_balance * 100
+                    # has_funds проверяем по ОБЩЕМУ балансу, а не только доступному
+                    has_funds = usd_amount >= min_required_balance * 100
 
                     result = {
                         "usd": {"amount": usd_amount},
@@ -750,6 +856,8 @@ class DMarketAPI:
                         "balance": usd_amount / 100,
                         "available_balance": usd_available / 100,
                         "total_balance": usd_total / 100,
+                        "locked_balance": usd_locked / 100,
+                        "trade_protected_balance": usd_trade_protected / 100,
                         "error": False,
                         "additional_info": {
                             "method": "direct_request",
@@ -758,14 +866,18 @@ class DMarketAPI:
                     }
 
                     logger.info(
-                        f"Итоговый баланс (прямой запрос): ${result['balance']:.2f} USD",
+                        f"💰 Итоговый баланс (прямой запрос): ${result['balance']:.2f} USD "
+                        f"(доступно: ${result['available_balance']:.2f}, заблокировано: ${result['locked_balance']:.2f})"
                     )
                     return result
+
                 # Если прямой запрос не сработал, логируем ошибку и продолжаем с другими методами
                 error_message = direct_response.get("error", "Неизвестная ошибка")
-                logger.warning(f"Прямой REST API запрос не удался: {error_message}")
+                logger.warning(f"⚠️ Прямой REST API запрос не удался: {error_message}")
+                logger.debug(f"🔍 Полный ответ с ошибкой: {direct_response}")
             except Exception as e:
-                logger.warning(f"Ошибка при прямом REST API запросе: {e!s}")
+                logger.warning(f"⚠️ Ошибка при прямом REST API запросе: {e!s}")
+                logger.exception(f"📋 Детали исключения: {e}")
 
             # Если прямой запрос не удался, пробуем через внутренний API клиент
             # Пробуем все известные эндпоинты для получения баланса
@@ -811,6 +923,17 @@ class DMarketAPI:
                     else "Не удалось получить баланс ни с одного эндпоинта"
                 )
                 logger.error(f"Критическая ошибка при запросе баланса: {error_message}")
+
+                # Определяем код ошибки из сообщения
+                status_code = 500
+                error_code = "REQUEST_FAILED"
+                if "404" in error_message or "not found" in error_message.lower():
+                    status_code = 404
+                    error_code = "NOT_FOUND"
+                elif "401" in error_message or "unauthorized" in error_message.lower():
+                    status_code = 401
+                    error_code = "UNAUTHORIZED"
+
                 return {
                     "usd": {"amount": 0},
                     "has_funds": False,
@@ -819,6 +942,8 @@ class DMarketAPI:
                     "total_balance": 0.0,
                     "error": True,
                     "error_message": error_message,
+                    "status_code": status_code,
+                    "code": error_code,
                 }
 
             # Проверяем на ошибки API
@@ -830,10 +955,10 @@ class DMarketAPI:
                     "message",
                     response.get("error", "Неизвестная ошибка"),
                 )
-                status_code = response.get("status_code", None)
+                status_code = response.get("status", response.get("status_code", 500))
 
                 logger.error(
-                    f"Ошибка DMarket API при получении баланса: {error_code} - {error_message} (HTTP {status_code if status_code else 'неизвестный код'})",
+                    f"Ошибка DMarket API при получении баланса: {error_code} - {error_message} (HTTP {status_code})",
                 )
 
                 # Если ошибка авторизации (401 Unauthorized)
@@ -849,6 +974,8 @@ class DMarketAPI:
                         "total_balance": 0.0,
                         "error": True,
                         "error_message": "Ошибка авторизации: неверные ключи API",
+                        "status_code": 401,
+                        "code": "UNAUTHORIZED",
                     }
 
                 return {
@@ -859,6 +986,8 @@ class DMarketAPI:
                     "total_balance": 0.0,
                     "error": True,
                     "error_message": error_message,
+                    "status_code": status_code,
+                    "code": error_code,
                 }
 
             # Обработка успешного ответа
@@ -871,11 +1000,51 @@ class DMarketAPI:
 
             if response and isinstance(response, dict):
                 logger.info(
+                    f"🔍 RAW ОТВЕТ API БАЛАНСА (get_balance): {response}",
+                )
+                logger.info(
                     f"Анализ ответа баланса от {successful_endpoint}: {response}",
                 )
 
-                # Формат 0: Новый формат (2024) с usdWallet в funds
-                if "funds" in response:
+                # Формат 0: Официальный формат согласно документации DMarket API (2024)
+                # API возвращает: {"usd": "2550", "usdAvailableToWithdraw": "2550", "dmc": "0", "dmcAvailableToWithdraw": "0"}
+                # Это ОСНОВНОЙ формат и должен проверяться ПЕРВЫМ
+                if "usd" in response and "usdAvailableToWithdraw" in response:
+                    try:
+                        # Значения приходят как строки в центах
+                        usd_str = response.get("usd", "0")
+                        usd_available_str = response.get("usdAvailableToWithdraw", usd_str)
+
+                        # Проверяем, что это строки (согласно документации)
+                        if isinstance(usd_str, str) and isinstance(usd_available_str, str):
+                            # Конвертируем из центов в доллары
+                            usd_amount = float(usd_str)  # в центах
+                            usd_available = float(usd_available_str)  # в центах
+                            usd_total = usd_amount  # Обычно равны
+
+                            logger.info(
+                                f"Баланс из официального формата API (usd + usdAvailableToWithdraw): ${usd_amount / 100:.2f} USD",
+                            )
+                        else:
+                            # Если не строки, пробуем как числа
+                            usd_amount = float(usd_str) if usd_str else 0
+                            usd_available = float(usd_available_str) if usd_available_str else usd_amount
+                            usd_total = usd_amount
+
+                            logger.info(
+                                f"Баланс из формата API (числа): ${usd_amount / 100:.2f} USD",
+                            )
+                    except (ValueError, TypeError) as e:
+                        logger.exception(
+                            f"Ошибка при обработке официального формата API: {e}",
+                        )
+                        # Продолжаем проверку других форматов ниже
+                        usd_amount = 0
+                        usd_available = 0
+                        usd_total = 0
+
+                # Формат 1: Альтернативный формат (2024) с usdWallet в funds
+                elif "funds" in response:
                     try:
                         funds = response["funds"]
                         if isinstance(funds, dict) and "usdWallet" in funds:
@@ -890,7 +1059,7 @@ class DMarketAPI:
                                 usd_total = float(wallet["totalBalance"]) * 100
 
                             logger.info(
-                                f"Баланс из funds.usdWallet: {usd_amount/100:.2f} USD",
+                                f"Баланс из funds.usdWallet: {usd_amount / 100:.2f} USD",
                             )
                     except (ValueError, TypeError) as e:
                         logger.exception(
@@ -919,7 +1088,7 @@ class DMarketAPI:
                             usd_total = usd_amount
 
                         logger.info(
-                            f"Баланс из нового формата: {usd_amount/100:.2f} USD",
+                            f"Баланс из нового формата: {usd_amount / 100:.2f} USD",
                         )
                     except (ValueError, TypeError) as e:
                         logger.exception(
@@ -953,7 +1122,7 @@ class DMarketAPI:
                         # Используем доступный баланс как основной
                         usd_amount = usd_available
                         logger.info(
-                            f"Баланс из usdAvailableToWithdraw: {usd_amount/100:.2f} USD",
+                            f"Баланс из usdAvailableToWithdraw: {usd_amount / 100:.2f} USD",
                         )
 
                     except (ValueError, TypeError) as e:
@@ -974,7 +1143,7 @@ class DMarketAPI:
                             usd_available = usd_amount
                             usd_total = usd_amount
                             logger.info(
-                                f"Баланс из usd.amount: {usd_amount/100:.2f} USD",
+                                f"Баланс из usd.amount: {usd_amount / 100:.2f} USD",
                             )
                         elif isinstance(response["usd"], int | float):
                             # Формат {"usd": 1234}
@@ -982,7 +1151,7 @@ class DMarketAPI:
                             usd_available = usd_amount
                             usd_total = usd_amount
                             logger.info(
-                                f"Баланс из usd (прямое значение): {usd_amount/100:.2f} USD",
+                                f"Баланс из usd (прямое значение): {usd_amount / 100:.2f} USD",
                             )
                         elif isinstance(response["usd"], str):
                             # Формат {"usd": "$12.34"}
@@ -992,7 +1161,7 @@ class DMarketAPI:
                             usd_available = usd_amount
                             usd_total = usd_amount
                             logger.info(
-                                f"Баланс из usd (строковое значение): {usd_amount/100:.2f} USD",
+                                f"Баланс из usd (строковое значение): {usd_amount / 100:.2f} USD",
                             )
                     except (ValueError, TypeError) as e:
                         logger.exception(f"Ошибка при обработке поля usd: {e}")
@@ -1018,7 +1187,7 @@ class DMarketAPI:
                                 usd_available = usd_amount
 
                             logger.info(
-                                f"Баланс из totalBalance: {usd_amount/100:.2f} USD",
+                                f"Баланс из totalBalance: {usd_amount / 100:.2f} USD",
                             )
                             break
 
@@ -1035,7 +1204,9 @@ class DMarketAPI:
 
                         usd_available = usd_amount
                         usd_total = usd_amount
-                        logger.info(f"Баланс из balance.usd: {usd_amount/100:.2f} USD")
+                        logger.info(
+                            f"Баланс из balance.usd: {usd_amount / 100:.2f} USD"
+                        )
 
                 # Собираем дополнительную информацию для анализа
                 for field in ["dmc", "dmcAvailableToWithdraw", "userData"]:
@@ -1083,6 +1254,18 @@ class DMarketAPI:
         except Exception as e:
             logger.exception(f"Неожиданная ошибка при получении баланса: {e!s}")
             logger.exception(f"Стек вызовов: {traceback.format_exc()}")
+
+            # Определяем код ошибки из сообщения исключения
+            error_str = str(e)
+            status_code = 500
+            error_code = "EXCEPTION"
+            if "404" in error_str or "not found" in error_str.lower():
+                status_code = 404
+                error_code = "NOT_FOUND"
+            elif "401" in error_str or "unauthorized" in error_str.lower():
+                status_code = 401
+                error_code = "UNAUTHORIZED"
+
             return {
                 "usd": {"amount": 0},
                 "has_funds": False,
@@ -1090,7 +1273,9 @@ class DMarketAPI:
                 "available_balance": 0.0,
                 "total_balance": 0.0,
                 "error": True,
-                "error_message": str(e),
+                "error_message": error_str,
+                "status_code": status_code,
+                "code": error_code,
             }
 
     async def get_user_balance(self) -> dict[str, Any]:
@@ -1135,7 +1320,7 @@ class DMarketAPI:
             force_refresh: Force refresh cache
 
         Returns:
-            Items as dict
+            Items as dict with 'objects' key containing list of items
 
         """
         # Build query parameters according to docs
@@ -1158,13 +1343,46 @@ class DMarketAPI:
         if sort:
             params["orderBy"] = sort
 
-        # Use correct endpoint from DMarket API docs
-        return await self._request(
-            "GET",
-            self.ENDPOINT_MARKET_ITEMS,
-            params=params,
-            force_refresh=force_refresh,
+        logger.debug(
+            f"Запрос предметов с маркета: game={game}, limit={limit}, "
+            f"price_from={price_from}, price_to={price_to}"
         )
+
+        # Use correct endpoint from DMarket API docs
+        try:
+            response = await self._request(
+                "GET",
+                self.ENDPOINT_MARKET_ITEMS,
+                params=params,
+                force_refresh=force_refresh,
+            )
+
+            # Проверяем формат ответа
+            if response and isinstance(response, dict):
+                # DMarket API возвращает items в поле 'objects' (согласно документации)
+                if "objects" in response:
+                    items_count = len(response.get("objects", []))
+                    logger.info(
+                        f"✅ Получено {items_count} предметов для игры {game}"
+                    )
+                elif "items" in response:
+                    # Альтернативное название поля
+                    items_count = len(response.get("items", []))
+                    logger.info(
+                        f"✅ Получено {items_count} предметов для игры {game} (через поле 'items')"
+                    )
+                else:
+                    logger.warning(
+                        f"⚠️ Ответ API не содержит поле 'objects' или 'items'. "
+                        f"Доступные ключи: {list(response.keys())}"
+                    )
+
+            return response
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка при получении предметов: {e}")
+            # Возвращаем пустой результат в случае ошибки
+            return {"objects": [], "total": {"items": 0, "offers": 0}}
 
     async def get_all_market_items(
         self,
@@ -1381,7 +1599,30 @@ class DMarketAPI:
 
         return None
 
-    # Новые методы для работы с DMarket API
+    # ==================== ACCOUNT METHODS ====================
+
+    async def get_user_profile(self) -> dict[str, Any]:
+        """Получает профиль пользователя согласно DMarket API.
+
+        Returns:
+            Dict[str, Any]: Информация о профиле пользователя
+
+        Response format:
+            {
+                "id": "string",
+                "username": "string",
+                "email": "string",
+                "isEmailVerified": true,
+                "countryCode": "string",
+                "publicKey": "string",
+                ...
+            }
+
+        """
+        return await self._request(
+            "GET",
+            "/account/v1/user",
+        )
 
     async def get_account_details(self) -> dict[str, Any]:
         """Получает детали аккаунта пользователя.
@@ -1393,6 +1634,368 @@ class DMarketAPI:
         return await self._request(
             "GET",
             self.ENDPOINT_ACCOUNT_DETAILS,
+        )
+
+    # ==================== MARKETPLACE OPERATIONS ====================
+
+    async def list_user_offers(
+        self,
+        game_id: str = "a8db",
+        status: str = "OfferStatusActive",
+        limit: int = 100,
+        offset: int = 0,
+    ) -> dict[str, Any]:
+        """Получить список предложений пользователя согласно DMarket API.
+
+        Args:
+            game_id: ID игры (a8db для CS:GO, 9a92 для Dota 2, tf2 для TF2, rust для Rust)
+            status: Статус предложений (OfferStatusActive, OfferStatusSold, etc)
+            limit: Количество результатов
+            offset: Смещение для пагинации
+
+        Returns:
+            Dict[str, Any]: Список предложений
+
+        Response format:
+            {
+                "Items": [...],
+                "Total": {...},
+                "Cursor": "string"
+            }
+
+        """
+        params = {
+            "GameID": game_id,
+            "Status": status,
+            "Limit": str(limit),
+            "Offset": str(offset),
+        }
+        return await self._request(
+            "GET",
+            "/marketplace-api/v1/user-offers",
+            params=params,
+        )
+
+    async def create_offers(
+        self,
+        offers: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Создать предложения на продажу согласно DMarket API.
+
+        Args:
+            offers: Список предложений для создания
+                Формат: [{"AssetID": "...", "Price": {"Amount": 100, "Currency": "USD"}}]
+
+        Returns:
+            Dict[str, Any]: Результат создания предложений
+
+        """
+        data = {"Offers": offers}
+        return await self._request(
+            "POST",
+            "/marketplace-api/v1/user-offers/create",
+            data=data,
+        )
+
+    async def update_offer_prices(
+        self,
+        offers: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Обновить цены предложений согласно DMarket API.
+
+        Args:
+            offers: Список предложений с новыми ценами
+                Формат: [{"OfferID": "...", "Price": {"Amount": 100, "Currency": "USD"}}]
+
+        Returns:
+            Dict[str, Any]: Результат обновления
+
+        """
+        data = {"Offers": offers}
+        return await self._request(
+            "POST",
+            "/marketplace-api/v1/user-offers/edit",
+            data=data,
+        )
+
+    async def remove_offers(
+        self,
+        offer_ids: list[str],
+    ) -> dict[str, Any]:
+        """Удалить предложения с продажи согласно DMarket API.
+
+        Args:
+            offer_ids: Список ID предложений для удаления
+
+        Returns:
+            Dict[str, Any]: Результат удаления
+
+        """
+        data = {"Offers": [{"OfferID": oid} for oid in offer_ids]}
+        return await self._request(
+            "POST",
+            "/marketplace-api/v1/user-offers/delete",
+            data=data,
+        )
+
+    async def deposit_assets(
+        self,
+        asset_ids: list[str],
+    ) -> dict[str, Any]:
+        """Депозит активов из Steam в DMarket согласно DMarket API.
+
+        Args:
+            asset_ids: Список ID активов для депозита
+
+        Returns:
+            Dict[str, Any]: ID депозита
+
+        Response format:
+            {"DepositID": "string"}
+
+        """
+        data = {"AssetID": asset_ids}
+        return await self._request(
+            "POST",
+            "/marketplace-api/v1/deposit-assets",
+            data=data,
+        )
+
+    async def get_deposit_status(
+        self,
+        deposit_id: str,
+    ) -> dict[str, Any]:
+        """Получить статус депозита согласно DMarket API.
+
+        Args:
+            deposit_id: ID депозита
+
+        Returns:
+            Dict[str, Any]: Статус депозита
+
+        """
+        return await self._request(
+            "GET",
+            f"/marketplace-api/v1/deposit-status/{deposit_id}",
+        )
+
+    async def list_user_inventory(
+        self,
+        game_id: str = "a8db",
+        limit: int = 100,
+        offset: int = 0,
+    ) -> dict[str, Any]:
+        """Получить инвентарь пользователя согласно DMarket API.
+
+        Args:
+            game_id: ID игры
+            limit: Количество результатов
+            offset: Смещение для пагинации
+
+        Returns:
+            Dict[str, Any]: Список предметов в инвентаре
+
+        """
+        params = {
+            "GameID": game_id,
+            "Limit": str(limit),
+            "Offset": str(offset),
+        }
+        return await self._request(
+            "GET",
+            "/marketplace-api/v1/user-inventory",
+            params=params,
+        )
+
+    async def list_market_items(
+        self,
+        game_id: str = "a8db",
+        limit: int = 100,
+        offset: int = 0,
+        order_by: str = "best_deal",
+        order_dir: str = "desc",
+        price_from: int | None = None,
+        price_to: int | None = None,
+        title: str | None = None,
+    ) -> dict[str, Any]:
+        """Получить список предметов на маркете согласно DMarket API.
+
+        Args:
+            game_id: ID игры (a8db для CS:GO, 9a92 для Dota 2)
+            limit: Количество результатов (max 100)
+            offset: Смещение для пагинации
+            order_by: Сортировка (best_deal, price, date, discount)
+            order_dir: Направление сортировки (asc, desc)
+            price_from: Минимальная цена в центах
+            price_to: Максимальная цена в центах
+            title: Поиск по названию
+
+        Returns:
+            Dict[str, Any]: Список предметов на маркете
+
+        Response format:
+            {
+                "Items": [...],
+                "Total": {...},
+                "Cursor": "string"
+            }
+
+        """
+        params = {
+            "GameID": game_id,
+            "Limit": str(limit),
+            "Offset": str(offset),
+            "OrderBy": order_by,
+            "OrderDir": order_dir,
+        }
+
+        if price_from is not None:
+            params["PriceFrom"] = str(price_from)
+
+        if price_to is not None:
+            params["PriceTo"] = str(price_to)
+
+        if title:
+            params["Title"] = title
+
+        return await self._request(
+            "GET",
+            "/marketplace-api/v1/market-items",
+            params=params,
+        )
+
+    async def list_offers_by_title(
+        self,
+        game_id: str,
+        title: str,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> dict[str, Any]:
+        """Получить предложения по названию предмета согласно DMarket API.
+
+        Args:
+            game_id: ID игры
+            title: Название предмета
+            limit: Количество результатов
+            offset: Смещение для пагинации
+
+        Returns:
+            Dict[str, Any]: Список предложений
+
+        """
+        params = {
+            "GameID": game_id,
+            "Title": title,
+            "Limit": str(limit),
+            "Offset": str(offset),
+        }
+        return await self._request(
+            "GET",
+            "/marketplace-api/v1/offers-by-title",
+            params=params,
+        )
+
+    async def buy_offers(
+        self,
+        offers: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Купить предложения с маркета согласно DMarket API.
+
+        Args:
+            offers: Список предложений для покупки
+                Формат: [{"offerId": "...", "price": {"amount": "100", "currency": "USD"}, "type": "dmarket"}]
+
+        Returns:
+            Dict[str, Any]: Результат покупки
+
+        Response format:
+            {
+                "orderId": "string",
+                "status": "TxPending",
+                "txId": "string",
+                ...
+            }
+
+        """
+        data = {"offers": offers}
+        return await self._request(
+            "PATCH",
+            "/exchange/v1/offers-buy",
+            data=data,
+        )
+
+    async def get_aggregated_prices(
+        self,
+        titles: list[str],
+        game_id: str = "a8db",
+    ) -> dict[str, Any]:
+        """Получить агрегированные цены для списка предметов согласно DMarket API.
+
+        Args:
+            titles: Список названий предметов
+            game_id: ID игры
+
+        Returns:
+            Dict[str, Any]: Агрегированные цены
+
+        """
+        data = {
+            "Titles": titles,
+            "GameID": game_id,
+        }
+        return await self._request(
+            "POST",
+            "/marketplace-api/v1/aggregated-titles-by-games",
+            data=data,
+        )
+
+    async def get_sales_history_aggregator(
+        self,
+        game_id: str,
+        title: str,
+        limit: int = 20,
+        offset: int = 0,
+        filters: str | None = None,
+        tx_operation_type: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Получить историю продаж предмета из агрегатора согласно DMarket API.
+
+        Args:
+            game_id: ID игры (a8db, 9a92, tf2, rust)
+            title: Название предмета
+            limit: Количество результатов (max 20)
+            offset: Смещение для пагинации
+            filters: Фильтры (например: "exterior[]=factory new,phase[]=phase-1")
+            tx_operation_type: Типы операций (["Offer"], ["Target"], или обе)
+
+        Returns:
+            Dict[str, Any]: История продаж
+
+        Response format:
+            {
+                "sales": [
+                    {"price": "string", "date": "string", "txOperationType": "Offer", ...}
+                ]
+            }
+
+        """
+        params = {
+            "gameId": game_id,
+            "title": title,
+            "limit": str(limit),
+            "offset": str(offset),
+        }
+
+        if filters:
+            params["filters"] = filters
+
+        if tx_operation_type:
+            params["txOperationType"] = tx_operation_type
+
+        return await self._request(
+            "GET",
+            "/trade-aggregator/v1/last-sales",
+            params=params,
         )
 
     async def get_market_best_offers(
@@ -1779,7 +2382,7 @@ class DMarketAPI:
     # ==================== КОНЕЦ МЕТОДОВ ТАРГЕТОВ ====================
 
     async def direct_balance_request(self) -> dict[str, Any]:
-        """Выполняет прямой запрос баланса через REST API.
+        """Выполняет прямой запрос баланса через REST API используя Ed25519.
 
         Этот метод используется как альтернативный способ получения баланса
         в случае проблем с основным методом.
@@ -1795,17 +2398,61 @@ class DMarketAPI:
             full_url = f"{base_url}{endpoint}"
 
             # Формируем timestamp для запроса
-            timestamp = str(int(datetime.now().timestamp()))
+            timestamp = str(int(time.time()))
+
+            # Build string to sign: GET + endpoint + timestamp
             string_to_sign = f"GET{endpoint}{timestamp}"
 
-            # Создаем HMAC подпись
-            signature = hmac.new(
-                self.secret_key,
-                string_to_sign.encode(),
-                hashlib.sha256,
-            ).hexdigest()
+            logger.debug(f"Direct balance request - string to sign: {string_to_sign}")
 
-            # Формируем заголовки запроса согласно последней документации DMarket
+            try:
+                # Convert secret key from string to bytes
+                if isinstance(self.secret_key, str):
+                    secret_key_str = self._secret_key
+                else:
+                    secret_key_str = self.secret_key.decode('utf-8')
+
+                # Try different formats for secret key
+                try:
+                    # Format 1: HEX format (64 chars = 32 bytes)
+                    if len(secret_key_str) == 64:
+                        secret_key_bytes = bytes.fromhex(secret_key_str)
+                    # Format 2: Base64 format
+                    elif len(secret_key_str) == 44 or '=' in secret_key_str:
+                        import base64
+                        secret_key_bytes = base64.b64decode(secret_key_str)
+                    # Format 3: Take first 64 hex chars
+                    elif len(secret_key_str) >= 64:
+                        secret_key_bytes = bytes.fromhex(secret_key_str[:64])
+                    else:
+                        # Fallback
+                        secret_key_bytes = secret_key_str.encode('utf-8')[:32].ljust(32, b'\0')
+                except Exception as conv_error:
+                    logger.error(f"Error converting secret key in direct request: {conv_error}")
+                    raise
+
+                # Create Ed25519 signing key
+                signing_key = nacl.signing.SigningKey(secret_key_bytes)
+
+                # Sign the message
+                signed = signing_key.sign(string_to_sign.encode('utf-8'))
+
+                # Extract signature in hex format
+                signature = signed.signature.hex()
+
+                logger.debug(f"Direct balance request - signature generated")
+
+            except Exception as sig_error:
+                logger.error(f"Error generating Ed25519 signature: {sig_error}")
+                # Fallback to HMAC if Ed25519 fails
+                secret_key = self.secret_key if isinstance(self.secret_key, bytes) else self.secret_key.encode('utf-8')
+                signature = hmac.new(
+                    secret_key,
+                    string_to_sign.encode(),
+                    hashlib.sha256,
+                ).hexdigest()
+
+            # Формируем заголовки запроса согласно документации DMarket
             headers = {
                 "X-Api-Key": self.public_key,
                 "X-Sign-Date": timestamp,
@@ -1828,18 +2475,51 @@ class DMarketAPI:
                     # Проверяем структуру ответа согласно документации DMarket
                     if response_data:
                         logger.info(f"Успешный прямой запрос к {endpoint}")
+                        logger.info(f"🔍 RAW ОТВЕТ API БАЛАНСА: {response_data}")
+                        logger.debug(f"Ответ API баланса: {response_data}")
 
-                        # Извлекаем значения баланса из ответа
-                        balance = response_data.get("balance", 0)
-                        available = response_data.get("available", balance)
-                        total = response_data.get("total", balance)
+                        # Извлекаем значения баланса из ответа согласно официальной документации
+                        # API возвращает: {"usd": "2550", "usdAvailableToWithdraw": "2550", "dmc": "0", "dmcAvailableToWithdraw": "0"}
+                        # где значения в центах для USD и dimoshi для DMC (все как строки)
+
+                        # Получаем USD баланс (в центах как строка)
+                        usd_str = response_data.get("usd", "0")
+                        usd_available_str = response_data.get("usdAvailableToWithdraw", "0")
+                        usd_trade_protected_str = response_data.get("usdTradeProtected", "0")
+
+                        # Конвертируем из строки в центы, затем в доллары
+                        try:
+                            balance_cents = float(usd_str)  # общий баланс в центах
+                            available_cents = float(usd_available_str)  # доступный баланс в центах
+                            trade_protected_cents = float(usd_trade_protected_str)  # защищенный в торговле
+
+                            # Конвертируем центы в доллары
+                            balance = balance_cents / 100
+                            available = available_cents / 100
+                            trade_protected = trade_protected_cents / 100
+
+                            # Вычисляем заблокированные средства
+                            locked = balance - available - trade_protected
+
+                            total = balance  # Обычно total = balance
+
+                            logger.info(f"💰 Распарсен баланс: Всего ${balance:.2f} USD (доступно: ${available:.2f}, заблокировано: ${locked:.2f}, защищено торговлей: ${trade_protected:.2f})")
+                        except (ValueError, TypeError) as e:
+                            logger.error(f"Ошибка конвертации баланса: {e}, usd={usd_str}, usdAvailable={usd_available_str}")
+                            balance = 0.0
+                            available = 0.0
+                            total = 0.0
+                            locked = 0.0
+                            trade_protected = 0.0
 
                         return {
                             "success": True,
                             "data": {
-                                "balance": float(balance),
-                                "available": float(available),
-                                "total": float(total),
+                                "balance": balance,
+                                "available": available,
+                                "total": total,
+                                "locked": locked,
+                                "trade_protected": trade_protected,
                             },
                         }
                 except json.JSONDecodeError:

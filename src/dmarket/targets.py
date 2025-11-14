@@ -33,7 +33,7 @@ class TargetManager:
 
     """
 
-    def __init__(self, api_client: DMarketAPI):
+    def __init__(self, api_client: DMarketAPI) -> None:
         """Инициализация менеджера таргетов.
 
         Args:

@@ -14,7 +14,7 @@ from src.telegram_bot.handlers.arbitrage_callback_impl import (
 from src.utils.api_error_handling import APIError
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_query():
     """Создает мок для объекта callback_query."""
     query = MagicMock()
@@ -26,7 +26,7 @@ def mock_query():
     return query
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context():
     """Создает мок для объекта context."""
     context = MagicMock()
@@ -34,7 +34,7 @@ def mock_context():
     return context
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.handlers.arbitrage_callback_impl.execute_api_request")
 async def test_handle_dmarket_arbitrage_impl_success(
     mock_execute_api_request,
@@ -72,13 +72,13 @@ async def test_handle_dmarket_arbitrage_impl_success(
         assert mock_context.user_data["last_arbitrage_mode"] == "boost"
 
         # Проверяем финальный вызов edit_message_text
-        args, kwargs = mock_query.edit_message_text.call_args_list[-1]
+        _args, kwargs = mock_query.edit_message_text.call_args_list[-1]
         assert "reply_markup" in kwargs
         assert "parse_mode" in kwargs
         assert kwargs["parse_mode"] == "HTML"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.handlers.arbitrage_callback_impl.execute_api_request")
 async def test_handle_dmarket_arbitrage_impl_pagination(
     mock_execute_api_request,
@@ -101,7 +101,7 @@ async def test_handle_dmarket_arbitrage_impl_pagination(
         await handle_dmarket_arbitrage_impl(mock_query, mock_context, "boost")
 
         # Проверяем финальный вызов edit_message_text
-        args, kwargs = mock_query.edit_message_text.call_args_list[-1]
+        _args, kwargs = mock_query.edit_message_text.call_args_list[-1]
 
         # Проверяем наличие кнопки "Следующая" в клавиатуре
         keyboard = kwargs["reply_markup"].inline_keyboard
@@ -113,7 +113,7 @@ async def test_handle_dmarket_arbitrage_impl_pagination(
         )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.handlers.arbitrage_callback_impl.execute_api_request")
 async def test_handle_dmarket_arbitrage_impl_no_results(
     mock_execute_api_request,
@@ -143,7 +143,7 @@ async def test_handle_dmarket_arbitrage_impl_no_results(
         mock_format.assert_called_once_with([], "boost", "csgo")
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.handlers.arbitrage_callback_impl.execute_api_request")
 async def test_handle_dmarket_arbitrage_impl_api_error(
     mock_execute_api_request,
@@ -177,7 +177,7 @@ async def test_handle_dmarket_arbitrage_impl_api_error(
     )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.handlers.arbitrage_callback_impl.execute_api_request")
 async def test_handle_dmarket_arbitrage_impl_authorization_error(
     mock_execute_api_request,
@@ -202,7 +202,7 @@ async def test_handle_dmarket_arbitrage_impl_authorization_error(
     assert "Ошибка авторизации" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.handlers.arbitrage_callback_impl.execute_api_request")
 async def test_handle_dmarket_arbitrage_impl_generic_exception(
     mock_execute_api_request,
@@ -225,7 +225,7 @@ async def test_handle_dmarket_arbitrage_impl_generic_exception(
     assert "Unexpected error" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.arbitrage_scanner.find_arbitrage_opportunities")
 async def test_handle_best_opportunities_impl_success(
     mock_find_opportunities,
@@ -260,12 +260,12 @@ async def test_handle_best_opportunities_impl_success(
         mock_format.assert_called_once_with(mock_opportunities, "csgo")
 
         # Проверяем финальный вызов edit_message_text с форматированными результатами
-        args, kwargs = mock_query.edit_message_text.call_args_list[-1]
+        _args, kwargs = mock_query.edit_message_text.call_args_list[-1]
         assert kwargs.get("text") == "Форматированные результаты"
         assert "reply_markup" in kwargs
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.arbitrage_scanner.find_arbitrage_opportunities")
 async def test_handle_best_opportunities_impl_error(
     mock_find_opportunities,

@@ -19,7 +19,7 @@ from src.telegram_bot.sales_analysis_handlers import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_update():
     """Создает мок объекта Update для тестирования."""
     update = MagicMock(spec=Update)
@@ -29,7 +29,7 @@ def mock_update():
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context():
     """Создает мок объекта CallbackContext для тестирования."""
     context = MagicMock(spec=CallbackContext)
@@ -37,7 +37,7 @@ def mock_context():
     return context
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.sales_analysis_handlers.execute_api_request")
 async def test_handle_sales_analysis_success(
     mock_execute_api,
@@ -99,7 +99,7 @@ async def test_handle_sales_analysis_success(
     assert "$95.00" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.sales_analysis_handlers.execute_api_request")
 async def test_handle_sales_analysis_no_data(
     mock_execute_api,
@@ -133,7 +133,7 @@ async def test_handle_sales_analysis_no_data(
     assert "Не удалось найти данные о продажах" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.sales_analysis_handlers.execute_api_request")
 async def test_handle_sales_analysis_api_error(
     mock_execute_api,
@@ -166,7 +166,7 @@ async def test_handle_sales_analysis_api_error(
     assert "Ошибка при получении данных о продажах" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.sales_analysis_handlers.execute_api_request")
 async def test_handle_sales_analysis_missing_item_name(
     mock_execute_api,
@@ -181,12 +181,12 @@ async def test_handle_sales_analysis_missing_item_name(
     await handle_sales_analysis(mock_update, mock_context)
 
     # Проверяем, что был вызван reply_text с сообщением об ошибке
-    args, kwargs = mock_update.message.reply_text.call_args
+    args, _kwargs = mock_update.message.reply_text.call_args
     message_text = args[0]
     assert "Необходимо указать название предмета" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.sales_analysis_handlers.execute_api_request")
 async def test_handle_arbitrage_with_sales(mock_execute_api, mock_update, mock_context):
     """Тестирует обработку запроса на поиск арбитражных возможностей с учетом продаж."""
@@ -258,7 +258,7 @@ async def test_handle_arbitrage_with_sales(mock_execute_api, mock_update, mock_c
     assert keyboard is not None
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.sales_analysis_handlers.execute_api_request")
 async def test_handle_arbitrage_with_sales_no_opportunities(
     mock_execute_api,
@@ -295,7 +295,7 @@ async def test_handle_arbitrage_with_sales_no_opportunities(
     assert "Не найдено арбитражных возможностей" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.sales_analysis_handlers.execute_api_request")
 async def test_handle_liquidity_analysis(mock_execute_api, mock_update, mock_context):
     """Тестирует обработку запроса на анализ ликвидности предмета."""
@@ -352,7 +352,7 @@ async def test_handle_liquidity_analysis(mock_execute_api, mock_update, mock_con
     assert "Продаж в день: 5.20" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.sales_analysis_handlers.execute_api_request")
 async def test_handle_sales_volume_stats(mock_execute_api, mock_update, mock_context):
     """Тестирует обработку запроса на статистику объемов продаж."""

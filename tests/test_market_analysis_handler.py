@@ -43,7 +43,7 @@ class TestMarketAnalysisHandler:
             },
         }
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.market_analysis_handler.DMarketAPI")
     @patch("src.telegram_bot.handlers.market_analysis_handler.analyze_price_changes")
     @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
@@ -87,7 +87,7 @@ class TestMarketAnalysisHandler:
         # Verify the analysis was performed
         mock_analyze.assert_called_once_with(game="csgo")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.market_analysis_handler.DMarketAPI")
     @patch("src.telegram_bot.handlers.market_analysis_handler.find_undervalued_items")
     @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
@@ -132,7 +132,7 @@ class TestMarketAnalysisHandler:
         # Verify edit_message_text was called
         self.update.callback_query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.market_analysis_handler.DMarketAPI")
     @patch(
         "src.telegram_bot.handlers.market_analysis_handler.get_investment_recommendations",

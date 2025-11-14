@@ -252,7 +252,7 @@ async def _find_arbitrage_async(
                         "sell": f"${sell_price:.2f}",
                         "profit": f"${profit:.2f}",
                         "profit_percent": f"{profit_percent:.1f}",
-                        "fee": f"{int(fee*100)}%",
+                        "fee": f"{int(fee * 100)}%",
                         "itemId": item.get("itemId", ""),
                         "market_hash_name": item.get("title", ""),
                         "liquidity": liquidity,
@@ -280,43 +280,73 @@ async def _find_arbitrage_async(
     return results
 
 
-async def arbitrage_boost_async(game: str = "csgo") -> list[SkinResult]:
+async def arbitrage_boost_async(
+    game: str = "csgo",
+    min_price: float | None = None,
+    max_price: float | None = None,
+    limit: int | None = None,
+    api_client: "DMarketAPI | None" = None,
+) -> list[SkinResult]:
     """Скины с прибылью $1–5
 
     Args:
         game: Код игры (csgo, dota2, tf2, rust)
+        min_price: Минимальная цена предмета (не используется, для совместимости)
+        max_price: Максимальная цена предмета (не используется, для совместимости)
+        limit: Максимальное количество результатов (не используется, для совместимости)
+        api_client: Опциональный клиент DMarket API (не используется, для совместимости)
 
     Returns:
         Список предметов с низкой прибылью
 
     """
-    return await _find_arbitrage_async(1, 5, game)
+    return await _find_arbitrage_async(1, 5, game, min_price, max_price)
 
 
-async def arbitrage_mid_async(game: str = "csgo") -> list[SkinResult]:
+async def arbitrage_mid_async(
+    game: str = "csgo",
+    min_price: float | None = None,
+    max_price: float | None = None,
+    limit: int | None = None,
+    api_client: "DMarketAPI | None" = None,
+) -> list[SkinResult]:
     """Скины с прибылью $5–20
 
     Args:
         game: Код игры (csgo, dota2, tf2, rust)
+        min_price: Минимальная цена предмета (не используется, для совместимости)
+        max_price: Максимальная цена предмета (не используется, для совместимости)
+        limit: Максимальное количество результатов (не используется, для совместимости)
+        api_client: Опциональный клиент DMarket API (не используется, для совместимости)
 
     Returns:
         Список предметов со средней прибылью
 
     """
-    return await _find_arbitrage_async(5, 20, game)
+    return await _find_arbitrage_async(5, 20, game, min_price, max_price)
 
 
-async def arbitrage_pro_async(game: str = "csgo") -> list[SkinResult]:
+async def arbitrage_pro_async(
+    game: str = "csgo",
+    min_price: float | None = None,
+    max_price: float | None = None,
+    limit: int | None = None,
+    api_client: "DMarketAPI | None" = None,
+) -> list[SkinResult]:
     """Скины с прибылью $20–100
 
     Args:
         game: Код игры (csgo, dota2, tf2, rust)
+        min_price: Минимальная цена предмета (не используется, для совместимости)
+        max_price: Максимальная цена предмета (не используется, для совместимости)
+        limit: Максимальное количество результатов (не используется, для совместимости)
+        api_client: Опциональный клиент DMarket API (не используется, для совместимости)
 
     Returns:
         Список предметов с высокой прибылью
 
     """
-    return await _find_arbitrage_async(20, 100, game)
+    return await _find_arbitrage_async(20, 100, game, min_price, max_price)
 
 
 # Для обратной совместимости предоставляем синхронные версии
@@ -667,16 +697,34 @@ class ArbitrageTrader:
 
         """
         try:
+            logger.info(
+                f"🔍 Поиск арбитражных возможностей для {game}: "
+                f"мин. цена=${min_price:.2f}, макс. цена=${max_price:.2f}, "
+                f"мин. прибыль={min_profit_percentage}%"
+            )
+
             # Получаем предметы с рынка
             async with self.api:
                 items = await self.api.get_market_items(
                     game=game,
                     limit=max_items,
-                    price_from=int(min_price * 100),  # в центах
-                    price_to=int(max_price * 100),
+                    price_from=min_price,  # get_market_items сам конвертирует в центы
+                    price_to=max_price,
                 )
 
-            objects = items.get("objects", [])
+            logger.debug(f"📦 Получен ответ API: {items.keys() if items else 'None'}")
+
+            # DMarket API возвращает предметы в поле "objects" согласно документации
+            objects = items.get("objects", items.get("items", []))
+
+            if not objects:
+                logger.warning(
+                    f"⚠️ Не найдено предметов для игры {game} в диапазоне "
+                    f"${min_price:.2f}-${max_price:.2f}"
+                )
+                return []
+
+            logger.info(f"✅ Найдено {len(objects)} предметов для анализа")
             profitable_items = []
 
             for item in objects:
@@ -1274,7 +1322,7 @@ async def find_arbitrage_items(
         Список найденных предметов для арбитража
 
     """
-    if mode == "low" or mode == "boost":
+    if mode in {"low", "boost"}:
         results = await arbitrage_boost_async(
             game,
             min_price,

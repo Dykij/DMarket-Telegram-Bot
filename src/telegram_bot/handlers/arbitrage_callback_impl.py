@@ -20,12 +20,12 @@ from src.telegram_bot.keyboards import (
     get_marketplace_comparison_keyboard,
     get_modern_arbitrage_keyboard,
 )
-from src.telegram_bot.utils.formatting import (
+from src.telegram_bot.utils.formatters import (
     format_best_opportunities,
     format_dmarket_results,
 )
-from src.utils.api_error_handling import APIError
-from src.utils.dmarket_api_utils import execute_api_request
+from src.utils.exceptions import APIError
+# Removed: execute_api_request - использовать прямые вызовы API
 
 
 logger = logging.getLogger(__name__)

@@ -19,8 +19,8 @@ from src.telegram_bot.utils.formatters import (
     format_sales_volume_stats,
     get_trend_emoji,
 )
-from src.utils.api_error_handling import APIError
-from src.utils.dmarket_api_utils import execute_api_request
+from src.utils.exceptions import APIError
+# Removed: execute_api_request - использовать прямые вызовы API
 
 
 # Настройка логирования

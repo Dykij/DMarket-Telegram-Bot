@@ -19,7 +19,7 @@ CacheValue = tuple[Any, float]  # (значение, время_создания
 class AdvancedCache:
     """Продвинутый кеш с контролем TTL и отдельными хранилищами для разных типов данных."""
 
-    def __init__(self, default_ttl: int = 300):
+    def __init__(self, default_ttl: int = 300) -> None:
         """Инициализирует кеш.
 
         Args:
@@ -273,7 +273,9 @@ class AsyncBatch:
     их группировки в пакеты с ограниченным количеством одновременных операций.
     """
 
-    def __init__(self, max_concurrent: int = 5, delay_between_batches: float = 0.1):
+    def __init__(
+        self, max_concurrent: int = 5, delay_between_batches: float = 0.1
+    ) -> None:
         """Инициализирует объект для пакетного исполнения.
 
         Args:

@@ -19,6 +19,8 @@ permissions:
 
 env:
   PYTHON_VERSION: '3.11'
+  CACHE_VERSION: v1
+  PIP_CACHE_DIR: ~/.cache/pip
 
 jobs:
   lint:

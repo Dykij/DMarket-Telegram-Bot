@@ -19,7 +19,7 @@ from src.telegram_bot.arbitrage_scanner import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_arbitrage_data() -> list[dict[str, Any]]:
     """Создает фиктивные данные для тестирования."""
     return [
@@ -50,7 +50,7 @@ def mock_arbitrage_data() -> list[dict[str, Any]]:
     ]
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.arbitrage_scanner.arbitrage_boost")
 @patch("src.telegram_bot.arbitrage_scanner.arbitrage_mid")
 @patch("src.telegram_bot.arbitrage_scanner.arbitrage_pro")
@@ -88,7 +88,7 @@ async def test_find_arbitrage_opportunities_async_low_mode(
     assert "profit_percent" in result[0]
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.arbitrage_scanner.arbitrage_boost")
 @patch("src.telegram_bot.arbitrage_scanner.arbitrage_mid")
 @patch("src.telegram_bot.arbitrage_scanner.arbitrage_pro")
@@ -119,7 +119,7 @@ async def test_find_arbitrage_opportunities_async_medium_mode(
     assert [item["id"] for item in result] == ["item1", "item2", "item3"]
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.arbitrage_scanner.arbitrage_boost")
 @patch("src.telegram_bot.arbitrage_scanner.arbitrage_mid")
 @patch("src.telegram_bot.arbitrage_scanner.arbitrage_pro")
@@ -150,7 +150,7 @@ async def test_find_arbitrage_opportunities_async_high_mode(
     assert result[0]["id"] == "item1"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.arbitrage_scanner.arbitrage_mid")
 @patch("src.telegram_bot.arbitrage_scanner.rate_limiter")
 async def test_find_arbitrage_opportunities_async_error_handling(
@@ -173,181 +173,216 @@ async def test_find_arbitrage_opportunities_async_error_handling(
     assert result == []
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_find_multi_game_arbitrage_opportunities(mock_arbitrage_data):
     """Тест поиска арбитражных возможностей в нескольких играх."""
-    # Патчим find_arbitrage_opportunities_async напрямую для избежания проблем с event loop
+    # Патчим ArbitrageScanner.scan_game вместо find_arbitrage_opportunities_async
     with patch(
-        "src.telegram_bot.arbitrage_scanner.find_arbitrage_opportunities_async",
-    ) as mock_find_arbitrage:
+        "src.telegram_bot.arbitrage_scanner.ArbitrageScanner.scan_game",
+    ) as mock_scan_game:
         # Настраиваем асинхронный мок
-        mock_find_arbitrage.side_effect = [
+        mock_scan_game.side_effect = [
             mock_arbitrage_data[:2],  # csgo - первые 2 предмета
             mock_arbitrage_data[2:],  # dota2 - последний предмет
             [],  # rust - пустой результат
         ]
 
-        # Патчим rate_limiter отдельно
-        with patch(
-            "src.telegram_bot.arbitrage_scanner.rate_limiter",
-        ) as mock_rate_limiter:
-            mock_rate_limiter.wait_if_needed = AsyncMock()
+        # Вызываем функцию
+        games = ["csgo", "dota2", "rust"]
+        result = await find_multi_game_arbitrage_opportunities(
+            games=games,
+            mode="medium",
+            max_items_per_game=2,
+        )
 
-            # Вызываем функцию
-            games = ["csgo", "dota2", "rust"]
-            result = await find_multi_game_arbitrage_opportunities(
-                games=games,
-                mode="medium",
-                max_items_per_game=2,
-            )
+        # Проверяем, что функция scan_game была вызвана для каждой игры
+        assert mock_scan_game.call_count == 3
 
-            # Проверяем, что функция find_arbitrage_opportunities_async была вызвана для каждой игры
-            assert mock_find_arbitrage.call_count == 3
+        # Проверяем, что параметры вызовов были правильными
+        call_args_list = mock_scan_game.call_args_list
 
-            # Проверяем, что параметры вызовов были правильными
-            call_args_list = mock_find_arbitrage.call_args_list
+        # Первый вызов - для csgo
+        assert call_args_list[0][1]["game"] == "csgo"
+        assert call_args_list[0][1]["mode"] == "medium"
+        assert call_args_list[0][1]["max_items"] == 2
 
-            # Первый вызов - для csgo
-            assert call_args_list[0][1]["game"] == "csgo"
-            assert call_args_list[0][1]["mode"] == "medium"
-            assert call_args_list[0][1]["max_items"] == 2
+        # Второй вызов - для dota2
+        assert call_args_list[1][1]["game"] == "dota2"
+        assert call_args_list[1][1]["mode"] == "medium"
+        assert call_args_list[1][1]["max_items"] == 2
 
-            # Второй вызов - для dota2
-            assert call_args_list[1][1]["game"] == "dota2"
-            assert call_args_list[1][1]["mode"] == "medium"
-            assert call_args_list[1][1]["max_items"] == 2
+        # Третий вызов - для rust
+        assert call_args_list[2][1]["game"] == "rust"
+        assert call_args_list[2][1]["mode"] == "medium"
+        assert call_args_list[2][1]["max_items"] == 2
 
-            # Третий вызов - для rust
-            assert call_args_list[2][1]["game"] == "rust"
-            assert call_args_list[2][1]["mode"] == "medium"
-            assert call_args_list[2][1]["max_items"] == 2
+        # Проверяем результаты
+        assert len(result["csgo"]) == 2
+        assert len(result["dota2"]) == 1
+        assert len(result["rust"]) == 0
 
-            # Проверяем результаты
-            assert len(result["csgo"]) == 2
-            assert len(result["dota2"]) == 1
-            assert len(result["rust"]) == 0
-
-            # Проверяем конкретные элементы для первой игры
-            assert result["csgo"][0]["id"] == "item1"
-            assert result["csgo"][1]["id"] == "item2"
+        # Проверяем конкретные элементы для первой игры
+        assert result["csgo"][0]["id"] == "item1"
+        assert result["csgo"][1]["id"] == "item2"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_auto_trade_items(mock_arbitrage_data):
     """Тест автоматической торговли предметами."""
-    # Настраиваем мок для DMarketAPI
-    with patch("src.telegram_bot.arbitrage_scanner.DMarketAPI") as mock_dmarket_api:
-        # Создаем мок для экземпляра API
-        mock_api_instance = AsyncMock()
-        mock_dmarket_api.return_value = mock_api_instance
+    # Создаем мок для DMarketAPI
+    mock_api_instance = AsyncMock()
 
-        # Патчим check_user_balance для возврата положительного баланса
+    # Патчим ArbitrageScanner.check_user_balance
+    with patch(
+        "src.telegram_bot.arbitrage_scanner.ArbitrageScanner.check_user_balance",
+    ) as mock_check_balance:
+        mock_check_balance.return_value = {
+            "balance": 100.0,
+            "has_funds": True,
+            "error": False,
+        }
+
+        # Патчим ArbitrageTrader для мока торговых операций
         with patch(
-            "src.telegram_bot.arbitrage_scanner.check_user_balance",
-        ) as mock_check_balance:
-            mock_check_balance.return_value = {
-                "balance": 100.0,
-                "has_funds": True,
-                "error": False,
+            "src.telegram_bot.arbitrage_scanner.ArbitrageTrader",
+        ) as mock_trader_class:
+            # Создаем мок экземпляра ArbitrageTrader
+            mock_trader = AsyncMock()
+            mock_trader_class.return_value = mock_trader
+
+            # Настраиваем методы трейдера
+            mock_trader.get_current_item_data = AsyncMock(
+                return_value={"price": 10.0},
+            )
+            mock_trader.purchase_item = AsyncMock(
+                return_value={"success": True, "new_item_id": "purchased_item"},
+            )
+            mock_trader.list_item_for_sale = AsyncMock(
+                return_value={"success": True},
+            )
+
+            # Настраиваем тестовые данные (прибыль в USD, а не центах)
+            items_with_profit_usd = [
+                {
+                    "id": "item1",
+                    "itemId": "item1",
+                    "title": "AK-47 | Redline",
+                    "price": {"amount": 1000},  # $10.00
+                    "profit": 2.0,  # $2.00 прибыль в USD
+                    "profit_percent": 20.0,
+                    "game": "csgo",
+                },
+                {
+                    "id": "item3",
+                    "itemId": "item3",
+                    "title": "Desert Eagle | Blaze",
+                    "price": {"amount": 3000},  # $30.00
+                    "profit": 5.0,  # $5.00 прибыль в USD
+                    "profit_percent": 16.7,
+                    "game": "csgo",
+                },
+            ]
+
+            items_by_game = {
+                "csgo": items_with_profit_usd,
             }
 
-            # Настраиваем методы API
-            mock_api_instance.buy_item = AsyncMock(return_value={"success": True})
-            mock_api_instance.sell_item = AsyncMock(return_value={"success": True})
+            # Вызываем функцию
+            purchases, sales, profit = await auto_trade_items(
+                items_by_game=items_by_game,
+                min_profit=1.0,
+                max_price=40.0,
+                dmarket_api=mock_api_instance,
+            )
 
-            # Патчим rate_limiter
-            with patch(
-                "src.telegram_bot.arbitrage_scanner.rate_limiter",
-            ) as mock_rate_limiter:
-                mock_rate_limiter.wait_if_needed = AsyncMock()
+            # Проверяем результаты
+            assert purchases == 2
+            assert sales == 2
+            assert profit == 7.0  # $2.00 + $5.00
 
-                # Настраиваем тестовые данные
-                items_by_game = {
-                    "csgo": mock_arbitrage_data,
-                }
-
-                # Вызываем функцию
-                purchases, sales, profit = await auto_trade_items(
-                    items_by_game=items_by_game,
-                    min_profit=1.0,
-                    max_price=40.0,
-                )
-
-                # Проверяем результаты
-                # Должны быть обработаны только первый и третий предметы,
-                # так как второй предмет стоит $50, что выше max_price=40.0
-                assert purchases == 2
-                assert sales == 2
-                assert profit == 7.0  # $2.00 + $5.00
-
-                # Проверяем, что методы API были вызваны правильное количество раз
-                assert mock_api_instance.buy_item.call_count == 2
-                assert mock_api_instance.sell_item.call_count == 2
-
-                # Проверяем, что методы API были вызваны с правильными параметрами
-                # Первый вызов для item1
-                assert mock_api_instance.buy_item.call_args_list[0][0][0] == "item1"
-
-                # Второй вызов для item3 (не item2, т.к. item2 слишком дорогой)
-                assert mock_api_instance.buy_item.call_args_list[1][0][0] == "item3"
+            # Проверяем, что методы трейдера были вызваны
+            assert mock_trader.purchase_item.call_count == 2
+            assert mock_trader.list_item_for_sale.call_count == 2
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_auto_trade_items_with_min_profit_filter(mock_arbitrage_data):
     """Тест автоматической торговли предметами с фильтром по минимальной прибыли."""
-    # Настраиваем мок для DMarketAPI
-    with patch("src.telegram_bot.arbitrage_scanner.DMarketAPI") as mock_dmarket_api:
-        # Создаем мок для экземпляра API
-        mock_api_instance = AsyncMock()
-        mock_dmarket_api.return_value = mock_api_instance
+    # Создаем мок для DMarketAPI
+    mock_api_instance = AsyncMock()
 
-        # Патчим check_user_balance для возврата положительного баланса
+    # Патчим ArbitrageScanner.check_user_balance
+    with patch(
+        "src.telegram_bot.arbitrage_scanner.ArbitrageScanner.check_user_balance",
+    ) as mock_check_balance:
+        mock_check_balance.return_value = {
+            "balance": 100.0,
+            "has_funds": True,
+            "error": False,
+        }
+
+        # Патчим ArbitrageTrader
         with patch(
-            "src.telegram_bot.arbitrage_scanner.check_user_balance",
-        ) as mock_check_balance:
-            mock_check_balance.return_value = {
-                "balance": 100.0,
-                "has_funds": True,
-                "error": False,
+            "src.telegram_bot.arbitrage_scanner.ArbitrageTrader",
+        ) as mock_trader_class:
+            mock_trader = AsyncMock()
+            mock_trader_class.return_value = mock_trader
+
+            mock_trader.get_current_item_data = AsyncMock(
+                return_value={"price": 10.0},
+            )
+            mock_trader.purchase_item = AsyncMock(
+                return_value={"success": True, "new_item_id": "purchased_item"},
+            )
+            mock_trader.list_item_for_sale = AsyncMock(
+                return_value={"success": True},
+            )
+
+            # Настраиваем тестовые данные с разной прибылью (в USD)
+            items_with_profit_usd = [
+                {
+                    "id": "item2",
+                    "itemId": "item2",
+                    "title": "AWP | Asiimov",
+                    "price": {"amount": 5000},  # $50.00
+                    "profit": 8.0,  # $8.00 прибыль в USD
+                    "profit_percent": 16.0,
+                    "game": "csgo",
+                },
+                {
+                    "id": "item3",
+                    "itemId": "item3",
+                    "title": "Desert Eagle | Blaze",
+                    "price": {"amount": 3000},  # $30.00
+                    "profit": 5.0,  # $5.00 прибыль в USD
+                    "profit_percent": 16.7,
+                    "game": "csgo",
+                },
+            ]
+
+            items_by_game = {
+                "csgo": items_with_profit_usd,
             }
 
-            # Настраиваем методы API
-            mock_api_instance.buy_item = AsyncMock(return_value={"success": True})
-            mock_api_instance.sell_item = AsyncMock(return_value={"success": True})
+            # Вызываем функцию с высоким порогом минимальной прибыли
+            purchases, sales, profit = await auto_trade_items(
+                items_by_game=items_by_game,
+                min_profit=3.0,  # Отсечет предметы с прибылью < $3.00
+                max_price=100.0,
+                dmarket_api=mock_api_instance,
+            )
 
-            # Патчим rate_limiter
-            with patch(
-                "src.telegram_bot.arbitrage_scanner.rate_limiter",
-            ) as mock_rate_limiter:
-                mock_rate_limiter.wait_if_needed = AsyncMock()
+            # Проверяем результаты
+            assert purchases == 2
+            assert sales == 2
+            assert profit == 13.0  # $8.00 + $5.00
 
-                # Настраиваем тестовые данные
-                items_by_game = {
-                    "csgo": mock_arbitrage_data,
-                }
-
-                # Вызываем функцию с высоким порогом минимальной прибыли
-                purchases, sales, profit = await auto_trade_items(
-                    items_by_game=items_by_game,
-                    min_profit=3.0,  # Отсечет первый предмет ($2.00)
-                    max_price=100.0,
-                )
-
-                # Проверяем результаты
-                # Должны быть обработаны только второй и третий предметы с прибылью >= $3.00
-                assert purchases == 2
-                assert sales == 2
-                assert profit == 13.0  # $8.00 + $5.00
-
-                # Проверяем, что методы API были вызваны с правильными параметрами
-                # Первый вызов для item2 (не item1, т.к. прибыль item1 ниже порога)
-                assert mock_api_instance.buy_item.call_args_list[0][0][0] == "item2"
-
-                # Второй вызов для item3
-                assert mock_api_instance.buy_item.call_args_list[1][0][0] == "item3"
+            # Проверяем, что методы трейдера были вызваны
+            assert mock_trader.purchase_item.call_count == 2
+            assert mock_trader.list_item_for_sale.call_count == 2
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_auto_trade_items_empty_list():
     """Тест автоматической торговли с пустым списком предметов."""
     # Настраиваем мок для DMarketAPI

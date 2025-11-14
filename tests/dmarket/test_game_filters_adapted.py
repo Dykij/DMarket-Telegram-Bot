@@ -13,25 +13,25 @@ from src.dmarket.game_filters import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def csgo_filter():
     """Создает экземпляр CS2Filter для тестирования."""
     return CS2Filter()
 
 
-@pytest.fixture
+@pytest.fixture()
 def dota_filter():
     """Создает экземпляр Dota2Filter для тестирования."""
     return Dota2Filter()
 
 
-@pytest.fixture
+@pytest.fixture()
 def rust_filter():
     """Создает экземпляр RustFilter для тестирования."""
     return RustFilter()
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_csgo_item():
     """Создает пример предмета CSGO для тестирования фильтров."""
     return {
@@ -50,7 +50,7 @@ def sample_csgo_item():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_dota_item():
     """Создает пример предмета Dota 2 для тестирования фильтров."""
     return {
@@ -65,7 +65,7 @@ def sample_dota_item():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_rust_item():
     """Создает пример предмета Rust для тестирования фильтров."""
     return {

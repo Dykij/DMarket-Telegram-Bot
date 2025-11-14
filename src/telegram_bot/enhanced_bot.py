@@ -6,13 +6,16 @@ to integrate with the new main entry point and configuration system.
 
 import asyncio
 import logging
-
-from telegram.ext import Application
+from typing import TYPE_CHECKING
 
 from src.dmarket.dmarket_api import DMarketAPI
 from src.telegram_bot.initialization import initialize_bot_application
 from src.utils.config import Config
 from src.utils.database import DatabaseManager
+
+
+if TYPE_CHECKING:
+    from telegram.ext import Application
 
 
 logger = logging.getLogger(__name__)
@@ -26,7 +29,7 @@ class DMarketBot:
         config: Config,
         dmarket_api: DMarketAPI,
         database: DatabaseManager | None = None,
-    ):
+    ) -> None:
         """Initialize bot wrapper.
 
         Args:
@@ -47,9 +50,21 @@ class DMarketBot:
         # Create the telegram application using initialization module
         self.application = await initialize_bot_application(
             token=self.config.bot.token,
-            dmarket_api=self.dmarket_api,
-            database=self.database,
+            setup_persistence=True,
         )
+
+        # Add DMarket API and database to bot_data for handlers to access
+        self.application.bot_data["dmarket_api"] = self.dmarket_api
+        if self.database:
+            self.application.bot_data["database"] = self.database
+
+        # Add config to bot_data
+        self.application.bot_data["config"] = self.config
+
+        # Register all bot handlers
+        from src.telegram_bot.register_all_handlers import register_all_handlers
+
+        register_all_handlers(self.application)
 
         logger.info("DMarket Bot initialized successfully")
 
@@ -71,8 +86,13 @@ class DMarketBot:
         """Stop the bot."""
         if self.application:
             logger.info("Stopping DMarket Bot...")
-            await self.application.stop()
-            await self.application.shutdown()
+            try:
+                await self.application.stop()
+                await self.application.shutdown()
+            except RuntimeError as e:
+                if "not running" not in str(e).lower():
+                    raise
+                logger.debug(f"Application was not running: {e}")
             logger.info("DMarket Bot stopped")
 
     async def _start_webhook(self) -> None:
@@ -111,10 +131,6 @@ class DMarketBot:
             poll_interval=1.0,
             timeout=10,
             bootstrap_retries=-1,
-            read_timeout=10,
-            write_timeout=10,
-            connect_timeout=10,
-            pool_timeout=10,
         )
 
         logger.info("Polling mode started")

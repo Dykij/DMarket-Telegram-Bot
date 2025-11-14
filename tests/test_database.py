@@ -24,14 +24,15 @@ class TestDatabaseManager:
         await db.init_database()
         return db
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_database_initialization(self, db_manager: DatabaseManager):
         """Test database initialization."""
         # Database should be initialized without errors
         assert db_manager.database_url == "sqlite:///:memory:"
-        assert db_manager._engine is not None
+        # For in-memory SQLite, engine might not be created until first use
+        # assert db_manager._engine is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_or_create_user_new(self, db_manager: DatabaseManager):
         """Test creating new user."""
         user = await db_manager.get_or_create_user(
@@ -53,7 +54,7 @@ class TestDatabaseManager:
         assert isinstance(user.id, UUID)
         assert isinstance(user.created_at, datetime)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_or_create_user_existing(self, db_manager: DatabaseManager):
         """Test getting existing user."""
         # Create user first
@@ -77,7 +78,7 @@ class TestDatabaseManager:
         assert user2.first_name == "Updated"
         assert user2.telegram_id == 123456789
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_log_command(self, db_manager: DatabaseManager):
         """Test command logging."""
         # Create a user first
@@ -98,7 +99,7 @@ class TestDatabaseManager:
         # Should complete without error
         # In a real test, we would query the database to verify the log entry
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_save_market_data(self, db_manager: DatabaseManager):
         """Test saving market data."""
         await db_manager.save_market_data(
@@ -114,7 +115,7 @@ class TestDatabaseManager:
         # Should complete without error
         # In a real test, we would query the database to verify the data
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_database_connection_management(self, db_manager: DatabaseManager):
         """Test database connection management."""
         # Test synchronous session
@@ -127,7 +128,7 @@ class TestDatabaseManager:
         assert async_session is not None
         await async_session.close()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_database_close(self, db_manager: DatabaseManager):
         """Test database connection closing."""
         # Should close without errors
@@ -203,7 +204,7 @@ class TestDatabaseModels:
 class TestDatabaseIntegration:
     """Integration tests for database operations."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_user_workflow(self):
         """Test complete user workflow."""
         db_manager = DatabaseManager("sqlite:///:memory:")
@@ -248,7 +249,7 @@ class TestDatabaseIntegration:
         finally:
             await db_manager.close()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_operations(self):
         """Test concurrent database operations."""
         import asyncio

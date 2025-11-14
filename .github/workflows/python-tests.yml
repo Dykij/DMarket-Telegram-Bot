@@ -31,6 +31,8 @@ permissions:
 env:
   PYTHON_VERSION: '3.11'
   MIN_COVERAGE: 15  # Минимальное покрытие тестами (реалистичная цель)
+  CACHE_VERSION: v1
+  PIP_CACHE_DIR: ~/.cache/pip
 
 jobs:
   test:
@@ -39,9 +41,12 @@ jobs:
     timeout-minutes: 15
 
     strategy:
-      matrix:
-        python-version: ['3.11', '3.12']
       fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+        include:
+          - python-version: '3.11'
+            upload-coverage: true
 
     steps:
       - name: Checkout code
@@ -54,17 +59,21 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
-          cache-dependency-path: 'requirements.txt'
+          cache-dependency-path: |
+            requirements.txt
+            pyproject.toml
 
-      - name: Cache dependencies
+      - name: Cache dependencies and test tools
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
             .pytest_cache
-          key: ${{ runner.os }}-py${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}
+            .mypy_cache
+          key: ${{ runner.os }}-test-${{ env.CACHE_VERSION }}-py${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'pyproject.toml') }}
           restore-keys: |
-            ${{ runner.os }}-py${{ matrix.python-version }}-
+            ${{ runner.os }}-test-${{ env.CACHE_VERSION }}-py${{ matrix.python-version }}-
+            ${{ runner.os }}-test-${{ env.CACHE_VERSION }}-
 
       - name: Install dependencies
         run: |
@@ -114,7 +123,7 @@ jobs:
             exit 0
           fi
 
-          # Запускаем тесты (не фейлим если тесты провалились)
+          # Запускаем тесты параллельно с pytest-xdist (не фейлим если тесты провалились)
           python -m pytest tests/ \
             --cov=src \
             --cov-report=xml:build/coverage/coverage.xml \
@@ -123,6 +132,7 @@ jobs:
             --junitxml=build/test-results/junit.xml \
             --maxfail=10 \
             -v \
+            -n auto \
             --tb=short \
             -k "not integration and not slow" \
             && echo "test_failed=false" >> $GITHUB_OUTPUT \
@@ -163,12 +173,13 @@ jobs:
         continue-on-error: true
 
       - name: Upload coverage to Codecov
-        if: hashFiles('build/coverage/coverage.xml') != ''
+        if: matrix.upload-coverage && hashFiles('build/coverage/coverage.xml') != ''
         uses: codecov/codecov-action@v4
         with:
           file: ./build/coverage/coverage.xml
           fail_ci_if_error: false
           flags: python-${{ matrix.python-version }}
+          token: ${{ secrets.CODECOV_TOKEN }}
         continue-on-error: true
 
       - name: Archive test results

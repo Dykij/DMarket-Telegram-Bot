@@ -11,7 +11,7 @@ from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.websocket_client import DMarketWebSocketClient
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_api_client():
     """Мок для DMarketAPI."""
     api_client = MagicMock(spec=DMarketAPI)
@@ -23,7 +23,7 @@ def mock_api_client():
     return api_client
 
 
-@pytest.fixture
+@pytest.fixture()
 def websocket_client(mock_api_client):
     """Создает экземпляр DMarketWebSocketClient для тестирования."""
     return DMarketWebSocketClient(api_client=mock_api_client)
@@ -85,7 +85,7 @@ class MockWebSocket:
         return self.messages.pop(0)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_connect_success(websocket_client):
     """Тест успешного подключения к WebSocket."""
 
@@ -112,7 +112,7 @@ async def test_connect_success(websocket_client):
         websocket_client.connect = original_connect
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("aiohttp.ClientSession")
 async def test_connect_token_error(mock_session, websocket_client):
     """Тест ошибки получения токена."""
@@ -131,7 +131,7 @@ async def test_connect_token_error(mock_session, websocket_client):
     assert websocket_client.is_connected is False
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("aiohttp.ClientSession")
 async def test_connect_no_token(mock_session, websocket_client):
     """Тест таймаута при подключении."""
@@ -150,7 +150,7 @@ async def test_connect_no_token(mock_session, websocket_client):
     assert websocket_client.is_connected is False
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_subscribe(websocket_client):
     """Test subscribing to topics."""
     # Setup connection
@@ -166,7 +166,7 @@ async def test_subscribe(websocket_client):
     assert "prices:update" in websocket_client.subscriptions
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_subscribe_not_connected(websocket_client):
     """Тест подписки при отсутствии соединения."""
     # Подготовка
@@ -180,7 +180,7 @@ async def test_subscribe_not_connected(websocket_client):
     assert "prices:update" not in websocket_client.subscriptions
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_unsubscribe(websocket_client):
     """Тест отписки от темы."""
     # Подготовка
@@ -197,7 +197,7 @@ async def test_unsubscribe(websocket_client):
     assert "prices:update" not in websocket_client.subscriptions
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_register_handler(websocket_client):
     """Тест регистрации обработчика."""
     # Подготовка
@@ -211,7 +211,7 @@ async def test_register_handler(websocket_client):
     assert handler in websocket_client.handlers["market:update"]
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("asyncio.create_task")
 async def test_listen_message_handling(mock_create_task, websocket_client):
     """Тест обработки сообщений."""
@@ -253,7 +253,7 @@ async def test_listen_message_handling(mock_create_task, websocket_client):
     assert websocket_client.is_connected is False
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_close(websocket_client):
     """Test closing WebSocket connection."""
     # Setup mock session and connection

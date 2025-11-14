@@ -27,7 +27,7 @@ class DMarketWebSocketClient:
     # WebSocket endpoint
     WS_ENDPOINT = "wss://ws.dmarket.com"
 
-    def __init__(self, api_client: DMarketAPI):
+    def __init__(self, api_client: DMarketAPI) -> None:
         """Initialize WebSocket client.
 
         Args:

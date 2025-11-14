@@ -23,24 +23,20 @@ class TestCreateEnvFile(unittest.TestCase):
             "LOG_LEVEL": "INFO",
         }
 
-    @patch("builtins.open", new_callable=mock_open)
-    @patch("os.path.exists")
-    def test_read_existing_env(self, mock_exists, mock_file):
+    @patch("scripts.create_env_file.os.path.exists")
+    @patch("builtins.open", new_callable=mock_open, read_data="""# Comment line
+TELEGRAM_BOT_TOKEN=1234567890:AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPPQQ
+DMARKET_PUBLIC_KEY=publickey123
+DMARKET_SECRET_KEY=secretkey456
+DMARKET_API_URL=https://api.dmarket.com
+LOG_LEVEL=INFO
+""")
+    def test_read_existing_env(self, mock_file, mock_exists):
         """Test read_existing_env function."""
-        import create_env_file
+        from scripts import create_env_file
 
         # Mock file exists
         mock_exists.return_value = True
-
-        # Mock file content
-        mock_file.return_value.read.return_value = """
-        # Comment line
-        TELEGRAM_BOT_TOKEN=1234567890:AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPPQQ
-        DMARKET_PUBLIC_KEY=publickey123
-        DMARKET_SECRET_KEY=secretkey456
-        DMARKET_API_URL=https://api.dmarket.com
-        LOG_LEVEL=INFO
-        """
 
         # Call the function
         result = create_env_file.read_existing_env()
@@ -57,7 +53,7 @@ class TestCreateEnvFile(unittest.TestCase):
 
     def test_validate_input_valid(self):
         """Test validate_input function with valid inputs."""
-        import create_env_file
+        from scripts import create_env_file
 
         # Test required field with valid value
         var_info = {
@@ -86,7 +82,7 @@ class TestCreateEnvFile(unittest.TestCase):
 
     def test_validate_input_invalid(self):
         """Test validate_input function with invalid inputs."""
-        import create_env_file
+        from scripts import create_env_file
 
         # Test required field with empty value
         var_info = {
@@ -113,7 +109,7 @@ class TestCreateEnvFile(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open)
     def test_save_env_file(self, mock_file):
         """Test save_env_file function."""
-        import create_env_file
+        from scripts import create_env_file
 
         # Call the function
         create_env_file.save_env_file(self.test_env_vars)
@@ -129,7 +125,7 @@ class TestCreateEnvFile(unittest.TestCase):
     @patch("requests.get")
     def test_verify_api_keys_success(self, mock_get):
         """Test verify_api_keys function with successful response."""
-        import create_env_file
+        from scripts import create_env_file
 
         # Mock successful response
         mock_response = mock_get.return_value
@@ -151,7 +147,7 @@ class TestCreateEnvFile(unittest.TestCase):
     @patch("requests.get")
     def test_verify_api_keys_unauthorized(self, mock_get):
         """Test verify_api_keys function with unauthorized response."""
-        import create_env_file
+        from scripts import create_env_file
 
         # Mock unauthorized response
         mock_response = mock_get.return_value

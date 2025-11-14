@@ -14,6 +14,7 @@ def run_command(command):
     print(f"Выполняется: {command}")
     process = subprocess.run(
         command,
+        check=False,
         shell=True,
         text=True,
         capture_output=True,
@@ -59,7 +60,9 @@ def run_tests(module=None, html_report=False, xml_report=False):
 
 def main():
     """Основная функция скрипта."""
-    parser = argparse.ArgumentParser(description="Запуск тестов и проверка покрытия кода")
+    parser = argparse.ArgumentParser(
+        description="Запуск тестов и проверка покрытия кода"
+    )
     parser.add_argument(
         "--module",
         "-m",

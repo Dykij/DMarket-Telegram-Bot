@@ -10,7 +10,7 @@ from PIL import Image
 from src.utils.market_visualizer import MarketVisualizer
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_price_history():
     """Sample price history data for testing."""
     return [
@@ -42,7 +42,7 @@ def sample_price_history():
     ]
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_price_history_with_volume():
     """Sample price history data with volume for testing."""
     return [
@@ -80,7 +80,7 @@ def sample_price_history_with_volume():
     ]
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_items_data():
     """Sample items data for comparison charts."""
     return [
@@ -97,7 +97,7 @@ def sample_items_data():
     ]
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_price_histories():
     """Sample price histories for multiple items."""
     now = datetime.now(UTC)
@@ -130,7 +130,7 @@ def sample_price_histories():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_pattern_history():
     """Sample price history with detectable patterns."""
     now = datetime.now(UTC)
@@ -153,7 +153,7 @@ def sample_pattern_history():
     ]
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_patterns():
     """Sample detected patterns for visualization."""
     return [
@@ -170,7 +170,7 @@ def sample_patterns():
     ]
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_item_data():
     """Sample item data for market summary image."""
     return {
@@ -186,7 +186,7 @@ def sample_item_data():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_analysis_data():
     """Sample market analysis data for summary image."""
     return {
@@ -212,7 +212,7 @@ def sample_analysis_data():
     }
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestMarketVisualizer:
     """Tests for the MarketVisualizer class."""
 

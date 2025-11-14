@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_logger():
     """Создает мок объекта логгера для тестирования функций логирования и обработки ошибок."""
     logger = MagicMock(spec=logging.Logger)
@@ -23,7 +23,7 @@ def mock_logger():
     return logger
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_http_response():
     """Создает мок HTTP ответа для тестирования функций обработки API ошибок."""
     response = MagicMock()
@@ -35,7 +35,7 @@ def mock_http_response():
     return response
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_http_error_response():
     """Создает мок HTTP ответа с ошибкой для тестирования обработки ошибок API."""
     response = MagicMock()
@@ -47,7 +47,7 @@ def mock_http_error_response():
     return response
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_async_client():
     """Создает мок для асинхронного HTTP клиента."""
     client = AsyncMock()

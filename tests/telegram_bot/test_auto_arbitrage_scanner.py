@@ -16,7 +16,7 @@ from src.telegram_bot.auto_arbitrage_scanner import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_dmarket_api():
     """Создает мок объекта DMarketAPI для тестирования."""
     api = MagicMock(spec=DMarketAPI)
@@ -29,7 +29,7 @@ def mock_dmarket_api():
     return api
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.auto_arbitrage_scanner.rate_limiter")
 async def test_scan_game_for_arbitrage_success(mock_rate_limiter, mock_dmarket_api):
     """Тестирует успешное сканирование игры для арбитража."""
@@ -48,7 +48,6 @@ async def test_scan_game_for_arbitrage_success(mock_rate_limiter, mock_dmarket_a
         "src.telegram_bot.auto_arbitrage_scanner.ArbitrageTrader",
         return_value=mock_trader,
     ):
-
         # Вызываем тестируемую функцию
         result = await scan_game_for_arbitrage(
             game="csgo",
@@ -77,7 +76,7 @@ async def test_scan_game_for_arbitrage_success(mock_rate_limiter, mock_dmarket_a
         assert result[0]["game"] == "csgo"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.auto_arbitrage_scanner.rate_limiter")
 async def test_scan_game_for_arbitrage_different_modes(
     mock_rate_limiter,
@@ -104,7 +103,6 @@ async def test_scan_game_for_arbitrage_different_modes(
         "src.telegram_bot.auto_arbitrage_scanner.ArbitrageTrader",
         return_value=mock_trader,
     ):
-
         # Тестируем с разными режимами
         test_modes = [
             # (режим, мин. прибыль, макс. прибыль, ожидаемое кол-во результатов)
@@ -129,7 +127,7 @@ async def test_scan_game_for_arbitrage_different_modes(
             assert len(result) == min(expected_count, 10)  # Учитываем max_items
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.auto_arbitrage_scanner.rate_limiter")
 async def test_scan_game_for_arbitrage_error_handling(
     mock_rate_limiter,
@@ -147,7 +145,6 @@ async def test_scan_game_for_arbitrage_error_handling(
         "src.telegram_bot.auto_arbitrage_scanner.ArbitrageTrader",
         return_value=mock_trader,
     ):
-
         # Вызываем тестируемую функцию
         result = await scan_game_for_arbitrage(
             game="csgo",
@@ -159,7 +156,7 @@ async def test_scan_game_for_arbitrage_error_handling(
         assert result == []
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.auto_arbitrage_scanner.scan_game_for_arbitrage")
 @patch("src.telegram_bot.auto_arbitrage_scanner.DMarketAPI")
 @patch("src.telegram_bot.auto_arbitrage_scanner.AsyncBatch")
@@ -213,7 +210,7 @@ async def test_scan_multiple_games(
     assert len(result["rust"]) == 0
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_check_user_balance_success(mock_dmarket_api):
     """Тестирует успешную проверку баланса пользователя."""
     # Настройка мока для get_user_balance
@@ -229,7 +226,7 @@ async def test_check_user_balance_success(mock_dmarket_api):
     assert balance == 10.0  # Должно быть сконвертировано из центов в доллары
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_check_user_balance_no_api_keys(mock_dmarket_api):
     """Тестирует проверку баланса без API ключей."""
     # Убираем API ключи
@@ -244,7 +241,7 @@ async def test_check_user_balance_no_api_keys(mock_dmarket_api):
     assert balance == 0.0
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_check_user_balance_low_funds(mock_dmarket_api):
     """Тестирует проверку баланса с недостаточными средствами."""
     # Настройка мока для get_user_balance
@@ -260,7 +257,7 @@ async def test_check_user_balance_low_funds(mock_dmarket_api):
     assert balance == 0.5
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.auto_arbitrage_scanner.check_user_balance")
 async def test_auto_trade_items_sufficient_balance(
     mock_check_balance,
@@ -307,7 +304,7 @@ async def test_auto_trade_items_sufficient_balance(
         "src.telegram_bot.auto_arbitrage_scanner.DMarketAPI",
         return_value=mock_dmarket_api,
     ):
-        trades_count, failed_trades, total_profit = await auto_trade_items(
+        trades_count, _failed_trades, total_profit = await auto_trade_items(
             items_by_game=items_by_game,
             min_profit=1.0,
             max_price=30.0,
@@ -325,7 +322,7 @@ async def test_auto_trade_items_sufficient_balance(
     assert total_profit > 0  # Должна быть прибыль
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.auto_arbitrage_scanner.check_user_balance")
 async def test_auto_trade_items_insufficient_balance(
     mock_check_balance,

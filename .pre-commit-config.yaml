@@ -1,6 +1,10 @@
 # Pre-commit hooks для автоматической проверки кода
 # Установка: pip install pre-commit && pre-commit install
 # Запуск вручную: pre-commit run --all-files
+# Обновление хуков: pre-commit autoupdate
+
+default_language_version:
+  python: python3.11
 
 repos:
   # ============================================================================
@@ -21,15 +25,21 @@ repos:
   # MYPY - Проверка типов
   # ============================================================================
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.2
+    rev: v1.13.0
     hooks:
       - id: mypy
-        args: [--config-file=pyproject.toml, --ignore-missing-imports]
+        args:
+          - --config-file=pyproject.toml
+          - --show-error-codes
+          - --pretty
+          - --show-column-numbers
         additional_dependencies:
           - types-requests
           - types-redis
           - types-PyYAML
+          - types-psutil
         files: ^src/
+        exclude: ^(tests/|scripts/)
 
   # ============================================================================
   # БАЗОВЫЕ ПРОВЕРКИ ФАЙЛОВ
@@ -41,8 +51,11 @@ repos:
         args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
       - id: check-yaml
+        args: [--unsafe]
       - id: check-toml
       - id: check-json
+      - id: pretty-format-json
+        args: [--autofix, --indent=2]
       - id: check-xml
       - id: check-added-large-files
         args: [--maxkb=1000]
@@ -54,6 +67,17 @@ repos:
       - id: mixed-line-ending
         args: [--fix=lf]
       - id: detect-private-key
+      - id: check-ast
+        description: "Проверка валидности Python AST"
+      - id: check-builtin-literals
+        description: "Требует использования литералов вместо конструкторов"
+      - id: debug-statements
+        description: "Проверка наличия breakpoint() и pdb"
+      - id: name-tests-test
+        args: [--pytest-test-first]
+      - id: requirements-txt-fixer
+        description: "Сортирует requirements.txt"
+      - id: check-symlinks
 
   # ============================================================================
   # PYUPGRADE - Модернизация синтаксиса Python

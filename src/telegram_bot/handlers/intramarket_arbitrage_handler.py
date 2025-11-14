@@ -99,7 +99,7 @@ def format_intramarket_item(result: dict[str, Any]) -> str:
             f"📈 *{item_title}*\n"
             f"💰 Текущая цена: ${current_price:.2f}\n"
             f"🚀 Прогноз цены: ${projected_price:.2f} (+{price_change_percent:.1f}%)\n"
-            f"💵 Потенциальная прибыль: ${projected_price-current_price:.2f} ({potential_profit_percent:.1f}%)\n"
+            f"💵 Потенциальная прибыль: ${projected_price - current_price:.2f} ({potential_profit_percent:.1f}%)\n"
             f"🔄 Объем продаж: {sales_velocity} шт.\n"
             f"🏷️ ID для покупки: `{item.get('itemId', '')}`"
         )
@@ -448,7 +448,7 @@ async def handle_intramarket_callback(
         )
 
 
-def register_intramarket_handlers(dispatcher):
+def register_intramarket_handlers(dispatcher) -> None:
     """Регистрирует обработчики для внутрирыночного арбитража.
 
     Args:

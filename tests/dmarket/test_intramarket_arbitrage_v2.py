@@ -13,7 +13,7 @@ from src.dmarket.intramarket_arbitrage import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_market_items():
     """Sample market items for testing."""
     return {
@@ -62,7 +62,7 @@ def sample_market_items():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_sales_history():
     """Sample sales history data for testing."""
     return {
@@ -91,7 +91,7 @@ def sample_sales_history():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_dmarket_api():
     """Fixture for mocking DMarketAPI."""
     api = MagicMock()
@@ -102,7 +102,7 @@ def mock_dmarket_api():
     return api
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestPriceAnomalies:
     """Tests for price anomalies detection functionality."""
 
@@ -203,7 +203,7 @@ class TestPriceAnomalies:
         mock_dmarket_api._close_client.assert_called_once()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestTrendingItems:
     """Tests for trending items detection functionality."""
 
@@ -261,7 +261,7 @@ class TestTrendingItems:
         assert len(results) == 0
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestMispricedRareItems:
     """Tests for mispriced rare items detection functionality."""
 
@@ -341,7 +341,7 @@ class TestMispricedRareItems:
         assert len(results) == 0
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestComprehensiveScan:
     """Tests for comprehensive scanning functionality."""
 

@@ -15,8 +15,8 @@ from src.telegram_bot.sales_analysis_handlers import (
     get_liquidity_emoji,
     get_trend_emoji,
 )
-from src.utils.api_error_handling import APIError
-from src.utils.dmarket_api_utils import execute_api_request
+from src.utils.exceptions import APIError
+# Removed: execute_api_request - использовать прямые вызовы API
 
 
 # Настройка логирования

@@ -287,32 +287,12 @@ async def check_user_balance(dmarket_api: DMarketAPI) -> dict[str, Any]:
 
     try:
         # Получаем информацию о балансе через API
-        balance_response = await dmarket_api._request(
-            method="GET",
-            path="/account/v1/balance",
-            params={},
-        )
-
-        if not balance_response:
-            logger.error("Не удалось получить баланс пользователя (пустой ответ)")
-            return {
-                "has_funds": False,
-                "balance": 0.0,
-                "available_balance": 0.0,
-                "total_balance": 0.0,
-                "min_required": min_required_balance,
-                "error": True,
-                "error_message": "Пустой ответ от API при запросе баланса",
-                "display_message": "Не удалось получить баланс (пустой ответ)",
-                "diagnosis": "api_error",
-            }
+        # Используем метод get_balance, который уже имеет встроенную обработку различных форматов
+        balance_response = await dmarket_api.get_balance()
 
         # Проверяем на наличие ошибки в ответе
-        if "error" in balance_response or not balance_response.get("usd"):
-            error_message = balance_response.get("error", {}).get(
-                "message",
-                "Неизвестная ошибка",
-            )
+        if balance_response.get("error", False):
+            error_message = balance_response.get("error_message", "Неизвестная ошибка")
             logger.error(f"Ошибка при получении баланса: {error_message}")
 
             diagnosis = "unknown_error"
@@ -322,6 +302,7 @@ async def check_user_balance(dmarket_api: DMarketAPI) -> dict[str, Any]:
             if (
                 "unauthorized" in str(error_message).lower()
                 or "авторизации" in str(error_message).lower()
+                or "ключи" in str(error_message).lower()
             ):
                 diagnosis = "auth_error"
                 display_message = "Ошибка авторизации: проверьте ключи API"
@@ -340,33 +321,31 @@ async def check_user_balance(dmarket_api: DMarketAPI) -> dict[str, Any]:
                     "Таймаут при запросе баланса: возможны проблемы с сетью"
                 )
             elif (
-                "404" in str(error_message) or "не найден" in str(error_message).lower()
+                "404" in str(error_message) or "не найден" in str(error_message).lower() or "not found" in str(error_message).lower()
             ):
                 diagnosis = "endpoint_error"
-                display_message = "Ошибка API: эндпоинт баланса недоступен"
+                display_message = "Ошибка API: эндпоинт баланса недоступен или ключи не имеют доступа к Trading API"
 
-                return {
-                    "has_funds": False,
-                    "balance": 0.0,
-                    "available_balance": 0.0,
-                    "total_balance": 0.0,
-                    "min_required": min_required_balance,
-                    "error": True,
-                    "error_message": str(error_message),
-                    "display_message": display_message,
-                    "diagnosis": diagnosis,
-                }
+            return {
+                "has_funds": False,
+                "balance": 0.0,
+                "available_balance": 0.0,
+                "total_balance": 0.0,
+                "min_required": min_required_balance,
+                "error": True,
+                "error_message": str(error_message),
+                "display_message": display_message,
+                "diagnosis": diagnosis,
+            }
 
         # Извлекаем значения баланса из полученных данных
-        # DMarket API возвращает баланс в формате {"usd": {"available": 1000, "frozen": 200}}
-        usd_balance = balance_response.get("usd", {})
-        available_amount = usd_balance.get("available", 0)
-        frozen_amount = usd_balance.get("frozen", 0)
+        # Метод get_balance() уже обрабатывает различные форматы и возвращает нормализованный ответ
+        available_balance = balance_response.get("available_balance", 0.0)
+        total_balance = balance_response.get("total_balance", 0.0)
+        balance = balance_response.get("balance", 0.0)
 
-        # Преобразуем из центов в доллары
-        available_balance = float(available_amount) / 100
-        frozen_balance = float(frozen_amount) / 100
-        total_balance = available_balance + frozen_balance
+        # Вычисляем frozen (заблокированный) баланс
+        frozen_balance = total_balance - available_balance if total_balance > available_balance else 0.0
 
         # Проверяем, достаточно ли средств на балансе
         has_funds = available_balance >= min_required_balance

@@ -40,8 +40,18 @@ class TestConfig:
         assert config.debug is False
         assert config.testing is False
 
-    def test_config_from_yaml_file(self):
+    def test_config_from_yaml_file(self, monkeypatch):
         """Test loading configuration from YAML file."""
+        # Clear all relevant environment variables to ensure YAML file is used
+        env_vars_to_clear = [
+            "TELEGRAM_BOT_TOKEN", "BOT_USERNAME", "WEBHOOK_URL", "WEBHOOK_SECRET",
+            "DMARKET_API_URL", "DMARKET_PUBLIC_KEY", "DMARKET_SECRET_KEY",
+            "API_RATE_LIMIT", "DMARKET_RATE_LIMIT", "DATABASE_URL", "DATABASE_ECHO",
+            "ALLOWED_USERS", "ADMIN_USERS", "LOG_LEVEL", "LOG_FILE"
+        ]
+        for var in env_vars_to_clear:
+            monkeypatch.delenv(var, raising=False)
+
         test_config = {
             "bot": {
                 "token": "test_token_123",

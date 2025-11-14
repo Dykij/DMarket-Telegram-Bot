@@ -44,7 +44,7 @@ class MarketAnalyzer:
     and identify market opportunities.
     """
 
-    def __init__(self, min_data_points: int = 5):
+    def __init__(self, min_data_points: int = 5) -> None:
         """Initialize the market analyzer.
 
         Args:
@@ -378,7 +378,7 @@ class MarketAnalyzer:
         prev_trend = self._analyze_trend(prices[:-2])[0]
         current_trend = self._analyze_trend(prices[-5:])[0]
 
-        return prev_trend != current_trend and prev_trend != TREND_STABLE
+        return prev_trend not in (current_trend, TREND_STABLE)
 
     def _is_fomo(self, prices: list[float]) -> bool:
         """Check if there's a FOMO pattern (rapid rise)."""

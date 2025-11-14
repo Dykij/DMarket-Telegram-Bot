@@ -61,7 +61,7 @@ def start_bot_service() -> bool:
             | subprocess.DETACHED_PROCESS,
         )
 
-        logger.info("Бот запущен с PID: %s", process.pid)  # noqa: RUF001
+        logger.info("Бот запущен с PID: %s", process.pid)
 
         # Записываем PID в отдельный файл
         pid_file = project_dir / "bot_service_pid.txt"

@@ -20,7 +20,7 @@ from src.telegram_bot.sales_analysis_callbacks import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_update():
     """Создает мок объекта Update для тестирования."""
     update = MagicMock(spec=Update)
@@ -33,7 +33,7 @@ def mock_update():
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context():
     """Создает мок объекта CallbackContext для тестирования."""
     context = MagicMock(spec=CallbackContext)
@@ -41,7 +41,7 @@ def mock_context():
     return context
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.sales_analysis_callbacks.execute_api_request")
 async def test_handle_sales_history_callback_success(
     mock_execute_api,
@@ -111,7 +111,7 @@ async def test_handle_sales_history_callback_success(
     )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.sales_analysis_callbacks.execute_api_request")
 async def test_handle_sales_history_callback_no_data(
     mock_execute_api,
@@ -137,7 +137,7 @@ async def test_handle_sales_history_callback_no_data(
     assert "Не удалось найти историю продаж" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.sales_analysis_callbacks.execute_api_request")
 async def test_handle_sales_history_callback_api_error(
     mock_execute_api,
@@ -165,7 +165,7 @@ async def test_handle_sales_history_callback_api_error(
     assert "Ошибка при получении истории продаж" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.sales_analysis_callbacks.execute_api_request")
 async def test_handle_liquidity_callback_success(
     mock_execute_api,
@@ -224,7 +224,7 @@ async def test_handle_liquidity_callback_success(
     assert len(keyboard.inline_keyboard) > 0
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.sales_analysis_callbacks.execute_api_request")
 async def test_handle_liquidity_callback_no_data(
     mock_execute_api,
@@ -260,7 +260,7 @@ async def test_handle_liquidity_callback_no_data(
     assert "Не удалось найти данные о продажах" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.sales_analysis_callbacks.execute_api_request")
 async def test_handle_refresh_sales_callback(
     mock_execute_api,
@@ -311,7 +311,7 @@ async def test_handle_refresh_sales_callback(
     assert "5.20" in message_text  # Продаж в день
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.sales_analysis_callbacks.execute_api_request")
 async def test_handle_all_arbitrage_sales_callback(
     mock_execute_api,
@@ -387,7 +387,7 @@ async def test_handle_all_arbitrage_sales_callback(
     assert "$3.00" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_handle_setup_sales_filters_callback(mock_update, mock_context):
     """Тестирует обработку запроса на настройку фильтров продаж."""
     # Настройка данных callback
@@ -419,7 +419,7 @@ async def test_handle_setup_sales_filters_callback(mock_update, mock_context):
     assert len(keyboard.inline_keyboard) > 0
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.sales_analysis_callbacks.execute_api_request")
 @patch("src.telegram_bot.sales_analysis_callbacks.get_sales_volume_stats")
 async def test_handle_all_volume_stats_callback(
@@ -504,7 +504,7 @@ class MockRefreshVolumeStatsCallback:
         # Дальше должен быть вызов handle_sales_volume_stats, но мы не делаем этого
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_handle_refresh_volume_stats_callback(mock_update, mock_context):
     """Тестирует обработку запроса на обновление статистики объемов продаж."""
     # Настройка данных callback

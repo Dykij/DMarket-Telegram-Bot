@@ -19,7 +19,7 @@ from src.telegram_bot.settings_handlers import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_update():
     """Создает мок объекта Update для тестирования."""
     mock_user = MagicMock(spec=User)
@@ -37,7 +37,7 @@ def mock_update():
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context():
     """Создает мок объекта CallbackContext для тестирования."""
     context = MagicMock(spec=CallbackContext)
@@ -45,7 +45,7 @@ def mock_context():
     return context
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_user_profiles():
     """Создает мок для USER_PROFILES."""
     return {
@@ -73,42 +73,73 @@ def test_get_user_profile_new_user():
     profile = get_user_profile(user_id)
 
     # Проверяем, что был создан профиль с умолчаниями
-    assert "language" in profile
-    assert profile["language"] == "ru"
-    assert "api_key" in profile
-    assert "api_secret" in profile
-    assert "auto_trading_enabled" in profile
-    assert not profile["auto_trading_enabled"]
-    assert "trade_settings" in profile
-    assert "min_profit" in profile["trade_settings"]
-    assert "max_price" in profile["trade_settings"]
-    assert "max_trades" in profile["trade_settings"]
-    assert "risk_level" in profile["trade_settings"]
+    assert "settings" in profile
+    assert "language" in profile["settings"]
+    assert profile["settings"]["language"] == "ru"
+    assert "api_keys" in profile
+    assert "access_level" in profile
 
 
-@patch("src.telegram_bot.settings_handlers.USER_PROFILES")
-def test_get_user_profile_existing_user(mock_profiles):
+def test_get_user_profile_existing_user():
     """Тестирует получение профиля для существующего пользователя."""
-    # Настройка мока для USER_PROFILES
-    user_id = 123456789
-    mock_profiles.get.return_value = {
-        "language": "en",
-        "api_key": "existing_key",
-        "api_secret": "existing_secret",
-    }
-    mock_profiles.__getitem__.return_value = mock_profiles.get.return_value
-    mock_profiles.__contains__.return_value = True
+    # Настройка - работаем с UserProfileManager
+    from src.telegram_bot import settings_handlers
 
-    # Получаем профиль для существующего пользователя
-    profile = get_user_profile(user_id)
+    # Получаем доступ к _profile_manager
+    try:
+        manager = settings_handlers._profile_manager
+        original_profiles = manager._profiles.copy()
 
-    # Проверяем, что был возвращен существующий профиль
-    assert profile["language"] == "en"
-    assert profile["api_key"] == "existing_key"
-    assert profile["api_secret"] == "existing_secret"
+        try:
+            manager._profiles.clear()
+            user_id = 123456789
+
+            # Создаем профиль пользователя с новой структурой
+            manager._profiles[user_id] = {
+                "settings": {"language": "en"},
+                "api_keys": {
+                    "public": "existing_key",
+                    "secret": "existing_secret",
+                },
+                "access_level": "premium",
+            }
+
+            # Получаем профиль для существующего пользователя
+            profile = get_user_profile(user_id)
+
+            # Проверяем, что был возвращен существующий профиль
+            assert profile["settings"]["language"] == "en"
+            assert profile["api_keys"]["public"] == "existing_key"
+            assert profile["access_level"] == "premium"
+        finally:
+            # Восстанавливаем исходное состояние
+            manager._profiles.clear()
+            manager._profiles.update(original_profiles)
+    except AttributeError:
+        # Если _profile_manager не существует, используем простой USER_PROFILES
+        original_profiles = settings_handlers.USER_PROFILES.copy()
+        try:
+            settings_handlers.USER_PROFILES.clear()
+            user_id = 123456789
+            user_id_str = str(user_id)
+
+            settings_handlers.USER_PROFILES[user_id_str] = {
+                "language": "en",
+                "api_key": "existing_key",
+                "api_secret": "existing_secret",
+                "auto_trading_enabled": True,
+            }
+
+            profile = get_user_profile(user_id)
+
+            assert profile["language"] == "en"
+            assert profile["api_key"] == "existing_key"
+            assert profile["auto_trading_enabled"] is True
+        finally:
+            settings_handlers.USER_PROFILES.clear()
+            settings_handlers.USER_PROFILES.update(original_profiles)
 
 
-@patch("src.telegram_bot.settings_handlers.USER_PROFILES")
 @patch(
     "src.telegram_bot.settings_handlers.LOCALIZATIONS",
     {
@@ -116,22 +147,44 @@ def test_get_user_profile_existing_user(mock_profiles):
         "en": {"greeting": "Hello", "settings": "Settings"},
     },
 )
-def test_get_localized_text(mock_profiles):
+def test_get_localized_text():
     """Тестирует получение локализованного текста."""
-    # Настройка мока для USER_PROFILES
-    user_id = 123456789
-    mock_profiles.get.return_value = {"language": "en"}
-    mock_profiles.__getitem__.return_value = mock_profiles.get.return_value
-    mock_profiles.__contains__.return_value = True
+    # Настройка - работаем с UserProfileManager
+    from src.telegram_bot import settings_handlers
 
-    # Получаем локализованный текст
-    text = get_localized_text(user_id, "greeting")
+    try:
+        manager = settings_handlers._profile_manager
+        original_profiles = manager._profiles.copy()
 
-    # Проверяем, что был возвращен правильный текст
-    assert text == "Hello"
+        try:
+            manager._profiles.clear()
+            user_id = 123456789
+
+            # Создаем профиль пользователя с английским языком
+            manager._profiles[user_id] = {"settings": {"language": "en"}}
+
+            # Получаем локализованный текст
+            text = get_localized_text(user_id, "greeting")
+
+            # Проверяем, что был возвращен правильный текст
+            assert text == "Hello"
+        finally:
+            manager._profiles.clear()
+            manager._profiles.update(original_profiles)
+    except AttributeError:
+        # Если _profile_manager не существует
+        original_profiles = settings_handlers.USER_PROFILES.copy()
+        try:
+            settings_handlers.USER_PROFILES.clear()
+            user_id_str = str(123456789)
+            settings_handlers.USER_PROFILES[user_id_str] = {"language": "en"}
+            text = get_localized_text(123456789, "greeting")
+            assert text == "Hello"
+        finally:
+            settings_handlers.USER_PROFILES.clear()
+            settings_handlers.USER_PROFILES.update(original_profiles)
 
 
-@patch("src.telegram_bot.settings_handlers.USER_PROFILES")
 @patch(
     "src.telegram_bot.settings_handlers.LOCALIZATIONS",
     {
@@ -139,19 +192,42 @@ def test_get_localized_text(mock_profiles):
         "en": {"greeting": "Hello, {name}!", "settings": "Settings"},
     },
 )
-def test_get_localized_text_with_params(mock_profiles):
+def test_get_localized_text_with_params():
     """Тестирует получение локализованного текста с параметрами."""
-    # Настройка мока для USER_PROFILES
-    user_id = 123456789
-    mock_profiles.get.return_value = {"language": "en"}
-    mock_profiles.__getitem__.return_value = mock_profiles.get.return_value
-    mock_profiles.__contains__.return_value = True
+    # Настройка - работаем с UserProfileManager
+    from src.telegram_bot import settings_handlers
 
-    # Получаем локализованный текст с параметром
-    text = get_localized_text(user_id, "greeting", name="John")
+    try:
+        manager = settings_handlers._profile_manager
+        original_profiles = manager._profiles.copy()
 
-    # Проверяем, что был возвращен правильный текст с подставленным параметром
-    assert text == "Hello, John!"
+        try:
+            manager._profiles.clear()
+            user_id = 123456789
+
+            # Создаем профиль пользователя с английским языком
+            manager._profiles[user_id] = {"settings": {"language": "en"}}
+
+            # Получаем локализованный текст с параметром
+            text = get_localized_text(user_id, "greeting", name="John")
+
+            # Проверяем, что был возвращен правильный текст с подставленным параметром
+            assert text == "Hello, John!"
+        finally:
+            manager._profiles.clear()
+            manager._profiles.update(original_profiles)
+    except AttributeError:
+        # Если _profile_manager не существует
+        original_profiles = settings_handlers.USER_PROFILES.copy()
+        try:
+            settings_handlers.USER_PROFILES.clear()
+            user_id_str = str(123456789)
+            settings_handlers.USER_PROFILES[user_id_str] = {"language": "en"}
+            text = get_localized_text(123456789, "greeting", name="John")
+            assert text == "Hello, John!"
+        finally:
+            settings_handlers.USER_PROFILES.clear()
+            settings_handlers.USER_PROFILES.update(original_profiles)
 
 
 @patch("src.telegram_bot.settings_handlers.USER_PROFILES")
@@ -232,7 +308,7 @@ def test_save_user_profiles(mock_json_dump, mock_file_open, mock_dirname):
     assert kwargs["indent"] == 2
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.settings_handlers.get_user_profile")
 @patch("src.telegram_bot.settings_handlers.get_localized_text")
 @patch("src.telegram_bot.settings_handlers.get_settings_keyboard")
@@ -269,7 +345,7 @@ async def test_settings_command(
     )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.settings_handlers.get_user_profile")
 @patch("src.telegram_bot.settings_handlers.get_localized_text")
 @patch("src.telegram_bot.settings_handlers.get_settings_keyboard")
@@ -314,7 +390,7 @@ async def test_settings_callback_main_menu(
     )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.settings_handlers.get_user_profile")
 @patch("src.telegram_bot.settings_handlers.get_localized_text")
 @patch("src.telegram_bot.settings_handlers.get_language_keyboard")
@@ -356,7 +432,7 @@ async def test_settings_callback_language_menu(
     )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.settings_handlers.get_user_profile")
 @patch("src.telegram_bot.settings_handlers.save_user_profiles")
 @patch("src.telegram_bot.settings_handlers.get_localized_text")
@@ -406,7 +482,7 @@ async def test_settings_callback_language_set(
     )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.settings_handlers.get_user_profile")
 @patch("src.telegram_bot.settings_handlers.save_user_profiles")
 @patch("src.telegram_bot.settings_handlers.get_localized_text")
@@ -466,7 +542,7 @@ async def test_settings_callback_toggle_trading(
     assert call_args.kwargs.get("reply_markup") == mock_keyboard
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 @patch("src.telegram_bot.settings_handlers.get_user_profile")
 @patch("src.telegram_bot.settings_handlers.get_back_to_settings_keyboard")
 async def test_settings_callback_api_keys(

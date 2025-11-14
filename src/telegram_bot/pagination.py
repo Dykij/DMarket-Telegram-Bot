@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class PaginationManager:
     """Менеджер пагинации для хранения и отображения страниц результатов."""
 
-    def __init__(self, default_items_per_page: int = 5):
+    def __init__(self, default_items_per_page: int = 5) -> None:
         """Инициализация менеджера пагинации.
 
         Args:
@@ -457,12 +457,12 @@ def format_paginated_results(
 
     formatted_items = []
     for i, item in enumerate(items):
-        title = item.get("title", f"Элемент #{i+1}")
+        title = item.get("title", f"Элемент #{i + 1}")
         price = (
             item.get("price", {}).get("USD", 0) / 100
             if isinstance(item.get("price"), dict)
             else 0
         )
-        formatted_items.append(f"{i+1}. {game_emoji} {title} - ${price:.2f}")
+        formatted_items.append(f"{i + 1}. {game_emoji} {title} - ${price:.2f}")
 
     return header + "\n".join(formatted_items)

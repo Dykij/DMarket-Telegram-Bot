@@ -99,7 +99,8 @@ async def handle_network_error(
             )
         except (NetworkError, TelegramError) as e:
             logger.exception(
-                "Не удалось отправить сообщение об ошибке пользователю: %s", e,
+                "Не удалось отправить сообщение об ошибке пользователю: %s",
+                e,
             )
 
 
@@ -157,7 +158,8 @@ async def handle_forbidden_error(
             )
         except (NetworkError, TelegramError) as e:
             logger.exception(
-                "Не удалось отправить сообщение об ошибке пользователю: %s", e,
+                "Не удалось отправить сообщение об ошибке пользователю: %s",
+                e,
             )
 
 
@@ -205,7 +207,8 @@ async def handle_bad_request(
             )
         except (NetworkError, TelegramError) as e:
             logger.exception(
-                "Не удалось отправить сообщение об ошибке пользователю: %s", e,
+                "Не удалось отправить сообщение об ошибке пользователю: %s",
+                e,
             )
 
 
@@ -254,7 +257,8 @@ async def handle_dmarket_api_error(
             )
         except (NetworkError, TelegramError) as e:
             logger.exception(
-                "Не удалось отправить сообщение об ошибке пользователю: %s", e,
+                "Не удалось отправить сообщение об ошибке пользователю: %s",
+                e,
             )
 
 
@@ -491,7 +495,7 @@ def register_global_exception_handlers() -> None:
     Используется для логирования необработанных исключений.
     """
 
-    def exception_handler(exc_type, exc_value, exc_traceback):
+    def exception_handler(exc_type, exc_value, exc_traceback) -> None:
         """Обработчик необработанных исключений."""
         if issubclass(exc_type, KeyboardInterrupt):
             sys.__excepthook__(exc_type, exc_value, exc_traceback)

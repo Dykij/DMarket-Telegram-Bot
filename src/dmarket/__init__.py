@@ -3,11 +3,9 @@
 __version__ = "0.1.0"
 
 # Импортируем основные компоненты для удобства использования
-# Больше не требуется применение патчей, так как все необходимое
-# реализовано в моках для тестов
 import logging
 
-from .api import DMarketAPI
+from .dmarket_api import DMarketAPI
 from .arbitrage import GAMES
 
 

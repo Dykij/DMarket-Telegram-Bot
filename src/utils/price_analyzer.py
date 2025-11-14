@@ -470,7 +470,6 @@ async def get_investment_recommendations(
 
         # Если ликвидность соответствует требуемой и объем достаточный
         if supply_demand["liquidity"] >= min_liquidity and item["volume"] >= min_volume:
-
             # Рассчитываем оценку инвестиционной привлекательности
             score = item["discount"] * 0.5
 

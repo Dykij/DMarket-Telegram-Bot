@@ -12,7 +12,7 @@ from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
 from src.telegram_bot.keyboards import get_back_to_arbitrage_keyboard
-from src.utils.api_error_handling import APIError
+from src.utils.exceptions import APIError
 
 
 logger = logging.getLogger(__name__)

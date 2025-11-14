@@ -15,7 +15,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-async def run_bot():
+async def run_bot() -> None:
     """Runs the bot with error handling"""
     try:
         # Import the main bot function
@@ -40,7 +40,7 @@ async def run_bot():
         await run_bot()
 
 
-def main():
+def main() -> None:
     """Main entry point function"""
     # Run the bot using asyncio
     try:
@@ -70,7 +70,7 @@ def main():
         # Register handler to remove lock file on exit
         import atexit
 
-        def cleanup():
+        def cleanup() -> None:
             if lock_file.exists():
                 lock_file.unlink()
 

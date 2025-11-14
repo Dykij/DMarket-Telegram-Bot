@@ -17,7 +17,7 @@ from src.utils.market_analyzer import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_price_history():
     """Sample price history data for testing."""
     return [
@@ -49,7 +49,7 @@ def sample_price_history():
     ]
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_item_data():
     """Sample item data for testing."""
     return {
@@ -65,7 +65,7 @@ def sample_item_data():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def downtrend_price_history():
     """Sample price history with downward trend."""
     return [
@@ -97,7 +97,7 @@ def downtrend_price_history():
     ]
 
 
-@pytest.fixture
+@pytest.fixture()
 def volatile_price_history():
     """Sample price history with volatile pattern."""
     return [
@@ -137,7 +137,7 @@ class TestMarketAnalyzer:
         analyzer = MarketAnalyzer(min_data_points=8)
         assert analyzer.min_data_points == 8
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_price_history_uptrend(self, sample_price_history):
         """Test analyzing a price history with upward trend."""
         analyzer = MarketAnalyzer()
@@ -150,7 +150,7 @@ class TestMarketAnalyzer:
         assert result["avg_price"] > 0
         assert result["price_change_24h"] > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_price_history_downtrend(self, downtrend_price_history):
         """Test analyzing a price history with downward trend."""
         analyzer = MarketAnalyzer()
@@ -160,7 +160,7 @@ class TestMarketAnalyzer:
         assert result["confidence"] > 0.5
         assert result["price_change_24h"] < 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_price_history_volatile(self, volatile_price_history):
         """Test analyzing a price history with volatile pattern."""
         analyzer = MarketAnalyzer()
@@ -169,7 +169,7 @@ class TestMarketAnalyzer:
         assert result["volatility"] != "low"
         assert result["volatility_ratio"] > 0.05
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_price_history_insufficient_data(self):
         """Test behavior with insufficient data points."""
         analyzer = MarketAnalyzer(min_data_points=10)
@@ -232,7 +232,7 @@ class TestMarketAnalyzer:
         assert PATTERN_PANIC in pattern_types
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestMarketOpportunity:
     """Tests for market opportunity analysis functions."""
 

@@ -35,7 +35,7 @@ class TestMarketAlertsHandler:
         self.update.callback_query.edit_message_text = AsyncMock()
         self.update.callback_query.answer = AsyncMock()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager")
     @patch("src.telegram_bot.handlers.market_alerts_handler.get_user_alerts")
     async def test_alerts_command(
@@ -82,7 +82,7 @@ class TestMarketAlertsHandler:
         assert "Управление уведомлениями" in call_args
         assert "Вы подписаны на следующие типы уведомлений" in call_args
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager")
     async def test_alerts_callback_toggle(self, mock_get_alerts_manager):
         """Test alerts_callback with toggle action."""
@@ -107,7 +107,7 @@ class TestMarketAlertsHandler:
         # Verify edit_message_text was called (update_alerts_keyboard)
         self.update.callback_query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager")
     @patch("src.telegram_bot.handlers.market_alerts_handler.get_user_alerts")
     async def test_show_user_alerts_list(
@@ -151,7 +151,7 @@ class TestMarketAlertsHandler:
         assert "Test Item" in call_args
         assert "Another Item" in call_args
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.market_alerts_handler.remove_price_alert")
     async def test_alerts_callback_remove_alert(self, mock_remove_price_alert):
         """Test alerts_callback with remove_alert action."""

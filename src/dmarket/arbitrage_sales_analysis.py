@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 class SalesAnalyzer:
     """Analyzer for historical sales data on DMarket."""
 
-    def __init__(self, api_client: DMarketAPI | None = None):
+    def __init__(self, api_client: DMarketAPI | None = None) -> None:
         """Initialize Sales Analyzer.
 
         Args:
@@ -236,7 +236,7 @@ class SalesAnalyzer:
             )
 
             # Sort by price
-            sales_df.sort_values("price", inplace=True)
+            sales_df = sales_df.sort_values("price")
 
             # Find percentage of sales at or above target price
             price_percentile = (sales_df["price"] >= target_price).mean()
@@ -333,7 +333,7 @@ class SalesAnalyzer:
             )
 
             # Sort by timestamp
-            sales_df.sort_values("timestamp", inplace=True)
+            sales_df = sales_df.sort_values("timestamp")
 
             # Calculate daily averages
             sales_df["date"] = sales_df["timestamp"].dt.date

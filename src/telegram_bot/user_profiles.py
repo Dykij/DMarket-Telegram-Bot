@@ -64,7 +64,7 @@ class UserProfileManager:
             cls._instance._initialized = False
         return cls._instance
 
-    def __init__(self):
+    def __init__(self) -> None:
         if self._initialized:
             return
 
@@ -495,7 +495,9 @@ async def set_api_keys(user_id: int, public_key: str, secret_key: str) -> bool:
         return True
 
     except Exception as e:
-        logger.exception(f"Ошибка при установке API ключей для пользователя {user_id}: {e}")
+        logger.exception(
+            f"Ошибка при установке API ключей для пользователя {user_id}: {e}"
+        )
         return False
 
 
@@ -551,7 +553,7 @@ def require_access_level(feature: str):
             context: ContextTypes.DEFAULT_TYPE,
             *args,
             **kwargs,
-        ):
+        ) -> None:
             if not update.effective_user:
                 await update.message.reply_text(
                     "⚠️ Ошибка: Не удалось определить пользователя.",

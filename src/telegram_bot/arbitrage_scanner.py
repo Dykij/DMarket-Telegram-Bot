@@ -45,7 +45,7 @@ class ArbitrageScanner:
         opportunities = await scanner.scan_game("csgo", "medium", 10)
     """
 
-    def __init__(self, api_client: DMarketAPI | None = None):
+    def __init__(self, api_client: DMarketAPI | None = None) -> None:
         """Инициализирует сканер арбитража.
 
         Args:

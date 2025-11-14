@@ -16,7 +16,7 @@ from src.dmarket.sales_history import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_api_client():
     """Создает мок объект DMarket API клиента."""
     client = AsyncMock()
@@ -24,14 +24,14 @@ def mock_api_client():
     return client
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_execute_api_request():
     """Создает мок для функции execute_api_request."""
     with patch("src.dmarket.sales_history.execute_api_request") as mock:
         yield mock
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_current_time():
     """Создает фиксированное текущее время для тестов."""
     current_time = int(time.time())
@@ -39,7 +39,7 @@ def mock_current_time():
         yield current_time
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_sales_history_with_offset(mock_api_client):
     """Проверяет, что параметр offset корректно передается в запрос."""
     # Настраиваем мок для возврата данных
@@ -63,7 +63,7 @@ async def test_get_sales_history_with_offset(mock_api_client):
     assert call_args["params"]["Offset"] == "someOffsetValue"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_sales_history_large_batches_with_error(mock_api_client):
     """Проверяет обработку ошибки при работе с большими батчами."""
     # Создаем список из 60 предметов
@@ -91,7 +91,7 @@ async def test_get_sales_history_large_batches_with_error(mock_api_client):
     assert result["Error"] == "API Error in batch"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_sales_history_execute_api_request(
     mock_execute_api_request,
     mock_api_client,
@@ -116,7 +116,7 @@ async def test_get_sales_history_execute_api_request(
     assert call_args[1]["max_retries"] == 2
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_analyze_sales_history_price_trend_calculation(
     mock_api_client,
     mock_current_time,
@@ -252,7 +252,7 @@ async def test_analyze_sales_history_price_trend_calculation(
         assert result["price_trend"] == "stable"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_analyze_sales_history_different_price_formats(
     mock_api_client,
     mock_current_time,
@@ -299,7 +299,7 @@ async def test_analyze_sales_history_different_price_formats(
         assert len(result["recent_sales"]) == 2
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_analyze_sales_history_sale_format_from_api(
     mock_api_client,
     mock_current_time,
@@ -344,7 +344,7 @@ async def test_analyze_sales_history_sale_format_from_api(
         assert result["avg_price"] == 10.375  # (10.25 + 10.50) / 2
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_arbitrage_opportunities_with_sales_history_filtering(
     mock_api_client,
 ):
@@ -426,7 +426,7 @@ async def test_get_arbitrage_opportunities_with_sales_history_filtering(
             assert result3[0]["market_hash_name"] == "Item3"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_arbitrage_opportunities_no_arbitrage_items(mock_api_client):
     """Проверяет обработку случая, когда нет арбитражных возможностей."""
     # Мок для find_arbitrage_items - пустой список

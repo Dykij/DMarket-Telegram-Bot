@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 class MarketAlertsManager:
     """Менеджер уведомлений о событиях на рынке."""
 
-    def __init__(self, bot: Bot, dmarket_api: DMarketAPI):
+    def __init__(self, bot: Bot, dmarket_api: DMarketAPI) -> None:
         """Инициализирует менеджер уведомлений.
 
         Args:
@@ -132,7 +132,6 @@ class MarketAlertsManager:
                     and current_time - self.last_check_time["price_changes"]
                     >= self.check_intervals["price_changes"]
                 ):
-
                     await self._check_price_changes()
                     self.last_check_time["price_changes"] = current_time
 
@@ -142,7 +141,6 @@ class MarketAlertsManager:
                     and current_time - self.last_check_time["trending"]
                     >= self.check_intervals["trending"]
                 ):
-
                     await self._check_trending_items()
                     self.last_check_time["trending"] = current_time
 
@@ -152,7 +150,6 @@ class MarketAlertsManager:
                     and current_time - self.last_check_time["volatility"]
                     >= self.check_intervals["volatility"]
                 ):
-
                     await self._check_volatility()
                     self.last_check_time["volatility"] = current_time
 
@@ -162,7 +159,6 @@ class MarketAlertsManager:
                     and current_time - self.last_check_time["arbitrage"]
                     >= self.check_intervals["arbitrage"]
                 ):
-
                     await self._check_arbitrage()
                     self.last_check_time["arbitrage"] = current_time
 
