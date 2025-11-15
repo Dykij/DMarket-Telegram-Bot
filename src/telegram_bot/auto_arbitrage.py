@@ -835,16 +835,15 @@ async def check_balance_command(
             text="🔄 <b>Проверка подключения к DMarket API...</b>",
             parse_mode=ParseMode.HTML,
         )
+    # Для обычного сообщения отправляем временное сообщение о проверке
+    elif hasattr(message, "message") and message.message:
+        processing_message = await message.message.reply_text(
+            text="🔄 <b>Проверка подключения к DMarket API...</b>",
+            parse_mode=ParseMode.HTML,
+        )
     else:
-        # Для обычного сообщения отправляем временное сообщение о проверке
-        if hasattr(message, "message") and message.message:
-            processing_message = await message.message.reply_text(
-                text="🔄 <b>Проверка подключения к DMarket API...</b>",
-                parse_mode=ParseMode.HTML,
-            )
-        else:
-            logger.error("Не удалось получить объект сообщения для отправки ответа")
-            return
+        logger.error("Не удалось получить объект сообщения для отправки ответа")
+        return
 
     try:
         # Создаем API клиент с улучшенными настройками повторных попыток
@@ -898,7 +897,11 @@ async def check_balance_command(
                 error_code = balance_result.get("status_code", "неизвестный код")
 
                 # Специальная обработка для 404 ошибки
-                if error_code == 404 or "404" in str(error_msg) or "not found" in str(error_msg).lower():
+                if (
+                    error_code == 404
+                    or "404" in str(error_msg)
+                    or "not found" in str(error_msg).lower()
+                ):
                     error_text = (
                         "⚠️ <b>Trading API недоступен (404)</b>\n\n"
                         "Ваши API ключи работают, но не имеют доступа к приватным "
@@ -917,7 +920,11 @@ async def check_balance_command(
                         "5. Обновите ключи в боте командой /setup\n\n"
                         "📖 Подробнее: НАСТРОЙКА_API_КЛЮЧЕЙ.md"
                     )
-                elif error_code == 401 or "401" in str(error_msg) or "unauthorized" in str(error_msg).lower():
+                elif (
+                    error_code == 401
+                    or "401" in str(error_msg)
+                    or "unauthorized" in str(error_msg).lower()
+                ):
                     error_text = (
                         "🔑 <b>Ошибка аутентификации (401)</b>\n\n"
                         "API ключи недействительны или истекли.\n\n"

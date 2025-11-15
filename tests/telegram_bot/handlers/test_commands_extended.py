@@ -34,7 +34,7 @@ TEST_CHAT_ID = 67890
 TEST_USERNAME = "test_user"
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_update():
     """Создает мок объект Update."""
     update = MagicMock(spec=Update)
@@ -54,7 +54,7 @@ def mock_update():
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context():
     """Создает мок объект Context."""
     context = MagicMock(spec=ContextTypes.DEFAULT_TYPE)
@@ -72,7 +72,7 @@ def mock_context():
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_start_command_basic(mock_update, mock_context):
     """Тест базовой работы команды /start."""
     await start_command(mock_update, mock_context)
@@ -90,7 +90,7 @@ async def test_start_command_basic(mock_update, mock_context):
     assert "Быстрый доступ" in second_call[0][0]
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_start_command_sets_keyboard_enabled(mock_update, mock_context):
     """Тест установки флага keyboard_enabled в контексте."""
     await start_command(mock_update, mock_context)
@@ -99,7 +99,7 @@ async def test_start_command_sets_keyboard_enabled(mock_update, mock_context):
     assert mock_context.user_data.get("keyboard_enabled") is True
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_start_command_with_parse_mode(mock_update, mock_context):
     """Тест использования HTML parse_mode в /start."""
     await start_command(mock_update, mock_context)
@@ -114,7 +114,7 @@ async def test_start_command_with_parse_mode(mock_update, mock_context):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_help_command_basic(mock_update, mock_context):
     """Тест базовой работы команды /help."""
     await help_command(mock_update, mock_context)
@@ -133,7 +133,7 @@ async def test_help_command_basic(mock_update, mock_context):
     assert "/webapp" in help_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_help_command_with_keyboard(mock_update, mock_context):
     """Тест наличия клавиатуры в /help."""
     await help_command(mock_update, mock_context)
@@ -142,7 +142,7 @@ async def test_help_command_with_keyboard(mock_update, mock_context):
     assert "reply_markup" in call_args[1]
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_help_command_html_formatting(mock_update, mock_context):
     """Тест HTML форматирования в /help."""
     await help_command(mock_update, mock_context)
@@ -156,7 +156,7 @@ async def test_help_command_html_formatting(mock_update, mock_context):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_arbitrage_command_basic(mock_update, mock_context):
     """Тест базовой работы команды /arbitrage."""
     await arbitrage_command(mock_update, mock_context)
@@ -168,7 +168,7 @@ async def test_arbitrage_command_basic(mock_update, mock_context):
     mock_update.message.reply_text.assert_called_once()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_arbitrage_command_message_content(mock_update, mock_context):
     """Тест содержания сообщения /arbitrage."""
     await arbitrage_command(mock_update, mock_context)
@@ -180,7 +180,7 @@ async def test_arbitrage_command_message_content(mock_update, mock_context):
     assert "reply_markup" in call_args[1]
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_arbitrage_command_typing_action(mock_update, mock_context):
     """Тест отправки typing action в /arbitrage."""
     await arbitrage_command(mock_update, mock_context)
@@ -194,7 +194,7 @@ async def test_arbitrage_command_typing_action(mock_update, mock_context):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_webapp_command_basic(mock_update, mock_context):
     """Тест базовой работы команды /webapp."""
     await webapp_command(mock_update, mock_context)
@@ -202,7 +202,7 @@ async def test_webapp_command_basic(mock_update, mock_context):
     mock_update.message.reply_text.assert_called_once()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_webapp_command_content(mock_update, mock_context):
     """Тест содержания сообщения /webapp."""
     await webapp_command(mock_update, mock_context)
@@ -214,7 +214,7 @@ async def test_webapp_command_content(mock_update, mock_context):
     assert "WebApp" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_webapp_command_has_button(mock_update, mock_context):
     """Тест наличия кнопки в /webapp."""
     await webapp_command(mock_update, mock_context)
@@ -228,7 +228,7 @@ async def test_webapp_command_has_button(mock_update, mock_context):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_markets_command_basic(mock_update, mock_context):
     """Тест базовой работы команды /markets."""
     await markets_command(mock_update, mock_context)
@@ -236,7 +236,7 @@ async def test_markets_command_basic(mock_update, mock_context):
     mock_update.message.reply_text.assert_called_once()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_markets_command_content(mock_update, mock_context):
     """Тест содержания сообщения /markets."""
     await markets_command(mock_update, mock_context)
@@ -252,7 +252,7 @@ async def test_markets_command_content(mock_update, mock_context):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_dmarket_status_command(mock_update, mock_context):
     """Тест команды /status."""
     await dmarket_status_command(mock_update, mock_context)
@@ -270,7 +270,7 @@ async def test_dmarket_status_command(mock_update, mock_context):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_handle_text_buttons_arbitrage(mock_update, mock_context):
     """Тест обработки кнопки '🔍 Арбитраж'."""
     mock_update.message.text = "🔍 Арбитраж"
@@ -282,12 +282,14 @@ async def test_handle_text_buttons_arbitrage(mock_update, mock_context):
     mock_update.message.reply_text.assert_called()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_handle_text_buttons_balance(mock_update, mock_context):
     """Тест обработки кнопки '📊 Баланс'."""
     mock_update.message.text = "📊 Баланс"
 
-    with patch("src.telegram_bot.handlers.commands.check_balance_command") as mock_balance:
+    with patch(
+        "src.telegram_bot.handlers.commands.check_balance_command"
+    ) as mock_balance:
         mock_balance.return_value = AsyncMock()
 
         await handle_text_buttons(mock_update, mock_context)
@@ -296,7 +298,7 @@ async def test_handle_text_buttons_balance(mock_update, mock_context):
         mock_balance.assert_called_once_with(mock_update.message, mock_context)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_handle_text_buttons_webapp(mock_update, mock_context):
     """Тест обработки кнопки '🌐 Открыть DMarket'."""
     mock_update.message.text = "🌐 Открыть DMarket"
@@ -306,7 +308,7 @@ async def test_handle_text_buttons_webapp(mock_update, mock_context):
     mock_update.message.reply_text.assert_called()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_handle_text_buttons_market_analysis(mock_update, mock_context):
     """Тест обработки кнопки '📈 Анализ рынка'."""
     mock_update.message.text = "📈 Анализ рынка"
@@ -319,7 +321,7 @@ async def test_handle_text_buttons_market_analysis(mock_update, mock_context):
     assert "Анализ рынка" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_handle_text_buttons_settings(mock_update, mock_context):
     """Тест обработки кнопки '⚙️ Настройки'."""
     mock_update.message.text = "⚙️ Настройки"
@@ -332,7 +334,7 @@ async def test_handle_text_buttons_settings(mock_update, mock_context):
     assert "Настройки" in message_text
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_handle_text_buttons_help(mock_update, mock_context):
     """Тест обработки кнопки '❓ Помощь'."""
     mock_update.message.text = "❓ Помощь"
@@ -346,7 +348,7 @@ async def test_handle_text_buttons_help(mock_update, mock_context):
     assert "/start" in message_text or "команд" in message_text.lower()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_handle_text_buttons_unknown(mock_update, mock_context):
     """Тест обработки неизвестной текстовой кнопки."""
     mock_update.message.text = "Неизвестная команда"
@@ -362,7 +364,7 @@ async def test_handle_text_buttons_unknown(mock_update, mock_context):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_start_command_error_handling(mock_update, mock_context):
     """Тест обработки ошибок в /start."""
     mock_update.message.reply_text.side_effect = Exception("Test error")
@@ -371,7 +373,7 @@ async def test_start_command_error_handling(mock_update, mock_context):
         await start_command(mock_update, mock_context)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_help_command_error_handling(mock_update, mock_context):
     """Тест обработки ошибок в /help."""
     mock_update.message.reply_text.side_effect = Exception("Test error")
@@ -394,8 +396,10 @@ async def test_help_command_error_handling(mock_update, mock_context):
         (markets_command, "рынк"),
     ],
 )
-@pytest.mark.asyncio
-async def test_commands_send_messages(mock_update, mock_context, command_func, expected_text):
+@pytest.mark.asyncio()
+async def test_commands_send_messages(
+    mock_update, mock_context, command_func, expected_text
+):
     """Параметризованный тест для проверки отправки сообщений командами."""
     await command_func(mock_update, mock_context)
 
@@ -418,12 +422,14 @@ async def test_commands_send_messages(mock_update, mock_context, command_func, e
         "❓ Помощь",
     ],
 )
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_handle_all_text_buttons(mock_update, mock_context, text_button):
     """Параметризованный тест для всех текстовых кнопок."""
     mock_update.message.text = text_button
 
-    with patch("src.telegram_bot.handlers.commands.check_balance_command") as mock_balance:
+    with patch(
+        "src.telegram_bot.handlers.commands.check_balance_command"
+    ) as mock_balance:
         mock_balance.return_value = AsyncMock()
 
         # Не должно быть исключений
@@ -435,7 +441,7 @@ async def test_handle_all_text_buttons(mock_update, mock_context, text_button):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_command_flow_start_to_help(mock_update, mock_context):
     """Тест потока: /start -> /help."""
     # Сначала /start
@@ -448,7 +454,7 @@ async def test_command_flow_start_to_help(mock_update, mock_context):
     mock_update.message.reply_text.assert_called_once()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_command_flow_arbitrage_sequence(mock_update, mock_context):
     """Тест потока: /start -> текстовая кнопка арбитраж."""
     # Сначала /start
@@ -470,7 +476,7 @@ async def test_command_flow_arbitrage_sequence(mock_update, mock_context):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_keyboards_import():
     """Тест импорта клавиатур."""
     from src.telegram_bot.keyboards import (
@@ -494,11 +500,10 @@ async def test_keyboards_import():
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_commands_have_logger():
     """Тест наличия логгера в модуле команд."""
     import src.telegram_bot.handlers.commands as commands_module
 
     assert hasattr(commands_module, "logger")
     assert isinstance(commands_module.logger, logging.Logger)
-

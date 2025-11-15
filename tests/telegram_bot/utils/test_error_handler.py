@@ -1,6 +1,5 @@
 """Тесты для модуля error_handler.py (utils)."""
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -10,10 +9,9 @@ from telegram.error import (
     Forbidden,
     NetworkError,
     RetryAfter,
-    TelegramError,
     TimedOut,
 )
-from telegram.ext import Application, ContextTypes
+from telegram.ext import Application
 
 from src.telegram_bot.utils.error_handler import (
     configure_admin_ids,
@@ -58,7 +56,7 @@ def mock_context():
 class TestHandleNetworkError:
     """Тесты для handle_network_error."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_retry_after(self, mock_update, mock_context):
         """Тест обработки RetryAfter ошибки."""
         mock_context.error = RetryAfter(30)
@@ -69,7 +67,7 @@ class TestHandleNetworkError:
         call_args = mock_context.bot.send_message.call_args[1]
         assert "30 секунд" in call_args["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_timed_out(self, mock_update, mock_context):
         """Тест обработки TimedOut ошибки."""
         mock_context.error = TimedOut("Connection timeout")
@@ -80,7 +78,7 @@ class TestHandleNetworkError:
         call_args = mock_context.bot.send_message.call_args[1]
         assert "Истекло время" in call_args["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_network_error_generic(self, mock_update, mock_context):
         """Тест обработки общей сетевой ошибки."""
         mock_context.error = NetworkError("Network failure")
@@ -89,7 +87,7 @@ class TestHandleNetworkError:
 
         mock_context.bot.send_message.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_network_error_no_update(self, mock_context):
         """Тест без update."""
         mock_context.error = NetworkError("Network failure")
@@ -103,7 +101,7 @@ class TestHandleNetworkError:
 class TestRetryLastAction:
     """Тесты для retry_last_action."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_with_job_context(self, mock_context):
         """Тест повтора с job context."""
         mock_job = MagicMock()
@@ -113,7 +111,7 @@ class TestRetryLastAction:
         # Не должно быть исключений
         await retry_last_action(mock_context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_without_job(self, mock_context):
         """Тест без job."""
         mock_context.job = None
@@ -125,7 +123,7 @@ class TestRetryLastAction:
 class TestHandleForbiddenError:
     """Тесты для handle_forbidden_error."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_blocked_by_user(self, mock_update, mock_context):
         """Тест обработки блокировки пользователем."""
         mock_context.error = Forbidden("bot was blocked by the user")
@@ -136,7 +134,7 @@ class TestHandleForbiddenError:
         call_args = mock_context.bot.send_message.call_args[1]
         assert "заблокировал бота" in call_args["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_kicked_from_group(self, mock_update, mock_context):
         """Тест обработки удаления из группы."""
         mock_context.error = Forbidden("bot was kicked from the group")
@@ -146,7 +144,7 @@ class TestHandleForbiddenError:
         call_args = mock_context.bot.send_message.call_args[1]
         assert "удален из группы" in call_args["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_no_rights(self, mock_update, mock_context):
         """Тест обработки отсутствия прав."""
         mock_context.error = Forbidden("not enough rights to send")
@@ -160,7 +158,7 @@ class TestHandleForbiddenError:
 class TestHandleBadRequest:
     """Тесты для handle_bad_request."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_message_not_modified(self, mock_update, mock_context):
         """Тест игнорирования 'message is not modified'."""
         mock_context.error = BadRequest("message is not modified")
@@ -170,7 +168,7 @@ class TestHandleBadRequest:
         # Должно быть проигнорировано
         mock_context.bot.send_message.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_message_not_found(self, mock_update, mock_context):
         """Тест обработки 'message to edit not found'."""
         mock_context.error = BadRequest("message to edit not found")
@@ -180,7 +178,7 @@ class TestHandleBadRequest:
         call_args = mock_context.bot.send_message.call_args[1]
         assert "не найдено" in call_args["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_query_too_old(self, mock_update, mock_context):
         """Тест обработки 'query is too old'."""
         mock_context.error = BadRequest("query is too old")
@@ -190,7 +188,7 @@ class TestHandleBadRequest:
         call_args = mock_context.bot.send_message.call_args[1]
         assert "устарел" in call_args["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_parse_entities_error(self, mock_update, mock_context):
         """Тест обработки ошибки парсинга."""
         mock_context.error = BadRequest("can't parse entities")
@@ -200,7 +198,7 @@ class TestHandleBadRequest:
         call_args = mock_context.bot.send_message.call_args[1]
         assert "форматировании" in call_args["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_wrong_file_id(self, mock_update, mock_context):
         """Тест обработки неверного file_id."""
         mock_context.error = BadRequest("wrong file identifier")
@@ -214,7 +212,7 @@ class TestHandleBadRequest:
 class TestHandleDmarketApiError:
     """Тесты для handle_dmarket_api_error."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_401(self, mock_update, mock_context):
         """Тест обработки 401 ошибки."""
         dmarket_error = MagicMock()
@@ -227,7 +225,7 @@ class TestHandleDmarketApiError:
         call_args = mock_context.bot.send_message.call_args[1]
         assert "авторизации" in call_args["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_429(self, mock_update, mock_context):
         """Тест обработки 429 ошибки."""
         dmarket_error = MagicMock()
@@ -240,7 +238,7 @@ class TestHandleDmarketApiError:
         call_args = mock_context.bot.send_message.call_args[1]
         assert "лимит" in call_args["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_500(self, mock_update, mock_context):
         """Тест обработки 500 ошибки."""
         dmarket_error = MagicMock()
@@ -253,7 +251,7 @@ class TestHandleDmarketApiError:
         call_args = mock_context.bot.send_message.call_args[1]
         assert "недоступен" in call_args["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_other_error(self, mock_update, mock_context):
         """Тест обработки других ошибок DMarket."""
         dmarket_error = MagicMock()
@@ -269,25 +267,29 @@ class TestHandleDmarketApiError:
 class TestErrorHandler:
     """Тесты для основного error_handler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_network_error_dispatch(self, mock_update, mock_context):
         """Тест диспетчеризации NetworkError."""
         mock_context.error = NetworkError("Network error")
 
-        with patch("src.telegram_bot.utils.error_handler.handle_network_error", AsyncMock()) as mock_handle:
+        with patch(
+            "src.telegram_bot.utils.error_handler.handle_network_error", AsyncMock()
+        ) as mock_handle:
             await error_handler(mock_update, mock_context)
             mock_handle.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_forbidden_dispatch(self, mock_update, mock_context):
         """Тест диспетчеризации Forbidden."""
         mock_context.error = Forbidden("Forbidden")
 
-        with patch("src.telegram_bot.utils.error_handler.handle_forbidden_error", AsyncMock()) as mock_handle:
+        with patch(
+            "src.telegram_bot.utils.error_handler.handle_forbidden_error", AsyncMock()
+        ) as mock_handle:
             await error_handler(mock_update, mock_context)
             mock_handle.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_bad_request_direct(self, mock_update, mock_context):
         """Тест прямой обработки BadRequest."""
         mock_context.error = BadRequest("query is too old")
@@ -297,17 +299,19 @@ class TestErrorHandler:
         # Должно отправить сообщение пользователю
         assert mock_context.bot.send_message.called
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_dmarket_error_dispatch(self, mock_update, mock_context):
         """Тест диспетчеризации DMarket error."""
         mock_context.error = Exception("DMarket error")
         mock_context.dmarket_error = MagicMock()
 
-        with patch("src.telegram_bot.utils.error_handler.handle_dmarket_api_error", AsyncMock()) as mock_handle:
+        with patch(
+            "src.telegram_bot.utils.error_handler.handle_dmarket_api_error", AsyncMock()
+        ) as mock_handle:
             await error_handler(mock_update, mock_context)
             mock_handle.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_generic_error(self, mock_update, mock_context):
         """Тест обработки обычной ошибки."""
         mock_context.error = ValueError("Test error")
@@ -317,7 +321,7 @@ class TestErrorHandler:
         # Должны быть вызовы send_message для пользователя
         assert mock_context.bot.send_message.called
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_error_no_update(self, mock_context):
         """Тест обработки ошибки без update."""
         mock_context.error = Exception("Error without update")
@@ -325,7 +329,7 @@ class TestErrorHandler:
         # Не должно быть исключений
         await error_handler(None, mock_context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_error_sends_user_message(self, mock_update, mock_context):
         """Тест отправки сообщения пользователю."""
         mock_context.error = ValueError("Test error")
@@ -361,9 +365,10 @@ class TestSetupErrorHandler:
 class TestExceptionGuard:
     """Тесты для exception_guard декоратора."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_exception_guard_success(self, mock_update, mock_context):
         """Тест успешного выполнения обёрнутой функции."""
+
         async def test_func(update, context):
             return "success"
 
@@ -372,15 +377,18 @@ class TestExceptionGuard:
 
         assert result == "success"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_exception_guard_with_error(self, mock_update, mock_context):
         """Тест обработки исключения в обёрнутой функции."""
+
         async def test_func(update, context):
             raise ValueError("Test error")
 
         guarded_func = exception_guard(test_func)
 
-        with patch("src.telegram_bot.utils.error_handler.error_handler", AsyncMock()) as mock_handler:
+        with patch(
+            "src.telegram_bot.utils.error_handler.error_handler", AsyncMock()
+        ) as mock_handler:
             result = await guarded_func(mock_update, mock_context)
 
             assert result is None
@@ -390,7 +398,7 @@ class TestExceptionGuard:
 class TestSendMessageSafe:
     """Тесты для send_message_safe."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_send_message_success(self):
         """Тест успешной отправки сообщения."""
         mock_bot = MagicMock(spec=Bot)
@@ -401,7 +409,7 @@ class TestSendMessageSafe:
 
         assert result == mock_message
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_send_message_forbidden(self):
         """Тест обработки Forbidden ошибки."""
         mock_bot = MagicMock(spec=Bot)
@@ -411,7 +419,7 @@ class TestSendMessageSafe:
 
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_send_message_bad_request(self):
         """Тест обработки BadRequest ошибки."""
         mock_bot = MagicMock(spec=Bot)
@@ -421,7 +429,7 @@ class TestSendMessageSafe:
 
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_send_message_network_error(self):
         """Тест обработки NetworkError."""
         mock_bot = MagicMock(spec=Bot)
@@ -470,6 +478,7 @@ class TestRegisterGlobalExceptionHandlers:
     def test_register_handlers(self):
         """Тест регистрации глобальных обработчиков."""
         import sys
+
         original_excepthook = sys.excepthook
 
         try:
@@ -480,4 +489,3 @@ class TestRegisterGlobalExceptionHandlers:
         finally:
             # Восстанавливаем оригинальный
             sys.excepthook = original_excepthook
-

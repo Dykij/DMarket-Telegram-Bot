@@ -25,6 +25,8 @@ from src.telegram_bot.utils.formatters import (
     format_dmarket_results,
 )
 from src.utils.exceptions import APIError
+
+
 # Removed: execute_api_request - использовать прямые вызовы API
 
 

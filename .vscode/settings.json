@@ -1,244 +1,250 @@
 {
-    // ==================== Общие настройки файлов ====================
-    "files.encoding": "utf8",
-    "files.eol": "\n",
-    "files.insertFinalNewline": true,
-    "files.trimTrailingWhitespace": true,
-    "files.exclude": {
-        "**/__pycache__": true,
-        "**/*.pyc": true,
-        "**/*.pyo": true,
-        "**/.pytest_cache": true,
-        "**/.mypy_cache": true,
-        "**/.ruff_cache": true,
-        "**/node_modules": true,
-        "**/*.egg-info": true,
-        "**/.coverage": true,
-        "**/htmlcov": true,
-        "**/.tox": true,
-        "**/dist": true,
-        "**/build": true
-    },
-    "files.watcherExclude": {
-        "**/__pycache__/**": true,
-        "**/.venv/**": true,
-        "**/.pytest_cache/**": true,
-        "**/.mypy_cache/**": true,
-        "**/.ruff_cache/**": true,
-        "**/htmlcov/**": true
-    },
-    "search.exclude": {
-        "**/__pycache__": true,
-        "**/.venv": true,
-        "**/.pytest_cache": true,
-        "**/.mypy_cache": true,
-        "**/.ruff_cache": true,
-        "**/htmlcov": true,
-        "**/build": true,
-        "**/dist": true
-    },
-    // ==================== Python Environment ====================
-    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
-    "python.terminal.activateEnvironment": true,
-    "python.analysis.autoImportCompletions": true,
-    "python.analysis.typeCheckingMode": "basic",
-    "python.analysis.diagnosticMode": "workspace",
-    "python.analysis.inlayHints.functionReturnTypes": true,
-    "python.analysis.inlayHints.variableTypes": true,
-    "python.languageServer": "None",
-    // ==================== Python Formatting (Ruff + Black) ====================
-    "[python]": {
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "charliermarsh.ruff",
-        "editor.codeActionsOnSave": {
-            "source.fixAll.ruff": "explicit",
-            "source.organizeImports.ruff": "explicit"
-        },
-        "editor.rulers": [
-            88,
-            100
-        ],
-        "editor.tabSize": 4,
-        "editor.insertSpaces": true,
-        "editor.wordWrap": "off"
-    },
-    // ==================== Ruff Configuration ====================
-    "ruff.enable": true,
-    "ruff.lint.enable": true,
-    "ruff.format.enable": true,
-    "ruff.organizeImports": true,
-    "ruff.fixAll": true,
-    "ruff.showNotifications": "onWarning",
-    "ruff.importStrategy": "fromEnvironment",
-    // ==================== Black Formatter (Fallback) ====================
-    "black-formatter.args": [
-        "--line-length=88"
-    ],
-    "black-formatter.importStrategy": "fromEnvironment",
-    // ==================== MyPy Type Checking ====================
-    "python.linting.enabled": true,
-    "python.linting.mypyEnabled": true,
-    "python.linting.mypyArgs": [
-        "--config-file=config/mypy.ini",
-        "--follow-imports=silent",
-        "--show-error-codes",
-        "--no-incremental"
-    ],
-    "python.linting.pylintEnabled": false,
-    "python.linting.flake8Enabled": false,
-    // ==================== Testing Configuration ====================
-    "python.testing.pytestEnabled": true,
-    "python.testing.unittestEnabled": false,
-    "python.testing.pytestArgs": [
-        "tests",
-        "-v",
-        "--tb=short",
-        "--strict-markers",
-        "--showlocals"
-    ],
-    "python.testing.autoTestDiscoverOnSaveEnabled": true,
-    "python.testing.promptToConfigure": false,
-    // ==================== Editor Settings ====================
+  // ==================== Общие настройки файлов ====================
+  "files.encoding": "utf8",
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/*.pyo": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/.ruff_cache": true,
+    "**/node_modules": true,
+    "**/*.egg-info": true,
+    "**/.coverage": true,
+    "**/htmlcov": true,
+    "**/.tox": true,
+    "**/dist": true,
+    "**/build": true
+  },
+  "files.watcherExclude": {
+    "**/__pycache__/**": true,
+    "**/.venv/**": true,
+    "**/.pytest_cache/**": true,
+    "**/.mypy_cache/**": true,
+    "**/.ruff_cache/**": true,
+    "**/htmlcov/**": true
+  },
+  "search.exclude": {
+    "**/__pycache__": true,
+    "**/.venv": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/.ruff_cache": true,
+    "**/htmlcov": true,
+    "**/build": true,
+    "**/dist": true
+  },
+  // ==================== Python Environment ====================
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+  "python.terminal.activateEnvironment": true,
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.inlayHints.functionReturnTypes": true,
+  "python.analysis.inlayHints.variableTypes": true,
+  "python.languageServer": "None",
+  // ==================== Python Formatting (Ruff + Black) ====================
+  "[python]": {
     "editor.formatOnSave": true,
-    "editor.formatOnPaste": false,
-    "editor.formatOnType": false,
+    "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.codeActionsOnSave": {
-        "source.organizeImports": "explicit",
-        "source.fixAll": "explicit"
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
     },
-    "editor.bracketPairColorization.enabled": true,
-    "editor.guides.bracketPairs": "active",
-    "editor.inlineSuggest.enabled": true,
-    "editor.suggestSelection": "first",
-    "editor.snippetSuggestions": "top",
-    "editor.wordBasedSuggestions": "matchingDocuments",
-    // ==================== Git Settings ====================
-    "git.enableSmartCommit": true,
-    "git.confirmSync": false,
-    "git.autofetch": true,
-    "git.ignoreRebaseWarning": true,
-    "git.suggestSmartCommit": true,
-    "git.enableCommitSigning": false,
-    // ==================== Terminal Settings ====================
-    "terminal.integrated.defaultProfile.windows": "PowerShell",
-    "terminal.integrated.env.windows": {
-        "PYTHONPATH": "${workspaceFolder}"
-    },
-    "terminal.integrated.scrollback": 10000,
-    "terminal.integrated.cursorBlinking": true,
-    // ==================== Spell Checker ====================
-    "cSpell.words": [
-        "aiofiles",
-        "aiocache",
-        "aiolimiter",
-        "asyncio",
-        "csgo",
-        "dmarket",
-        "dotenv",
-        "dota",
-        "Fernet",
-        "hexdigest",
-        "hmac",
-        "httpx",
-        "mypy",
-        "pydantic",
-        "pytest",
-        "pwsh",
-        "ruff",
-        "SQLAlchemy",
-        "structlog",
-        "tenacity",
-        "urlencode",
-        "websocket",
-        "asyncpg",
-        "alembic",
-        "uvloop",
-        "orjson",
-        "msgpack",
-        "backoff",
-        "sentry"
+    "editor.rulers": [
+      88,
+      100
     ],
-    "cSpell.language": "en,ru",
-    "cSpell.ignorePaths": [
-        "**/__pycache__/**",
-        "**/.venv/**",
-        "**/.pytest_cache/**",
-        "**/.mypy_cache/**",
-        "**/.ruff_cache/**",
-        "**/node_modules/**",
-        ".git",
-        "poetry.lock",
-        "**/htmlcov/**",
-        "**/build/**",
-        "**/dist/**"
-    ],
-    "cSpell.enabled": true,
-    "cSpell.showStatus": true,
-    // ==================== GitHub Copilot ====================
-    "github.copilot.enable": {
-        "*": true,
-        "python": true,
-        "yaml": true,
-        "markdown": true,
-        "json": true,
-        "jsonc": true,
-        "dockerfile": true,
-        "shellscript": true
-    },
-    "github.copilot.chat.instructionFiles": [
-        ".github/copilot-instructions.md"
-    ],
-    "github.copilot.editor.enableAutoCompletions": true,
-    // ==================== Markdown Settings ====================
-    "[markdown]": {
-        "editor.formatOnSave": true,
-        "editor.wordWrap": "on",
-        "editor.quickSuggestions": {
-            "comments": "off",
-            "strings": "off",
-            "other": "off"
-        }
-    },
-    // ==================== JSON/YAML Settings ====================
-    "[json]": {
-        "editor.defaultFormatter": "vscode.json-language-features",
-        "editor.formatOnSave": true
-    },
-    "[jsonc]": {
-        "editor.defaultFormatter": "vscode.json-language-features",
-        "editor.formatOnSave": true
-    },
-    "[yaml]": {
-        "editor.formatOnSave": true,
-        "editor.tabSize": 2,
-        "editor.insertSpaces": true
-    },
-    // ==================== Additional Settings ====================
-    "workbench.colorTheme": "Default Dark+",
-    "workbench.iconTheme": "vs-seti",
-    "problems.showCurrentInStatus": true,
-    "breadcrumbs.enabled": true,
-    "explorer.confirmDelete": false,
-    "explorer.confirmDragAndDrop": false,
-    "explorer.sortOrder": "type",
-    // ==================== Performance Settings ====================
-    "files.autoSave": "afterDelay",
-    "files.autoSaveDelay": 1000,
-    "diffEditor.ignoreTrimWhitespace": false,
-    "diffEditor.renderSideBySide": true,
-    // ==================== Docker Settings ====================
-    "[dockerfile]": {
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "ms-azuretools.vscode-docker"
-    },
-    // ==================== PowerShell Settings ====================
-    "[powershell]": {
-        "editor.formatOnSave": true,
-        "editor.tabSize": 4
-    },
-    "cursorpyright.analysis.autoImportCompletions": true,
-    "cursorpyright.analysis.diagnosticMode": "workspace",
-    "cursorpyright.analysis.inlayHints.functionReturnTypes": true,
-    "cursorpyright.analysis.inlayHints.variableTypes": true,
-    "cursorpyright.analysis.typeCheckingMode": "basic"
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.wordWrap": "off"
+  },
+  // ==================== Ruff Configuration ====================
+  "ruff.enable": true,
+  "ruff.lint.enable": true,
+  "ruff.format.enable": true,
+  "ruff.organizeImports": true,
+  "ruff.fixAll": true,
+  "ruff.showNotifications": "onWarning",
+  "ruff.importStrategy": "fromEnvironment",
+  // ==================== Black Formatter (Fallback) ====================
+  "black-formatter.args": [
+    "--line-length=88"
+  ],
+  "black-formatter.importStrategy": "fromEnvironment",
+  // ==================== MyPy Type Checking ====================
+  "python.linting.enabled": true,
+  "python.linting.mypyEnabled": true,
+  "python.linting.mypyArgs": [
+    "--config-file=config/mypy.ini",
+    "--follow-imports=silent",
+    "--show-error-codes",
+    "--no-incremental"
+  ],
+  "python.linting.pylintEnabled": false,
+  "python.linting.flake8Enabled": false,
+  // ==================== Testing Configuration ====================
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": [
+    "tests",
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+    "--showlocals"
+  ],
+  "python.testing.autoTestDiscoverOnSaveEnabled": true,
+  "python.testing.promptToConfigure": false,
+  // ==================== Editor Settings ====================
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": false,
+  "editor.formatOnType": false,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+    "source.fixAll": "explicit"
+  },
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.inlineSuggest.enabled": true,
+  "editor.suggestSelection": "first",
+  "editor.snippetSuggestions": "top",
+  "editor.wordBasedSuggestions": "matchingDocuments",
+  // ==================== Git Settings ====================
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "git.autofetch": true,
+  "git.ignoreRebaseWarning": true,
+  "git.suggestSmartCommit": true,
+  "git.enableCommitSigning": false,
+  // ==================== Terminal Settings ====================
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.env.windows": {
+    "PYTHONPATH": "${workspaceFolder}"
+  },
+  "terminal.integrated.scrollback": 10000,
+  "terminal.integrated.cursorBlinking": true,
+  // ==================== Spell Checker ====================
+  "cSpell.words": [
+    "aiofiles",
+    "aiocache",
+    "aiolimiter",
+    "asyncio",
+    "csgo",
+    "dmarket",
+    "dotenv",
+    "dota",
+    "Fernet",
+    "hexdigest",
+    "hmac",
+    "httpx",
+    "mypy",
+    "pydantic",
+    "pytest",
+    "pwsh",
+    "ruff",
+    "SQLAlchemy",
+    "structlog",
+    "tenacity",
+    "urlencode",
+    "websocket",
+    "asyncpg",
+    "alembic",
+    "uvloop",
+    "orjson",
+    "msgpack",
+    "backoff",
+    "sentry"
+  ],
+  "cSpell.language": "en,ru",
+  "cSpell.ignorePaths": [
+    "**/__pycache__/**",
+    "**/.venv/**",
+    "**/.pytest_cache/**",
+    "**/.mypy_cache/**",
+    "**/.ruff_cache/**",
+    "**/node_modules/**",
+    ".git",
+    "poetry.lock",
+    "**/htmlcov/**",
+    "**/build/**",
+    "**/dist/**"
+  ],
+  "cSpell.enabled": true,
+  "cSpell.showStatus": true,
+  // ==================== GitHub Copilot ====================
+  "github.copilot.enable": {
+    "*": true,
+    "python": true,
+    "yaml": true,
+    "markdown": true,
+    "json": true,
+    "jsonc": true,
+    "dockerfile": true,
+    "shellscript": true
+  },
+  "github.copilot.chat.instructionFiles": [
+    ".github/copilot-instructions.md"
+  ],
+  "github.copilot.editor.enableAutoCompletions": true,
+  // ==================== Markdown Settings ====================
+  "[markdown]": {
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "on",
+    "editor.quickSuggestions": {
+      "comments": "off",
+      "strings": "off",
+      "other": "off"
+    }
+  },
+  // ==================== JSON/YAML Settings ====================
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.formatOnSave": true
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.formatOnSave": true
+  },
+  "[yaml]": {
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  // ==================== Additional Settings ====================
+  "workbench.colorTheme": "Default Dark+",
+  "workbench.iconTheme": "vs-seti",
+  "problems.showCurrentInStatus": true,
+  "breadcrumbs.enabled": true,
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+  "explorer.sortOrder": "type",
+  // ==================== Performance Settings ====================
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "diffEditor.ignoreTrimWhitespace": false,
+  "diffEditor.renderSideBySide": true,
+  // ==================== Docker Settings ====================
+  "[dockerfile]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "ms-azuretools.vscode-docker"
+  },
+  // ==================== PowerShell Settings ====================
+  "[powershell]": {
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4
+  },
+  "powershell.scriptAnalysis.enable": false,
+  "powershell.integratedConsole.showOnStartup": false,
+  "powershell.powerShellDefaultVersion": "PowerShell (x64)",
+  "terminal.integrated.shellIntegration.enabled": true,
+  "cursorpyright.analysis.autoImportCompletions": true,
+  "cursorpyright.analysis.diagnosticMode": "workspace",
+  "cursorpyright.analysis.inlayHints.functionReturnTypes": true,
+  "cursorpyright.analysis.inlayHints.variableTypes": true,
+  "cursorpyright.analysis.typeCheckingMode": "basic",
+  "python-envs.defaultEnvManager": "ms-python.python:system",
+  "python-envs.pythonProjects": []
 }

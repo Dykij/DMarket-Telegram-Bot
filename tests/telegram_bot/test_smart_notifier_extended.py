@@ -7,7 +7,7 @@
 - Отправка уведомлений
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -119,7 +119,10 @@ async def test_register_user_basic():
         from src.telegram_bot import smart_notifier
 
         # Проверяем, что пользователь добавлен (может быть как int, так и str)
-        assert TEST_USER_ID in smart_notifier._user_preferences or str(TEST_USER_ID) in smart_notifier._user_preferences
+        assert (
+            TEST_USER_ID in smart_notifier._user_preferences
+            or str(TEST_USER_ID) in smart_notifier._user_preferences
+        )
 
 
 @pytest.mark.asyncio()
@@ -130,7 +133,10 @@ async def test_register_user_without_chat_id():
 
         from src.telegram_bot import smart_notifier
 
-        assert TEST_USER_ID in smart_notifier._user_preferences or str(TEST_USER_ID) in smart_notifier._user_preferences
+        assert (
+            TEST_USER_ID in smart_notifier._user_preferences
+            or str(TEST_USER_ID) in smart_notifier._user_preferences
+        )
 
 
 @pytest.mark.asyncio()
@@ -143,7 +149,10 @@ async def test_register_user_twice():
         from src.telegram_bot import smart_notifier
 
         # Должен существовать только один раз (как int или str)
-        user_exists = TEST_USER_ID in smart_notifier._user_preferences or str(TEST_USER_ID) in smart_notifier._user_preferences
+        user_exists = (
+            TEST_USER_ID in smart_notifier._user_preferences
+            or str(TEST_USER_ID) in smart_notifier._user_preferences
+        )
         assert user_exists
 
 
@@ -170,7 +179,9 @@ async def test_update_user_preferences_basic():
         from src.telegram_bot import smart_notifier
 
         # Получаем user_prefs (может быть как int, так и str ключ)
-        user_prefs = smart_notifier._user_preferences.get(TEST_USER_ID) or smart_notifier._user_preferences.get(str(TEST_USER_ID))
+        user_prefs = smart_notifier._user_preferences.get(
+            TEST_USER_ID
+        ) or smart_notifier._user_preferences.get(str(TEST_USER_ID))
         assert user_prefs is not None
         assert "preferences" in user_prefs
 
@@ -477,4 +488,3 @@ async def test_multiple_users_isolation():
         # Данные должны быть изолированы
         assert isinstance(user1_alerts, list)
         assert isinstance(user2_alerts, list)
-

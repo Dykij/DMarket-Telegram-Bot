@@ -56,6 +56,7 @@ A comprehensive Telegram bot for DMarket platform operations, market analytics, 
 - Python 3.9 or higher
 - Telegram Bot Token ([create one with @BotFather](https://t.me/BotFather))
 - DMarket API Keys ([get them here](https://dmarket.com/profile/api))
+- PostgreSQL (recommended) or SQLite for development
 
 ### 1-Minute Setup
 
@@ -72,6 +73,15 @@ cp .env.example .env
 
 # Edit .env with your API keys
 nano .env
+
+# Initialize database
+python scripts/init_db.py
+
+# Validate configuration
+python scripts/validate_config.py
+
+# Run health check
+python scripts/health_check.py
 
 # Run the bot
 python -m src.main
@@ -95,6 +105,12 @@ pip install -r requirements.txt
 
 # Install in development mode (optional)
 pip install -e .
+
+# Initialize database with Alembic
+python scripts/init_db.py
+
+# Or manually with Alembic
+alembic upgrade head
 ```
 
 ### Method 2: Docker Installation
@@ -199,6 +215,37 @@ Run with config file:
 python -m src.main --config config/local.yaml
 ```
 
+### Configuration Validation
+
+Before running the bot, validate your configuration:
+
+```bash
+# Validate all settings
+python scripts/validate_config.py
+
+# This will check:
+# - Required environment variables
+# - API key formats
+# - Database connectivity
+# - File permissions
+# - Network accessibility
+```
+
+### Health Checks
+
+Run comprehensive health checks:
+
+```bash
+# Check all services
+python scripts/health_check.py
+
+# This will verify:
+# - Telegram API connectivity
+# - DMarket API availability
+# - Database connection
+# - Redis connection (if configured)
+```
+
 ### API Keys Setup
 
 #### 1. Telegram Bot Token
@@ -284,12 +331,23 @@ dmarket-telegram-bot/
 ├── 📁 src/                    # Source code
 │   ├── 📁 dmarket/            # DMarket API client
 │   ├── 📁 telegram_bot/       # Telegram bot handlers
+│   ├── 📁 models/             # Database models (SQLAlchemy)
 │   ├── 📁 utils/              # Utility functions
 │   └── 📄 main.py             # Application entry point
 ├── 📁 tests/                  # Test suite
+│   ├── 📄 test_main.py        # Application tests
+│   ├── 📄 test_config.py      # Configuration tests
+│   └── 📄 conftest.py         # Test fixtures
+├── 📁 alembic/                # Database migrations
+│   ├── 📁 versions/           # Migration files
+│   ├── 📄 env.py              # Migration environment
+│   └── 📄 alembic.ini         # Alembic configuration
+├── 📁 scripts/                # Utility scripts
+│   ├── 📄 init_db.py          # Database initialization
+│   ├── 📄 validate_config.py  # Configuration validator
+│   └── 📄 health_check.py     # Service health checker
 ├── 📁 docs/                   # Documentation
 ├── 📁 config/                 # Configuration files
-├── 📁 scripts/                # Utility scripts
 ├── 📁 data/                   # Data storage
 └── 📁 logs/                   # Log files
 ```
@@ -299,6 +357,15 @@ dmarket-telegram-bot/
 ```bash
 # Setup development environment
 make setup
+
+# Initialize database
+python scripts/init_db.py
+
+# Validate configuration
+python scripts/validate_config.py
+
+# Run health checks
+python scripts/health_check.py
 
 # Run quality checks
 make qa
@@ -314,6 +381,69 @@ make format
 
 # Run the bot in development mode
 make run
+```
+
+### Database Management
+
+#### Initialize Database
+
+```bash
+# Using init script (recommended)
+python scripts/init_db.py
+
+# Or manually with Alembic
+alembic upgrade head
+```
+
+#### Create Migration
+
+```bash
+# Auto-generate migration from model changes
+alembic revision --autogenerate -m "Description of changes"
+
+# Create empty migration
+alembic revision -m "Description of changes"
+```
+
+#### Apply Migrations
+
+```bash
+# Upgrade to latest version
+alembic upgrade head
+
+# Upgrade one version
+alembic upgrade +1
+
+# Downgrade one version
+alembic downgrade -1
+
+# Show current version
+alembic current
+
+# Show migration history
+alembic history
+```
+
+### Pre-flight Checks
+
+Before running the bot in production:
+
+```bash
+# 1. Validate configuration
+python scripts/validate_config.py
+
+# 2. Check service connectivity
+python scripts/health_check.py
+
+# 3. Run database migrations
+python scripts/init_db.py
+
+# 4. Run tests
+pytest --cov=src
+
+# 5. Check code quality
+ruff check src/ tests/
+mypy src/
 ```
 
 ### Adding New Features

@@ -22,12 +22,10 @@ from src.telegram_bot.auto_arbitrage import (
     check_balance_command,
     create_dmarket_api_client,
     format_auto_arbitrage_results,
-    handle_auto_trade,
     handle_pagination,
     safe_edit_message_text,
     show_auto_stats,
     show_auto_stats_with_pagination,
-    start_auto_trading,
     stop_auto_trading,
 )
 
@@ -369,38 +367,40 @@ async def test_start_auto_trading_mode_validation():
 @pytest.mark.asyncio()
 async def test_check_balance_command_with_update(mock_update, mock_context):
     """Тест проверки баланса через Update."""
-    with patch("src.telegram_bot.auto_arbitrage.create_dmarket_api_client") as mock_create:
-        with patch("src.telegram_bot.auto_arbitrage.check_user_balance") as mock_check:
-            mock_api = MagicMock()
-            mock_create.return_value = mock_api
-            mock_check.return_value = {
-                "balance": 100.0,
-                "error": False,
-                "has_funds": True,
-            }
+    with patch(
+        "src.telegram_bot.auto_arbitrage.create_dmarket_api_client"
+    ) as mock_create, patch("src.telegram_bot.auto_arbitrage.check_user_balance") as mock_check:
+        mock_api = MagicMock()
+        mock_create.return_value = mock_api
+        mock_check.return_value = {
+            "balance": 100.0,
+            "error": False,
+            "has_funds": True,
+        }
 
-            await check_balance_command(mock_update, mock_context)
+        await check_balance_command(mock_update, mock_context)
 
-            # Проверяем, что был вызов API клиента
-            mock_create.assert_called_once()
+        # Проверяем, что был вызов API клиента
+        mock_create.assert_called_once()
 
 
 @pytest.mark.asyncio()
 async def test_check_balance_command_with_query(mock_query, mock_context):
     """Тест проверки баланса через callback query."""
-    with patch("src.telegram_bot.auto_arbitrage.create_dmarket_api_client") as mock_create:
-        with patch("src.telegram_bot.auto_arbitrage.check_user_balance") as mock_check:
-            mock_api = MagicMock()
-            mock_create.return_value = mock_api
-            mock_check.return_value = {
-                "balance": 50.0,
-                "error": False,
-                "has_funds": True,
-            }
+    with patch(
+        "src.telegram_bot.auto_arbitrage.create_dmarket_api_client"
+    ) as mock_create, patch("src.telegram_bot.auto_arbitrage.check_user_balance") as mock_check:
+        mock_api = MagicMock()
+        mock_create.return_value = mock_api
+        mock_check.return_value = {
+            "balance": 50.0,
+            "error": False,
+            "has_funds": True,
+        }
 
-            await check_balance_command(mock_query, mock_context)
+        await check_balance_command(mock_query, mock_context)
 
-            mock_create.assert_called_once()
+        mock_create.assert_called_once()
 
 
 # ==============================================================================
@@ -411,9 +411,7 @@ async def test_check_balance_command_with_query(mock_query, mock_context):
 @pytest.mark.asyncio()
 async def test_show_auto_stats_basic(mock_query, mock_context):
     """Тест показа статистики автотрейдинга."""
-    mock_context.user_data["auto_results"] = [
-        {"title": "Item 1", "profit": 5.0}
-    ]
+    mock_context.user_data["auto_results"] = [{"title": "Item 1", "profit": 5.0}]
     mock_context.user_data["auto_mode"] = "auto_medium"
 
     await show_auto_stats(mock_query, mock_context)
@@ -518,4 +516,3 @@ async def test_safe_edit_and_format_integration(mock_query):
     # Проверяем успех
     assert result is True
     assert mock_query.edit_message_text.called
-

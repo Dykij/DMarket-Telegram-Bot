@@ -322,6 +322,7 @@ def test_get_pagination_keyboard(pagination_manager, sample_items):
     # Проверяем, что клавиатура создана
     assert keyboard is not None
     from telegram import InlineKeyboardMarkup
+
     assert isinstance(keyboard, InlineKeyboardMarkup)
 
 

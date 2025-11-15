@@ -600,7 +600,9 @@ def format_best_opportunities(
 
     for i, opportunity in enumerate(top_opportunities, 1):
         # Извлекаем данные
-        item_name = opportunity.get("item_name", opportunity.get("market_hash_name", "Неизвестный предмет"))
+        item_name = opportunity.get(
+            "item_name", opportunity.get("market_hash_name", "Неизвестный предмет")
+        )
         buy_price = opportunity.get("buy_price", 0)
         sell_price = opportunity.get("sell_price", 0)
         profit = opportunity.get("profit", 0)
@@ -615,7 +617,9 @@ def format_best_opportunities(
 
         # Добавляем информацию о ликвидности если есть
         if "sales_per_day" in opportunity:
-            message.append(f"🔄 Продаж в день: <b>{opportunity['sales_per_day']:.2f}</b>")
+            message.append(
+                f"🔄 Продаж в день: <b>{opportunity['sales_per_day']:.2f}</b>"
+            )
 
         message.append("")  # Пустая строка между возможностями
 

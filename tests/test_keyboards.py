@@ -267,10 +267,7 @@ def test_get_confirm_cancel_keyboard():
 def test_get_pagination_keyboard():
     """Проверяет создание клавиатуры пагинации."""
     keyboard = get_pagination_keyboard(
-        current_page=2,
-        total_pages=5,
-        items_per_page=10,
-        prefix="items"
+        current_page=2, total_pages=5, items_per_page=10, prefix="items"
     )
 
     # Проверяем, что возвращается правильный тип

@@ -1,6 +1,6 @@
 """Тесты для модуля market_analysis.py."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -182,24 +182,31 @@ class TestGenerateMarketRecommendations:
         assert isinstance(recommendations, list)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestAnalyzePriceChanges:
     """Тесты для analyze_price_changes."""
 
     async def test_analyze_basic(self):
         """Базовый тест анализа изменений цен."""
         mock_api = AsyncMock()
-        mock_api.get_market_items = AsyncMock(return_value={
-            "items": [
-                {"title": "Item 1", "price": {"USD": "10.00"}, "salesVolume": 50},
-                {"title": "Item 2", "price": {"USD": "20.00"}, "salesVolume": 30},
-            ]
-        })
+        mock_api.get_market_items = AsyncMock(
+            return_value={
+                "items": [
+                    {"title": "Item 1", "price": {"USD": "10.00"}, "salesVolume": 50},
+                    {"title": "Item 2", "price": {"USD": "20.00"}, "salesVolume": 30},
+                ]
+            }
+        )
 
-        with patch("src.dmarket.market_analysis._get_historical_prices", AsyncMock(return_value={
-            "Item 1": 8.00,
-            "Item 2": 25.00,
-        })):
+        with patch(
+            "src.dmarket.market_analysis._get_historical_prices",
+            AsyncMock(
+                return_value={
+                    "Item 1": 8.00,
+                    "Item 2": 25.00,
+                }
+            ),
+        ):
             result = await analyze_price_changes(
                 game="csgo",
                 period="24h",
@@ -213,15 +220,22 @@ class TestAnalyzePriceChanges:
     async def test_analyze_with_direction_up(self):
         """Тест с фильтром по направлению вверх."""
         mock_api = AsyncMock()
-        mock_api.get_market_items = AsyncMock(return_value={
-            "items": [
-                {"title": "Item Up", "price": {"USD": "15.00"}, "salesVolume": 50},
-            ]
-        })
+        mock_api.get_market_items = AsyncMock(
+            return_value={
+                "items": [
+                    {"title": "Item Up", "price": {"USD": "15.00"}, "salesVolume": 50},
+                ]
+            }
+        )
 
-        with patch("src.dmarket.market_analysis._get_historical_prices", AsyncMock(return_value={
-            "Item Up": 10.00,
-        })):
+        with patch(
+            "src.dmarket.market_analysis._get_historical_prices",
+            AsyncMock(
+                return_value={
+                    "Item Up": 10.00,
+                }
+            ),
+        ):
             result = await analyze_price_changes(
                 game="csgo",
                 direction="up",
@@ -248,7 +262,10 @@ class TestAnalyzePriceChanges:
         mock_api = AsyncMock()
         mock_api.get_market_items = AsyncMock(return_value={"items": []})
 
-        with patch("src.dmarket.market_analysis._get_historical_prices", AsyncMock(return_value={})):
+        with patch(
+            "src.dmarket.market_analysis._get_historical_prices",
+            AsyncMock(return_value={}),
+        ):
             result = await analyze_price_changes(
                 game="csgo",
                 dmarket_api=mock_api,
@@ -257,18 +274,25 @@ class TestAnalyzePriceChanges:
         assert result == []
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestFindTrendingItems:
     """Тесты для find_trending_items."""
 
     async def test_find_trending_basic(self):
         """Базовый тест поиска трендовых предметов."""
         mock_api = AsyncMock()
-        mock_api.get_market_items = AsyncMock(return_value={
-            "items": [
-                {"title": "Trending Item", "price": {"USD": "10.00"}, "salesVolume": 100, "availability": 50},
-            ]
-        })
+        mock_api.get_market_items = AsyncMock(
+            return_value={
+                "items": [
+                    {
+                        "title": "Trending Item",
+                        "price": {"USD": "10.00"},
+                        "salesVolume": 100,
+                        "availability": 50,
+                    },
+                ]
+            }
+        )
 
         result = await find_trending_items(
             game="csgo",
@@ -281,12 +305,24 @@ class TestFindTrendingItems:
     async def test_find_trending_min_sales_filter(self):
         """Тест фильтрации по минимальным продажам."""
         mock_api = AsyncMock()
-        mock_api.get_market_items = AsyncMock(return_value={
-            "items": [
-                {"title": "Low Sales", "price": {"USD": "10.00"}, "salesVolume": 2, "availability": 10},
-                {"title": "High Sales", "price": {"USD": "20.00"}, "salesVolume": 100, "availability": 50},
-            ]
-        })
+        mock_api.get_market_items = AsyncMock(
+            return_value={
+                "items": [
+                    {
+                        "title": "Low Sales",
+                        "price": {"USD": "10.00"},
+                        "salesVolume": 2,
+                        "availability": 10,
+                    },
+                    {
+                        "title": "High Sales",
+                        "price": {"USD": "20.00"},
+                        "salesVolume": 100,
+                        "availability": 50,
+                    },
+                ]
+            }
+        )
 
         result = await find_trending_items(
             game="csgo",
@@ -310,22 +346,33 @@ class TestFindTrendingItems:
         assert result == []
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestAnalyzeMarketVolatility:
     """Тесты для analyze_market_volatility."""
 
     async def test_analyze_volatility_basic(self):
         """Базовый тест анализа волатильности."""
         mock_api = AsyncMock()
-        mock_api.get_market_items = AsyncMock(return_value={
-            "items": [
-                {"title": "Volatile Item", "price": {"USD": "10.00"}, "salesVolume": 50},
-            ]
-        })
+        mock_api.get_market_items = AsyncMock(
+            return_value={
+                "items": [
+                    {
+                        "title": "Volatile Item",
+                        "price": {"USD": "10.00"},
+                        "salesVolume": 50,
+                    },
+                ]
+            }
+        )
 
-        with patch("src.dmarket.market_analysis._get_historical_prices", AsyncMock(return_value={
-            "Volatile Item": 5.00,
-        })):
+        with patch(
+            "src.dmarket.market_analysis._get_historical_prices",
+            AsyncMock(
+                return_value={
+                    "Volatile Item": 5.00,
+                }
+            ),
+        ):
             result = await analyze_market_volatility(
                 game="csgo",
                 dmarket_api=mock_api,
@@ -338,7 +385,10 @@ class TestAnalyzeMarketVolatility:
         mock_api = AsyncMock()
         mock_api.get_market_items = AsyncMock(return_value={"items": []})
 
-        with patch("src.dmarket.market_analysis._get_historical_prices", AsyncMock(return_value={})):
+        with patch(
+            "src.dmarket.market_analysis._get_historical_prices",
+            AsyncMock(return_value={}),
+        ):
             result = await analyze_market_volatility(
                 game="csgo",
                 dmarket_api=mock_api,
@@ -347,22 +397,34 @@ class TestAnalyzeMarketVolatility:
         assert result == []
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestGenerateMarketReport:
     """Тесты для generate_market_report."""
 
     async def test_generate_report_basic(self):
         """Базовый тест генерации отчёта."""
         mock_api = AsyncMock()
-        mock_api.get_market_items = AsyncMock(return_value={
-            "items": [
-                {"title": "Item", "price": {"USD": "10.00"}, "salesVolume": 50, "availability": 30},
-            ]
-        })
+        mock_api.get_market_items = AsyncMock(
+            return_value={
+                "items": [
+                    {
+                        "title": "Item",
+                        "price": {"USD": "10.00"},
+                        "salesVolume": 50,
+                        "availability": 30,
+                    },
+                ]
+            }
+        )
 
-        with patch("src.dmarket.market_analysis._get_historical_prices", AsyncMock(return_value={
-            "Item": 8.00,
-        })):
+        with patch(
+            "src.dmarket.market_analysis._get_historical_prices",
+            AsyncMock(
+                return_value={
+                    "Item": 8.00,
+                }
+            ),
+        ):
             result = await generate_market_report(
                 game="csgo",
                 dmarket_api=mock_api,
@@ -378,19 +440,30 @@ class TestGenerateMarketReport:
     async def test_generate_report_multiple_games(self):
         """Тест с несколькими играми."""
         mock_api = AsyncMock()
-        mock_api.get_market_items = AsyncMock(return_value={
-            "items": [
-                {"title": "Item", "price": {"USD": "10.00"}, "salesVolume": 50, "availability": 30},
-            ]
-        })
+        mock_api.get_market_items = AsyncMock(
+            return_value={
+                "items": [
+                    {
+                        "title": "Item",
+                        "price": {"USD": "10.00"},
+                        "salesVolume": 50,
+                        "availability": 30,
+                    },
+                ]
+            }
+        )
 
-        with patch("src.dmarket.market_analysis._get_historical_prices", AsyncMock(return_value={
-            "Item": 8.00,
-        })):
+        with patch(
+            "src.dmarket.market_analysis._get_historical_prices",
+            AsyncMock(
+                return_value={
+                    "Item": 8.00,
+                }
+            ),
+        ):
             result = await generate_market_report(
                 game="csgo,dota2",
                 dmarket_api=mock_api,
             )
 
         assert isinstance(result, dict)
-

@@ -5,8 +5,8 @@ __version__ = "0.1.0"
 # Импортируем основные компоненты для удобства использования
 import logging
 
-from .dmarket_api import DMarketAPI
 from .arbitrage import GAMES
+from .dmarket_api import DMarketAPI
 
 
 __all__ = ["GAMES", "DMarketAPI"]

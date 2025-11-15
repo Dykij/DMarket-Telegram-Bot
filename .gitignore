@@ -24,6 +24,10 @@ var/
 htmlcov/
 .mypy_cache/
 .ruff_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
 
 # Virtual Environment
 venv/
@@ -49,11 +53,26 @@ ENV/
 *.log
 logs/
 *.log.*
+bot.log
+telegram_bot.log
+dmarket_api.log
+error.log
+debug.log
 
 # Database
 *.db
 *.sqlite
 *.sqlite3
+bot_database.db
+test_database.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Alembic
+alembic/versions/*.pyc
+alembic/__pycache__/
+alembic/versions/__pycache__/
 
 # Data files
 data/*.json
@@ -61,6 +80,9 @@ data/*.csv
 data/*.xlsx
 !data/.gitkeep
 !data/notifications/
+data/sales_history/*.json
+data/market_cache/*.json
+data/user_data/*.json
 
 # Temporary files
 *.tmp
@@ -81,8 +103,11 @@ Thumbs.db
 .coverage
 .coverage.*
 coverage.xml
+coverage.json
 *.cover
 .hypothesis/
+htmlcov/
+.tox/
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -96,6 +121,10 @@ coverage.xml
 *.crt
 *.p12
 secrets/
+.encryption_key
+encryption_key.txt
+api_keys.txt
+bot_token.txt
 
 # Backup files
 *.bak
@@ -128,10 +157,19 @@ config/production.yml
 # Runtime files
 *.pid
 bot_service_pid.txt
+celerybeat-schedule
+celerybeat.pid
 
 # Error reports
 error_analytics.json
 *_errors.log
+sentry_errors.log
+
+# Bot specific
+bot_sessions/
+user_sessions/
+*.session
+*.session-journal
 
 # Monitoring and metrics
 prometheus_data/
@@ -146,3 +184,23 @@ grafana_data/
 .devcontainer/
 Vagrantfile
 .vagrant/
+
+# Test results
+tests_results.txt
+test-results/
+.pytest_tmp/
+
+# Profiling
+*.prof
+*.lprof
+profile_results/
+
+# Redis dumps
+dump.rdb
+appendonly.aof
+
+# Backup and archive files
+backups/
+*.sql.gz
+*.tar.gz
+*.zip

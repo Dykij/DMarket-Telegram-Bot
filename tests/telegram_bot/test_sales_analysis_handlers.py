@@ -90,11 +90,14 @@ async def test_handle_sales_analysis_success(
     assert "AWP | Asiimov (Field-Tested)" in message_text
     assert "$100.00" in message_text  # Средняя цена
     assert "$120.00" in message_text  # Максимальная цена
-    assert "$90.00" in message_text   # Минимальная цена
-    assert "5.20" in message_text     # Продаж в день
+    assert "$90.00" in message_text  # Минимальная цена
+    assert "5.20" in message_text  # Продаж в день
 
     # Проверяем наличие информации о последних продажах
-    assert "Последние продажи" in message_text or "последние продажи" in message_text.lower()
+    assert (
+        "Последние продажи" in message_text
+        or "последние продажи" in message_text.lower()
+    )
     assert "2023-01-01" in message_text
     assert "$95.00" in message_text
 
@@ -131,9 +134,11 @@ async def test_handle_sales_analysis_no_data(
         message_text = ""
 
     # Проверяем сообщение об отсутствии данных (с учетом возможных вариантов формулировки)
-    assert ("Не удалось найти данные о продажах" in message_text or 
-            "Данные о продажах не найдены" in message_text or
-            "не найдены" in message_text.lower())
+    assert (
+        "Не удалось найти данные о продажах" in message_text
+        or "Данные о продажах не найдены" in message_text
+        or "не найдены" in message_text.lower()
+    )
 
 
 @pytest.mark.asyncio()
@@ -249,7 +254,10 @@ async def test_handle_arbitrage_with_sales(mock_execute_api, mock_update, mock_c
         message_text = ""
 
     # Проверяем, что в тексте содержится нужная информация (с учетом HTML-форматирования)
-    assert ("Арбитражные возможности" in message_text or "арбитражные возможности" in message_text.lower())
+    assert (
+        "Арбитражные возможности" in message_text
+        or "арбитражные возможности" in message_text.lower()
+    )
     assert "CS2" in message_text or "CSGO" in message_text.upper()  # Название игры
     assert "AWP | Asiimov (Field-Tested)" in message_text
     assert "AK-47 | Redline (Field-Tested)" in message_text
@@ -296,9 +304,11 @@ async def test_handle_arbitrage_with_sales_no_opportunities(
         message_text = ""
 
     # Проверяем сообщение об отсутствии возможностей
-    assert ("Не найдено арбитражных возможностей" in message_text or
-            "Арбитражные возможности не найдены" in message_text or
-            "не найдены" in message_text.lower())
+    assert (
+        "Не найдено арбитражных возможностей" in message_text
+        or "Арбитражные возможности не найдены" in message_text
+        or "не найдены" in message_text.lower()
+    )
 
 
 @pytest.mark.asyncio()
@@ -351,7 +361,10 @@ async def test_handle_liquidity_analysis(mock_execute_api, mock_update, mock_con
         message_text = ""
 
     # Проверяем, что в тексте содержится нужная информация (с учетом HTML-форматирования)
-    assert ("Анализ ликвидности" in message_text or "анализ ликвидности" in message_text.lower())
+    assert (
+        "Анализ ликвидности" in message_text
+        or "анализ ликвидности" in message_text.lower()
+    )
     assert "AWP | Asiimov (Field-Tested)" in message_text
     assert "Высокая" in message_text  # Категория ликвидности
     assert "6/7" in message_text  # Оценка

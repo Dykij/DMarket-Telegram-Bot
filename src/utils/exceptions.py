@@ -189,7 +189,9 @@ class RateLimitExceeded(APIError):
             response_data: Данные ответа API
             retry_after: Рекомендуемое время ожидания в секундах
         """
-        super().__init__(message, status_code, ErrorCode.RATE_LIMIT_ERROR, response_data)
+        super().__init__(
+            message, status_code, ErrorCode.RATE_LIMIT_ERROR, response_data
+        )
         self.retry_after = retry_after
 
     @property
@@ -645,11 +647,10 @@ def retry_async(
             if last_error:
                 raise last_error
 
-        return cast(F, wrapper)
+        return cast("F", wrapper)
 
     return decorator
 
 
 # Aliases for backward compatibility
 RateLimitError = RateLimitExceeded
-

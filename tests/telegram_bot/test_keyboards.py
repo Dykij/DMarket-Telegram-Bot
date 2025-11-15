@@ -11,9 +11,6 @@
 - Web App клавиатуры
 """
 
-from unittest.mock import MagicMock, patch
-
-import pytest
 from telegram import InlineKeyboardMarkup, ReplyKeyboardRemove
 
 from src.telegram_bot.keyboards import (
@@ -270,7 +267,9 @@ def test_get_pagination_keyboard_first_page():
     callback_data = [btn.callback_data for btn in buttons]
 
     # Должна быть кнопка "Вперед"
-    assert any("next" in cd or ">" in btn.text for cd, btn in zip(callback_data, buttons))
+    assert any(
+        "next" in cd or ">" in btn.text for cd, btn in zip(callback_data, buttons)
+    )
 
 
 def test_get_pagination_keyboard_middle_page():
@@ -296,7 +295,9 @@ def test_get_pagination_keyboard_last_page():
     callback_data = [btn.callback_data for btn in buttons]
 
     # Должна быть кнопка "Назад"
-    assert any("prev" in cd or "<" in btn.text for cd, btn in zip(callback_data, buttons))
+    assert any(
+        "prev" in cd or "<" in btn.text for cd, btn in zip(callback_data, buttons)
+    )
 
 
 def test_create_pagination_keyboard():
@@ -352,7 +353,9 @@ def test_get_alert_actions_keyboard():
     assert len(keyboard.inline_keyboard) > 0
 
     # Проверяем, что alert_id присутствует в callback_data (хотя бы в одной кнопке)
-    all_callbacks = [btn.callback_data for row in keyboard.inline_keyboard for btn in row]
+    all_callbacks = [
+        btn.callback_data for row in keyboard.inline_keyboard for btn in row
+    ]
     # Не все кнопки должны содержать alert_id, проверяем просто структуру
     assert len(all_callbacks) > 0
 

@@ -131,7 +131,9 @@ async def test_handle_enhanced_arbitrage_command_scan_already_running(
 # ============================================================================
 
 
-@patch("src.telegram_bot.handlers.enhanced_arbitrage_handler.start_auto_arbitrage_enhanced")
+@patch(
+    "src.telegram_bot.handlers.enhanced_arbitrage_handler.start_auto_arbitrage_enhanced"
+)
 @pytest.mark.asyncio()
 async def test_handle_enhanced_scan_callback_success(
     mock_start_arbitrage,
@@ -166,7 +168,9 @@ async def test_handle_enhanced_scan_callback_success(
     mock_update.callback_query.answer.assert_called()
 
 
-@patch("src.telegram_bot.handlers.enhanced_arbitrage_handler.start_auto_arbitrage_enhanced")
+@patch(
+    "src.telegram_bot.handlers.enhanced_arbitrage_handler.start_auto_arbitrage_enhanced"
+)
 @pytest.mark.asyncio()
 async def test_handle_enhanced_scan_callback_no_results(
     mock_start_arbitrage,
@@ -192,7 +196,9 @@ async def test_handle_enhanced_scan_callback_no_results(
     mock_update.callback_query.answer.assert_called()
 
 
-@patch("src.telegram_bot.handlers.enhanced_arbitrage_handler.start_auto_arbitrage_enhanced")
+@patch(
+    "src.telegram_bot.handlers.enhanced_arbitrage_handler.start_auto_arbitrage_enhanced"
+)
 @pytest.mark.asyncio()
 async def test_handle_enhanced_scan_callback_exception(
     mock_start_arbitrage,
@@ -258,7 +264,9 @@ async def test_active_scans_management(mock_update, mock_context):
     assert active_scans[user_id] is False
 
 
-@patch("src.telegram_bot.handlers.enhanced_arbitrage_handler.start_auto_arbitrage_enhanced")
+@patch(
+    "src.telegram_bot.handlers.enhanced_arbitrage_handler.start_auto_arbitrage_enhanced"
+)
 @pytest.mark.asyncio()
 async def test_scan_cleanup_after_completion(
     mock_start_arbitrage,

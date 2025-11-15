@@ -24,13 +24,17 @@ class TestCreateEnvFile(unittest.TestCase):
         }
 
     @patch("scripts.create_env_file.os.path.exists")
-    @patch("builtins.open", new_callable=mock_open, read_data="""# Comment line
+    @patch(
+        "builtins.open",
+        new_callable=mock_open,
+        read_data="""# Comment line
 TELEGRAM_BOT_TOKEN=1234567890:AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPPQQ
 DMARKET_PUBLIC_KEY=publickey123
 DMARKET_SECRET_KEY=secretkey456
 DMARKET_API_URL=https://api.dmarket.com
 LOG_LEVEL=INFO
-""")
+""",
+    )
     def test_read_existing_env(self, mock_file, mock_exists):
         """Test read_existing_env function."""
         from scripts import create_env_file

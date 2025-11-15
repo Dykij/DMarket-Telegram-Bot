@@ -206,14 +206,97 @@ class Config:
 
     def validate(self) -> None:
         """Validate configuration and raise errors for required missing values."""
+        errors = []
+
+        # Validate Telegram Bot configuration
         if not self.bot.token:
-            msg = "TELEGRAM_BOT_TOKEN is required"
-            raise ValueError(msg)
+            errors.append("TELEGRAM_BOT_TOKEN is required")
+        elif not self.bot.token.startswith("bot") and ":" not in self.bot.token:
+            errors.append(
+                "TELEGRAM_BOT_TOKEN appears invalid "
+                "(should be in format: 123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11)"
+            )
 
-        if not self.testing and not self.dmarket.public_key:
-            msg = "DMARKET_PUBLIC_KEY is required (unless in testing mode)"
-            raise ValueError(msg)
+        # Validate DMarket API configuration (unless in testing mode)
+        if not self.testing:
+            if not self.dmarket.public_key:
+                errors.append("DMARKET_PUBLIC_KEY is required (unless in testing mode)")
+            elif len(self.dmarket.public_key) < 20:
+                errors.append("DMARKET_PUBLIC_KEY appears too short")
 
-        if not self.testing and not self.dmarket.secret_key:
-            msg = "DMARKET_SECRET_KEY is required (unless in testing mode)"
-            raise ValueError(msg)
+            if not self.dmarket.secret_key:
+                errors.append("DMARKET_SECRET_KEY is required (unless in testing mode)")
+            elif len(self.dmarket.secret_key) < 20:
+                errors.append("DMARKET_SECRET_KEY appears too short")
+
+            # Validate API URL format
+            if not self.dmarket.api_url.startswith(("http://", "https://")):
+                errors.append(
+                    "DMARKET_API_URL must start with http:// or https://, "
+                    f"got: {self.dmarket.api_url}"
+                )
+
+            # Validate rate limit
+            if self.dmarket.rate_limit <= 0:
+                errors.append(
+                    "DMARKET rate_limit must be positive, "
+                    f"got: {self.dmarket.rate_limit}"
+                )
+
+        # Validate database URL
+        if not self.database.url:
+            errors.append("DATABASE_URL is required")
+        elif not self.database.url.startswith(
+            ("sqlite://", "postgresql://", "mysql://")
+        ):
+            errors.append(
+                "DATABASE_URL has unsupported scheme. "
+                "Supported: sqlite://, postgresql://, mysql://. "
+                f"Got: {self.database.url}"
+            )
+
+        # Validate logging level
+        valid_log_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        if self.logging.level.upper() not in valid_log_levels:
+            errors.append(
+                f"LOG_LEVEL must be one of {valid_log_levels}, "
+                f"got: {self.logging.level}"
+            )
+
+        # Validate security settings (convert user IDs)
+        if self.security.allowed_users:
+            try:
+                self.security.allowed_users = [
+                    int(uid) if uid.isdigit() else uid
+                    for uid in self.security.allowed_users
+                ]
+            except ValueError as e:
+                errors.append(f"Invalid ALLOWED_USERS format: {e}")
+
+        if self.security.admin_users:
+            try:
+                self.security.admin_users = [
+                    int(uid) if uid.isdigit() else uid
+                    for uid in self.security.admin_users
+                ]
+            except ValueError as e:
+                errors.append(f"Invalid ADMIN_USERS format: {e}")
+
+        # Validate pool settings
+        if self.database.pool_size <= 0:
+            errors.append(
+                f"Database pool_size must be positive, got: {self.database.pool_size}"
+            )
+
+        if self.database.max_overflow < 0:
+            errors.append(
+                f"Database max_overflow must be non-negative, "
+                f"got: {self.database.max_overflow}"
+            )
+
+        # Raise all errors at once
+        if errors:
+            error_msg = "Configuration validation failed:\n" + "\n".join(
+                f"  - {err}" for err in errors
+            )
+            raise ValueError(error_msg)

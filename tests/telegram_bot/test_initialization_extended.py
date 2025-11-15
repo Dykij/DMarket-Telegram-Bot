@@ -10,11 +10,10 @@
 """
 
 import logging
-import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from telegram.ext import Application, ApplicationBuilder
+from telegram.ext import Application
 
 from src.telegram_bot.initialization import (
     initialize_bot,
@@ -95,7 +94,8 @@ def test_setup_logging_with_error_file(tmp_path):
     # Проверяем, что есть handler для ошибок
     root_logger = logging.getLogger()
     error_handlers = [
-        h for h in root_logger.handlers
+        h
+        for h in root_logger.handlers
         if isinstance(h, logging.FileHandler) and h.level == logging.ERROR
     ]
     assert len(error_handlers) > 0
@@ -149,7 +149,7 @@ def test_setup_logging_sets_library_levels():
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_initialize_bot_basic():
     """Тест базовой инициализации бота."""
     with patch("src.telegram_bot.initialization.ApplicationBuilder") as mock_builder:
@@ -167,18 +167,22 @@ async def test_initialize_bot_basic():
         mock_builder.return_value = mock_builder_instance
 
         # Патчим другие функции
-        with patch("src.telegram_bot.initialization.register_global_exception_handlers"):
-            with patch("src.telegram_bot.initialization.configure_admin_ids"):
-                with patch("src.telegram_bot.initialization.setup_error_handler"):
-                    with patch("src.telegram_bot.initialization.setup_signal_handlers"):
-                        result = await initialize_bot(TEST_BOT_TOKEN, setup_persistence=False)
+        with (
+            patch("src.telegram_bot.initialization.register_global_exception_handlers"),
+            patch("src.telegram_bot.initialization.configure_admin_ids"),
+        ):
+            with patch("src.telegram_bot.initialization.setup_error_handler"):
+                with patch("src.telegram_bot.initialization.setup_signal_handlers"):
+                    result = await initialize_bot(
+                        TEST_BOT_TOKEN, setup_persistence=False
+                    )
 
         # Проверяем, что вернулся объект Application
         assert result is not None
         mock_builder_instance.token.assert_called_once_with(TEST_BOT_TOKEN)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_initialize_bot_with_invalid_token():
     """Тест инициализации бота с пустым токеном."""
     # Пустой токен должен вызывать ValueError
@@ -186,7 +190,7 @@ async def test_initialize_bot_with_invalid_token():
         await initialize_bot("", setup_persistence=False)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_initialize_bot_registers_handlers():
     """Тест регистрации handlers при инициализации."""
     with patch("src.telegram_bot.initialization.ApplicationBuilder") as mock_builder:
@@ -202,18 +206,22 @@ async def test_initialize_bot_registers_handlers():
         mock_builder_instance.build.return_value = mock_app
         mock_builder.return_value = mock_builder_instance
 
-        with patch("src.telegram_bot.initialization.register_global_exception_handlers"):
-            with patch("src.telegram_bot.initialization.configure_admin_ids"):
-                with patch("src.telegram_bot.initialization.setup_error_handler"):
-                    with patch("src.telegram_bot.initialization.setup_signal_handlers"):
-                        result = await initialize_bot(TEST_BOT_TOKEN, setup_persistence=False)
+        with (
+            patch("src.telegram_bot.initialization.register_global_exception_handlers"),
+            patch("src.telegram_bot.initialization.configure_admin_ids"),
+        ):
+            with patch("src.telegram_bot.initialization.setup_error_handler"):
+                with patch("src.telegram_bot.initialization.setup_signal_handlers"):
+                    result = await initialize_bot(
+                        TEST_BOT_TOKEN, setup_persistence=False
+                    )
 
         # Проверяем, что handlers были зарегистрированы
         # (в реальной реализации add_handler должен быть вызван)
         assert result is not None
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_initialize_bot_with_persistence():
     """Тест инициализации бота с persistence."""
     with patch("src.telegram_bot.initialization.ApplicationBuilder") as mock_builder:
@@ -225,25 +233,31 @@ async def test_initialize_bot_with_persistence():
         mock_builder_instance.token.return_value = mock_builder_instance
         mock_builder_instance.concurrent_updates.return_value = mock_builder_instance
         mock_builder_instance.connection_pool_size.return_value = mock_builder_instance
-        mock_builder_instance.persistence = MagicMock(return_value=mock_builder_instance)
+        mock_builder_instance.persistence = MagicMock(
+            return_value=mock_builder_instance
+        )
         mock_builder_instance.build.return_value = mock_app
         mock_builder.return_value = mock_builder_instance
 
-        with patch("src.telegram_bot.initialization.register_global_exception_handlers"):
-            with patch("src.telegram_bot.initialization.configure_admin_ids"):
-                with patch("src.telegram_bot.initialization.setup_error_handler"):
-                    with patch("src.telegram_bot.initialization.setup_signal_handlers"):
-                        # PicklePersistence импортируется внутри функции
-                        with patch("telegram.ext.PicklePersistence") as mock_persistence:
-                            mock_persistence.return_value = MagicMock()
-                            result = await initialize_bot(TEST_BOT_TOKEN, setup_persistence=True)
+        with (
+            patch("src.telegram_bot.initialization.register_global_exception_handlers"),
+            patch("src.telegram_bot.initialization.configure_admin_ids"),
+        ):
+            with patch("src.telegram_bot.initialization.setup_error_handler"):
+                with patch("src.telegram_bot.initialization.setup_signal_handlers"):
+                    # PicklePersistence импортируется внутри функции
+                    with patch("telegram.ext.PicklePersistence") as mock_persistence:
+                        mock_persistence.return_value = MagicMock()
+                        result = await initialize_bot(
+                            TEST_BOT_TOKEN, setup_persistence=True
+                        )
 
         assert result is not None
         # Проверяем, что persistence был использован
         mock_builder_instance.persistence.assert_called_once()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_initialize_bot_sets_up_error_handler():
     """Тест установки error handler при инициализации."""
     with patch("src.telegram_bot.initialization.ApplicationBuilder") as mock_builder:
@@ -258,18 +272,22 @@ async def test_initialize_bot_sets_up_error_handler():
         mock_builder_instance.build.return_value = mock_app
         mock_builder.return_value = mock_builder_instance
 
-        with patch("src.telegram_bot.initialization.register_global_exception_handlers") as mock_global:
-            with patch("src.telegram_bot.initialization.configure_admin_ids") as mock_admin:
-                with patch("src.telegram_bot.initialization.setup_error_handler") as mock_error:
-                    with patch("src.telegram_bot.initialization.setup_signal_handlers"):
-                        await initialize_bot(TEST_BOT_TOKEN, setup_persistence=False)
+        with (
+            patch(
+                "src.telegram_bot.initialization.register_global_exception_handlers"
+            ) as mock_global,
+            patch("src.telegram_bot.initialization.configure_admin_ids") as mock_admin,
+            patch("src.telegram_bot.initialization.setup_error_handler") as mock_error,
+            patch("src.telegram_bot.initialization.setup_signal_handlers"),
+        ):
+            await initialize_bot(TEST_BOT_TOKEN, setup_persistence=False)
 
         # Проверяем, что error handlers были настроены
         mock_global.assert_called_once()
         mock_error.assert_called_once()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_initialize_bot_creates_api_client():
     """Тест создания приложения (API клиент создается отдельно)."""
     with patch("src.telegram_bot.initialization.ApplicationBuilder") as mock_builder:
@@ -284,11 +302,15 @@ async def test_initialize_bot_creates_api_client():
         mock_builder_instance.build.return_value = mock_app
         mock_builder.return_value = mock_builder_instance
 
-        with patch("src.telegram_bot.initialization.register_global_exception_handlers"):
-            with patch("src.telegram_bot.initialization.configure_admin_ids"):
-                with patch("src.telegram_bot.initialization.setup_error_handler"):
-                    with patch("src.telegram_bot.initialization.setup_signal_handlers"):
-                        result = await initialize_bot(TEST_BOT_TOKEN, setup_persistence=False)
+        with (
+            patch("src.telegram_bot.initialization.register_global_exception_handlers"),
+            patch("src.telegram_bot.initialization.configure_admin_ids"),
+        ):
+            with patch("src.telegram_bot.initialization.setup_error_handler"):
+                with patch("src.telegram_bot.initialization.setup_signal_handlers"):
+                    result = await initialize_bot(
+                        TEST_BOT_TOKEN, setup_persistence=False
+                    )
 
         # API клиент создается отдельно, просто проверяем, что бот создан
         assert result is not None
@@ -299,7 +321,7 @@ async def test_initialize_bot_creates_api_client():
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_full_initialization_flow():
     """Тест полного flow инициализации бота."""
     # Настраиваем логирование
@@ -320,11 +342,15 @@ async def test_full_initialization_flow():
         mock_builder_instance.build.return_value = mock_app
         mock_builder.return_value = mock_builder_instance
 
-        with patch("src.telegram_bot.initialization.register_global_exception_handlers"):
-            with patch("src.telegram_bot.initialization.configure_admin_ids"):
-                with patch("src.telegram_bot.initialization.setup_error_handler"):
-                    with patch("src.telegram_bot.initialization.create_api_client_from_env"):
-                        app = await initialize_bot(TEST_BOT_TOKEN, setup_persistence=False)
+        with (
+            patch("src.telegram_bot.initialization.register_global_exception_handlers"),
+            patch("src.telegram_bot.initialization.configure_admin_ids"),
+        ):
+            with patch("src.telegram_bot.initialization.setup_error_handler"):
+                with patch(
+                    "src.telegram_bot.initialization.create_api_client_from_env"
+                ):
+                    app = await initialize_bot(TEST_BOT_TOKEN, setup_persistence=False)
 
         assert app is not None
 
@@ -343,7 +369,7 @@ def test_logging_module_imports():
     assert hasattr(initialization, "logger")
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_bot_info_retrieval():
     """Тест получения информации о боте."""
     with patch("telegram.ext.ApplicationBuilder") as mock_builder:
@@ -361,11 +387,15 @@ async def test_bot_info_retrieval():
         mock_builder_instance.build.return_value = mock_app
         mock_builder.return_value = mock_builder_instance
 
-        with patch("src.telegram_bot.initialization.register_global_exception_handlers"):
-            with patch("src.telegram_bot.initialization.configure_admin_ids"):
-                with patch("src.telegram_bot.initialization.setup_error_handler"):
-                    with patch("src.telegram_bot.initialization.create_api_client_from_env"):
-                        app = await initialize_bot(TEST_BOT_TOKEN, setup_persistence=False)
+        with (
+            patch("src.telegram_bot.initialization.register_global_exception_handlers"),
+            patch("src.telegram_bot.initialization.configure_admin_ids"),
+        ):
+            with patch("src.telegram_bot.initialization.setup_error_handler"):
+                with patch(
+                    "src.telegram_bot.initialization.create_api_client_from_env"
+                ):
+                    app = await initialize_bot(TEST_BOT_TOKEN, setup_persistence=False)
 
         assert app is not None
 
@@ -401,7 +431,7 @@ def test_setup_logging_different_levels(log_level, expected):
     "setup_persistence",
     [True, False],
 )
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_initialize_bot_persistence_options(setup_persistence):
     """Параметризованный тест для опций persistence."""
     with patch("src.telegram_bot.initialization.ApplicationBuilder") as mock_builder:
@@ -413,18 +443,24 @@ async def test_initialize_bot_persistence_options(setup_persistence):
         mock_builder_instance.token.return_value = mock_builder_instance
         mock_builder_instance.concurrent_updates.return_value = mock_builder_instance
         mock_builder_instance.connection_pool_size.return_value = mock_builder_instance
-        mock_builder_instance.persistence = MagicMock(return_value=mock_builder_instance)
+        mock_builder_instance.persistence = MagicMock(
+            return_value=mock_builder_instance
+        )
         mock_builder_instance.build.return_value = mock_app
         mock_builder.return_value = mock_builder_instance
 
-        with patch("src.telegram_bot.initialization.register_global_exception_handlers"):
-            with patch("src.telegram_bot.initialization.configure_admin_ids"):
-                with patch("src.telegram_bot.initialization.setup_error_handler"):
-                    with patch("src.telegram_bot.initialization.setup_signal_handlers"):
-                        # PicklePersistence импортируется внутри функции
-                        with patch("telegram.ext.PicklePersistence") as mock_persistence:
-                            mock_persistence.return_value = MagicMock()
-                            result = await initialize_bot(TEST_BOT_TOKEN, setup_persistence=setup_persistence)
+        with (
+            patch("src.telegram_bot.initialization.register_global_exception_handlers"),
+            patch("src.telegram_bot.initialization.configure_admin_ids"),
+        ):
+            with patch("src.telegram_bot.initialization.setup_error_handler"):
+                with patch("src.telegram_bot.initialization.setup_signal_handlers"):
+                    # PicklePersistence импортируется внутри функции
+                    with patch("telegram.ext.PicklePersistence") as mock_persistence:
+                        mock_persistence.return_value = MagicMock()
+                        result = await initialize_bot(
+                            TEST_BOT_TOKEN, setup_persistence=setup_persistence
+                        )
 
         assert result is not None
 
@@ -434,7 +470,7 @@ async def test_initialize_bot_persistence_options(setup_persistence):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_initialize_bot_network_error():
     """Тест обработки сетевой ошибки при инициализации."""
     with patch("src.telegram_bot.initialization.ApplicationBuilder") as mock_builder:
@@ -457,7 +493,6 @@ def test_setup_logging_with_invalid_path():
     # или просто проигнорировано. Проверяем, что функция не падает
     try:
         setup_logging(log_file=invalid_path)
-    except (OSError, IOError, PermissionError):
+    except (OSError, PermissionError):
         # Ожидаемые исключения при невалидном пути
         pass
-

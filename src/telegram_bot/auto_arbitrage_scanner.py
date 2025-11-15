@@ -321,7 +321,9 @@ async def check_user_balance(dmarket_api: DMarketAPI) -> dict[str, Any]:
                     "Таймаут при запросе баланса: возможны проблемы с сетью"
                 )
             elif (
-                "404" in str(error_message) or "не найден" in str(error_message).lower() or "not found" in str(error_message).lower()
+                "404" in str(error_message)
+                or "не найден" in str(error_message).lower()
+                or "not found" in str(error_message).lower()
             ):
                 diagnosis = "endpoint_error"
                 display_message = "Ошибка API: эндпоинт баланса недоступен или ключи не имеют доступа к Trading API"
@@ -345,7 +347,11 @@ async def check_user_balance(dmarket_api: DMarketAPI) -> dict[str, Any]:
         balance = balance_response.get("balance", 0.0)
 
         # Вычисляем frozen (заблокированный) баланс
-        frozen_balance = total_balance - available_balance if total_balance > available_balance else 0.0
+        frozen_balance = (
+            total_balance - available_balance
+            if total_balance > available_balance
+            else 0.0
+        )
 
         # Проверяем, достаточно ли средств на балансе
         has_funds = available_balance >= min_required_balance

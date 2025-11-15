@@ -44,7 +44,9 @@ class TestMarketAnalysisHandler:
         }
 
     @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env")
+    @patch(
+        "src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env"
+    )
     @patch("src.telegram_bot.handlers.market_analysis_handler.analyze_price_changes")
     @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
     async def test_market_analysis_callback_price_changes(
@@ -89,7 +91,9 @@ class TestMarketAnalysisHandler:
         assert self.update.callback_query.edit_message_text.call_count >= 2
 
     @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env")
+    @patch(
+        "src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env"
+    )
     @patch("src.telegram_bot.handlers.market_analysis_handler.find_undervalued_items")
     @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
     async def test_market_analysis_callback_undervalued(
@@ -138,7 +142,9 @@ class TestMarketAnalysisHandler:
         assert self.update.callback_query.edit_message_text.call_count >= 2
 
     @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env")
+    @patch(
+        "src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env"
+    )
     @patch(
         "src.telegram_bot.handlers.market_analysis_handler.get_investment_recommendations",
     )
@@ -189,7 +195,9 @@ class TestMarketAnalysisHandler:
         assert self.update.callback_query.edit_message_text.call_count >= 2
 
     @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env")
+    @patch(
+        "src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env"
+    )
     @patch("src.telegram_bot.handlers.market_analysis_handler.analyze_price_changes")
     async def test_market_analysis_callback_error(self, mock_analyze, mock_api_client):
         """Test market_analysis_callback with an error."""

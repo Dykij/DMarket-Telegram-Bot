@@ -8,8 +8,9 @@
 - Получение статистики по таргетам
 """
 
+from unittest.mock import AsyncMock
+
 import pytest
-from unittest.mock import AsyncMock, patch
 
 from src.dmarket.targets import TargetManager
 
@@ -61,9 +62,7 @@ def test_target_manager_initialization(mock_api_client):
 async def test_create_target_success(mock_api_client):
     """Тест успешного создания таргета."""
     # Настройка мока
-    mock_api_client.create_target = AsyncMock(
-        return_value={"TargetID": "target123"}
-    )
+    mock_api_client.create_target = AsyncMock(return_value={"TargetID": "target123"})
 
     manager = TargetManager(mock_api_client)
 
@@ -137,9 +136,7 @@ async def test_create_target_empty_title(mock_api_client):
 async def test_create_target_with_attrs(mock_api_client):
     """Тест создания таргета с дополнительными атрибутами."""
     # Настройка мока
-    mock_api_client.create_target = AsyncMock(
-        return_value={"TargetID": "target124"}
-    )
+    mock_api_client.create_target = AsyncMock(return_value={"TargetID": "target124"})
 
     manager = TargetManager(mock_api_client)
 
@@ -194,9 +191,7 @@ async def test_get_user_targets_success(mock_api_client):
 async def test_get_user_targets_empty(mock_api_client):
     """Тест получения таргетов когда их нет."""
     # Настройка мока - пустой результат
-    mock_api_client.get_user_targets = AsyncMock(
-        return_value={"Items": []}
-    )
+    mock_api_client.get_user_targets = AsyncMock(return_value={"Items": []})
 
     manager = TargetManager(mock_api_client)
 
@@ -227,8 +222,7 @@ async def test_get_targets_by_title(mock_api_client):
 
     # Получаем таргеты по названию
     result = await manager.get_targets_by_title(
-        game="csgo",
-        title="AWP | Asiimov (Field-Tested)"
+        game="csgo", title="AWP | Asiimov (Field-Tested)"
     )
 
     # Проверки
@@ -262,9 +256,7 @@ async def test_delete_target_success(mock_api_client):
 async def test_delete_target_not_found(mock_api_client):
     """Тест удаления несуществующего таргета."""
     # Настройка мока - ошибка
-    mock_api_client._request = AsyncMock(
-        side_effect=Exception("Target not found")
-    )
+    mock_api_client._request = AsyncMock(side_effect=Exception("Target not found"))
 
     manager = TargetManager(mock_api_client)
 
@@ -308,9 +300,7 @@ async def test_delete_all_targets(mock_api_client):
 async def test_get_target_statistics(mock_api_client):
     """Тест получения статистики по таргетам."""
     # Настройка моков
-    mock_api_client.get_user_targets = AsyncMock(
-        return_value={"Items": []}
-    )
+    mock_api_client.get_user_targets = AsyncMock(return_value={"Items": []})
 
     manager = TargetManager(mock_api_client)
 
@@ -327,9 +317,7 @@ async def test_get_target_statistics(mock_api_client):
 async def test_get_closed_targets(mock_api_client):
     """Тест получения закрытых (исполненных) таргетов."""
     # Настройка мока
-    mock_api_client.get_user_targets = AsyncMock(
-        return_value={"Items": []}
-    )
+    mock_api_client.get_user_targets = AsyncMock(return_value={"Items": []})
 
     manager = TargetManager(mock_api_client)
 

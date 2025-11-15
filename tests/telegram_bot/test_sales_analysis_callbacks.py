@@ -58,10 +58,10 @@ async def test_handle_sales_history_callback_success(
     mock_api.request = AsyncMock(return_value={"LastSales": []})
     mock_api_class.return_value.__aenter__.return_value = mock_api
     mock_api_class.return_value.__aexit__.return_value = AsyncMock()
-    
+
     # Настройка мока SalesAnalyzer
     mock_analyzer_class.return_value = AsyncMock()
-    
+
     # Настройка мока для get_sales_history
     mock_sales_data = {
         "LastSales": [

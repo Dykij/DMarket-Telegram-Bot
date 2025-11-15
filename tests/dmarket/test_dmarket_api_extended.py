@@ -18,7 +18,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from src.dmarket.dmarket_api import CACHE_TTL, DMarketAPI, api_cache
+from src.dmarket.dmarket_api import CACHE_TTL, DMarketAPI
 
 
 # Константы для тестов
@@ -27,7 +27,7 @@ TEST_SECRET_KEY = "test_secret_key_67890"
 TEST_API_URL = "https://api.test.dmarket.com"
 
 
-@pytest.fixture
+@pytest.fixture()
 def dmarket_api():
     """Создает экземпляр DMarketAPI для тестов с моками."""
     with patch("httpx.AsyncClient"):
@@ -42,7 +42,7 @@ def dmarket_api():
         return api
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_response():
     """Создает мок HTTP ответа."""
     response = MagicMock()
@@ -183,7 +183,7 @@ def test_signature_timestamp_format(dmarket_api):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_balance_format_usd_amount(dmarket_api):
     """Тест парсинга баланса в формате usd.amount."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -198,7 +198,7 @@ async def test_get_balance_format_usd_amount(dmarket_api):
         mock_request.assert_called_once_with("GET", "/account/v1/balance")
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_balance_format_usd_available(dmarket_api):
     """Тест парсинга баланса в формате usdAvailableToWithdraw."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -211,7 +211,7 @@ async def test_get_balance_format_usd_available(dmarket_api):
         assert result["error"] is False
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_balance_format_new(dmarket_api):
     """Тест парсинга баланса в новом формате."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -229,7 +229,7 @@ async def test_get_balance_format_new(dmarket_api):
         assert result["error"] is False
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_balance_format_funds_wallet(dmarket_api):
     """Тест парсинга баланса в формате funds.usdWallet."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -250,7 +250,7 @@ async def test_get_balance_format_funds_wallet(dmarket_api):
         assert result["total_balance"] == 45.0
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_balance_zero(dmarket_api):
     """Тест получения нулевого баланса."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -262,7 +262,7 @@ async def test_get_balance_zero(dmarket_api):
         assert result["has_funds"] is False
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_balance_error(dmarket_api):
     """Тест обработки ошибки при получении баланса."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -285,7 +285,7 @@ async def test_get_balance_error(dmarket_api):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_market_items_basic(dmarket_api):
     """Тест получения предметов с рынка."""
     test_items = [
@@ -307,7 +307,7 @@ async def test_get_market_items_basic(dmarket_api):
         mock_request.assert_called_once()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_market_items_with_filters(dmarket_api):
     """Тест получения предметов с фильтрами."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -338,7 +338,7 @@ async def test_get_market_items_with_filters(dmarket_api):
         assert params["orderBy"] == "price"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_user_inventory(dmarket_api):
     """Тест получения инвентаря пользователя."""
     test_inventory = {
@@ -358,7 +358,7 @@ async def test_get_user_inventory(dmarket_api):
         assert len(result["items"]) == 2
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_sales_history(dmarket_api):
     """Тест получения истории продаж."""
     test_sales = {
@@ -383,7 +383,7 @@ async def test_get_sales_history(dmarket_api):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_buy_item_success(dmarket_api):
     """Тест успешной покупки предмета."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -399,7 +399,7 @@ async def test_buy_item_success(dmarket_api):
         assert result["itemId"] == "item123"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_buy_item_insufficient_funds(dmarket_api):
     """Тест покупки при недостатке средств."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -415,7 +415,7 @@ async def test_buy_item_insufficient_funds(dmarket_api):
         assert result["code"] == "INSUFFICIENT_FUNDS"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_sell_item_success(dmarket_api):
     """Тест успешного выставления предмета на продажу."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -435,7 +435,7 @@ async def test_sell_item_success(dmarket_api):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_handle_api_unauthorized(dmarket_api):
     """Тест обработки ошибки 401."""
     mock_response = MagicMock()
@@ -472,9 +472,10 @@ async def test_handle_api_unauthorized(dmarket_api):
         assert result["status"] == 401
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_handle_api_rate_limit(dmarket_api):
     """Тест обработки rate limit (429)."""
+
     async def mock_request_ratelimit(*args, **kwargs):
         return {
             "error": True,
@@ -490,9 +491,10 @@ async def test_handle_api_rate_limit(dmarket_api):
         assert result["status"] == 429
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_handle_network_error(dmarket_api):
     """Тест обработки сетевых ошибок."""
+
     async def mock_request_network(*args, **kwargs):
         return {
             "error": True,
@@ -507,9 +509,10 @@ async def test_handle_network_error(dmarket_api):
         assert "message" in result
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_handle_timeout(dmarket_api):
     """Тест обработки timeout."""
+
     async def mock_request_timeout(*args, **kwargs):
         return {
             "error": True,
@@ -528,7 +531,7 @@ async def test_handle_timeout(dmarket_api):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_cache_enabled():
     """Тест работы кэша при enable_cache=True."""
     api = DMarketAPI(
@@ -540,7 +543,7 @@ async def test_cache_enabled():
     assert api.enable_cache is True
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_clear_cache(dmarket_api):
     """Тест очистки кэша."""
     dmarket_api.enable_cache = True
@@ -558,7 +561,7 @@ async def test_clear_cache(dmarket_api):
         # Так как реализация делает api_cache = {}, тест должен это учитывать
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_clear_cache_for_endpoint(dmarket_api):
     """Тест очистки кэша для конкретного эндпоинта."""
     dmarket_api.enable_cache = True
@@ -573,11 +576,11 @@ async def test_clear_cache_for_endpoint(dmarket_api):
         await dmarket_api.clear_cache_for_endpoint("endpoint1")
 
         # Проверяем, что остался только endpoint2
-        remaining_keys = [k for k in test_cache.keys() if k.startswith("endpoint2")]
+        remaining_keys = [k for k in test_cache if k.startswith("endpoint2")]
         assert len(remaining_keys) == 1
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_cache_ttl_values():
     """Тест значений TTL кэша."""
     assert CACHE_TTL["short"] == 30
@@ -590,7 +593,7 @@ async def test_cache_ttl_values():
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_user_balance_deprecated(dmarket_api):
     """Тест устаревшего метода get_user_balance."""
     with patch("src.dmarket.dmarket_api.logger") as mock_logger:
@@ -613,7 +616,7 @@ async def test_get_user_balance_deprecated(dmarket_api):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_context_manager(dmarket_api):
     """Тест работы как контекстный менеджер."""
     async with dmarket_api as api:
@@ -643,7 +646,7 @@ def test_endpoints_constants(dmarket_api):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_direct_balance_request_success(dmarket_api):
     """Тест прямого запроса баланса."""
     with patch("requests.get") as mock_get:
@@ -663,7 +666,7 @@ async def test_direct_balance_request_success(dmarket_api):
         assert result["data"]["balance"] == 25.0
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_direct_balance_request_error(dmarket_api):
     """Тест ошибки при прямом запросе баланса."""
     with patch("requests.get") as mock_get:
@@ -692,7 +695,7 @@ async def test_direct_balance_request_error(dmarket_api):
         ("tf2", "tf2"),
     ],
 )
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_market_items_different_games(dmarket_api, game_id, expected):
     """Тест получения предметов для разных игр."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -713,7 +716,7 @@ async def test_get_market_items_different_games(dmarket_api, game_id, expected):
         (100, 500, "10000", "50000"),
     ],
 )
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_price_conversion(
     dmarket_api, price_from, price_to, expected_from, expected_to
 ):
@@ -739,7 +742,7 @@ async def test_price_conversion(
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_create_targets_success(dmarket_api):
     """Тест создания таргетов."""
     test_targets = [
@@ -759,7 +762,7 @@ async def test_create_targets_success(dmarket_api):
         mock_request.assert_called_once()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_user_targets(dmarket_api):
     """Тест получения таргетов пользователя."""
     test_targets = {
@@ -782,7 +785,7 @@ async def test_get_user_targets(dmarket_api):
         assert len(result["Items"]) == 1
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_delete_targets(dmarket_api):
     """Тест удаления таргетов."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -793,7 +796,7 @@ async def test_delete_targets(dmarket_api):
         assert result["success"] is True
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_targets_by_title(dmarket_api):
     """Тест получения таргетов по названию."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -804,7 +807,7 @@ async def test_get_targets_by_title(dmarket_api):
         assert "targets" in result
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_closed_targets(dmarket_api):
     """Тест получения истории закрытых таргетов."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -823,7 +826,7 @@ async def test_get_closed_targets(dmarket_api):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_list_user_offers(dmarket_api):
     """Тест получения предложений пользователя."""
     test_offers = {
@@ -839,7 +842,7 @@ async def test_list_user_offers(dmarket_api):
         assert len(result["Items"]) == 1
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_create_offers(dmarket_api):
     """Тест создания оффера."""
     offers = [
@@ -857,7 +860,7 @@ async def test_create_offers(dmarket_api):
         assert result["success"] is True
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_update_offer_prices(dmarket_api):
     """Тест обновления цен офферов."""
     offers = [
@@ -875,7 +878,7 @@ async def test_update_offer_prices(dmarket_api):
         assert result["success"] is True
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_remove_offers(dmarket_api):
     """Тест удаления офферов."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -886,7 +889,7 @@ async def test_remove_offers(dmarket_api):
         assert result["success"] is True
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_edit_offer(dmarket_api):
     """Тест редактирования оффера."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -897,7 +900,7 @@ async def test_edit_offer(dmarket_api):
         assert result["success"] is True
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_delete_offer(dmarket_api):
     """Тест удаления оффера."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -908,7 +911,7 @@ async def test_delete_offer(dmarket_api):
         assert result["success"] is True
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_active_offers(dmarket_api):
     """Тест получения активных офферов."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -927,7 +930,7 @@ async def test_get_active_offers(dmarket_api):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_list_user_inventory(dmarket_api):
     """Тест получения инвентаря пользователя."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -941,7 +944,7 @@ async def test_list_user_inventory(dmarket_api):
         assert result["Total"] == 1
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_list_market_items(dmarket_api):
     """Тест получения предметов с маркета."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -955,7 +958,7 @@ async def test_list_market_items(dmarket_api):
         assert result["Total"]["Items"] == 1
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_list_offers_by_title(dmarket_api):
     """Тест получения офферов по названию."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -966,7 +969,7 @@ async def test_list_offers_by_title(dmarket_api):
         assert "Offers" in result
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_buy_offers(dmarket_api):
     """Тест покупки офферов."""
     offers = [
@@ -993,7 +996,7 @@ async def test_buy_offers(dmarket_api):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_aggregated_prices(dmarket_api):
     """Тест получения агрегированных цен."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -1006,7 +1009,7 @@ async def test_get_aggregated_prices(dmarket_api):
         assert "AggregatedTitles" in result
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_market_aggregated_prices(dmarket_api):
     """Тест получения агрегированных цен маркета."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -1017,7 +1020,7 @@ async def test_get_market_aggregated_prices(dmarket_api):
         assert "prices" in result
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_sales_history_aggregator(dmarket_api):
     """Тест получения истории продаж из агрегатора."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -1034,13 +1037,11 @@ async def test_get_sales_history_aggregator(dmarket_api):
         assert len(result["sales"]) == 1
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_item_price_history(dmarket_api):
     """Тест получения истории цен предмета."""
     with patch.object(dmarket_api, "_request") as mock_request:
-        mock_request.return_value = {
-            "history": [{"date": "2024-11-14", "price": 1000}]
-        }
+        mock_request.return_value = {"history": [{"date": "2024-11-14", "price": 1000}]}
 
         result = await dmarket_api.get_item_price_history("csgo", "AK-47")
 
@@ -1052,7 +1053,7 @@ async def test_get_item_price_history(dmarket_api):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_deposit_assets(dmarket_api):
     """Тест депозита активов."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -1063,7 +1064,7 @@ async def test_deposit_assets(dmarket_api):
         assert result["DepositID"] == "deposit123"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_deposit_status(dmarket_api):
     """Тест получения статуса депозита."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -1074,7 +1075,7 @@ async def test_get_deposit_status(dmarket_api):
         assert result["Status"] == "completed"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_user_profile(dmarket_api):
     """Тест получения профиля пользователя."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -1089,7 +1090,7 @@ async def test_get_user_profile(dmarket_api):
         assert result["username"] == "testuser"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_account_details(dmarket_api):
     """Тест получения деталей аккаунта."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -1100,7 +1101,7 @@ async def test_get_account_details(dmarket_api):
         assert result["status"] == "active"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_market_best_offers(dmarket_api):
     """Тест получения лучших офферов."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -1113,7 +1114,7 @@ async def test_get_market_best_offers(dmarket_api):
         assert len(result["offers"]) == 1
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_market_meta(dmarket_api):
     """Тест получения метаданных маркета."""
     with patch.object(dmarket_api, "_request") as mock_request:
@@ -1129,7 +1130,7 @@ async def test_get_market_meta(dmarket_api):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_client_creates_new(dmarket_api):
     """Тест создания нового HTTP клиента."""
     dmarket_api._client = None
@@ -1143,7 +1144,7 @@ async def test_get_client_creates_new(dmarket_api):
         mock_client.assert_called_once()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_client_reuses_existing(dmarket_api):
     """Тест переиспользования существующего клиента."""
     mock_client = AsyncMock()
@@ -1155,7 +1156,7 @@ async def test_get_client_reuses_existing(dmarket_api):
     assert client is mock_client
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_close_client(dmarket_api):
     """Тест закрытия HTTP клиента."""
     mock_client = AsyncMock()
@@ -1234,7 +1235,7 @@ def test_get_from_cache_valid(dmarket_api):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_request_get_method(dmarket_api):
     """Тест GET запроса."""
     # Мокируем _get_client чтобы вернуть уже мокнутый клиент
@@ -1253,7 +1254,7 @@ async def test_request_get_method(dmarket_api):
     mock_client.get.assert_called_once()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_request_post_method(dmarket_api):
     """Тест POST запроса."""
     mock_client = AsyncMock()
@@ -1271,7 +1272,7 @@ async def test_request_post_method(dmarket_api):
     mock_client.post.assert_called_once()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_request_put_method(dmarket_api):
     """Тест PUT запроса."""
     mock_client = AsyncMock()
@@ -1288,7 +1289,7 @@ async def test_request_put_method(dmarket_api):
     assert result == {"updated": True}
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_request_delete_method(dmarket_api):
     """Тест DELETE запроса."""
     mock_client = AsyncMock()
@@ -1305,7 +1306,7 @@ async def test_request_delete_method(dmarket_api):
     assert result == {"deleted": True}
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_request_unsupported_method(dmarket_api):
     """Тест неподдерживаемого HTTP метода."""
     mock_client = AsyncMock()
@@ -1318,7 +1319,7 @@ async def test_request_unsupported_method(dmarket_api):
     assert "code" in result
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_request_json_parse_error(dmarket_api):
     """Тест ошибки парсинга JSON."""
     mock_client = AsyncMock()
@@ -1337,7 +1338,7 @@ async def test_request_json_parse_error(dmarket_api):
     assert result["status_code"] == 200
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_request_with_retries(dmarket_api):
     """Тест повторных попыток при ошибках."""
     mock_response = MagicMock()
@@ -1361,7 +1362,7 @@ async def test_request_with_retries(dmarket_api):
         assert result["error"] is True
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_request_rate_limit_with_retry_after(dmarket_api):
     """Тест rate limit с заголовком Retry-After."""
     mock_response = MagicMock()
@@ -1393,7 +1394,7 @@ async def test_request_rate_limit_with_retry_after(dmarket_api):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_all_market_items_single_page(dmarket_api):
     """Тест получения всех предметов (одна страница)."""
     with patch.object(dmarket_api, "get_market_items") as mock_get_items:
@@ -1407,7 +1408,7 @@ async def test_get_all_market_items_single_page(dmarket_api):
         assert len(result) == 2
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_all_market_items_multiple_pages(dmarket_api):
     """Тест получения всех предметов (несколько страниц)."""
 
@@ -1415,10 +1416,9 @@ async def test_get_all_market_items_multiple_pages(dmarket_api):
         offset = kwargs.get("offset", 0)
         if offset == 0:
             return {"items": [{"id": f"item_{i}"} for i in range(100)]}
-        elif offset == 100:
+        if offset == 100:
             return {"items": [{"id": f"item_{i}"} for i in range(100, 150)]}
-        else:
-            return {"items": []}
+        return {"items": []}
 
     with patch.object(dmarket_api, "get_market_items", side_effect=mock_get_items):
         result = await dmarket_api.get_all_market_items("csgo", max_items=200)
@@ -1426,7 +1426,7 @@ async def test_get_all_market_items_multiple_pages(dmarket_api):
         assert len(result) == 150
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_all_market_items_empty_response(dmarket_api):
     """Тест получения пустого списка."""
     with patch.object(dmarket_api, "get_market_items") as mock_get_items:
@@ -1442,7 +1442,7 @@ async def test_get_all_market_items_empty_response(dmarket_api):
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_suggested_price_found(dmarket_api):
     """Тест получения рекомендуемой цены."""
     with patch.object(dmarket_api, "get_market_items") as mock_get_items:
@@ -1455,7 +1455,7 @@ async def test_get_suggested_price_found(dmarket_api):
         assert result == 15.0
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_suggested_price_not_found(dmarket_api):
     """Тест когда предмет не найден."""
     with patch.object(dmarket_api, "get_market_items") as mock_get_items:
@@ -1466,7 +1466,7 @@ async def test_get_suggested_price_not_found(dmarket_api):
         assert result is None
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_suggested_price_dict_format(dmarket_api):
     """Тест рекомендуемой цены в формате dict."""
     with patch.object(dmarket_api, "get_market_items") as mock_get_items:
@@ -1513,7 +1513,7 @@ def test_init_with_custom_retry_codes():
 # ==============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_direct_balance_official_format(dmarket_api):
     """Тест прямого запроса баланса в официальном формате."""
     with patch("requests.get") as mock_get:
@@ -1533,7 +1533,7 @@ async def test_direct_balance_official_format(dmarket_api):
         assert result["data"]["balance"] == 25.50
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_direct_balance_with_trade_protected(dmarket_api):
     """Тест прямого запроса баланса с защищенными средствами."""
     with patch("requests.get") as mock_get:
@@ -1552,7 +1552,7 @@ async def test_direct_balance_with_trade_protected(dmarket_api):
         assert result["data"]["trade_protected"] == 5.0
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_direct_balance_exception(dmarket_api):
     """Тест исключения при прямом запросе баланса."""
     with patch("requests.get", side_effect=Exception("Connection error")):

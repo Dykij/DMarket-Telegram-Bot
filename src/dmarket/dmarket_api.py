@@ -30,7 +30,6 @@ import json
 import logging
 import time
 import traceback
-from datetime import datetime
 from typing import Any
 
 import httpx
@@ -150,7 +149,9 @@ class DMarketAPI:
         """
         self.public_key = public_key
         self._public_key = public_key  # Store for test access
-        self._secret_key = secret_key if isinstance(secret_key, str) else secret_key.decode("utf-8")  # Store original string for test access
+        self._secret_key = (
+            secret_key if isinstance(secret_key, str) else secret_key.decode("utf-8")
+        )  # Store original string for test access
         # Convert secret_key to bytes if it's a string
         if isinstance(secret_key, str):
             self.secret_key = secret_key.encode("utf-8")
@@ -253,29 +254,33 @@ class DMarketAPI:
             if isinstance(self.secret_key, str):
                 secret_key_str = self._secret_key
             else:
-                secret_key_str = self.secret_key.decode('utf-8')
+                secret_key_str = self.secret_key.decode("utf-8")
 
             # Try different formats for secret key
             try:
                 # Format 1: HEX format (64 chars = 32 bytes)
                 if len(secret_key_str) == 64:
                     secret_key_bytes = bytes.fromhex(secret_key_str)
-                    logger.debug(f"Using HEX format secret key (32 bytes)")
+                    logger.debug("Using HEX format secret key (32 bytes)")
                 # Format 2: Base64 format
-                elif len(secret_key_str) == 44 or '=' in secret_key_str:
+                elif len(secret_key_str) == 44 or "=" in secret_key_str:
                     import base64
+
                     secret_key_bytes = base64.b64decode(secret_key_str)
-                    logger.debug(f"Using Base64 format secret key ({len(secret_key_bytes)} bytes)")
+                    logger.debug(
+                        f"Using Base64 format secret key ({len(secret_key_bytes)} bytes)"
+                    )
                 # Format 3: Raw string - take first 32 bytes
+                # If longer than 64 hex chars, try to take first 64
+                elif len(secret_key_str) >= 64:
+                    secret_key_bytes = bytes.fromhex(secret_key_str[:64])
+                    logger.debug("Using first 32 bytes of long HEX key")
                 else:
-                    # If longer than 64 hex chars, try to take first 64
-                    if len(secret_key_str) >= 64:
-                        secret_key_bytes = bytes.fromhex(secret_key_str[:64])
-                        logger.debug(f"Using first 32 bytes of long HEX key")
-                    else:
-                        # Fallback: encode string to bytes and pad/truncate to 32
-                        secret_key_bytes = secret_key_str.encode('utf-8')[:32].ljust(32, b'\0')
-                        logger.warning(f"Secret key format unknown, using padded bytes")
+                    # Fallback: encode string to bytes and pad/truncate to 32
+                    secret_key_bytes = secret_key_str.encode("utf-8")[:32].ljust(
+                        32, b"\0"
+                    )
+                    logger.warning("Secret key format unknown, using padded bytes")
             except Exception as conv_error:
                 logger.error(f"Error converting secret key: {conv_error}")
                 raise
@@ -284,7 +289,7 @@ class DMarketAPI:
             signing_key = nacl.signing.SigningKey(secret_key_bytes)
 
             # Sign the message
-            signed = signing_key.sign(string_to_sign.encode('utf-8'))
+            signed = signing_key.sign(string_to_sign.encode("utf-8"))
 
             # Extract signature in hex format
             signature = signed.signature.hex()
@@ -328,7 +333,11 @@ class DMarketAPI:
         if body:
             string_to_sign += body
 
-        secret_key = self.secret_key if isinstance(self.secret_key, bytes) else self.secret_key.encode('utf-8')
+        secret_key = (
+            self.secret_key
+            if isinstance(self.secret_key, bytes)
+            else self.secret_key.encode("utf-8")
+        )
 
         signature = hmac.new(
             secret_key,
@@ -821,12 +830,16 @@ class DMarketAPI:
             # 2024 обновление: сначала пробуем прямой REST API запрос через requests
             # Этот подход может быть более надежен для некоторых эндпоинтов
             try:
-                logger.debug("🔍 Пытаемся получить баланс через прямой REST API запрос...")
+                logger.debug(
+                    "🔍 Пытаемся получить баланс через прямой REST API запрос..."
+                )
                 direct_response = await self.direct_balance_request()
                 logger.debug(f"🔍 Прямой ответ API: {direct_response}")
 
                 if direct_response and direct_response.get("success", False):
-                    logger.info("✅ Успешно получили баланс через прямой REST API запрос")
+                    logger.info(
+                        "✅ Успешно получили баланс через прямой REST API запрос"
+                    )
 
                     # Извлекаем данные из успешного ответа
                     balance_data = direct_response.get("data", {})
@@ -1013,10 +1026,14 @@ class DMarketAPI:
                     try:
                         # Значения приходят как строки в центах
                         usd_str = response.get("usd", "0")
-                        usd_available_str = response.get("usdAvailableToWithdraw", usd_str)
+                        usd_available_str = response.get(
+                            "usdAvailableToWithdraw", usd_str
+                        )
 
                         # Проверяем, что это строки (согласно документации)
-                        if isinstance(usd_str, str) and isinstance(usd_available_str, str):
+                        if isinstance(usd_str, str) and isinstance(
+                            usd_available_str, str
+                        ):
                             # Конвертируем из центов в доллары
                             usd_amount = float(usd_str)  # в центах
                             usd_available = float(usd_available_str)  # в центах
@@ -1028,7 +1045,11 @@ class DMarketAPI:
                         else:
                             # Если не строки, пробуем как числа
                             usd_amount = float(usd_str) if usd_str else 0
-                            usd_available = float(usd_available_str) if usd_available_str else usd_amount
+                            usd_available = (
+                                float(usd_available_str)
+                                if usd_available_str
+                                else usd_amount
+                            )
                             usd_total = usd_amount
 
                             logger.info(
@@ -1362,9 +1383,7 @@ class DMarketAPI:
                 # DMarket API возвращает items в поле 'objects' (согласно документации)
                 if "objects" in response:
                     items_count = len(response.get("objects", []))
-                    logger.info(
-                        f"✅ Получено {items_count} предметов для игры {game}"
-                    )
+                    logger.info(f"✅ Получено {items_count} предметов для игры {game}")
                 elif "items" in response:
                     # Альтернативное название поля
                     items_count = len(response.get("items", []))
@@ -2410,7 +2429,7 @@ class DMarketAPI:
                 if isinstance(self.secret_key, str):
                     secret_key_str = self._secret_key
                 else:
-                    secret_key_str = self.secret_key.decode('utf-8')
+                    secret_key_str = self.secret_key.decode("utf-8")
 
                 # Try different formats for secret key
                 try:
@@ -2418,34 +2437,43 @@ class DMarketAPI:
                     if len(secret_key_str) == 64:
                         secret_key_bytes = bytes.fromhex(secret_key_str)
                     # Format 2: Base64 format
-                    elif len(secret_key_str) == 44 or '=' in secret_key_str:
+                    elif len(secret_key_str) == 44 or "=" in secret_key_str:
                         import base64
+
                         secret_key_bytes = base64.b64decode(secret_key_str)
                     # Format 3: Take first 64 hex chars
                     elif len(secret_key_str) >= 64:
                         secret_key_bytes = bytes.fromhex(secret_key_str[:64])
                     else:
                         # Fallback
-                        secret_key_bytes = secret_key_str.encode('utf-8')[:32].ljust(32, b'\0')
+                        secret_key_bytes = secret_key_str.encode("utf-8")[:32].ljust(
+                            32, b"\0"
+                        )
                 except Exception as conv_error:
-                    logger.error(f"Error converting secret key in direct request: {conv_error}")
+                    logger.error(
+                        f"Error converting secret key in direct request: {conv_error}"
+                    )
                     raise
 
                 # Create Ed25519 signing key
                 signing_key = nacl.signing.SigningKey(secret_key_bytes)
 
                 # Sign the message
-                signed = signing_key.sign(string_to_sign.encode('utf-8'))
+                signed = signing_key.sign(string_to_sign.encode("utf-8"))
 
                 # Extract signature in hex format
                 signature = signed.signature.hex()
 
-                logger.debug(f"Direct balance request - signature generated")
+                logger.debug("Direct balance request - signature generated")
 
             except Exception as sig_error:
                 logger.error(f"Error generating Ed25519 signature: {sig_error}")
                 # Fallback to HMAC if Ed25519 fails
-                secret_key = self.secret_key if isinstance(self.secret_key, bytes) else self.secret_key.encode('utf-8')
+                secret_key = (
+                    self.secret_key
+                    if isinstance(self.secret_key, bytes)
+                    else self.secret_key.encode("utf-8")
+                )
                 signature = hmac.new(
                     secret_key,
                     string_to_sign.encode(),
@@ -2484,14 +2512,22 @@ class DMarketAPI:
 
                         # Получаем USD баланс (в центах как строка)
                         usd_str = response_data.get("usd", "0")
-                        usd_available_str = response_data.get("usdAvailableToWithdraw", "0")
-                        usd_trade_protected_str = response_data.get("usdTradeProtected", "0")
+                        usd_available_str = response_data.get(
+                            "usdAvailableToWithdraw", "0"
+                        )
+                        usd_trade_protected_str = response_data.get(
+                            "usdTradeProtected", "0"
+                        )
 
                         # Конвертируем из строки в центы, затем в доллары
                         try:
                             balance_cents = float(usd_str)  # общий баланс в центах
-                            available_cents = float(usd_available_str)  # доступный баланс в центах
-                            trade_protected_cents = float(usd_trade_protected_str)  # защищенный в торговле
+                            available_cents = float(
+                                usd_available_str
+                            )  # доступный баланс в центах
+                            trade_protected_cents = float(
+                                usd_trade_protected_str
+                            )  # защищенный в торговле
 
                             # Конвертируем центы в доллары
                             balance = balance_cents / 100
@@ -2503,9 +2539,13 @@ class DMarketAPI:
 
                             total = balance  # Обычно total = balance
 
-                            logger.info(f"💰 Распарсен баланс: Всего ${balance:.2f} USD (доступно: ${available:.2f}, заблокировано: ${locked:.2f}, защищено торговлей: ${trade_protected:.2f})")
+                            logger.info(
+                                f"💰 Распарсен баланс: Всего ${balance:.2f} USD (доступно: ${available:.2f}, заблокировано: ${locked:.2f}, защищено торговлей: ${trade_protected:.2f})"
+                            )
                         except (ValueError, TypeError) as e:
-                            logger.error(f"Ошибка конвертации баланса: {e}, usd={usd_str}, usdAvailable={usd_available_str}")
+                            logger.error(
+                                f"Ошибка конвертации баланса: {e}, usd={usd_str}, usdAvailable={usd_available_str}"
+                            )
                             balance = 0.0
                             available = 0.0
                             total = 0.0

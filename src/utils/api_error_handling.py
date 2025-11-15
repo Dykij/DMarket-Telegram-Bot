@@ -20,6 +20,7 @@ from src.utils.exceptions import (
     retry_async,
 )
 
+
 __all__ = [
     "APIError",
     "AuthenticationError",
@@ -29,8 +30,8 @@ __all__ = [
     "RetryStrategy",
     "ValidationError",
     "handle_api_error",
-    "retry_async",
     "handle_response",
+    "retry_async",
     "retry_request",
 ]
 
@@ -122,4 +123,3 @@ async def retry_request(
     if last_error:
         raise last_error
     return None
-

@@ -1,8 +1,7 @@
 """Тесты для модуля rate_limiter."""
 
-import asyncio
 import time
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -183,7 +182,7 @@ class TestUpdateFromHeaders:
 class TestWaitIfNeeded:
     """Тесты ожидания перед запросом."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_wait_if_needed_no_wait(self):
         """Тест без необходимости ожидания."""
         limiter = RateLimiter()
@@ -195,7 +194,7 @@ class TestWaitIfNeeded:
         # Должно быть быстро (меньше 0.1 сек)
         assert elapsed < 0.1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_wait_if_needed_with_reset_time(self):
         """Тест с временем сброса в будущем."""
         limiter = RateLimiter()
@@ -210,7 +209,7 @@ class TestWaitIfNeeded:
         # После ожидания время сброса удаляется
         assert "market" not in limiter.reset_times
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_wait_if_needed_rate_limiting(self):
         """Тест с ограничением скорости."""
         limiter = RateLimiter()
@@ -224,7 +223,7 @@ class TestWaitIfNeeded:
         # Должно подождать около 0.5 сек
         assert elapsed >= 0.45
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_wait_if_needed_zero_rate_limit(self):
         """Тест с нулевым лимитом (без ограничений)."""
         limiter = RateLimiter()
@@ -241,7 +240,7 @@ class TestWaitIfNeeded:
 class TestHandle429:
     """Тесты обработки ошибки 429."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_429_with_retry_after(self):
         """Тест с указанным Retry-After."""
         limiter = RateLimiter()
@@ -254,7 +253,7 @@ class TestHandle429:
         assert attempts == 1
         assert elapsed >= 0.99
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_429_exponential_backoff(self):
         """Тест экспоненциальной задержки."""
         limiter = RateLimiter()
@@ -271,7 +270,7 @@ class TestHandle429:
         # Должно быть BASE_RETRY_DELAY * 2^1 = 2.0 сек (+ jitter)
         assert 1.8 <= wait2 <= 2.2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_429_max_wait_time(self):
         """Тест максимального времени ожидания (30 сек)."""
         limiter = RateLimiter()
@@ -323,7 +322,7 @@ class TestGetRateLimit:
 
         # Для market и trade лимиты уменьшаются вдвое
         assert limiter.get_rate_limit("market") == 1.0  # 2 / 2
-        assert limiter.get_rate_limit("trade") == 0.5   # 1 / 2
+        assert limiter.get_rate_limit("trade") == 0.5  # 1 / 2
         # Для других лимиты не меняются
         assert limiter.get_rate_limit("user") == 5
         assert limiter.get_rate_limit("balance") == 10
@@ -398,4 +397,3 @@ class TestRateLimiterConstants:
     def test_base_retry_delay(self):
         """Тест базовой задержки повтора."""
         assert BASE_RETRY_DELAY == 1.0
-

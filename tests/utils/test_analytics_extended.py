@@ -7,7 +7,6 @@
 
 import io
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -35,10 +34,7 @@ def sample_price_data():
 @pytest.fixture()
 def sample_items_data():
     """Создает пример данных о предметах."""
-    return [
-        {"name": f"Item {i}", "price": 100 + i * 10}
-        for i in range(5)
-    ]
+    return [{"name": f"Item {i}", "price": 100 + i * 10} for i in range(5)]
 
 
 @pytest.fixture()
@@ -123,10 +119,7 @@ def test_create_price_history_chart_empty_data(chart_generator):
 def test_create_price_history_chart_custom_title(chart_generator, sample_price_data):
     """Тест создания графика с кастомным заголовком."""
     title = "Custom Price Chart"
-    result = chart_generator.create_price_history_chart(
-        sample_price_data,
-        title=title
-    )
+    result = chart_generator.create_price_history_chart(sample_price_data, title=title)
 
     assert isinstance(result, io.BytesIO)
 
@@ -134,8 +127,7 @@ def test_create_price_history_chart_custom_title(chart_generator, sample_price_d
 def test_create_price_history_chart_custom_currency(chart_generator, sample_price_data):
     """Тест создания графика с кастомной валютой."""
     result = chart_generator.create_price_history_chart(
-        sample_price_data,
-        currency="EUR"
+        sample_price_data, currency="EUR"
     )
 
     assert isinstance(result, io.BytesIO)
@@ -165,8 +157,7 @@ def test_create_market_overview_chart_custom_title(chart_generator, sample_items
     """Тест создания графика с кастомным заголовком."""
     title = "Top Market Items"
     result = chart_generator.create_market_overview_chart(
-        sample_items_data,
-        title=title
+        sample_items_data, title=title
     )
 
     assert isinstance(result, io.BytesIO)
@@ -204,8 +195,7 @@ def test_create_arbitrage_chart_custom_title(chart_generator, sample_arbitrage_d
     """Тест создания графика с кастомным заголовком."""
     title = "Best Opportunities"
     result = chart_generator.create_arbitrage_opportunities_chart(
-        sample_arbitrage_data,
-        title=title
+        sample_arbitrage_data, title=title
     )
 
     assert isinstance(result, io.BytesIO)
@@ -269,10 +259,7 @@ def test_chart_generation_workflow(chart_generator):
         for i in range(5)
     ]
 
-    items_data = [
-        {"name": f"Item {i}", "price": 50 + i * 10}
-        for i in range(5)
-    ]
+    items_data = [{"name": f"Item {i}", "price": 50 + i * 10} for i in range(5)]
 
     arbitrage_data = [
         {
@@ -309,8 +296,7 @@ def test_multiple_generators_isolation():
 def test_chart_generator_reusability(chart_generator):
     """Тест повторного использования генератора."""
     data = [
-        {"date": datetime.now().isoformat(), "price": 100 + i * 10}
-        for i in range(3)
+        {"date": datetime.now().isoformat(), "price": 100 + i * 10} for i in range(3)
     ]
 
     # Создаем несколько графиков подряд
@@ -376,6 +362,7 @@ def test_chart_generation_performance(chart_generator):
     ]
 
     import time
+
     start = time.time()
     result = chart_generator.create_price_history_chart(large_data)
     duration = time.time() - start
@@ -388,11 +375,11 @@ def test_chart_generation_performance(chart_generator):
 def test_multiple_charts_generation_performance(chart_generator):
     """Тест производительности создания нескольких графиков."""
     data = [
-        {"date": datetime.now().isoformat(), "price": 100 + i * 5}
-        for i in range(10)
+        {"date": datetime.now().isoformat(), "price": 100 + i * 5} for i in range(10)
     ]
 
     import time
+
     start = time.time()
 
     # Создаем 10 графиков

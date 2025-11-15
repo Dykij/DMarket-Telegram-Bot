@@ -110,7 +110,9 @@ def register_all_handlers(application: "Application") -> None:
         register_intramarket_handlers(application)
         logger.info("Intramarket arbitrage обработчики зарегистрированы")
     except ImportError as e:
-        logger.warning(f"Не удалось импортировать intramarket_arbitrage обработчики: {e}")
+        logger.warning(
+            f"Не удалось импортировать intramarket_arbitrage обработчики: {e}"
+        )
 
     try:
         from src.telegram_bot.settings_handlers import register_localization_handlers
@@ -150,4 +152,3 @@ def register_all_handlers(application: "Application") -> None:
 
 
 __all__ = ["register_all_handlers"]
-

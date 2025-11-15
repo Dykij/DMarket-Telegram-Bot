@@ -636,9 +636,7 @@ async def test_fetch_market_items_with_api_provided():
     mock_api = AsyncMock()
     mock_api.__aenter__ = AsyncMock(return_value=mock_api)
     mock_api.__aexit__ = AsyncMock(return_value=None)
-    mock_api.get_market_items = AsyncMock(
-        return_value={"objects": test_items}
-    )
+    mock_api.get_market_items = AsyncMock(return_value={"objects": test_items})
 
     items = await fetch_market_items(
         game="csgo",
@@ -691,9 +689,7 @@ async def test_fetch_market_items_with_price_conversion():
 async def test_fetch_market_items_exception_handling():
     """Тест обработки исключений при получении предметов."""
     mock_api = AsyncMock()
-    mock_api.__aenter__ = AsyncMock(
-        side_effect=Exception("API Error")
-    )
+    mock_api.__aenter__ = AsyncMock(side_effect=Exception("API Error"))
     mock_api.__aexit__ = AsyncMock(return_value=None)
 
     items = await fetch_market_items(
@@ -947,10 +943,7 @@ async def test_find_arbitrage_results_sorting():
 
         # Результаты должны быть отсортированы по убыванию прибыли
         if len(results) > 1:
-            profits = [
-                float(r["profit"].replace("$", ""))
-                for r in results
-            ]
+            profits = [float(r["profit"].replace("$", "")) for r in results]
             assert profits == sorted(profits, reverse=True)
 
 
@@ -969,7 +962,7 @@ async def test_find_arbitrage_cache_usage():
     with patch("src.dmarket.arbitrage.fetch_market_items") as mock_fetch:
         mock_fetch.return_value = test_items
 
-        from src.dmarket.arbitrage import _find_arbitrage_async, _arbitrage_cache
+        from src.dmarket.arbitrage import _arbitrage_cache, _find_arbitrage_async
 
         # Очищаем кэш перед тестом
         _arbitrage_cache.clear()

@@ -224,41 +224,40 @@ class TestHandleIntramarketCallback:
         # Создаем мок для pagination_manager и API client
         with patch(
             "src.telegram_bot.handlers.intramarket_arbitrage_handler.pagination_manager",
-        ) as mock_pagination:
-            with patch(
-                "src.telegram_bot.handlers.intramarket_arbitrage_handler.create_api_client_from_env",
-                return_value=AsyncMock(),
-            ):
-                # Вызываем тестируемую функцию
-                await handle_intramarket_callback(update, context)
+        ) as mock_pagination, patch(
+            "src.telegram_bot.handlers.intramarket_arbitrage_handler.create_api_client_from_env",
+            return_value=AsyncMock(),
+        ):
+            # Вызываем тестируемую функцию
+            await handle_intramarket_callback(update, context)
 
-                # Проверяем, что ответ на callback был отправлен
-                update.callback_query.answer.assert_awaited_once()
+            # Проверяем, что ответ на callback был отправлен
+            update.callback_query.answer.assert_awaited_once()
 
-                # Проверяем, что сообщение о сканировании было отправлено
-                edit_message_calls = update.callback_query.edit_message_text.mock_calls
-                assert len(edit_message_calls) >= 2
+            # Проверяем, что сообщение о сканировании было отправлено
+            edit_message_calls = update.callback_query.edit_message_text.mock_calls
+            assert len(edit_message_calls) >= 2
 
-                # Проверяем первое сообщение о сканировании
-                first_call_args = edit_message_calls[0][1]
-                edit_message_calls[0][2]
-                assert "Сканирование" in first_call_args[0]
-                assert "CS2" in first_call_args[0]
+            # Проверяем первое сообщение о сканировании
+            first_call_args = edit_message_calls[0][1]
+            edit_message_calls[0][2]
+            assert "Сканирование" in first_call_args[0]
+            assert "CS2" in first_call_args[0]
 
-                # Проверяем, что функция find_price_anomalies была вызвана с правильными параметрами
-                assert mock_anomalies.await_count == 1
-                call_kwargs = mock_anomalies.call_args[1]
-                assert call_kwargs["game"] == "csgo"
-                assert call_kwargs["max_results"] == 50
+            # Проверяем, что функция find_price_anomalies была вызвана с правильными параметрами
+            assert mock_anomalies.await_count == 1
+            call_kwargs = mock_anomalies.call_args[1]
+            assert call_kwargs["game"] == "csgo"
+            assert call_kwargs["max_results"] == 50
 
-                # Проверяем, что pagination_manager был использован
-                mock_pagination.add_items_for_user.assert_called_once()
+            # Проверяем, что pagination_manager был использован
+            mock_pagination.add_items_for_user.assert_called_once()
 
-                # Проверяем, что последнее сообщение содержит результаты
-                last_call_args = edit_message_calls[-1][1]
-                last_call_kwargs = edit_message_calls[-1][2]
-                # Результаты будут отформатированы с помощью format_intramarket_results
-                assert "reply_markup" in last_call_kwargs
+            # Проверяем, что последнее сообщение содержит результаты
+            last_call_args = edit_message_calls[-1][1]
+            last_call_kwargs = edit_message_calls[-1][2]
+            # Результаты будут отформатированы с помощью format_intramarket_results
+            assert "reply_markup" in last_call_kwargs
 
     @patch(
         "src.telegram_bot.handlers.intramarket_arbitrage_handler.find_trending_items",
@@ -285,35 +284,34 @@ class TestHandleIntramarketCallback:
         # Создаем мок для pagination_manager и API client
         with patch(
             "src.telegram_bot.handlers.intramarket_arbitrage_handler.pagination_manager",
-        ) as mock_pagination:
-            with patch(
-                "src.telegram_bot.handlers.intramarket_arbitrage_handler.create_api_client_from_env",
-                return_value=AsyncMock(),
-            ):
-                # Вызываем тестируемую функцию
-                await handle_intramarket_callback(update, context)
+        ) as mock_pagination, patch(
+            "src.telegram_bot.handlers.intramarket_arbitrage_handler.create_api_client_from_env",
+            return_value=AsyncMock(),
+        ):
+            # Вызываем тестируемую функцию
+            await handle_intramarket_callback(update, context)
 
-                # Проверяем, что ответ на callback был отправлен
-                update.callback_query.answer.assert_awaited_once()
+            # Проверяем, что ответ на callback был отправлен
+            update.callback_query.answer.assert_awaited_once()
 
-                # Проверяем, что функция find_trending_items была вызвана с правильными параметрами
-                assert mock_trending.await_count == 1
-                call_kwargs = mock_trending.call_args[1]
-                assert call_kwargs["game"] == "csgo"
-                assert call_kwargs["max_results"] == 50
+            # Проверяем, что функция find_trending_items была вызвана с правильными параметрами
+            assert mock_trending.await_count == 1
+            call_kwargs = mock_trending.call_args[1]
+            assert call_kwargs["game"] == "csgo"
+            assert call_kwargs["max_results"] == 50
 
-                # Проверяем, что pagination_manager был использован
-                mock_pagination.add_items_for_user.assert_called_once()
+            # Проверяем, что pagination_manager был использован
+            mock_pagination.add_items_for_user.assert_called_once()
 
-                # Проверяем отправленное сообщение
-                last_call_args = update.callback_query.edit_message_text.mock_calls[-1][
-                    1
-                ]
-                last_call_kwargs = update.callback_query.edit_message_text.mock_calls[
-                    -1
-                ][2]
-                # Результаты отформатированы
-                assert "reply_markup" in last_call_kwargs
+            # Проверяем отправленное сообщение
+            last_call_args = update.callback_query.edit_message_text.mock_calls[-1][
+                1
+            ]
+            last_call_kwargs = update.callback_query.edit_message_text.mock_calls[
+                -1
+            ][2]
+            # Результаты отформатированы
+            assert "reply_markup" in last_call_kwargs
 
     @patch(
         "src.telegram_bot.handlers.intramarket_arbitrage_handler.find_mispriced_rare_items",
