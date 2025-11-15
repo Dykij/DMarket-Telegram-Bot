@@ -293,9 +293,15 @@
 
 #### 2. `src/telegram_bot/` (Telegram Bot модули)
 
-##### Обработчики команд (0% покрытия)
+##### Обработчики команд
 
-- [ ] `handlers/commands.py` (38 строк)
+- [x] `handlers/commands.py` ✅ **ЗАВЕРШЕНО** (100%, 38 строк) - **22 теста**
+  - Команды: /start (4), /help (1), /webapp (1), /markets (1), /status (1), /arbitrage (2)
+  - Кнопки: 7 тестов (6 кнопок + неизвестный текст)
+  - Интеграция: 3 теста (workflow, HTML, reply_markup)
+  - Валидация: 2 теста (экспорты, вызываемость)
+  - **Покрытие**: 100% (38/38 строк, 14/14 веток)
+  - **Коммит**: Ожидает
 - [ ] `handlers/callbacks.py` (166 строк)
 - [ ] `handlers/scanner_handler.py` (134 строк)
 - [ ] `handlers/market_analysis_handler.py` (310 строк)
