@@ -107,7 +107,7 @@ jobs:
 
       - name: Upload code quality report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: code-quality-reports
           path: reports/
@@ -181,7 +181,7 @@ jobs:
 
       - name: Upload security report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: security-reports
           path: security-reports/
@@ -258,7 +258,7 @@ jobs:
 
       - name: Upload Sphinx documentation
         if: steps.check-docs.outputs.has_sphinx == 'true' && hashFiles('docs/build/html/**') != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: sphinx-documentation
           path: docs/build/html
