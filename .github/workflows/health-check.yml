@@ -115,7 +115,7 @@ jobs:
 
       - name: Create issue for critical problems
         if: steps.check-issues.outputs.critical == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const successRate = '${{ steps.check-issues.outputs.success_rate }}';
