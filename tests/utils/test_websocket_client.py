@@ -1,5 +1,6 @@
 """Тесты для модуля websocket_client.py"""
 
+import asyncio
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -267,4 +268,261 @@ async def test_close(websocket_client):
     await websocket_client.close()
 
     # Verify connection was closed
+    assert websocket_client.is_connected is False
+
+
+@pytest.mark.asyncio()
+async def test_init(mock_api_client):
+    """Тест инициализации клиента."""
+    client = DMarketWebSocketClient(api_client=mock_api_client)
+
+    assert client.api_client == mock_api_client
+    assert client.session is None
+    assert client.ws_connection is None
+    assert client.is_connected is False
+    assert client.reconnect_attempts == 0
+    assert client.max_reconnect_attempts == 10
+    assert client.handlers == {}
+    assert client.authenticated is False
+    assert client.subscriptions == set()
+    assert client.connection_id is not None
+
+
+@pytest.mark.asyncio()
+async def test_authenticate(websocket_client):
+    """Тест аутентификации."""
+    websocket_client.is_connected = True
+    websocket_client.ws_connection = AsyncMock()
+    websocket_client.ws_connection.send_json = AsyncMock()
+
+    await websocket_client._authenticate()
+
+    websocket_client.ws_connection.send_json.assert_called_once()
+    call_args = websocket_client.ws_connection.send_json.call_args[0][0]
+    assert call_args["type"] == "auth"
+    assert "apiKey" in call_args
+    assert "timestamp" in call_args
+
+
+@pytest.mark.asyncio()
+async def test_authenticate_not_connected(websocket_client):
+    """Тест аутентификации при отсутствии соединения."""
+    websocket_client.is_connected = False
+
+    await websocket_client._authenticate()
+
+    # Не должно быть исключений, просто логирование
+
+
+@pytest.mark.asyncio()
+async def test_resubscribe(websocket_client):
+    """Тест переподписки после реконнекта."""
+    websocket_client.is_connected = True
+    websocket_client.ws_connection = AsyncMock()
+    websocket_client.ws_connection.send_json = AsyncMock()
+    websocket_client.subscriptions = {"market:update", "prices:update"}
+
+    await websocket_client._resubscribe()
+
+    # Должно быть два вызова subscribe
+    assert websocket_client.ws_connection.send_json.call_count == 2
+
+
+@pytest.mark.asyncio()
+async def test_unsubscribe_all(websocket_client):
+    """Тест отписки от всех тем."""
+    websocket_client.is_connected = True
+    websocket_client.ws_connection = AsyncMock()
+    websocket_client.ws_connection.send_json = AsyncMock()
+    websocket_client.subscriptions = {"market:update", "prices:update"}
+
+    await websocket_client._unsubscribe_all()
+
+    # Должно быть два вызова unsubscribe
+    assert websocket_client.ws_connection.send_json.call_count == 2
+    assert len(websocket_client.subscriptions) == 0
+
+
+@pytest.mark.asyncio()
+async def test_handle_message_auth_success(websocket_client):
+    """Тест обработки успешной аутентификации."""
+    message_data = json.dumps({"type": "auth", "status": "success"})
+
+    await websocket_client._handle_message(message_data)
+
+    assert websocket_client.authenticated is True
+
+
+@pytest.mark.asyncio()
+async def test_handle_message_auth_failure(websocket_client):
+    """Тест обработки неудачной аутентификации."""
+    message_data = json.dumps({"type": "auth", "status": "error", "error": "Invalid API key"})
+
+    await websocket_client._handle_message(message_data)
+
+    assert websocket_client.authenticated is False
+
+
+@pytest.mark.asyncio()
+async def test_handle_message_subscription(websocket_client):
+    """Тест обработки ответа на подписку."""
+    message_data = json.dumps({"type": "subscription", "topic": "market:update", "status": "ok"})
+
+    # Не должно быть исключений
+    await websocket_client._handle_message(message_data)
+
+
+@pytest.mark.asyncio()
+async def test_handle_message_json_decode_error(websocket_client):
+    """Тест обработки некорректного JSON."""
+    message_data = "invalid json {"
+
+    # Не должно быть исключений, только логирование
+    await websocket_client._handle_message(message_data)
+
+
+@pytest.mark.asyncio()
+async def test_attempt_reconnect_success(websocket_client):
+    """Тест успешного реконнекта."""
+    websocket_client.reconnect_attempts = 2
+
+    with patch.object(websocket_client, "connect", AsyncMock(return_value=True)):
+        with patch("asyncio.sleep", AsyncMock()):
+            await websocket_client._attempt_reconnect()
+
+    assert websocket_client.reconnect_attempts == 3
+
+
+@pytest.mark.asyncio()
+async def test_attempt_reconnect_max_attempts(websocket_client):
+    """Тест достижения максимума попыток реконнекта."""
+    websocket_client.reconnect_attempts = 10
+    websocket_client.max_reconnect_attempts = 10
+
+    await websocket_client._attempt_reconnect()
+
+    # Должен выйти без попыток
+    assert websocket_client.reconnect_attempts == 10
+
+
+@pytest.mark.asyncio()
+async def test_unregister_handler(websocket_client):
+    """Тест отмены регистрации обработчика."""
+    handler = AsyncMock()
+    websocket_client.register_handler("market:update", handler)
+
+    websocket_client.unregister_handler("market:update", handler)
+
+    assert handler not in websocket_client.handlers.get("market:update", [])
+
+
+@pytest.mark.asyncio()
+async def test_send_message(websocket_client):
+    """Тест отправки кастомного сообщения."""
+    websocket_client.is_connected = True
+    websocket_client.ws_connection = AsyncMock()
+    websocket_client.ws_connection.send_json = AsyncMock()
+
+    message = {"type": "custom", "data": {"key": "value"}}
+    result = await websocket_client.send_message(message)
+
+    assert result is True
+    websocket_client.ws_connection.send_json.assert_called_once_with(message)
+
+
+@pytest.mark.asyncio()
+async def test_send_message_not_connected(websocket_client):
+    """Тест отправки сообщения при отсутствии соединения."""
+    websocket_client.is_connected = False
+
+    result = await websocket_client.send_message({"type": "test"})
+
+    assert result is False
+
+
+@pytest.mark.asyncio()
+async def test_subscribe_to_market_updates(websocket_client):
+    """Тест подписки на обновления рынка."""
+    websocket_client.is_connected = True
+    websocket_client.ws_connection = AsyncMock()
+    websocket_client.ws_connection.send_json = AsyncMock()
+
+    result = await websocket_client.subscribe_to_market_updates("csgo")
+
+    assert result is True
+    websocket_client.ws_connection.send_json.assert_called_once()
+    call_args = websocket_client.ws_connection.send_json.call_args[0][0]
+    assert call_args["topic"] == "market:update"
+    assert call_args["params"]["gameId"] == "csgo"
+
+
+@pytest.mark.asyncio()
+async def test_subscribe_to_item_updates(websocket_client):
+    """Тест подписки на обновления предметов."""
+    websocket_client.is_connected = True
+    websocket_client.ws_connection = AsyncMock()
+    websocket_client.ws_connection.send_json = AsyncMock()
+
+    item_ids = ["item1", "item2", "item3"]
+    result = await websocket_client.subscribe_to_item_updates(item_ids)
+
+    assert result is True
+    websocket_client.ws_connection.send_json.assert_called_once()
+    call_args = websocket_client.ws_connection.send_json.call_args[0][0]
+    assert call_args["topic"] == "items:update"
+    assert call_args["params"]["itemIds"] == item_ids
+
+
+@pytest.mark.asyncio()
+async def test_subscribe_with_params(websocket_client):
+    """Тест подписки с параметрами."""
+    websocket_client.is_connected = True
+    websocket_client.ws_connection = AsyncMock()
+    websocket_client.ws_connection.send_json = AsyncMock()
+
+    params = {"filter": "price>100"}
+    result = await websocket_client.subscribe("custom:topic", params)
+
+    assert result is True
+    call_args = websocket_client.ws_connection.send_json.call_args[0][0]
+    assert call_args["params"] == params
+
+
+@pytest.mark.asyncio()
+async def test_connect_already_connected(websocket_client):
+    """Тест подключения когда уже подключен."""
+    websocket_client.is_connected = True
+
+    result = await websocket_client.connect()
+
+    assert result is True
+
+
+@pytest.mark.asyncio()
+async def test_listen_cancelled_error(websocket_client):
+    """Тест отмены listen task."""
+    websocket_client.is_connected = True
+
+    async def mock_receive():
+        raise asyncio.CancelledError()
+
+    websocket_client.ws_connection = AsyncMock()
+    websocket_client.ws_connection.receive = mock_receive
+
+    # Не должно быть исключений
+    await websocket_client.listen()
+
+
+@pytest.mark.asyncio()
+async def test_listen_closed_message(websocket_client):
+    """Тест обработки закрытия соединения."""
+    closed_message = WSMessage(WSMsgType.CLOSED, None, None)
+    mock_ws = MockWebSocket(messages=[closed_message])
+
+    websocket_client.ws_connection = mock_ws
+    websocket_client.is_connected = True
+
+    with patch.object(websocket_client, "_attempt_reconnect", AsyncMock()):
+        await websocket_client.listen()
+
     assert websocket_client.is_connected is False

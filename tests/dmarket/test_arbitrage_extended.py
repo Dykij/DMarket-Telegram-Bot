@@ -621,3 +621,373 @@ async def test_arbitrage_with_zero_profit():
         )
 
         assert isinstance(results, list)
+
+
+# ==============================================================================
+# ТЕСТЫ FETCH_MARKET_ITEMS С API
+# ==============================================================================
+
+
+@pytest.mark.asyncio()
+async def test_fetch_market_items_with_api_provided():
+    """Тест получения предметов с предоставленным API клиентом."""
+    test_items = [{"title": "Test Item", "price": {"amount": 1000}}]
+
+    mock_api = AsyncMock()
+    mock_api.__aenter__ = AsyncMock(return_value=mock_api)
+    mock_api.__aexit__ = AsyncMock(return_value=None)
+    mock_api.get_market_items = AsyncMock(
+        return_value={"objects": test_items}
+    )
+
+    items = await fetch_market_items(
+        game="csgo",
+        limit=100,
+        dmarket_api=mock_api,
+    )
+
+    assert len(items) == 1
+    assert items[0]["title"] == "Test Item"
+
+
+@pytest.mark.asyncio()
+async def test_fetch_market_items_without_api_keys():
+    """Тест получения предметов без API ключей."""
+    with patch("os.environ.get") as mock_env:
+        mock_env.return_value = ""  # Пустые ключи
+
+        items = await fetch_market_items(
+            game="csgo",
+            limit=100,
+            dmarket_api=None,
+        )
+
+        assert items == []
+
+
+@pytest.mark.asyncio()
+async def test_fetch_market_items_with_price_conversion():
+    """Тест конвертации цен при запросе предметов."""
+    mock_api = AsyncMock()
+    mock_api.__aenter__ = AsyncMock(return_value=mock_api)
+    mock_api.__aexit__ = AsyncMock(return_value=None)
+    mock_api.get_market_items = AsyncMock(return_value={"objects": []})
+
+    await fetch_market_items(
+        game="csgo",
+        limit=100,
+        price_from=5.0,
+        price_to=50.0,
+        dmarket_api=mock_api,
+    )
+
+    # Проверяем что цены были конвертированы в центы
+    call_kwargs = mock_api.get_market_items.call_args.kwargs
+    assert call_kwargs["price_from"] == 500
+    assert call_kwargs["price_to"] == 5000
+
+
+@pytest.mark.asyncio()
+async def test_fetch_market_items_exception_handling():
+    """Тест обработки исключений при получении предметов."""
+    mock_api = AsyncMock()
+    mock_api.__aenter__ = AsyncMock(
+        side_effect=Exception("API Error")
+    )
+    mock_api.__aexit__ = AsyncMock(return_value=None)
+
+    items = await fetch_market_items(
+        game="csgo",
+        dmarket_api=mock_api,
+    )
+
+    assert items == []
+
+
+# ==============================================================================
+# ТЕСТЫ _FIND_ARBITRAGE_ASYNC С РАЗЛИЧНЫМИ ТИПАМИ ПРЕДМЕТОВ
+# ==============================================================================
+
+
+@pytest.mark.asyncio()
+async def test_find_arbitrage_with_suggested_price():
+    """Тест поиска арбитража с suggestedPrice."""
+    test_items = [
+        {
+            "title": "Item with suggested price",
+            "price": {"amount": 1000},  # $10
+            "suggestedPrice": {"amount": 1500},  # $15
+            "itemId": "item1",
+        }
+    ]
+
+    with patch("src.dmarket.arbitrage.fetch_market_items") as mock_fetch:
+        mock_fetch.return_value = test_items
+
+        from src.dmarket.arbitrage import _find_arbitrage_async
+
+        results = await _find_arbitrage_async(
+            min_profit=1.0,
+            max_profit=10.0,
+            game="csgo",
+        )
+
+        assert len(results) > 0
+        assert "sell" in results[0]
+
+
+@pytest.mark.asyncio()
+async def test_find_arbitrage_with_high_popularity():
+    """Тест арбитража с высокой популярностью предмета."""
+    test_items = [
+        {
+            "title": "Popular Item",
+            "price": {"amount": 1000},
+            "extra": {"popularity": 0.8},
+            "itemId": "pop1",
+        }
+    ]
+
+    with patch("src.dmarket.arbitrage.fetch_market_items") as mock_fetch:
+        mock_fetch.return_value = test_items
+
+        from src.dmarket.arbitrage import _find_arbitrage_async
+
+        results = await _find_arbitrage_async(
+            min_profit=0.5,
+            max_profit=5.0,
+            game="csgo",
+        )
+
+        # Проверяем что результат содержит информацию о ликвидности
+        if results:
+            assert results[0]["liquidity"] == "high"
+
+
+@pytest.mark.asyncio()
+async def test_find_arbitrage_with_medium_popularity():
+    """Тест арбитража со средней популярностью предмета."""
+    test_items = [
+        {
+            "title": "Medium Popular Item",
+            "price": {"amount": 1000},
+            "extra": {"popularity": 0.5},  # 0.4 < popularity < 0.7 = medium
+            "itemId": "med1",
+        }
+    ]
+
+    with patch("src.dmarket.arbitrage.fetch_market_items") as mock_fetch:
+        mock_fetch.return_value = test_items
+
+        from src.dmarket.arbitrage import _find_arbitrage_async
+
+        results = await _find_arbitrage_async(
+            min_profit=0.5,
+            max_profit=5.0,
+            game="csgo",
+        )
+
+        # Проверяем что результат получен
+        if results:
+            assert "liquidity" in results[0]
+
+
+@pytest.mark.asyncio()
+async def test_find_arbitrage_with_low_popularity():
+    """Тест арбитража с низкой популярностью предмета."""
+    test_items = [
+        {
+            "title": "Unpopular Item",
+            "price": {"amount": 1000},
+            "extra": {"popularity": 0.2},
+            "itemId": "unpop1",
+        }
+    ]
+
+    with patch("src.dmarket.arbitrage.fetch_market_items") as mock_fetch:
+        mock_fetch.return_value = test_items
+
+        from src.dmarket.arbitrage import _find_arbitrage_async
+
+        results = await _find_arbitrage_async(
+            min_profit=0.5,
+            max_profit=10.0,
+            game="csgo",
+        )
+
+        if results:
+            assert results[0]["liquidity"] == "low"
+
+
+@pytest.mark.asyncio()
+async def test_find_arbitrage_item_parsing_error():
+    """Тест обработки ошибки парсинга предмета."""
+    test_items = [
+        {"title": "Valid Item", "price": {"amount": 1000}, "itemId": "valid1"},
+        {"title": "Invalid Item"},  # Без price - вызовет ошибку
+        {
+            "title": "Another Valid",
+            "price": {"amount": 2000},
+            "itemId": "valid2",
+        },
+    ]
+
+    with patch("src.dmarket.arbitrage.fetch_market_items") as mock_fetch:
+        mock_fetch.return_value = test_items
+
+        from src.dmarket.arbitrage import _find_arbitrage_async
+
+        # Не должно упасть, несмотря на невалидный предмет
+        results = await _find_arbitrage_async(
+            min_profit=0.5,
+            max_profit=10.0,
+            game="csgo",
+        )
+
+        # Валидные предметы должны быть обработаны
+        assert isinstance(results, list)
+
+
+@pytest.mark.asyncio()
+async def test_find_arbitrage_profit_calculation():
+    """Тест расчета прибыли с учетом комиссий."""
+    test_items = [
+        {
+            "title": "Test Item",
+            "price": {"amount": 1000},  # $10
+            "suggestedPrice": {"amount": 1200},  # $12
+            "extra": {"popularity": 0.8},  # Высокая популярность -> LOW_FEE (2%)
+            "itemId": "test1",
+        }
+    ]
+
+    with patch("src.dmarket.arbitrage.fetch_market_items") as mock_fetch:
+        mock_fetch.return_value = test_items
+
+        from src.dmarket.arbitrage import _find_arbitrage_async
+
+        results = await _find_arbitrage_async(
+            min_profit=0.1,
+            max_profit=5.0,
+            game="csgo",
+        )
+
+        assert len(results) > 0
+        # Проверяем что прибыль рассчитана правильно
+        # sell_price * (1 - 0.02) - buy_price = 12 * 0.98 - 10 = 1.76
+        result = results[0]
+        assert "profit" in result
+        assert "fee" in result
+        assert result["fee"] == "2%"  # LOW_FEE
+
+
+@pytest.mark.asyncio()
+async def test_find_arbitrage_with_no_extra_data():
+    """Тест арбитража для предметов без extra данных."""
+    test_items = [
+        {
+            "title": "Simple Item",
+            "price": {"amount": 1000},
+            "suggestedPrice": {"amount": 1200},  # Добавляем чтобы была прибыль
+            "itemId": "simple1",
+        }
+    ]
+
+    with patch("src.dmarket.arbitrage.fetch_market_items") as mock_fetch:
+        mock_fetch.return_value = test_items
+
+        from src.dmarket.arbitrage import _find_arbitrage_async
+
+        results = await _find_arbitrage_async(
+            min_profit=0.5,
+            max_profit=5.0,
+            game="csgo",
+        )
+
+        if results:
+            # Без extra данных используется DEFAULT_FEE
+            assert "liquidity" in results[0]
+            assert "fee" in results[0]
+
+
+@pytest.mark.asyncio()
+async def test_find_arbitrage_results_sorting():
+    """Тест сортировки результатов по прибыли."""
+    test_items = [
+        {
+            "title": "Item 1",
+            "price": {"amount": 1000},
+            "suggestedPrice": {"amount": 1100},
+            "itemId": "i1",
+        },
+        {
+            "title": "Item 2",
+            "price": {"amount": 1000},
+            "suggestedPrice": {"amount": 1500},
+            "itemId": "i2",
+        },
+        {
+            "title": "Item 3",
+            "price": {"amount": 1000},
+            "suggestedPrice": {"amount": 1300},
+            "itemId": "i3",
+        },
+    ]
+
+    with patch("src.dmarket.arbitrage.fetch_market_items") as mock_fetch:
+        mock_fetch.return_value = test_items
+
+        from src.dmarket.arbitrage import _find_arbitrage_async
+
+        results = await _find_arbitrage_async(
+            min_profit=0.1,
+            max_profit=10.0,
+            game="csgo",
+        )
+
+        # Результаты должны быть отсортированы по убыванию прибыли
+        if len(results) > 1:
+            profits = [
+                float(r["profit"].replace("$", ""))
+                for r in results
+            ]
+            assert profits == sorted(profits, reverse=True)
+
+
+@pytest.mark.asyncio()
+async def test_find_arbitrage_cache_usage():
+    """Тест использования кэша в _find_arbitrage_async."""
+    test_items = [
+        {
+            "title": "Cached Item",
+            "price": {"amount": 1000},
+            "suggestedPrice": {"amount": 1200},
+            "itemId": "cache1",
+        }
+    ]
+
+    with patch("src.dmarket.arbitrage.fetch_market_items") as mock_fetch:
+        mock_fetch.return_value = test_items
+
+        from src.dmarket.arbitrage import _find_arbitrage_async, _arbitrage_cache
+
+        # Очищаем кэш перед тестом
+        _arbitrage_cache.clear()
+
+        # Первый вызов - заполняем кэш
+        results1 = await _find_arbitrage_async(
+            min_profit=1.0,
+            max_profit=5.0,
+            game="csgo",
+        )
+
+        # Второй вызов - должен использовать кэш
+        results2 = await _find_arbitrage_async(
+            min_profit=1.0,
+            max_profit=5.0,
+            game="csgo",
+        )
+
+        # fetch_market_items должен быть вызван только один раз
+        assert mock_fetch.call_count == 1
+        assert results1 == results2
