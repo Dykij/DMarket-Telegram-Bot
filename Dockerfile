@@ -1,5 +1,5 @@
 # Использовать Alpine Linux для минимизации уязвимостей
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 # Установка рабочей директории внутри контейнера
 WORKDIR /app
