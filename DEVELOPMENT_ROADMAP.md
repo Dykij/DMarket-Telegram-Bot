@@ -308,6 +308,19 @@
   - handle_level_scan (7): success, invalid level, no API, no results, exception, edge cases
   - handle_market_overview (4): success, no callback, no API, exception
   - handle_scanner_pagination (5): next, prev, no callback, invalid data, no user
+  - register_scanner_handlers (2): handlers count, callback pattern
+  - Integration (3): full scan workflow, overview, pagination sequence
+  - Edge cases (3): rapid pagination, multiple calls, menu errors
+  - **Покрытие**: 98.88% (132/134 строк, 42/44 веток)
+  - **Коммит**: 8e933e1
+- [x] `handlers/target_handler.py` ✅ **ЗАВЕРШЕНО** (97.87%, 35 строк) - **20 тестов**
+  - start_targets_menu (5): callback query, прямой вызов, no user, кнопки, callback_data
+  - handle_target_callback (7): main menu, create/list/smart/stats/delete, no callback
+  - register_target_handlers (3): регистрация, CommandHandler, CallbackQueryHandler
+  - Integration (2): полный workflow (menu→create), все кнопки
+  - Edge cases (3): множественные открытия, быстрые queries, неизвестная data
+  - **Покрытие**: 97.87% (35/35 строк, 12/13 веток)
+  - **Коммит**: Ожидает
   - handle_scanner_callback (5): main menu, level scan, market overview, unknown, no callback
   - register_scanner_handlers (1): handler registration
   - Integration (2): full workflow, button validation
