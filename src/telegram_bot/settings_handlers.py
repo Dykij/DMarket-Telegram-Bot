@@ -92,10 +92,7 @@ def get_localized_text(user_id: int, key: str, **kwargs) -> str:
 
     # Если ключ не найден, ищем в русской локализации
     if key not in LOCALIZATIONS[lang]:
-        if key in LOCALIZATIONS["ru"]:
-            text = LOCALIZATIONS["ru"][key]
-        else:
-            text = f"[Missing: {key}]"
+        text = LOCALIZATIONS["ru"].get(key, f"[Missing: {key}]")
     else:
         text = LOCALIZATIONS[lang][key]
 
@@ -221,10 +218,7 @@ async def settings_callback(update: Update, context: CallbackContext) -> None:
         api_secret = profile.get("api_secret", "")
 
         # Скрываем часть ключей для безопасности
-        if api_key:
-            api_key_display = api_key[:5] + "..." + api_key[-5:]
-        else:
-            api_key_display = "Не установлен"
+        api_key_display = api_key[:5] + "..." + api_key[-5:] if api_key else "Не установлен"
 
         if api_secret:
             api_secret_display = api_secret[:3] + "..." + api_secret[-3:]

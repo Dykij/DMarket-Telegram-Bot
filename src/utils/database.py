@@ -298,11 +298,7 @@ class DatabaseManager:
 
                 # Return updated user with new data
                 return User(
-                    id=(
-                        UUID(user_row.id)
-                        if isinstance(user_row.id, str)
-                        else user_row.id
-                    ),
+                    id=(UUID(user_row.id) if isinstance(user_row.id, str) else user_row.id),
                     telegram_id=user_row.telegram_id,
                     username=username or user_row.username,
                     first_name=first_name or user_row.first_name,

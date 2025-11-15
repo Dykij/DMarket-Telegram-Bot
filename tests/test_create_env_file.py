@@ -46,10 +46,7 @@ LOG_LEVEL=INFO
         result = create_env_file.read_existing_env()
 
         # Check result
-        assert (
-            result["TELEGRAM_BOT_TOKEN"]
-            == "1234567890:AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPPQQ"
-        )
+        assert result["TELEGRAM_BOT_TOKEN"] == "1234567890:AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPPQQ"
         assert result["DMARKET_PUBLIC_KEY"] == "publickey123"
         assert result["DMARKET_SECRET_KEY"] == "secretkey456"
         assert result["DMARKET_API_URL"] == "https://api.dmarket.com"

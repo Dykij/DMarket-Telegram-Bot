@@ -278,14 +278,10 @@ async def test_handle_level_scan_success(
 
     # Проверяем вызовы
     mock_update.callback_query.answer.assert_called_once()
-    assert (
-        mock_update.callback_query.edit_message_text.call_count >= 2
-    )  # Начальное + результаты
+    assert mock_update.callback_query.edit_message_text.call_count >= 2  # Начальное + результаты
 
     # Проверяем вызов scan_level
-    mock_scanner.scan_level.assert_called_once_with(
-        level="standard", game="csgo", max_results=50
-    )
+    mock_scanner.scan_level.assert_called_once_with(level="standard", game="csgo", max_results=50)
 
     # Проверяем добавление в пагинацию
     mock_pagination.add_items_for_user.assert_called_once_with(

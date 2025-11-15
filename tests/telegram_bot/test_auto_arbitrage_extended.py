@@ -367,9 +367,10 @@ async def test_start_auto_trading_mode_validation():
 @pytest.mark.asyncio()
 async def test_check_balance_command_with_update(mock_update, mock_context):
     """Тест проверки баланса через Update."""
-    with patch(
-        "src.telegram_bot.auto_arbitrage.create_dmarket_api_client"
-    ) as mock_create, patch("src.telegram_bot.auto_arbitrage.check_user_balance") as mock_check:
+    with (
+        patch("src.telegram_bot.auto_arbitrage.create_dmarket_api_client") as mock_create,
+        patch("src.telegram_bot.auto_arbitrage.check_user_balance") as mock_check,
+    ):
         mock_api = MagicMock()
         mock_create.return_value = mock_api
         mock_check.return_value = {
@@ -387,9 +388,10 @@ async def test_check_balance_command_with_update(mock_update, mock_context):
 @pytest.mark.asyncio()
 async def test_check_balance_command_with_query(mock_query, mock_context):
     """Тест проверки баланса через callback query."""
-    with patch(
-        "src.telegram_bot.auto_arbitrage.create_dmarket_api_client"
-    ) as mock_create, patch("src.telegram_bot.auto_arbitrage.check_user_balance") as mock_check:
+    with (
+        patch("src.telegram_bot.auto_arbitrage.create_dmarket_api_client") as mock_create,
+        patch("src.telegram_bot.auto_arbitrage.check_user_balance") as mock_check,
+    ):
         mock_api = MagicMock()
         mock_create.return_value = mock_api
         mock_check.return_value = {
@@ -453,7 +455,7 @@ async def test_stop_auto_trading(mock_query, mock_context):
 
 @pytest.mark.parametrize(
     "mode",
-    ["boost_low", "mid_medium", "pro_high"],
+    ("boost_low", "mid_medium", "pro_high"),
 )
 def test_arbitrage_mode_structure(mode):
     """Параметризованный тест структуры режимов арбитража."""
@@ -475,18 +477,16 @@ def test_arbitrage_mode_structure(mode):
 
 
 @pytest.mark.parametrize(
-    "error_message,should_ignore",
-    [
+    ("error_message", "should_ignore"),
+    (
         ("message is not modified", True),
         ("Message is not modified", True),
         ("Other error", False),
         ("Bad request", False),
-    ],
+    ),
 )
 @pytest.mark.asyncio()
-async def test_safe_edit_message_text_error_handling(
-    mock_query, error_message, should_ignore
-):
+async def test_safe_edit_message_text_error_handling(mock_query, error_message, should_ignore):
     """Параметризованный тест обработки ошибок."""
     mock_query.edit_message_text.side_effect = BadRequest(error_message)
 

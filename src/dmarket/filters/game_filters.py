@@ -44,7 +44,8 @@ class CS2Filter(BaseGameFilter):
     """Filter for CS2/CSGO items."""
 
     game_name = "csgo"
-    supported_filters = BaseGameFilter.supported_filters + [
+    supported_filters = [
+        *BaseGameFilter.supported_filters,
         "exterior",
         "rarity",
         "quality",
@@ -94,12 +95,7 @@ class Dota2Filter(BaseGameFilter):
     """Filter for Dota 2 items."""
 
     game_name = "dota2"
-    supported_filters = BaseGameFilter.supported_filters + [
-        "rarity",
-        "hero",
-        "quality",
-        "slot",
-    ]
+    supported_filters = [*BaseGameFilter.supported_filters, "rarity", "hero", "quality", "slot"]
 
     def apply_filters(self, item: dict[str, Any], filters: dict[str, Any]) -> bool:
         """Apply Dota 2-specific filters."""
@@ -137,10 +133,7 @@ class RustFilter(BaseGameFilter):
     """Filter for Rust items."""
 
     game_name = "rust"
-    supported_filters = BaseGameFilter.supported_filters + [
-        "item_type",
-        "rarity",
-    ]
+    supported_filters = [*BaseGameFilter.supported_filters, "item_type", "rarity"]
 
     def apply_filters(self, item: dict[str, Any], filters: dict[str, Any]) -> bool:
         """Apply Rust-specific filters."""

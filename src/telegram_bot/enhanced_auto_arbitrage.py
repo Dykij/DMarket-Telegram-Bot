@@ -88,10 +88,7 @@ async def scan_game_comprehensively(
             # Use price chunks within the game's min/max range
             price_ranges = []
             for chunk_min, chunk_max in DEFAULT_PRICE_CHUNKS:
-                if (
-                    chunk_max >= game_defaults["min"]
-                    and chunk_min <= game_defaults["max"]
-                ):
+                if chunk_max >= game_defaults["min"] and chunk_min <= game_defaults["max"]:
                     # Adjust chunk to be within game min/max
                     adjusted_min = max(chunk_min, game_defaults["min"])
                     adjusted_max = min(chunk_max, game_defaults["max"])

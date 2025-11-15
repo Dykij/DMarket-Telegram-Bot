@@ -48,14 +48,10 @@ class TestRegisterAllHandlers:
         register_all_handlers(mock_application)
 
         # Получаем все зарегистрированные обработчики
-        registered_handlers = [
-            call[0][0] for call in mock_application.add_handler.call_args_list
-        ]
+        registered_handlers = [call[0][0] for call in mock_application.add_handler.call_args_list]
 
         # Проверяем наличие CommandHandler для каждой команды
-        command_handlers = [
-            h for h in registered_handlers if isinstance(h, CommandHandler)
-        ]
+        command_handlers = [h for h in registered_handlers if isinstance(h, CommandHandler)]
 
         # Ожидаемые команды
         expected_commands = [
@@ -85,14 +81,10 @@ class TestRegisterAllHandlers:
         """
         register_all_handlers(mock_application)
 
-        registered_handlers = [
-            call[0][0] for call in mock_application.add_handler.call_args_list
-        ]
+        registered_handlers = [call[0][0] for call in mock_application.add_handler.call_args_list]
 
         # Проверяем наличие CallbackQueryHandler
-        callback_handlers = [
-            h for h in registered_handlers if isinstance(h, CallbackQueryHandler)
-        ]
+        callback_handlers = [h for h in registered_handlers if isinstance(h, CallbackQueryHandler)]
 
         assert len(callback_handlers) > 0, "CallbackQueryHandler не зарегистрирован"
 
@@ -103,14 +95,10 @@ class TestRegisterAllHandlers:
         """
         register_all_handlers(mock_application)
 
-        registered_handlers = [
-            call[0][0] for call in mock_application.add_handler.call_args_list
-        ]
+        registered_handlers = [call[0][0] for call in mock_application.add_handler.call_args_list]
 
         # Проверяем наличие MessageHandler
-        message_handlers = [
-            h for h in registered_handlers if isinstance(h, MessageHandler)
-        ]
+        message_handlers = [h for h in registered_handlers if isinstance(h, MessageHandler)]
 
         assert len(message_handlers) > 0, "MessageHandler не зарегистрирован"
 
@@ -123,7 +111,7 @@ class TestRegisterAllHandlers:
         register_all_handlers(mock_application)
 
         # Проверяем, что были вызовы logger.info
-        info_calls = [call for call in mock_logger.info.call_args_list]
+        info_calls = list(mock_logger.info.call_args_list)
 
         assert len(info_calls) > 0, "Не было вызовов logger.info"
 
@@ -132,9 +120,7 @@ class TestRegisterAllHandlers:
 
         assert any("Начало регистрации обработчиков" in msg for msg in logged_messages)
         assert any("Базовые команды зарегистрированы" in msg for msg in logged_messages)
-        assert any(
-            "Callback-обработчики зарегистрированы" in msg for msg in logged_messages
-        )
+        assert any("Callback-обработчики зарегистрированы" in msg for msg in logged_messages)
 
     @patch("src.telegram_bot.register_all_handlers.logger")
     def test_handlers_registration_order(self, mock_logger, mock_application):
@@ -145,25 +131,17 @@ class TestRegisterAllHandlers:
         """
         register_all_handlers(mock_application)
 
-        registered_handlers = [
-            call[0][0] for call in mock_application.add_handler.call_args_list
-        ]
+        registered_handlers = [call[0][0] for call in mock_application.add_handler.call_args_list]
 
         # Найдем индексы разных типов обработчиков
         command_indices = [
-            i
-            for i, h in enumerate(registered_handlers)
-            if isinstance(h, CommandHandler)
+            i for i, h in enumerate(registered_handlers) if isinstance(h, CommandHandler)
         ]
         callback_indices = [
-            i
-            for i, h in enumerate(registered_handlers)
-            if isinstance(h, CallbackQueryHandler)
+            i for i, h in enumerate(registered_handlers) if isinstance(h, CallbackQueryHandler)
         ]
         message_indices = [
-            i
-            for i, h in enumerate(registered_handlers)
-            if isinstance(h, MessageHandler)
+            i for i, h in enumerate(registered_handlers) if isinstance(h, MessageHandler)
         ]
 
         # Команды должны быть зарегистрированы первыми
@@ -192,7 +170,7 @@ class TestRegisterAllHandlers:
             register_all_handlers(mock_application)
 
         # Проверяем, что были вызовы logger.warning
-        warning_calls = [call for call in mock_logger.warning.call_args_list]
+        warning_calls = list(mock_logger.warning.call_args_list)
 
         # Должно быть предупреждение об ошибке импорта
         logged_warnings = [call[0][0] for call in warning_calls]
@@ -200,9 +178,7 @@ class TestRegisterAllHandlers:
         # Проверяем, что логировались предупреждения (может быть несколько)
         assert len(logged_warnings) > 0, "Не было вызовов logger.warning"
 
-    def test_dmarket_handlers_registration_with_api(
-        self, mock_application, mock_dmarket_api
-    ):
+    def test_dmarket_handlers_registration_with_api(self, mock_application, mock_dmarket_api):
         """Тест регистрации DMarket обработчиков при наличии API."""
         mock_application.bot_data = {"dmarket_api": mock_dmarket_api}
 
@@ -263,13 +239,9 @@ class TestRegisterAllHandlers:
         """
         register_all_handlers(mock_application)
 
-        registered_handlers = [
-            call[0][0] for call in mock_application.add_handler.call_args_list
-        ]
+        registered_handlers = [call[0][0] for call in mock_application.add_handler.call_args_list]
 
-        command_handlers = [
-            h for h in registered_handlers if isinstance(h, CommandHandler)
-        ]
+        command_handlers = [h for h in registered_handlers if isinstance(h, CommandHandler)]
 
         # Собираем все команды
         all_commands = []
@@ -294,13 +266,11 @@ class TestRegisterAllHandlers:
         """
         register_all_handlers(mock_application)
 
-        info_calls = [call for call in mock_logger.info.call_args_list]
+        info_calls = list(mock_logger.info.call_args_list)
         logged_messages = [call[0][0] for call in info_calls]
 
         # Последнее сообщение должно быть об успешной регистрации
-        assert any(
-            "Все обработчики успешно зарегистрированы" in msg for msg in logged_messages
-        )
+        assert any("Все обработчики успешно зарегистрированы" in msg for msg in logged_messages)
 
 
 class TestOptionalHandlersRegistration:
@@ -321,18 +291,15 @@ class TestOptionalHandlersRegistration:
         mock_register_enhanced.assert_called_once_with(mock_application)
 
         # Проверяем логирование
-        info_calls = [call for call in mock_logger.info.call_args_list]
+        info_calls = list(mock_logger.info.call_args_list)
         logged_messages = [call[0][0] for call in info_calls]
 
         assert any(
-            "Enhanced arbitrage обработчики зарегистрированы" in msg
-            for msg in logged_messages
+            "Enhanced arbitrage обработчики зарегистрированы" in msg for msg in logged_messages
         )
 
     @patch("src.telegram_bot.register_all_handlers.logger")
-    @patch(
-        "src.telegram_bot.register_all_handlers.register_scanner_handlers", create=True
-    )
+    @patch("src.telegram_bot.register_all_handlers.register_scanner_handlers", create=True)
     def test_scanner_handlers_registration(
         self, mock_register_scanner, mock_logger, mock_application
     ):
@@ -341,17 +308,13 @@ class TestOptionalHandlersRegistration:
 
         mock_register_scanner.assert_called_once_with(mock_application)
 
-        info_calls = [call for call in mock_logger.info.call_args_list]
+        info_calls = list(mock_logger.info.call_args_list)
         logged_messages = [call[0][0] for call in info_calls]
 
-        assert any(
-            "Scanner обработчики зарегистрированы" in msg for msg in logged_messages
-        )
+        assert any("Scanner обработчики зарегистрированы" in msg for msg in logged_messages)
 
     @patch("src.telegram_bot.register_all_handlers.logger")
-    @patch(
-        "src.telegram_bot.register_all_handlers.register_alerts_handlers", create=True
-    )
+    @patch("src.telegram_bot.register_all_handlers.register_alerts_handlers", create=True)
     def test_alerts_handlers_registration(
         self, mock_register_alerts, mock_logger, mock_application
     ):
@@ -360,13 +323,10 @@ class TestOptionalHandlersRegistration:
 
         mock_register_alerts.assert_called_once_with(mock_application)
 
-        info_calls = [call for call in mock_logger.info.call_args_list]
+        info_calls = list(mock_logger.info.call_args_list)
         logged_messages = [call[0][0] for call in info_calls]
 
-        assert any(
-            "Market alerts обработчики зарегистрированы" in msg
-            for msg in logged_messages
-        )
+        assert any("Market alerts обработчики зарегистрированы" in msg for msg in logged_messages)
 
     @patch("src.telegram_bot.register_all_handlers.logger")
     @patch(
@@ -381,13 +341,10 @@ class TestOptionalHandlersRegistration:
 
         mock_register_analysis.assert_called_once_with(mock_application)
 
-        info_calls = [call for call in mock_logger.info.call_args_list]
+        info_calls = list(mock_logger.info.call_args_list)
         logged_messages = [call[0][0] for call in info_calls]
 
-        assert any(
-            "Market analysis обработчики зарегистрированы" in msg
-            for msg in logged_messages
-        )
+        assert any("Market analysis обработчики зарегистрированы" in msg for msg in logged_messages)
 
     @patch("src.telegram_bot.register_all_handlers.logger")
     @patch(
@@ -402,12 +359,11 @@ class TestOptionalHandlersRegistration:
 
         mock_register_intramarket.assert_called_once_with(mock_application)
 
-        info_calls = [call for call in mock_logger.info.call_args_list]
+        info_calls = list(mock_logger.info.call_args_list)
         logged_messages = [call[0][0] for call in info_calls]
 
         assert any(
-            "Intramarket arbitrage обработчики зарегистрированы" in msg
-            for msg in logged_messages
+            "Intramarket arbitrage обработчики зарегистрированы" in msg for msg in logged_messages
         )
 
     @patch("src.telegram_bot.register_all_handlers.logger")
@@ -423,18 +379,13 @@ class TestOptionalHandlersRegistration:
 
         mock_register_localization.assert_called_once_with(mock_application)
 
-        info_calls = [call for call in mock_logger.info.call_args_list]
+        info_calls = list(mock_logger.info.call_args_list)
         logged_messages = [call[0][0] for call in info_calls]
 
-        assert any(
-            "Localization обработчики зарегистрированы" in msg
-            for msg in logged_messages
-        )
+        assert any("Localization обработчики зарегистрированы" in msg for msg in logged_messages)
 
     @patch("src.telegram_bot.register_all_handlers.logger")
-    @patch(
-        "src.telegram_bot.register_all_handlers.register_target_handlers", create=True
-    )
+    @patch("src.telegram_bot.register_all_handlers.register_target_handlers", create=True)
     def test_target_handlers_registration(
         self, mock_register_targets, mock_logger, mock_application
     ):
@@ -443,12 +394,10 @@ class TestOptionalHandlersRegistration:
 
         mock_register_targets.assert_called_once_with(mock_application)
 
-        info_calls = [call for call in mock_logger.info.call_args_list]
+        info_calls = list(mock_logger.info.call_args_list)
         logged_messages = [call[0][0] for call in info_calls]
 
-        assert any(
-            "Target обработчики зарегистрированы" in msg for msg in logged_messages
-        )
+        assert any("Target обработчики зарегистрированы" in msg for msg in logged_messages)
 
 
 class TestErrorHandling:
@@ -469,20 +418,14 @@ class TestErrorHandling:
             register_all_handlers(mock_application)
 
         # Проверяем, что базовые команды всё равно зарегистрированы
-        registered_handlers = [
-            call[0][0] for call in mock_application.add_handler.call_args_list
-        ]
+        registered_handlers = [call[0][0] for call in mock_application.add_handler.call_args_list]
 
-        command_handlers = [
-            h for h in registered_handlers if isinstance(h, CommandHandler)
-        ]
+        command_handlers = [h for h in registered_handlers if isinstance(h, CommandHandler)]
 
         assert len(command_handlers) > 0, "Базовые команды не зарегистрированы"
 
     @patch("src.telegram_bot.register_all_handlers.logger")
-    def test_dmarket_registration_exception(
-        self, mock_logger, mock_application, mock_dmarket_api
-    ):
+    def test_dmarket_registration_exception(self, mock_logger, mock_application, mock_dmarket_api):
         """Тест обработки исключения при регистрации DMarket обработчиков."""
         mock_application.bot_data = {"dmarket_api": mock_dmarket_api}
 
@@ -494,12 +437,11 @@ class TestErrorHandling:
             register_all_handlers(mock_application)
 
         # Проверяем логирование предупреждения
-        warning_calls = [call for call in mock_logger.warning.call_args_list]
+        warning_calls = list(mock_logger.warning.call_args_list)
         logged_warnings = [call[0][0] for call in warning_calls]
 
         assert any(
-            "Не удалось зарегистрировать DMarket обработчики" in msg
-            for msg in logged_warnings
+            "Не удалось зарегистрировать DMarket обработчики" in msg for msg in logged_warnings
         )
 
 
@@ -519,15 +461,11 @@ class TestIntegrationHandlersRegistration:
         # Проверяем, что было зарегистрировано достаточно обработчиков
         assert mock_application.add_handler.call_count >= 9
 
-        registered_handlers = [
-            call[0][0] for call in mock_application.add_handler.call_args_list
-        ]
+        registered_handlers = [call[0][0] for call in mock_application.add_handler.call_args_list]
 
         # Проверяем наличие всех типов обработчиков
         has_command = any(isinstance(h, CommandHandler) for h in registered_handlers)
-        has_callback = any(
-            isinstance(h, CallbackQueryHandler) for h in registered_handlers
-        )
+        has_callback = any(isinstance(h, CallbackQueryHandler) for h in registered_handlers)
         has_message = any(isinstance(h, MessageHandler) for h in registered_handlers)
 
         assert has_command, "Нет CommandHandler"

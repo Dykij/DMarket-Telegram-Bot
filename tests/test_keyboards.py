@@ -72,9 +72,7 @@ def test_get_game_selection_keyboard():
     all_buttons = [button for row in keyboard.inline_keyboard for button in row]
 
     # Исключая кнопку "Назад"
-    game_buttons = [
-        button for button in all_buttons if button.callback_data != "back_to_menu"
-    ]
+    game_buttons = [button for button in all_buttons if button.callback_data != "back_to_menu"]
     assert len(game_buttons) == 4
 
     # Проверяем тексты кнопок и callback_data
@@ -83,16 +81,14 @@ def test_get_game_selection_keyboard():
 
     # Проверяем callback_data (формат: game_selected:game_id)
     assert any(
-        "csgo" in cb or "CS2" in text
-        for cb, text in zip(game_callbacks, game_texts, strict=False)
+        "csgo" in cb or "CS2" in text for cb, text in zip(game_callbacks, game_texts, strict=False)
     )
     assert any(
         "dota2" in cb or "Dota 2" in text
         for cb, text in zip(game_callbacks, game_texts, strict=False)
     )
     assert any(
-        "rust" in cb or "Rust" in text
-        for cb, text in zip(game_callbacks, game_texts, strict=False)
+        "rust" in cb or "Rust" in text for cb, text in zip(game_callbacks, game_texts, strict=False)
     )
     assert any(
         "tf2" in cb or "Fortress" in text
@@ -100,9 +96,7 @@ def test_get_game_selection_keyboard():
     )
 
     # Проверяем кнопку "Назад"
-    back_button = next(
-        button for button in all_buttons if button.callback_data == "back_to_menu"
-    )
+    back_button = next(button for button in all_buttons if button.callback_data == "back_to_menu")
     assert "Назад" in back_button.text
 
 

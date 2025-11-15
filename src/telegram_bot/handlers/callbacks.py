@@ -121,9 +121,7 @@ async def show_arbitrage_opportunities(query, context, page=None) -> None:
     """
     # Получаем данные из контекста
     opportunities = context.user_data.get("arbitrage_opportunities", [])
-    current_page = (
-        page if page is not None else context.user_data.get("arbitrage_page", 0)
-    )
+    current_page = page if page is not None else context.user_data.get("arbitrage_page", 0)
     context.user_data.get("arbitrage_mode", "normal")
 
     # Пересчитываем текущую страницу при необходимости
@@ -282,8 +280,7 @@ async def button_callback_handler(
         # Обработка для поиска
         elif callback_data == "search":
             await query.edit_message_text(
-                "🔍 <b>Поиск предметов на DMarket</b>\n\n"
-                "Выберите игру для поиска предметов:",
+                "🔍 <b>Поиск предметов на DMarket</b>\n\nВыберите игру для поиска предметов:",
                 reply_markup=get_game_selection_keyboard(),
                 parse_mode=ParseMode.HTML,
             )
@@ -366,18 +363,13 @@ async def button_callback_handler(
 
         # Обработка пагинации для арбитража
         elif callback_data.startswith(("arb_next_page_", "arb_prev_page_")):
-            direction = (
-                "next_page"
-                if callback_data.startswith("arb_next_page_")
-                else "prev_page"
-            )
+            direction = "next_page" if callback_data.startswith("arb_next_page_") else "prev_page"
             await handle_arbitrage_pagination(query, context, direction)
 
         elif callback_data == "market_analysis":
             # Обработка для анализа рынка
             await query.edit_message_text(
-                "📊 <b>Анализ рынка</b>\n\n"
-                "Выберите игру для анализа рыночных тенденций и цен:",
+                "📊 <b>Анализ рынка</b>\n\nВыберите игру для анализа рыночных тенденций и цен:",
                 reply_markup=get_game_selection_keyboard(),
                 parse_mode=ParseMode.HTML,
             )
@@ -480,8 +472,7 @@ async def button_callback_handler(
 
         elif callback_data == "settings_intervals":
             await query.edit_message_text(
-                "⏰ <b>Настройка интервалов обновления</b>\n\n"
-                "Функция находится в разработке.",
+                "⏰ <b>Настройка интервалов обновления</b>\n\nФункция находится в разработке.",
                 parse_mode=ParseMode.HTML,
                 reply_markup=InlineKeyboardMarkup(
                     [[InlineKeyboardButton("« Назад", callback_data="settings")]]
@@ -497,8 +488,7 @@ async def button_callback_handler(
 
         elif callback_data == "settings_auto_refresh":
             await query.edit_message_text(
-                "🔄 <b>Автоматическое обновление</b>\n\n"
-                "Функция находится в разработке.",
+                "🔄 <b>Автоматическое обновление</b>\n\nФункция находится в разработке.",
                 parse_mode=ParseMode.HTML,
                 reply_markup=InlineKeyboardMarkup(
                     [[InlineKeyboardButton("« Назад", callback_data="settings")]]

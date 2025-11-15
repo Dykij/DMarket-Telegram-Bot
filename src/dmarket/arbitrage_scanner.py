@@ -20,6 +20,7 @@ from src.dmarket.arbitrage import (
     arbitrage_pro,
 )
 from src.dmarket.dmarket_api import DMarketAPI
+from src.dmarket.liquidity_analyzer import LiquidityAnalyzer
 from src.utils.rate_limiter import RateLimiter
 
 
@@ -111,17 +112,31 @@ class ArbitrageScanner:
         opportunities = await scanner.scan_game("csgo", "medium", 10)
     """
 
-    def __init__(self, api_client: DMarketAPI | None = None) -> None:
+    def __init__(
+        self,
+        api_client: DMarketAPI | None = None,
+        enable_liquidity_filter: bool = True,
+    ) -> None:
         """Инициализирует сканер арбитража.
 
         Args:
             api_client: Предварительно созданный клиент DMarketAPI или None
                         для создания нового при необходимости
+            enable_liquidity_filter: Включить фильтрацию по ликвидности
 
         """
         self.api_client = api_client
         self._cache = {}  # Кеш для результатов сканирования
         self._cache_ttl = 300  # Время жизни кеша в секундах (5 минут)
+
+        # Инициализация анализатора ликвидности
+        self.liquidity_analyzer = None
+        self.enable_liquidity_filter = enable_liquidity_filter
+
+        # Параметры фильтрации по ликвидности
+        self.min_liquidity_score = 60  # Минимальный балл ликвидности
+        self.min_sales_per_week = 5  # Минимум продаж в неделю
+        self.max_time_to_sell_days = 7  # Максимальное время продажи
 
         # Ограничения для управления рисками
         self.min_profit = 0.5  # Минимальная прибыль в USD
@@ -192,6 +207,11 @@ class ArbitrageScanner:
                 api_url=os.getenv("DMARKET_API_URL", "https://api.dmarket.com"),
                 max_retries=3,
             )
+
+        # Инициализируем анализатор ликвидности если включен
+        if self.enable_liquidity_filter and self.liquidity_analyzer is None:
+            self.liquidity_analyzer = LiquidityAnalyzer(self.api_client)
+
         return self.api_client
 
     async def scan_game(
@@ -501,23 +521,16 @@ class ArbitrageScanner:
                     diagnosis = "auth_error"
                     display_message = "Ошибка авторизации: проверьте ключи API"
                 elif (
-                    "ключи" in str(error_message).lower()
-                    or "api key" in str(error_message).lower()
+                    "ключи" in str(error_message).lower() or "api key" in str(error_message).lower()
                 ):
                     diagnosis = "missing_keys"
                     display_message = "Отсутствуют ключи API"
                 elif (
-                    "timeout" in str(error_message).lower()
-                    or "время" in str(error_message).lower()
+                    "timeout" in str(error_message).lower() or "время" in str(error_message).lower()
                 ):
                     diagnosis = "timeout_error"
-                    display_message = (
-                        "Таймаут при запросе баланса: возможны проблемы с сетью"
-                    )
-                elif (
-                    "404" in str(error_message)
-                    or "не найден" in str(error_message).lower()
-                ):
+                    display_message = "Таймаут при запросе баланса: возможны проблемы с сетью"
+                elif "404" in str(error_message) or "не найден" in str(error_message).lower():
                     diagnosis = "endpoint_error"
                     display_message = "Ошибка API: эндпоинт баланса недоступен"
 
@@ -552,7 +565,9 @@ class ArbitrageScanner:
 
             # Формируем сообщение для пользователя
             if has_funds:
-                display_message = f"Баланс DMarket: ${available_balance:.2f} USD (достаточно для арбитража)"
+                display_message = (
+                    f"Баланс DMarket: ${available_balance:.2f} USD (достаточно для арбитража)"
+                )
             else:
                 # Различаем случаи полного отсутствия средств и недостаточного баланса
                 if available_balance <= 0:
@@ -1109,7 +1124,54 @@ class ArbitrageScanner:
             if profit_percent < min_profit_percent:
                 return None
 
-            return {
+            # Анализ ликвидности (если включен фильтр)
+            liquidity_data = {}
+            if self.enable_liquidity_filter and self.liquidity_analyzer:
+                try:
+                    item_title = item.get("title", "")
+                    game_id = GAME_IDS.get(game, game)
+                    metrics = await self.liquidity_analyzer.analyze_item_liquidity(
+                        item_title=item_title,
+                        game=game_id,
+                        days_history=30,
+                    )
+
+                    # Фильтруем по минимальному баллу ликвидности
+                    if metrics.liquidity_score < self.min_liquidity_score:
+                        logger.debug(
+                            f"Предмет '{item_title}' отфильтрован: "
+                            f"низкая ликвидность ({metrics.liquidity_score})"
+                        )
+                        return None
+
+                    # Фильтруем по времени продажи
+                    max_days = self.max_time_to_sell_days
+                    if metrics.avg_time_to_sell_days > max_days:
+                        logger.debug(
+                            f"Предмет '{item_title}' отфильтрован: "
+                            f"долго продается ({metrics.avg_time_to_sell_days} дн)"
+                        )
+                        return None
+
+                    # Получаем описание ликвидности
+                    liquidity_description = self.liquidity_analyzer.get_liquidity_description(
+                        metrics.liquidity_score
+                    )
+
+                    # Добавляем данные ликвидности в результат
+                    liquidity_data = {
+                        "liquidity_score": metrics.liquidity_score,
+                        "sales_per_week": metrics.sales_per_week,
+                        "time_to_sell_days": metrics.avg_time_to_sell_days,
+                        "price_stability": metrics.price_stability,
+                        "liquidity_description": liquidity_description,
+                        "is_liquid": metrics.is_liquid,
+                    }
+                except Exception as e:
+                    logger.debug(f"Ошибка анализа ликвидности: {e}")
+                    # Продолжаем без данных ликвидности
+
+            result = {
                 "item": item,
                 "buy_price": price_usd,
                 "suggested_price": suggested_price,
@@ -1118,9 +1180,16 @@ class ArbitrageScanner:
                 "profit_percent": profit_percent,
                 "game": game,
             }
+
+            # Добавляем данные ликвидности если они есть
+            if liquidity_data:
+                result.update(liquidity_data)
+
         except Exception as e:
             logger.debug(f"Ошибка анализа предмета: {e}")
             return None
+        else:
+            return result
 
     async def scan_all_levels(
         self,
@@ -1318,7 +1387,7 @@ async def find_arbitrage_opportunities_async(
     mode: str = "medium",
     max_items: int = 20,
 ) -> list[dict[str, Any]]:
-    """Асинхронно находит арбитражные возможности для указанной игры в указанном режиме.
+    """Асинхронно находит арбитражные возможности для игры.
 
     Args:
         game: Код игры (например, csgo, dota2, rust, tf2)
@@ -1363,7 +1432,7 @@ async def scan_game_for_arbitrage(
     price_to: float | None = None,
     dmarket_api: DMarketAPI | None = None,
 ) -> list[dict[str, Any]]:
-    """Сканирует одну игру для поиска арбитражных возможностей (функция для обратной совместимости).
+    """Сканирует одну игру для арбитража (обратная совместимость).
 
     Args:
         game: Код игры (например, "csgo", "dota2", "rust", "tf2")
@@ -1388,7 +1457,7 @@ async def scan_multiple_games(
     price_from: float | None = None,
     price_to: float | None = None,
 ) -> dict[str, list[dict[str, Any]]]:
-    """Сканирует несколько игр для поиска арбитражных возможностей (функция для обратной совместимости).
+    """Сканирует несколько игр для арбитража (обратная совместимость).
 
     Args:
         games: Список кодов игр для сканирования
@@ -1414,7 +1483,7 @@ async def scan_multiple_games(
 
 
 async def check_user_balance(dmarket_api: DMarketAPI) -> dict[str, Any]:
-    """Проверяет баланс пользователя DMarket с расширенной диагностикой (функция для обратной совместимости).
+    """Проверяет баланс DMarket (обратная совместимость).
 
     Args:
         dmarket_api: Экземпляр DMarketAPI для запроса
@@ -1435,13 +1504,13 @@ async def auto_trade_items(
     max_trades: int = 5,  # максимальное количество сделок
     risk_level: str = "medium",  # уровень риска (low, medium, high)
 ) -> tuple[int, int, float]:
-    """Автоматически торгует предметами, найденными в арбитраже (функция для обратной совместимости).
+    """Автоматически торгует предметами (обратная совместимость).
 
     Args:
         items_by_game: Словарь с предметами по играм
         min_profit: Минимальная прибыль для покупки (в USD)
         max_price: Максимальная цена покупки (в USD)
-        dmarket_api: Экземпляр DMarketAPI для выполнения операций (обязательный)
+        dmarket_api: Экземпляр DMarketAPI для операций
         max_trades: Максимальное количество сделок за один запуск
         risk_level: Уровень риска (low, medium, high)
 

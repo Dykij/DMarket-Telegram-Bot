@@ -305,9 +305,7 @@ def assert_api_response_valid(response: dict[str, Any]) -> None:
     """Assert that API response is valid."""
     assert isinstance(response, dict)
     if "error" in response:
-        assert response["error"] is False, (
-            f"API error: {response.get('error_message', 'Unknown')}"
-        )
+        assert response["error"] is False, f"API error: {response.get('error_message', 'Unknown')}"
 
 
 def assert_balance_response_valid(balance: dict[str, Any]) -> None:

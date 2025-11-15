@@ -217,8 +217,7 @@ def test_csgo_filter_stattrak_souvenir(csgo_filter, sample_csgo_item):
         ):
             return False
         return not (
-            "souvenir" in filters
-            and filters["souvenir"] != item["extra"].get("souvenir", False)
+            "souvenir" in filters and filters["souvenir"] != item["extra"].get("souvenir", False)
         )
 
     with patch.object(CS2Filter, "apply_filters", mock_apply_stattrak_filter):

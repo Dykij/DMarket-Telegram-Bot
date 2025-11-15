@@ -687,13 +687,13 @@ async def test_direct_balance_request_error(dmarket_api):
 
 
 @pytest.mark.parametrize(
-    "game_id,expected",
-    [
+    ("game_id", "expected"),
+    (
         ("csgo", "csgo"),
         ("dota2", "dota2"),
         ("rust", "rust"),
         ("tf2", "tf2"),
-    ],
+    ),
 )
 @pytest.mark.asyncio()
 async def test_get_market_items_different_games(dmarket_api, game_id, expected):
@@ -708,18 +708,16 @@ async def test_get_market_items_different_games(dmarket_api, game_id, expected):
 
 
 @pytest.mark.parametrize(
-    "price_from,price_to,expected_from,expected_to",
-    [
+    ("price_from", "price_to", "expected_from", "expected_to"),
+    (
         (1.0, 10.0, "100", "1000"),
         (5.5, 25.75, "550", "2575"),
         (0.01, 0.99, "1", "99"),
         (100, 500, "10000", "50000"),
-    ],
+    ),
 )
 @pytest.mark.asyncio()
-async def test_price_conversion(
-    dmarket_api, price_from, price_to, expected_from, expected_to
-):
+async def test_price_conversion(dmarket_api, price_from, price_to, expected_from, expected_to):
     """Тест конвертации цен в центы."""
     with patch.object(dmarket_api, "_request") as mock_request:
         mock_request.return_value = {"items": [], "total": 0}
@@ -1000,9 +998,7 @@ async def test_buy_offers(dmarket_api):
 async def test_get_aggregated_prices(dmarket_api):
     """Тест получения агрегированных цен."""
     with patch.object(dmarket_api, "_request") as mock_request:
-        mock_request.return_value = {
-            "AggregatedTitles": [{"Title": "Item", "MinPrice": "1000"}]
-        }
+        mock_request.return_value = {"AggregatedTitles": [{"Title": "Item", "MinPrice": "1000"}]}
 
         result = await dmarket_api.get_aggregated_prices(["Item 1", "Item 2"])
 
@@ -1025,14 +1021,10 @@ async def test_get_sales_history_aggregator(dmarket_api):
     """Тест получения истории продаж из агрегатора."""
     with patch.object(dmarket_api, "_request") as mock_request:
         mock_request.return_value = {
-            "sales": [
-                {"price": "1000", "date": "2024-11-14", "txOperationType": "Offer"}
-            ]
+            "sales": [{"price": "1000", "date": "2024-11-14", "txOperationType": "Offer"}]
         }
 
-        result = await dmarket_api.get_sales_history_aggregator(
-            "a8db", "AK-47 | Redline"
-        )
+        result = await dmarket_api.get_sales_history_aggregator("a8db", "AK-47 | Redline")
 
         assert len(result["sales"]) == 1
 
@@ -1105,9 +1097,7 @@ async def test_get_account_details(dmarket_api):
 async def test_get_market_best_offers(dmarket_api):
     """Тест получения лучших офферов."""
     with patch.object(dmarket_api, "_request") as mock_request:
-        mock_request.return_value = {
-            "offers": [{"title": "Item", "price": {"USD": 1000}}]
-        }
+        mock_request.return_value = {"offers": [{"title": "Item", "price": {"USD": 1000}}]}
 
         result = await dmarket_api.get_market_best_offers("csgo")
 
@@ -1193,7 +1183,7 @@ def test_is_cacheable_get_requests(dmarket_api):
 
 def test_is_cacheable_post_requests(dmarket_api):
     """Тест что POST запросы не кэшируются."""
-    cacheable, ttl_type = dmarket_api._is_cacheable("POST", "/test")
+    cacheable, _ttl_type = dmarket_api._is_cacheable("POST", "/test")
     assert cacheable is False
 
 

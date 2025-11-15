@@ -149,8 +149,7 @@ async def display_results_with_pagination(
     # Если результаты не найдены
     if not results:
         await query.edit_message_text(
-            f"ℹ️ *{title}*\n\n"
-            f"Возможности не найдены. Попробуйте другой тип сканирования или игру.",
+            f"ℹ️ *{title}*\n\nВозможности не найдены. Попробуйте другой тип сканирования или игру.",
             parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(
                 [

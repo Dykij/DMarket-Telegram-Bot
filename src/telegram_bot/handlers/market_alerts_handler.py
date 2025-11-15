@@ -72,11 +72,7 @@ async def alerts_command(update: Update, context: CallbackContext) -> None:
         for alert_type, alert_name in ALERT_TYPES.items():
             if alert_type in ["price_changes", "trending", "volatility", "arbitrage"]:
                 # Отмечаем активные подписки
-                button_text = (
-                    f"✅ {alert_name}"
-                    if alert_type in user_subscriptions
-                    else alert_name
-                )
+                button_text = f"✅ {alert_name}" if alert_type in user_subscriptions else alert_name
 
                 keyboard.append(
                     [
@@ -158,9 +154,7 @@ async def alerts_command(update: Update, context: CallbackContext) -> None:
             message_text += "\n"
 
         if price_alerts:
-            message_text += (
-                f"У вас {len(price_alerts)} активных оповещений о ценах предметов.\n"
-            )
+            message_text += f"У вас {len(price_alerts)} активных оповещений о ценах предметов.\n"
             message_text += "Нажмите 'Мои оповещения' для просмотра и управления.\n\n"
 
         if not user_subscriptions and not price_alerts:
@@ -417,9 +411,7 @@ async def update_alerts_keyboard(query, alerts_manager, user_id: int) -> None:
     for alert_type, alert_name in ALERT_TYPES.items():
         if alert_type in ["price_changes", "trending", "volatility", "arbitrage"]:
             # Отмечаем активные подписки
-            button_text = (
-                f"✅ {alert_name}" if alert_type in user_subscriptions else alert_name
-            )
+            button_text = f"✅ {alert_name}" if alert_type in user_subscriptions else alert_name
 
             keyboard.append(
                 [
@@ -498,9 +490,7 @@ async def update_alerts_keyboard(query, alerts_manager, user_id: int) -> None:
         message_text += "\n"
 
     if price_alerts:
-        message_text += (
-            f"У вас {len(price_alerts)} активных оповещений о ценах предметов.\n"
-        )
+        message_text += f"У вас {len(price_alerts)} активных оповещений о ценах предметов.\n"
         message_text += "Нажмите 'Мои оповещения' для просмотра и управления.\n\n"
 
     if not user_subscriptions and not price_alerts:
@@ -746,16 +736,10 @@ async def show_alerts_settings(query, alerts_manager, user_id: int) -> None:
     message_text += "`/alertsettings <параметр>=<значение>`\n\n"
     message_text += "Доступные параметры:\n"
     message_text += "• `enabled=true|false` - включить/выключить оповещения\n"
-    message_text += (
-        "• `min_interval=минуты` - минимальный интервал между оповещениями\n"
-    )
-    message_text += (
-        "• `quiet_start=час` - начало тихих часов (не отправлять оповещения)\n"
-    )
+    message_text += "• `min_interval=минуты` - минимальный интервал между оповещениями\n"
+    message_text += "• `quiet_start=час` - начало тихих часов (не отправлять оповещения)\n"
     message_text += "• `quiet_end=час` - конец тихих часов\n"
-    message_text += (
-        "• `max_alerts=число` - максимальное количество оповещений в день\n\n"
-    )
+    message_text += "• `max_alerts=число` - максимальное количество оповещений в день\n\n"
     message_text += "Пример: `/alertsettings enabled=true min_interval=30`"
 
     # Создаем клавиатуру для управления настройками

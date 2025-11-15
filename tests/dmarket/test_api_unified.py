@@ -206,9 +206,7 @@ async def test_handle_rate_limit(api, mock_httpx_client):
     mock_response_200.raise_for_status = MagicMock()
 
     # Настраиваем последовательность ответов
-    mock_httpx_client.get = AsyncMock(
-        side_effect=[mock_response_429, mock_response_200]
-    )
+    mock_httpx_client.get = AsyncMock(side_effect=[mock_response_429, mock_response_200])
 
     # Настраиваем API для быстрых повторных попыток
     api.max_retries = 1

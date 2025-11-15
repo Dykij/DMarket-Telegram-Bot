@@ -197,14 +197,10 @@ async def calculate_price_trend(
 
     # Определяем тренд
     increases = sum(
-        1
-        for i in range(1, len(period_prices))
-        if period_prices[i] > period_prices[i - 1]
+        1 for i in range(1, len(period_prices)) if period_prices[i] > period_prices[i - 1]
     )
     decreases = sum(
-        1
-        for i in range(1, len(period_prices))
-        if period_prices[i] < period_prices[i - 1]
+        1 for i in range(1, len(period_prices)) if period_prices[i] < period_prices[i - 1]
     )
 
     trend_direction = "stable"
@@ -369,9 +365,7 @@ async def analyze_supply_demand(
         # Анализируем предложения на продажу (offers)
         sell_offers = offers_data.get("offers", [])
         sell_count = len(sell_offers)
-        min_sell_price = (
-            float(sell_offers[0].get("price", 0)) / 100 if sell_offers else 0
-        )
+        min_sell_price = float(sell_offers[0].get("price", 0)) / 100 if sell_offers else 0
 
         # Анализируем предложения на покупку (targets)
         buy_offers = offers_data.get("targets", [])
@@ -379,11 +373,7 @@ async def analyze_supply_demand(
         max_buy_price = float(buy_offers[0].get("price", 0)) / 100 if buy_offers else 0
 
         # Рассчитываем спред между лучшими ценами покупки и продажи
-        spread = (
-            min_sell_price - max_buy_price
-            if min_sell_price > 0 and max_buy_price > 0
-            else 0
-        )
+        spread = min_sell_price - max_buy_price if min_sell_price > 0 and max_buy_price > 0 else 0
         spread_percent = (spread / min_sell_price * 100) if min_sell_price > 0 else 0
 
         # Определяем ликвидность

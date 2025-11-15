@@ -356,9 +356,7 @@ async def test_handle_message_auth_success(websocket_client):
 @pytest.mark.asyncio()
 async def test_handle_message_auth_failure(websocket_client):
     """Тест обработки неудачной аутентификации."""
-    message_data = json.dumps(
-        {"type": "auth", "status": "error", "error": "Invalid API key"}
-    )
+    message_data = json.dumps({"type": "auth", "status": "error", "error": "Invalid API key"})
 
     await websocket_client._handle_message(message_data)
 
@@ -368,9 +366,7 @@ async def test_handle_message_auth_failure(websocket_client):
 @pytest.mark.asyncio()
 async def test_handle_message_subscription(websocket_client):
     """Тест обработки ответа на подписку."""
-    message_data = json.dumps(
-        {"type": "subscription", "topic": "market:update", "status": "ok"}
-    )
+    message_data = json.dumps({"type": "subscription", "topic": "market:update", "status": "ok"})
 
     # Не должно быть исключений
     await websocket_client._handle_message(message_data)
@@ -508,7 +504,7 @@ async def test_listen_cancelled_error(websocket_client):
     websocket_client.is_connected = True
 
     async def mock_receive():
-        raise asyncio.CancelledError()
+        raise asyncio.CancelledError
 
     websocket_client.ws_connection = AsyncMock()
     websocket_client.ws_connection.receive = mock_receive

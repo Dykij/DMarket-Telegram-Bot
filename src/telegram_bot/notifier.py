@@ -294,9 +294,7 @@ async def get_current_price(
             return None
 
         # Извлекаем цену
-        price = (
-            float(item_data.get("price", {}).get("amount", 0)) / 100
-        )  # центы в доллары
+        price = float(item_data.get("price", {}).get("amount", 0)) / 100  # центы в доллары
 
         # Обновляем кэш
         _current_prices_cache[item_id] = {
@@ -351,10 +349,7 @@ async def check_price_alert(
     elif alert_type == "trend_change":
         # Для этого типа нужно анализировать тренд цены
         trend_info = await calculate_price_trend(api, item_id)
-        if (
-            trend_info["trend"] != "stable"
-            and trend_info["confidence"] >= threshold / 100
-        ):
+        if trend_info["trend"] != "stable" and trend_info["confidence"] >= threshold / 100:
             triggered = True
 
     if triggered:
@@ -429,9 +424,7 @@ async def check_good_deal_alerts(
                     )
 
         except Exception as e:
-            logger.exception(
-                f"Ошибка при проверке выгодных предложений для {item_id}: {e}"
-            )
+            logger.exception(f"Ошибка при проверке выгодных предложений для {item_id}: {e}")
 
     return triggered_alerts
 
@@ -481,10 +474,7 @@ async def check_all_alerts(
                     logger.debug(f"Тихие часы для пользователя {user_id_str}")
                     continue
             # Интервал через полночь (например, с 23 до 8)
-            elif (
-                quiet_hours["start"] <= current_hour
-                or current_hour < quiet_hours["end"]
-            ):
+            elif quiet_hours["start"] <= current_hour or current_hour < quiet_hours["end"]:
                 logger.debug(f"Тихие часы для пользователя {user_id_str}")
                 continue
 
@@ -683,9 +673,13 @@ def format_alert_message(alert: dict[str, Any]) -> str:
     message += f"Тип: {alert_type_display}\n"
 
     if alert["type"] == "price_drop":
-        message += f"Порог: ${alert['threshold']:.2f} (уведомить, когда цена упадет до этого значения)"
+        message += (
+            f"Порог: ${alert['threshold']:.2f} (уведомить, когда цена упадет до этого значения)"
+        )
     elif alert["type"] == "price_rise":
-        message += f"Порог: ${alert['threshold']:.2f} (уведомить, когда цена вырастет до этого значения)"
+        message += (
+            f"Порог: ${alert['threshold']:.2f} (уведомить, когда цена вырастет до этого значения)"
+        )
     elif alert["type"] == "volume_increase":
         message += f"Порог: {int(alert['threshold'])} (уведомить, когда объем торгов превысит это значение)"
     elif alert["type"] == "good_deal":

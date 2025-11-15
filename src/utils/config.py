@@ -239,16 +239,13 @@ class Config:
             # Validate rate limit
             if self.dmarket.rate_limit <= 0:
                 errors.append(
-                    "DMARKET rate_limit must be positive, "
-                    f"got: {self.dmarket.rate_limit}"
+                    f"DMARKET rate_limit must be positive, got: {self.dmarket.rate_limit}"
                 )
 
         # Validate database URL
         if not self.database.url:
             errors.append("DATABASE_URL is required")
-        elif not self.database.url.startswith(
-            ("sqlite://", "postgresql://", "mysql://")
-        ):
+        elif not self.database.url.startswith(("sqlite://", "postgresql://", "mysql://")):
             errors.append(
                 "DATABASE_URL has unsupported scheme. "
                 "Supported: sqlite://, postgresql://, mysql://. "
@@ -258,17 +255,13 @@ class Config:
         # Validate logging level
         valid_log_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
         if self.logging.level.upper() not in valid_log_levels:
-            errors.append(
-                f"LOG_LEVEL must be one of {valid_log_levels}, "
-                f"got: {self.logging.level}"
-            )
+            errors.append(f"LOG_LEVEL must be one of {valid_log_levels}, got: {self.logging.level}")
 
         # Validate security settings (convert user IDs)
         if self.security.allowed_users:
             try:
                 self.security.allowed_users = [
-                    int(uid) if uid.isdigit() else uid
-                    for uid in self.security.allowed_users
+                    int(uid) if uid.isdigit() else uid for uid in self.security.allowed_users
                 ]
             except ValueError as e:
                 errors.append(f"Invalid ALLOWED_USERS format: {e}")
@@ -276,22 +269,18 @@ class Config:
         if self.security.admin_users:
             try:
                 self.security.admin_users = [
-                    int(uid) if uid.isdigit() else uid
-                    for uid in self.security.admin_users
+                    int(uid) if uid.isdigit() else uid for uid in self.security.admin_users
                 ]
             except ValueError as e:
                 errors.append(f"Invalid ADMIN_USERS format: {e}")
 
         # Validate pool settings
         if self.database.pool_size <= 0:
-            errors.append(
-                f"Database pool_size must be positive, got: {self.database.pool_size}"
-            )
+            errors.append(f"Database pool_size must be positive, got: {self.database.pool_size}")
 
         if self.database.max_overflow < 0:
             errors.append(
-                f"Database max_overflow must be non-negative, "
-                f"got: {self.database.max_overflow}"
+                f"Database max_overflow must be non-negative, got: {self.database.max_overflow}"
             )
 
         # Raise all errors at once

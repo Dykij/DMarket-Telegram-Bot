@@ -314,9 +314,7 @@ async def check_price_alerts(api: DMarketAPI, bot: Bot) -> None:
     """
     for user_id_str, alerts in _active_alerts.items():
         # Skip if no active alerts
-        active_alerts = [
-            a for a in alerts if a["active"] and a["type"] == "price_alert"
-        ]
+        active_alerts = [a for a in alerts if a["active"] and a["type"] == "price_alert"]
         if not active_alerts:
             continue
 
@@ -412,8 +410,7 @@ async def check_market_opportunities(api: DMarketAPI, bot: Bot) -> None:
         for game in ["csgo", "dota2", "tf2", "rust"]:
             # Skip games that no users are interested in
             if not any(
-                prefs.get("games", {}).get(game, False)
-                for prefs in interested_users.values()
+                prefs.get("games", {}).get(game, False) for prefs in interested_users.values()
             ):
                 continue
 
@@ -622,11 +619,17 @@ async def send_price_alert_notification(
         alert_details = ""
 
         if condition == "below":
-            alert_details = f"📉 Цена упала до <b>${current_price:.2f}</b> (ниже ${target_price:.2f})"
+            alert_details = (
+                f"📉 Цена упала до <b>${current_price:.2f}</b> (ниже ${target_price:.2f})"
+            )
         elif condition == "above":
-            alert_details = f"📈 Цена поднялась до <b>${current_price:.2f}</b> (выше ${target_price:.2f})"
+            alert_details = (
+                f"📈 Цена поднялась до <b>${current_price:.2f}</b> (выше ${target_price:.2f})"
+            )
         else:
-            alert_details = f"🔄 Текущая цена: <b>${current_price:.2f}</b> (целевая: ${target_price:.2f})"
+            alert_details = (
+                f"🔄 Текущая цена: <b>${current_price:.2f}</b> (целевая: ${target_price:.2f})"
+            )
 
         # Create the message
         message = f"{title}\n\n{alert_details}\n\n{item_formatted}"

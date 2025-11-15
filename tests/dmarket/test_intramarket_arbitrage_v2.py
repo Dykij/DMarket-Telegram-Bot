@@ -128,8 +128,7 @@ class TestPriceAnomalies:
 
         # Check that anomalies were detected for similar items with price differences
         assert any(
-            r["item_to_buy"]["itemId"] == "item1"
-            and r["item_to_sell"]["itemId"] == "item2"
+            r["item_to_buy"]["itemId"] == "item1" and r["item_to_sell"]["itemId"] == "item2"
             for r in results
         )
 
@@ -145,9 +144,7 @@ class TestPriceAnomalies:
                 assert anomaly["profit_percentage"] == 50.0  # (15 - 10) / 10 * 100
 
                 # Verify fee calculation (7% fee)
-                expected_profit = (
-                    15.0 * 0.93 - 10.0
-                )  # Sell price after fees minus buy price
+                expected_profit = 15.0 * 0.93 - 10.0  # Sell price after fees minus buy price
                 assert round(anomaly["profit_after_fee"], 2) == round(
                     expected_profit,
                     2,

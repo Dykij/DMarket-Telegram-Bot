@@ -4,6 +4,7 @@
 в качестве альтернативы PostgreSQL для разработки и тестирования.
 """
 
+import contextlib
 import os
 import tempfile
 
@@ -31,10 +32,8 @@ def sqlite_db_path():
     yield db_path
 
     # Cleanup
-    try:
+    with contextlib.suppress(Exception):
         os.unlink(db_path)
-    except Exception:
-        pass
 
 
 @pytest.fixture()
@@ -46,8 +45,7 @@ def sqlite_url(sqlite_db_path):
 @pytest.fixture()
 def db_manager(sqlite_url):
     """Создает DatabaseManager с SQLite."""
-    manager = DatabaseManager(sqlite_url, echo=False)
-    return manager
+    return DatabaseManager(sqlite_url, echo=False)
 
 
 class TestSQLiteFallback:
@@ -215,9 +213,7 @@ class TestSQLiteFallback:
             session.commit()
 
             # Получаем событие из БД
-            db_event = (
-                session.query(AnalyticsEvent).filter_by(event_type="test_event").first()
-            )
+            db_event = session.query(AnalyticsEvent).filter_by(event_type="test_event").first()
 
             assert db_event is not None
             assert db_event.event_data["action"] == "scan"
@@ -303,14 +299,8 @@ class TestSQLiteFallback:
             session2.commit()
 
             # Проверяем, что оба пользователя сохранены
-            assert (
-                session1.query(User).filter_by(telegram_id=777888999).first()
-                is not None
-            )
-            assert (
-                session2.query(User).filter_by(telegram_id=999888777).first()
-                is not None
-            )
+            assert session1.query(User).filter_by(telegram_id=777888999).first() is not None
+            assert session2.query(User).filter_by(telegram_id=999888777).first() is not None
 
         finally:
             session1.close()
@@ -493,9 +483,7 @@ class TestSQLiteIntegration:
             db_log = session.query(CommandLog).filter_by(user_id=user.id).first()
             assert db_log.command == "/start"
 
-            db_market = (
-                session.query(MarketData).filter_by(item_id="integration_item").first()
-            )
+            db_market = session.query(MarketData).filter_by(item_id="integration_item").first()
             assert db_market.price_usd == 10.0
 
             db_alert = session.query(PriceAlert).filter_by(user_id=user.id).first()

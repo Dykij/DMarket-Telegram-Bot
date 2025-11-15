@@ -222,11 +222,14 @@ class TestHandleIntramarketCallback:
         ]
 
         # Создаем мок для pagination_manager и API client
-        with patch(
-            "src.telegram_bot.handlers.intramarket_arbitrage_handler.pagination_manager",
-        ) as mock_pagination, patch(
-            "src.telegram_bot.handlers.intramarket_arbitrage_handler.create_api_client_from_env",
-            return_value=AsyncMock(),
+        with (
+            patch(
+                "src.telegram_bot.handlers.intramarket_arbitrage_handler.pagination_manager",
+            ) as mock_pagination,
+            patch(
+                "src.telegram_bot.handlers.intramarket_arbitrage_handler.create_api_client_from_env",
+                return_value=AsyncMock(),
+            ),
         ):
             # Вызываем тестируемую функцию
             await handle_intramarket_callback(update, context)
@@ -282,11 +285,14 @@ class TestHandleIntramarketCallback:
         ]
 
         # Создаем мок для pagination_manager и API client
-        with patch(
-            "src.telegram_bot.handlers.intramarket_arbitrage_handler.pagination_manager",
-        ) as mock_pagination, patch(
-            "src.telegram_bot.handlers.intramarket_arbitrage_handler.create_api_client_from_env",
-            return_value=AsyncMock(),
+        with (
+            patch(
+                "src.telegram_bot.handlers.intramarket_arbitrage_handler.pagination_manager",
+            ) as mock_pagination,
+            patch(
+                "src.telegram_bot.handlers.intramarket_arbitrage_handler.create_api_client_from_env",
+                return_value=AsyncMock(),
+            ),
         ):
             # Вызываем тестируемую функцию
             await handle_intramarket_callback(update, context)
@@ -304,12 +310,8 @@ class TestHandleIntramarketCallback:
             mock_pagination.add_items_for_user.assert_called_once()
 
             # Проверяем отправленное сообщение
-            last_call_args = update.callback_query.edit_message_text.mock_calls[-1][
-                1
-            ]
-            last_call_kwargs = update.callback_query.edit_message_text.mock_calls[
-                -1
-            ][2]
+            last_call_args = update.callback_query.edit_message_text.mock_calls[-1][1]
+            last_call_kwargs = update.callback_query.edit_message_text.mock_calls[-1][2]
             # Результаты отформатированы
             assert "reply_markup" in last_call_kwargs
 
@@ -358,12 +360,8 @@ class TestHandleIntramarketCallback:
                 mock_pagination.add_items_for_user.assert_called_once()
 
                 # Проверяем отправленное сообщение
-                last_call_args = update.callback_query.edit_message_text.mock_calls[-1][
-                    1
-                ]
-                last_call_kwargs = update.callback_query.edit_message_text.mock_calls[
-                    -1
-                ][2]
+                last_call_args = update.callback_query.edit_message_text.mock_calls[-1][1]
+                last_call_kwargs = update.callback_query.edit_message_text.mock_calls[-1][2]
                 # Результаты отформатированы
                 assert "reply_markup" in last_call_kwargs
 

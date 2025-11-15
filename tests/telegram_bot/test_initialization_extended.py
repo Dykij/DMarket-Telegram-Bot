@@ -45,9 +45,7 @@ def test_setup_logging_default():
     assert len(root_logger.handlers) > 0
 
     # Проверяем наличие console handler
-    has_console_handler = any(
-        isinstance(h, logging.StreamHandler) for h in root_logger.handlers
-    )
+    has_console_handler = any(isinstance(h, logging.StreamHandler) for h in root_logger.handlers)
     assert has_console_handler
 
 
@@ -75,9 +73,7 @@ def test_setup_logging_with_file(tmp_path):
 
     # Проверяем, что файл handler добавлен
     root_logger = logging.getLogger()
-    has_file_handler = any(
-        isinstance(h, logging.FileHandler) for h in root_logger.handlers
-    )
+    has_file_handler = any(isinstance(h, logging.FileHandler) for h in root_logger.handlers)
     assert has_file_handler
 
 
@@ -173,9 +169,7 @@ async def test_initialize_bot_basic():
         ):
             with patch("src.telegram_bot.initialization.setup_error_handler"):
                 with patch("src.telegram_bot.initialization.setup_signal_handlers"):
-                    result = await initialize_bot(
-                        TEST_BOT_TOKEN, setup_persistence=False
-                    )
+                    result = await initialize_bot(TEST_BOT_TOKEN, setup_persistence=False)
 
         # Проверяем, что вернулся объект Application
         assert result is not None
@@ -212,9 +206,7 @@ async def test_initialize_bot_registers_handlers():
         ):
             with patch("src.telegram_bot.initialization.setup_error_handler"):
                 with patch("src.telegram_bot.initialization.setup_signal_handlers"):
-                    result = await initialize_bot(
-                        TEST_BOT_TOKEN, setup_persistence=False
-                    )
+                    result = await initialize_bot(TEST_BOT_TOKEN, setup_persistence=False)
 
         # Проверяем, что handlers были зарегистрированы
         # (в реальной реализации add_handler должен быть вызван)
@@ -233,9 +225,7 @@ async def test_initialize_bot_with_persistence():
         mock_builder_instance.token.return_value = mock_builder_instance
         mock_builder_instance.concurrent_updates.return_value = mock_builder_instance
         mock_builder_instance.connection_pool_size.return_value = mock_builder_instance
-        mock_builder_instance.persistence = MagicMock(
-            return_value=mock_builder_instance
-        )
+        mock_builder_instance.persistence = MagicMock(return_value=mock_builder_instance)
         mock_builder_instance.build.return_value = mock_app
         mock_builder.return_value = mock_builder_instance
 
@@ -248,9 +238,7 @@ async def test_initialize_bot_with_persistence():
                     # PicklePersistence импортируется внутри функции
                     with patch("telegram.ext.PicklePersistence") as mock_persistence:
                         mock_persistence.return_value = MagicMock()
-                        result = await initialize_bot(
-                            TEST_BOT_TOKEN, setup_persistence=True
-                        )
+                        result = await initialize_bot(TEST_BOT_TOKEN, setup_persistence=True)
 
         assert result is not None
         # Проверяем, что persistence был использован
@@ -308,9 +296,7 @@ async def test_initialize_bot_creates_api_client():
         ):
             with patch("src.telegram_bot.initialization.setup_error_handler"):
                 with patch("src.telegram_bot.initialization.setup_signal_handlers"):
-                    result = await initialize_bot(
-                        TEST_BOT_TOKEN, setup_persistence=False
-                    )
+                    result = await initialize_bot(TEST_BOT_TOKEN, setup_persistence=False)
 
         # API клиент создается отдельно, просто проверяем, что бот создан
         assert result is not None
@@ -347,9 +333,7 @@ async def test_full_initialization_flow():
             patch("src.telegram_bot.initialization.configure_admin_ids"),
         ):
             with patch("src.telegram_bot.initialization.setup_error_handler"):
-                with patch(
-                    "src.telegram_bot.initialization.create_api_client_from_env"
-                ):
+                with patch("src.telegram_bot.initialization.create_api_client_from_env"):
                     app = await initialize_bot(TEST_BOT_TOKEN, setup_persistence=False)
 
         assert app is not None
@@ -392,9 +376,7 @@ async def test_bot_info_retrieval():
             patch("src.telegram_bot.initialization.configure_admin_ids"),
         ):
             with patch("src.telegram_bot.initialization.setup_error_handler"):
-                with patch(
-                    "src.telegram_bot.initialization.create_api_client_from_env"
-                ):
+                with patch("src.telegram_bot.initialization.create_api_client_from_env"):
                     app = await initialize_bot(TEST_BOT_TOKEN, setup_persistence=False)
 
         assert app is not None
@@ -406,14 +388,14 @@ async def test_bot_info_retrieval():
 
 
 @pytest.mark.parametrize(
-    "log_level,expected",
-    [
+    ("log_level", "expected"),
+    (
         (logging.DEBUG, logging.DEBUG),
         (logging.INFO, logging.INFO),
         (logging.WARNING, logging.WARNING),
         (logging.ERROR, logging.ERROR),
         (logging.CRITICAL, logging.CRITICAL),
-    ],
+    ),
 )
 def test_setup_logging_different_levels(log_level, expected):
     """Параметризованный тест для разных уровней логирования."""
@@ -429,7 +411,7 @@ def test_setup_logging_different_levels(log_level, expected):
 
 @pytest.mark.parametrize(
     "setup_persistence",
-    [True, False],
+    (True, False),
 )
 @pytest.mark.asyncio()
 async def test_initialize_bot_persistence_options(setup_persistence):
@@ -443,9 +425,7 @@ async def test_initialize_bot_persistence_options(setup_persistence):
         mock_builder_instance.token.return_value = mock_builder_instance
         mock_builder_instance.concurrent_updates.return_value = mock_builder_instance
         mock_builder_instance.connection_pool_size.return_value = mock_builder_instance
-        mock_builder_instance.persistence = MagicMock(
-            return_value=mock_builder_instance
-        )
+        mock_builder_instance.persistence = MagicMock(return_value=mock_builder_instance)
         mock_builder_instance.build.return_value = mock_app
         mock_builder.return_value = mock_builder_instance
 

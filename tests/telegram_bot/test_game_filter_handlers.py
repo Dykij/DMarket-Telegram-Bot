@@ -309,9 +309,7 @@ async def test_handle_game_filters(mock_filter_factory, mock_update, mock_contex
 
 @patch("src.telegram_bot.game_filter_handlers.FilterFactory")
 @pytest.mark.asyncio()
-async def test_handle_select_game_filter_callback(
-    mock_filter_factory, mock_update, mock_context
-):
+async def test_handle_select_game_filter_callback(mock_filter_factory, mock_update, mock_context):
     """Тест обработчика выбора типа фильтра."""
     # Настраиваем мок FilterFactory
     mock_filter = MagicMock()
@@ -330,9 +328,7 @@ async def test_handle_select_game_filter_callback(
 
 @patch("src.telegram_bot.game_filter_handlers.FilterFactory")
 @pytest.mark.asyncio()
-async def test_handle_set_category_callback(
-    mock_filter_factory, mock_update, mock_context
-):
+async def test_handle_set_category_callback(mock_filter_factory, mock_update, mock_context):
     """Тест обработчика установки категории."""
     # Настраиваем мок FilterFactory
     mock_filter = MagicMock()
@@ -352,9 +348,7 @@ async def test_handle_set_category_callback(
 
 @patch("src.telegram_bot.game_filter_handlers.FilterFactory")
 @pytest.mark.asyncio()
-async def test_handle_set_rarity_callback(
-    mock_filter_factory, mock_update, mock_context
-):
+async def test_handle_set_rarity_callback(mock_filter_factory, mock_update, mock_context):
     """Тест обработчика установки редкости."""
     # Настраиваем мок FilterFactory
     mock_filter = MagicMock()
@@ -374,9 +368,7 @@ async def test_handle_set_rarity_callback(
 
 @patch("src.telegram_bot.game_filter_handlers.FilterFactory")
 @pytest.mark.asyncio()
-async def test_handle_set_exterior_callback(
-    mock_filter_factory, mock_update, mock_context
-):
+async def test_handle_set_exterior_callback(mock_filter_factory, mock_update, mock_context):
     """Тест обработчика установки внешнего вида."""
     # Настраиваем мок FilterFactory
     mock_filter = MagicMock()
@@ -416,9 +408,7 @@ async def test_handle_set_hero_callback(mock_filter_factory, mock_update, mock_c
 
 @patch("src.telegram_bot.game_filter_handlers.FilterFactory")
 @pytest.mark.asyncio()
-async def test_handle_back_to_filters_callback(
-    mock_filter_factory, mock_update, mock_context
-):
+async def test_handle_back_to_filters_callback(mock_filter_factory, mock_update, mock_context):
     """Тест обработчика возврата к фильтрам."""
     # Настраиваем мок FilterFactory
     mock_filter = MagicMock()

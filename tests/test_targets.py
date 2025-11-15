@@ -163,9 +163,7 @@ class TestCreateTarget:
     """Тесты создания таргетов."""
 
     @pytest.mark.asyncio()
-    async def test_create_target_success(
-        self, target_manager, mock_api, sample_api_response
-    ):
+    async def test_create_target_success(self, target_manager, mock_api, sample_api_response):
         """Тест успешного создания таргета."""
         mock_api.create_targets.return_value = sample_api_response
 
@@ -357,9 +355,7 @@ class TestGetUserTargets:
     """Тесты получения таргетов пользователя."""
 
     @pytest.mark.asyncio()
-    async def test_get_user_targets_success(
-        self, target_manager, mock_api, sample_targets_list
-    ):
+    async def test_get_user_targets_success(self, target_manager, mock_api, sample_targets_list):
         """Тест успешного получения списка таргетов."""
         mock_api.get_user_targets.return_value = sample_targets_list
 
@@ -590,9 +586,7 @@ class TestGetTargetsByTitle:
         """Тест получения пустого списка таргетов для предмета."""
         mock_api.get_targets_by_title.return_value = {"orders": []}
 
-        targets = await target_manager.get_targets_by_title(
-            game="csgo", title="Rare Item"
-        )
+        targets = await target_manager.get_targets_by_title(game="csgo", title="Rare Item")
 
         assert len(targets) == 0
 
@@ -601,9 +595,7 @@ class TestGetTargetsByTitle:
         """Тест обработки ошибки API."""
         mock_api.get_targets_by_title.side_effect = Exception("API Error")
 
-        targets = await target_manager.get_targets_by_title(
-            game="csgo", title="Test Item"
-        )
+        targets = await target_manager.get_targets_by_title(game="csgo", title="Test Item")
 
         assert len(targets) == 0
 
@@ -668,9 +660,7 @@ class TestCreateSmartTargets:
 
         items = [{"title": f"Item {i}"} for i in range(20)]
 
-        results = await target_manager.create_smart_targets(
-            game="csgo", items=items, max_targets=5
-        )
+        results = await target_manager.create_smart_targets(game="csgo", items=items, max_targets=5)
 
         assert len(results) == 5
 
@@ -735,9 +725,7 @@ class TestCreateSmartTargets:
         assert targets_data[0]["Attrs"]["phase"] == "Phase 2"
 
     @pytest.mark.asyncio()
-    async def test_create_smart_targets_skip_invalid_items(
-        self, target_manager, mock_api
-    ):
+    async def test_create_smart_targets_skip_invalid_items(self, target_manager, mock_api):
         """Тест пропуска предметов без названия."""
         items = [{"title": "Valid Item"}, {"price": 10.0}, {"title": ""}]
 
@@ -776,9 +764,7 @@ class TestGetClosedTargets:
         mock_api.get_closed_targets.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_get_closed_targets_with_status_filter(
-        self, target_manager, mock_api
-    ):
+    async def test_get_closed_targets_with_status_filter(self, target_manager, mock_api):
         """Тест фильтрации по статусу."""
         mock_api.get_closed_targets.return_value = {"Trades": []}
 
@@ -963,9 +949,7 @@ class TestTargetManagerEdgeCases:
     """Тесты граничных случаев."""
 
     @pytest.mark.asyncio()
-    async def test_concurrent_target_creation(
-        self, target_manager, mock_api, sample_api_response
-    ):
+    async def test_concurrent_target_creation(self, target_manager, mock_api, sample_api_response):
         """Тест одновременного создания нескольких таргетов."""
         mock_api.create_targets.return_value = sample_api_response
 
@@ -980,9 +964,7 @@ class TestTargetManagerEdgeCases:
         assert all(r["success"] for r in results)
 
     @pytest.mark.asyncio()
-    async def test_extremely_high_price(
-        self, target_manager, mock_api, sample_api_response
-    ):
+    async def test_extremely_high_price(self, target_manager, mock_api, sample_api_response):
         """Тест создания таргета с очень высокой ценой."""
         mock_api.create_targets.return_value = sample_api_response
 
@@ -1000,9 +982,7 @@ class TestTargetManagerEdgeCases:
         assert targets_data[0]["Price"]["Amount"] == 9999999
 
     @pytest.mark.asyncio()
-    async def test_extremely_low_price(
-        self, target_manager, mock_api, sample_api_response
-    ):
+    async def test_extremely_low_price(self, target_manager, mock_api, sample_api_response):
         """Тест создания таргета с очень низкой ценой."""
         mock_api.create_targets.return_value = sample_api_response
 

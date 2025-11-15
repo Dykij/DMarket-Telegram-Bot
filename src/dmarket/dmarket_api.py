@@ -88,9 +88,7 @@ class DMarketAPI:
     # Пользователь
     ENDPOINT_USER_INVENTORY = "/exchange/v1/user/inventory"  # Инвентарь пользователя
     ENDPOINT_USER_OFFERS = "/exchange/v1/user/offers"  # Предложения пользователя
-    ENDPOINT_USER_TARGETS = (
-        "/exchange/v1/target-lists"  # Целевые предложения пользователя
-    )
+    ENDPOINT_USER_TARGETS = "/exchange/v1/target-lists"  # Целевые предложения пользователя
 
     # Операции
     ENDPOINT_PURCHASE = "/exchange/v1/market/items/buy"  # Покупка предмета
@@ -100,14 +98,10 @@ class DMarketAPI:
 
     # Статистика и аналитика
     ENDPOINT_SALES_HISTORY = "/account/v1/sales-history"  # История продаж
-    ENDPOINT_ITEM_PRICE_HISTORY = (
-        "/exchange/v1/market/price-history"  # История цен предмета
-    )
+    ENDPOINT_ITEM_PRICE_HISTORY = "/exchange/v1/market/price-history"  # История цен предмета
 
     # Новые эндпоинты 2024
-    ENDPOINT_MARKET_BEST_OFFERS = (
-        "/exchange/v1/market/best-offers"  # Лучшие предложения на маркете
-    )
+    ENDPOINT_MARKET_BEST_OFFERS = "/exchange/v1/market/best-offers"  # Лучшие предложения на маркете
     ENDPOINT_MARKET_SEARCH = "/exchange/v1/market/search"  # Расширенный поиск
 
     # Известные коды ошибок DMarket API и рекомендации по их обработке
@@ -267,9 +261,7 @@ class DMarketAPI:
                     import base64
 
                     secret_key_bytes = base64.b64decode(secret_key_str)
-                    logger.debug(
-                        f"Using Base64 format secret key ({len(secret_key_bytes)} bytes)"
-                    )
+                    logger.debug(f"Using Base64 format secret key ({len(secret_key_bytes)} bytes)")
                 # Format 3: Raw string - take first 32 bytes
                 # If longer than 64 hex chars, try to take first 64
                 elif len(secret_key_str) >= 64:
@@ -277,12 +269,10 @@ class DMarketAPI:
                     logger.debug("Using first 32 bytes of long HEX key")
                 else:
                     # Fallback: encode string to bytes and pad/truncate to 32
-                    secret_key_bytes = secret_key_str.encode("utf-8")[:32].ljust(
-                        32, b"\0"
-                    )
+                    secret_key_bytes = secret_key_str.encode("utf-8")[:32].ljust(32, b"\0")
                     logger.warning("Secret key format unknown, using padded bytes")
             except Exception as conv_error:
-                logger.error(f"Error converting secret key: {conv_error}")
+                logger.exception(f"Error converting secret key: {conv_error}")
                 raise
 
             # Create Ed25519 signing key
@@ -305,8 +295,8 @@ class DMarketAPI:
             }
 
         except Exception as e:
-            logger.error(f"Error generating signature: {e}")
-            logger.error(f"Traceback: {traceback.format_exc()}")
+            logger.exception(f"Error generating signature: {e}")
+            logger.exception(f"Traceback: {traceback.format_exc()}")
             # Fallback to old HMAC method if Ed25519 fails
             return self._generate_signature_hmac(method, path, body)
 
@@ -830,31 +820,22 @@ class DMarketAPI:
             # 2024 обновление: сначала пробуем прямой REST API запрос через requests
             # Этот подход может быть более надежен для некоторых эндпоинтов
             try:
-                logger.debug(
-                    "🔍 Пытаемся получить баланс через прямой REST API запрос..."
-                )
+                logger.debug("🔍 Пытаемся получить баланс через прямой REST API запрос...")
                 direct_response = await self.direct_balance_request()
                 logger.debug(f"🔍 Прямой ответ API: {direct_response}")
 
                 if direct_response and direct_response.get("success", False):
-                    logger.info(
-                        "✅ Успешно получили баланс через прямой REST API запрос"
-                    )
+                    logger.info("✅ Успешно получили баланс через прямой REST API запрос")
 
                     # Извлекаем данные из успешного ответа
                     balance_data = direct_response.get("data", {})
                     logger.debug(f"📊 Данные баланса: {balance_data}")
 
-                    usd_amount = (
-                        balance_data.get("balance", 0) * 100
-                    )  # конвертируем в центы
+                    usd_amount = balance_data.get("balance", 0) * 100  # конвертируем в центы
                     usd_available = (
-                        balance_data.get("available", balance_data.get("balance", 0))
-                        * 100
+                        balance_data.get("available", balance_data.get("balance", 0)) * 100
                     )
-                    usd_total = (
-                        balance_data.get("total", balance_data.get("balance", 0)) * 100
-                    )
+                    usd_total = balance_data.get("total", balance_data.get("balance", 0)) * 100
                     usd_locked = balance_data.get("locked", 0) * 100
                     usd_trade_protected = balance_data.get("trade_protected", 0) * 100
 
@@ -960,9 +941,7 @@ class DMarketAPI:
                 }
 
             # Проверяем на ошибки API
-            if isinstance(response, dict) and (
-                "error" in response or "code" in response
-            ):
+            if isinstance(response, dict) and ("error" in response or "code" in response):
                 error_code = response.get("code", "unknown")
                 error_message = response.get(
                     "message",
@@ -1026,14 +1005,10 @@ class DMarketAPI:
                     try:
                         # Значения приходят как строки в центах
                         usd_str = response.get("usd", "0")
-                        usd_available_str = response.get(
-                            "usdAvailableToWithdraw", usd_str
-                        )
+                        usd_available_str = response.get("usdAvailableToWithdraw", usd_str)
 
                         # Проверяем, что это строки (согласно документации)
-                        if isinstance(usd_str, str) and isinstance(
-                            usd_available_str, str
-                        ):
+                        if isinstance(usd_str, str) and isinstance(usd_available_str, str):
                             # Конвертируем из центов в доллары
                             usd_amount = float(usd_str)  # в центах
                             usd_available = float(usd_available_str)  # в центах
@@ -1046,9 +1021,7 @@ class DMarketAPI:
                             # Если не строки, пробуем как числа
                             usd_amount = float(usd_str) if usd_str else 0
                             usd_available = (
-                                float(usd_available_str)
-                                if usd_available_str
-                                else usd_amount
+                                float(usd_available_str) if usd_available_str else usd_amount
                             )
                             usd_total = usd_amount
 
@@ -1122,9 +1095,7 @@ class DMarketAPI:
                         usd_value = response["usdAvailableToWithdraw"]
                         if isinstance(usd_value, str):
                             # Строка может быть в формате "5.00" или "$5.00"
-                            usd_available = (
-                                float(usd_value.replace("$", "").strip()) * 100
-                            )
+                            usd_available = float(usd_value.replace("$", "").strip()) * 100
                         else:
                             usd_available = float(usd_value) * 100
 
@@ -1132,9 +1103,7 @@ class DMarketAPI:
                         if "usd" in response:
                             usd_value = response["usd"]
                             if isinstance(usd_value, str):
-                                usd_total = (
-                                    float(usd_value.replace("$", "").strip()) * 100
-                                )
+                                usd_total = float(usd_value.replace("$", "").strip()) * 100
                             else:
                                 usd_total = float(usd_value) * 100
                         else:
@@ -1155,10 +1124,7 @@ class DMarketAPI:
                 # Формат 2: Старый формат DMarket API с полем usd.amount в центах
                 elif "usd" in response:
                     try:
-                        if (
-                            isinstance(response["usd"], dict)
-                            and "amount" in response["usd"]
-                        ):
+                        if isinstance(response["usd"], dict) and "amount" in response["usd"]:
                             # Формат {"usd": {"amount": 1234}}
                             usd_amount = float(response["usd"]["amount"])
                             usd_available = usd_amount
@@ -1176,9 +1142,7 @@ class DMarketAPI:
                             )
                         elif isinstance(response["usd"], str):
                             # Формат {"usd": "$12.34"}
-                            usd_amount = (
-                                float(response["usd"].replace("$", "").strip()) * 100
-                            )
+                            usd_amount = float(response["usd"].replace("$", "").strip()) * 100
                             usd_available = usd_amount
                             usd_total = usd_amount
                             logger.info(
@@ -1193,10 +1157,7 @@ class DMarketAPI:
                     list,
                 ):
                     for currency in response["totalBalance"]:
-                        if (
-                            isinstance(currency, dict)
-                            and currency.get("currency") == "USD"
-                        ):
+                        if isinstance(currency, dict) and currency.get("currency") == "USD":
                             usd_amount = float(currency.get("amount", 0))
                             usd_total = usd_amount
                             # Если есть доступный баланс
@@ -1225,9 +1186,7 @@ class DMarketAPI:
 
                         usd_available = usd_amount
                         usd_total = usd_amount
-                        logger.info(
-                            f"Баланс из balance.usd: {usd_amount / 100:.2f} USD"
-                        )
+                        logger.info(f"Баланс из balance.usd: {usd_amount / 100:.2f} USD")
 
                 # Собираем дополнительную информацию для анализа
                 for field in ["dmc", "dmcAvailableToWithdraw", "userData"]:
@@ -1399,7 +1358,7 @@ class DMarketAPI:
             return response
 
         except Exception as e:
-            logger.error(f"❌ Ошибка при получении предметов: {e}")
+            logger.exception(f"❌ Ошибка при получении предметов: {e}")
             # Возвращаем пустой результат в случае ошибки
             return {"objects": [], "total": {"items": 0, "offers": 0}}
 
@@ -2446,13 +2405,9 @@ class DMarketAPI:
                         secret_key_bytes = bytes.fromhex(secret_key_str[:64])
                     else:
                         # Fallback
-                        secret_key_bytes = secret_key_str.encode("utf-8")[:32].ljust(
-                            32, b"\0"
-                        )
+                        secret_key_bytes = secret_key_str.encode("utf-8")[:32].ljust(32, b"\0")
                 except Exception as conv_error:
-                    logger.error(
-                        f"Error converting secret key in direct request: {conv_error}"
-                    )
+                    logger.exception(f"Error converting secret key in direct request: {conv_error}")
                     raise
 
                 # Create Ed25519 signing key
@@ -2467,7 +2422,7 @@ class DMarketAPI:
                 logger.debug("Direct balance request - signature generated")
 
             except Exception as sig_error:
-                logger.error(f"Error generating Ed25519 signature: {sig_error}")
+                logger.exception(f"Error generating Ed25519 signature: {sig_error}")
                 # Fallback to HMAC if Ed25519 fails
                 secret_key = (
                     self.secret_key
@@ -2512,19 +2467,13 @@ class DMarketAPI:
 
                         # Получаем USD баланс (в центах как строка)
                         usd_str = response_data.get("usd", "0")
-                        usd_available_str = response_data.get(
-                            "usdAvailableToWithdraw", "0"
-                        )
-                        usd_trade_protected_str = response_data.get(
-                            "usdTradeProtected", "0"
-                        )
+                        usd_available_str = response_data.get("usdAvailableToWithdraw", "0")
+                        usd_trade_protected_str = response_data.get("usdTradeProtected", "0")
 
                         # Конвертируем из строки в центы, затем в доллары
                         try:
                             balance_cents = float(usd_str)  # общий баланс в центах
-                            available_cents = float(
-                                usd_available_str
-                            )  # доступный баланс в центах
+                            available_cents = float(usd_available_str)  # доступный баланс в центах
                             trade_protected_cents = float(
                                 usd_trade_protected_str
                             )  # защищенный в торговле
@@ -2543,7 +2492,7 @@ class DMarketAPI:
                                 f"💰 Распарсен баланс: Всего ${balance:.2f} USD (доступно: ${available:.2f}, заблокировано: ${locked:.2f}, защищено торговлей: ${trade_protected:.2f})"
                             )
                         except (ValueError, TypeError) as e:
-                            logger.error(
+                            logger.exception(
                                 f"Ошибка конвертации баланса: {e}, usd={usd_str}, usdAvailable={usd_available_str}"
                             )
                             balance = 0.0

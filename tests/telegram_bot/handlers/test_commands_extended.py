@@ -287,9 +287,7 @@ async def test_handle_text_buttons_balance(mock_update, mock_context):
     """Тест обработки кнопки '📊 Баланс'."""
     mock_update.message.text = "📊 Баланс"
 
-    with patch(
-        "src.telegram_bot.handlers.commands.check_balance_command"
-    ) as mock_balance:
+    with patch("src.telegram_bot.handlers.commands.check_balance_command") as mock_balance:
         mock_balance.return_value = AsyncMock()
 
         await handle_text_buttons(mock_update, mock_context)
@@ -388,18 +386,16 @@ async def test_help_command_error_handling(mock_update, mock_context):
 
 
 @pytest.mark.parametrize(
-    "command_func,expected_text",
-    [
+    ("command_func", "expected_text"),
+    (
         (start_command, "бот"),
         (help_command, "/start"),
         (webapp_command, "DMarket"),
         (markets_command, "рынк"),
-    ],
+    ),
 )
 @pytest.mark.asyncio()
-async def test_commands_send_messages(
-    mock_update, mock_context, command_func, expected_text
-):
+async def test_commands_send_messages(mock_update, mock_context, command_func, expected_text):
     """Параметризованный тест для проверки отправки сообщений командами."""
     await command_func(mock_update, mock_context)
 
@@ -413,23 +409,21 @@ async def test_commands_send_messages(
 
 @pytest.mark.parametrize(
     "text_button",
-    [
+    (
         "🔍 Арбитраж",
         "📊 Баланс",
         "🌐 Открыть DMarket",
         "📈 Анализ рынка",
         "⚙️ Настройки",
         "❓ Помощь",
-    ],
+    ),
 )
 @pytest.mark.asyncio()
 async def test_handle_all_text_buttons(mock_update, mock_context, text_button):
     """Параметризованный тест для всех текстовых кнопок."""
     mock_update.message.text = text_button
 
-    with patch(
-        "src.telegram_bot.handlers.commands.check_balance_command"
-    ) as mock_balance:
+    with patch("src.telegram_bot.handlers.commands.check_balance_command") as mock_balance:
         mock_balance.return_value = AsyncMock()
 
         # Не должно быть исключений

@@ -106,9 +106,7 @@ class Balance(BaseModel):
     usd: str = Field(description="USD баланс в центах (строка)")
     usdAvailableToWithdraw: str = Field(description="Доступный для вывода USD в центах")
     dmc: str | None = Field(None, description="DMC баланс")
-    dmcAvailableToWithdraw: str | None = Field(
-        None, description="Доступный для вывода DMC"
-    )
+    dmcAvailableToWithdraw: str | None = Field(None, description="Доступный для вывода DMC")
 
     @property
     def usd_dollars(self) -> float:
@@ -274,7 +272,7 @@ class SalesHistory(BaseModel):
     def date_datetime(self) -> datetime | None:
         """Конвертирует дату в datetime."""
         try:
-            return datetime.fromisoformat(self.date.replace("Z", "+00:00"))
+            return datetime.fromisoformat(self.date)
         except (ValueError, AttributeError):
             return None
 
@@ -313,9 +311,7 @@ class DepositStatus(BaseModel):
     status: TransferStatus = Field(description="Статус трансфера")
     Error: str | None = Field(None, description="Сообщение об ошибке")
     Assets: list[DepositAsset] | None = Field(None, description="Список активов")
-    SteamDepositInfo: dict[str, Any] | None = Field(
-        None, description="Информация о Steam депозите"
-    )
+    SteamDepositInfo: dict[str, Any] | None = Field(None, description="Информация о Steam депозите")
 
 
 # ==================== LEGACY MODELS (для обратной совместимости) ====================
@@ -347,30 +343,30 @@ class BalanceLegacy:
 
 # Экспортируем все модели
 __all__ = [
-    # Enums
-    "OfferStatus",
-    "TargetStatus",
-    "TransferStatus",
-    "TradeStatus",
-    # Price models
-    "Price",
-    "MarketPrice",
     # Account models
     "Balance",
-    "UserProfile",
-    # Market item models
-    "MarketItem",
-    # Offer models
-    "Offer",
-    # Target models
-    "Target",
-    "TargetAttrs",
+    # Legacy models
+    "BalanceLegacy",
     "CreateTargetRequest",
-    # Sales history models
-    "SalesHistory",
     # Deposit/Withdraw models
     "DepositAsset",
     "DepositStatus",
-    # Legacy models
-    "BalanceLegacy",
+    # Market item models
+    "MarketItem",
+    "MarketPrice",
+    # Offer models
+    "Offer",
+    # Enums
+    "OfferStatus",
+    # Price models
+    "Price",
+    # Sales history models
+    "SalesHistory",
+    # Target models
+    "Target",
+    "TargetAttrs",
+    "TargetStatus",
+    "TradeStatus",
+    "TransferStatus",
+    "UserProfile",
 ]

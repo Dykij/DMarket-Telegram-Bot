@@ -383,13 +383,13 @@ async def test_record_notification_multiple():
 
 @pytest.mark.parametrize(
     "notification_type",
-    [
+    (
         "market_opportunity",
         "price_alert",
         "trend_alert",
         "arbitrage_opportunity",
         "watchlist_update",
-    ],
+    ),
 )
 @pytest.mark.asyncio()
 async def test_should_throttle_various_types(notification_type):
@@ -401,7 +401,7 @@ async def test_should_throttle_various_types(notification_type):
 
 @pytest.mark.parametrize(
     "alert_type",
-    ["price_alert", "trend_alert", "pattern_alert", "arbitrage_opportunity"],
+    ("price_alert", "trend_alert", "pattern_alert", "arbitrage_opportunity"),
 )
 @pytest.mark.asyncio()
 async def test_create_alert_various_types(alert_type):
@@ -456,9 +456,7 @@ async def test_notification_workflow():
     await record_notification(TEST_USER_ID, notification)
 
     # 3. Проверка throttling (второй раз сразу же)
-    should_throttle_again = await should_throttle_notification(
-        TEST_USER_ID, "price_alert"
-    )
+    should_throttle_again = await should_throttle_notification(TEST_USER_ID, "price_alert")
     # Может throttle или нет
     assert isinstance(should_throttle_again, bool)
 

@@ -89,11 +89,7 @@ def format_market_item(item: dict[str, Any], show_details: bool = True) -> str:
             message.append(f"📊 Float: `{item['extra']['floatValue']}`")
 
         # Наклейки (для CS:GO)
-        if (
-            "extra" in item
-            and "stickers" in item["extra"]
-            and item["extra"]["stickers"]
-        ):
+        if "extra" in item and "stickers" in item["extra"] and item["extra"]["stickers"]:
             stickers = item["extra"]["stickers"]
             message.append(f"🏵️ Наклейки: {len(stickers)}")
 
@@ -617,9 +613,7 @@ def format_best_opportunities(
 
         # Добавляем информацию о ликвидности если есть
         if "sales_per_day" in opportunity:
-            message.append(
-                f"🔄 Продаж в день: <b>{opportunity['sales_per_day']:.2f}</b>"
-            )
+            message.append(f"🔄 Продаж в день: <b>{opportunity['sales_per_day']:.2f}</b>")
 
         message.append("")  # Пустая строка между возможностями
 

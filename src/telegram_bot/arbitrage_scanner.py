@@ -405,20 +405,12 @@ class ArbitrageScanner:
                 ):
                     diagnosis = "auth_error"
                     display_message = "Ошибка авторизации: проверьте ключи API"
-                elif (
-                    "ключи" in error_message.lower()
-                    or "api key" in error_message.lower()
-                ):
+                elif "ключи" in error_message.lower() or "api key" in error_message.lower():
                     diagnosis = "missing_keys"
                     display_message = "Отсутствуют ключи API"
-                elif (
-                    "timeout" in error_message.lower()
-                    or "время" in error_message.lower()
-                ):
+                elif "timeout" in error_message.lower() or "время" in error_message.lower():
                     diagnosis = "timeout_error"
-                    display_message = (
-                        "Таймаут при запросе баланса: возможны проблемы с сетью"
-                    )
+                    display_message = "Таймаут при запросе баланса: возможны проблемы с сетью"
                 elif "404" in error_message or "не найден" in error_message.lower():
                     diagnosis = "endpoint_error"
                     display_message = "Ошибка API: эндпоинт баланса недоступен"
@@ -458,7 +450,9 @@ class ArbitrageScanner:
 
             # Формируем сообщение для пользователя
             if has_funds:
-                display_message = f"Баланс DMarket: ${available_balance:.2f} USD (достаточно для арбитража)"
+                display_message = (
+                    f"Баланс DMarket: ${available_balance:.2f} USD (достаточно для арбитража)"
+                )
             else:
                 # Различаем случаи полного отсутствия средств и недостаточного баланса
                 if available_balance <= 0:

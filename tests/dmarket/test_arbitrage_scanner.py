@@ -23,9 +23,7 @@ from src.dmarket.dmarket_api import DMarketAPI
 def mock_api_client():
     """Создает мок DMarketAPI клиента."""
     api = MagicMock(spec=DMarketAPI)
-    api.get_balance = AsyncMock(
-        return_value={"usd": "10000", "error": False, "balance": 100.0}
-    )
+    api.get_balance = AsyncMock(return_value={"usd": "10000", "error": False, "balance": 100.0})
     api.get_market_items = AsyncMock(
         return_value={
             "objects": [
@@ -316,9 +314,7 @@ def test_standardize_items_trader_format(scanner):
         }
     ]
 
-    result = scanner._standardize_items(
-        items, "dota2", min_profit=0.5, max_profit=100.0
-    )
+    result = scanner._standardize_items(items, "dota2", min_profit=0.5, max_profit=100.0)
 
     assert len(result) == 1
     assert result[0]["title"] == "Trader Item"
@@ -364,9 +360,7 @@ async def test_scan_multiple_games_success(scanner):
         mock_scan.return_value = [{"item": "test"}]
 
         games = ["csgo", "dota2"]
-        result = await scanner.scan_multiple_games(
-            games, "medium", max_items_per_game=5
-        )
+        result = await scanner.scan_multiple_games(games, "medium", max_items_per_game=5)
 
     assert len(result) == 2
     assert "csgo" in result
@@ -410,9 +404,7 @@ async def test_check_user_balance_success(scanner):
     """Тест успешной проверки баланса."""
     # Мокируем _request для возврата баланса в центах
     # Формат: {"usd": {"available": 10050, "frozen": 0}} = $100.50
-    scanner.api_client._request = AsyncMock(
-        return_value={"usd": {"available": 10050, "frozen": 0}}
-    )
+    scanner.api_client._request = AsyncMock(return_value={"usd": {"available": 10050, "frozen": 0}})
 
     result = await scanner.check_user_balance()
 
@@ -613,9 +605,7 @@ async def test_find_best_opportunities_min_level(scanner):
     with patch.object(scanner, "scan_all_levels", new_callable=AsyncMock) as mock_scan:
         mock_scan.return_value = all_levels_data
 
-        result = await scanner.find_best_opportunities(
-            "csgo", top_n=10, min_level="medium"
-        )
+        result = await scanner.find_best_opportunities("csgo", top_n=10, min_level="medium")
 
     # Не должно быть предметов из boost и standard
     for item in result:
@@ -636,9 +626,7 @@ async def test_find_best_opportunities_max_level(scanner):
     with patch.object(scanner, "scan_all_levels", new_callable=AsyncMock) as mock_scan:
         mock_scan.return_value = all_levels_data
 
-        result = await scanner.find_best_opportunities(
-            "csgo", top_n=10, max_level="medium"
-        )
+        result = await scanner.find_best_opportunities("csgo", top_n=10, max_level="medium")
 
     # Не должно быть предметов из advanced и pro
     for item in result:
@@ -805,9 +793,7 @@ async def test_analyze_item_no_profit(scanner):
 async def test_full_arbitrage_workflow(scanner):
     """Интеграционный тест: полный цикл арбитража."""
     # Мокируем _request для check_user_balance
-    scanner.api_client._request = AsyncMock(
-        return_value={"usd": {"available": 10000, "frozen": 0}}
-    )
+    scanner.api_client._request = AsyncMock(return_value={"usd": {"available": 10000, "frozen": 0}})
 
     # 1. Сканирование игры
     with (
@@ -888,3 +874,253 @@ async def test_scan_multiple_games_concurrent(scanner):
     # Проверяем, что сканирование было параллельным (< 0.3 сек вместо 0.3+)
     assert elapsed < 0.2  # Должно быть быстрее последовательного выполнения
     assert len(result) == 3
+
+
+# ============================================================================
+# Тесты интеграции с LiquidityAnalyzer
+# ============================================================================
+
+
+@pytest.mark.asyncio()
+async def test_liquidity_filter_enabled_by_default():
+    """Тест что фильтр ликвидности включен по умолчанию."""
+    scanner = ArbitrageScanner()
+    assert scanner.enable_liquidity_filter is True
+    assert scanner.min_liquidity_score == 60
+    assert scanner.min_sales_per_week == 5
+    assert scanner.max_time_to_sell_days == 7
+
+
+@pytest.mark.asyncio()
+async def test_liquidity_filter_can_be_disabled():
+    """Тест отключения фильтра ликвидности."""
+    scanner = ArbitrageScanner(enable_liquidity_filter=False)
+    assert scanner.enable_liquidity_filter is False
+
+
+@pytest.mark.asyncio()
+async def test_liquidity_analyzer_initialized_when_enabled(mock_api_client):
+    """Тест инициализации LiquidityAnalyzer при включенном фильтре."""
+    scanner = ArbitrageScanner(api_client=mock_api_client, enable_liquidity_filter=True)
+
+    # Вызываем get_api_client для инициализации анализатора
+    await scanner.get_api_client()
+
+    assert scanner.liquidity_analyzer is not None
+
+
+@pytest.mark.asyncio()
+async def test_liquidity_analyzer_not_initialized_when_disabled(mock_api_client):
+    """Тест что LiquidityAnalyzer не инициализируется при отключенном фильтре."""
+    scanner = ArbitrageScanner(api_client=mock_api_client, enable_liquidity_filter=False)
+
+    await scanner.get_api_client()
+
+    assert scanner.liquidity_analyzer is None
+
+
+@pytest.mark.asyncio()
+async def test_analyze_item_filters_by_low_liquidity(mock_api_client):
+    """Тест фильтрации предметов с низкой ликвидностью."""
+    scanner = ArbitrageScanner(api_client=mock_api_client, enable_liquidity_filter=True)
+    scanner.min_liquidity_score = 70  # Устанавливаем порог
+
+    # Инициализируем анализатор
+    await scanner.get_api_client()
+
+    # Мокаем анализатор ликвидности чтобы вернуть низкий балл
+    from src.dmarket.liquidity_analyzer import LiquidityMetrics
+
+    scanner.liquidity_analyzer.analyze_item_liquidity = AsyncMock(
+        return_value=LiquidityMetrics(
+            item_title="Test Item",
+            sales_per_week=2.0,
+            avg_time_to_sell_days=10.0,
+            active_offers_count=20,
+            price_stability=0.8,
+            market_depth=5.0,
+            liquidity_score=30.0,  # Ниже порога
+            is_liquid=False,
+        )
+    )
+
+    item = {
+        "itemId": "test_item",
+        "title": "Test Item",
+        "price": {"USD": 1000},  # Цена в центах
+        "suggestedPrice": {"USD": 1200},
+    }
+    config = {"price_range": (5.0, 15.0), "min_profit_percent": 5.0}
+
+    result = await scanner._analyze_item(item, config, "csgo")
+
+    # Предмет должен быть отфильтрован из-за низкой ликвидности
+    assert result is None
+
+
+@pytest.mark.asyncio()
+async def test_analyze_item_passes_high_liquidity(mock_api_client):
+    """Тест прохождения предметов с высокой ликвидностью."""
+    scanner = ArbitrageScanner(api_client=mock_api_client, enable_liquidity_filter=True)
+    scanner.min_liquidity_score = 60
+
+    await scanner.get_api_client()
+
+    # Мокаем высокую ликвидность
+    from src.dmarket.liquidity_analyzer import LiquidityMetrics
+
+    scanner.liquidity_analyzer.analyze_item_liquidity = AsyncMock(
+        return_value=LiquidityMetrics(
+            item_title="Test Item",
+            sales_per_week=15.0,
+            avg_time_to_sell_days=2.0,
+            active_offers_count=30,
+            price_stability=0.95,
+            market_depth=50.0,
+            liquidity_score=85.0,  # Выше порога
+            is_liquid=True,
+        )
+    )
+
+    item = {
+        "itemId": "test_item",
+        "title": "Test Item",
+        "price": {"USD": 1000},  # Цена в центах
+        "suggestedPrice": {"USD": 1200},
+    }
+    config = {"price_range": (5.0, 15.0), "min_profit_percent": 5.0}
+
+    result = await scanner._analyze_item(item, config, "csgo")
+
+    # Предмет должен пройти фильтр
+    assert result is not None
+    assert result["liquidity_score"] == 85
+    assert result["sales_per_week"] == 15.0
+    assert result["time_to_sell_days"] == 2.0
+    assert result["price_stability"] == 0.95
+
+
+@pytest.mark.asyncio()
+async def test_analyze_item_filters_by_time_to_sell(mock_api_client):
+    """Тест фильтрации по времени продажи."""
+    scanner = ArbitrageScanner(api_client=mock_api_client, enable_liquidity_filter=True)
+    scanner.max_time_to_sell_days = 5  # Максимум 5 дней
+
+    await scanner.get_api_client()
+
+    # Мокаем предмет который продается долго
+    from src.dmarket.liquidity_analyzer import LiquidityMetrics
+
+    scanner.liquidity_analyzer.analyze_item_liquidity = AsyncMock(
+        return_value=LiquidityMetrics(
+            item_title="Test Item",
+            sales_per_week=10.0,
+            avg_time_to_sell_days=10.0,  # Но долго продается
+            active_offers_count=25,
+            price_stability=0.85,
+            market_depth=30.0,
+            liquidity_score=70.0,  # Хороший балл
+            is_liquid=True,
+        )
+    )
+
+    item = {
+        "itemId": "test_item",
+        "title": "Test Item",
+        "price": {"USD": 1000},  # Цена в центах
+        "suggestedPrice": {"USD": 1200},
+    }
+    config = {"price_range": (5.0, 15.0), "min_profit_percent": 5.0}
+
+    result = await scanner._analyze_item(item, config, "csgo")
+
+    # Должен быть отфильтрован из-за долгой продажи
+    assert result is None
+
+
+@pytest.mark.asyncio()
+async def test_analyze_item_without_liquidity_filter(mock_api_client):
+    """Тест что без фильтра ликвидности предметы не анализируются."""
+    scanner = ArbitrageScanner(api_client=mock_api_client, enable_liquidity_filter=False)
+
+    await scanner.get_api_client()
+
+    item = {
+        "itemId": "test_item",
+        "title": "Test Item",
+        "price": {"USD": 1000},  # Цена в центах
+        "suggestedPrice": {"USD": 1200},
+    }
+    config = {"price_range": (5.0, 15.0), "min_profit_percent": 5.0}
+
+    result = await scanner._analyze_item(item, config, "csgo")
+
+    # Должен вернуться результат без данных ликвидности
+    assert result is not None
+    assert "liquidity_score" not in result
+
+
+@pytest.mark.asyncio()
+async def test_scan_level_with_liquidity_filter(mock_api_client):
+    """Тест scan_level с фильтрацией по ликвидности."""
+    scanner = ArbitrageScanner(api_client=mock_api_client, enable_liquidity_filter=True)
+
+    await scanner.get_api_client()
+
+    # Мокаем API чтобы вернуть несколько предметов
+    mock_api_client.get_market_items = AsyncMock(
+        return_value={
+            "objects": [
+                {
+                    "itemId": "item_1",
+                    "title": "High Liquidity Item",
+                    "price": {"USD": 100},  # $1.00 в центах
+                    "suggestedPrice": {"USD": 120},  # $1.20
+                },
+                {
+                    "itemId": "item_2",
+                    "title": "Low Liquidity Item",
+                    "price": {"USD": 150},  # $1.50
+                    "suggestedPrice": {"USD": 180},  # $1.80
+                },
+            ],
+            "total": 2,
+        }
+    )
+
+    # Мокаем анализатор чтобы первый предмет прошел, второй нет
+    from src.dmarket.liquidity_analyzer import LiquidityMetrics
+
+    async def mock_liquidity_analysis(item_title, game, days_history=30):
+        if "High Liquidity" in item_title:
+            return LiquidityMetrics(
+                item_title=item_title,
+                sales_per_week=20.0,
+                avg_time_to_sell_days=2.0,
+                active_offers_count=15,
+                price_stability=0.92,
+                market_depth=60.0,
+                liquidity_score=80.0,
+                is_liquid=True,
+            )
+        return LiquidityMetrics(
+            item_title=item_title,
+            sales_per_week=1.0,
+            avg_time_to_sell_days=15.0,
+            active_offers_count=100,
+            price_stability=0.6,
+            market_depth=3.0,
+            liquidity_score=30.0,
+            is_liquid=False,
+        )
+
+    scanner.liquidity_analyzer.analyze_item_liquidity = AsyncMock(
+        side_effect=mock_liquidity_analysis
+    )
+
+    results = await scanner.scan_level("boost", "csgo", max_results=10)
+
+    # Должен вернуться только 1 предмет (High Liquidity)
+    assert len(results) == 1
+    assert results[0]["item"]["title"] == "High Liquidity Item"
+    assert results[0]["liquidity_score"] == 80

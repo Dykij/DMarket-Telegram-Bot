@@ -277,8 +277,7 @@ async def handle_liquidity_analysis(update: Update, context: CallbackContext) ->
 
     # Отправляем сообщение о начале анализа
     reply_message = await update.message.reply_text(
-        f"🔍 Анализ ликвидности предмета:\n<code>{item_name}</code>\n\n"
-        "⏳ Пожалуйста, подождите...",
+        f"🔍 Анализ ликвидности предмета:\n<code>{item_name}</code>\n\n⏳ Пожалуйста, подождите...",
         parse_mode=ParseMode.HTML,
     )
 

@@ -268,7 +268,7 @@ def test_get_pagination_keyboard_first_page():
 
     # Должна быть кнопка "Вперед"
     assert any(
-        "next" in cd or ">" in btn.text for cd, btn in zip(callback_data, buttons)
+        "next" in cd or ">" in btn.text for cd, btn in zip(callback_data, buttons, strict=False)
     )
 
 
@@ -296,7 +296,7 @@ def test_get_pagination_keyboard_last_page():
 
     # Должна быть кнопка "Назад"
     assert any(
-        "prev" in cd or "<" in btn.text for cd, btn in zip(callback_data, buttons)
+        "prev" in cd or "<" in btn.text for cd, btn in zip(callback_data, buttons, strict=False)
     )
 
 
@@ -353,9 +353,7 @@ def test_get_alert_actions_keyboard():
     assert len(keyboard.inline_keyboard) > 0
 
     # Проверяем, что alert_id присутствует в callback_data (хотя бы в одной кнопке)
-    all_callbacks = [
-        btn.callback_data for row in keyboard.inline_keyboard for btn in row
-    ]
+    all_callbacks = [btn.callback_data for row in keyboard.inline_keyboard for btn in row]
     # Не все кнопки должны содержать alert_id, проверяем просто структуру
     assert len(all_callbacks) > 0
 

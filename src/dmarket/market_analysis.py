@@ -710,9 +710,9 @@ def _calculate_market_volatility_level(volatile_items: list[dict[str, Any]]) -> 
         return "low"
 
     # Рассчитываем среднюю волатильность
-    avg_volatility = sum(
-        item.get("volatility_score", 0) for item in volatile_items
-    ) / len(volatile_items)
+    avg_volatility = sum(item.get("volatility_score", 0) for item in volatile_items) / len(
+        volatile_items
+    )
 
     if avg_volatility < 10:
         return "low"

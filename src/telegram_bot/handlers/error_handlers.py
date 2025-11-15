@@ -42,13 +42,11 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             )
         elif error.status_code == 401:
             error_message = (
-                "🔐 <b>Ошибка авторизации DMarket API.</b>\n\n"
-                "Проверьте API-ключи в настройках."
+                "🔐 <b>Ошибка авторизации DMarket API.</b>\n\nПроверьте API-ключи в настройках."
             )
         elif error.status_code == 404:
             error_message = (
-                "🔍 <b>Ресурс не найден.</b>\n\n"
-                "Запрашиваемый объект не найден на DMarket."
+                "🔍 <b>Ресурс не найден.</b>\n\nЗапрашиваемый объект не найден на DMarket."
             )
         elif error.status_code >= 500:
             error_message = (
@@ -58,9 +56,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         else:
             # Для остальных кодов (400, и т.д.)
             error_message = (
-                f"❌ <b>Ошибка DMarket API</b>\n\n"
-                f"Код: {error.status_code}\n"
-                f"Сообщение: {error!s}"
+                f"❌ <b>Ошибка DMarket API</b>\n\nКод: {error.status_code}\nСообщение: {error!s}"
             )
     else:
         error_message = (
@@ -76,9 +72,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 error_message,
                 parse_mode=ParseMode.HTML,
                 reply_markup=(
-                    get_back_to_arbitrage_keyboard()
-                    if isinstance(error, APIError)
-                    else None
+                    get_back_to_arbitrage_keyboard() if isinstance(error, APIError) else None
                 ),
             )
         except Exception as e:

@@ -155,10 +155,7 @@ def setup_logging(
         )
         file_handler.setLevel(numeric_level)
 
-        if json_format:
-            file_formatter = JSONFormatter()
-        else:
-            file_formatter = logging.Formatter(format_string)
+        file_formatter = JSONFormatter() if json_format else logging.Formatter(format_string)
 
         file_handler.setFormatter(file_formatter)
         root_logger.addHandler(file_handler)

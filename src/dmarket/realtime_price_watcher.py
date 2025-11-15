@@ -93,9 +93,7 @@ class RealtimePriceWatcher:
 
         # Исторические данные о ценах {item_id: [(timestamp, price), ...]}
         self.price_history = defaultdict(list)
-        self.max_history_points = (
-            100  # Максимальное количество сохраняемых точек истории цен
-        )
+        self.max_history_points = 100  # Максимальное количество сохраняемых точек истории цен
 
         # Словарь для хранения оповещений {item_id: [alert1, alert2, ...]}
         self.price_alerts = defaultdict(list)
@@ -210,9 +208,7 @@ class RealtimePriceWatcher:
 
                     # Преобразуем цену в float
                     try:
-                        price_float = (
-                            float(price) / 100
-                        )  # Цена в центах, конвертируем в доллары
+                        price_float = float(price) / 100  # Цена в центах, конвертируем в доллары
                     except (ValueError, TypeError):
                         continue
 
@@ -263,9 +259,7 @@ class RealtimePriceWatcher:
 
                     # Преобразуем цену в float
                     try:
-                        price_float = (
-                            float(price) / 100
-                        )  # Цена в центах, конвертируем в доллары
+                        price_float = float(price) / 100  # Цена в центах, конвертируем в доллары
                     except (ValueError, TypeError):
                         continue
 
@@ -296,9 +290,7 @@ class RealtimePriceWatcher:
                         }
 
         except Exception as e:
-            logger.exception(
-                f"Ошибка при обработке сообщения обновления предметов: {e}"
-            )
+            logger.exception(f"Ошибка при обработке сообщения обновления предметов: {e}")
 
     def _add_to_price_history(self, item_id: str, price: float) -> None:
         """Добавление записи в историю цен предмета.
@@ -313,9 +305,7 @@ class RealtimePriceWatcher:
 
         # Ограничиваем размер истории
         if len(self.price_history[item_id]) > self.max_history_points:
-            self.price_history[item_id] = self.price_history[item_id][
-                -self.max_history_points :
-            ]
+            self.price_history[item_id] = self.price_history[item_id][-self.max_history_points :]
 
     async def _periodic_price_updates(self) -> None:
         """Периодическое обновление цен через REST API."""
@@ -339,10 +329,7 @@ class RealtimePriceWatcher:
         for item_id in self.watched_items:
             # Определяем игру из метаданных или используем csgo по умолчанию
             game = "csgo"
-            if (
-                item_id in self.item_metadata
-                and "gameId" in self.item_metadata[item_id]
-            ):
+            if item_id in self.item_metadata and "gameId" in self.item_metadata[item_id]:
                 game = self.item_metadata[item_id]["gameId"]
             items_by_game[game].append(item_id)
 
@@ -541,9 +528,7 @@ class RealtimePriceWatcher:
                         "lastUpdated": time.time(),
                     }
 
-                    return (
-                        float(price_data["USD"]) / 100
-                    )  # Цена в центах, конвертируем в доллары
+                    return float(price_data["USD"]) / 100  # Цена в центах, конвертируем в доллары
 
             return None
 

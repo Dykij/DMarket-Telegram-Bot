@@ -364,11 +364,7 @@ class MarketVisualizer:
 
             color = self.highlight_color
             if pattern_type == "reversal":
-                color = (
-                    self.up_color
-                    if pattern.get("direction") == "upward"
-                    else self.down_color
-                )
+                color = self.up_color if pattern.get("direction") == "upward" else self.down_color
             elif pattern_type == "fomo":
                 color = self.up_color
             elif pattern_type == "panic":
@@ -440,8 +436,7 @@ class MarketVisualizer:
         # Add legend for patterns
         pattern_types = {area["pattern"] for area in pattern_areas}
         handles = [
-            Rectangle((0, 0), 1, 1, color=self.highlight_color, alpha=0.3)
-            for _ in pattern_types
+            Rectangle((0, 0), 1, 1, color=self.highlight_color, alpha=0.3) for _ in pattern_types
         ]
         labels = [p.replace("_", " ").title() for p in pattern_types]
         if handles and labels:

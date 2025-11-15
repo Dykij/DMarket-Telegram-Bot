@@ -228,7 +228,7 @@ async def test_market_analysis_command_creates_keyboard(mock_update, mock_contex
     """Тест создания клавиатуры для анализа рынка."""
     await market_analysis_command(mock_update, mock_context)
 
-    args, kwargs = mock_update.message.reply_text.call_args
+    _args, kwargs = mock_update.message.reply_text.call_args
     keyboard = kwargs["reply_markup"]
 
     # Проверяем наличие кнопок
@@ -254,16 +254,14 @@ async def test_market_analysis_callback_select_game(mock_update, mock_context):
 
     # Проверяем обновление сообщения
     mock_update.callback_query.edit_message_text.assert_called_once()
-    args, kwargs = mock_update.callback_query.edit_message_text.call_args
+    args, _kwargs = mock_update.callback_query.edit_message_text.call_args
 
     # Проверяем что игра обновлена в тексте
     assert "Dota 2" in args[0]
 
 
 @pytest.mark.asyncio()
-async def test_market_analysis_callback_initializes_user_data(
-    mock_update, mock_context
-):
+async def test_market_analysis_callback_initializes_user_data(mock_update, mock_context):
     """Тест инициализации данных пользователя."""
     mock_update.callback_query.data = "analysis:select_game:csgo"
 
@@ -302,9 +300,7 @@ async def test_market_analysis_callback_price_changes(
 
 @pytest.mark.asyncio()
 @patch("src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env")
-async def test_market_analysis_callback_api_error(
-    mock_api_client, mock_update, mock_context
-):
+async def test_market_analysis_callback_api_error(mock_api_client, mock_update, mock_context):
     """Тест обработки ошибки API при колбэке."""
     mock_update.callback_query.data = "analysis:trending:csgo"
     mock_context.user_data["market_analysis"] = {"current_game": "csgo"}
@@ -346,9 +342,7 @@ async def test_show_price_changes_results_success(
 
 @pytest.mark.asyncio()
 @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
-async def test_show_price_changes_results_empty(
-    mock_pagination, mock_callback_query, mock_context
-):
+async def test_show_price_changes_results_empty(mock_pagination, mock_callback_query, mock_context):
     """Тест отображения пустых результатов изменения цен."""
     # Настройка пагинации - пустой список
     mock_pagination.get_page.return_value = ([], 0, 0)
@@ -393,9 +387,7 @@ async def test_show_volatility_results(
 
 
 @pytest.mark.asyncio()
-async def test_show_market_report(
-    mock_callback_query, mock_context, sample_market_report
-):
+async def test_show_market_report(mock_callback_query, mock_context, sample_market_report):
     """Тест отображения рыночного отчета."""
     await show_market_report(mock_callback_query, mock_context, sample_market_report)
 
@@ -441,9 +433,7 @@ async def test_show_investment_recommendations_results(
     """Тест отображения инвестиционных рекомендаций."""
     mock_pagination.get_page.return_value = (sample_recommendations, 0, 1)
 
-    await show_investment_recommendations_results(
-        mock_callback_query, mock_context, "csgo"
-    )
+    await show_investment_recommendations_results(mock_callback_query, mock_context, "csgo")
 
     mock_callback_query.edit_message_text.assert_called_once()
     args = mock_callback_query.edit_message_text.call_args[0]

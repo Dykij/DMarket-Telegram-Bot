@@ -54,10 +54,7 @@ class User(Base):
 
     def __repr__(self) -> str:
         """String representation."""
-        return (
-            f"<User(id={self.id}, telegram_id={self.telegram_id}, "
-            f"username='{self.username}')>"
-        )
+        return f"<User(id={self.id}, telegram_id={self.telegram_id}, username='{self.username}')>"
 
     def to_dict(self) -> dict:
         """Convert model to dictionary."""
@@ -73,9 +70,7 @@ class User(Base):
             "is_banned": self.is_banned,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-            "last_activity": (
-                self.last_activity.isoformat() if self.last_activity else None
-            ),
+            "last_activity": (self.last_activity.isoformat() if self.last_activity else None),
         }
 
 
@@ -190,9 +185,7 @@ class PriceAlert(Base):
             "condition": self.condition,
             "is_active": self.is_active,
             "triggered": self.triggered,
-            "triggered_at": (
-                self.triggered_at.isoformat() if self.triggered_at else None
-            ),
+            "triggered_at": (self.triggered_at.isoformat() if self.triggered_at else None),
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "expires_at": self.expires_at.isoformat() if self.expires_at else None,
         }

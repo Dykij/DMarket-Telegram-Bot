@@ -281,9 +281,7 @@ async def test_handle_text_buttons_arbitrage_button(mock_update, mock_context):
 
 @pytest.mark.asyncio()
 @patch("src.telegram_bot.handlers.commands.check_balance_command")
-async def test_handle_text_buttons_balance_button(
-    mock_check_balance, mock_update, mock_context
-):
+async def test_handle_text_buttons_balance_button(mock_check_balance, mock_update, mock_context):
     """Тест: текстовая кнопка '📊 Баланс' вызывает check_balance_command."""
     mock_check_balance.return_value = AsyncMock()
     mock_update.message.text = "📊 Баланс"

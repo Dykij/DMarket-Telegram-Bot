@@ -448,11 +448,7 @@ class TargetManager:
                     sort="price",
                 )
 
-                if (
-                    not market_items
-                    or "objects" not in market_items
-                    or not market_items["objects"]
-                ):
+                if not market_items or "objects" not in market_items or not market_items["objects"]:
                     logger.warning(
                         f"Не найден предмет на маркете: {title}",
                     )
@@ -614,9 +610,7 @@ class TargetManager:
             "successful_count": len(successful),
             "success_rate": ((len(successful) / len(closed) * 100) if closed else 0.0),
             "average_price": (
-                sum(t["price"] for t in successful) / len(successful)
-                if successful
-                else 0.0
+                sum(t["price"] for t in successful) / len(successful) if successful else 0.0
             ),
             "total_spent": sum(t["price"] for t in successful),
         }

@@ -78,8 +78,7 @@ async def webapp_command(update, context) -> None:
 
     """
     await update.message.reply_text(
-        "🌐 <b>DMarket WebApp</b>\n\n"
-        "Нажмите кнопку ниже, чтобы открыть DMarket прямо в Telegram:",
+        "🌐 <b>DMarket WebApp</b>\n\nНажмите кнопку ниже, чтобы открыть DMarket прямо в Telegram:",
         reply_markup=get_webapp_button(),
         parse_mode=ParseMode.HTML,
     )
@@ -155,8 +154,7 @@ async def handle_text_buttons(
         await webapp_command(update, context)
     elif text == "📈 Анализ рынка":
         await update.message.reply_text(
-            "📊 <b>Анализ рынка</b>\n\n"
-            "Выберите игру для анализа рыночных тенденций и цен:",
+            "📊 <b>Анализ рынка</b>\n\nВыберите игру для анализа рыночных тенденций и цен:",
             reply_markup=get_game_selection_keyboard(),
             parse_mode=ParseMode.HTML,
         )

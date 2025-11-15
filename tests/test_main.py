@@ -25,10 +25,10 @@ def mock_config():
     config.logging.file = None
     config.logging.format = "%(levelname)s - %(message)s"
     config.dmarket.public_key = "test_public_key"
-    config.dmarket.secret_key = "test_secret_key"  # noqa: S105
+    config.dmarket.secret_key = "test_secret_key"
     config.dmarket.api_url = "https://api.dmarket.com"
     config.database.url = "sqlite:///:memory:"
-    config.bot.token = "test_token"  # noqa: S105
+    config.bot.token = "test_token"
     return config
 
 
@@ -120,9 +120,7 @@ class TestApplication:
             mock_database.init_database.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_initialize_api_connection_test(
-        self, mock_config, mock_dmarket_api, mock_bot
-    ):
+    async def test_initialize_api_connection_test(self, mock_config, mock_dmarket_api, mock_bot):
         """Test API connection test during initialization."""
         mock_config.testing = False
         app = Application()
@@ -138,14 +136,10 @@ class TestApplication:
             mock_dmarket_api.get_balance.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_initialize_api_connection_failure(
-        self, mock_config, mock_dmarket_api, mock_bot
-    ):
+    async def test_initialize_api_connection_failure(self, mock_config, mock_dmarket_api, mock_bot):
         """Test handling of API connection failure."""
         mock_config.testing = False
-        mock_dmarket_api.get_balance = AsyncMock(
-            side_effect=Exception("Connection failed")
-        )
+        mock_dmarket_api.get_balance = AsyncMock(side_effect=Exception("Connection failed"))
         app = Application()
 
         with (
@@ -193,9 +187,7 @@ class TestApplication:
             mock_bot.start.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_run_keyboard_interrupt(
-        self, mock_config, mock_dmarket_api, mock_bot
-    ):
+    async def test_run_keyboard_interrupt(self, mock_config, mock_dmarket_api, mock_bot):
         """Test handling of keyboard interrupt during run."""
         app = Application()
         app.initialize = AsyncMock()
@@ -215,9 +207,7 @@ class TestApplication:
         app.shutdown.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_shutdown_all_components(
-        self, mock_database, mock_dmarket_api, mock_bot
-    ):
+    async def test_shutdown_all_components(self, mock_database, mock_dmarket_api, mock_bot):
         """Test shutdown of all components."""
         app = Application()
         app.bot = mock_bot
@@ -231,9 +221,7 @@ class TestApplication:
         mock_database.close.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_shutdown_with_errors(
-        self, mock_database, mock_dmarket_api, mock_bot
-    ):
+    async def test_shutdown_with_errors(self, mock_database, mock_dmarket_api, mock_bot):
         """Test shutdown continues despite errors."""
         app = Application()
         app.bot = mock_bot

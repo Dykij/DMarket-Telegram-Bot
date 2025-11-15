@@ -43,8 +43,7 @@ def price_watcher(mock_api_client, mock_websocket_client):
         "src.dmarket.realtime_price_watcher.DMarketWebSocketClient",
         return_value=mock_websocket_client,
     ):
-        watcher = RealtimePriceWatcher(mock_api_client)
-        return watcher
+        return RealtimePriceWatcher(mock_api_client)
 
 
 @pytest.fixture()
@@ -606,9 +605,7 @@ async def test_subscribe_to_market_updates_success(price_watcher):
     result = await price_watcher.subscribe_to_market_updates("csgo")
 
     assert result is True
-    price_watcher.websocket_client.subscribe_to_market_updates.assert_called_once_with(
-        "csgo"
-    )
+    price_watcher.websocket_client.subscribe_to_market_updates.assert_called_once_with("csgo")
 
 
 # ==================== Тесты RealtimePriceWatcher - Fetch Price ====================
@@ -864,9 +861,7 @@ async def test_full_workflow_price_changes(price_watcher):
     async def price_change_handler(item_id, old_price, new_price):
         price_changes.append((item_id, old_price, new_price))
 
-    price_watcher.register_price_change_handler(
-        price_change_handler, item_id="item_123"
-    )
+    price_watcher.register_price_change_handler(price_change_handler, item_id="item_123")
     price_watcher.watch_item("item_123", initial_price=10.0)
 
     # Имитируем изменение цены

@@ -87,7 +87,7 @@ async def safe_edit_message_text(
             logger.debug("Сообщение не изменено (содержимое идентично)")
             return False
         # Для других ошибок BadRequest логируем и пробрасываем исключение
-        logger.error(f"BadRequest при редактировании сообщения: {e}")
+        logger.exception(f"BadRequest при редактировании сообщения: {e}")
         raise
     except Exception as e:
         logger.exception(f"Неожиданная ошибка при редактировании сообщения: {e}")
@@ -173,22 +173,14 @@ async def format_auto_arbitrage_results(
                 price_str = price_str.replace("$", "").strip()
                 price = float(price_str)
             except (ValueError, TypeError):
-                price = (
-                    float(price_value) / 100
-                    if isinstance(price_value, int | float)
-                    else 0
-                )
+                price = float(price_value) / 100 if isinstance(price_value, int | float) else 0
 
         # Обрабатываем значение прибыли
         profit_value = item.get("profit", 0)
         if isinstance(profit_value, str) and "$" in profit_value:
             profit = float(profit_value.replace("$", "").strip())
         else:
-            profit = (
-                float(profit_value) / 100
-                if isinstance(profit_value, int | float)
-                else 0
-            )
+            profit = float(profit_value) / 100 if isinstance(profit_value, int | float) else 0
 
         profit_percent = item.get("profit_percent", 0)
 
@@ -245,9 +237,7 @@ async def show_auto_stats_with_pagination(
     # Получаем режим для форматирования
     mode = pagination_manager.get_mode(user_id)
     game = (
-        context.user_data.get("current_game", "csgo")
-        if hasattr(context, "user_data")
-        else "csgo"
+        context.user_data.get("current_game", "csgo") if hasattr(context, "user_data") else "csgo"
     )
 
     if not items:
@@ -553,9 +543,7 @@ async def start_auto_trading(
                             ),
                         )
 
-            elif (
-                mode_type == "pro" and "scan_for_intramarket_opportunities" in locals()
-            ):
+            elif mode_type == "pro" and "scan_for_intramarket_opportunities" in locals():
                 # Для профессионального режима ищем все типы возможностей
                 tasks.append(
                     scan_for_intramarket_opportunities(
@@ -701,8 +689,7 @@ async def start_auto_trading(
                                     "title",
                                     "Неизвестный предмет",
                                 ),
-                                "price": item.get("buy_price", 0)
-                                * 100,  # Конвертируем в центы
+                                "price": item.get("buy_price", 0) * 100,  # Конвертируем в центы
                                 "profit": item.get("profit_after_fee", 0)
                                 * 100,  # Конвертируем в центы
                                 "profit_percent": item.get("profit_percentage", 0),
@@ -724,11 +711,9 @@ async def start_auto_trading(
                                     "title",
                                     "Неизвестный предмет",
                                 ),
-                                "price": item.get("current_price", 0)
-                                * 100,  # Конвертируем в центы
+                                "price": item.get("current_price", 0) * 100,  # Конвертируем в центы
                                 "profit": (
-                                    item.get("projected_price", 0)
-                                    - item.get("current_price", 0)
+                                    item.get("projected_price", 0) - item.get("current_price", 0)
                                 )
                                 * 100,
                                 "profit_percent": item.get(
@@ -750,11 +735,9 @@ async def start_auto_trading(
                                     "title",
                                     "Неизвестный предмет",
                                 ),
-                                "price": item.get("current_price", 0)
-                                * 100,  # Конвертируем в центы
+                                "price": item.get("current_price", 0) * 100,  # Конвертируем в центы
                                 "profit": (
-                                    item.get("estimated_value", 0)
-                                    - item.get("current_price", 0)
+                                    item.get("estimated_value", 0) - item.get("current_price", 0)
                                 )
                                 * 100,
                                 "profit_percent": item.get(

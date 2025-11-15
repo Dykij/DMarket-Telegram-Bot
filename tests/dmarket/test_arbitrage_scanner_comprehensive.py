@@ -568,7 +568,7 @@ def test_arbitrage_levels_defined():
     assert "pro" in ARBITRAGE_LEVELS
 
     # Проверяем структуру каждого уровня
-    for level_name, level_data in ARBITRAGE_LEVELS.items():
+    for level_data in ARBITRAGE_LEVELS.values():
         assert "name" in level_data
         assert "min_profit_percent" in level_data
         assert "max_profit_percent" in level_data

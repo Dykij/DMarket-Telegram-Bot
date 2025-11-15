@@ -310,8 +310,7 @@ class PriceAlertsHandler:
         reply_markup = InlineKeyboardMarkup(keyboard)
 
         await update.message.reply_text(
-            f"💲 Целевая цена: *${target_price:.2f}*\n\n"
-            "Выберите условие срабатывания оповещения:",
+            f"💲 Целевая цена: *${target_price:.2f}*\n\nВыберите условие срабатывания оповещения:",
             reply_markup=reply_markup,
             parse_mode="Markdown",
         )

@@ -111,7 +111,7 @@ class SalesAnalyzer:
 
             # Calculate date range
             end_date = datetime.datetime.now()
-            start_date = end_date - datetime.datetime.timedelta(days=days)
+            start_date = end_date - datetime.timedelta(days=days)
 
             # Format dates for API
             start_date_str = start_date.strftime("%Y-%m-%d")
@@ -351,9 +351,7 @@ class SalesAnalyzer:
             first_price = daily_avg["price"].iloc[0]
             last_price = daily_avg["price"].iloc[-1]
             price_change = last_price - first_price
-            price_change_percent = (
-                (price_change / first_price * 100) if first_price > 0 else 0
-            )
+            price_change_percent = (price_change / first_price * 100) if first_price > 0 else 0
 
             # Calculate volatility (standard deviation as percentage of mean)
             mean_price = daily_avg["price"].mean()
@@ -450,10 +448,7 @@ class SalesAnalyzer:
         risk_level = "high"  # Default to high risk
 
         if volume_stats["is_liquid"] and time_to_sell["estimated_days"] is not None:
-            if (
-                time_to_sell["estimated_days"] < 2
-                and price_trends["trend"] != "strong_downward"
-            ):
+            if time_to_sell["estimated_days"] < 2 and price_trends["trend"] != "strong_downward":
                 risk_level = "low"
             elif time_to_sell["estimated_days"] < 5 and price_trends["trend"] not in [
                 "strong_downward",
@@ -463,10 +458,7 @@ class SalesAnalyzer:
 
         # Calculate ROI (Return on Investment) taking into account time
         daily_roi = None
-        if (
-            time_to_sell["estimated_days"] is not None
-            and time_to_sell["estimated_days"] > 0
-        ):
+        if time_to_sell["estimated_days"] is not None and time_to_sell["estimated_days"] > 0:
             daily_roi = profit_percent / time_to_sell["estimated_days"]
 
         # Determine overall rating
@@ -508,9 +500,7 @@ class SalesAnalyzer:
 
         # Generate summary message
         if rating >= 8:
-            summary = (
-                "Excellent arbitrage opportunity with high potential ROI and low risk"
-            )
+            summary = "Excellent arbitrage opportunity with high potential ROI and low risk"
         elif rating >= 6:
             summary = "Good arbitrage opportunity with solid potential returns"
         elif rating >= 4:
@@ -621,9 +611,7 @@ async def find_best_arbitrage_opportunities(
                     "profit": analysis["raw_profit"],
                     "profit_percent": analysis["profit_percent"],
                     "risk_level": analysis["risk_level"],
-                    "estimated_days_to_sell": analysis["time_to_sell"][
-                        "estimated_days"
-                    ],
+                    "estimated_days_to_sell": analysis["time_to_sell"]["estimated_days"],
                     "volume_category": analysis["volume"]["volume_category"],
                     "price_trend": analysis["price_trends"]["trend"],
                     "summary": analysis["summary"],

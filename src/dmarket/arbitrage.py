@@ -450,9 +450,7 @@ async def find_arbitrage_opportunities_async(
                         {
                             "item_title": item.get("title", "Unknown"),
                             "market_from": "DMarket",
-                            "market_to": (
-                                "Steam Market" if game == "csgo" else "Game Market"
-                            ),
+                            "market_to": ("Steam Market" if game == "csgo" else "Game Market"),
                             "buy_price": buy_price,
                             "sell_price": sell_price,
                             "profit_amount": profit_amount,
@@ -621,8 +619,7 @@ class ArbitrageTrader:
         # Проверка на дневной лимит торговли
         if self.daily_traded + trade_value > self.daily_limit:
             logger.warning(
-                f"Сделка на ${trade_value:.2f} превысит дневной "
-                f"лимит ${self.daily_limit:.2f}",
+                f"Сделка на ${trade_value:.2f} превысит дневной лимит ${self.daily_limit:.2f}",
             )
             return False
 
@@ -662,8 +659,7 @@ class ArbitrageTrader:
         # Если установлена пауза и она еще не истекла
         if current_time < self.pause_until:
             logger.info(
-                f"Торговля на паузе, осталось "
-                f"{int((self.pause_until - current_time) / 60)} минут",
+                f"Торговля на паузе, осталось {int((self.pause_until - current_time) / 60)} минут",
             )
             return False
 
@@ -1002,8 +998,7 @@ class ArbitrageTrader:
                 has_funds, balance = await self.check_balance()
                 if not has_funds:
                     logger.warning(
-                        f"Недостаточно средств для торговли: ${balance:.2f}, "
-                        f"ожидание 5 минут",
+                        f"Недостаточно средств для торговли: ${balance:.2f}, ожидание 5 минут",
                     )
                     await asyncio.sleep(300)  # Ждем 5 минут
                     continue
@@ -1054,8 +1049,7 @@ class ArbitrageTrader:
                                 await asyncio.sleep(30)
                     else:
                         logger.info(
-                            "Нет подходящих предметов для торговли с текущими "
-                            "ограничениями",
+                            "Нет подходящих предметов для торговли с текущими ограничениями",
                         )
                 else:
                     logger.info("Не найдено выгодных предметов для торговли")
@@ -1109,9 +1103,7 @@ class ArbitrageTrader:
         """
         # Вычисляем общую прибыль
         total_profit = (
-            sum(t["profit"] for t in self.transaction_history)
-            if self.transaction_history
-            else 0.0
+            sum(t["profit"] for t in self.transaction_history) if self.transaction_history else 0.0
         )
 
         # Определяем, на паузе ли торговля
@@ -1650,9 +1642,7 @@ def _calculate_commission(
         game_factor = 1.0
 
     # Рассчитываем итоговую комиссию
-    commission = (
-        base_commission * rarity_factor * type_factor * popularity_factor * game_factor
-    )
+    commission = base_commission * rarity_factor * type_factor * popularity_factor * game_factor
 
     # Ограничиваем диапазон (2% - 15%)
     return max(2.0, min(15.0, commission))

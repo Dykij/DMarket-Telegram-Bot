@@ -120,8 +120,7 @@ def mock_update():
 @pytest.fixture()
 def mock_context():
     """Создает мок Context объекта."""
-    context = MagicMock()
-    return context
+    return MagicMock()
 
 
 @pytest.mark.asyncio()

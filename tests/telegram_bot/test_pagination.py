@@ -136,7 +136,7 @@ def test_next_page(pagination_manager, sample_items):
     pagination_manager.add_items_for_user(user_id, sample_items)
 
     # Переключаемся на следующую страницу
-    items, current_page, total_pages = pagination_manager.next_page(user_id)
+    items, current_page, _total_pages = pagination_manager.next_page(user_id)
 
     assert current_page == 1
     assert len(items) == 5
@@ -153,7 +153,7 @@ def test_next_page_at_end(pagination_manager):
     pagination_manager.current_page_by_user[user_id] = 1  # Вторая (последняя) страница
 
     # Пытаемся переключиться дальше
-    items_result, current_page, total_pages = pagination_manager.next_page(user_id)
+    _items_result, current_page, _total_pages = pagination_manager.next_page(user_id)
 
     # Должны остаться на последней странице
     assert current_page == 1
@@ -168,7 +168,7 @@ def test_prev_page(pagination_manager, sample_items):
     pagination_manager.next_page(user_id)
 
     # Возвращаемся на первую
-    items, current_page, total_pages = pagination_manager.prev_page(user_id)
+    items, current_page, _total_pages = pagination_manager.prev_page(user_id)
 
     assert current_page == 0
     assert items[0]["id"] == 0
@@ -180,7 +180,7 @@ def test_prev_page_at_start(pagination_manager, sample_items):
     pagination_manager.add_items_for_user(user_id, sample_items)
 
     # Пытаемся переключиться на предыдущую с первой страницы
-    items, current_page, total_pages = pagination_manager.prev_page(user_id)
+    _items, current_page, _total_pages = pagination_manager.prev_page(user_id)
 
     # Должны остаться на первой странице
     assert current_page == 0
@@ -239,7 +239,7 @@ def test_filter_items(pagination_manager, sample_items):
     # Фильтруем только элементы с id < 10
     pagination_manager.filter_items(user_id, lambda item: item["id"] < 10)
 
-    items, current_page, total_pages = pagination_manager.get_page(user_id)
+    _items, _current_page, _total_pages = pagination_manager.get_page(user_id)
 
     assert len(pagination_manager.items_by_user[user_id]) == 10
     assert all(item["id"] < 10 for item in pagination_manager.items_by_user[user_id])
@@ -254,7 +254,7 @@ def test_sort_items(pagination_manager, sample_items):
     # Сортируем по id (метод принимает key_func)
     pagination_manager.sort_items(user_id, key_func=lambda item: item["id"])
 
-    items, current_page, total_pages = pagination_manager.get_page(user_id)
+    items, _current_page, _total_pages = pagination_manager.get_page(user_id)
 
     # Проверяем, что элементы отсортированы
     assert items[0]["id"] == 0

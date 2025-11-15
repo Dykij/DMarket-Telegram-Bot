@@ -70,11 +70,31 @@ def format_scanner_item(result: dict[str, Any]) -> str:
     risk = result.get("risk_level", "")
     item_id = result.get("item_id", "")
 
+    # Информация о ликвидности (если есть)
+    liquidity_data = result.get("liquidity_data", {})
+    liquidity_text = ""
+    if liquidity_data:
+        score = liquidity_data.get("liquidity_score", 0.0)
+        time_days = liquidity_data.get("time_to_sell_days", 0.0)
+
+        # Эмодзи по уровню ликвидности
+        if score >= 80:
+            emoji = "🟢"
+        elif score >= 60:
+            emoji = "🟡"
+        elif score >= 40:
+            emoji = "🟠"
+        else:
+            emoji = "🔴"
+
+        liquidity_text = f"\n💧 Ликвидность: {emoji} {score:.0f}/100 (~{time_days:.1f} дней)"
+
     return (
         f"🎯 *{title}*\n"
         f"💰 Купить: ${buy_price:.2f} → Продать: ${sell_price:.2f}\n"
         f"📈 Прибыль: ${profit:.2f} ({profit_percent:.1f}%)\n"
-        f"📊 {level} | ⚠️ Риск: {risk}\n"
+        f"📊 {level} | ⚠️ Риск: {risk}"
+        f"{liquidity_text}\n"
         f"🏷️ ID: `{item_id}`"
     )
 

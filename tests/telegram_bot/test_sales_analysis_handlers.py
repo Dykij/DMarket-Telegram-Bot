@@ -94,10 +94,7 @@ async def test_handle_sales_analysis_success(
     assert "5.20" in message_text  # Продаж в день
 
     # Проверяем наличие информации о последних продажах
-    assert (
-        "Последние продажи" in message_text
-        or "последние продажи" in message_text.lower()
-    )
+    assert "Последние продажи" in message_text or "последние продажи" in message_text.lower()
     assert "2023-01-01" in message_text
     assert "$95.00" in message_text
 
@@ -361,10 +358,7 @@ async def test_handle_liquidity_analysis(mock_execute_api, mock_update, mock_con
         message_text = ""
 
     # Проверяем, что в тексте содержится нужная информация (с учетом HTML-форматирования)
-    assert (
-        "Анализ ликвидности" in message_text
-        or "анализ ликвидности" in message_text.lower()
-    )
+    assert "Анализ ликвидности" in message_text or "анализ ликвидности" in message_text.lower()
     assert "AWP | Asiimov (Field-Tested)" in message_text
     assert "Высокая" in message_text  # Категория ликвидности
     assert "6/7" in message_text  # Оценка

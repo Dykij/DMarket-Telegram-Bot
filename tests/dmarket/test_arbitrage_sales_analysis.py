@@ -20,6 +20,7 @@ def mock_dmarket_api():
     api.get_sales_history = AsyncMock()
     api.get_market_items = AsyncMock()
     api.get_aggregated_prices = AsyncMock()
+    api._request = AsyncMock()  # Мок для внутреннего метода _request
     return api
 
 
@@ -77,13 +78,69 @@ def sample_market_items():
     }
 
 
+@pytest.fixture()
+def sample_tf2_sales_data():
+    """Пример данных о продажах TF2 предмета."""
+    return {
+        "sales": [
+            {
+                "date": 1699876543,
+                "price": {"amount": 8500, "currency": "USD"},
+            },
+            {
+                "date": 1699790143,
+                "price": {"amount": 8800, "currency": "USD"},
+            },
+            {
+                "date": 1699703743,
+                "price": {"amount": 8200, "currency": "USD"},
+            },
+            {
+                "date": 1699617343,
+                "price": {"amount": 8600, "currency": "USD"},
+            },
+            {
+                "date": 1699530943,
+                "price": {"amount": 8400, "currency": "USD"},
+            },
+        ],
+    }
+
+
+@pytest.fixture()
+def sample_rust_sales_data():
+    """Пример данных о продажах Rust предмета."""
+    return {
+        "sales": [
+            {
+                "date": 1699876543,
+                "price": {"amount": 3200, "currency": "USD"},
+            },
+            {
+                "date": 1699790143,
+                "price": {"amount": 3400, "currency": "USD"},
+            },
+            {
+                "date": 1699703743,
+                "price": {"amount": 3100, "currency": "USD"},
+            },
+            {
+                "date": 1699617343,
+                "price": {"amount": 3300, "currency": "USD"},
+            },
+            {
+                "date": 1699530943,
+                "price": {"amount": 3250, "currency": "USD"},
+            },
+        ],
+    }
+
+
 # ======================== Тесты get_item_sales_history ========================
 
 
 @pytest.mark.asyncio()
-async def test_get_item_sales_history_success(
-    sales_analyzer, mock_dmarket_api, sample_sales_data
-):
+async def test_get_item_sales_history_success(sales_analyzer, mock_dmarket_api, sample_sales_data):
     """Тест успешного получения истории продаж предмета."""
     mock_dmarket_api.get_sales_history.return_value = sample_sales_data
 
@@ -137,9 +194,7 @@ async def test_get_item_sales_history_api_error(sales_analyzer, mock_dmarket_api
 
 
 @pytest.mark.asyncio()
-async def test_analyze_sales_volume_success(
-    sales_analyzer, mock_dmarket_api, sample_sales_data
-):
+async def test_analyze_sales_volume_success(sales_analyzer, mock_dmarket_api, sample_sales_data):
     """Тест успешного анализа объема продаж."""
     mock_dmarket_api.get_sales_history.return_value = sample_sales_data
 
@@ -183,10 +238,7 @@ async def test_analyze_sales_volume_high_liquidity(sales_analyzer, mock_dmarket_
     """Тест определения высокой ликвидности."""
     # Создаем данные с большим количеством продаж
     many_sales = {
-        "sales": [
-            {"date": 1699876543 - i * 3600, "price": {"amount": 1200}}
-            for i in range(50)
-        ],
+        "sales": [{"date": 1699876543 - i * 3600, "price": {"amount": 1200}} for i in range(50)],
     }
     mock_dmarket_api.get_sales_history.return_value = many_sales
 
@@ -203,9 +255,7 @@ async def test_analyze_sales_volume_high_liquidity(sales_analyzer, mock_dmarket_
 
 
 @pytest.mark.asyncio()
-async def test_estimate_time_to_sell_success(
-    sales_analyzer, mock_dmarket_api, sample_sales_data
-):
+async def test_estimate_time_to_sell_success(sales_analyzer, mock_dmarket_api, sample_sales_data):
     """Тест успешной оценки времени продажи."""
     mock_dmarket_api.get_sales_history.return_value = sample_sales_data
 
@@ -265,9 +315,7 @@ async def test_estimate_time_to_sell_underpriced(
 
 
 @pytest.mark.asyncio()
-async def test_analyze_price_trends_success(
-    sales_analyzer, mock_dmarket_api, sample_sales_data
-):
+async def test_analyze_price_trends_success(sales_analyzer, mock_dmarket_api, sample_sales_data):
     """Тест успешного анализа трендов цен."""
     mock_dmarket_api.get_sales_history.return_value = sample_sales_data
 
@@ -534,9 +582,7 @@ async def test_find_best_arbitrage_opportunities_sorted(
     # Проверяем что отсортировано по убыванию прибыли
     if len(results) > 1:
         for i in range(len(results) - 1):
-            assert (
-                results[i]["profit_percentage"] >= results[i + 1]["profit_percentage"]
-            )
+            assert results[i]["profit_percentage"] >= results[i + 1]["profit_percentage"]
 
 
 @pytest.mark.asyncio()
@@ -626,3 +672,163 @@ async def test_full_analysis_workflow(
         sell_price=1400,
     )
     assert "expected_profit" in arbitrage
+
+
+# ======================== Тесты для TF2 ========================
+
+
+@pytest.mark.asyncio()
+async def test_get_item_sales_history_tf2(sales_analyzer, mock_dmarket_api, sample_tf2_sales_data):
+    """Тест получения истории продаж для TF2 предмета."""
+    # Мокаем get_market_items для получения item_id
+    mock_dmarket_api.get_market_items.return_value = {
+        "items": [{"itemId": "tf2_item_1", "title": "Unusual Team Captain"}]
+    }
+    # Мокаем _request для возврата данных о продажах
+    mock_dmarket_api._request.return_value = sample_tf2_sales_data
+
+    result = await sales_analyzer.get_item_sales_history(
+        item_name="Unusual Team Captain",
+        game="tf2",
+    )
+
+    # get_item_sales_history возвращает список продаж
+    assert isinstance(result, list)
+    assert len(result) > 0
+
+
+@pytest.mark.asyncio()
+async def test_analyze_price_trends_tf2(sales_analyzer, mock_dmarket_api, sample_tf2_sales_data):
+    """Тест анализа трендов цен TF2 предмета."""
+    mock_dmarket_api.get_sales_history.return_value = sample_tf2_sales_data
+
+    result = await sales_analyzer.analyze_price_trends(
+        item_name="Unusual Team Captain",
+        game="tf2",
+    )
+
+    assert result is not None
+    # Проверяем наличие ключа 'trend' вместо 'trend_direction'
+    assert "trend" in result
+    assert "price_change_percent" in result or result["price_change_percent"] is None
+
+
+@pytest.mark.asyncio()
+async def test_estimate_time_to_sell_tf2(sales_analyzer, mock_dmarket_api, sample_tf2_sales_data):
+    """Тест оценки времени продажи TF2 предмета."""
+    mock_dmarket_api.get_sales_history.return_value = sample_tf2_sales_data
+
+    result = await sales_analyzer.estimate_time_to_sell(
+        item_name="Vintage Tyrolean",
+        target_price=8500,  # target_price, а не current_price
+        game="tf2",
+    )
+
+    assert result is not None
+    # Проверяем наличие ключа 'estimated_days' вместо 'estimated_hours'
+    assert "estimated_days" in result or "message" in result
+
+
+@pytest.mark.asyncio()
+async def test_evaluate_arbitrage_potential_tf2(
+    sales_analyzer, mock_dmarket_api, sample_tf2_sales_data
+):
+    """Тест оценки арбитража для TF2 предмета."""
+    mock_dmarket_api.get_sales_history.return_value = sample_tf2_sales_data
+
+    result = await sales_analyzer.evaluate_arbitrage_potential(
+        item_name="Unusual Team Captain",
+        game="tf2",
+        buy_price=8000,  # Покупка за $80
+        sell_price=9000,  # Продажа за $90
+    )
+
+    assert result is not None
+    # Проверяем наличие ключа 'rating' вместо 'is_profitable'
+    assert "rating" in result
+    assert "profit_percent" in result
+    # Профит 12.5% должен быть положительным
+    assert result["profit_percent"] > 0
+
+
+# ======================== Тесты для Rust ========================
+
+
+@pytest.mark.asyncio()
+async def test_get_item_sales_history_rust(
+    sales_analyzer, mock_dmarket_api, sample_rust_sales_data
+):
+    """Тест получения истории продаж для Rust предмета."""
+    # Мокаем get_market_items для получения item_id
+    mock_dmarket_api.get_market_items.return_value = {
+        "items": [{"itemId": "rust_item_1", "title": "Metal Facemask"}]
+    }
+    # Мокаем _request для возврата данных о продажах
+    mock_dmarket_api._request.return_value = sample_rust_sales_data
+
+    result = await sales_analyzer.get_item_sales_history(
+        item_name="Metal Facemask",
+        game="rust",
+    )
+
+    # get_item_sales_history возвращает список продаж
+    assert isinstance(result, list)
+    assert len(result) > 0
+
+
+@pytest.mark.asyncio()
+async def test_analyze_price_trends_rust(sales_analyzer, mock_dmarket_api, sample_rust_sales_data):
+    """Тест анализа трендов цен Rust предмета."""
+    mock_dmarket_api.get_sales_history.return_value = sample_rust_sales_data
+
+    result = await sales_analyzer.analyze_price_trends(
+        item_name="Glowing Alien Relic Trophy",
+        game="rust",
+    )
+
+    assert result is not None
+    # Проверяем наличие ключа 'trend' вместо 'trend_direction'
+    assert "trend" in result
+    assert "price_change_percent" in result or result["price_change_percent"] is None
+
+
+@pytest.mark.asyncio()
+async def test_estimate_time_to_sell_rust(sales_analyzer, mock_dmarket_api, sample_rust_sales_data):
+    """Тест оценки времени продажи Rust предмета."""
+    # Мокаем get_market_items для получения item_id
+    mock_dmarket_api.get_market_items.return_value = {
+        "items": [{"itemId": "rust_item_1", "title": "Unique Burlap Headwrap"}]
+    }
+    mock_dmarket_api.get_sales_history.return_value = sample_rust_sales_data
+
+    result = await sales_analyzer.estimate_time_to_sell(
+        item_name="Unique Burlap Headwrap",
+        target_price=3250,  # target_price, а не current_price
+        game="rust",
+    )
+
+    assert result is not None
+    # Проверяем наличие ключа 'estimated_days' вместо 'estimated_hours'
+    assert "estimated_days" in result or "message" in result
+
+
+@pytest.mark.asyncio()
+async def test_evaluate_arbitrage_potential_rust(
+    sales_analyzer, mock_dmarket_api, sample_rust_sales_data
+):
+    """Тест оценки арбитража для Rust предмета."""
+    mock_dmarket_api.get_sales_history.return_value = sample_rust_sales_data
+
+    result = await sales_analyzer.evaluate_arbitrage_potential(
+        item_name="Glowing Alien Relic Trophy",
+        game="rust",
+        buy_price=3000,  # Покупка за $30
+        sell_price=3500,  # Продажа за $35
+    )
+
+    assert result is not None
+    # Проверяем наличие ключа 'rating' вместо 'is_profitable'
+    assert "rating" in result
+    assert "profit_percent" in result
+    # Профит 16.67% должен быть положительным
+    assert result["profit_percent"] > 0

@@ -20,10 +20,7 @@ from src.telegram_bot.keyboards import (
     get_marketplace_comparison_keyboard,
     get_modern_arbitrage_keyboard,
 )
-from src.telegram_bot.utils.formatters import (
-    format_best_opportunities,
-    format_dmarket_results,
-)
+from src.telegram_bot.utils.formatters import format_best_opportunities, format_dmarket_results
 from src.utils.exceptions import APIError
 
 
@@ -62,10 +59,7 @@ async def arbitrage_callback_impl(
     # Если у пользователя есть настройка современного UI, используем её
     use_modern_ui = user_data.get("use_modern_ui", False)
 
-    if use_modern_ui:
-        keyboard = get_modern_arbitrage_keyboard()
-    else:
-        keyboard = get_arbitrage_keyboard()
+    keyboard = get_modern_arbitrage_keyboard() if use_modern_ui else get_arbitrage_keyboard()
 
     await query.edit_message_text(
         text="🔍 <b>Выберите режим арбитража:</b>",
@@ -137,19 +131,16 @@ async def handle_dmarket_arbitrage_impl(
                 return await arbitrage_pro_async(game)
             return await arbitrage_mid_async(game)
 
-        # Выполняем API запрос с обработкой ошибок и лимитов
-        results = await execute_api_request(
-            request_func=get_arbitrage_data,
-            endpoint_type="market",
-            max_retries=2,
-        )
+        # Выполняем API запрос напрямую
+        try:
+            results = await get_arbitrage_data()
+        except APIError as e:
+            logger.exception(f"API error: {e}")
+            results = []
 
         # Если получены результаты
         if results:
-            from src.telegram_bot.pagination import (
-                format_paginated_results,
-                pagination_manager,
-            )
+            from src.telegram_bot.pagination import format_paginated_results, pagination_manager
 
             # Подготавливаем пагинацию результатов
             user_id = query.from_user.id
@@ -256,8 +247,7 @@ async def handle_dmarket_arbitrage_impl(
             )
         elif e.status_code == 401:
             error_message = (
-                "🔐 <b>Ошибка авторизации в DMarket API.</b>\n\n"
-                "Проверьте настройки API ключей."
+                "🔐 <b>Ошибка авторизации в DMarket API.</b>\n\nПроверьте настройки API ключей."
             )
         elif e.status_code == 404:
             error_message = (
@@ -272,9 +262,7 @@ async def handle_dmarket_arbitrage_impl(
             )
         else:
             error_message = (
-                f"❌ <b>Ошибка DMarket API:</b>\n\n"
-                f"Код: {e.status_code}\n"
-                f"Сообщение: {e.message}"
+                f"❌ <b>Ошибка DMarket API:</b>\n\nКод: {e.status_code}\nСообщение: {e.message}"
             )
 
         # Создаем клавиатуру с кнопкой повтора
@@ -437,8 +425,7 @@ async def handle_best_opportunities_impl(
 
         # Отправляем сообщение об ошибке
         error_message = (
-            f"❌ <b>Ошибка при поиске лучших арбитражных возможностей:</b>\n\n"
-            f"<code>{e!s}</code>"
+            f"❌ <b>Ошибка при поиске лучших арбитражных возможностей:</b>\n\n<code>{e!s}</code>"
         )
 
         await query.edit_message_text(
@@ -517,8 +504,7 @@ async def handle_game_selected_impl(
     # Отправляем сообщение с подтверждением выбора
     await query.edit_message_text(
         text=(
-            f"✅ <b>Выбрана игра:</b> {GAMES.get(game, game)}\n\n"
-            f"Теперь выберите режим арбитража:"
+            f"✅ <b>Выбрана игра:</b> {GAMES.get(game, game)}\n\nТеперь выберите режим арбитража:"
         ),
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML,

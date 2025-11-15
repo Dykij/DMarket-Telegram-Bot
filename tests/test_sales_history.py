@@ -11,6 +11,7 @@ Tests cover:
 """
 
 import asyncio
+import contextlib
 import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -123,10 +124,8 @@ def cleanup_cache():
     yield
     # Cleanup test cache files
     for cache_file in SALES_CACHE_DIR.glob("*.json"):
-        try:
+        with contextlib.suppress(Exception):
             cache_file.unlink()
-        except Exception:
-            pass
 
 
 # ==================== Tests: get_item_sales_history ====================
@@ -136,9 +135,7 @@ class TestGetItemSalesHistory:
     """Tests for get_item_sales_history function."""
 
     @pytest.mark.asyncio()
-    async def test_get_item_sales_history_success(
-        self, mock_dmarket_api, sample_sales_data
-    ):
+    async def test_get_item_sales_history_success(self, mock_dmarket_api, sample_sales_data):
         """Test successful retrieval of item sales history."""
         mock_dmarket_api.get_item_price_history.return_value = sample_sales_data
 
@@ -173,9 +170,7 @@ class TestGetItemSalesHistory:
         assert result == []
 
     @pytest.mark.asyncio()
-    async def test_get_item_sales_history_invalid_period(
-        self, mock_dmarket_api, sample_sales_data
-    ):
+    async def test_get_item_sales_history_invalid_period(self, mock_dmarket_api, sample_sales_data):
         """Test that invalid period defaults to 24h."""
         mock_dmarket_api.get_item_price_history.return_value = sample_sales_data
 
@@ -262,9 +257,7 @@ class TestGetItemSalesHistory:
         """Test that function creates its own API client if not provided."""
         with patch("src.dmarket.sales_history.DMarketAPI") as mock_api_class:
             mock_instance = MagicMock()
-            mock_instance.get_item_price_history = AsyncMock(
-                return_value=sample_sales_data
-            )
+            mock_instance.get_item_price_history = AsyncMock(return_value=sample_sales_data)
             mock_instance._close_client = AsyncMock()
             mock_api_class.return_value = mock_instance
 
@@ -293,9 +286,7 @@ class TestDetectPriceAnomalies:
         self, mock_dmarket_api, sample_sales_with_anomalies
     ):
         """Test detection of price anomalies."""
-        mock_dmarket_api.get_item_price_history.return_value = (
-            sample_sales_with_anomalies
-        )
+        mock_dmarket_api.get_item_price_history.return_value = sample_sales_with_anomalies
 
         result = await detect_price_anomalies(
             item_name="Test Item",
@@ -355,9 +346,7 @@ class TestDetectPriceAnomalies:
         assert result["num_sales"] == 0
 
     @pytest.mark.asyncio()
-    async def test_detect_price_anomalies_statistics(
-        self, mock_dmarket_api, sample_sales_data
-    ):
+    async def test_detect_price_anomalies_statistics(self, mock_dmarket_api, sample_sales_data):
         """Test that statistics are calculated correctly."""
         mock_dmarket_api.get_item_price_history.return_value = sample_sales_data
 
@@ -386,8 +375,7 @@ class TestCalculatePriceTrend:
         # Strong upward trend: $10 -> $20 (+100%)
         base_timestamp = int(time.time()) - 7 * 24 * 3600
         upward_sales = [
-            {"price": 1000 + i * 40, "date": base_timestamp + i * 3600}
-            for i in range(25)
+            {"price": 1000 + i * 40, "date": base_timestamp + i * 3600} for i in range(25)
         ]
         mock_dmarket_api.get_item_price_history.return_value = upward_sales
 
@@ -406,15 +394,12 @@ class TestCalculatePriceTrend:
         assert result["period"] == "7d"
 
     @pytest.mark.asyncio()
-    async def test_calculate_price_trend_downward(
-        self, mock_dmarket_api, cleanup_cache
-    ):
+    async def test_calculate_price_trend_downward(self, mock_dmarket_api, cleanup_cache):
         """Test detection of downward price trend."""
         # Strong downward trend: $15 -> $8 (-47%)
         base_timestamp = int(time.time()) - 7 * 24 * 3600
         decreasing_sales = [
-            {"price": 1500 - i * 30, "date": base_timestamp + i * 3600}
-            for i in range(24)
+            {"price": 1500 - i * 30, "date": base_timestamp + i * 3600} for i in range(24)
         ]
         mock_dmarket_api.get_item_price_history.return_value = decreasing_sales
 
@@ -452,9 +437,7 @@ class TestCalculatePriceTrend:
         assert abs(result["change_percent"]) < 5
 
     @pytest.mark.asyncio()
-    async def test_calculate_price_trend_insufficient_data(
-        self, mock_dmarket_api, cleanup_cache
-    ):
+    async def test_calculate_price_trend_insufficient_data(self, mock_dmarket_api, cleanup_cache):
         """Test trend calculation with insufficient data."""
         # Only 1 sale
         mock_dmarket_api.get_item_price_history.return_value = [
@@ -493,9 +476,7 @@ class TestGetMarketTrendOverview:
     """Tests for get_market_trend_overview function."""
 
     @pytest.mark.asyncio()
-    async def test_get_market_trend_overview_success(
-        self, mock_dmarket_api, sample_market_items
-    ):
+    async def test_get_market_trend_overview_success(self, mock_dmarket_api, sample_market_items):
         """Test successful market trend overview retrieval."""
         mock_dmarket_api.get_market_items.return_value = sample_market_items
 
@@ -823,8 +804,7 @@ class TestCompatibilityFunctions:
         """Test analyze_sales_history compatibility function."""
         mock_sales_response = {
             "LastSales": [
-                {"price": {"USD": 1000}, "date": int(time.time()) - 86400 * i}
-                for i in range(10)
+                {"price": {"USD": 1000}, "date": int(time.time()) - 86400 * i} for i in range(10)
             ],
             "Total": 10,
         }
@@ -948,9 +928,7 @@ class TestCompatibilityFunctions:
 
     @pytest.mark.skip(reason="find_arbitrage_items in different module")
     @pytest.mark.asyncio()
-    async def test_get_arbitrage_opportunities_with_sales_history_success(
-        self, mock_dmarket_api
-    ):
+    async def test_get_arbitrage_opportunities_with_sales_history_success(self, mock_dmarket_api):
         """Test get_arbitrage_opportunities_with_sales_history filtering."""
         # Mock arbitrage items
         mock_arbitrage_items = [
@@ -998,9 +976,7 @@ class TestCompatibilityFunctions:
 
     @pytest.mark.skip(reason="find_arbitrage_items in different module")
     @pytest.mark.asyncio()
-    async def test_get_arbitrage_opportunities_with_sales_history_api_error(
-        self, mock_dmarket_api
-    ):
+    async def test_get_arbitrage_opportunities_with_sales_history_api_error(self, mock_dmarket_api):
         """Test get_arbitrage_opportunities_with_sales_history handling errors."""
         with patch(
             "src.dmarket.arbitrage.find_arbitrage_items",
@@ -1020,14 +996,10 @@ class TestSalesHistoryIntegration:
     """Integration tests for sales history module."""
 
     @pytest.mark.asyncio()
-    async def test_full_workflow_item_analysis(
-        self, mock_dmarket_api, sample_sales_with_anomalies
-    ):
+    async def test_full_workflow_item_analysis(self, mock_dmarket_api, sample_sales_with_anomalies):
         """Test full workflow: get history -> detect anomalies -> calculate trend."""
         item_name = "Integration Test Item"
-        mock_dmarket_api.get_item_price_history.return_value = (
-            sample_sales_with_anomalies
-        )
+        mock_dmarket_api.get_item_price_history.return_value = sample_sales_with_anomalies
 
         # 1. Get sales history
         history = await get_item_sales_history(

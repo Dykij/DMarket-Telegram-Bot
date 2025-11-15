@@ -176,7 +176,7 @@ class RateLimiter:
                         self.reset_times[endpoint_type] = reset_time
 
                         # Vychislyaem vremya ozhidaniya do sbrosa
-                        wait_time = max(0, reset_time - time.time())
+                        wait_time = max(0.0, reset_time - time.time())
                         logger.warning(
                             f"Dostignut limit zaprosov dlya {endpoint_type}. "
                             f"Sbros cherez {wait_time:.2f} sek",
@@ -202,8 +202,7 @@ class RateLimiter:
             if reset_time > current_time:
                 wait_time = reset_time - current_time
                 logger.info(
-                    f"Ozhidanie sbrosa limita dlya {endpoint_type}: "
-                    f"{wait_time:.2f} sek",
+                    f"Ozhidanie sbrosa limita dlya {endpoint_type}: {wait_time:.2f} sek",
                 )
                 await asyncio.sleep(wait_time)
 
@@ -236,8 +235,7 @@ class RateLimiter:
             # Esli vremya ozhidaniya znachitelnoe, logiruem ego
             if wait_time > 0.1:
                 logger.debug(
-                    f"Soblyudenie limita {endpoint_type}: "
-                    f"ozhidanie {wait_time:.3f} sek",
+                    f"Soblyudenie limita {endpoint_type}: ozhidanie {wait_time:.3f} sek",
                 )
 
             # Ozhidaem neobhodimoe vremya
@@ -272,9 +270,7 @@ class RateLimiter:
             # Inache ispolzuem eksponentialnuyu zaderzhku s nebolshim sluchaynym komponentom
             # Base * 2^(attempts - 1) + random jitter
             base_wait = BASE_RETRY_DELAY * (2 ** (current_attempts - 1))
-            jitter = (
-                0.1 * base_wait * (0.5 - (time.time() % 1.0))
-            )  # 10% sluchaynoe otklonenie
+            jitter = 0.1 * base_wait * (0.5 - (time.time() % 1.0))  # 10% sluchaynoe otklonenie
             wait_time = base_wait + jitter
 
             # Ogranichivaem maksimalnoe vremya ozhidaniya 30 sekundami
@@ -322,9 +318,7 @@ class RateLimiter:
         if endpoint_type in self.rate_limits:
             # Dlya neavtorizovannyh polzovateley snizhaem limity
             if not self.is_authorized and endpoint_type in ["market", "trade"]:
-                return (
-                    self.rate_limits[endpoint_type] / 2
-                )  # 50% ot avtorizovannogo limita
+                return self.rate_limits[endpoint_type] / 2  # 50% ot avtorizovannogo limita
             return self.rate_limits[endpoint_type]
 
         # Esli tip endpointa neizvesten, ispolzuem limit dlya "other"
@@ -354,10 +348,7 @@ class RateLimiter:
 
         """
         # Esli endpoint nahoditsya pod ogranicheniem
-        if (
-            endpoint_type in self.reset_times
-            and time.time() < self.reset_times[endpoint_type]
-        ):
+        if endpoint_type in self.reset_times and time.time() < self.reset_times[endpoint_type]:
             return 0
 
         # Vozvrashchaem ostavsheeesya kolichestvo zaprosov

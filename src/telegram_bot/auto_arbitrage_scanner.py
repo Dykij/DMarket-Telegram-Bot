@@ -306,20 +306,12 @@ async def check_user_balance(dmarket_api: DMarketAPI) -> dict[str, Any]:
             ):
                 diagnosis = "auth_error"
                 display_message = "Ошибка авторизации: проверьте ключи API"
-            elif (
-                "ключи" in str(error_message).lower()
-                or "api key" in str(error_message).lower()
-            ):
+            elif "ключи" in str(error_message).lower() or "api key" in str(error_message).lower():
                 diagnosis = "missing_keys"
                 display_message = "Отсутствуют ключи API"
-            elif (
-                "timeout" in str(error_message).lower()
-                or "время" in str(error_message).lower()
-            ):
+            elif "timeout" in str(error_message).lower() or "время" in str(error_message).lower():
                 diagnosis = "timeout_error"
-                display_message = (
-                    "Таймаут при запросе баланса: возможны проблемы с сетью"
-                )
+                display_message = "Таймаут при запросе баланса: возможны проблемы с сетью"
             elif (
                 "404" in str(error_message)
                 or "не найден" in str(error_message).lower()
@@ -348,9 +340,7 @@ async def check_user_balance(dmarket_api: DMarketAPI) -> dict[str, Any]:
 
         # Вычисляем frozen (заблокированный) баланс
         frozen_balance = (
-            total_balance - available_balance
-            if total_balance > available_balance
-            else 0.0
+            total_balance - available_balance if total_balance > available_balance else 0.0
         )
 
         # Проверяем, достаточно ли средств на балансе
@@ -361,7 +351,9 @@ async def check_user_balance(dmarket_api: DMarketAPI) -> dict[str, Any]:
 
         # Формируем сообщение для пользователя
         if has_funds:
-            display_message = f"Баланс DMarket: ${available_balance:.2f} USD (достаточно для арбитража)"
+            display_message = (
+                f"Баланс DMarket: ${available_balance:.2f} USD (достаточно для арбитража)"
+            )
         else:
             # Различаем случаи полного отсутствия средств и недостаточного баланса
             if available_balance <= 0:
@@ -534,9 +526,7 @@ async def auto_trade_items(
 
         # Проверяем, что предмет все еще доступен и цена не изменилась
         current_price = current_data.get("price", 0)
-        expected_price = (
-            item.get("price", {}).get("amount", 0) / 100
-        )  # конвертируем из центов
+        expected_price = item.get("price", {}).get("amount", 0) / 100  # конвертируем из центов
 
         # Если цена существенно изменилась, пропускаем предмет
         if abs(current_price - expected_price) > 0.05:  # 5 центов погрешности
@@ -594,8 +584,7 @@ async def auto_trade_items(
             continue
 
         logger.info(
-            f"Успешно куплен предмет {item.get('title', 'Unknown')} "
-            f"за ${current_price:.2f}",
+            f"Успешно куплен предмет {item.get('title', 'Unknown')} за ${current_price:.2f}",
         )
 
         # Даем время на обновление инвентаря

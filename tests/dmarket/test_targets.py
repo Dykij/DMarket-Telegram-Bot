@@ -221,9 +221,7 @@ async def test_get_targets_by_title(mock_api_client):
     manager = TargetManager(mock_api_client)
 
     # Получаем таргеты по названию
-    result = await manager.get_targets_by_title(
-        game="csgo", title="AWP | Asiimov (Field-Tested)"
-    )
+    result = await manager.get_targets_by_title(game="csgo", title="AWP | Asiimov (Field-Tested)")
 
     # Проверки
     assert isinstance(result, list)
@@ -238,9 +236,7 @@ async def test_get_targets_by_title(mock_api_client):
 async def test_delete_target_success(mock_api_client):
     """Тест успешного удаления таргета."""
     # Настройка мока
-    mock_api_client.delete_targets = AsyncMock(
-        return_value={"Result": [{"Status": "success"}]}
-    )
+    mock_api_client.delete_targets = AsyncMock(return_value={"Result": [{"Status": "success"}]})
 
     manager = TargetManager(mock_api_client)
 
@@ -273,14 +269,10 @@ async def test_delete_all_targets(mock_api_client):
     # Настройка моков
     mock_api_client.get_user_targets = AsyncMock(
         return_value={
-            "Items": [
-                {"TargetID": "target123", "Title": "AWP", "Price": {"Amount": 5000}}
-            ]
+            "Items": [{"TargetID": "target123", "Title": "AWP", "Price": {"Amount": 5000}}]
         }
     )
-    mock_api_client.delete_targets = AsyncMock(
-        return_value={"Result": [{"Status": "success"}]}
-    )
+    mock_api_client.delete_targets = AsyncMock(return_value={"Result": [{"Status": "success"}]})
 
     manager = TargetManager(mock_api_client)
 

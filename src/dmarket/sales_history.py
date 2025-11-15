@@ -304,10 +304,7 @@ async def calculate_price_trend(
     change_percent = (price_change / start_price) * 100 if start_price > 0 else 0
 
     # Определяем направление тренда
-    if abs(change_percent) < 5:
-        trend = "stable"
-    else:
-        trend = "up" if change_percent > 0 else "down"
+    trend = "stable" if abs(change_percent) < 5 else "up" if change_percent > 0 else "down"
 
     # Рассчитываем волатильность (стандартное отклонение цен)
     prices = [sale["price"] for sale in sales_history]
@@ -426,10 +423,7 @@ async def get_market_trend_overview(
         # Определяем общий тренд рынка
         avg_change = sum(all_changes) / len(all_changes) if all_changes else 0
 
-        if abs(avg_change) < 3:
-            market_trend = "stable"
-        else:
-            market_trend = "up" if avg_change > 0 else "down"
+        market_trend = "stable" if abs(avg_change) < 3 else "up" if avg_change > 0 else "down"
 
         return {
             "market_trend": market_trend,
@@ -676,8 +670,7 @@ async def analyze_sales_history(
             "total_sales": len(last_sales),
             "recent_sales": last_sales[:10],
             "average_price": (
-                sum(s.get("price", {}).get("USD", 0) for s in last_sales)
-                / len(last_sales)
+                sum(s.get("price", {}).get("USD", 0) for s in last_sales) / len(last_sales)
                 if last_sales
                 else 0
             ),

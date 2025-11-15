@@ -10,13 +10,12 @@ from src.dmarket.arbitrage_sales_analysis import (
     enhanced_arbitrage_search,
     get_sales_volume_stats,
 )
-from src.dmarket.sales_history import (
-    analyze_sales_history,
-    get_sales_history,
-)
+from src.dmarket.sales_history import analyze_sales_history, get_sales_history
 from src.telegram_bot.sales_analysis_handlers import (
     get_liquidity_emoji,
     get_trend_emoji,
+    handle_arbitrage_with_sales,
+    handle_sales_volume_stats,
 )
 from src.utils.exceptions import APIError
 
@@ -47,8 +46,7 @@ async def handle_sales_history_callback(
 
     # Отправляем сообщение о начале запроса
     await query.edit_message_text(
-        f"🔍 Получение истории продаж для предмета:\n`{item_name}`\n\n"
-        "⏳ Пожалуйста, подождите...",
+        f"🔍 Получение истории продаж для предмета:\n`{item_name}`\n\n⏳ Пожалуйста, подождите...",
         parse_mode="Markdown",
     )
 
@@ -83,8 +81,7 @@ async def handle_sales_history_callback(
 
         # Форматируем результаты
         formatted_message = (
-            f"📊 История продаж: `{item_name}`\n\n"
-            f"Последние {len(item_sales['Sales'])} продаж:\n\n"
+            f"📊 История продаж: `{item_name}`\n\nПоследние {len(item_sales['Sales'])} продаж:\n\n"
         )
 
         for i, sale in enumerate(item_sales.get("Sales", [])[:20], 1):
@@ -166,8 +163,7 @@ async def handle_liquidity_callback(update: Update, context: CallbackContext) ->
 
     # Отправляем сообщение о начале анализа
     await query.edit_message_text(
-        f"🔍 Анализ ликвидности предмета:\n`{item_name}`\n\n"
-        "⏳ Пожалуйста, подождите...",
+        f"🔍 Анализ ликвидности предмета:\n`{item_name}`\n\n⏳ Пожалуйста, подождите...",
         parse_mode="Markdown",
     )
 
@@ -219,7 +215,9 @@ async def handle_liquidity_callback(update: Update, context: CallbackContext) ->
                 "⚠️ *Рекомендация*: Может подойти для арбитража, но с осторожностью.\n"
             )
         else:
-            formatted_message += "❌ *Рекомендация*: Не рекомендуется для арбитража из-за низкой ликвидности.\n"
+            formatted_message += (
+                "❌ *Рекомендация*: Не рекомендуется для арбитража из-за низкой ликвидности.\n"
+            )
 
         # Добавляем кнопки управления
         keyboard = InlineKeyboardMarkup(
@@ -282,8 +280,7 @@ async def handle_refresh_sales_callback(
 
     # Отправляем сообщение о начале анализа
     await query.edit_message_text(
-        f"🔍 Обновление анализа продаж для:\n`{item_name}`\n\n"
-        "⏳ Пожалуйста, подождите...",
+        f"🔍 Обновление анализа продаж для:\n`{item_name}`\n\n⏳ Пожалуйста, подождите...",
         parse_mode="Markdown",
     )
 
@@ -320,9 +317,7 @@ async def handle_refresh_sales_callback(
             formatted_message += "🕒 Последние продажи:\n"
             # Показываем до 5 последних продаж
             for sale in analysis["recent_sales"][:5]:
-                formatted_message += (
-                    f"• {sale['date']} - ${sale['price']:.2f} {sale['currency']}\n"
-                )
+                formatted_message += f"• {sale['date']} - ${sale['price']:.2f} {sale['currency']}\n"
 
         # Добавляем кнопку для показа полной истории продаж
         keyboard = InlineKeyboardMarkup(
@@ -443,9 +438,7 @@ async def handle_all_arbitrage_sales_callback(
 
             # Если список слишком длинный, добавляем кнопку "Показать еще"
             if i == 10 and len(results) > 10:
-                formatted_message += (
-                    f"_Показаны 10 из {len(results)} найденных возможностей._\n\n"
-                )
+                formatted_message += f"_Показаны 10 из {len(results)} найденных возможностей._\n\n"
                 break
 
         # Добавляем кнопки управления

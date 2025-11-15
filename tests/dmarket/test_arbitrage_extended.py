@@ -471,7 +471,7 @@ async def test_find_arbitrage_opportunities_advanced_with_price_range(mock_dmark
 
 @pytest.mark.parametrize(
     "game_id",
-    ["csgo", "dota2", "rust", "tf2"],
+    ("csgo", "dota2", "rust", "tf2"),
 )
 @pytest.mark.asyncio()
 async def test_find_arbitrage_items_different_games(mock_dmarket_api, game_id):
@@ -488,10 +488,7 @@ async def test_find_arbitrage_items_different_games(mock_dmarket_api, game_id):
 
     # Проверяем, что функция возвращает список (даже если API не был вызван напрямую)
     # API может не вызываться, если используется кэширование или другая логика
-    assert (
-        mock_dmarket_api.get_market_items.called
-        or not mock_dmarket_api.get_market_items.called
-    )
+    assert mock_dmarket_api.get_market_items.called or not mock_dmarket_api.get_market_items.called
 
 
 # ==============================================================================
@@ -500,14 +497,14 @@ async def test_find_arbitrage_items_different_games(mock_dmarket_api, game_id):
 
 
 @pytest.mark.parametrize(
-    "mode,expected_min_profit",
-    [
+    ("mode", "expected_min_profit"),
+    (
         ("low", 3.0),
         ("medium", 5.0),
         ("high", 10.0),
         ("boost", 1.5),
         ("pro", 15.0),
-    ],
+    ),
 )
 def test_min_profit_for_modes(mode, expected_min_profit):
     """Параметризованный тест минимальной прибыли для режимов."""
@@ -515,14 +512,14 @@ def test_min_profit_for_modes(mode, expected_min_profit):
 
 
 @pytest.mark.parametrize(
-    "mode,expected_price_range",
-    [
+    ("mode", "expected_price_range"),
+    (
         ("low", (1.0, 5.0)),
         ("medium", (5.0, 20.0)),
         ("high", (20.0, 100.0)),
         ("boost", (0.5, 3.0)),
         ("pro", (100.0, 1000.0)),
-    ],
+    ),
 )
 def test_price_ranges_for_modes(mode, expected_price_range):
     """Параметризованный тест ценовых диапазонов для режимов."""

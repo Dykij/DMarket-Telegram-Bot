@@ -160,8 +160,7 @@ class DMarketWebSocketClient:
         )  # Exponential backoff with 60s max
 
         logger.info(
-            f"Attempting to reconnect in {delay} seconds "
-            f"(attempt {self.reconnect_attempts})",
+            f"Attempting to reconnect in {delay} seconds (attempt {self.reconnect_attempts})",
         )
         await asyncio.sleep(delay)
 

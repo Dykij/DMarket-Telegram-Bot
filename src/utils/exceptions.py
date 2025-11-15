@@ -125,10 +125,7 @@ class AuthenticationError(APIError):
     @property
     def human_readable(self) -> str:
         """Человекочитаемое сообщение об ошибке."""
-        return (
-            f"Ошибка аутентификации: проверьте ваши API ключи или токен.\n"
-            f"Детали: {self.message}"
-        )
+        return f"Ошибка аутентификации: проверьте ваши API ключи или токен.\nДетали: {self.message}"
 
 
 class ForbiddenError(APIError):
@@ -165,10 +162,7 @@ class NotFoundError(APIError):
     @property
     def human_readable(self) -> str:
         """Человекочитаемое сообщение об ошибке."""
-        return (
-            f"Ресурс не найден: запрашиваемые данные не существуют.\n"
-            f"Детали: {self.message}"
-        )
+        return f"Ресурс не найден: запрашиваемые данные не существуют.\nДетали: {self.message}"
 
 
 class RateLimitExceeded(APIError):
@@ -189,9 +183,7 @@ class RateLimitExceeded(APIError):
             response_data: Данные ответа API
             retry_after: Рекомендуемое время ожидания в секундах
         """
-        super().__init__(
-            message, status_code, ErrorCode.RATE_LIMIT_ERROR, response_data
-        )
+        super().__init__(message, status_code, ErrorCode.RATE_LIMIT_ERROR, response_data)
         self.retry_after = retry_after
 
     @property
@@ -257,10 +249,7 @@ class BadRequestError(APIError):
     @property
     def human_readable(self) -> str:
         """Человекочитаемое сообщение об ошибке."""
-        return (
-            f"Неверный запрос: проверьте параметры вашего запроса.\n"
-            f"Детали: {self.message}"
-        )
+        return f"Неверный запрос: проверьте параметры вашего запроса.\nДетали: {self.message}"
 
 
 class DMarketSpecificError(APIError):
@@ -641,11 +630,12 @@ def retry_async(
                         )
                         await asyncio.sleep(delay)
                     else:
-                        logger.error(f"All {max_retries} attempts failed: {e}")
+                        logger.exception(f"All {max_retries} attempts failed: {e}")
                         raise
 
             if last_error:
                 raise last_error
+            return None
 
         return cast("F", wrapper)
 

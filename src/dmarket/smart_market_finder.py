@@ -151,10 +151,7 @@ class SmartMarketFinder:
                     continue
 
                 # Фильтруем по типам возможностей
-                if (
-                    opportunity_types
-                    and opportunity.opportunity_type not in opportunity_types
-                ):
+                if opportunity_types and opportunity.opportunity_type not in opportunity_types:
                     continue
 
                 opportunities.append(opportunity)
@@ -193,8 +190,7 @@ class SmartMarketFinder:
             Список предметов с заниженной ценой
         """
         logger.info(
-            f"Поиск предметов с заниженной ценой для {game} "
-            f"(мин. скидка {min_discount_percent}%)"
+            f"Поиск предметов с заниженной ценой для {game} (мин. скидка {min_discount_percent}%)"
         )
 
         game_ids = {"csgo": "a8db", "dota2": "9a92", "tf2": "tf2", "rust": "rust"}
@@ -229,9 +225,7 @@ class SmartMarketFinder:
                 suggested_price = float(item["suggestedPrice"]["USD"]) / 100
 
                 # Рассчитываем скидку
-                discount_percent = (
-                    (suggested_price - current_price) / suggested_price * 100
-                )
+                discount_percent = (suggested_price - current_price) / suggested_price * 100
 
                 if discount_percent >= min_discount_percent:
                     # Рассчитываем потенциальную прибыль с учетом комиссии
@@ -242,9 +236,7 @@ class SmartMarketFinder:
                     # Определяем уровень риска
                     risk_level = "medium"
                     if discount_percent > 30:
-                        risk_level = (
-                            "high"  # Слишком большая скидка может быть подозрительной
-                        )
+                        risk_level = "high"  # Слишком большая скидка может быть подозрительной
                     elif discount_percent < 15:
                         risk_level = "low"
 
@@ -310,9 +302,7 @@ class SmartMarketFinder:
         Returns:
             Список возможностей для создания таргетов
         """
-        logger.info(
-            f"Поиск возможностей для таргетов {game} (мин. спред {min_spread_percent}%)"
-        )
+        logger.info(f"Поиск возможностей для таргетов {game} (мин. спред {min_spread_percent}%)")
 
         game_ids = {"csgo": "a8db", "dota2": "9a92", "tf2": "tf2", "rust": "rust"}
         game_id = game_ids.get(game, game)
@@ -335,11 +325,7 @@ class SmartMarketFinder:
                 return []
 
             # Собираем названия предметов для запроса агрегированных цен
-            titles = [
-                item.get("title")
-                for item in market_response["objects"]
-                if item.get("title")
-            ]
+            titles = [item.get("title") for item in market_response["objects"] if item.get("title")]
 
             if not titles:
                 return []
@@ -363,9 +349,7 @@ class SmartMarketFinder:
             opportunities = []
             for agg_data in aggregated_response["aggregatedPrices"]:
                 # Проверяем наличие данных о ценах
-                if not agg_data.get("orderBestPrice") or not agg_data.get(
-                    "offerBestPrice"
-                ):
+                if not agg_data.get("orderBestPrice") or not agg_data.get("offerBestPrice"):
                     continue
 
                 order_price = float(agg_data["orderBestPrice"]) / 100  # Цена таргета
@@ -398,11 +382,7 @@ class SmartMarketFinder:
 
                 # Определяем уровень риска
                 risk_level = (
-                    "low"
-                    if spread_percent < 15
-                    else "medium"
-                    if spread_percent < 30
-                    else "high"
+                    "low" if spread_percent < 15 else "medium" if spread_percent < 30 else "high"
                 )
 
                 # Confidence на основе спреда и ликвидности
@@ -426,8 +406,7 @@ class SmartMarketFinder:
                         "risk_level": risk_level,
                         "game": game,
                         "recommended_action": (
-                            f"Создать таргет по ${target_price:.2f}, "
-                            f"продать по ${sell_price:.2f}"
+                            f"Создать таргет по ${target_price:.2f}, продать по ${sell_price:.2f}"
                         ),
                         "notes": [
                             f"Спред между лучшим таргетом и офером: {spread_percent:.1f}%",
@@ -502,9 +481,7 @@ class SmartMarketFinder:
 
             # Обновляем тип возможности
             opp.opportunity_type = MarketOpportunityType.QUICK_FLIP
-            opp.estimated_time_to_sell = (
-                "< 24 часа" if opp.liquidity_score > 70 else "1-3 дня"
-            )
+            opp.estimated_time_to_sell = "< 24 часа" if opp.liquidity_score > 70 else "1-3 дня"
 
             quick_flips.append(opp)
 
@@ -556,9 +533,7 @@ class SmartMarketFinder:
                     path="/marketplace-api/v1/aggregated-prices",
                     data={
                         "filter": {
-                            "game": game.replace("a8db", "csgo").replace(
-                                "9a92", "dota2"
-                            ),
+                            "game": game.replace("a8db", "csgo").replace("9a92", "dota2"),
                             "titles": titles,
                         },
                         "limit": str(limit),
@@ -568,8 +543,7 @@ class SmartMarketFinder:
                 if aggregated_response and "aggregatedPrices" in aggregated_response:
                     # Добавляем агрегированные данные к предметам
                     agg_dict = {
-                        agg["title"]: agg
-                        for agg in aggregated_response["aggregatedPrices"]
+                        agg["title"]: agg for agg in aggregated_response["aggregatedPrices"]
                     }
 
                     for item in items:
@@ -670,7 +644,7 @@ class SmartMarketFinder:
             )
 
             # Создаем объект возможности
-            opportunity = MarketOpportunity(
+            return MarketOpportunity(
                 item_id=item_id,
                 title=title,
                 current_price=current_price,
@@ -694,8 +668,6 @@ class SmartMarketFinder:
                 estimated_time_to_sell=time_to_sell,
                 notes=notes,
             )
-
-            return opportunity
 
         except Exception as e:
             logger.warning(f"Ошибка при анализе предмета: {e}")

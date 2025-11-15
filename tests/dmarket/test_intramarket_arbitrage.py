@@ -133,9 +133,7 @@ async def test_find_price_anomalies_empty_items(mock_dmarket_api):
 
 
 @pytest.mark.asyncio()
-async def test_find_price_anomalies_filter_by_price(
-    mock_dmarket_api, sample_market_items
-):
+async def test_find_price_anomalies_filter_by_price(mock_dmarket_api, sample_market_items):
     """Тест фильтрации по цене."""
     mock_dmarket_api.get_market_items.return_value = sample_market_items
 
@@ -177,15 +175,11 @@ async def test_find_price_anomalies_csgo_filters(mock_dmarket_api):
     )
 
     # Стикеры должны быть отфильтрованы
-    assert all(
-        "Sticker" not in r.get("item_to_buy", {}).get("title", "") for r in results
-    )
+    assert all("Sticker" not in r.get("item_to_buy", {}).get("title", "") for r in results)
 
 
 @pytest.mark.asyncio()
-async def test_find_price_anomalies_sorts_by_profit(
-    mock_dmarket_api, sample_market_items
-):
+async def test_find_price_anomalies_sorts_by_profit(mock_dmarket_api, sample_market_items):
     """Тест сортировки по проценту прибыли."""
     mock_dmarket_api.get_market_items.return_value = sample_market_items
 
@@ -197,9 +191,7 @@ async def test_find_price_anomalies_sorts_by_profit(
     # Проверяем сортировку по убыванию прибыли
     if len(results) > 1:
         for i in range(len(results) - 1):
-            assert (
-                results[i]["profit_percentage"] >= results[i + 1]["profit_percentage"]
-            )
+            assert results[i]["profit_percentage"] >= results[i + 1]["profit_percentage"]
 
 
 # ======================== Тесты find_trending_items ========================
@@ -407,16 +399,12 @@ async def test_find_mispriced_rare_items_dota2_traits(mock_dmarket_api):
 
     # Проверяем обнаружение Arcana
     if results:
-        arcana_traits = [
-            t for t in results[0]["rare_traits"] if "Arcana" in t or "Exalted" in t
-        ]
+        arcana_traits = [t for t in results[0]["rare_traits"] if "Arcana" in t or "Exalted" in t]
         assert arcana_traits
 
 
 @pytest.mark.asyncio()
-async def test_find_mispriced_rare_items_price_filter(
-    mock_dmarket_api, sample_rare_items
-):
+async def test_find_mispriced_rare_items_price_filter(mock_dmarket_api, sample_rare_items):
     """Тест фильтрации по цене."""
     mock_dmarket_api.get_market_items.return_value = sample_rare_items
 
@@ -434,9 +422,7 @@ async def test_find_mispriced_rare_items_price_filter(
 
 
 @pytest.mark.asyncio()
-async def test_find_mispriced_rare_items_sorts_by_discount(
-    mock_dmarket_api, sample_rare_items
-):
+async def test_find_mispriced_rare_items_sorts_by_discount(mock_dmarket_api, sample_rare_items):
     """Тест сортировки по проценту скидки."""
     mock_dmarket_api.get_market_items.return_value = sample_rare_items
 
@@ -449,8 +435,7 @@ async def test_find_mispriced_rare_items_sorts_by_discount(
     if len(results) > 1:
         for i in range(len(results) - 1):
             assert (
-                results[i]["price_difference_percent"]
-                >= results[i + 1]["price_difference_percent"]
+                results[i]["price_difference_percent"] >= results[i + 1]["price_difference_percent"]
             )
 
 
@@ -497,9 +482,7 @@ async def test_scan_for_intramarket_opportunities_multiple_games(
 
 
 @pytest.mark.asyncio()
-async def test_scan_for_intramarket_opportunities_selective(
-    mock_dmarket_api, sample_market_items
-):
+async def test_scan_for_intramarket_opportunities_selective(mock_dmarket_api, sample_market_items):
     """Тест выборочного сканирования (только аномалии)."""
     mock_dmarket_api.get_market_items.return_value = sample_market_items
 
@@ -545,3 +528,331 @@ def test_price_anomaly_type_enum():
     assert PriceAnomalyType.TRENDING_DOWN == "trending_down"
     assert PriceAnomalyType.RARE_TRAITS == "rare_traits"
     assert PriceAnomalyType.NORMAL == "normal"
+
+
+# ======================== Тесты для TF2 ========================
+
+
+@pytest.fixture()
+def sample_tf2_market_items():
+    """Создать пример рыночных предметов TF2."""
+    return {
+        "items": [
+            {
+                "title": "Unusual Team Captain (Burning Flames)",
+                "price": {"amount": 450000, "currency": "USD"},
+                "itemId": "tf2_unusual_1",
+                "category": "Hat",
+            },
+            {
+                "title": "Strange Australium Rocket Launcher",
+                "price": {"amount": 12500, "currency": "USD"},
+                "itemId": "tf2_australium_1",
+                "category": "Weapon",
+            },
+            {
+                "title": "Vintage Vintage Tyrolean",
+                "price": {"amount": 2500, "currency": "USD"},
+                "itemId": "tf2_vintage_1",
+                "category": "Hat",
+            },
+            {
+                "title": "Vintage Vintage Tyrolean",
+                "price": {"amount": 3000, "currency": "USD"},
+                "itemId": "tf2_vintage_2",
+                "category": "Hat",
+            },
+        ],
+    }
+
+
+@pytest.fixture()
+def sample_tf2_rare_items():
+    """Создать пример редких предметов TF2."""
+    return {
+        "items": [
+            {
+                "title": "Unusual Team Captain (Burning Flames)",
+                "price": {"amount": 450000, "currency": "USD"},
+                "itemId": "tf2_unusual_1",
+                "suggestedPrice": {"amount": 520000, "currency": "USD"},
+            },
+            {
+                "title": "Collector's Professional Killstreak Scattergun",
+                "price": {"amount": 15000, "currency": "USD"},
+                "itemId": "tf2_collectors_1",
+                "suggestedPrice": {"amount": 19000, "currency": "USD"},
+            },
+        ],
+    }
+
+
+@pytest.mark.asyncio()
+async def test_find_price_anomalies_tf2(
+    mock_dmarket_api,
+    sample_tf2_market_items,
+):
+    """Тест поиска аномалий цен для TF2."""
+    mock_dmarket_api.get_market_items.return_value = sample_tf2_market_items
+
+    anomalies = await find_price_anomalies(
+        game="tf2",
+        min_price=1.0,
+        max_price=5000.0,
+        dmarket_api=mock_dmarket_api,
+    )
+
+    # Проверяем что найдены аномалии для Vintage Tyrolean
+    assert len(anomalies) > 0
+    assert anomalies[0]["game"] == "tf2"
+    assert "Vintage Tyrolean" in anomalies[0]["item_to_buy"]["title"]
+
+
+@pytest.mark.asyncio()
+async def test_find_mispriced_rare_items_tf2(
+    mock_dmarket_api,
+    sample_tf2_rare_items,
+):
+    """Тест поиска недооцененных редких предметов TF2."""
+    mock_dmarket_api.get_market_items.return_value = sample_tf2_rare_items
+
+    rare_items = await find_mispriced_rare_items(
+        game="tf2",
+        min_price=10.0,
+        max_price=600000.0,
+        dmarket_api=mock_dmarket_api,
+    )
+
+    # Проверяем что найдены редкие предметы
+    assert len(rare_items) > 0
+    # Unusual должен иметь высокий rarity_score
+    unusual_item = next(
+        (item for item in rare_items if "Unusual" in item["item"]["title"]),
+        None,
+    )
+    assert unusual_item is not None
+    assert unusual_item["rarity_score"] >= 100  # Unusual = 100 points
+
+
+@pytest.mark.asyncio()
+async def test_find_trending_items_tf2(
+    mock_dmarket_api,
+    sample_tf2_market_items,
+):
+    """Тест поиска трендовых предметов TF2."""
+    mock_dmarket_api.get_market_items.return_value = sample_tf2_market_items
+    mock_dmarket_api.get_sales_history.return_value = {
+        "items": [
+            {
+                "title": "Strange Australium Rocket Launcher",
+                "price": {"amount": 11000, "currency": "USD"},
+                "timestamp": "2025-11-13T10:00:00Z",
+            },
+            {
+                "title": "Strange Australium Rocket Launcher",
+                "price": {"amount": 11500, "currency": "USD"},
+                "timestamp": "2025-11-14T10:00:00Z",
+            },
+        ],
+    }
+
+    trending = await find_trending_items(
+        game="tf2",
+        min_price=5.0,
+        max_price=20000.0,
+        dmarket_api=mock_dmarket_api,
+    )
+
+    # Проверяем структуру результата
+    assert isinstance(trending, list)
+    # Может быть пустым если нет подходящих трендов
+    if len(trending) > 0:
+        assert "game" in trending[0]
+        assert trending[0]["game"] == "tf2"
+
+
+# ======================== Тесты для Rust ========================
+
+
+@pytest.fixture()
+def sample_rust_market_items():
+    """Создать пример рыночных предметов Rust."""
+    return {
+        "items": [
+            {
+                "title": "Glowing Alien Relic Trophy",
+                "price": {"amount": 15000, "currency": "USD"},
+                "itemId": "rust_glowing_1",
+                "category": "Trophy",
+            },
+            {
+                "title": "Limited Tempered AK47 Skin",
+                "price": {"amount": 8500, "currency": "USD"},
+                "itemId": "rust_limited_1",
+                "category": "Weapon Skin",
+            },
+            {
+                "title": "Unique Burlap Headwrap",
+                "price": {"amount": 3500, "currency": "USD"},
+                "itemId": "rust_unique_1",
+                "category": "Clothing",
+            },
+            {
+                "title": "Unique Burlap Headwrap",
+                "price": {"amount": 4200, "currency": "USD"},
+                "itemId": "rust_unique_2",
+                "category": "Clothing",
+            },
+        ],
+    }
+
+
+@pytest.fixture()
+def sample_rust_rare_items():
+    """Создать пример редких предметов Rust."""
+    return {
+        "items": [
+            {
+                "title": "Limited Glowing Hazmat Suit - Complete Set",
+                "price": {"amount": 32000, "currency": "USD"},
+                "itemId": "rust_rare_1",
+                "suggestedPrice": {"amount": 38000, "currency": "USD"},
+            },
+            {
+                "title": "Glowing Alien Relic Trophy",
+                "price": {"amount": 15000, "currency": "USD"},
+                "itemId": "rust_rare_2",
+                "suggestedPrice": {"amount": 18500, "currency": "USD"},
+            },
+        ],
+    }
+
+
+@pytest.mark.asyncio()
+async def test_find_price_anomalies_rust(
+    mock_dmarket_api,
+    sample_rust_market_items,
+):
+    """Тест поиска аномалий цен для Rust."""
+    mock_dmarket_api.get_market_items.return_value = sample_rust_market_items
+
+    anomalies = await find_price_anomalies(
+        game="rust",
+        min_price=1.0,
+        max_price=10000.0,
+        dmarket_api=mock_dmarket_api,
+    )
+
+    # Проверяем что найдены аномалии для Unique Burlap Headwrap
+    assert len(anomalies) > 0
+    assert anomalies[0]["game"] == "rust"
+    assert "Unique Burlap Headwrap" in anomalies[0]["item_to_buy"]["title"]
+
+
+@pytest.mark.asyncio()
+async def test_find_mispriced_rare_items_rust(
+    mock_dmarket_api,
+    sample_rust_rare_items,
+):
+    """Тест поиска недооцененных редких предметов Rust."""
+    mock_dmarket_api.get_market_items.return_value = sample_rust_rare_items
+
+    rare_items = await find_mispriced_rare_items(
+        game="rust",
+        min_price=10.0,
+        max_price=50000.0,
+        dmarket_api=mock_dmarket_api,
+    )
+
+    # Проверяем что найдены редкие предметы
+    assert len(rare_items) > 0
+    # Limited + Glowing должны иметь высокий rarity_score
+    limited_glowing = next(
+        (
+            item
+            for item in rare_items
+            if "Limited" in item["item"]["title"] and "Glowing" in item["item"]["title"]
+        ),
+        None,
+    )
+    assert limited_glowing is not None
+    # Limited (80) + Glowing (70) + Complete Set (60) = 210
+    assert limited_glowing["rarity_score"] >= 150
+
+
+@pytest.mark.asyncio()
+async def test_find_trending_items_rust(
+    mock_dmarket_api,
+    sample_rust_market_items,
+):
+    """Тест поиска трендовых предметов Rust."""
+    mock_dmarket_api.get_market_items.return_value = sample_rust_market_items
+    mock_dmarket_api.get_sales_history.return_value = {
+        "items": [
+            {
+                "title": "Glowing Alien Relic Trophy",
+                "price": {"amount": 13000, "currency": "USD"},
+                "timestamp": "2025-11-13T10:00:00Z",
+            },
+            {
+                "title": "Glowing Alien Relic Trophy",
+                "price": {"amount": 14000, "currency": "USD"},
+                "timestamp": "2025-11-14T10:00:00Z",
+            },
+        ],
+    }
+
+    trending = await find_trending_items(
+        game="rust",
+        min_price=5.0,
+        max_price=20000.0,
+        dmarket_api=mock_dmarket_api,
+    )
+
+    # Проверяем структуру результата
+    assert isinstance(trending, list)
+    # Может быть пустым если нет подходящих трендов
+    if len(trending) > 0:
+        assert "game" in trending[0]
+        assert trending[0]["game"] == "rust"
+
+
+@pytest.mark.asyncio()
+async def test_scan_for_intramarket_opportunities_all_games(
+    mock_dmarket_api,
+    sample_market_items,
+    sample_tf2_market_items,
+    sample_rust_market_items,
+):
+    """Тест комплексного сканирования для всех игр включая TF2 и Rust."""
+
+    def get_items_side_effect(game, **kwargs):
+        items_map = {
+            "csgo": sample_market_items,
+            "tf2": sample_tf2_market_items,
+            "rust": sample_rust_market_items,
+        }
+        return items_map.get(game, {"items": []})
+
+    mock_dmarket_api.get_market_items.side_effect = get_items_side_effect
+    mock_dmarket_api.get_sales_history.return_value = {"items": []}
+
+    results = await scan_for_intramarket_opportunities(
+        games=["csgo", "tf2", "rust"],
+        max_results_per_game=5,
+        dmarket_api=mock_dmarket_api,
+    )
+
+    # Проверяем что все игры присутствуют в результатах
+    assert "csgo" in results
+    assert "tf2" in results
+    assert "rust" in results
+
+    # Проверяем структуру для каждой игры
+    for game in ["csgo", "tf2", "rust"]:
+        assert "price_anomalies" in results[game]
+        assert "trending_items" in results[game]
+        assert "rare_mispriced" in results[game]
+        assert isinstance(results[game]["price_anomalies"], list)
+        assert isinstance(results[game]["trending_items"], list)
+        assert isinstance(results[game]["rare_mispriced"], list)
