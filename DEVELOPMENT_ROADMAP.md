@@ -301,6 +301,17 @@
   - Интеграция: 3 теста (workflow, HTML, reply_markup)
   - Валидация: 2 теста (экспорты, вызываемость)
   - **Покрытие**: 100% (38/38 строк, 14/14 веток)
+  - **Коммит**: d8ad305
+- [x] `handlers/scanner_handler.py` ✅ **ЗАВЕРШЕНО** (98.88%, 134 строк) - **35 тестов**
+  - Форматирование (7): scanner_item (3), scanner_results (4)
+  - start_scanner_menu (4): callback query, прямой вызов, кнопки, callback_data
+  - handle_level_scan (7): success, invalid level, no API, no results, exception, edge cases
+  - handle_market_overview (4): success, no callback, no API, exception
+  - handle_scanner_pagination (5): next, prev, no callback, invalid data, no user
+  - handle_scanner_callback (5): main menu, level scan, market overview, unknown, no callback
+  - register_scanner_handlers (1): handler registration
+  - Integration (2): full workflow, button validation
+  - **Покрытие**: 98.88% (132/134 строк, 42/44 веток)
   - **Коммит**: Ожидает
 - [ ] `handlers/callbacks.py` (166 строк)
 - [ ] `handlers/scanner_handler.py` (134 строк)
