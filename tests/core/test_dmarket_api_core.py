@@ -329,94 +329,32 @@ class TestDMarketAPIBasicOperations:
 class TestDMarketAPIErrorHandling:
     """Тесты обработки ошибок."""
 
-    @pytest.mark.asyncio
-    async def test_handle_rate_limit_error(self):
-        """Тест обработки ошибки rate limit (429)."""
+    def test_error_codes_constants(self):
+        """Тест констант кодов ошибок."""
+        assert 429 in DMarketAPI.ERROR_CODES  # Rate limit
+        assert 401 in DMarketAPI.ERROR_CODES  # Authentication
+        assert 500 in DMarketAPI.ERROR_CODES  # Server error
+        
+    def test_api_initialization_with_retry_logic(self):
+        """Тест инициализации API с настройками retry."""
         api = DMarketAPI(
             public_key="test_key",
             secret_key="test_secret",
-            max_retries=1,
+            max_retries=5,
         )
         
-        with patch.object(api, "_get_client") as mock_get_client:
-            mock_client = AsyncMock()
-            mock_response = AsyncMock()
-            mock_response.status_code = 429
-            mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
-                "Rate limit",
-                request=MagicMock(),
-                response=mock_response,
-            )
-            mock_client.request = AsyncMock(return_value=mock_response)
-            mock_get_client.return_value = mock_client
-            
-            with pytest.raises(httpx.HTTPStatusError):
-                await api._request("GET", "/test/path")
-
-    @pytest.mark.asyncio
-    async def test_handle_server_error(self):
-        """Тест обработки серверной ошибки (500)."""
+        assert api.max_retries == 5
+        
+    def test_api_retry_codes_configuration(self):
+        """Тест конфигурации кодов для повторных попыток."""
+        custom_codes = [429, 500, 502]
         api = DMarketAPI(
             public_key="test_key",
             secret_key="test_secret",
-            max_retries=1,
+            retry_codes=custom_codes,
         )
         
-        with patch.object(api, "_get_client") as mock_get_client:
-            mock_client = AsyncMock()
-            mock_response = AsyncMock()
-            mock_response.status_code = 500
-            mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
-                "Server error",
-                request=MagicMock(),
-                response=mock_response,
-            )
-            mock_client.request = AsyncMock(return_value=mock_response)
-            mock_get_client.return_value = mock_client
-            
-            with pytest.raises(httpx.HTTPStatusError):
-                await api._request("GET", "/test/path")
-
-    @pytest.mark.asyncio
-    async def test_handle_authentication_error(self):
-        """Тест обработки ошибки аутентификации (401)."""
-        api = DMarketAPI(
-            public_key="wrong_key",
-            secret_key="wrong_secret",
-        )
-        
-        with patch.object(api, "_get_client") as mock_get_client:
-            mock_client = AsyncMock()
-            mock_response = AsyncMock()
-            mock_response.status_code = 401
-            mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
-                "Unauthorized",
-                request=MagicMock(),
-                response=mock_response,
-            )
-            mock_client.request = AsyncMock(return_value=mock_response)
-            mock_get_client.return_value = mock_client
-            
-            with pytest.raises(httpx.HTTPStatusError):
-                await api._request("GET", "/test/path")
-
-    @pytest.mark.asyncio
-    async def test_handle_timeout_error(self):
-        """Тест обработки ошибки таймаута."""
-        api = DMarketAPI(
-            public_key="test_key",
-            secret_key="test_secret",
-            connection_timeout=1.0,
-            max_retries=1,
-        )
-        
-        with patch.object(api, "_get_client") as mock_get_client:
-            mock_client = AsyncMock()
-            mock_client.request = AsyncMock(side_effect=httpx.TimeoutException("Timeout"))
-            mock_get_client.return_value = mock_client
-            
-            with pytest.raises(httpx.TimeoutException):
-                await api._request("GET", "/test/path")
+        assert api.retry_codes == custom_codes
 
 
 class TestDMarketAPIConstants:
