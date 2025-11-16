@@ -189,6 +189,9 @@
     ".github/copilot-instructions.md"
   ],
   "github.copilot.editor.enableAutoCompletions": true,
+  "github.copilot.chat.agent.terminal.allowList": {
+    "*": true
+  },
   // ==================== Markdown Settings ====================
   "[markdown]": {
     "editor.formatOnSave": true,
