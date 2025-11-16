@@ -61,8 +61,17 @@ def test_target_manager_initialization(mock_api_client):
 @pytest.mark.asyncio()
 async def test_create_target_success(mock_api_client):
     """Тест успешного создания таргета."""
-    # Настройка мока
-    mock_api_client.create_target = AsyncMock(return_value={"TargetID": "target123"})
+    # Настройка мока - API метод называется create_targets (множественное число)
+    mock_api_client.create_targets = AsyncMock(
+        return_value={
+            "Result": [
+                {
+                    "TargetID": "target123",
+                    "Status": "Created"
+                }
+            ]
+        }
+    )
 
     manager = TargetManager(mock_api_client)
 
@@ -75,7 +84,10 @@ async def test_create_target_success(mock_api_client):
     )
 
     # Проверки
-    assert result["success"] is True or "TargetID" in result
+    assert result["success"] is True
+    assert result["target_id"] == "target123"
+    assert result["title"] == "AWP | Asiimov (Field-Tested)"
+    assert result["price"] == 50.0
 
 
 @pytest.mark.asyncio()
@@ -235,8 +247,16 @@ async def test_get_targets_by_title(mock_api_client):
 @pytest.mark.asyncio()
 async def test_delete_target_success(mock_api_client):
     """Тест успешного удаления таргета."""
-    # Настройка мока
-    mock_api_client.delete_targets = AsyncMock(return_value={"Result": [{"Status": "success"}]})
+    # Настройка мока - статус должен быть "Deleted", а не "success"
+    mock_api_client.delete_targets = AsyncMock(
+        return_value={
+            "Result": [
+                {
+                    "Status": "Deleted"
+                }
+            ]
+        }
+    )
 
     manager = TargetManager(mock_api_client)
 
@@ -245,7 +265,7 @@ async def test_delete_target_success(mock_api_client):
 
     # Проверки
     assert result is True
-    mock_api_client.delete_targets.assert_called_once()
+    mock_api_client.delete_targets.assert_called_once_with(target_ids=["target123"])
 
 
 @pytest.mark.asyncio()
