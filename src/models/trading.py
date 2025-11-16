@@ -105,7 +105,7 @@ class TradeHistory(Base):
     status = Column(String(50), default="pending", nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     completed_at = Column(DateTime, nullable=True)
-    metadata = Column(JSON, nullable=True)
+    trade_metadata = Column("metadata", JSON, nullable=True)
 
     def __repr__(self) -> str:
         """String representation."""
@@ -130,5 +130,5 @@ class TradeHistory(Base):
             "status": self.status,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "completed_at": (self.completed_at.isoformat() if self.completed_at else None),
-            "metadata": self.metadata,
+            "metadata": self.trade_metadata,
         }
