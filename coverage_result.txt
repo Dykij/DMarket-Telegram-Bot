@@ -1,0 +1,48 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.1, pluggy-1.6.0
+rootdir: D:\Dmarket\DMarket-Telegram-Bot\DMarket-Telegram-Bot
+configfile: pyproject.toml
+plugins: anyio-4.11.0, Faker-38.0.0, asyncio-1.3.0, cov-7.0.0, mock-3.15.1, xdist-3.8.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collected 805 items
+
+tests\dmarket\test_api_unified.py ..........                             [  1%]
+tests\dmarket\test_arbitrage_scanner.py ................................ [  5%]
+.........................                                                [  8%]
+tests\dmarket\test_intramarket_arbitrage.py ..........................   [ 11%]
+tests\dmarket\test_liquidity_analyzer.py ..............                  [ 13%]
+tests\dmarket\test_market_analysis.py .............................      [ 16%]
+tests\dmarket\test_realtime_price_watcher.py ........................... [ 20%]
+.............................                                            [ 23%]
+tests\dmarket\test_smart_market_finder.py ...........................    [ 27%]
+tests\dmarket\test_targets.py .F.......F.....                            [ 29%]
+tests\telegram_bot\handlers\test_arbitrage_callback_impl.py FFFFFFFF     [ 30%]
+tests\telegram_bot\handlers\test_commands.py ......................      [ 32%]
+tests\telegram_bot\handlers\test_error_handlers.py ........              [ 33%]
+tests\telegram_bot\handlers\test_market_analysis_handler.py ......F.F... [ 35%]
+..FF....                                                                 [ 36%]
+tests\telegram_bot\handlers\test_scanner_handler.py .................... [ 38%]
+...............                                                          [ 40%]
+tests\telegram_bot\handlers\test_target_handler.py ....................  [ 43%]
+tests\telegram_bot\test_auto_arbitrage_scanner.py FFFFFFFFF              [ 44%]
+tests\telegram_bot\test_constants_and_basic_commands.py ............     [ 45%]
+tests\telegram_bot\test_game_filter_handlers.py ........................ [ 48%]
+                                                                         [ 48%]
+tests\telegram_bot\test_intramarket_handler.py ..........                [ 49%]
+tests\telegram_bot\test_keyboards.py .............................       [ 53%]
+tests\telegram_bot\test_liquidity_settings_handler.py .................. [ 55%]
+..                                                                       [ 56%]
+tests\telegram_bot\test_pagination.py ......................             [ 58%]
+tests\telegram_bot\test_sales_analysis_handlers.py ..........            [ 60%]
+tests\telegram_bot\test_scanner_handler.py .............                 [ 61%]
+tests\telegram_bot\test_settings_handlers.py .............               [ 63%]
+tests\telegram_bot\utils\test_error_handler.py ......................... [ 66%]
+.............                                                            [ 67%]
+tests\test_ci_smoke.py .......                                           [ 68%]
+tests\test_config.py ...F..F......                                       [ 70%]
+tests\test_database.py ............                                      [ 71%]
+tests\test_keyboards.py ............                                     [ 73%]
+tests\test_main.py ........F.F...........                                [ 76%]
+tests\test_pagination.py .........                                       [ 77%]
+tests\test_sqlite_fallback.py ...............F                           [ 79%]
+tests\test_targets.py ..............................................     [ 84%]

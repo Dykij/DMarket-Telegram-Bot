@@ -331,7 +331,12 @@
   "chat.agent.enabled": true,
   "chat.agent.maxRequests": 25,
   "chat.mcp.access": true,
-  "chat.mcp.discovery.enabled": true,
+  "chat.mcp.discovery.enabled": {
+    "claude-desktop": true,
+    "windsurf": true,
+    "cursor-global": true,
+    "cursor-workspace": true
+  },
   "chat.tools.global.autoApprove": false,
   "chat.agent.thinkingStyle": "fixedScrolling",
   "chat.customAgentInSubagent.enabled": true,
