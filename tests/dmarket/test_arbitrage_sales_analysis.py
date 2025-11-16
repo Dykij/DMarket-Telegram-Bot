@@ -145,8 +145,8 @@ async def test_get_item_sales_history_success(sales_analyzer, mock_dmarket_api, 
     mock_dmarket_api.get_sales_history.return_value = sample_sales_data
 
     result = await sales_analyzer.get_item_sales_history(
+        item_name="AK-47 | Redline (Field-Tested)",
         game="csgo",
-        title="AK-47 | Redline (Field-Tested)",
         days=7,
     )
 
