@@ -15,6 +15,25 @@ class BaseGameFilter:
     # Common filters for all games
     supported_filters = ["min_price", "max_price"]
 
+    def _get_price_value(self, item: dict[str, Any]) -> float:
+        """Extract price value from item.
+
+        Args:
+            item: Item dictionary
+
+        Returns:
+            Price value as float in cents
+
+        """
+        price_data = item.get("price", {})
+        if isinstance(price_data, dict):
+            # Handle both {"USD": 1500} and {"amount": 1500}
+            price = price_data.get("USD", price_data.get("amount", 0))
+        else:
+            price = price_data
+        # Return price in cents as-is
+        return float(price) if isinstance(price, (int, float)) else 0.0
+
     def apply_filters(self, item: dict[str, Any], filters: dict[str, Any]) -> bool:
         """Check if item passes the filters.
 
@@ -28,12 +47,12 @@ class BaseGameFilter:
         """
         # Price filters
         if "min_price" in filters:
-            price = float(item.get("price", {}).get("USD", 0))
+            price = self._get_price_value(item)
             if price < filters["min_price"]:
                 return False
 
         if "max_price" in filters:
-            price = float(item.get("price", {}).get("USD", 0))
+            price = self._get_price_value(item)
             if price > filters["max_price"]:
                 return False
 
@@ -175,8 +194,14 @@ class FilterFactory:
         Returns:
             BaseGameFilter: Filter instance for the game
 
+        Raises:
+            ValueError: If game is not supported
+
         """
-        filter_class = cls._filters.get(game.lower(), BaseGameFilter)
+        filter_class = cls._filters.get(game.lower())
+        if filter_class is None:
+            msg = f"Unsupported game: {game}"
+            raise ValueError(msg)
         return filter_class()
 
     @classmethod

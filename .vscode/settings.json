@@ -45,6 +45,13 @@
   "python.analysis.diagnosticMode": "workspace",
   "python.analysis.inlayHints.functionReturnTypes": true,
   "python.analysis.inlayHints.variableTypes": true,
+  "python.analysis.inlayHints.parameterTypes": true,
+  "python.analysis.completeFunctionParens": true,
+  "python.analysis.autoSearchPaths": true,
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/src"
+  ],
+  "python.analysis.indexing": true,
   "python.languageServer": "None",
   // ==================== Python Formatting (Ruff + Black) ====================
   "[python]": {
@@ -109,6 +116,13 @@
   "editor.bracketPairColorization.enabled": true,
   "editor.guides.bracketPairs": "active",
   "editor.inlineSuggest.enabled": true,
+  "editor.inlineSuggest.minShowDelay": 0,
+  "editor.inlineSuggest.edits.allowCodeShifting": "always",
+  "editor.inlineSuggest.edits.renderSideBySide": "auto",
+  "editor.inlineSuggest.syntaxHighlightingEnabled": true,
+  "editor.acceptSuggestionOnCommitCharacter": true,
+  "editor.acceptSuggestionOnEnter": "on",
+  "editor.suggest.showStatusBar": true,
   "editor.suggestSelection": "first",
   "editor.snippetSuggestions": "top",
   "editor.wordBasedSuggestions": "matchingDocuments",
@@ -123,6 +137,17 @@
   "terminal.integrated.defaultProfile.windows": "PowerShell",
   "terminal.integrated.env.windows": {
     "PYTHONPATH": "${workspaceFolder}"
+  },
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell",
+      "args": [
+        "-NoExit",
+        "-Command",
+        "& {if (Test-Path '.venv\\Scripts\\Activate.ps1') { & '.venv\\Scripts\\Activate.ps1' }}"
+      ]
+    }
   },
   "terminal.integrated.scrollback": 10000,
   "terminal.integrated.cursorBlinking": true,
@@ -178,17 +203,71 @@
   "github.copilot.enable": {
     "*": true,
     "python": true,
+    "plaintext": true,
     "yaml": true,
     "markdown": true,
     "json": true,
     "jsonc": true,
     "dockerfile": true,
-    "shellscript": true
+    "shellscript": true,
+    "scminput": true
   },
-  "github.copilot.chat.instructionFiles": [
-    ".github/copilot-instructions.md"
-  ],
+  "github.copilot.inlineSuggest.enable": true,
+  "github.copilot.suggest.enable": true,
   "github.copilot.editor.enableAutoCompletions": true,
+  "github.copilot.editor.enableCodeActions": true,
+  "github.copilot.renameSuggestions.triggerAutomatically": true,
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "github.copilot.nextEditSuggestions.fixes": true,
+  // ==================== GitHub Copilot Chat ====================
+  "github.copilot.chat.enabled": true,
+  "github.copilot.chat.instructionFiles": [
+    ".github/copilot-instructions.md",
+    ".github/copilot-workspace.md"
+  ],
+  "github.copilot.chat.experimental.codeGeneration": true,
+  "github.copilot.chat.terminal.autoRun": false,
+  "github.copilot.chat.agent.terminal.allowList": {
+    "pytest": true,
+    "ruff": true,
+    "mypy": true,
+    "python": true,
+    "docker": true,
+    "git": true
+  },
+  "github.copilot.chat.slashCommands": true,
+  "github.copilot.chat.explainSelection": true,
+  "github.copilot.chat.fixSelection": true,
+  "github.copilot.chat.askSelection": true,
+  "github.copilot.chat.testSelection": true,
+  "github.copilot.chat.docSelection": true,
+  "github.copilot.chat.experimental.voice": true,
+  "github.copilot.chat.confirmation": "auto",
+  "github.copilot.chat.history.enabled": true,
+  "github.copilot.chat.experimental.context": true,
+  "github.copilot.chat.localeOverride": "auto",
+  "github.copilot.chat.useProjectTemplates": true,
+  "github.copilot.chat.scopeSelection": true,
+  "github.copilot.chat.terminalChatLocation": "chatView",
+  "github.copilot.chat.codesearch.enabled": true,
+  "github.copilot.chat.customOAIModels": [],
+  "github.copilot.chat.edits.suggestRelatedFilesFromGitHistory": true,
+  "github.copilot.chat.agent.autoFix": true,
+  "github.copilot.chat.agent.thinkingTool": true,
+  "github.copilot.chat.virtualTools.threshold": 128,
+  "github.copilot.chat.editor.temporalContext.enabled": true,
+  "github.copilot.chat.reviewSelection.enabled": true,
+  "github.copilot.chat.reviewSelection.instructions": [],
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+  "github.copilot.chat.commitMessageGeneration.instructions": [],
+  "github.copilot.chat.pullRequestDescriptionGeneration.instructions": [],
+  "github.copilot.chat.startDebugging.enabled": true,
+  "github.copilot.chat.copilotDebugCommand.enabled": true,
+  "github.copilot.chat.generateTests.codeLens": true,
+  "github.copilot.chat.setupTests.enabled": true,
+  "github.copilot.chat.edits.newNotebook.enabled": true,
+  "github.copilot.chat.notebook.followCellExecution.enabled": true,
+  "github.copilot.chat.newWorkspaceCreation.enabled": true,
   // ==================== Markdown Settings ====================
   "[markdown]": {
     "editor.formatOnSave": true,
@@ -216,11 +295,77 @@
   // ==================== Additional Settings ====================
   "workbench.colorTheme": "Default Dark+",
   "workbench.iconTheme": "vs-seti",
+  "workbench.settings.showAISearchToggle": true,
+  "workbench.commandPalette.experimental.askChatLocation": "chatView",
   "problems.showCurrentInStatus": true,
   "breadcrumbs.enabled": true,
   "explorer.confirmDelete": false,
   "explorer.confirmDragAndDrop": false,
   "explorer.sortOrder": "type",
+  // ==================== Chat Settings ====================
+  "chat.detectParticipant.enabled": true,
+  "chat.checkpoints.enabled": true,
+  "chat.checkpoints.showFileChanges": true,
+  "chat.editRequests": "inline",
+  "chat.editor.fontFamily": "default",
+  "chat.editor.fontSize": 14,
+  "chat.editor.fontWeight": "default",
+  "chat.editor.lineHeight": 0,
+  "chat.editor.wordWrap": "on",
+  "chat.editing.confirmEditRequestRemoval": false,
+  "chat.editing.confirmEditRequestRetry": false,
+  "chat.editing.autoAcceptDelay": 0,
+  "chat.fontFamily": "default",
+  "chat.fontSize": 13,
+  "chat.notifyWindowOnConfirmation": true,
+  "chat.notifyWindowOnResponseReceived": true,
+  "chat.tools.terminal.autoReplyToPrompts": true,
+  "chat.tools.terminal.terminalProfile.windows": "",
+  "chat.tools.terminal.terminalProfile.linux": "",
+  "chat.tools.terminal.terminalProfile.osx": "",
+  "chat.useAgentsMdFile": true,
+  "chat.math.enabled": true,
+  "chat.emptyState.history.enabled": true,
+  "chat.sendElementsToChat.enabled": true,
+  "chat.useNestedAgentsMdFiles": true,
+  "chat.agent.enabled": true,
+  "chat.agent.maxRequests": 25,
+  "chat.mcp.access": true,
+  "chat.mcp.discovery.enabled": true,
+  "chat.tools.global.autoApprove": false,
+  "chat.agent.thinkingStyle": "fixedScrolling",
+  "chat.customAgentInSubagent.enabled": true,
+  "chat.mcp.autoStart": "newAndOutdated",
+  "chat.agent.todoList.position": "default",
+  "chat.agentSessionsViewLocation": "sideBar",
+  "chat.instructionsFilesLocations": {
+    ".github/instructions": true,
+    "docs": true
+  },
+  "chat.promptFilesLocations": {
+    ".github/prompts": true
+  },
+  "chat.promptFilesRecommendations": [
+    {
+      "promptFile": ".github/prompts/code-review.md",
+      "when": "editorLangId == python"
+    },
+    {
+      "promptFile": ".github/prompts/test-generation.md",
+      "when": "resourcePath =~ /tests/"
+    }
+  ],
+  "chat.commandCenter.enabled": true,
+  // ==================== Inline Chat Settings ====================
+  "inlineChat.finishOnType": true,
+  "inlineChat.holdToSpeech": true,
+  "inlineChat.lineEmptyHint": true,
+  "inlineChat.lineNaturalLanguageHint": true,
+  // ==================== Search Settings ====================
+  "search.searchView.semanticSearchBehavior": "always",
+  "search.searchView.keywordSuggestions": true,
+  // ==================== Notebook Settings ====================
+  "notebook.experimental.generate": true,
   // ==================== Performance Settings ====================
   "files.autoSave": "afterDelay",
   "files.autoSaveDelay": 1000,
@@ -240,11 +385,6 @@
   "powershell.integratedConsole.showOnStartup": false,
   "powershell.powerShellDefaultVersion": "PowerShell (x64)",
   "terminal.integrated.shellIntegration.enabled": true,
-  "cursorpyright.analysis.autoImportCompletions": true,
-  "cursorpyright.analysis.diagnosticMode": "workspace",
-  "cursorpyright.analysis.inlayHints.functionReturnTypes": true,
-  "cursorpyright.analysis.inlayHints.variableTypes": true,
-  "cursorpyright.analysis.typeCheckingMode": "basic",
   "python-envs.defaultEnvManager": "ms-python.python:system",
   "python-envs.pythonProjects": []
 }

@@ -20,7 +20,6 @@ import pandas as pd
 from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.rate_limiter import RateLimiter
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -40,9 +39,11 @@ class SalesAnalyzer:
         self._rate_limiter = RateLimiter(is_authorized=True)
 
         # Safe defaults for volume analysis
-        self.high_volume_threshold = 10  # Sales per day
-        self.medium_volume_threshold = 5  # Sales per day
-        self.min_sample_size = 3  # Minimum sales required for meaningful analysis
+        # very_high >= 3, high >= 1.5, medium >= 0.5, low < 0.5
+        self.very_high_volume_threshold = 3  # Sales per day
+        self.high_volume_threshold = 1.5  # Sales per day
+        self.medium_volume_threshold = 0.5  # Sales per day
+        self.min_sample_size = 3  # Minimum for analysis
 
     async def get_api_client(self) -> DMarketAPI:
         """Get or create API client.
@@ -102,12 +103,12 @@ class SalesAnalyzer:
 
             if "items" not in items_response or not items_response["items"]:
                 logger.warning(f"Item not found: {item_name}")
-                return []
+                return {"sales": []}
 
             item_id = items_response["items"][0].get("itemId")
             if not item_id:
                 logger.warning(f"Item ID not found for: {item_name}")
-                return []
+                return {"sales": []}
 
             # Calculate date range
             end_date = datetime.datetime.now()
@@ -142,7 +143,7 @@ class SalesAnalyzer:
 
         except Exception as e:
             logger.exception(f"Error getting sales history for {item_name}: {e}")
-            return []
+            return {"sales": []}
 
     async def analyze_sales_volume(
         self,
@@ -164,16 +165,23 @@ class SalesAnalyzer:
         # Get sales history
         sales = await self.get_item_sales_history(item_name, game, days)
 
-        if not sales:
+        # Handle both list and dict responses
+        if isinstance(sales, dict):
+            sales_list = sales.get("sales", [])
+        else:
+            sales_list = sales if sales else []
+
+        if not sales_list:
             return {
                 "sales_count": 0,
                 "sales_per_day": 0,
-                "volume_category": "unknown",
+                "volume_category": "low",
                 "is_liquid": False,
+                "price_range": {"min": 0, "max": 0},
             }
 
         # Calculate sales per day
-        sales_count = len(sales)
+        sales_count = len(sales_list)
         sales_per_day = sales_count / min(
             days,
             30,
@@ -181,7 +189,9 @@ class SalesAnalyzer:
 
         # Categorize volume
         volume_category = "low"
-        if sales_per_day >= self.high_volume_threshold:
+        if sales_per_day >= self.very_high_volume_threshold:
+            volume_category = "very_high"
+        elif sales_per_day >= self.high_volume_threshold:
             volume_category = "high"
         elif sales_per_day >= self.medium_volume_threshold:
             volume_category = "medium"
@@ -189,25 +199,33 @@ class SalesAnalyzer:
         # Determine if item is liquid (sells quickly)
         is_liquid = sales_per_day >= self.medium_volume_threshold
 
+        # Calculate price range from sales
+        prices = [float(sale.get("price", {}).get("amount", 0)) / 100 for sale in sales_list]
+        price_range = {
+            "min": round(min(prices), 2) if prices else 0,
+            "max": round(max(prices), 2) if prices else 0,
+        }
+
         return {
             "sales_count": sales_count,
             "sales_per_day": round(sales_per_day, 2),
             "volume_category": volume_category,
             "is_liquid": is_liquid,
+            "price_range": price_range,
         }
 
     async def estimate_time_to_sell(
         self,
         item_name: str,
-        target_price: float,
         game: str = "csgo",
+        current_price: float | None = None,
         days: int = 30,
     ) -> dict[str, Any]:
-        """Estimate time needed to sell an item at the target price.
+        """Estimate time needed to sell an item at the current price.
 
         Args:
             item_name: Item name
-            target_price: Target selling price
+            current_price: Current selling price
             game: Game name
             days: Number of days to analyze
 
@@ -218,28 +236,45 @@ class SalesAnalyzer:
         # Get sales history
         sales = await self.get_item_sales_history(item_name, game, days)
 
-        if not sales or len(sales) < self.min_sample_size:
+        # Check if we have enough sales data
+        sales_list = sales if isinstance(sales, list) else sales.get("sales", [])
+        has_sales = sales and (isinstance(sales, list) or sales.get("sales"))
+        if not has_sales or len(sales_list) < self.min_sample_size:
             return {
                 "estimated_days": None,
+                "estimated_hours": None,
                 "confidence": "very_low",
                 "message": "Insufficient sales data for estimation",
+                "recommendation": "unknown",
             }
 
         # Convert sales data to pandas DataFrame for analysis
         try:
-            sales_df = pd.DataFrame(sales)
+            sales_df = pd.DataFrame(sales_list)
 
             # Process timestamps and prices
-            sales_df["timestamp"] = pd.to_datetime(sales_df["timestamp"])
+            # Handle both 'date' and 'timestamp' fields
+            if "date" in sales_df.columns:
+                sales_df["timestamp"] = pd.to_datetime(sales_df["date"], unit="s")
+            elif "timestamp" in sales_df.columns:
+                sales_df["timestamp"] = pd.to_datetime(sales_df["timestamp"])
+
+            # Extract price from nested structure
             sales_df["price"] = sales_df["price"].apply(
-                lambda x: float(x.get("USD", 0)) / 100,
+                lambda x: (
+                    float(x.get("amount", 0)) / 100 if isinstance(x, dict) else float(x) / 100
+                ),
             )
 
             # Sort by price
             sales_df = sales_df.sort_values("price")
 
-            # Find percentage of sales at or above target price
-            price_percentile = (sales_df["price"] >= target_price).mean()
+            # Find percentage of sales at or above current price
+            if current_price is not None:
+                price_percentile = (sales_df["price"] >= current_price).mean()
+            else:
+                # If no current price, use median
+                price_percentile = 0.5
 
             # Estimate time to sell based on volume and price percentile
             volume_stats = await self.analyze_sales_volume(item_name, game, days)
@@ -278,10 +313,25 @@ class SalesAnalyzer:
                 else:
                     message = "Price may be too high based on historical data"
 
+            # Convert estimated_days to hours
+            estimated_hours = estimated_days * 24 if estimated_days is not None else None
+
+            # Generate recommendation
+            if estimated_days is not None and estimated_days < 3:
+                recommendation = "good"
+            elif estimated_days is not None and estimated_days < 7:
+                recommendation = "fair"
+            else:
+                recommendation = "poor"
+
             return {
                 "estimated_days": estimated_days,
+                "estimated_hours": (
+                    round(estimated_hours, 1) if estimated_hours is not None else None
+                ),
                 "confidence": confidence,
                 "message": message,
+                "recommendation": recommendation,
                 "price_percentile": round(price_percentile, 2),
                 "sales_analyzed": len(sales),
             }
@@ -290,8 +340,10 @@ class SalesAnalyzer:
             logger.exception(f"Error estimating time to sell for {item_name}: {e}")
             return {
                 "estimated_days": None,
+                "estimated_hours": None,
                 "confidence": "very_low",
                 "message": f"Error analyzing sales data: {e!s}",
+                "recommendation": "unknown",
             }
 
     async def analyze_price_trends(
@@ -314,11 +366,14 @@ class SalesAnalyzer:
         # Get sales history
         sales = await self.get_item_sales_history(item_name, game, days)
 
-        if not sales or len(sales) < self.min_sample_size:
+        # Insufficient sales data
+        if sales is None or len(sales) < self.min_sample_size:
             return {
                 "trend": "unknown",
+                "trend_direction": "stable",
                 "price_change_percent": None,
                 "volatility": None,
+                "average_price": None,
                 "message": "Insufficient sales data for analysis",
             }
 
@@ -327,9 +382,19 @@ class SalesAnalyzer:
             sales_df = pd.DataFrame(sales)
 
             # Process timestamps and prices
-            sales_df["timestamp"] = pd.to_datetime(sales_df["timestamp"])
+            # Handle both 'date' (from test data) and 'timestamp' fields
+            if "date" in sales_df.columns:
+                sales_df["timestamp"] = pd.to_datetime(sales_df["date"], unit="s")
+            elif "timestamp" in sales_df.columns:
+                sales_df["timestamp"] = pd.to_datetime(sales_df["timestamp"])
+            else:
+                raise KeyError("Neither 'date' nor 'timestamp' field found")
+
+            # Handle price extraction from different formats
             sales_df["price"] = sales_df["price"].apply(
-                lambda x: float(x.get("USD", 0)) / 100,
+                lambda x: (
+                    float(x.get("amount", 0)) / 100 if isinstance(x, dict) else float(x) / 100
+                ),
             )
 
             # Sort by timestamp
@@ -361,21 +426,27 @@ class SalesAnalyzer:
             # Determine trend
             if abs(price_change_percent) < 5:
                 trend = "stable"
+                trend_direction = "stable"
                 message = "Price has been relatively stable"
             elif price_change_percent >= 15:
                 trend = "strong_upward"
+                trend_direction = "rising"
                 message = "Price is rising significantly"
             elif price_change_percent >= 5:
                 trend = "upward"
+                trend_direction = "rising"
                 message = "Price has an upward trend"
             elif price_change_percent <= -15:
                 trend = "strong_downward"
+                trend_direction = "falling"
                 message = "Price is falling significantly"
             elif price_change_percent <= -5:
                 trend = "downward"
+                trend_direction = "falling"
                 message = "Price has a downward trend"
             else:
                 trend = "slight_fluctuation"
+                trend_direction = "stable"
                 message = "Price shows slight fluctuations"
 
             # Adjust message based on volatility
@@ -386,9 +457,11 @@ class SalesAnalyzer:
 
             return {
                 "trend": trend,
+                "trend_direction": trend_direction,
                 "price_change_percent": round(price_change_percent, 2),
                 "price_change": round(price_change, 2),
                 "volatility": round(volatility, 2),
+                "average_price": round(mean_price, 2),
                 "first_price": round(first_price, 2),
                 "last_price": round(last_price, 2),
                 "min_price": round(daily_avg["price"].min(), 2),
@@ -514,7 +587,11 @@ class SalesAnalyzer:
             "rating": rating,
             "raw_profit": round(raw_profit, 2),
             "profit_percent": round(profit_percent, 2),
+            "expected_profit": round(raw_profit, 2),
+            "profit_percentage": round(profit_percent, 2),
             "risk_level": risk_level,
+            "estimated_sell_time_hours": time_to_sell.get("estimated_hours"),
+            "recommendation": "recommended" if rating >= 6 else "not recommended",
             "daily_roi": round(daily_roi, 2) if daily_roi is not None else None,
             "volume": volume_stats,
             "time_to_sell": time_to_sell,
@@ -522,107 +599,308 @@ class SalesAnalyzer:
             "summary": summary,
         }
 
+    async def batch_analyze_items(
+        self,
+        game: str,
+        items: list[dict[str, Any]],
+        days: int = 30,
+    ) -> list[dict[str, Any]]:
+        """Batch analyze multiple items for arbitrage potential.
+
+        Args:
+            game: Game name
+            items: List of items with title and buy_price
+            days: Number of days to analyze
+
+        Returns:
+            List of analysis results
+
+        """
+        results = []
+
+        for item in items:
+            item_name = item.get("title", "")
+            buy_price = item.get("buy_price", 0)
+
+            if not item_name or buy_price <= 0:
+                continue
+
+            try:
+                # Get sales volume
+                volume_stats = await self.analyze_sales_volume(
+                    item_name=item_name,
+                    game=game,
+                    days=days,
+                )
+
+                # Get price trends
+                price_trends = await self.analyze_price_trends(
+                    item_name=item_name,
+                    game=game,
+                    days=days,
+                )
+
+                results.append(
+                    {
+                        "title": item_name,
+                        "sales_volume": volume_stats.get("sales_count", 0),
+                        "price_trend": price_trends.get("trend", "unknown"),
+                        "liquidity": volume_stats.get("volume_category", "low"),
+                        "is_liquid": volume_stats.get("is_liquid", False),
+                    },
+                )
+
+            except Exception as e:
+                logger.exception(f"Error analyzing {item_name}: {e}")
+                # Continue processing other items
+
+        return results
+
+    async def find_best_arbitrage_opportunities(
+        self,
+        game: str = "csgo",
+        min_profit_percent: float = 5.0,
+        max_risk_level: str = "medium",
+        limit: int = 10,
+    ) -> list[dict[str, Any]]:
+        """Find the best arbitrage opportunities.
+
+        Args:
+            game: Game name
+            min_profit_percent: Minimum profit percentage
+            max_risk_level: Maximum acceptable risk level (low, medium, high)
+            limit: Maximum number of results to return
+
+        Returns:
+            Sorted list of best opportunities
+
+        """
+        # Get API client
+        api = await self.get_api_client()
+
+        # Get market items
+        try:
+            items_response = await api.get_market_items(
+                game=game,
+                limit=100,
+            )
+
+            if "items" not in items_response or not items_response["items"]:
+                return []
+
+            items = items_response["items"]
+
+        except Exception as e:
+            logger.exception(f"Error getting market items: {e}")
+            return []
+
+        # Filter and sort opportunities
+        opportunities = []
+
+        # Define risk levels
+        risk_levels = {"low": 0, "medium": 1, "high": 2}
+        max_risk_value = risk_levels.get(max_risk_level, 1)
+
+        for item in items:
+            item_name = item.get("title", "")
+            if not item_name:
+                continue
+
+            # Get current price
+            current_price = 0
+            if "price" in item and isinstance(item["price"], dict):
+                current_price = float(item["price"].get("amount", 0)) / 100
+
+            # Assume sell price is 10% higher for analysis
+            sell_price = current_price * 1.1
+
+            try:
+                analysis = await self.evaluate_arbitrage_potential(
+                    item_name=item_name,
+                    buy_price=current_price,
+                    sell_price=sell_price,
+                    game=game,
+                )
+
+                # Filter by profit percentage and risk level
+                if (
+                    analysis.get("profit_percentage", 0) >= min_profit_percent
+                    and risk_levels.get(analysis.get("risk_level", "high"), 2) <= max_risk_value
+                ):
+                    opportunities.append(
+                        {
+                            "title": item_name,
+                            "expected_profit": analysis.get("expected_profit", 0),
+                            "profit_percentage": analysis.get("profit_percentage", 0),
+                            "risk_level": analysis.get("risk_level", "high"),
+                            "estimated_sell_time_hours": analysis.get("estimated_sell_time_hours"),
+                            "recommendation": analysis.get("recommendation", ""),
+                        },
+                    )
+
+            except Exception as e:
+                logger.exception(f"Error analyzing {item_name}: {e}")
+                # Continue processing other items
+
+        # Sort by profit percentage (descending)
+        opportunities.sort(key=lambda x: x["profit_percentage"], reverse=True)
+
+        # Limit results
+        return opportunities[:limit]
+
 
 async def batch_analyze_items(
+    game: str,
     items: list[dict[str, Any]],
-    game: str = "csgo",
     days: int = 30,
-) -> dict[str, dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Batch analyze multiple items for arbitrage potential.
 
     Args:
-        items: List of items with name, buy_price, and sell_price
         game: Game name
+        items: List of items with title and buy_price
         days: Number of days to analyze
 
     Returns:
-        Dictionary of item names to analysis results
+        List of analysis results
 
     """
     analyzer = SalesAnalyzer()
-    results = {}
+    results = []
 
     for item in items:
-        item_name = item.get("name", "")
+        item_name = item.get("title", "")
         buy_price = item.get("buy_price", 0)
-        sell_price = item.get("sell_price", 0)
 
-        if not item_name or buy_price <= 0 or sell_price <= 0:
+        if not item_name or buy_price <= 0:
             continue
 
         try:
-            analysis = await analyzer.evaluate_arbitrage_potential(
+            # Get sales volume
+            volume_stats = await analyzer.analyze_sales_volume(
                 item_name=item_name,
-                buy_price=buy_price,
-                sell_price=sell_price,
                 game=game,
                 days=days,
             )
 
-            results[item_name] = analysis
+            # Get price trends
+            price_trends = await analyzer.analyze_price_trends(
+                item_name=item_name,
+                game=game,
+                days=days,
+            )
+
+            results.append(
+                {
+                    "title": item_name,
+                    "sales_volume": volume_stats.get("sales_count", 0),
+                    "price_trend": price_trends.get("trend", "unknown"),
+                    "liquidity": volume_stats.get("volume_category", "low"),
+                    "is_liquid": volume_stats.get("is_liquid", False),
+                },
+            )
 
         except Exception as e:
             logger.exception(f"Error analyzing {item_name}: {e}")
-            results[item_name] = {
-                "error": str(e),
-                "success": False,
-            }
+            # Continue processing other items
 
     return results
 
 
 async def find_best_arbitrage_opportunities(
-    items: list[dict[str, Any]],
     game: str = "csgo",
-    min_rating: int = 6,
-    max_results: int = 10,
+    min_profit_percent: float = 5.0,
+    max_risk_level: str = "medium",
+    limit: int = 10,
+    api_client: DMarketAPI | None = None,
 ) -> list[dict[str, Any]]:
-    """Find the best arbitrage opportunities from a list of items.
+    """Find the best arbitrage opportunities.
 
     Args:
-        items: List of items with name, buy_price, and sell_price
         game: Game name
-        min_rating: Minimum arbitrage rating (0-10)
-        max_results: Maximum number of results to return
+        min_profit_percent: Minimum profit percentage
+        max_risk_level: Maximum acceptable risk level (low, medium, high)
+        limit: Maximum number of results to return
+        api_client: DMarket API client (optional)
 
     Returns:
         Sorted list of best opportunities
 
     """
-    # Analyze all items
-    results = await batch_analyze_items(items, game)
+    analyzer = SalesAnalyzer(api_client)
+
+    # Get API client
+    api = await analyzer.get_api_client()
+
+    # Get market items
+    try:
+        items_response = await api.get_market_items(
+            game=game,
+            limit=100,
+        )
+
+        if "items" not in items_response or not items_response["items"]:
+            return []
+
+        items = items_response["items"]
+
+    except Exception as e:
+        logger.exception(f"Error getting market items: {e}")
+        return []
 
     # Filter and sort opportunities
     opportunities = []
 
-    for item_name, analysis in results.items():
-        if "rating" in analysis and analysis["rating"] >= min_rating:
-            item_data = next(
-                (item for item in items if item.get("name") == item_name),
-                {},
+    # Define risk levels
+    risk_levels = {"low": 0, "medium": 1, "high": 2}
+    max_risk_value = risk_levels.get(max_risk_level, 1)
+
+    for item in items:
+        item_name = item.get("title", "")
+        if not item_name:
+            continue
+
+        # Get current price
+        current_price = 0
+        if "price" in item and isinstance(item["price"], dict):
+            current_price = float(item["price"].get("amount", 0)) / 100
+
+        # Assume sell price is 10% higher for analysis
+        sell_price = current_price * 1.1
+
+        try:
+            analysis = await analyzer.evaluate_arbitrage_potential(
+                item_name=item_name,
+                buy_price=current_price,
+                sell_price=sell_price,
+                game=game,
             )
 
-            opportunities.append(
-                {
-                    "name": item_name,
-                    "buy_price": item_data.get("buy_price", 0),
-                    "sell_price": item_data.get("sell_price", 0),
-                    "rating": analysis["rating"],
-                    "profit": analysis["raw_profit"],
-                    "profit_percent": analysis["profit_percent"],
-                    "risk_level": analysis["risk_level"],
-                    "estimated_days_to_sell": analysis["time_to_sell"]["estimated_days"],
-                    "volume_category": analysis["volume"]["volume_category"],
-                    "price_trend": analysis["price_trends"]["trend"],
-                    "summary": analysis["summary"],
-                },
-            )
+            # Filter by profit percentage and risk level
+            if (
+                analysis.get("profit_percentage", 0) >= min_profit_percent
+                and risk_levels.get(analysis.get("risk_level", "high"), 2) <= max_risk_value
+            ):
+                opportunities.append(
+                    {
+                        "title": item_name,
+                        "expected_profit": analysis.get("expected_profit", 0),
+                        "profit_percentage": analysis.get("profit_percentage", 0),
+                        "risk_level": analysis.get("risk_level", "high"),
+                        "estimated_sell_time_hours": analysis.get("estimated_sell_time_hours"),
+                        "recommendation": analysis.get("recommendation", ""),
+                    },
+                )
 
-    # Sort by rating (descending)
-    opportunities.sort(key=lambda x: x["rating"], reverse=True)
+        except Exception as e:
+            logger.exception(f"Error analyzing {item_name}: {e}")
+            # Continue processing other items
+
+    # Sort by profit percentage (descending)
+    opportunities.sort(key=lambda x: x["profit_percentage"], reverse=True)
 
     # Limit results
-    return opportunities[:max_results]
+    return opportunities[:limit]
 
 
 async def analyze_item_liquidity(

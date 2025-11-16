@@ -14,7 +14,6 @@ from typing import Any
 # DMarket API
 from src.dmarket.dmarket_api import DMarketAPI
 
-
 # Logger
 logger = logging.getLogger(__name__)
 
@@ -639,7 +638,12 @@ async def scan_for_intramarket_opportunities(
 
         # Create tasks for all requested opportunity types and games
         for game in games:
-            results[game] = {}
+            # Initialize all categories with empty lists
+            results[game] = {
+                "price_anomalies": [],
+                "trending_items": [],
+                "rare_mispriced": [],
+            }
 
             if include_anomalies:
                 tasks.append(
@@ -717,7 +721,11 @@ async def scan_for_intramarket_opportunities(
     except Exception as e:
         logger.exception(f"Error in scan_for_intramarket_opportunities: {e!s}")
         return {
-            game: {"price_anomalies": [], "trending_items": [], "rare_mispriced": []}
+            game: {
+                "price_anomalies": [],
+                "trending_items": [],
+                "rare_mispriced": [],
+            }
             for game in games
         }
     finally:

@@ -19,7 +19,6 @@ from dotenv import load_dotenv
 from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.rate_limiter import RateLimiter
 
-
 # Загружаем переменные окружения
 load_dotenv()
 
@@ -594,6 +593,10 @@ async def get_sales_history(
                         endpoint="/market-api/v1/last-sales",
                         params={"Titles": batch},
                     )
+
+            if "Error" in response:
+                # Return error from API response
+                return {"Error": response["Error"], "LastSales": [], "Total": 0}
 
             if "LastSales" in response:
                 all_sales.extend(response["LastSales"])

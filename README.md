@@ -495,6 +495,19 @@ graph TB
 
 ## 📚 API Documentation
 
+**Comprehensive guides available in `/docs`:**
+
+- **[Quick Start Guide](docs/QUICK_START.md)** - Get up and running in 5 minutes
+- **[Architecture Overview](docs/ARCHITECTURE.md)** - System design and components
+- **[API Reference](docs/api_reference.md)** - Complete API documentation
+- **[DMarket API Specification](docs/DMARKET_API_FULL_SPEC.md)** - Full DMarket API docs
+- **[Multi-Level Arbitrage](docs/MULTI_LEVEL_ARBITRAGE_GUIDE.md)** - Trading strategies
+- **[Testing Guide](docs/testing_guide.md)** - How to run and write tests
+- **[Deployment Guide](docs/deployment.md)** - Production deployment
+- **[Security Best Practices](docs/SECURITY.md)** - Secure your bot
+- **[VS Code Setup](docs/vscode_setup.md)** - IDE configuration
+- **[GitHub Copilot Guide](docs/github_copilot_guide.md)** - AI-assisted development with Copilot CLI
+
 ### DMarket API Client
 
 ```python

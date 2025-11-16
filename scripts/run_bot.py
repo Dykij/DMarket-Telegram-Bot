@@ -9,7 +9,6 @@ import os
 import sys
 from pathlib import Path
 
-
 # Создаем директорию для логов, если её нет (ДО настройки логирования!)
 os.makedirs("logs", exist_ok=True)
 
@@ -82,9 +81,7 @@ async def run_bot():
 def parse_arguments():
     """Обрабатывает аргументы командной строки"""
     parser = argparse.ArgumentParser(description="DMarket Telegram Bot")
-    parser.add_argument(
-        "--no-lock", action="store_true", help="Не использовать файл блокировки"
-    )
+    parser.add_argument("--no-lock", action="store_true", help="Не использовать файл блокировки")
     parser.add_argument("--debug", action="store_true", help="Включить режим отладки")
     return parser.parse_args()
 
@@ -118,9 +115,7 @@ if __name__ == "__main__":
                     import psutil
 
                     if psutil.pid_exists(pid):
-                        logger.warning(
-                            f"Бот уже запущен с PID {pid}. Завершаем текущий экземпляр."
-                        )
+                        logger.warning(f"Бот уже запущен с PID {pid}. Завершаем текущий экземпляр.")
                         sys.exit(1)
                     else:
                         logger.warning(
