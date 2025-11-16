@@ -109,9 +109,13 @@
   "editor.bracketPairColorization.enabled": true,
   "editor.guides.bracketPairs": "active",
   "editor.inlineSuggest.enabled": true,
+  "editor.inlineSuggest.minShowDelay": 100,
   "editor.suggestSelection": "first",
   "editor.snippetSuggestions": "top",
   "editor.wordBasedSuggestions": "matchingDocuments",
+  "editor.acceptSuggestionOnEnter": "on",
+  "editor.acceptSuggestionOnCommitCharacter": true,
+  "editor.suggest.showStatusBar": true,
   // ==================== Git Settings ====================
   "git.enableSmartCommit": true,
   "git.confirmSync": false,
@@ -192,6 +196,12 @@
   "github.copilot.chat.agent.terminal.allowList": {
     "*": true
   },
+  // Улучшения для работы с GitHub Copilot
+  "github.copilot.inlineSuggest.enable": true,
+  "github.copilot.chat.codesearch.enabled": true,
+  "github.copilot.chat.reviewSelection.enabled": true,
+  "github.copilot.chat.generateTests.codeLens": true,
+  "github.copilot.suggest.enable": true,
   // ==================== Markdown Settings ====================
   "[markdown]": {
     "editor.formatOnSave": true,
