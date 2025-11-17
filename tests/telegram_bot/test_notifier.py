@@ -1,0 +1,1074 @@
+"""Тесты для модуля notifier.py."""
+
+import json
+import time
+from typing import Any
+from unittest.mock import AsyncMock, mock_open, patch
+
+import pytest
+
+from src.telegram_bot.notifier import (
+    add_price_alert,
+    format_alert_message,
+    get_current_price,
+    get_user_alerts,
+    load_user_alerts,
+    remove_price_alert,
+    save_user_alerts,
+    update_user_settings,
+)
+
+# ============================================================================
+# FIXTURES
+# ============================================================================
+
+
+@pytest.fixture(autouse=True)
+def reset_user_alerts():
+    """Сбрасывает глобальный словарь alerts перед каждым тестом."""
+    import src.telegram_bot.notifier as notifier_module
+
+    notifier_module._user_alerts = {}
+    notifier_module._current_prices_cache = {}
+    yield
+    notifier_module._user_alerts = {}
+    notifier_module._current_prices_cache = {}
+
+
+@pytest.fixture()
+def sample_alert() -> dict[str, Any]:
+    """Создает пример алерта для тестов."""
+    return {
+        "id": "alert_123456789_12345",
+        "item_id": "item_abc",
+        "title": "AK-47 | Redline (Field-Tested)",
+        "game": "csgo",
+        "type": "price_drop",
+        "threshold": 10.0,
+        "created_at": time.time(),
+        "active": True,
+    }
+
+
+@pytest.fixture()
+def sample_user_data() -> dict[str, Any]:
+    """Создает пример данных пользователя."""
+    return {
+        "alerts": [],
+        "settings": {
+            "enabled": True,
+            "language": "ru",
+            "min_interval": 3600,
+            "quiet_hours": {"start": 23, "end": 8},
+            "max_alerts_per_day": 10,
+        },
+        "last_notification": 0,
+        "daily_notifications": 0,
+        "last_day": "2023-06-01",
+    }
+
+
+# ============================================================================
+# ТЕСТЫ ЗАГРУЗКИ И СОХРАНЕНИЯ
+# ============================================================================
+
+
+def test_load_user_alerts_file_exists():
+    """Тест загрузки алертов когда файл существует."""
+    test_data = {
+        "12345": {
+            "alerts": [{"id": "alert_1", "title": "Test", "active": True}],
+            "settings": {"enabled": True},
+        }
+    }
+
+    mock_file_content = json.dumps(test_data)
+
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("builtins.open", mock_open(read_data=mock_file_content)),
+    ):
+        load_user_alerts()
+
+        import src.telegram_bot.notifier as notifier_module
+
+        assert len(notifier_module._user_alerts) == 1
+        assert "12345" in notifier_module._user_alerts
+
+
+def test_load_user_alerts_file_not_exists():
+    """Тест загрузки алертов когда файл не существует."""
+    with (
+        patch("pathlib.Path.exists", return_value=False),
+        patch("pathlib.Path.mkdir") as mock_mkdir,
+    ):
+        load_user_alerts()
+
+        import src.telegram_bot.notifier as notifier_module
+
+        assert notifier_module._user_alerts == {}
+        mock_mkdir.assert_called_once()
+
+
+def test_save_user_alerts():
+    """Тест сохранения алертов в файл."""
+    import src.telegram_bot.notifier as notifier_module
+
+    notifier_module._user_alerts = {"12345": {"alerts": [], "settings": {}}}
+
+    mock_file = mock_open()
+
+    with patch("builtins.open", mock_file):
+        save_user_alerts()
+
+        mock_file.assert_called_once()
+        handle = mock_file()
+        handle.write.assert_called()
+
+
+# ============================================================================
+# ТЕСТЫ ДОБАВЛЕНИЯ АЛЕРТОВ
+# ============================================================================
+
+
+@pytest.mark.asyncio()
+async def test_add_price_alert_new_user():
+    """Тест добавления алерта для нового пользователя."""
+    with patch("src.telegram_bot.notifier.save_user_alerts"):
+        alert = await add_price_alert(
+            user_id=12345,
+            item_id="item_123",
+            title="AK-47 | Redline",
+            game="csgo",
+            alert_type="price_drop",
+            threshold=15.0,
+        )
+
+        assert alert is not None
+        assert alert["item_id"] == "item_123"
+        assert alert["title"] == "AK-47 | Redline"
+        assert alert["threshold"] == 15.0
+        assert alert["active"] is True
+
+        import src.telegram_bot.notifier as notifier_module
+
+        assert "12345" in notifier_module._user_alerts
+        assert len(notifier_module._user_alerts["12345"]["alerts"]) == 1
+
+
+@pytest.mark.asyncio()
+async def test_add_price_alert_existing_user():
+    """Тест добавления алерта для существующего пользователя."""
+    import src.telegram_bot.notifier as notifier_module
+
+    notifier_module._user_alerts["12345"] = {
+        "alerts": [{"id": "old_alert", "title": "Old"}],
+        "settings": {"enabled": True},
+        "last_notification": 0,
+        "daily_notifications": 0,
+        "last_day": "2023-06-01",
+    }
+
+    with patch("src.telegram_bot.notifier.save_user_alerts"):
+        alert = await add_price_alert(
+            user_id=12345,
+            item_id="item_new",
+            title="New Item",
+            game="dota2",
+            alert_type="price_rise",
+            threshold=20.0,
+        )
+
+        assert len(notifier_module._user_alerts["12345"]["alerts"]) == 2
+        assert alert["item_id"] == "item_new"
+
+
+@pytest.mark.asyncio()
+async def test_add_price_alert_creates_unique_id():
+    """Тест создания уникального ID для каждого алерта."""
+    import asyncio
+
+    with patch("src.telegram_bot.notifier.save_user_alerts"):
+        alert1 = await add_price_alert(12345, "item1", "Title1", "csgo", "price_drop", 10.0)
+        # Даём достаточно времени для создания уникального timestamp (ID включает секунды)
+        await asyncio.sleep(1.1)
+        alert2 = await add_price_alert(12345, "item2", "Title2", "csgo", "price_drop", 20.0)
+
+        # Проверяем, что ID действительно разные
+        assert alert1["id"] != alert2["id"], (
+            f"IDs должны быть разными: {alert1['id']} vs {alert2['id']}"
+        )
+
+
+# ============================================================================
+# ТЕСТЫ УДАЛЕНИЯ АЛЕРТОВ
+# ============================================================================
+
+
+@pytest.mark.asyncio()
+async def test_remove_price_alert_success(sample_alert):
+    """Тест успешного удаления алерта."""
+    import src.telegram_bot.notifier as notifier_module
+
+    notifier_module._user_alerts["12345"] = {
+        "alerts": [sample_alert],
+        "settings": {},
+    }
+
+    with patch("src.telegram_bot.notifier.save_user_alerts"):
+        result = await remove_price_alert(12345, sample_alert["id"])
+
+        assert result is True
+        assert len(notifier_module._user_alerts["12345"]["alerts"]) == 0
+
+
+@pytest.mark.asyncio()
+async def test_remove_price_alert_not_found():
+    """Тест удаления несуществующего алерта."""
+    import src.telegram_bot.notifier as notifier_module
+
+    notifier_module._user_alerts["12345"] = {"alerts": [], "settings": {}}
+
+    result = await remove_price_alert(12345, "nonexistent_alert")
+
+    assert result is False
+
+
+@pytest.mark.asyncio()
+async def test_remove_price_alert_user_not_found():
+    """Тест удаления алерта для несуществующего пользователя."""
+    result = await remove_price_alert(99999, "alert_id")
+
+    assert result is False
+
+
+# ============================================================================
+# ТЕСТЫ ПОЛУЧЕНИЯ АЛЕРТОВ
+# ============================================================================
+
+
+@pytest.mark.asyncio()
+async def test_get_user_alerts_existing_user(sample_alert):
+    """Тест получения алертов существующего пользователя."""
+    import src.telegram_bot.notifier as notifier_module
+
+    notifier_module._user_alerts["12345"] = {
+        "alerts": [sample_alert],
+        "settings": {},
+    }
+
+    alerts = await get_user_alerts(12345)
+
+    assert len(alerts) == 1
+    assert alerts[0] == sample_alert
+
+
+@pytest.mark.asyncio()
+async def test_get_user_alerts_new_user():
+    """Тест получения алертов для нового пользователя."""
+    alerts = await get_user_alerts(99999)
+
+    assert alerts == []
+
+
+@pytest.mark.asyncio()
+async def test_get_user_alerts_multiple():
+    """Тест получения нескольких алертов."""
+    import src.telegram_bot.notifier as notifier_module
+
+    notifier_module._user_alerts["12345"] = {
+        "alerts": [
+            {"id": "alert1", "title": "Item 1", "active": True},
+            {"id": "alert2", "title": "Item 2", "active": True},
+            {"id": "alert3", "title": "Item 3", "active": True},
+        ],
+        "settings": {},
+    }
+
+    alerts = await get_user_alerts(12345)
+
+    assert len(alerts) == 3
+
+
+# ============================================================================
+# ТЕСТЫ НАСТРОЕК ПОЛЬЗОВАТЕЛЯ
+# ============================================================================
+
+
+@pytest.mark.asyncio()
+async def test_update_user_settings_new_user():
+    """Тест обновления настроек для нового пользователя."""
+    with patch("src.telegram_bot.notifier.save_user_alerts"):
+        await update_user_settings(
+            user_id=12345,
+            settings={"enabled": False, "language": "en", "max_alerts_per_day": 5},
+        )
+
+        import src.telegram_bot.notifier as notifier_module
+
+        assert "12345" in notifier_module._user_alerts
+        settings = notifier_module._user_alerts["12345"]["settings"]
+        assert settings["enabled"] is False
+        assert settings["language"] == "en"
+        assert settings["max_alerts_per_day"] == 5
+
+
+@pytest.mark.asyncio()
+async def test_update_user_settings_existing_user():
+    """Тест обновления настроек существующего пользователя."""
+    import src.telegram_bot.notifier as notifier_module
+
+    notifier_module._user_alerts["12345"] = {
+        "alerts": [],
+        "settings": {"enabled": True, "language": "ru", "max_alerts_per_day": 10},
+        "last_notification": 0,
+        "daily_notifications": 0,
+        "last_day": "2023-06-01",
+    }
+
+    with patch("src.telegram_bot.notifier.save_user_alerts"):
+        await update_user_settings(user_id=12345, settings={"language": "de"})
+
+        settings = notifier_module._user_alerts["12345"]["settings"]
+        assert settings["language"] == "de"
+        assert settings["enabled"] is True  # Не изменилось
+
+
+@pytest.mark.asyncio()
+async def test_update_user_settings_partial():
+    """Тест частичного обновления настроек."""
+    import src.telegram_bot.notifier as notifier_module
+
+    notifier_module._user_alerts["12345"] = {
+        "alerts": [],
+        "settings": {
+            "enabled": True,
+            "language": "ru",
+            "min_interval": 3600,
+            "max_alerts_per_day": 10,
+        },
+        "last_notification": 0,
+        "daily_notifications": 0,
+        "last_day": "2023-06-01",
+    }
+
+    with patch("src.telegram_bot.notifier.save_user_alerts"):
+        await update_user_settings(user_id=12345, settings={"min_interval": 7200})
+
+        settings = notifier_module._user_alerts["12345"]["settings"]
+        assert settings["min_interval"] == 7200
+        assert settings["language"] == "ru"  # Не изменилось
+
+
+# ============================================================================
+# ТЕСТЫ ФОРМАТИРОВАНИЯ СООБЩЕНИЙ
+# ============================================================================
+
+
+def test_format_alert_message(sample_alert):
+    """Тест форматирования сообщения алерта."""
+    message = format_alert_message(sample_alert)
+
+    assert isinstance(message, str)
+    assert "AK-47 | Redline" in message
+    assert "price_drop" in message.lower() or "падение" in message.lower()
+    assert "10.0" in message or "10" in message
+
+
+def test_format_alert_message_price_rise():
+    """Тест форматирования сообщения для роста цены."""
+    alert = {
+        "id": "alert_123",
+        "title": "AWP | Asiimov",
+        "type": "price_rise",
+        "threshold": 50.0,
+        "item_id": "item_123",
+        "game": "csgo",
+        "active": True,
+    }
+
+    message = format_alert_message(alert)
+
+    assert "AWP | Asiimov" in message
+    assert "50" in message
+
+
+# ============================================================================
+# ТЕСТЫ ПОЛУЧЕНИЯ ТЕКУЩЕЙ ЦЕНЫ
+# ============================================================================
+
+
+@pytest.mark.asyncio()
+async def test_get_current_price_from_cache():
+    """Тест получения цены из кэша."""
+    import src.telegram_bot.notifier as notifier_module
+
+    # Добавляем цену в кэш
+    current_time = time.time()
+    notifier_module._current_prices_cache["item_123"] = {
+        "price": 25.5,
+        "timestamp": current_time,
+    }
+
+    mock_api = AsyncMock()
+
+    price = await get_current_price(mock_api, "item_123")
+
+    assert price == 25.5
+    # API не должен вызываться
+    mock_api.get_market_items.assert_not_called()
+
+
+@pytest.mark.asyncio()
+async def test_get_current_price_from_api():
+    """Тест получения цены через API."""
+    import src.telegram_bot.notifier as notifier_module
+
+    # Кэш пустой
+    notifier_module._current_prices_cache = {}
+
+    mock_api = AsyncMock()
+    mock_api._request = AsyncMock(
+        return_value={
+            "price": {"amount": 3050},  # Цена в центах
+        }
+    )
+
+    price = await get_current_price(mock_api, "item_123")
+
+    assert price == 30.5  # Преобразовано из центов в доллары
+    mock_api._request.assert_called_once()
+
+
+@pytest.mark.asyncio()
+async def test_get_current_price_cache_expired():
+    """Тест обновления цены при истечении кэша."""
+    import src.telegram_bot.notifier as notifier_module
+
+    # Добавляем устаревшую цену в кэш
+    old_time = time.time() - 400  # 400 секунд назад (кэш истек)
+    notifier_module._current_prices_cache["item_123"] = {
+        "price": 10.0,
+        "timestamp": old_time,
+    }
+
+    mock_api = AsyncMock()
+    mock_api._request = AsyncMock(
+        return_value={
+            "price": {"amount": 2000},  # Новая цена
+        }
+    )
+
+    price = await get_current_price(mock_api, "item_123", force_update=True)
+
+    assert price == 20.0  # Новая цена
+    mock_api._request.assert_called_once()
+
+
+@pytest.mark.asyncio()
+async def test_get_current_price_api_error():
+    """Тест обработки ошибки API."""
+    import src.telegram_bot.notifier as notifier_module
+
+    notifier_module._current_prices_cache = {}
+
+    mock_api = AsyncMock()
+    mock_api.get_item_details.side_effect = Exception("API Error")
+
+    price = await get_current_price(mock_api, "item_123", "csgo")
+
+    assert price is None
+
+
+# ============================================================================
+# ТЕСТЫ ГРАНИЧНЫХ СЛУЧАЕВ
+# ============================================================================
+
+
+@pytest.mark.asyncio()
+async def test_add_multiple_alerts_same_user():
+    """Тест добавления нескольких алертов одному пользователю."""
+    with patch("src.telegram_bot.notifier.save_user_alerts"):
+        for i in range(5):
+            await add_price_alert(
+                user_id=12345,
+                item_id=f"item_{i}",
+                title=f"Item {i}",
+                game="csgo",
+                alert_type="price_drop",
+                threshold=float(i * 10),
+            )
+
+        import src.telegram_bot.notifier as notifier_module
+
+        assert len(notifier_module._user_alerts["12345"]["alerts"]) == 5
+
+
+@pytest.mark.asyncio()
+async def test_remove_alert_with_multiple_alerts(sample_alert):
+    """Тест удаления конкретного алерта когда их несколько."""
+    import src.telegram_bot.notifier as notifier_module
+
+    notifier_module._user_alerts["12345"] = {
+        "alerts": [
+            {"id": "alert_1", "title": "Item 1"},
+            sample_alert,
+            {"id": "alert_3", "title": "Item 3"},
+        ],
+        "settings": {},
+    }
+
+    with patch("src.telegram_bot.notifier.save_user_alerts"):
+        result = await remove_price_alert(12345, sample_alert["id"])
+
+        assert result is True
+        alerts = notifier_module._user_alerts["12345"]["alerts"]
+        assert len(alerts) == 2
+        assert all(a["id"] != sample_alert["id"] for a in alerts)
+
+
+@pytest.mark.asyncio()
+async def test_get_user_alerts_empty():
+    """Тест получения пустого списка алертов."""
+    import src.telegram_bot.notifier as notifier_module
+
+    notifier_module._user_alerts["12345"] = {"alerts": [], "settings": {}}
+
+    alerts = await get_user_alerts(12345)
+
+    assert alerts == []
+    assert isinstance(alerts, list)
+
+
+def test_load_user_alerts_json_error():
+    """Тест обработки ошибки при парсинге JSON."""
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("builtins.open", mock_open(read_data="invalid json")),
+    ):
+        load_user_alerts()
+
+        import src.telegram_bot.notifier as notifier_module
+
+        # Должен установить пустой словарь при ошибке
+        assert notifier_module._user_alerts == {}
+
+
+def test_save_user_alerts_io_error():
+    """Тест обработки ошибки при сохранении."""
+    import src.telegram_bot.notifier as notifier_module
+
+    notifier_module._user_alerts = {"12345": {"alerts": []}}
+
+    mock_file = mock_open()
+    mock_file.side_effect = OSError("Write error")
+
+    with patch("builtins.open", mock_file):
+        # Не должно вызывать исключение
+        save_user_alerts()
+
+
+@pytest.mark.asyncio()
+async def test_update_user_settings_empty_kwargs():
+    """Тест обновления настроек без параметров."""
+    import src.telegram_bot.notifier as notifier_module
+
+    notifier_module._user_alerts["12345"] = {
+        "alerts": [],
+        "settings": {"enabled": True, "language": "ru"},
+        "last_notification": 0,
+        "daily_notifications": 0,
+        "last_day": "2023-06-01",
+    }
+
+    original_settings = notifier_module._user_alerts["12345"]["settings"].copy()
+
+    with patch("src.telegram_bot.notifier.save_user_alerts"):
+        await update_user_settings(user_id=12345, settings={})
+
+        # Настройки не должны измениться
+        assert notifier_module._user_alerts["12345"]["settings"] == original_settings
+
+
+# ============================================================================
+# ТЕСТЫ CHECK_PRICE_ALERT
+# ============================================================================
+
+
+@pytest.mark.asyncio()
+async def test_check_price_alert_price_drop_triggered():
+    """Тест срабатывания алерта при падении цены."""
+    from src.telegram_bot.notifier import check_price_alert
+
+    alert = {
+        "id": "alert_123",
+        "item_id": "item_abc",
+        "type": "price_drop",
+        "threshold": 15.0,
+        "title": "AK-47 | Redline",
+    }
+
+    mock_api = AsyncMock()
+
+    with patch("src.telegram_bot.notifier.get_current_price", return_value=14.0):
+        result = await check_price_alert(mock_api, alert)
+
+        assert result is not None
+        assert result["alert"] == alert
+        assert result["current_price"] == 14.0
+        assert "time" in result
+
+
+@pytest.mark.asyncio()
+async def test_check_price_alert_price_drop_not_triggered():
+    """Тест НЕ срабатывания алерта при недостаточном падении цены."""
+    from src.telegram_bot.notifier import check_price_alert
+
+    alert = {
+        "id": "alert_123",
+        "item_id": "item_abc",
+        "type": "price_drop",
+        "threshold": 15.0,
+        "title": "AK-47 | Redline",
+    }
+
+    mock_api = AsyncMock()
+
+    with patch("src.telegram_bot.notifier.get_current_price", return_value=16.0):
+        result = await check_price_alert(mock_api, alert)
+
+        assert result is None
+
+
+@pytest.mark.asyncio()
+async def test_check_price_alert_price_rise_triggered():
+    """Тест срабатывания алерта при росте цены."""
+    from src.telegram_bot.notifier import check_price_alert
+
+    alert = {
+        "id": "alert_456",
+        "item_id": "item_xyz",
+        "type": "price_rise",
+        "threshold": 50.0,
+        "title": "AWP | Dragon Lore",
+    }
+
+    mock_api = AsyncMock()
+
+    with patch("src.telegram_bot.notifier.get_current_price", return_value=55.0):
+        result = await check_price_alert(mock_api, alert)
+
+        assert result is not None
+        assert result["current_price"] == 55.0
+
+
+@pytest.mark.asyncio()
+async def test_check_price_alert_price_rise_not_triggered():
+    """Тест НЕ срабатывания алерта при недостаточном росте цены."""
+    from src.telegram_bot.notifier import check_price_alert
+
+    alert = {
+        "id": "alert_456",
+        "item_id": "item_xyz",
+        "type": "price_rise",
+        "threshold": 50.0,
+        "title": "AWP | Dragon Lore",
+    }
+
+    mock_api = AsyncMock()
+
+    with patch("src.telegram_bot.notifier.get_current_price", return_value=45.0):
+        result = await check_price_alert(mock_api, alert)
+
+        assert result is None
+
+
+@pytest.mark.asyncio()
+async def test_check_price_alert_current_price_none():
+    """Тест когда не удалось получить текущую цену."""
+    from src.telegram_bot.notifier import check_price_alert
+
+    alert = {
+        "id": "alert_789",
+        "item_id": "item_123",
+        "type": "price_drop",
+        "threshold": 10.0,
+        "title": "Test Item",
+    }
+
+    mock_api = AsyncMock()
+
+    with patch("src.telegram_bot.notifier.get_current_price", return_value=None):
+        result = await check_price_alert(mock_api, alert)
+
+        assert result is None
+
+
+@pytest.mark.asyncio()
+async def test_check_price_alert_volume_increase_triggered():
+    """Тест срабатывания алерта при увеличении объема."""
+    from src.telegram_bot.notifier import check_price_alert
+
+    alert = {
+        "id": "alert_vol",
+        "item_id": "item_vol",
+        "type": "volume_increase",
+        "threshold": 100,
+        "title": "Popular Item",
+    }
+
+    mock_api = AsyncMock()
+    price_history = [
+        {"price": 10.0, "volume": 50},
+        {"price": 10.5, "volume": 60},
+    ]
+
+    with (
+        patch("src.telegram_bot.notifier.get_current_price", return_value=10.0),
+        patch("src.telegram_bot.notifier.get_item_price_history", return_value=price_history),
+    ):
+        result = await check_price_alert(mock_api, alert)
+
+        assert result is not None
+
+
+@pytest.mark.asyncio()
+async def test_check_price_alert_volume_increase_not_triggered():
+    """Тест НЕ срабатывания алерта при недостаточном объеме."""
+    from src.telegram_bot.notifier import check_price_alert
+
+    alert = {
+        "id": "alert_vol",
+        "item_id": "item_vol",
+        "type": "volume_increase",
+        "threshold": 200,
+        "title": "Popular Item",
+    }
+
+    mock_api = AsyncMock()
+    price_history = [
+        {"price": 10.0, "volume": 50},
+        {"price": 10.5, "volume": 60},
+    ]
+
+    with (
+        patch("src.telegram_bot.notifier.get_current_price", return_value=10.0),
+        patch("src.telegram_bot.notifier.get_item_price_history", return_value=price_history),
+    ):
+        result = await check_price_alert(mock_api, alert)
+
+        assert result is None
+
+
+@pytest.mark.asyncio()
+async def test_check_price_alert_trend_change_triggered():
+    """Тест срабатывания алерта при изменении тренда."""
+    from src.telegram_bot.notifier import check_price_alert
+
+    alert = {
+        "id": "alert_trend",
+        "item_id": "item_trend",
+        "type": "trend_change",
+        "threshold": 70,  # 70% уверенности
+        "title": "Trending Item",
+    }
+
+    mock_api = AsyncMock()
+    trend_info = {
+        "trend": "rising",  # не "stable"
+        "confidence": 0.85,  # 85% > 70%
+    }
+
+    with (
+        patch("src.telegram_bot.notifier.get_current_price", return_value=15.0),
+        patch("src.telegram_bot.notifier.calculate_price_trend", return_value=trend_info),
+    ):
+        result = await check_price_alert(mock_api, alert)
+
+        assert result is not None
+
+
+# ============================================================================
+# ТЕСТЫ CHECK_ALL_ALERTS
+# ============================================================================
+
+
+@pytest.mark.asyncio()
+async def test_check_all_alerts_disabled_user():
+    """Тест пропуска пользователя с отключенными уведомлениями."""
+    import src.telegram_bot.notifier as notifier_module
+    from src.telegram_bot.notifier import check_all_alerts
+
+    notifier_module._user_alerts["12345"] = {
+        "alerts": [{"id": "alert_1", "active": True}],
+        "settings": {"enabled": False},
+        "last_notification": 0,
+        "daily_notifications": 0,
+        "last_day": "2023-06-01",
+    }
+
+    mock_api = AsyncMock()
+    mock_bot = AsyncMock()
+
+    await check_all_alerts(mock_api, mock_bot)
+
+    # Бот не должен отправлять сообщения
+    mock_bot.send_message.assert_not_called()
+
+
+@pytest.mark.asyncio()
+async def test_check_all_alerts_daily_limit_reached():
+    """Тест пропуска при достижении дневного лимита."""
+    from datetime import datetime
+
+    import src.telegram_bot.notifier as notifier_module
+    from src.telegram_bot.notifier import check_all_alerts
+
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    notifier_module._user_alerts["12345"] = {
+        "alerts": [{"id": "alert_1", "active": True}],
+        "settings": {"enabled": True, "max_alerts_per_day": 5},
+        "last_notification": 0,
+        "daily_notifications": 5,  # Лимит достигнут
+        "last_day": today,
+    }
+
+    mock_api = AsyncMock()
+    mock_bot = AsyncMock()
+
+    await check_all_alerts(mock_api, mock_bot)
+
+    # Бот не должен отправлять сообщения
+    mock_bot.send_message.assert_not_called()
+
+
+@pytest.mark.asyncio()
+async def test_check_all_alerts_quiet_hours():
+    """Тест пропуска во время тихих часов."""
+    from datetime import datetime
+
+    import src.telegram_bot.notifier as notifier_module
+    from src.telegram_bot.notifier import check_all_alerts
+
+    current_hour = datetime.now().hour
+
+    notifier_module._user_alerts["12345"] = {
+        "alerts": [{"id": "alert_1", "active": True}],
+        "settings": {
+            "enabled": True,
+            "quiet_hours": {"start": current_hour, "end": (current_hour + 1) % 24},
+        },
+        "last_notification": 0,
+        "daily_notifications": 0,
+        "last_day": "2023-06-01",
+    }
+
+    mock_api = AsyncMock()
+    mock_bot = AsyncMock()
+
+    await check_all_alerts(mock_api, mock_bot)
+
+    # Бот не должен отправлять сообщения в тихие часы
+    mock_bot.send_message.assert_not_called()
+
+
+@pytest.mark.asyncio()
+async def test_check_all_alerts_resets_daily_counter():
+    """Тест сброса дневного счетчика на новый день."""
+    from datetime import datetime
+
+    import src.telegram_bot.notifier as notifier_module
+    from src.telegram_bot.notifier import check_all_alerts
+
+    yesterday = "2023-06-01"
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    notifier_module._user_alerts["12345"] = {
+        "alerts": [],
+        "settings": {"enabled": True},
+        "last_notification": 0,
+        "daily_notifications": 5,  # Было 5 вчера
+        "last_day": yesterday,
+    }
+
+    mock_api = AsyncMock()
+    mock_bot = AsyncMock()
+
+    await check_all_alerts(mock_api, mock_bot)
+
+    # Счетчик должен сброситься
+    assert notifier_module._user_alerts["12345"]["daily_notifications"] == 0
+    assert notifier_module._user_alerts["12345"]["last_day"] == today
+
+
+@pytest.mark.asyncio()
+async def test_check_all_alerts_exception_handling():
+    """Тест обработки исключения при проверке алертов."""
+    import src.telegram_bot.notifier as notifier_module
+    from src.telegram_bot.notifier import check_all_alerts
+
+    notifier_module._user_alerts["12345"] = {
+        "alerts": [
+            {
+                "id": "alert_1",
+                "item_id": "item_123",
+                "type": "price_drop",
+                "threshold": 10.0,
+                "active": True,
+            }
+        ],
+        "settings": {"enabled": True},
+        "last_notification": 0,
+        "daily_notifications": 0,
+        "last_day": "2023-06-01",
+    }
+
+    mock_api = AsyncMock()
+    mock_bot = AsyncMock()
+
+    with patch(
+        "src.telegram_bot.notifier.check_price_alert",
+        side_effect=Exception("Test error"),
+    ):
+        # Не должно вызывать исключение
+        await check_all_alerts(mock_api, mock_bot)
+
+
+# ============================================================================
+# ТЕСТЫ ПРОВЕРКИ АЛЕРТОВ И ОТПРАВКИ УВЕДОМЛЕНИЙ
+# ============================================================================
+
+
+@pytest.mark.asyncio()
+async def test_check_all_alerts_sends_notification():
+    """Тест отправки уведомления при срабатывании алерта."""
+    import src.telegram_bot.notifier as notifier_module
+    from src.telegram_bot.notifier import check_all_alerts
+
+    notifier_module._user_alerts["12345"] = {
+        "alerts": [
+            {
+                "id": "alert_1",
+                "item_id": "item_123",
+                "title": "AK-47 | Redline",
+                "type": "price_drop",
+                "threshold": 15.0,
+                "active": True,
+            }
+        ],
+        "settings": {"enabled": True},
+        "last_notification": 0,
+        "daily_notifications": 0,
+        "last_day": "2023-06-01",
+    }
+
+    mock_api = AsyncMock()
+    mock_bot = AsyncMock()
+
+    triggered_result = {
+        "alert": notifier_module._user_alerts["12345"]["alerts"][0],
+        "current_price": 14.0,
+        "time": "2023-06-01 12:00:00",
+    }
+
+    with (
+        patch(
+            "src.telegram_bot.notifier.check_price_alert",
+            return_value=triggered_result,
+        ),
+        patch("src.telegram_bot.notifier.save_user_alerts"),
+        patch("asyncio.sleep", return_value=None),
+    ):
+        await check_all_alerts(mock_api, mock_bot)
+
+        # Должно отправить сообщение
+        assert mock_bot.send_message.called
+
+
+@pytest.mark.asyncio()
+async def test_check_all_alerts_increments_notification_counter():
+    """Тест увеличения счетчика уведомлений."""
+    import src.telegram_bot.notifier as notifier_module
+    from src.telegram_bot.notifier import check_all_alerts
+
+    notifier_module._user_alerts["12345"] = {
+        "alerts": [
+            {
+                "id": "alert_1",
+                "item_id": "item_123",
+                "title": "Test Item",
+                "type": "price_drop",
+                "threshold": 10.0,
+                "active": True,
+            }
+        ],
+        "settings": {"enabled": True},
+        "last_notification": 0,
+        "daily_notifications": 0,
+        "last_day": "2023-06-01",
+    }
+
+    mock_api = AsyncMock()
+    mock_bot = AsyncMock()
+
+    triggered_result = {
+        "alert": notifier_module._user_alerts["12345"]["alerts"][0],
+        "current_price": 9.0,
+        "time": "2023-06-01 12:00:00",
+    }
+
+    with patch(
+        "src.telegram_bot.notifier.check_price_alert",
+        return_value=triggered_result,
+    ):
+        await check_all_alerts(mock_api, mock_bot)
+
+        # Счетчик должен увеличиться
+        assert notifier_module._user_alerts["12345"]["daily_notifications"] == 1
+
+
+@pytest.mark.asyncio()
+async def test_check_all_alerts_deactivates_one_time_alert():
+    """Тест деактивации одноразового алерта после срабатывания."""
+    import src.telegram_bot.notifier as notifier_module
+    from src.telegram_bot.notifier import check_all_alerts
+
+    notifier_module._user_alerts["12345"] = {
+        "alerts": [
+            {
+                "id": "alert_1",
+                "item_id": "item_123",
+                "title": "One Time Alert",
+                "type": "price_drop",
+                "threshold": 10.0,
+                "active": True,
+                "one_time": True,  # Одноразовый алерт
+            }
+        ],
+        "settings": {"enabled": True},
+        "last_notification": 0,
+        "daily_notifications": 0,
+        "last_day": "2023-06-01",
+    }
+
+    mock_api = AsyncMock()
+    mock_bot = AsyncMock()
+
+    triggered_result = {
+        "alert": notifier_module._user_alerts["12345"]["alerts"][0],
+        "current_price": 9.0,
+        "time": "2023-06-01 12:00:00",
+    }
+
+    with (
+        patch(
+            "src.telegram_bot.notifier.check_price_alert",
+            return_value=triggered_result,
+        ),
+        patch("src.telegram_bot.notifier.save_user_alerts"),
+    ):
+        await check_all_alerts(mock_api, mock_bot)
+
+        # Алерт должен быть деактивирован
+        assert notifier_module._user_alerts["12345"]["alerts"][0]["active"] is False

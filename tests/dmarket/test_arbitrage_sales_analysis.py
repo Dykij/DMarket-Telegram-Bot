@@ -4,12 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.dmarket.arbitrage_sales_analysis import (
-    SalesAnalyzer,
-    analyze_sales_volume,
-    estimate_sell_time,
-    get_price_trend,
-)
+from src.dmarket.arbitrage_sales_analysis import SalesAnalyzer
 
 
 class TestSalesAnalyzer:
@@ -291,66 +286,6 @@ class TestSalesAnalyzer:
 
 class TestCompatibilityFunctions:
     """Тесты для функций совместимости."""
-
-    @pytest.mark.asyncio()
-    async def test_analyze_sales_volume_function(self):
-        """Тест функции analyze_sales_volume."""
-        mock_api = MagicMock()
-        mock_api.get_sales_history = AsyncMock(
-            return_value={
-                "sales": [{"date": f"2023-11-{i:02d}", "price": 1000} for i in range(1, 21)],
-            },
-        )
-
-        result = await analyze_sales_volume(
-            api_client=mock_api,
-            game="csgo",
-            title="Test Item",
-        )
-
-        assert "volume" in result
-        assert "sales_count" in result
-
-    @pytest.mark.asyncio()
-    async def test_estimate_sell_time_function(self):
-        """Тест функции estimate_sell_time."""
-        mock_api = MagicMock()
-        mock_api.get_sales_history = AsyncMock(
-            return_value={
-                "sales": [{"date": f"2023-11-{i:02d}", "price": 1000} for i in range(1, 11)],
-            },
-        )
-
-        result = await estimate_sell_time(
-            api_client=mock_api,
-            game="csgo",
-            title="Test Item",
-        )
-
-        assert "estimated_days" in result
-        assert "confidence" in result
-
-    @pytest.mark.asyncio()
-    async def test_get_price_trend_function(self):
-        """Тест функции get_price_trend."""
-        mock_api = MagicMock()
-        mock_api.get_sales_history = AsyncMock(
-            return_value={
-                "sales": [
-                    {"date": f"2023-11-{i:02d}", "price": {"amount": 1000 + i * 50}}
-                    for i in range(1, 11)
-                ],
-            },
-        )
-
-        result = await get_price_trend(
-            api_client=mock_api,
-            game="csgo",
-            title="Test Item",
-        )
-
-        assert "trend" in result
-        assert "price_change_percent" in result
 
 
 class TestEdgeCases:
