@@ -48,9 +48,12 @@ class TestConstants:
 
     def test_price_ranges_ascending(self):
         """Тест что диапазоны цен идут по возрастанию."""
-        ranges = list(PRICE_RANGES.values())
-        for i in range(len(ranges) - 1):
-            assert ranges[i][0] <= ranges[i + 1][0]
+        # Диапазоны: boost(0.5-3), low(1-5), medium(5-20),
+        # high(20-100), pro(100-1000)
+        # Проверяем, что минимальные цены растут для основных режимов
+        assert PRICE_RANGES["low"][0] < PRICE_RANGES["medium"][0]
+        assert PRICE_RANGES["medium"][0] < PRICE_RANGES["high"][0]
+        assert PRICE_RANGES["high"][0] < PRICE_RANGES["pro"][0]
 
 
 class TestCacheFunctions:
@@ -128,9 +131,9 @@ class TestFetchMarketItems:
         mock_api = MagicMock()
         mock_api.get_market_items = AsyncMock(
             return_value={
-                "items": [
+                "objects": [
                     {"title": "AK-47 | Redline", "price": {"USD": 1250}},
-                    {"title": "AWP | Asiimov", "price": {"USD": 3500}},
+                    {"title": "AWP | Asimov", "price": {"USD": 3500}},
                 ],
             },
         )
@@ -197,19 +200,21 @@ class TestArbitrageTrader:
 
     def test_arbitrage_trader_instantiation(self):
         """Тест создания экземпляра ArbitrageTrader."""
-        mock_api = MagicMock()
-        trader = ArbitrageTrader(dmarket_api=mock_api)
+        trader = ArbitrageTrader(public_key="test_public", secret_key="test_secret")
 
         assert trader is not None
-        assert trader.dmarket_api == mock_api
+        assert trader.public_key == "test_public"
+        assert trader.secret_key == "test_secret"
+        assert trader.api is not None
 
     def test_arbitrage_trader_has_methods(self):
         """Тест наличия основных методов."""
-        mock_api = MagicMock()
-        trader = ArbitrageTrader(dmarket_api=mock_api)
+        trader = ArbitrageTrader(public_key="test_public", secret_key="test_secret")
 
-        assert hasattr(trader, "find_opportunities")
-        assert hasattr(trader, "execute_trade")
+        assert hasattr(trader, "check_balance")
+        assert hasattr(trader, "get_status")
+        assert hasattr(trader, "get_transaction_history")
+        assert trader.api is not None
 
 
 class TestFindArbitrageItems:
@@ -218,13 +223,13 @@ class TestFindArbitrageItems:
     @pytest.mark.asyncio()
     async def test_find_arbitrage_items_basic(self):
         """Тест базового поиска арбитражных возможностей."""
-        mock_api = MagicMock()
-
-        with patch("src.dmarket.arbitrage.fetch_market_items", return_value=[]):
+        with patch(
+            "src.dmarket.arbitrage.fetch_market_items",
+            return_value=[],
+        ):
             result = await find_arbitrage_items(
                 game="csgo",
-                mode="medium",
-                dmarket_api=mock_api,
+                mode="mid",
             )
 
             assert isinstance(result, list)
@@ -232,16 +237,14 @@ class TestFindArbitrageItems:
     @pytest.mark.asyncio()
     async def test_find_arbitrage_items_different_modes(self):
         """Тест поиска с разными режимами."""
-        mock_api = MagicMock()
-
-        for mode in ["low", "medium", "high", "boost", "pro"]:
+        for mode in ["low", "mid", "pro", "boost"]:
             with patch(
                 "src.dmarket.arbitrage.fetch_market_items",
                 return_value=[],
             ):
                 result = await find_arbitrage_items(
+                    game="csgo",
                     mode=mode,
-                    dmarket_api=mock_api,
                 )
 
                 assert isinstance(result, list)
@@ -252,16 +255,14 @@ class TestFindArbitrageOpportunities:
 
     def test_find_arbitrage_opportunities_basic(self):
         """Тест базового поиска возможностей."""
-        mock_api = MagicMock()
-
         with patch(
             "src.dmarket.arbitrage.find_arbitrage_opportunities_async",
-        ) as mock_async:
-            mock_async.return_value = []
+            return_value=[],
+        ):
             result = find_arbitrage_opportunities(
                 game="csgo",
-                mode="medium",
-                api_client=mock_api,
+                min_profit_percentage=10.0,
+                max_results=5,
             )
 
             assert isinstance(result, list)

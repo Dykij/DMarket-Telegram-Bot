@@ -10,21 +10,18 @@ import tempfile
 import pytest
 import yaml
 
-from src.utils.config import (
-    BotConfig,
-    Config,
-    DatabaseConfig,
-    DMarketConfig,
-    SecurityConfig,
-)
+from src.utils.config import BotConfig, Config, DatabaseConfig, DMarketConfig, SecurityConfig
 
 
 class TestConfig:
     """Test cases for configuration management."""
 
-    def test_default_config_creation(self):
-        """Test creating config with default values."""
+    def test_default_config_creation_sets_expected_default_values(self):
+        """Тест проверяет создание конфигурации с ожидаемыми дефолтными значениями."""
+        # Arrange & Act
         config = Config()
+
+        # Assert
 
         assert isinstance(config.bot, BotConfig)
         assert isinstance(config.dmarket, DMarketConfig)
@@ -40,8 +37,8 @@ class TestConfig:
         assert config.debug is False
         assert config.testing is False
 
-    def test_config_from_yaml_file(self, monkeypatch):
-        """Test loading configuration from YAML file."""
+    def test_load_from_yaml_file_overrides_defaults_correctly(self, monkeypatch):
+        """Тест проверяет корректное переопределение дефолтных значений при загрузке из YAML."""
         # Clear all relevant environment variables to ensure YAML file is used
         env_vars_to_clear = [
             "TELEGRAM_BOT_TOKEN",
@@ -63,6 +60,7 @@ class TestConfig:
         for var in env_vars_to_clear:
             monkeypatch.delenv(var, raising=False)
 
+        # Arrange
         test_config = {
             "bot": {
                 "token": "test_token_123",
@@ -120,8 +118,9 @@ class TestConfig:
         finally:
             os.unlink(temp_path)
 
-    def test_config_from_environment_variables(self):
-        """Test loading configuration from environment variables."""
+    def test_load_from_env_variables_takes_precedence_over_defaults(self):
+        """Тест проверяет приоритет переменных окружения над дефолтными значениями."""
+        # Arrange
         env_vars = {
             "TELEGRAM_BOT_TOKEN": "env_token_456",
             "BOT_USERNAME": "env_bot",
@@ -170,42 +169,48 @@ class TestConfig:
                 if key in os.environ:
                     del os.environ[key]
 
-    def test_config_validation_success(self):
-        """Test successful config validation."""
+    def test_validate_passes_when_all_required_fields_are_set(self):
+        """Тест проверяет успешную валидацию при заполнении всех обязательных полей."""
+        # Arrange
         config = Config()
-        config.bot.token = "valid_token"
-        config.dmarket.public_key = "valid_public_key"
-        config.dmarket.secret_key = "valid_secret_key"
+        config.bot.token = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+        config.dmarket.public_key = "a" * 30  # Достаточно длинный ключ
+        config.dmarket.secret_key = "b" * 30  # Достаточно длинный ключ
 
-        # Should not raise any exception
+        # Act & Assert - не должно выбросить исключение
         config.validate()
 
-    def test_config_validation_missing_bot_token(self):
-        """Test config validation with missing bot token."""
+    def test_validate_raises_error_when_bot_token_is_missing(self):
+        """Тест проверяет выброс ошибки при отсутствии обязательного токена бота."""
+        # Arrange
         config = Config()
-        # bot.token remains empty (default)
+        # bot.token остается пустым (дефолт)
 
+        # Act & Assert
         with pytest.raises(ValueError, match="TELEGRAM_BOT_TOKEN is required"):
             config.validate()
 
-    def test_config_validation_missing_dmarket_keys_production(self):
-        """Test config validation with missing DMarket keys in production."""
+    def test_validate_raises_error_when_dmarket_keys_missing_in_production(self):
+        """Тест проверяет выброс ошибки при отсутствии DMarket ключей в production режиме."""
+        # Arrange
         config = Config()
-        config.bot.token = "valid_token"
-        config.testing = False  # Production mode
-        # dmarket keys remain empty
+        config.bot.token = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+        config.testing = False  # Production режим
+        # dmarket ключи остаются пустыми
 
+        # Act & Assert
         with pytest.raises(ValueError, match="DMARKET_PUBLIC_KEY is required"):
             config.validate()
 
-    def test_config_validation_missing_dmarket_keys_testing(self):
-        """Test config validation with missing DMarket keys in testing mode."""
+    def test_validate_allows_missing_dmarket_keys_in_testing_mode(self):
+        """Тест проверяет, что отсутствие DMarket ключей допускается в testing режиме."""
+        # Arrange
         config = Config()
-        config.bot.token = "valid_token"
-        config.testing = True  # Testing mode
-        # dmarket keys remain empty - should be OK in testing
+        config.bot.token = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+        config.testing = True  # Testing режим
+        # dmarket ключи остаются пустыми - допустимо в testing
 
-        # Should not raise any exception
+        # Act & Assert - не должно выбросить исключение
         config.validate()
 
     def test_config_nonexistent_file(self):

@@ -144,13 +144,19 @@ def sample_closed_targets():
 class TestTargetManagerInitialization:
     """Тесты инициализации TargetManager."""
 
-    def test_init_with_api_client(self, mock_api):
-        """Тест создания менеджера с API клиентом."""
+    def test_init_creates_manager_with_api_client_reference(self, mock_api):
+        """Тест проверяет создание менеджера со ссылкой на API клиент."""
+        # Arrange & Act
         manager = TargetManager(mock_api)
+
+        # Assert
         assert manager.api == mock_api
 
-    def test_init_stores_api_reference(self, target_manager, mock_api):
-        """Тест сохранения ссылки на API."""
+    def test_init_stores_api_reference_correctly(self, target_manager, mock_api):
+        """Тест проверяет корректное сохранение ссылки на API."""
+        # Arrange & Act - фикстура уже создала target_manager
+
+        # Assert
         assert target_manager.api is mock_api
 
 
@@ -163,10 +169,14 @@ class TestCreateTarget:
     """Тесты создания таргетов."""
 
     @pytest.mark.asyncio()
-    async def test_create_target_success(self, target_manager, mock_api, sample_api_response):
-        """Тест успешного создания таргета."""
+    async def test_create_target_returns_success_with_valid_data(
+        self, target_manager, mock_api, sample_api_response
+    ):
+        """Тест проверяет успешное создание таргета с корректными данными."""
+        # Arrange
         mock_api.create_targets.return_value = sample_api_response
 
+        # Act
         result = await target_manager.create_target(
             game="csgo",
             title="AK-47 | Redline (Field-Tested)",
@@ -174,6 +184,7 @@ class TestCreateTarget:
             amount=1,
         )
 
+        # Assert
         assert result["success"] is True
         assert result["target_id"] == "target_123456"
         assert result["title"] == "AK-47 | Redline (Field-Tested)"
@@ -191,13 +202,15 @@ class TestCreateTarget:
         assert targets_data[0]["Price"]["Amount"] == 850  # $8.50 -> 850 центов
 
     @pytest.mark.asyncio()
-    async def test_create_target_with_attributes(
+    async def test_create_target_with_attributes_includes_attrs_in_api_call(
         self, target_manager, mock_api, sample_api_response
     ):
-        """Тест создания таргета с атрибутами."""
+        """Тест проверяет передачу атрибутов при создании таргета."""
+        # Arrange
         mock_api.create_targets.return_value = sample_api_response
-
         attrs = {"floatPartValue": 0.15, "phase": "Phase 2"}
+
+        # Act
         result = await target_manager.create_target(
             game="csgo",
             title="Karambit | Doppler (Factory New)",
@@ -206,6 +219,7 @@ class TestCreateTarget:
             attrs=attrs,
         )
 
+        # Assert
         assert result["success"] is True
 
         # Проверка передачи атрибутов
@@ -214,8 +228,9 @@ class TestCreateTarget:
         assert targets_data[0]["Attrs"] == attrs
 
     @pytest.mark.asyncio()
-    async def test_create_target_price_validation(self, target_manager):
-        """Тест валидации цены (должна быть > 0)."""
+    async def test_create_target_raises_error_when_price_is_invalid(self, target_manager):
+        """Тест проверяет выброс ошибки при невалидной цене."""
+        # Arrange & Act & Assert - нулевая цена
         with pytest.raises(ValueError, match="Цена должна быть больше 0"):
             await target_manager.create_target(
                 game="csgo",
@@ -223,6 +238,7 @@ class TestCreateTarget:
                 price=0.0,
             )
 
+        # Arrange & Act & Assert - отрицательная цена
         with pytest.raises(ValueError, match="Цена должна быть больше 0"):
             await target_manager.create_target(
                 game="csgo",
@@ -231,8 +247,9 @@ class TestCreateTarget:
             )
 
     @pytest.mark.asyncio()
-    async def test_create_target_amount_validation(self, target_manager):
-        """Тест валидации количества (1-100)."""
+    async def test_create_target_raises_error_when_amount_is_out_of_range(self, target_manager):
+        """Тест проверяет выброс ошибки при невалидном количестве."""
+        # Arrange & Act & Assert - нулевое количество
         with pytest.raises(ValueError, match="Количество должно быть от 1 до 100"):
             await target_manager.create_target(
                 game="csgo",
@@ -241,6 +258,7 @@ class TestCreateTarget:
                 amount=0,
             )
 
+        # Arrange & Act & Assert - превышение максимума
         with pytest.raises(ValueError, match="Количество должно быть от 1 до 100"):
             await target_manager.create_target(
                 game="csgo",

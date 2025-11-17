@@ -185,6 +185,504 @@ class Settings(BaseSettings):
 
 ---
 
+## 🧪 Написание юнит-тестов
+
+### Основные принципы: FIRST
+
+**ВСЕГДА** следовать принципам FIRST при написании тестов:
+
+- **F**ast (Быстрые): Тесты должны выполняться за миллисекунды
+- **I**ndependent (Независимые): Каждый тест изолирован от других
+- **R**epeatable (Повторяемые): Одинаковые результаты в любом окружении
+- **S**elf-Validating (Самопроверяющиеся): Автоматическая проверка через assert
+- **T**imely (Своевременные): Писать тесты до или сразу после реализации
+
+### AAA-паттерн (Arrange-Act-Assert)
+
+**ВСЕГДА** структурировать тесты по паттерну AAA:
+
+```python
+@pytest.mark.asyncio
+async def test_get_balance_returns_correct_value():
+    # Arrange (Подготовка)
+    api_client = DMarketAPI(public_key="test", secret_key="test")
+    mock_response = {"usd": "10000", "dmc": "5000"}
+
+    # Act (Действие)
+    with patch.object(api_client, '_request', return_value=mock_response):
+        balance = await api_client.get_balance()
+
+    # Assert (Проверка)
+    assert balance["usd"] == "10000"
+    assert balance["dmc"] == "5000"
+```
+
+### Именование тестов
+
+**ВСЕГДА** использовать описательные имена тестов в формате:
+
+```
+test_<функция>_<условие>_<ожидаемый_результат>
+```
+
+**Примеры**:
+
+```python
+# ✅ Правильно - понятно что тестируется
+def test_calculate_profit_with_zero_price_returns_zero()
+def test_create_target_with_invalid_price_raises_validation_error()
+def test_scan_arbitrage_when_no_items_returns_empty_list()
+
+# ❌ Неправильно - неинформативно
+def test_profit()
+def test_target()
+def test_scan()
+```
+
+### Изоляция и мокирование
+
+**ВСЕГДА** изолировать тесты от внешних зависимостей:
+
+```python
+from unittest.mock import AsyncMock, patch, MagicMock
+
+@pytest.mark.asyncio
+async def test_buy_item_calls_api_correctly():
+    """Тест проверяет корректность вызова API при покупке предмета."""
+    # Arrange
+    api_client = DMarketAPI(public_key="test", secret_key="test")
+    mock_response = {"success": True, "orderId": "12345"}
+
+    # Mock HTTP клиента
+    with patch.object(api_client, 'client') as mock_client:
+        mock_client.patch = AsyncMock(return_value=MagicMock(
+            json=AsyncMock(return_value=mock_response),
+            status_code=200
+        ))
+
+        # Act
+        result = await api_client.buy_item("item_123", 25.50)
+
+        # Assert
+        assert result["success"] is True
+        assert result["orderId"] == "12345"
+        mock_client.patch.assert_called_once()
+```
+
+### Параметризация тестов
+
+**Использовать** `@pytest.mark.parametrize` для тестирования множественных сценариев:
+
+```python
+@pytest.mark.parametrize("price, commission, expected_profit", [
+    (10.0, 7.0, 0.30),      # Стандартный случай
+    (100.0, 7.0, 3.00),     # Высокая цена
+    (0.50, 7.0, 0.015),     # Низкая цена
+    (10.0, 0.0, 1.00),      # Без комиссии
+])
+def test_calculate_profit_various_scenarios(price, commission, expected_profit):
+    """Проверка расчета прибыли для различных сценариев."""
+    result = calculate_profit(
+        buy_price=price,
+        sell_price=price + 1.0,
+        commission_percent=commission
+    )
+    assert abs(result - expected_profit) < 0.01  # Допуск для float
+```
+
+### Тестирование крайних случаев (Edge Cases)
+
+**ВСЕГДА** тестировать граничные условия:
+
+```python
+@pytest.mark.asyncio
+async def test_create_target_with_edge_cases():
+    """Тест проверяет обработку граничных случаев при создании таргета."""
+    manager = TargetManager(api_client=mock_api)
+
+    # Тест 1: Минимальная цена
+    result = await manager.create_target("csgo", "Item", price=0.01)
+    assert result["success"] is True
+
+    # Тест 2: Максимальная цена
+    result = await manager.create_target("csgo", "Item", price=10000.0)
+    assert result["success"] is True
+
+    # Тест 3: Нулевая цена (невалидно)
+    with pytest.raises(ValidationError):
+        await manager.create_target("csgo", "Item", price=0.0)
+
+    # Тест 4: Отрицательная цена (невалидно)
+    with pytest.raises(ValidationError):
+        await manager.create_target("csgo", "Item", price=-5.0)
+
+    # Тест 5: Пустое название
+    with pytest.raises(ValidationError):
+        await manager.create_target("csgo", "", price=10.0)
+```
+
+### Тестирование исключений
+
+**ВСЕГДА** проверять правильную обработку ошибок:
+
+```python
+@pytest.mark.asyncio
+async def test_api_call_handles_rate_limit_error():
+    """Тест проверяет обработку ошибки rate limit."""
+    api_client = DMarketAPI(public_key="test", secret_key="test")
+
+    # Mock для симуляции 429 ошибки
+    with patch.object(api_client, '_request') as mock_request:
+        mock_request.side_effect = RateLimitError(
+            message="Too many requests",
+            retry_after=60
+        )
+
+        # Assert: проверяем что исключение выбрасывается
+        with pytest.raises(RateLimitError) as exc_info:
+            await api_client.get_market_items("csgo")
+
+        # Дополнительные проверки
+        assert exc_info.value.retry_after == 60
+        assert "Too many requests" in str(exc_info.value)
+```
+
+### Использование фикстур
+
+**Использовать** pytest fixtures для переиспользования настроек:
+
+```python
+import pytest
+from unittest.mock import AsyncMock
+
+@pytest.fixture
+def mock_dmarket_api():
+    """Фикстура для мокированного DMarket API клиента."""
+    api = AsyncMock(spec=DMarketAPI)
+    api.get_balance = AsyncMock(return_value={
+        "usd": "10000",
+        "dmc": "5000"
+    })
+    api.get_market_items = AsyncMock(return_value={
+        "objects": [
+            {"title": "Test Item", "price": {"USD": "1000"}}
+        ]
+    })
+    return api
+
+@pytest.fixture
+async def test_database():
+    """Фикстура для тестовой базы данных."""
+    # Setup
+    db = DatabaseManager("sqlite:///:memory:")
+    await db.init_database()
+
+    yield db  # Предоставляем БД тестам
+
+    # Teardown
+    await db.close()
+
+# Использование фикстур
+@pytest.mark.asyncio
+async def test_user_creation(test_database):
+    """Тест создания пользователя."""
+    user = await test_database.create_user(
+        telegram_id=123456789,
+        username="test_user"
+    )
+    assert user.telegram_id == 123456789
+    assert user.username == "test_user"
+
+@pytest.mark.asyncio
+async def test_arbitrage_scanner(mock_dmarket_api):
+    """Тест сканера арбитража с моком API."""
+    scanner = ArbitrageScanner(api_client=mock_dmarket_api)
+    results = await scanner.scan_level("standard", "csgo")
+
+    assert len(results) > 0
+    mock_dmarket_api.get_market_items.assert_called_once()
+```
+
+### Покрытие кода тестами
+
+**Целевое покрытие**: 80-85% (текущая цель проекта)
+
+```bash
+# Запуск тестов с покрытием
+pytest --cov=src --cov-report=html --cov-report=term-missing
+
+# Проверить покрытие конкретного модуля
+pytest tests/test_arbitrage_scanner.py --cov=src/dmarket/arbitrage_scanner.py --cov-report=term
+```
+
+**Фокус на качестве, а не количестве**:
+- ✅ Тестировать критические пути (покупка, продажа, арбитраж)
+- ✅ Тестировать публичные API методы
+- ✅ Тестировать обработку ошибок
+- ❌ Не тестировать тривиальные геттеры/сеттеры
+- ❌ Не тестировать приватные методы напрямую
+
+### Анти-паттерны (чего ИЗБЕГАТЬ)
+
+**❌ НЕ добавлять логику в тесты**:
+```python
+# НЕПРАВИЛЬНО - логика в тесте
+def test_process_items():
+    items = get_items()
+    for item in items:  # Избегать циклов
+        if item.price > 100:  # Избегать условий
+            assert process(item) == "success"
+
+# ПРАВИЛЬНО - простые, линейные тесты
+def test_process_expensive_item():
+    item = create_item(price=150)
+    result = process(item)
+    assert result == "success"
+
+def test_process_cheap_item():
+    item = create_item(price=50)
+    result = process(item)
+    assert result == "success"
+```
+
+**❌ НЕ использовать магические числа/строки**:
+```python
+# НЕПРАВИЛЬНО
+def test_calculate():
+    assert calculate(5, 10) == 50
+
+# ПРАВИЛЬНО
+def test_calculate_area_of_rectangle():
+    width = 5
+    height = 10
+    expected_area = 50
+
+    result = calculate(width, height)
+
+    assert result == expected_area
+```
+
+**❌ НЕ тестировать несколько вещей в одном тесте**:
+```python
+# НЕПРАВИЛЬНО - слишком много проверок
+def test_user_operations():
+    user = create_user()
+    assert user.id is not None
+    assert user.name == "Test"
+    assert update_user(user) is True
+    assert delete_user(user) is True
+
+# ПРАВИЛЬНО - разделить на отдельные тесты
+def test_create_user_assigns_id():
+    user = create_user()
+    assert user.id is not None
+
+def test_create_user_sets_name():
+    user = create_user(name="Test")
+    assert user.name == "Test"
+
+def test_update_user_returns_success():
+    user = create_user()
+    result = update_user(user)
+    assert result is True
+```
+
+**❌ НЕ зависеть от порядка выполнения тестов**:
+```python
+# НЕПРАВИЛЬНО - тесты зависят друг от друга
+class TestUserFlow:
+    user_id = None
+
+    def test_1_create_user(self):
+        self.user_id = create_user()
+
+    def test_2_update_user(self):
+        update_user(self.user_id)  # Зависит от test_1
+
+# ПРАВИЛЬНО - каждый тест независим
+class TestUserFlow:
+    @pytest.fixture
+    def user(self):
+        return create_user()
+
+    def test_create_user_returns_id(self, user):
+        assert user.id is not None
+
+    def test_update_user_succeeds(self, user):
+        result = update_user(user.id)
+        assert result is True
+```
+
+### Структура тестовых файлов
+
+```
+tests/
+├── conftest.py              # Глобальные фикстуры
+├── unit/                    # Юнит-тесты
+│   ├── dmarket/
+│   │   ├── test_api_client.py
+│   │   ├── test_arbitrage_scanner.py
+│   │   └── test_targets.py
+│   ├── telegram_bot/
+│   │   ├── test_commands.py
+│   │   └── test_handlers.py
+│   └── utils/
+│       ├── test_rate_limiter.py
+│       └── test_cache.py
+├── integration/             # Интеграционные тесты
+│   ├── test_dmarket_api_integration.py
+│   └── test_database_integration.py
+└── fixtures/                # Данные для тестов
+    ├── sample_items.json
+    └── mock_responses.json
+```
+
+### Пример полноценного теста
+
+```python
+"""
+Тесты для модуля ArbitrageScanner.
+
+Этот модуль тестирует функциональность сканирования арбитражных возможностей
+с использованием различных уровней и игр.
+"""
+import pytest
+from unittest.mock import AsyncMock, patch
+from src.dmarket.arbitrage_scanner import ArbitrageScanner
+from src.dmarket.dmarket_api import DMarketAPI
+from src.utils.exceptions import APIError, ValidationError
+
+
+@pytest.fixture
+def mock_api_client():
+    """Фикстура мокированного API клиента."""
+    client = AsyncMock(spec=DMarketAPI)
+    return client
+
+
+@pytest.fixture
+def scanner(mock_api_client):
+    """Фикстура сканера арбитража."""
+    return ArbitrageScanner(api_client=mock_api_client)
+
+
+class TestArbitrageScannerInitialization:
+    """Тесты инициализации ArbitrageScanner."""
+
+    def test_scanner_initializes_with_api_client(self, mock_api_client):
+        """Тест корректной инициализации с API клиентом."""
+        # Arrange & Act
+        scanner = ArbitrageScanner(api_client=mock_api_client)
+
+        # Assert
+        assert scanner.api_client is mock_api_client
+        assert scanner.cache is not None
+
+
+class TestScanLevel:
+    """Тесты метода scan_level."""
+
+    @pytest.mark.asyncio
+    async def test_scan_level_standard_returns_opportunities(
+        self, scanner, mock_api_client
+    ):
+        """Тест поиска возможностей на стандартном уровне."""
+        # Arrange
+        mock_items = {
+            "objects": [
+                {
+                    "title": "AK-47 | Redline (FT)",
+                    "price": {"USD": "1000"},
+                    "suggestedPrice": {"USD": "1200"}
+                }
+            ]
+        }
+        mock_api_client.get_market_items = AsyncMock(return_value=mock_items)
+
+        # Act
+        results = await scanner.scan_level(level="standard", game="csgo")
+
+        # Assert
+        assert len(results) > 0
+        assert results[0]["profit"] > 0
+        mock_api_client.get_market_items.assert_called_once_with(
+            game="csgo",
+            price_from=300,  # $3
+            price_to=1000    # $10
+        )
+
+    @pytest.mark.asyncio
+    async def test_scan_level_with_invalid_level_raises_error(self, scanner):
+        """Тест выброса ошибки при невалидном уровне."""
+        # Arrange
+        invalid_level = "invalid_level"
+
+        # Act & Assert
+        with pytest.raises(ValidationError) as exc_info:
+            await scanner.scan_level(level=invalid_level, game="csgo")
+
+        assert "invalid level" in str(exc_info.value).lower()
+
+    @pytest.mark.asyncio
+    async def test_scan_level_handles_api_error(self, scanner, mock_api_client):
+        """Тест обработки ошибки API."""
+        # Arrange
+        mock_api_client.get_market_items = AsyncMock(
+            side_effect=APIError("API Error")
+        )
+
+        # Act & Assert
+        with pytest.raises(APIError):
+            await scanner.scan_level(level="standard", game="csgo")
+
+    @pytest.mark.parametrize("level,expected_min,expected_max", [
+        ("boost", 50, 300),      # $0.50 - $3
+        ("standard", 300, 1000), # $3 - $10
+        ("medium", 1000, 3000),  # $10 - $30
+        ("advanced", 3000, 10000), # $30 - $100
+    ])
+    @pytest.mark.asyncio
+    async def test_scan_level_uses_correct_price_ranges(
+        self, scanner, mock_api_client, level, expected_min, expected_max
+    ):
+        """Тест корректных ценовых диапазонов для разных уровней."""
+        # Arrange
+        mock_api_client.get_market_items = AsyncMock(return_value={"objects": []})
+
+        # Act
+        await scanner.scan_level(level=level, game="csgo")
+
+        # Assert
+        call_kwargs = mock_api_client.get_market_items.call_args.kwargs
+        assert call_kwargs["price_from"] == expected_min
+        assert call_kwargs["price_to"] == expected_max
+
+
+class TestCalculateProfit:
+    """Тесты расчета прибыли."""
+
+    @pytest.mark.parametrize("buy_price,sell_price,expected", [
+        (10.0, 15.0, 3.95),   # Стандартный
+        (100.0, 150.0, 39.50), # Высокая цена
+        (1.0, 1.50, 0.395),   # Низкая цена
+    ])
+    def test_calculate_profit_with_various_prices(
+        self, scanner, buy_price, sell_price, expected
+    ):
+        """Тест расчета прибыли для различных цен."""
+        # Act
+        profit = scanner.calculate_profit(
+            buy_price=buy_price,
+            sell_price=sell_price,
+            commission_percent=7.0
+        )
+
+        # Assert
+        assert abs(profit - expected) < 0.01
+```
+
+---
+
 ## 📚 Специфичные правила для проекта
 
 ### HTTP-запросы

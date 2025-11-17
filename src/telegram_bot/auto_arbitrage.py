@@ -34,17 +34,10 @@ from telegram.ext import CallbackContext
 
 from src.dmarket.arbitrage import GAMES
 from src.dmarket.dmarket_api import DMarketAPI
-from src.telegram_bot.auto_arbitrage_scanner import (
-    check_user_balance,
-    scan_multiple_games,
-)
-from src.telegram_bot.keyboards import (
-    create_pagination_keyboard,
-    get_back_to_arbitrage_keyboard,
-)
+from src.telegram_bot.auto_arbitrage_scanner import check_user_balance, scan_multiple_games
+from src.telegram_bot.keyboards import create_pagination_keyboard, get_back_to_arbitrage_keyboard
 from src.telegram_bot.pagination import pagination_manager
-from src.utils.exceptions import APIError, RetryStrategy, handle_api_error
-
+from src.utils.exceptions import APIError, handle_api_error
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
@@ -333,15 +326,6 @@ async def create_dmarket_api_client(context: CallbackContext) -> DMarketAPI | No
         return None
 
     try:
-        # Создаем API клиент с улучшенной стратегией повторных попыток
-        RetryStrategy(
-            max_retries=3,
-            initial_delay=1.0,
-            max_delay=30.0,
-            backoff_factor=2.0,
-            status_codes_to_retry=[429, 500, 502, 503, 504],
-        )
-
         # Use the properly typed environ_type
         api_url = environ_type.get("DMARKET_API_URL", "https://api.dmarket.com")
 
@@ -1146,10 +1130,7 @@ async def handle_auto_trade(query, context, mode: str) -> None:
     from telegram.constants import ChatAction, ParseMode
 
     from src.dmarket.arbitrage import GAMES
-    from src.telegram_bot.auto_arbitrage_scanner import (
-        check_user_balance,
-        scan_multiple_games,
-    )
+    from src.telegram_bot.auto_arbitrage_scanner import check_user_balance, scan_multiple_games
     from src.telegram_bot.keyboards import get_back_to_arbitrage_keyboard
     from src.telegram_bot.pagination import pagination_manager
     from src.telegram_bot.utils.api_client import setup_api_client

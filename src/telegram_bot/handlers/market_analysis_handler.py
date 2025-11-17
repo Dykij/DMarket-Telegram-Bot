@@ -13,19 +13,13 @@ from src.dmarket.market_analysis import (
     find_trending_items,
     generate_market_report,
 )
-from src.telegram_bot.keyboards import (
-    create_pagination_keyboard,
-)
+from src.telegram_bot.keyboards import create_pagination_keyboard
 from src.telegram_bot.pagination import pagination_manager
 from src.telegram_bot.utils.api_client import create_api_client_from_env
 from src.telegram_bot.utils.formatters import format_market_items
 
 # Импортируем новые функции из улучшенного анализатора цен
-from src.utils.price_analyzer import (
-    find_undervalued_items,
-    get_investment_recommendations,
-)
-
+from src.utils.price_analyzer import find_undervalued_items, get_investment_recommendations
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
@@ -420,10 +414,8 @@ async def show_price_changes_results(query, context, game: str) -> None:
     # При необходимости создаем специализированный форматтер для ценовых изменений
     formatted_text = format_market_items(
         items=items,
-        current_page=current_page,
+        page=current_page,
         items_per_page=pagination_manager.get_items_per_page(user_id),
-        show_price_change=True,
-        show_liquidity=True,
     )
 
     # Добавляем заголовок для анализа цен
@@ -448,7 +440,7 @@ async def show_price_changes_results(query, context, game: str) -> None:
     )
 
     # Добавляем кнопки периодов и возврата к анализу рынка
-    keyboard = pagination_keyboard.inline_keyboard
+    keyboard = list(pagination_keyboard.inline_keyboard)
     keyboard.append(period_buttons)
     keyboard.append(
         [
@@ -495,10 +487,8 @@ async def show_trending_items_results(query, context, game: str) -> None:
     # Используем унифицированный форматтер для рыночных предметов
     formatted_text = format_market_items(
         items=items,
-        current_page=current_page,
+        page=current_page,
         items_per_page=pagination_manager.get_items_per_page(user_id),
-        show_trend=True,
-        show_volume=True,
     )
 
     # Добавляем заголовок для трендовых предметов
@@ -516,7 +506,7 @@ async def show_trending_items_results(query, context, game: str) -> None:
     )
 
     # Добавляем фильтры цены и возврат к анализу рынка
-    keyboard = pagination_keyboard.inline_keyboard
+    keyboard = list(pagination_keyboard.inline_keyboard)
     keyboard.append(
         [
             InlineKeyboardButton(

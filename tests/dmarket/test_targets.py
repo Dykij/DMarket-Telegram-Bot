@@ -14,7 +14,6 @@ import pytest
 
 from src.dmarket.targets import TargetManager
 
-
 # ============================================================================
 # FIXTURES
 # ============================================================================
@@ -62,7 +61,9 @@ def test_target_manager_initialization(mock_api_client):
 async def test_create_target_success(mock_api_client):
     """Тест успешного создания таргета."""
     # Настройка мока
-    mock_api_client.create_target = AsyncMock(return_value={"TargetID": "target123"})
+    mock_api_client.create_targets = AsyncMock(
+        return_value={"Result": [{"TargetID": "target123", "Status": "Created"}]}
+    )
 
     manager = TargetManager(mock_api_client)
 
@@ -236,7 +237,7 @@ async def test_get_targets_by_title(mock_api_client):
 async def test_delete_target_success(mock_api_client):
     """Тест успешного удаления таргета."""
     # Настройка мока
-    mock_api_client.delete_targets = AsyncMock(return_value={"Result": [{"Status": "success"}]})
+    mock_api_client.delete_targets = AsyncMock(return_value={"Result": [{"Status": "Deleted"}]})
 
     manager = TargetManager(mock_api_client)
 

@@ -174,6 +174,64 @@ class RustFilter(BaseGameFilter):
         return True
 
 
+class TF2Filter(BaseGameFilter):
+    """Filter for Team Fortress 2 items."""
+
+    game_name = "tf2"
+    supported_filters = [
+        *BaseGameFilter.supported_filters,
+        "class",
+        "quality",
+        "item_type",
+        "effect",
+        "killstreak",
+        "australium",
+    ]
+
+    def apply_filters(self, item: dict[str, Any], filters: dict[str, Any]) -> bool:
+        """Apply TF2-specific filters."""
+        if not super().apply_filters(item, filters):
+            return False
+
+        # Class filter
+        if "class" in filters:
+            item_class = item.get("extra", {}).get("class", "")
+            if item_class.lower() != filters["class"].lower():
+                return False
+
+        # Quality filter
+        if "quality" in filters:
+            item_quality = item.get("extra", {}).get("quality", "")
+            if item_quality.lower() != filters["quality"].lower():
+                return False
+
+        # Type filter
+        if "item_type" in filters:
+            item_type = item.get("extra", {}).get("type", "")
+            if item_type.lower() != filters["item_type"].lower():
+                return False
+
+        # Effect filter (for unusual items)
+        if "effect" in filters:
+            item_effect = item.get("extra", {}).get("effect", "")
+            if item_effect.lower() != filters["effect"].lower():
+                return False
+
+        # Killstreak filter
+        if "killstreak" in filters:
+            item_killstreak = item.get("extra", {}).get("killstreak", "")
+            if item_killstreak.lower() != filters["killstreak"].lower():
+                return False
+
+        # Australium filter (golden weapons)
+        if "australium" in filters:
+            is_australium = item.get("extra", {}).get("australium", False)
+            if is_australium != filters["australium"]:
+                return False
+
+        return True
+
+
 class FilterFactory:
     """Factory for creating game-specific filters."""
 
@@ -181,6 +239,7 @@ class FilterFactory:
         "csgo": CS2Filter,
         "cs2": CS2Filter,
         "dota2": Dota2Filter,
+        "tf2": TF2Filter,
         "rust": RustFilter,
     }
 

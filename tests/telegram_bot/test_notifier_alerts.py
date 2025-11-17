@@ -38,6 +38,7 @@ async def test_check_all_alerts_with_triggered_alert():
                 "id": "alert_1",
                 "item_id": "item_123",
                 "title": "AK-47 | Redline",
+                "game": "csgo",
                 "type": "price_drop",
                 "threshold": 15.0,
                 "active": True,

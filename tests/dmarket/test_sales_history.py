@@ -416,7 +416,7 @@ class TestCompatibilityFunctions:
     async def test_get_arbitrage_opportunities_with_sales_history(self):
         """Тест функции get_arbitrage_opportunities_with_sales_history."""
         with (
-            patch("src.dmarket.sales_history.find_arbitrage_items") as mock_arb,
+            patch("src.dmarket.arbitrage.find_arbitrage_items") as mock_arb,
             patch("src.dmarket.sales_history.analyze_sales_history") as mock_analyze,
         ):
             mock_arb.return_value = [{"market_hash_name": "Test Item"}]

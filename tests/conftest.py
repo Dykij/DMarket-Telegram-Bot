@@ -98,9 +98,6 @@ MOCK_ARBITRAGE_OPPORTUNITIES = [
 ]
 
 
-# Remove deprecated event_loop fixture - pytest-asyncio handles this now
-
-
 @pytest_asyncio.fixture
 async def test_config() -> Config:
     """Create test configuration."""

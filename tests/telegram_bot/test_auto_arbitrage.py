@@ -3,6 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from telegram import CallbackQuery
 
 from src.telegram_bot.auto_arbitrage import (
     ARBITRAGE_MODES,
@@ -239,7 +240,7 @@ class TestCheckBalanceCommand:
     @pytest.mark.asyncio()
     async def test_successful_balance_check(self):
         """Тест успешной проверки баланса."""
-        query = MagicMock()
+        query = MagicMock(spec=CallbackQuery)
         query.edit_message_text = AsyncMock()
 
         context = MagicMock()
@@ -271,7 +272,7 @@ class TestCheckBalanceCommand:
     @pytest.mark.asyncio()
     async def test_api_error_handling(self):
         """Тест обработки ошибки API."""
-        query = MagicMock()
+        query = MagicMock(spec=CallbackQuery)
         query.edit_message_text = AsyncMock()
 
         context = MagicMock()
@@ -305,7 +306,9 @@ class TestHandleAutoTrade:
         )
 
         with (
-            patch("src.telegram_bot.auto_arbitrage.setup_api_client", return_value=mock_api),
+            patch(
+                "src.telegram_bot.auto_arbitrage.create_dmarket_api_client", return_value=mock_api
+            ),
             patch(
                 "src.telegram_bot.auto_arbitrage.check_user_balance",
                 return_value={"has_funds": True},

@@ -10,9 +10,9 @@ from src.dmarket.filters.game_filters import (
     Dota2Filter,
     FilterFactory,
     RustFilter,
+    TF2Filter,
     apply_filters_to_items,
 )
-
 
 __all__ = [
     "BaseGameFilter",
@@ -20,5 +20,6 @@ __all__ = [
     "Dota2Filter",
     "FilterFactory",
     "RustFilter",
+    "TF2Filter",
     "apply_filters_to_items",
 ]
