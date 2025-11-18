@@ -39,7 +39,6 @@ import requests
 
 from src.utils.rate_limiter import RateLimiter
 
-
 logger = logging.getLogger(__name__)
 
 # TTL для кэша в секундах

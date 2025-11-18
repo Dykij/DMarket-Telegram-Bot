@@ -259,7 +259,7 @@ class TestMarketVisualizer:
         assert img.width > 0
         assert img.height > 0
 
-    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.figure.Figure.savefig")
     async def test_create_price_chart(self, mock_savefig, sample_price_history):
         """Test creating a price chart."""
         visualizer = MarketVisualizer()
@@ -275,7 +275,7 @@ class TestMarketVisualizer:
         assert isinstance(result, io.BytesIO)
         mock_savefig.assert_called_once()
 
-    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.figure.Figure.savefig")
     async def test_create_price_chart_with_volume(
         self,
         mock_savefig,
@@ -296,7 +296,7 @@ class TestMarketVisualizer:
         assert isinstance(result, io.BytesIO)
         mock_savefig.assert_called_once()
 
-    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.figure.Figure.savefig")
     async def test_create_market_comparison_chart(
         self,
         mock_savefig,
@@ -316,7 +316,7 @@ class TestMarketVisualizer:
         assert isinstance(result, io.BytesIO)
         mock_savefig.assert_called_once()
 
-    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.figure.Figure.savefig")
     async def test_create_pattern_visualization(
         self,
         mock_savefig,
@@ -338,10 +338,8 @@ class TestMarketVisualizer:
         mock_savefig.assert_called_once()
 
     @patch("PIL.Image.new")
-    @patch("PIL.Image.save")
     async def test_create_market_summary_image(
         self,
-        mock_save,
         mock_new,
         sample_item_data,
         sample_analysis_data,

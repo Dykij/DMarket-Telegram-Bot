@@ -10,7 +10,6 @@ from src.telegram_bot.profiles import get_user_profile
 from src.telegram_bot.settings_handlers import get_localized_text
 from src.utils.exceptions import APIError
 
-
 # Загружаем переменные окружения
 load_dotenv()
 
@@ -126,7 +125,8 @@ async def dmarket_status_impl(
                 "3. Создайте новые ключи API на DMarket, если необходимо"
             )
 
-        status_message = (
+        # Формируем текст сообщения (не переопределяя переменную status_message!)
+        final_text = (
             f"{api_status}\n"
             f"{auth_status}\n"
             f"{balance_info}{troubleshooting}\n\n"
@@ -135,7 +135,7 @@ async def dmarket_status_impl(
 
         # Показываем финальное сообщение с форматированием HTML
         await status_message.edit_text(
-            status_message,
+            final_text,
             parse_mode=ParseMode.HTML,
         )
 

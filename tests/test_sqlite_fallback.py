@@ -440,24 +440,25 @@ class TestSQLiteVsPostgreSQL:
 class TestSQLiteIntegration:
     """Интеграционные тесты для SQLite."""
 
-    def test_full_user_workflow_sqlite(self, db_manager):
+    @pytest.mark.asyncio()
+    async def test_full_user_workflow_sqlite(self, db_manager):
         """Тест полного workflow пользователя в SQLite."""
-        db_manager.init_database()
+        await db_manager.init_database()
 
         # 1. Создание пользователя
-        user = db_manager.get_or_create_user(
+        user = await db_manager.get_or_create_user(
             telegram_id=555666777, username="integration_test", first_name="Integration"
         )
 
         assert user is not None
 
         # 2. Логирование команды
-        db_manager.log_command(
+        await db_manager.log_command(
             user_id=user.id, command="/start", success=True, execution_time_ms=50
         )
 
         # 3. Сохранение market data
-        db_manager.save_market_data(
+        await db_manager.save_market_data(
             item_id="integration_item",
             game="csgo",
             item_name="Test Item",

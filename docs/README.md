@@ -44,6 +44,7 @@
 - **[Развертывание](deployment.md)** - Деплой (Docker, Heroku, AWS, GCP)
 - **[Безопасность](SECURITY.md)** - Защита ключей и данных
 - **[Логирование](logging_and_error_handling.md)** - Логирование и обработка ошибок
+- **[Защита от кириллицы](vs_code_cyrillic_protection.md)** - Настройка VS Code и терминала
 
 ---
 

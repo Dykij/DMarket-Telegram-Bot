@@ -1,0 +1,1325 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.1, pluggy-1.6.0 -- D:\Dmarket\DMarket-Telegram-Bot\DMarket-Telegram-Bot\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\Dmarket\DMarket-Telegram-Bot\DMarket-Telegram-Bot
+configfile: pyproject.toml
+plugins: anyio-4.11.0, Faker-38.0.0, asyncio-1.3.0, cov-7.0.0, mock-3.15.1, xdist-3.8.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 1061 items
+
+tests/dmarket/test_api_unified.py::test_api_initialization PASSED        [  0%]
+tests/dmarket/test_api_unified.py::test_generate_headers PASSED          [  0%]
+tests/dmarket/test_api_unified.py::test_get_user_balance PASSED          [  0%]
+tests/dmarket/test_api_unified.py::test_get_user_balance_error PASSED    [  0%]
+tests/dmarket/test_api_unified.py::test_get_market_items PASSED          [  0%]
+tests/dmarket/test_api_unified.py::test_handle_rate_limit PASSED         [  0%]
+tests/dmarket/test_api_unified.py::test_api_timeout PASSED               [  0%]
+tests/dmarket/test_api_unified.py::test_parse_balance_format1 PASSED     [  0%]
+tests/dmarket/test_api_unified.py::test_parse_balance_format2 PASSED     [  0%]
+tests/dmarket/test_api_unified.py::test_parse_balance_empty PASSED       [  0%]
+tests/dmarket/test_arbitrage.py::TestConstants::test_games_defined PASSED [  1%]
+tests/dmarket/test_arbitrage.py::TestConstants::test_fee_values PASSED   [  1%]
+tests/dmarket/test_arbitrage.py::TestConstants::test_min_profit_percent_modes PASSED [  1%]
+tests/dmarket/test_arbitrage.py::TestConstants::test_price_ranges_ascending PASSED [  1%]
+tests/dmarket/test_arbitrage.py::TestCacheFunctions::test_save_to_cache PASSED [  1%]
+tests/dmarket/test_arbitrage.py::TestCacheFunctions::test_get_cached_results_fresh PASSED [  1%]
+tests/dmarket/test_arbitrage.py::TestCacheFunctions::test_get_cached_results_expired PASSED [  1%]
+tests/dmarket/test_arbitrage.py::TestCacheFunctions::test_get_cached_results_not_exists PASSED [  1%]
+tests/dmarket/test_arbitrage.py::TestCacheFunctions::test_cache_key_uniqueness PASSED [  1%]
+tests/dmarket/test_arbitrage.py::TestFetchMarketItems::test_fetch_market_items_success PASSED [  1%]
+tests/dmarket/test_arbitrage.py::TestFetchMarketItems::test_fetch_market_items_empty PASSED [  1%]
+tests/dmarket/test_arbitrage.py::TestFetchMarketItems::test_fetch_market_items_api_error PASSED [  2%]
+tests/dmarket/test_arbitrage.py::TestArbitrageFunctions::test_arbitrage_boost PASSED [  2%]
+tests/dmarket/test_arbitrage.py::TestArbitrageFunctions::test_arbitrage_mid PASSED [  2%]
+tests/dmarket/test_arbitrage.py::TestArbitrageFunctions::test_arbitrage_pro PASSED [  2%]
+tests/dmarket/test_arbitrage.py::TestArbitrageTrader::test_arbitrage_trader_instantiation PASSED [  2%]
+tests/dmarket/test_arbitrage.py::TestArbitrageTrader::test_arbitrage_trader_has_methods PASSED [  2%]
+tests/dmarket/test_arbitrage.py::TestFindArbitrageItems::test_find_arbitrage_items_basic PASSED [  2%]
+tests/dmarket/test_arbitrage.py::TestFindArbitrageItems::test_find_arbitrage_items_different_modes PASSED [  2%]
+tests/dmarket/test_arbitrage.py::TestFindArbitrageOpportunities::test_find_arbitrage_opportunities_basic PASSED [  2%]
+tests/dmarket/test_arbitrage.py::TestIntegration::test_cache_workflow PASSED [  2%]
+tests/dmarket/test_arbitrage_sales_analysis.py::TestSalesAnalyzer::test_init PASSED [  3%]
+tests/dmarket/test_arbitrage_sales_analysis.py::TestSalesAnalyzer::test_get_item_sales_history_success PASSED [  3%]
+tests/dmarket/test_arbitrage_sales_analysis.py::TestSalesAnalyzer::test_get_item_sales_history_empty PASSED [  3%]
+tests/dmarket/test_arbitrage_sales_analysis.py::TestSalesAnalyzer::test_analyze_sales_volume_high PASSED [  3%]
+tests/dmarket/test_arbitrage_sales_analysis.py::TestSalesAnalyzer::test_analyze_sales_volume_medium PASSED [  3%]
+tests/dmarket/test_arbitrage_sales_analysis.py::TestSalesAnalyzer::test_analyze_sales_volume_low PASSED [  3%]
+tests/dmarket/test_arbitrage_sales_analysis.py::TestSalesAnalyzer::test_estimate_time_to_sell_fast PASSED [  3%]
+tests/dmarket/test_arbitrage_sales_analysis.py::TestSalesAnalyzer::test_estimate_time_to_sell_slow PASSED [  3%]
+tests/dmarket/test_arbitrage_sales_analysis.py::TestSalesAnalyzer::test_analyze_price_trends_rising PASSED [  3%]
+tests/dmarket/test_arbitrage_sales_analysis.py::TestSalesAnalyzer::test_analyze_price_trends_falling PASSED [  3%]
+tests/dmarket/test_arbitrage_sales_analysis.py::TestSalesAnalyzer::test_analyze_price_trends_stable PASSED [  3%]
+tests/dmarket/test_arbitrage_sales_analysis.py::TestSalesAnalyzer::test_evaluate_arbitrage_potential_excellent PASSED [  4%]
+tests/dmarket/test_arbitrage_sales_analysis.py::TestSalesAnalyzer::test_evaluate_arbitrage_potential_poor PASSED [  4%]
+tests/dmarket/test_arbitrage_sales_analysis.py::TestSalesAnalyzer::test_caching_works PASSED [  4%]
+tests/dmarket/test_arbitrage_sales_analysis.py::TestEdgeCases::test_no_sales_history PASSED [  4%]
+tests/dmarket/test_arbitrage_sales_analysis.py::TestEdgeCases::test_api_error_handling PASSED [  4%]
+tests/dmarket/test_arbitrage_sales_analysis.py::TestEdgeCases::test_invalid_price_format PASSED [  4%]
+tests/dmarket/test_arbitrage_scanner.py::test_arbitrage_scanner_initialization PASSED [  4%]
+tests/dmarket/test_arbitrage_scanner.py::test_arbitrage_scanner_without_client PASSED [  4%]
+tests/dmarket/test_arbitrage_scanner.py::test_cache_ttl_property PASSED  [  4%]
+tests/dmarket/test_arbitrage_scanner.py::test_get_cached_results_empty_cache PASSED [  4%]
+tests/dmarket/test_arbitrage_scanner.py::test_save_to_cache PASSED       [  4%]
+tests/dmarket/test_arbitrage_scanner.py::test_get_cached_results_valid_cache PASSED [  5%]
+tests/dmarket/test_arbitrage_scanner.py::test_get_cached_results_expired_cache PASSED [  5%]
+tests/dmarket/test_arbitrage_scanner.py::test_get_api_client_existing PASSED [  5%]
+tests/dmarket/test_arbitrage_scanner.py::test_get_api_client_create_new PASSED [  5%]
+tests/dmarket/test_arbitrage_scanner.py::test_scan_game_with_cache PASSED [  5%]
+tests/dmarket/test_arbitrage_scanner.py::test_scan_game_without_cache PASSED [  5%]
+tests/dmarket/test_arbitrage_scanner.py::test_scan_game_boost_mode PASSED [  5%]
+tests/dmarket/test_arbitrage_scanner.py::test_scan_game_pro_mode PASSED  [  5%]
+tests/dmarket/test_arbitrage_scanner.py::test_scan_game_with_price_range PASSED [  5%]
+tests/dmarket/test_arbitrage_scanner.py::test_scan_game_api_error PASSED [  5%]
+tests/dmarket/test_arbitrage_scanner.py::test_standardize_items_dmarket_format PASSED [  6%]
+tests/dmarket/test_arbitrage_scanner.py::test_standardize_items_trader_format PASSED [  6%]
+tests/dmarket/test_arbitrage_scanner.py::test_standardize_items_mixed_formats PASSED [  6%]
+tests/dmarket/test_arbitrage_scanner.py::test_scan_multiple_games_success PASSED [  6%]
+tests/dmarket/test_arbitrage_scanner.py::test_scan_multiple_games_empty_list PASSED [  6%]
+tests/dmarket/test_arbitrage_scanner.py::test_scan_multiple_games_one_fails PASSED [  6%]
+tests/dmarket/test_arbitrage_scanner.py::test_check_user_balance_success PASSED [  6%]
+tests/dmarket/test_arbitrage_scanner.py::test_check_user_balance_api_error PASSED [  6%]
+tests/dmarket/test_arbitrage_scanner.py::test_get_level_config_boost PASSED [  6%]
+tests/dmarket/test_arbitrage_scanner.py::test_get_level_config_pro PASSED [  6%]
+tests/dmarket/test_arbitrage_scanner.py::test_get_level_config_invalid PASSED [  6%]
+tests/dmarket/test_arbitrage_scanner.py::test_arbitrage_levels_defined PASSED [  7%]
+tests/dmarket/test_arbitrage_scanner.py::test_game_ids_defined PASSED    [  7%]
+tests/dmarket/test_arbitrage_scanner.py::test_scan_level_boost PASSED    [  7%]
+tests/dmarket/test_arbitrage_scanner.py::test_scan_level_with_cache PASSED [  7%]
+tests/dmarket/test_arbitrage_scanner.py::test_scan_level_filters_by_price_range PASSED [  7%]
+tests/dmarket/test_arbitrage_scanner.py::test_scan_all_levels_success PASSED [  7%]
+tests/dmarket/test_arbitrage_scanner.py::test_scan_all_levels_one_fails PASSED [  7%]
+tests/dmarket/test_arbitrage_scanner.py::test_find_best_opportunities_top_n PASSED [  7%]
+tests/dmarket/test_arbitrage_scanner.py::test_find_best_opportunities_min_level PASSED [  7%]
+tests/dmarket/test_arbitrage_scanner.py::test_find_best_opportunities_max_level PASSED [  7%]
+tests/dmarket/test_arbitrage_scanner.py::test_get_level_stats_initial PASSED [  8%]
+tests/dmarket/test_arbitrage_scanner.py::test_auto_trade_items_success PASSED [  8%]
+tests/dmarket/test_arbitrage_scanner.py::test_auto_trade_items_empty_list PASSED [  8%]
+tests/dmarket/test_arbitrage_scanner.py::test_auto_trade_items_insufficient_balance PASSED [  8%]
+tests/dmarket/test_arbitrage_scanner.py::test_auto_trade_items_max_trades_limit PASSED [  8%]
+tests/dmarket/test_arbitrage_scanner.py::test_analyze_item_success PASSED [  8%]
+tests/dmarket/test_arbitrage_scanner.py::test_analyze_item_no_profit PASSED [  8%]
+tests/dmarket/test_arbitrage_scanner.py::test_full_arbitrage_workflow PASSED [  8%]
+tests/dmarket/test_arbitrage_scanner.py::test_scan_game_with_zero_max_items PASSED [  8%]
+tests/dmarket/test_arbitrage_scanner.py::test_standardize_items_empty_list PASSED [  8%]
+tests/dmarket/test_arbitrage_scanner.py::test_standardize_items_invalid_format PASSED [  8%]
+tests/dmarket/test_arbitrage_scanner.py::test_scan_multiple_games_concurrent PASSED [  9%]
+tests/dmarket/test_arbitrage_scanner.py::test_liquidity_filter_enabled_by_default PASSED [  9%]
+tests/dmarket/test_arbitrage_scanner.py::test_liquidity_filter_can_be_disabled PASSED [  9%]
+tests/dmarket/test_arbitrage_scanner.py::test_liquidity_analyzer_initialized_when_enabled PASSED [  9%]
+tests/dmarket/test_arbitrage_scanner.py::test_liquidity_analyzer_not_initialized_when_disabled PASSED [  9%]
+tests/dmarket/test_arbitrage_scanner.py::test_analyze_item_filters_by_low_liquidity PASSED [  9%]
+tests/dmarket/test_arbitrage_scanner.py::test_analyze_item_passes_high_liquidity PASSED [  9%]
+tests/dmarket/test_arbitrage_scanner.py::test_analyze_item_filters_by_time_to_sell PASSED [  9%]
+tests/dmarket/test_arbitrage_scanner.py::test_analyze_item_without_liquidity_filter PASSED [  9%]
+tests/dmarket/test_arbitrage_scanner.py::test_scan_level_with_liquidity_filter PASSED [  9%]
+tests/dmarket/test_game_filters.py::TestImports::test_base_game_filter_imported PASSED [  9%]
+tests/dmarket/test_game_filters.py::TestImports::test_cs2_filter_imported PASSED [ 10%]
+tests/dmarket/test_game_filters.py::TestImports::test_dota2_filter_imported PASSED [ 10%]
+tests/dmarket/test_game_filters.py::TestImports::test_rust_filter_imported PASSED [ 10%]
+tests/dmarket/test_game_filters.py::TestImports::test_filter_factory_imported PASSED [ 10%]
+tests/dmarket/test_game_filters.py::TestImports::test_apply_filters_imported PASSED [ 10%]
+tests/dmarket/test_game_filters.py::TestFilterFactory::test_get_filter_csgo PASSED [ 10%]
+tests/dmarket/test_game_filters.py::TestFilterFactory::test_get_filter_dota2 PASSED [ 10%]
+tests/dmarket/test_game_filters.py::TestFilterFactory::test_get_filter_tf2 PASSED [ 10%]
+tests/dmarket/test_game_filters.py::TestFilterFactory::test_get_filter_rust PASSED [ 10%]
+tests/dmarket/test_game_filters.py::TestFilterFactory::test_get_filter_invalid_game PASSED [ 10%]
+tests/dmarket/test_game_filters.py::TestBaseGameFilter::test_base_filter_has_apply_filters PASSED [ 11%]
+tests/dmarket/test_game_filters.py::TestBaseGameFilter::test_base_filter_has_supported_filters PASSED [ 11%]
+tests/dmarket/test_game_filters.py::TestBaseGameFilter::test_price_filter_in_base PASSED [ 11%]
+tests/dmarket/test_game_filters.py::TestCS2Filter::test_cs2_filter_instantiation PASSED [ 11%]
+tests/dmarket/test_game_filters.py::TestCS2Filter::test_cs2_filter_has_specific_filters PASSED [ 11%]
+tests/dmarket/test_game_filters.py::TestCS2Filter::test_cs2_filter_apply_filters PASSED [ 11%]
+tests/dmarket/test_game_filters.py::TestDota2Filter::test_dota2_filter_instantiation PASSED [ 11%]
+tests/dmarket/test_game_filters.py::TestDota2Filter::test_dota2_filter_has_specific_filters PASSED [ 11%]
+tests/dmarket/test_game_filters.py::TestRustFilter::test_rust_filter_instantiation PASSED [ 11%]
+tests/dmarket/test_game_filters.py::TestRustFilter::test_rust_filter_has_specific_filters PASSED [ 11%]
+tests/dmarket/test_game_filters.py::TestApplyFiltersToItems::test_apply_filters_empty_items PASSED [ 11%]
+tests/dmarket/test_game_filters.py::TestApplyFiltersToItems::test_apply_filters_no_filters PASSED [ 12%]
+tests/dmarket/test_game_filters.py::TestApplyFiltersToItems::test_apply_filters_price_filter PASSED [ 12%]
+tests/dmarket/test_game_filters.py::TestApplyFiltersToItems::test_apply_filters_different_games PASSED [ 12%]
+tests/dmarket/test_game_filters.py::TestApplyFiltersToItems::test_apply_filters_invalid_game PASSED [ 12%]
+tests/dmarket/test_game_filters.py::TestFilterCompatibility::test_all_filters_inherit_from_base PASSED [ 12%]
+tests/dmarket/test_game_filters.py::TestFilterCompatibility::test_all_filters_have_apply_method PASSED [ 12%]
+tests/dmarket/test_game_filters.py::TestFilterCompatibility::test_filter_factory_returns_correct_types PASSED [ 12%]
+tests/dmarket/test_game_filters.py::TestEdgeCases::test_filter_with_none_price PASSED [ 12%]
+tests/dmarket/test_game_filters.py::TestEdgeCases::test_filter_with_missing_price_key PASSED [ 12%]
+tests/dmarket/test_game_filters.py::TestEdgeCases::test_filter_with_zero_price PASSED [ 12%]
+tests/dmarket/test_game_filters.py::TestEdgeCases::test_filter_with_invalid_price_format PASSED [ 13%]
+tests/dmarket/test_game_filters.py::TestModuleExports::test_all_exports_defined PASSED [ 13%]
+tests/dmarket/test_game_filters.py::TestModuleExports::test_no_extra_exports PASSED [ 13%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_price_anomalies_success PASSED [ 13%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_price_anomalies_empty_items PASSED [ 13%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_price_anomalies_filter_by_price PASSED [ 13%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_price_anomalies_csgo_filters PASSED [ 13%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_price_anomalies_sorts_by_profit PASSED [ 13%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_trending_items_success PASSED [ 13%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_trending_items_upward_trend PASSED [ 13%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_trending_items_recovery_trend PASSED [ 13%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_trending_items_no_items PASSED [ 14%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_mispriced_rare_items_success PASSED [ 14%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_mispriced_rare_items_csgo_traits PASSED [ 14%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_mispriced_rare_items_dota2_traits PASSED [ 14%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_mispriced_rare_items_price_filter PASSED [ 14%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_mispriced_rare_items_sorts_by_discount PASSED [ 14%]
+tests/dmarket/test_intramarket_arbitrage.py::test_scan_for_intramarket_opportunities_success PASSED [ 14%]
+tests/dmarket/test_intramarket_arbitrage.py::test_scan_for_intramarket_opportunities_multiple_games PASSED [ 14%]
+tests/dmarket/test_intramarket_arbitrage.py::test_scan_for_intramarket_opportunities_selective PASSED [ 14%]
+tests/dmarket/test_intramarket_arbitrage.py::test_scan_for_intramarket_opportunities_error_handling PASSED [ 14%]
+tests/dmarket/test_intramarket_arbitrage.py::test_price_anomaly_type_enum PASSED [ 14%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_price_anomalies_tf2 PASSED [ 15%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_mispriced_rare_items_tf2 PASSED [ 15%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_trending_items_tf2 PASSED [ 15%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_price_anomalies_rust PASSED [ 15%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_mispriced_rare_items_rust PASSED [ 15%]
+tests/dmarket/test_intramarket_arbitrage.py::test_find_trending_items_rust PASSED [ 15%]
+tests/dmarket/test_intramarket_arbitrage.py::test_scan_for_intramarket_opportunities_all_games PASSED [ 15%]
+tests/dmarket/test_liquidity_analyzer.py::TestLiquidityMetrics::test_create_metrics PASSED [ 15%]
+tests/dmarket/test_liquidity_analyzer.py::TestLiquidityAnalyzer::test_analyzer_initialization PASSED [ 15%]
+tests/dmarket/test_liquidity_analyzer.py::TestLiquidityAnalyzer::test_analyze_high_liquidity_item PASSED [ 15%]
+tests/dmarket/test_liquidity_analyzer.py::TestLiquidityAnalyzer::test_analyze_low_liquidity_item PASSED [ 16%]
+tests/dmarket/test_liquidity_analyzer.py::TestLiquidityAnalyzer::test_filter_liquid_items PASSED [ 16%]
+tests/dmarket/test_liquidity_analyzer.py::TestLiquidityAnalyzer::test_calculate_sales_per_week PASSED [ 16%]
+tests/dmarket/test_liquidity_analyzer.py::TestLiquidityAnalyzer::test_calculate_avg_time_to_sell PASSED [ 16%]
+tests/dmarket/test_liquidity_analyzer.py::TestLiquidityAnalyzer::test_calculate_price_stability PASSED [ 16%]
+tests/dmarket/test_liquidity_analyzer.py::TestLiquidityAnalyzer::test_calculate_market_depth PASSED [ 16%]
+tests/dmarket/test_liquidity_analyzer.py::TestLiquidityAnalyzer::test_calculate_liquidity_score PASSED [ 16%]
+tests/dmarket/test_liquidity_analyzer.py::TestLiquidityAnalyzer::test_is_item_liquid PASSED [ 16%]
+tests/dmarket/test_liquidity_analyzer.py::TestLiquidityAnalyzer::test_get_liquidity_description PASSED [ 16%]
+tests/dmarket/test_liquidity_analyzer.py::TestLiquidityAnalyzer::test_empty_sales_history PASSED [ 16%]
+tests/dmarket/test_liquidity_analyzer.py::TestLiquidityAnalyzer::test_api_error_handling PASSED [ 16%]
+tests/dmarket/test_market_analysis.py::TestExtractPriceFromItem::test_extract_price_with_suggested_price PASSED [ 17%]
+tests/dmarket/test_market_analysis.py::TestExtractPriceFromItem::test_extract_price_with_price_field PASSED [ 17%]
+tests/dmarket/test_market_analysis.py::TestExtractPriceFromItem::test_extract_price_with_cents PASSED [ 17%]
+tests/dmarket/test_market_analysis.py::TestExtractPriceFromItem::test_extract_price_invalid PASSED [ 17%]
+tests/dmarket/test_market_analysis.py::TestCalculatePopularityScore::test_calculate_score_with_sales PASSED [ 17%]
+tests/dmarket/test_market_analysis.py::TestCalculatePopularityScore::test_calculate_score_zero_offers PASSED [ 17%]
+tests/dmarket/test_market_analysis.py::TestCalculatePopularityScore::test_calculate_score_no_data PASSED [ 17%]
+tests/dmarket/test_market_analysis.py::TestGetMarketDirection::test_direction_up PASSED [ 17%]
+tests/dmarket/test_market_analysis.py::TestGetMarketDirection::test_direction_down PASSED [ 17%]
+tests/dmarket/test_market_analysis.py::TestGetMarketDirection::test_direction_stable PASSED [ 17%]
+tests/dmarket/test_market_analysis.py::TestGetMarketDirection::test_direction_empty PASSED [ 18%]
+tests/dmarket/test_market_analysis.py::TestExtractTrendingCategories::test_extract_categories PASSED [ 18%]
+tests/dmarket/test_market_analysis.py::TestExtractTrendingCategories::test_extract_categories_empty PASSED [ 18%]
+tests/dmarket/test_market_analysis.py::TestCalculateMarketVolatilityLevel::test_high_volatility PASSED [ 18%]
+tests/dmarket/test_market_analysis.py::TestCalculateMarketVolatilityLevel::test_low_volatility PASSED [ 18%]
+tests/dmarket/test_market_analysis.py::TestCalculateMarketVolatilityLevel::test_empty_list PASSED [ 18%]
+tests/dmarket/test_market_analysis.py::TestGenerateMarketRecommendations::test_generate_recommendations PASSED [ 18%]
+tests/dmarket/test_market_analysis.py::TestGenerateMarketRecommendations::test_generate_recommendations_empty PASSED [ 18%]
+tests/dmarket/test_market_analysis.py::TestAnalyzePriceChanges::test_analyze_basic PASSED [ 18%]
+tests/dmarket/test_market_analysis.py::TestAnalyzePriceChanges::test_analyze_with_direction_up PASSED [ 18%]
+tests/dmarket/test_market_analysis.py::TestAnalyzePriceChanges::test_analyze_api_error PASSED [ 18%]
+tests/dmarket/test_market_analysis.py::TestAnalyzePriceChanges::test_analyze_empty_items PASSED [ 19%]
+tests/dmarket/test_market_analysis.py::TestFindTrendingItems::test_find_trending_basic PASSED [ 19%]
+tests/dmarket/test_market_analysis.py::TestFindTrendingItems::test_find_trending_min_sales_filter PASSED [ 19%]
+tests/dmarket/test_market_analysis.py::TestFindTrendingItems::test_find_trending_api_error PASSED [ 19%]
+tests/dmarket/test_market_analysis.py::TestAnalyzeMarketVolatility::test_analyze_volatility_basic PASSED [ 19%]
+tests/dmarket/test_market_analysis.py::TestAnalyzeMarketVolatility::test_analyze_volatility_empty PASSED [ 19%]
+tests/dmarket/test_market_analysis.py::TestGenerateMarketReport::test_generate_report_basic PASSED [ 19%]
+tests/dmarket/test_market_analysis.py::TestGenerateMarketReport::test_generate_report_multiple_games PASSED [ 19%]
+tests/dmarket/test_realtime_price_watcher.py::test_price_alert_initialization PASSED [ 19%]
+tests/dmarket/test_realtime_price_watcher.py::test_price_alert_check_condition_below_true PASSED [ 19%]
+tests/dmarket/test_realtime_price_watcher.py::test_price_alert_check_condition_below_false PASSED [ 19%]
+tests/dmarket/test_realtime_price_watcher.py::test_price_alert_check_condition_above_true PASSED [ 20%]
+tests/dmarket/test_realtime_price_watcher.py::test_price_alert_check_condition_above_false PASSED [ 20%]
+tests/dmarket/test_realtime_price_watcher.py::test_price_alert_check_condition_equal PASSED [ 20%]
+tests/dmarket/test_realtime_price_watcher.py::test_price_alert_reset PASSED [ 20%]
+tests/dmarket/test_realtime_price_watcher.py::test_price_alert_multiple_checks_after_trigger PASSED [ 20%]
+tests/dmarket/test_realtime_price_watcher.py::test_watcher_initialization PASSED [ 20%]
+tests/dmarket/test_realtime_price_watcher.py::test_watcher_start_success PASSED [ 20%]
+tests/dmarket/test_realtime_price_watcher.py::test_watcher_start_already_running PASSED [ 20%]
+tests/dmarket/test_realtime_price_watcher.py::test_watcher_start_connection_failed PASSED [ 20%]
+tests/dmarket/test_realtime_price_watcher.py::test_watcher_stop PASSED   [ 20%]
+tests/dmarket/test_realtime_price_watcher.py::test_watcher_stop_not_running PASSED [ 21%]
+tests/dmarket/test_realtime_price_watcher.py::test_watch_item_without_price PASSED [ 21%]
+tests/dmarket/test_realtime_price_watcher.py::test_watch_item_with_price PASSED [ 21%]
+tests/dmarket/test_realtime_price_watcher.py::test_unwatch_item PASSED   [ 21%]
+tests/dmarket/test_realtime_price_watcher.py::test_unwatch_item_not_watched PASSED [ 21%]
+tests/dmarket/test_realtime_price_watcher.py::test_add_price_alert PASSED [ 21%]
+tests/dmarket/test_realtime_price_watcher.py::test_add_multiple_alerts_same_item PASSED [ 21%]
+tests/dmarket/test_realtime_price_watcher.py::test_remove_price_alert PASSED [ 21%]
+tests/dmarket/test_realtime_price_watcher.py::test_remove_nonexistent_alert PASSED [ 21%]
+tests/dmarket/test_realtime_price_watcher.py::test_get_all_alerts PASSED [ 21%]
+tests/dmarket/test_realtime_price_watcher.py::test_get_triggered_alerts_empty PASSED [ 21%]
+tests/dmarket/test_realtime_price_watcher.py::test_get_triggered_alerts_with_triggers PASSED [ 22%]
+tests/dmarket/test_realtime_price_watcher.py::test_reset_triggered_alerts PASSED [ 22%]
+tests/dmarket/test_realtime_price_watcher.py::test_register_price_change_handler PASSED [ 22%]
+tests/dmarket/test_realtime_price_watcher.py::test_register_global_price_change_handler PASSED [ 22%]
+tests/dmarket/test_realtime_price_watcher.py::test_register_alert_handler PASSED [ 22%]
+tests/dmarket/test_realtime_price_watcher.py::test_get_current_price_exists PASSED [ 22%]
+tests/dmarket/test_realtime_price_watcher.py::test_get_current_price_not_exists PASSED [ 22%]
+tests/dmarket/test_realtime_price_watcher.py::test_add_to_price_history PASSED [ 22%]
+tests/dmarket/test_realtime_price_watcher.py::test_add_to_price_history_limit PASSED [ 22%]
+tests/dmarket/test_realtime_price_watcher.py::test_get_price_history_all PASSED [ 22%]
+tests/dmarket/test_realtime_price_watcher.py::test_get_price_history_with_limit PASSED [ 22%]
+tests/dmarket/test_realtime_price_watcher.py::test_get_price_history_empty PASSED [ 23%]
+tests/dmarket/test_realtime_price_watcher.py::test_get_item_metadata_exists PASSED [ 23%]
+tests/dmarket/test_realtime_price_watcher.py::test_get_item_metadata_not_exists PASSED [ 23%]
+tests/dmarket/test_realtime_price_watcher.py::test_subscribe_to_item_not_running PASSED [ 23%]
+tests/dmarket/test_realtime_price_watcher.py::test_subscribe_to_item_success PASSED [ 23%]
+tests/dmarket/test_realtime_price_watcher.py::test_subscribe_to_market_updates_not_running PASSED [ 23%]
+tests/dmarket/test_realtime_price_watcher.py::test_subscribe_to_market_updates_success PASSED [ 23%]
+tests/dmarket/test_realtime_price_watcher.py::test_fetch_item_price_success PASSED [ 23%]
+tests/dmarket/test_realtime_price_watcher.py::test_fetch_item_price_no_items PASSED [ 23%]
+tests/dmarket/test_realtime_price_watcher.py::test_fetch_item_price_api_error PASSED [ 23%]
+tests/dmarket/test_realtime_price_watcher.py::test_process_price_change_no_change PASSED [ 24%]
+tests/dmarket/test_realtime_price_watcher.py::test_process_price_change_with_handlers PASSED [ 24%]
+tests/dmarket/test_realtime_price_watcher.py::test_process_price_change_handler_error PASSED [ 24%]
+tests/dmarket/test_realtime_price_watcher.py::test_check_alerts_triggered PASSED [ 24%]
+tests/dmarket/test_realtime_price_watcher.py::test_check_alerts_not_triggered PASSED [ 24%]
+tests/dmarket/test_realtime_price_watcher.py::test_check_alerts_already_triggered PASSED [ 24%]
+tests/dmarket/test_realtime_price_watcher.py::test_handle_market_update_success PASSED [ 24%]
+tests/dmarket/test_realtime_price_watcher.py::test_handle_market_update_unwatched_item PASSED [ 24%]
+tests/dmarket/test_realtime_price_watcher.py::test_handle_items_update_with_metadata PASSED [ 24%]
+tests/dmarket/test_realtime_price_watcher.py::test_full_workflow_with_alert PASSED [ 24%]
+tests/dmarket/test_realtime_price_watcher.py::test_full_workflow_price_changes PASSED [ 24%]
+tests/dmarket/test_sales_history.py::TestHelperFunctions::test_calculate_median_odd_count PASSED [ 25%]
+tests/dmarket/test_sales_history.py::TestHelperFunctions::test_calculate_median_even_count PASSED [ 25%]
+tests/dmarket/test_sales_history.py::TestHelperFunctions::test_calculate_median_empty PASSED [ 25%]
+tests/dmarket/test_sales_history.py::TestHelperFunctions::test_calculate_median_single PASSED [ 25%]
+tests/dmarket/test_sales_history.py::TestHelperFunctions::test_calculate_std_dev PASSED [ 25%]
+tests/dmarket/test_sales_history.py::TestHelperFunctions::test_calculate_std_dev_empty PASSED [ 25%]
+tests/dmarket/test_sales_history.py::TestHelperFunctions::test_calculate_std_dev_single PASSED [ 25%]
+tests/dmarket/test_sales_history.py::TestHelperFunctions::test_extract_price_from_item_sales_price PASSED [ 25%]
+tests/dmarket/test_sales_history.py::TestHelperFunctions::test_extract_price_from_item_price_usd PASSED [ 25%]
+tests/dmarket/test_sales_history.py::TestHelperFunctions::test_extract_price_from_item_no_price PASSED [ 25%]
+tests/dmarket/test_sales_history.py::TestHelperFunctions::test_extract_price_from_item_invalid_format PASSED [ 26%]
+tests/dmarket/test_sales_history.py::TestHelperFunctions::test_get_cache_file_path PASSED [ 26%]
+tests/dmarket/test_sales_history.py::TestCacheOperations::test_save_and_load_cache PASSED [ 26%]
+tests/dmarket/test_sales_history.py::TestCacheOperations::test_load_cache_expired PASSED [ 26%]
+tests/dmarket/test_sales_history.py::TestCacheOperations::test_load_cache_not_exists PASSED [ 26%]
+tests/dmarket/test_sales_history.py::TestGetItemSalesHistory::test_get_sales_history_success PASSED [ 26%]
+tests/dmarket/test_sales_history.py::TestGetItemSalesHistory::test_get_sales_history_empty PASSED [ 26%]
+tests/dmarket/test_sales_history.py::TestGetItemSalesHistory::test_get_sales_history_invalid_response PASSED [ 26%]
+tests/dmarket/test_sales_history.py::TestGetItemSalesHistory::test_get_sales_history_with_cache PASSED [ 26%]
+tests/dmarket/test_sales_history.py::TestDetectPriceAnomalies::test_detect_anomalies_found PASSED [ 26%]
+tests/dmarket/test_sales_history.py::TestDetectPriceAnomalies::test_detect_anomalies_none PASSED [ 26%]
+tests/dmarket/test_sales_history.py::TestDetectPriceAnomalies::test_detect_anomalies_no_data PASSED [ 27%]
+tests/dmarket/test_sales_history.py::TestCalculatePriceTrend::test_price_trend_up PASSED [ 27%]
+tests/dmarket/test_sales_history.py::TestCalculatePriceTrend::test_price_trend_down PASSED [ 27%]
+tests/dmarket/test_sales_history.py::TestCalculatePriceTrend::test_price_trend_stable PASSED [ 27%]
+tests/dmarket/test_sales_history.py::TestCalculatePriceTrend::test_price_trend_no_data PASSED [ 27%]
+tests/dmarket/test_sales_history.py::TestCompatibilityFunctions::test_get_sales_history_success PASSED [ 27%]
+tests/dmarket/test_sales_history.py::TestCompatibilityFunctions::test_get_sales_history_empty_items PASSED [ 27%]
+tests/dmarket/test_sales_history.py::TestCompatibilityFunctions::test_analyze_sales_history_success PASSED [ 27%]
+tests/dmarket/test_sales_history.py::TestCompatibilityFunctions::test_analyze_sales_history_no_data PASSED [ 27%]
+tests/dmarket/test_sales_history.py::TestCompatibilityFunctions::test_execute_api_request PASSED [ 27%]
+tests/dmarket/test_sales_history.py::TestCompatibilityFunctions::test_get_arbitrage_opportunities_with_sales_history PASSED [ 27%]
+tests/dmarket/test_sales_history.py::TestEdgeCases::test_get_sales_history_api_error PASSED [ 28%]
+tests/dmarket/test_sales_history.py::TestEdgeCases::test_invalid_period PASSED [ 28%]
+tests/dmarket/test_smart_market_finder.py::test_smart_market_finder_initialization PASSED [ 28%]
+tests/dmarket/test_smart_market_finder.py::test_smart_market_finder_custom_settings PASSED [ 28%]
+tests/dmarket/test_smart_market_finder.py::test_find_best_opportunities_success PASSED [ 28%]
+tests/dmarket/test_smart_market_finder.py::test_find_best_opportunities_no_items PASSED [ 28%]
+tests/dmarket/test_smart_market_finder.py::test_find_best_opportunities_api_error PASSED [ 28%]
+tests/dmarket/test_smart_market_finder.py::test_find_underpriced_items_success PASSED [ 28%]
+tests/dmarket/test_smart_market_finder.py::test_find_underpriced_items_no_results PASSED [ 28%]
+tests/dmarket/test_smart_market_finder.py::test_determine_opportunity_type_underpriced PASSED [ 28%]
+tests/dmarket/test_smart_market_finder.py::test_determine_opportunity_type_high_liquidity PASSED [ 29%]
+tests/dmarket/test_smart_market_finder.py::test_calculate_confidence_score PASSED [ 29%]
+tests/dmarket/test_smart_market_finder.py::test_calculate_liquidity_score PASSED [ 29%]
+tests/dmarket/test_smart_market_finder.py::test_determine_risk_level_low PASSED [ 29%]
+tests/dmarket/test_smart_market_finder.py::test_determine_risk_level_high PASSED [ 29%]
+tests/dmarket/test_smart_market_finder.py::test_estimate_time_to_sell PASSED [ 29%]
+tests/dmarket/test_smart_market_finder.py::test_find_best_deals PASSED   [ 29%]
+tests/dmarket/test_smart_market_finder.py::test_find_quick_profits PASSED [ 29%]
+tests/dmarket/test_smart_market_finder.py::test_market_opportunity_type_enum PASSED [ 29%]
+tests/dmarket/test_smart_market_finder.py::test_market_opportunity_dataclass PASSED [ 29%]
+tests/dmarket/test_smart_market_finder.py::test_find_target_opportunities_success PASSED [ 29%]
+tests/dmarket/test_smart_market_finder.py::test_find_target_opportunities_no_spread PASSED [ 30%]
+tests/dmarket/test_smart_market_finder.py::test_find_target_opportunities_api_error PASSED [ 30%]
+tests/dmarket/test_smart_market_finder.py::test_find_quick_flip_opportunities_success PASSED [ 30%]
+tests/dmarket/test_smart_market_finder.py::test_find_quick_flip_no_liquidity PASSED [ 30%]
+tests/dmarket/test_smart_market_finder.py::test_get_market_items_with_aggregated_prices PASSED [ 30%]
+tests/dmarket/test_smart_market_finder.py::test_get_market_items_with_aggregated_prices_cache PASSED [ 30%]
+tests/dmarket/test_smart_market_finder.py::test_analyze_item_opportunity_underpriced PASSED [ 30%]
+tests/dmarket/test_smart_market_finder.py::test_analyze_item_opportunity_no_suggested_price PASSED [ 30%]
+tests/dmarket/test_targets.py::test_target_manager_initialization PASSED [ 30%]
+tests/dmarket/test_targets.py::test_create_target_success PASSED         [ 30%]
+tests/dmarket/test_targets.py::test_create_target_invalid_price PASSED   [ 31%]
+tests/dmarket/test_targets.py::test_create_target_invalid_amount PASSED  [ 31%]
+tests/dmarket/test_targets.py::test_create_target_empty_title PASSED     [ 31%]
+tests/dmarket/test_targets.py::test_create_target_with_attrs PASSED      [ 31%]
+tests/dmarket/test_targets.py::test_get_user_targets_success PASSED      [ 31%]
+tests/dmarket/test_targets.py::test_get_user_targets_empty PASSED        [ 31%]
+tests/dmarket/test_targets.py::test_get_targets_by_title PASSED          [ 31%]
+tests/dmarket/test_targets.py::test_delete_target_success PASSED         [ 31%]
+tests/dmarket/test_targets.py::test_delete_target_not_found PASSED       [ 31%]
+tests/dmarket/test_targets.py::test_delete_all_targets PASSED            [ 31%]
+tests/dmarket/test_targets.py::test_get_target_statistics PASSED         [ 31%]
+tests/dmarket/test_targets.py::test_get_closed_targets PASSED            [ 32%]
+tests/dmarket/test_targets.py::test_create_smart_targets_basic PASSED    [ 32%]
+tests/telegram_bot/handlers/test_arbitrage_callback_impl.py::test_arbitrage_callback_impl_shows_menu PASSED [ 32%]
+tests/telegram_bot/handlers/test_arbitrage_callback_impl.py::test_handle_dmarket_arbitrage_boost_success PASSED [ 32%]
+tests/telegram_bot/handlers/test_arbitrage_callback_impl.py::test_handle_dmarket_arbitrage_rate_limit_error PASSED [ 32%]
+tests/telegram_bot/handlers/test_arbitrage_callback_impl.py::test_handle_game_selection_impl_shows_menu PASSED [ 32%]
+tests/telegram_bot/handlers/test_arbitrage_callback_impl.py::test_handle_game_selected_impl_saves_game PASSED [ 32%]
+tests/telegram_bot/handlers/test_callbacks.py::TestArbitrageCallbackImpl::test_arbitrage_callback_opens_menu PASSED [ 32%]
+tests/telegram_bot/handlers/test_callbacks.py::TestArbitrageCallbackImpl::test_arbitrage_callback_uses_html_parse_mode PASSED [ 32%]
+tests/telegram_bot/handlers/test_callbacks.py::TestHandleDmarketArbitrageImpl::test_successful_arbitrage_search PASSED [ 32%]
+tests/telegram_bot/handlers/test_callbacks.py::TestHandleDmarketArbitrageImpl::test_no_opportunities_found PASSED [ 32%]
+tests/telegram_bot/handlers/test_callbacks.py::TestHandleDmarketArbitrageImpl::test_no_api_client PASSED [ 33%]
+tests/telegram_bot/handlers/test_callbacks.py::TestHandleDmarketArbitrageImpl::test_exception_handling PASSED [ 33%]
+tests/telegram_bot/handlers/test_callbacks.py::TestShowArbitrageOpportunities::test_show_opportunities_with_pagination PASSED [ 33%]
+tests/telegram_bot/handlers/test_callbacks.py::TestShowArbitrageOpportunities::test_show_opportunities_custom_page FAILED [ 33%]
+tests/telegram_bot/handlers/test_callbacks.py::TestHandleArbitragePagination::test_pagination_next_page FAILED [ 33%]
+tests/telegram_bot/handlers/test_callbacks.py::TestHandleArbitragePagination::test_pagination_prev_page PASSED [ 33%]
+tests/telegram_bot/handlers/test_callbacks.py::TestHandleArbitragePagination::test_pagination_stays_at_first_page PASSED [ 33%]
+tests/telegram_bot/handlers/test_callbacks.py::TestHandleArbitragePagination::test_pagination_stays_at_last_page PASSED [ 33%]
+tests/telegram_bot/handlers/test_callbacks.py::TestHandleBestOpportunitiesImpl::test_calls_arbitrage_with_best_mode PASSED [ 33%]
+tests/telegram_bot/handlers/test_callbacks.py::TestHandleGameSelectionImpl::test_shows_game_selection_menu PASSED [ 33%]
+tests/telegram_bot/handlers/test_callbacks.py::TestHandleGameSelectedImpl::test_successful_game_selection PASSED [ 34%]
+tests/telegram_bot/handlers/test_callbacks.py::TestHandleGameSelectedImpl::test_no_api_client_game_selection FAILED [ 34%]
+tests/telegram_bot/handlers/test_callbacks.py::TestHandleMarketComparisonImpl::test_shows_market_comparison_placeholder PASSED [ 34%]
+tests/telegram_bot/handlers/test_commands.py::test_start_command_sends_welcome_message PASSED [ 34%]
+tests/telegram_bot/handlers/test_commands.py::test_start_command_sends_quick_access_keyboard PASSED [ 34%]
+tests/telegram_bot/handlers/test_commands.py::test_start_command_sets_keyboard_enabled_flag PASSED [ 34%]
+tests/telegram_bot/handlers/test_commands.py::test_start_command_with_no_user_data PASSED [ 34%]
+tests/telegram_bot/handlers/test_commands.py::test_help_command_sends_help_message PASSED [ 34%]
+tests/telegram_bot/handlers/test_commands.py::test_webapp_command_sends_webapp_message PASSED [ 34%]
+tests/telegram_bot/handlers/test_commands.py::test_markets_command_sends_marketplace_comparison PASSED [ 34%]
+tests/telegram_bot/handlers/test_commands.py::test_dmarket_status_command_sends_status_message PASSED [ 34%]
+tests/telegram_bot/handlers/test_commands.py::test_arbitrage_command_sends_typing_action PASSED [ 35%]
+tests/telegram_bot/handlers/test_commands.py::test_arbitrage_command_sends_arbitrage_keyboard PASSED [ 35%]
+tests/telegram_bot/handlers/test_commands.py::test_handle_text_buttons_arbitrage_button PASSED [ 35%]
+tests/telegram_bot/handlers/test_commands.py::test_handle_text_buttons_balance_button PASSED [ 35%]
+tests/telegram_bot/handlers/test_commands.py::test_handle_text_buttons_open_dmarket_button PASSED [ 35%]
+tests/telegram_bot/handlers/test_commands.py::test_handle_text_buttons_market_analysis_button PASSED [ 35%]
+tests/telegram_bot/handlers/test_commands.py::test_handle_text_buttons_settings_button PASSED [ 35%]
+tests/telegram_bot/handlers/test_commands.py::test_handle_text_buttons_help_button PASSED [ 35%]
+tests/telegram_bot/handlers/test_commands.py::test_handle_text_buttons_unknown_text PASSED [ 35%]
+tests/telegram_bot/handlers/test_commands.py::test_full_workflow_start_to_arbitrage PASSED [ 35%]
+tests/telegram_bot/handlers/test_commands.py::test_all_commands_use_html_parse_mode PASSED [ 36%]
+tests/telegram_bot/handlers/test_commands.py::test_all_commands_send_reply_markup PASSED [ 36%]
+tests/telegram_bot/handlers/test_commands.py::test_all_functions_exported PASSED [ 36%]
+tests/telegram_bot/handlers/test_commands.py::test_all_exported_functions_callable PASSED [ 36%]
+tests/telegram_bot/handlers/test_error_handlers.py::test_error_handler_rate_limit_error PASSED [ 36%]
+tests/telegram_bot/handlers/test_error_handlers.py::test_error_handler_auth_error PASSED [ 36%]
+tests/telegram_bot/handlers/test_error_handlers.py::test_error_handler_not_found_error PASSED [ 36%]
+tests/telegram_bot/handlers/test_error_handlers.py::test_error_handler_server_error PASSED [ 36%]
+tests/telegram_bot/handlers/test_error_handlers.py::test_error_handler_other_api_error PASSED [ 36%]
+tests/telegram_bot/handlers/test_error_handlers.py::test_error_handler_generic_error PASSED [ 36%]
+tests/telegram_bot/handlers/test_error_handlers.py::test_error_handler_no_update PASSED [ 36%]
+tests/telegram_bot/handlers/test_error_handlers.py::test_error_handler_no_effective_message PASSED [ 37%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_market_analysis_command_success PASSED [ 37%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_market_analysis_command_creates_keyboard PASSED [ 37%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_market_analysis_callback_select_game PASSED [ 37%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_market_analysis_callback_initializes_user_data PASSED [ 37%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_market_analysis_callback_price_changes PASSED [ 37%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_market_analysis_callback_api_error PASSED [ 37%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_show_price_changes_results_success PASSED [ 37%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_show_price_changes_results_empty PASSED [ 37%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_show_trending_items_results PASSED [ 37%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_show_volatility_results PASSED [ 37%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_show_market_report PASSED [ 38%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_show_market_report_with_error PASSED [ 38%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_show_undervalued_items_results PASSED [ 38%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_show_investment_recommendations_results PASSED [ 38%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_handle_pagination_analysis_next_page PASSED [ 38%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_handle_pagination_analysis_prev_page PASSED [ 38%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_handle_period_change PASSED [ 38%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_handle_risk_level_change PASSED [ 38%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_get_back_to_market_analysis_keyboard PASSED [ 38%]
+tests/telegram_bot/handlers/test_market_analysis_handler.py::test_register_market_analysis_handlers PASSED [ 38%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_format_scanner_item_contains_all_fields PASSED [ 39%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_format_scanner_item_with_missing_fields PASSED [ 39%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_format_scanner_item_with_empty_dict PASSED [ 39%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_format_scanner_results_empty_list PASSED [ 39%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_format_scanner_results_with_items PASSED [ 39%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_format_scanner_results_page_number PASSED [ 39%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_start_scanner_menu_with_callback_query PASSED [ 39%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_start_scanner_menu_without_callback_query PASSED [ 39%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_start_scanner_menu_has_all_level_buttons PASSED [ 39%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_start_scanner_menu_button_callbacks PASSED [ 39%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_level_scan_success PASSED [ 39%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_level_scan_no_callback_query PASSED [ 40%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_level_scan_invalid_level PASSED [ 40%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_level_scan_api_client_none PASSED [ 40%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_level_scan_no_results PASSED [ 40%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_level_scan_exception PASSED [ 40%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_market_overview_success PASSED [ 40%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_market_overview_no_callback_query PASSED [ 40%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_market_overview_api_client_none PASSED [ 40%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_market_overview_exception PASSED [ 40%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_scanner_pagination_next PASSED [ 40%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_scanner_pagination_prev PASSED [ 40%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_scanner_pagination_no_callback_query PASSED [ 41%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_scanner_pagination_invalid_data PASSED [ 41%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_scanner_callback_main_menu PASSED [ 41%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_scanner_callback_level_scan PASSED [ 41%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_scanner_callback_market_overview PASSED [ 41%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_scanner_callback_unknown_action PASSED [ 41%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_scanner_callback_no_callback_query PASSED [ 41%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_register_scanner_handlers PASSED [ 41%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_integration_full_scan_workflow PASSED [ 41%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_integration_all_menu_buttons_work PASSED [ 41%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_level_scan_no_effective_user PASSED [ 42%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_handle_scanner_pagination_no_effective_user PASSED [ 42%]
+tests/telegram_bot/handlers/test_scanner_handler.py::test_format_scanner_results_large_page_number PASSED [ 42%]
+tests/telegram_bot/handlers/test_target_handler.py::test_start_targets_menu_with_callback_query PASSED [ 42%]
+tests/telegram_bot/handlers/test_target_handler.py::test_start_targets_menu_without_callback_query PASSED [ 42%]
+tests/telegram_bot/handlers/test_target_handler.py::test_start_targets_menu_no_effective_user PASSED [ 42%]
+tests/telegram_bot/handlers/test_target_handler.py::test_start_targets_menu_has_all_buttons PASSED [ 42%]
+tests/telegram_bot/handlers/test_target_handler.py::test_start_targets_menu_button_callbacks PASSED [ 42%]
+tests/telegram_bot/handlers/test_target_handler.py::test_handle_target_callback_main_menu PASSED [ 42%]
+tests/telegram_bot/handlers/test_target_handler.py::test_handle_target_callback_create_action PASSED [ 42%]
+tests/telegram_bot/handlers/test_target_handler.py::test_handle_target_callback_list_action PASSED [ 42%]
+tests/telegram_bot/handlers/test_target_handler.py::test_handle_target_callback_smart_action PASSED [ 43%]
+tests/telegram_bot/handlers/test_target_handler.py::test_handle_target_callback_stats_action PASSED [ 43%]
+tests/telegram_bot/handlers/test_target_handler.py::test_handle_target_callback_delete_action PASSED [ 43%]
+tests/telegram_bot/handlers/test_target_handler.py::test_handle_target_callback_no_callback_query PASSED [ 43%]
+tests/telegram_bot/handlers/test_target_handler.py::test_register_target_handlers PASSED [ 43%]
+tests/telegram_bot/handlers/test_target_handler.py::test_register_target_handlers_command_handler PASSED [ 43%]
+tests/telegram_bot/handlers/test_target_handler.py::test_register_target_handlers_callback_handler PASSED [ 43%]
+tests/telegram_bot/handlers/test_target_handler.py::test_integration_full_target_workflow PASSED [ 43%]
+tests/telegram_bot/handlers/test_target_handler.py::test_integration_all_menu_buttons_work PASSED [ 43%]
+tests/telegram_bot/handlers/test_target_handler.py::test_edge_case_multiple_menu_opens PASSED [ 43%]
+tests/telegram_bot/handlers/test_target_handler.py::test_edge_case_rapid_callback_queries PASSED [ 44%]
+tests/telegram_bot/handlers/test_target_handler.py::test_edge_case_unknown_callback_data PASSED [ 44%]
+tests/telegram_bot/test_auto_arbitrage.py::TestArbitrageModes::test_all_modes_exist PASSED [ 44%]
+tests/telegram_bot/test_auto_arbitrage.py::TestArbitrageModes::test_mode_structure PASSED [ 44%]
+tests/telegram_bot/test_auto_arbitrage.py::TestArbitrageModes::test_price_ranges_ascending PASSED [ 44%]
+tests/telegram_bot/test_auto_arbitrage.py::TestArbitrageModes::test_profit_requirements_ascending PASSED [ 44%]
+tests/telegram_bot/test_auto_arbitrage.py::TestSafeEditMessageText::test_successful_edit PASSED [ 44%]
+tests/telegram_bot/test_auto_arbitrage.py::TestSafeEditMessageText::test_message_not_modified PASSED [ 44%]
+tests/telegram_bot/test_auto_arbitrage.py::TestSafeEditMessageText::test_other_bad_request PASSED [ 44%]
+tests/telegram_bot/test_auto_arbitrage.py::TestFormatAutoArbitrageResults::test_empty_items PASSED [ 44%]
+tests/telegram_bot/test_auto_arbitrage.py::TestFormatAutoArbitrageResults::test_format_single_item PASSED [ 44%]
+tests/telegram_bot/test_auto_arbitrage.py::TestFormatAutoArbitrageResults::test_multiple_pages PASSED [ 45%]
+tests/telegram_bot/test_auto_arbitrage.py::TestFormatAutoArbitrageResults::test_price_format_dict PASSED [ 45%]
+tests/telegram_bot/test_auto_arbitrage.py::TestFormatAutoArbitrageResults::test_price_format_string PASSED [ 45%]
+tests/telegram_bot/test_auto_arbitrage.py::TestCreateDMarketAPIClient::test_create_from_context PASSED [ 45%]
+tests/telegram_bot/test_auto_arbitrage.py::TestCreateDMarketAPIClient::test_create_from_env PASSED [ 45%]
+tests/telegram_bot/test_auto_arbitrage.py::TestCreateDMarketAPIClient::test_missing_keys PASSED [ 45%]
+tests/telegram_bot/test_auto_arbitrage.py::TestCheckBalanceCommand::test_successful_balance_check PASSED [ 45%]
+tests/telegram_bot/test_auto_arbitrage.py::TestCheckBalanceCommand::test_api_error_handling PASSED [ 45%]
+tests/telegram_bot/test_auto_arbitrage.py::TestHandleAutoTrade::test_auto_trade_initialization PASSED [ 45%]
+tests/telegram_bot/test_auto_arbitrage.py::TestStartAutoTrading::test_start_trading_with_valid_mode PASSED [ 45%]
+tests/telegram_bot/test_auto_arbitrage.py::TestStartAutoTrading::test_insufficient_balance PASSED [ 45%]
+tests/telegram_bot/test_auto_arbitrage.py::TestIntegration::test_full_arbitrage_workflow PASSED [ 46%]
+tests/telegram_bot/test_auto_arbitrage_scanner.py::test_scan_game_for_arbitrage_success PASSED [ 46%]
+tests/telegram_bot/test_auto_arbitrage_scanner.py::test_scan_game_for_arbitrage_different_modes PASSED [ 46%]
+tests/telegram_bot/test_auto_arbitrage_scanner.py::test_scan_game_for_arbitrage_error_handling PASSED [ 46%]
+tests/telegram_bot/test_auto_arbitrage_scanner.py::test_scan_multiple_games PASSED [ 46%]
+tests/telegram_bot/test_auto_arbitrage_scanner.py::test_check_user_balance_success PASSED [ 46%]
+tests/telegram_bot/test_auto_arbitrage_scanner.py::test_check_user_balance_no_api_keys PASSED [ 46%]
+tests/telegram_bot/test_auto_arbitrage_scanner.py::test_check_user_balance_low_funds PASSED [ 46%]
+tests/telegram_bot/test_auto_arbitrage_scanner.py::test_auto_trade_items_sufficient_balance PASSED [ 46%]
+tests/telegram_bot/test_auto_arbitrage_scanner.py::test_auto_trade_items_insufficient_balance PASSED [ 46%]
+tests/telegram_bot/test_constants_and_basic_commands.py::test_env_path_defined PASSED [ 47%]
+tests/telegram_bot/test_constants_and_basic_commands.py::test_user_profiles_file_defined PASSED [ 47%]
+tests/telegram_bot/test_constants_and_basic_commands.py::test_languages_defined PASSED [ 47%]
+tests/telegram_bot/test_constants_and_basic_commands.py::test_arbitrage_modes_defined PASSED [ 47%]
+tests/telegram_bot/test_constants_and_basic_commands.py::test_price_alert_keys_defined PASSED [ 47%]
+tests/telegram_bot/test_constants_and_basic_commands.py::test_pagination_constants PASSED [ 47%]
+tests/telegram_bot/test_constants_and_basic_commands.py::test_interface_constants PASSED [ 47%]
+tests/telegram_bot/test_constants_and_basic_commands.py::test_start_command PASSED [ 47%]
+tests/telegram_bot/test_constants_and_basic_commands.py::test_help_command PASSED [ 47%]
+tests/telegram_bot/test_constants_and_basic_commands.py::test_start_command_no_message PASSED [ 47%]
+tests/telegram_bot/test_constants_and_basic_commands.py::test_help_command_no_message PASSED [ 47%]
+tests/telegram_bot/test_constants_and_basic_commands.py::test_register_basic_commands PASSED [ 48%]
+tests/telegram_bot/test_game_filter_handlers.py::test_cs2_categories_defined PASSED [ 48%]
+tests/telegram_bot/test_game_filter_handlers.py::test_cs2_rarities_defined PASSED [ 48%]
+tests/telegram_bot/test_game_filter_handlers.py::test_cs2_exteriors_defined PASSED [ 48%]
+tests/telegram_bot/test_game_filter_handlers.py::test_dota2_heroes_defined PASSED [ 48%]
+tests/telegram_bot/test_game_filter_handlers.py::test_dota2_rarities_defined PASSED [ 48%]
+tests/telegram_bot/test_game_filter_handlers.py::test_dota2_slots_defined PASSED [ 48%]
+tests/telegram_bot/test_game_filter_handlers.py::test_get_current_filters_no_filters PASSED [ 48%]
+tests/telegram_bot/test_game_filter_handlers.py::test_get_current_filters_with_existing_filters PASSED [ 48%]
+tests/telegram_bot/test_game_filter_handlers.py::test_update_filters_new_filter PASSED [ 48%]
+tests/telegram_bot/test_game_filter_handlers.py::test_update_filters_update_existing PASSED [ 49%]
+tests/telegram_bot/test_game_filter_handlers.py::test_update_filters_remove_filter PASSED [ 49%]
+tests/telegram_bot/test_game_filter_handlers.py::test_get_game_filter_keyboard_csgo PASSED [ 49%]
+tests/telegram_bot/test_game_filter_handlers.py::test_get_game_filter_keyboard_dota2 PASSED [ 49%]
+tests/telegram_bot/test_game_filter_handlers.py::test_get_filter_description_no_filters PASSED [ 49%]
+tests/telegram_bot/test_game_filter_handlers.py::test_get_filter_description_with_filters PASSED [ 49%]
+tests/telegram_bot/test_game_filter_handlers.py::test_build_api_params_for_game_csgo PASSED [ 49%]
+tests/telegram_bot/test_game_filter_handlers.py::test_build_api_params_for_game_empty_filters PASSED [ 49%]
+tests/telegram_bot/test_game_filter_handlers.py::test_handle_game_filters PASSED [ 49%]
+tests/telegram_bot/test_game_filter_handlers.py::test_handle_select_game_filter_callback PASSED [ 49%]
+tests/telegram_bot/test_game_filter_handlers.py::test_handle_set_category_callback PASSED [ 49%]
+tests/telegram_bot/test_game_filter_handlers.py::test_handle_set_rarity_callback PASSED [ 50%]
+tests/telegram_bot/test_game_filter_handlers.py::test_handle_set_exterior_callback PASSED [ 50%]
+tests/telegram_bot/test_game_filter_handlers.py::test_handle_set_hero_callback PASSED [ 50%]
+tests/telegram_bot/test_game_filter_handlers.py::test_handle_back_to_filters_callback PASSED [ 50%]
+tests/telegram_bot/test_intramarket_handler.py::TestFormatting::test_format_price_anomaly PASSED [ 50%]
+tests/telegram_bot/test_intramarket_handler.py::TestFormatting::test_format_trending_item PASSED [ 50%]
+tests/telegram_bot/test_intramarket_handler.py::TestFormatting::test_format_rare_item PASSED [ 50%]
+tests/telegram_bot/test_intramarket_handler.py::TestStartArbitrage::test_start_intramarket_arbitrage PASSED [ 50%]
+tests/telegram_bot/test_intramarket_handler.py::TestHandleIntramarketCallback::test_handle_anomaly_callback PASSED [ 50%]
+tests/telegram_bot/test_intramarket_handler.py::TestHandleIntramarketCallback::test_handle_trend_callback PASSED [ 50%]
+tests/telegram_bot/test_intramarket_handler.py::TestHandleIntramarketCallback::test_handle_rare_callback PASSED [ 50%]
+tests/telegram_bot/test_intramarket_handler.py::TestHandleIntramarketCallback::test_handle_invalid_callback PASSED [ 51%]
+tests/telegram_bot/test_intramarket_handler.py::TestHandleIntramarketCallback::test_handle_no_results PASSED [ 51%]
+tests/telegram_bot/test_intramarket_handler.py::TestHandleIntramarketCallback::test_handle_error PASSED [ 51%]
+tests/telegram_bot/test_keyboards.py::test_constants_defined PASSED      [ 51%]
+tests/telegram_bot/test_keyboards.py::test_games_imported PASSED         [ 51%]
+tests/telegram_bot/test_keyboards.py::test_get_main_menu_keyboard PASSED [ 51%]
+tests/telegram_bot/test_keyboards.py::test_get_settings_keyboard PASSED  [ 51%]
+tests/telegram_bot/test_keyboards.py::test_get_back_to_settings_keyboard PASSED [ 51%]
+tests/telegram_bot/test_keyboards.py::test_get_games_keyboard_default PASSED [ 51%]
+tests/telegram_bot/test_keyboards.py::test_get_games_keyboard_custom_prefix PASSED [ 51%]
+tests/telegram_bot/test_keyboards.py::test_get_arbitrage_keyboard PASSED [ 52%]
+tests/telegram_bot/test_keyboards.py::test_get_price_range_keyboard_no_current PASSED [ 52%]
+tests/telegram_bot/test_keyboards.py::test_get_price_range_keyboard_with_current PASSED [ 52%]
+tests/telegram_bot/test_keyboards.py::test_get_confirm_cancel_keyboard_default PASSED [ 52%]
+tests/telegram_bot/test_keyboards.py::test_get_confirm_cancel_keyboard_custom PASSED [ 52%]
+tests/telegram_bot/test_keyboards.py::test_get_filter_keyboard_csgo PASSED [ 52%]
+tests/telegram_bot/test_keyboards.py::test_get_filter_keyboard_dota2 PASSED [ 52%]
+tests/telegram_bot/test_keyboards.py::test_get_pagination_keyboard_first_page PASSED [ 52%]
+tests/telegram_bot/test_keyboards.py::test_get_pagination_keyboard_middle_page PASSED [ 52%]
+tests/telegram_bot/test_keyboards.py::test_get_pagination_keyboard_last_page PASSED [ 52%]
+tests/telegram_bot/test_keyboards.py::test_create_pagination_keyboard PASSED [ 52%]
+tests/telegram_bot/test_keyboards.py::test_get_alert_keyboard PASSED     [ 53%]
+tests/telegram_bot/test_keyboards.py::test_get_alert_type_keyboard PASSED [ 53%]
+tests/telegram_bot/test_keyboards.py::test_get_alert_actions_keyboard PASSED [ 53%]
+tests/telegram_bot/test_keyboards.py::test_get_csgo_exterior_keyboard PASSED [ 53%]
+tests/telegram_bot/test_keyboards.py::test_get_rarity_keyboard PASSED    [ 53%]
+tests/telegram_bot/test_keyboards.py::test_get_csgo_weapon_type_keyboard PASSED [ 53%]
+tests/telegram_bot/test_keyboards.py::test_get_webapp_keyboard PASSED    [ 53%]
+tests/telegram_bot/test_keyboards.py::test_get_dmarket_webapp_keyboard PASSED [ 53%]
+tests/telegram_bot/test_keyboards.py::test_get_payment_keyboard PASSED   [ 53%]
+tests/telegram_bot/test_keyboards.py::test_get_login_keyboard PASSED     [ 53%]
+tests/telegram_bot/test_keyboards.py::test_remove_keyboard PASSED        [ 54%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_get_liquidity_settings_default PASSED [ 54%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_get_liquidity_settings_existing PASSED [ 54%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_update_liquidity_settings PASSED [ 54%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_liquidity_settings_command PASSED [ 54%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_toggle_liquidity_filter PASSED [ 54%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_reset_liquidity_settings PASSED [ 54%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_set_min_liquidity_score_prompt PASSED [ 54%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_set_min_sales_per_week_prompt PASSED [ 54%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_set_max_time_to_sell_prompt PASSED [ 54%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_process_liquidity_score_input_valid PASSED [ 54%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_process_liquidity_score_input_invalid_range PASSED [ 55%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_process_liquidity_score_input_invalid_type PASSED [ 55%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_process_sales_per_week_input_valid PASSED [ 55%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_process_sales_per_week_input_negative PASSED [ 55%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_process_time_to_sell_input_valid PASSED [ 55%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_process_time_to_sell_input_zero PASSED [ 55%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_cancel_liquidity_input PASSED [ 55%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_liquidity_settings_command_without_message PASSED [ 55%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_toggle_liquidity_filter_without_callback PASSED [ 55%]
+tests/telegram_bot/test_liquidity_settings_handler.py::test_process_liquidity_value_input_no_user_data PASSED [ 55%]
+tests/telegram_bot/test_notifier.py::test_load_user_alerts_file_exists PASSED [ 55%]
+tests/telegram_bot/test_notifier.py::test_load_user_alerts_file_not_exists PASSED [ 56%]
+tests/telegram_bot/test_notifier.py::test_save_user_alerts PASSED        [ 56%]
+tests/telegram_bot/test_notifier.py::test_add_price_alert_new_user PASSED [ 56%]
+tests/telegram_bot/test_notifier.py::test_add_price_alert_existing_user PASSED [ 56%]
+tests/telegram_bot/test_notifier.py::test_add_price_alert_creates_unique_id PASSED [ 56%]
+tests/telegram_bot/test_notifier.py::test_remove_price_alert_success PASSED [ 56%]
+tests/telegram_bot/test_notifier.py::test_remove_price_alert_not_found PASSED [ 56%]
+tests/telegram_bot/test_notifier.py::test_remove_price_alert_user_not_found PASSED [ 56%]
+tests/telegram_bot/test_notifier.py::test_get_user_alerts_existing_user PASSED [ 56%]
+tests/telegram_bot/test_notifier.py::test_get_user_alerts_new_user PASSED [ 56%]
+tests/telegram_bot/test_notifier.py::test_get_user_alerts_multiple PASSED [ 57%]
+tests/telegram_bot/test_notifier.py::test_update_user_settings_new_user PASSED [ 57%]
+tests/telegram_bot/test_notifier.py::test_update_user_settings_existing_user PASSED [ 57%]
+tests/telegram_bot/test_notifier.py::test_update_user_settings_partial PASSED [ 57%]
+tests/telegram_bot/test_notifier.py::test_format_alert_message PASSED    [ 57%]
+tests/telegram_bot/test_notifier.py::test_format_alert_message_price_rise PASSED [ 57%]
+tests/telegram_bot/test_notifier.py::test_get_current_price_from_cache PASSED [ 57%]
+tests/telegram_bot/test_notifier.py::test_get_current_price_from_api PASSED [ 57%]
+tests/telegram_bot/test_notifier.py::test_get_current_price_cache_expired PASSED [ 57%]
+tests/telegram_bot/test_notifier.py::test_get_current_price_api_error PASSED [ 57%]
+tests/telegram_bot/test_notifier.py::test_add_multiple_alerts_same_user PASSED [ 57%]
+tests/telegram_bot/test_notifier.py::test_remove_alert_with_multiple_alerts PASSED [ 58%]
+tests/telegram_bot/test_notifier.py::test_get_user_alerts_empty PASSED   [ 58%]
+tests/telegram_bot/test_notifier.py::test_load_user_alerts_json_error PASSED [ 58%]
+tests/telegram_bot/test_notifier.py::test_save_user_alerts_io_error PASSED [ 58%]
+tests/telegram_bot/test_notifier.py::test_update_user_settings_empty_kwargs PASSED [ 58%]
+tests/telegram_bot/test_notifier.py::test_check_price_alert_price_drop_triggered PASSED [ 58%]
+tests/telegram_bot/test_notifier.py::test_check_price_alert_price_drop_not_triggered PASSED [ 58%]
+tests/telegram_bot/test_notifier.py::test_check_price_alert_price_rise_triggered PASSED [ 58%]
+tests/telegram_bot/test_notifier.py::test_check_price_alert_price_rise_not_triggered PASSED [ 58%]
+tests/telegram_bot/test_notifier.py::test_check_price_alert_current_price_none PASSED [ 58%]
+tests/telegram_bot/test_notifier.py::test_check_price_alert_volume_increase_triggered PASSED [ 59%]
+tests/telegram_bot/test_notifier.py::test_check_price_alert_volume_increase_not_triggered PASSED [ 59%]
+tests/telegram_bot/test_notifier.py::test_check_price_alert_trend_change_triggered PASSED [ 59%]
+tests/telegram_bot/test_notifier.py::test_check_all_alerts_disabled_user PASSED [ 59%]
+tests/telegram_bot/test_notifier.py::test_check_all_alerts_daily_limit_reached PASSED [ 59%]
+tests/telegram_bot/test_notifier.py::test_check_all_alerts_quiet_hours PASSED [ 59%]
+tests/telegram_bot/test_notifier.py::test_check_all_alerts_resets_daily_counter PASSED [ 59%]
+tests/telegram_bot/test_notifier.py::test_check_all_alerts_exception_handling PASSED [ 59%]
+tests/telegram_bot/test_notifier.py::test_check_all_alerts_sends_notification PASSED [ 59%]
+tests/telegram_bot/test_notifier.py::test_check_all_alerts_increments_notification_counter PASSED [ 59%]
+tests/telegram_bot/test_notifier.py::test_check_all_alerts_deactivates_one_time_alert PASSED [ 59%]
+tests/telegram_bot/test_notifier_alerts.py::test_check_all_alerts_with_triggered_alert PASSED [ 60%]
+tests/telegram_bot/test_notifier_alerts.py::test_check_all_alerts_with_no_triggered_alerts PASSED [ 60%]
+tests/telegram_bot/test_notifier_alerts.py::test_format_alert_message_volume_type PASSED [ 60%]
+tests/telegram_bot/test_notifier_alerts.py::test_format_alert_message_good_deal_type PASSED [ 60%]
+tests/telegram_bot/test_notifier_alerts.py::test_format_alert_message_trend_change_type PASSED [ 60%]
+tests/telegram_bot/test_pagination.py::test_pagination_manager_init PASSED [ 60%]
+tests/telegram_bot/test_pagination.py::test_pagination_manager_custom_items_per_page PASSED [ 60%]
+tests/telegram_bot/test_pagination.py::test_add_items_for_user PASSED    [ 60%]
+tests/telegram_bot/test_pagination.py::test_add_items_alias PASSED       [ 60%]
+tests/telegram_bot/test_pagination.py::test_add_items_with_mode PASSED   [ 60%]
+tests/telegram_bot/test_pagination.py::test_get_page_first PASSED        [ 60%]
+tests/telegram_bot/test_pagination.py::test_get_page_empty_items PASSED  [ 61%]
+tests/telegram_bot/test_pagination.py::test_get_page_no_user PASSED      [ 61%]
+tests/telegram_bot/test_pagination.py::test_next_page PASSED             [ 61%]
+tests/telegram_bot/test_pagination.py::test_next_page_at_end PASSED      [ 61%]
+tests/telegram_bot/test_pagination.py::test_prev_page PASSED             [ 61%]
+tests/telegram_bot/test_pagination.py::test_prev_page_at_start PASSED    [ 61%]
+tests/telegram_bot/test_pagination.py::test_get_items_per_page_default PASSED [ 61%]
+tests/telegram_bot/test_pagination.py::test_set_items_per_page PASSED    [ 61%]
+tests/telegram_bot/test_pagination.py::test_set_items_per_page_limits PASSED [ 61%]
+tests/telegram_bot/test_pagination.py::test_filter_items PASSED          [ 61%]
+tests/telegram_bot/test_pagination.py::test_sort_items PASSED            [ 62%]
+tests/telegram_bot/test_pagination.py::test_get_mode_default PASSED      [ 62%]
+tests/telegram_bot/test_pagination.py::test_get_mode_custom PASSED       [ 62%]
+tests/telegram_bot/test_pagination.py::test_clear_user_data PASSED       [ 62%]
+tests/telegram_bot/test_pagination.py::test_get_pagination_keyboard PASSED [ 62%]
+tests/telegram_bot/test_pagination.py::test_format_current_page PASSED   [ 62%]
+tests/telegram_bot/test_sales_analysis_handlers.py::test_handle_sales_analysis_success PASSED [ 62%]
+tests/telegram_bot/test_sales_analysis_handlers.py::test_handle_sales_analysis_no_data PASSED [ 62%]
+tests/telegram_bot/test_sales_analysis_handlers.py::test_handle_sales_analysis_api_error PASSED [ 62%]
+tests/telegram_bot/test_sales_analysis_handlers.py::test_handle_sales_analysis_missing_item_name PASSED [ 62%]
+tests/telegram_bot/test_sales_analysis_handlers.py::test_handle_arbitrage_with_sales PASSED [ 62%]
+tests/telegram_bot/test_sales_analysis_handlers.py::test_handle_arbitrage_with_sales_no_opportunities PASSED [ 63%]
+tests/telegram_bot/test_sales_analysis_handlers.py::test_handle_liquidity_analysis PASSED [ 63%]
+tests/telegram_bot/test_sales_analysis_handlers.py::test_handle_sales_volume_stats PASSED [ 63%]
+tests/telegram_bot/test_sales_analysis_handlers.py::test_get_trend_emoji PASSED [ 63%]
+tests/telegram_bot/test_sales_analysis_handlers.py::test_get_liquidity_emoji PASSED [ 63%]
+tests/telegram_bot/test_scanner_handler.py::test_constants_defined PASSED [ 63%]
+tests/telegram_bot/test_scanner_handler.py::test_arbitrage_levels_imported PASSED [ 63%]
+tests/telegram_bot/test_scanner_handler.py::test_games_imported PASSED   [ 63%]
+tests/telegram_bot/test_scanner_handler.py::test_format_scanner_item PASSED [ 63%]
+tests/telegram_bot/test_scanner_handler.py::test_format_scanner_results_empty PASSED [ 63%]
+tests/telegram_bot/test_scanner_handler.py::test_format_scanner_results_with_items PASSED [ 63%]
+tests/telegram_bot/test_scanner_handler.py::test_start_scanner_menu PASSED [ 64%]
+tests/telegram_bot/test_scanner_handler.py::test_handle_level_scan_success PASSED [ 64%]
+tests/telegram_bot/test_scanner_handler.py::test_handle_level_scan_no_results PASSED [ 64%]
+tests/telegram_bot/test_scanner_handler.py::test_handle_market_overview PASSED [ 64%]
+tests/telegram_bot/test_scanner_handler.py::test_handle_scanner_pagination PASSED [ 64%]
+tests/telegram_bot/test_scanner_handler.py::test_handle_scanner_callback_invalid_action PASSED [ 64%]
+tests/telegram_bot/test_scanner_handler.py::test_register_scanner_handlers PASSED [ 64%]
+tests/telegram_bot/test_settings_handlers.py::test_get_user_profile_new_user PASSED [ 64%]
+tests/telegram_bot/test_settings_handlers.py::test_get_user_profile_existing_user PASSED [ 64%]
+tests/telegram_bot/test_settings_handlers.py::test_get_localized_text PASSED [ 64%]
+tests/telegram_bot/test_settings_handlers.py::test_get_localized_text_with_params PASSED [ 65%]
+tests/telegram_bot/test_settings_handlers.py::test_get_localized_text_missing_key PASSED [ 65%]
+tests/telegram_bot/test_settings_handlers.py::test_get_localized_text_unsupported_language PASSED [ 65%]
+tests/telegram_bot/test_settings_handlers.py::test_save_user_profiles PASSED [ 65%]
+tests/telegram_bot/test_settings_handlers.py::test_settings_command PASSED [ 65%]
+tests/telegram_bot/test_settings_handlers.py::test_settings_callback_main_menu PASSED [ 65%]
+tests/telegram_bot/test_settings_handlers.py::test_settings_callback_language_menu PASSED [ 65%]
+tests/telegram_bot/test_settings_handlers.py::test_settings_callback_language_set PASSED [ 65%]
+tests/telegram_bot/test_settings_handlers.py::test_settings_callback_toggle_trading PASSED [ 65%]
+tests/telegram_bot/test_settings_handlers.py::test_settings_callback_api_keys PASSED [ 65%]
+tests/telegram_bot/utils/test_error_handler.py::TestHandleNetworkError::test_handle_retry_after PASSED [ 65%]
+tests/telegram_bot/utils/test_error_handler.py::TestHandleNetworkError::test_handle_timed_out PASSED [ 66%]
+tests/telegram_bot/utils/test_error_handler.py::TestHandleNetworkError::test_handle_network_error_generic PASSED [ 66%]
+tests/telegram_bot/utils/test_error_handler.py::TestHandleNetworkError::test_handle_network_error_no_update PASSED [ 66%]
+tests/telegram_bot/utils/test_error_handler.py::TestRetryLastAction::test_retry_with_job_context PASSED [ 66%]
+tests/telegram_bot/utils/test_error_handler.py::TestRetryLastAction::test_retry_without_job PASSED [ 66%]
+tests/telegram_bot/utils/test_error_handler.py::TestHandleForbiddenError::test_handle_blocked_by_user PASSED [ 66%]
+tests/telegram_bot/utils/test_error_handler.py::TestHandleForbiddenError::test_handle_kicked_from_group PASSED [ 66%]
+tests/telegram_bot/utils/test_error_handler.py::TestHandleForbiddenError::test_handle_no_rights PASSED [ 66%]
+tests/telegram_bot/utils/test_error_handler.py::TestHandleBadRequest::test_handle_message_not_modified PASSED [ 66%]
+tests/telegram_bot/utils/test_error_handler.py::TestHandleBadRequest::test_handle_message_not_found PASSED [ 66%]
+tests/telegram_bot/utils/test_error_handler.py::TestHandleBadRequest::test_handle_query_too_old PASSED [ 67%]
+tests/telegram_bot/utils/test_error_handler.py::TestHandleBadRequest::test_handle_parse_entities_error PASSED [ 67%]
+tests/telegram_bot/utils/test_error_handler.py::TestHandleBadRequest::test_handle_wrong_file_id PASSED [ 67%]
+tests/telegram_bot/utils/test_error_handler.py::TestHandleDmarketApiError::test_handle_401 PASSED [ 67%]
+tests/telegram_bot/utils/test_error_handler.py::TestHandleDmarketApiError::test_handle_429 PASSED [ 67%]
+tests/telegram_bot/utils/test_error_handler.py::TestHandleDmarketApiError::test_handle_500 PASSED [ 67%]
+tests/telegram_bot/utils/test_error_handler.py::TestHandleDmarketApiError::test_handle_other_error PASSED [ 67%]
+tests/telegram_bot/utils/test_error_handler.py::TestErrorHandler::test_handle_network_error_dispatch PASSED [ 67%]
+tests/telegram_bot/utils/test_error_handler.py::TestErrorHandler::test_handle_forbidden_dispatch PASSED [ 67%]
+tests/telegram_bot/utils/test_error_handler.py::TestErrorHandler::test_handle_bad_request_direct PASSED [ 67%]
+tests/telegram_bot/utils/test_error_handler.py::TestErrorHandler::test_handle_dmarket_error_dispatch PASSED [ 67%]
+tests/telegram_bot/utils/test_error_handler.py::TestErrorHandler::test_handle_generic_error PASSED [ 68%]
+tests/telegram_bot/utils/test_error_handler.py::TestErrorHandler::test_handle_error_no_update PASSED [ 68%]
+tests/telegram_bot/utils/test_error_handler.py::TestErrorHandler::test_handle_error_sends_user_message PASSED [ 68%]
+tests/telegram_bot/utils/test_error_handler.py::TestSetupErrorHandler::test_setup_with_admin_ids PASSED [ 68%]
+tests/telegram_bot/utils/test_error_handler.py::TestSetupErrorHandler::test_setup_without_admin_ids PASSED [ 68%]
+tests/telegram_bot/utils/test_error_handler.py::TestExceptionGuard::test_exception_guard_success PASSED [ 68%]
+tests/telegram_bot/utils/test_error_handler.py::TestExceptionGuard::test_exception_guard_with_error PASSED [ 68%]
+tests/telegram_bot/utils/test_error_handler.py::TestSendMessageSafe::test_send_message_success PASSED [ 68%]
+tests/telegram_bot/utils/test_error_handler.py::TestSendMessageSafe::test_send_message_forbidden PASSED [ 68%]
+tests/telegram_bot/utils/test_error_handler.py::TestSendMessageSafe::test_send_message_bad_request PASSED [ 68%]
+tests/telegram_bot/utils/test_error_handler.py::TestSendMessageSafe::test_send_message_network_error PASSED [ 68%]
+tests/telegram_bot/utils/test_error_handler.py::TestConfigureAdminIds::test_configure_from_string PASSED [ 69%]
+tests/telegram_bot/utils/test_error_handler.py::TestConfigureAdminIds::test_configure_from_env PASSED [ 69%]
+tests/telegram_bot/utils/test_error_handler.py::TestConfigureAdminIds::test_configure_empty PASSED [ 69%]
+tests/telegram_bot/utils/test_error_handler.py::TestConfigureAdminIds::test_configure_invalid_ids PASSED [ 69%]
+tests/telegram_bot/utils/test_error_handler.py::TestRegisterGlobalExceptionHandlers::test_register_handlers PASSED [ 69%]
+tests/test_ci_smoke.py::TestEnvironmentSetup::test_python_version_is_3_11_or_higher PASSED [ 69%]
+tests/test_ci_smoke.py::TestEnvironmentSetup::test_essential_project_directories_exist PASSED [ 69%]
+tests/test_ci_smoke.py::TestModuleImports::test_core_modules_import_successfully PASSED [ 69%]
+tests/test_ci_smoke.py::TestProjectConfiguration::test_env_example_file_exists_in_project_root PASSED [ 69%]
+tests/test_ci_smoke.py::TestProjectConfiguration::test_requirements_file_exists_in_project_root PASSED [ 69%]
+tests/test_ci_smoke.py::TestPytestSanity::test_basic_arithmetic_operations_work_correctly PASSED [ 70%]
+tests/test_ci_smoke.py::TestPytestSanity::test_string_operations_work_correctly PASSED [ 70%]
+tests/test_config.py::TestConfig::test_default_config_creation_sets_expected_default_values PASSED [ 70%]
+tests/test_config.py::TestConfig::test_load_from_yaml_file_overrides_defaults_correctly PASSED [ 70%]
+tests/test_config.py::TestConfig::test_load_from_env_variables_takes_precedence_over_defaults PASSED [ 70%]
+tests/test_config.py::TestConfig::test_validate_passes_when_all_required_fields_are_set PASSED [ 70%]
+tests/test_config.py::TestConfig::test_validate_raises_error_when_bot_token_is_missing PASSED [ 70%]
+tests/test_config.py::TestConfig::test_validate_raises_error_when_dmarket_keys_missing_in_production PASSED [ 70%]
+tests/test_config.py::TestConfig::test_validate_allows_missing_dmarket_keys_in_testing_mode PASSED [ 70%]
+tests/test_config.py::TestConfig::test_config_nonexistent_file PASSED    [ 70%]
+tests/test_config.py::TestConfig::test_config_malformed_yaml PASSED      [ 70%]
+tests/test_config.py::TestConfig::test_config_partial_yaml PASSED        [ 71%]
+tests/test_config.py::TestConfig::test_config_invalid_rate_limit_env PASSED [ 71%]
+tests/test_config.py::TestConfig::test_config_empty_user_lists PASSED    [ 71%]
+tests/test_config.py::TestConfig::test_config_yaml_and_env_precedence PASSED [ 71%]
+tests/test_database.py::TestDatabaseManager::test_database_initialization PASSED [ 71%]
+tests/test_database.py::TestDatabaseManager::test_get_or_create_user_new PASSED [ 71%]
+tests/test_database.py::TestDatabaseManager::test_get_or_create_user_existing PASSED [ 71%]
+tests/test_database.py::TestDatabaseManager::test_log_command PASSED     [ 71%]
+tests/test_database.py::TestDatabaseManager::test_save_market_data PASSED [ 71%]
+tests/test_database.py::TestDatabaseManager::test_database_connection_management PASSED [ 71%]
+tests/test_database.py::TestDatabaseManager::test_database_close PASSED  [ 72%]
+tests/test_database.py::TestDatabaseModels::test_user_model_creation PASSED [ 72%]
+tests/test_database.py::TestDatabaseModels::test_market_data_model_creation PASSED [ 72%]
+tests/test_database.py::TestDatabaseModels::test_price_alert_model_creation PASSED [ 72%]
+tests/test_database.py::TestDatabaseIntegration::test_user_workflow PASSED [ 72%]
+tests/test_database.py::TestDatabaseIntegration::test_concurrent_operations PASSED [ 72%]
+tests/test_keyboards.py::test_get_arbitrage_keyboard PASSED              [ 72%]
+tests/test_keyboards.py::test_get_game_selection_keyboard PASSED         [ 72%]
+tests/test_keyboards.py::test_get_auto_arbitrage_keyboard PASSED         [ 72%]
+tests/test_keyboards.py::test_get_back_to_arbitrage_keyboard PASSED      [ 72%]
+tests/test_keyboards.py::test_get_main_menu_keyboard PASSED              [ 72%]
+tests/test_keyboards.py::test_get_settings_keyboard PASSED               [ 73%]
+tests/test_keyboards.py::test_get_back_to_settings_keyboard PASSED       [ 73%]
+tests/test_keyboards.py::test_get_games_keyboard PASSED                  [ 73%]
+tests/test_keyboards.py::test_get_price_range_keyboard PASSED            [ 73%]
+tests/test_keyboards.py::test_get_confirm_cancel_keyboard PASSED         [ 73%]
+tests/test_keyboards.py::test_get_pagination_keyboard PASSED             [ 73%]
+tests/test_keyboards.py::test_get_alert_keyboard PASSED                  [ 73%]
+tests/test_liquidity_rules.py::TestLiquidityRules::test_default_initialization PASSED [ 73%]
+tests/test_liquidity_rules.py::TestLiquidityRules::test_custom_initialization PASSED [ 73%]
+tests/test_liquidity_rules.py::TestPredefinedRules::test_conservative_rules PASSED [ 73%]
+tests/test_liquidity_rules.py::TestPredefinedRules::test_balanced_rules PASSED [ 73%]
+tests/test_liquidity_rules.py::TestPredefinedRules::test_aggressive_rules PASSED [ 74%]
+tests/test_liquidity_rules.py::TestLiquidityScoreWeights::test_weights_sum_to_one PASSED [ 74%]
+tests/test_liquidity_rules.py::TestLiquidityScoreWeights::test_all_weights_positive PASSED [ 74%]
+tests/test_liquidity_rules.py::TestLiquidityScoreWeights::test_weights_structure PASSED [ 74%]
+tests/test_liquidity_rules.py::TestLiquidityThresholds::test_thresholds_descending_order PASSED [ 74%]
+tests/test_liquidity_rules.py::TestLiquidityThresholds::test_thresholds_range PASSED [ 74%]
+tests/test_liquidity_rules.py::TestGetLiquidityCategory::test_very_high_liquidity PASSED [ 74%]
+tests/test_liquidity_rules.py::TestGetLiquidityCategory::test_high_liquidity PASSED [ 74%]
+tests/test_liquidity_rules.py::TestGetLiquidityCategory::test_medium_liquidity PASSED [ 74%]
+tests/test_liquidity_rules.py::TestGetLiquidityCategory::test_low_liquidity PASSED [ 74%]
+tests/test_liquidity_rules.py::TestGetLiquidityCategory::test_very_low_liquidity PASSED [ 75%]
+tests/test_liquidity_rules.py::TestGetLiquidityCategory::test_boundary_values PASSED [ 75%]
+tests/test_liquidity_rules.py::TestGetLiquidityRecommendation::test_very_high_recommendation PASSED [ 75%]
+tests/test_liquidity_rules.py::TestGetLiquidityRecommendation::test_high_recommendation PASSED [ 75%]
+tests/test_liquidity_rules.py::TestGetLiquidityRecommendation::test_medium_recommendation PASSED [ 75%]
+tests/test_liquidity_rules.py::TestGetLiquidityRecommendation::test_low_recommendation PASSED [ 75%]
+tests/test_liquidity_rules.py::TestGetLiquidityRecommendation::test_very_low_recommendation PASSED [ 75%]
+tests/test_liquidity_rules.py::TestGetLiquidityRecommendation::test_all_recommendations_have_icons PASSED [ 75%]
+tests/test_liquidity_rules.py::TestGetLiquidityRecommendation::test_recommendations_not_empty PASSED [ 75%]
+tests/test_liquidity_rules.py::TestLiquidityRulesIntegration::test_conservative_vs_aggressive_comparison PASSED [ 75%]
+tests/test_liquidity_rules.py::TestLiquidityRulesIntegration::test_balanced_between_conservative_and_aggressive PASSED [ 75%]
+tests/test_liquidity_rules.py::TestLiquidityRulesIntegration::test_category_score_mapping[100-very_high] PASSED [ 76%]
+tests/test_liquidity_rules.py::TestLiquidityRulesIntegration::test_category_score_mapping[85-very_high] PASSED [ 76%]
+tests/test_liquidity_rules.py::TestLiquidityRulesIntegration::test_category_score_mapping[75-high] PASSED [ 76%]
+tests/test_liquidity_rules.py::TestLiquidityRulesIntegration::test_category_score_mapping[65-high] PASSED [ 76%]
+tests/test_liquidity_rules.py::TestLiquidityRulesIntegration::test_category_score_mapping[50-medium] PASSED [ 76%]
+tests/test_liquidity_rules.py::TestLiquidityRulesIntegration::test_category_score_mapping[45-medium] PASSED [ 76%]
+tests/test_liquidity_rules.py::TestLiquidityRulesIntegration::test_category_score_mapping[30-low] PASSED [ 76%]
+tests/test_liquidity_rules.py::TestLiquidityRulesIntegration::test_category_score_mapping[25-low] PASSED [ 76%]
+tests/test_liquidity_rules.py::TestLiquidityRulesIntegration::test_category_score_mapping[10-very_low] PASSED [ 76%]
+tests/test_liquidity_rules.py::TestLiquidityRulesIntegration::test_category_score_mapping[0-very_low] PASSED [ 76%]
+tests/test_liquidity_rules.py::TestEdgeCases::test_negative_score PASSED [ 77%]
+tests/test_liquidity_rules.py::TestEdgeCases::test_extremely_high_score PASSED [ 77%]
+tests/test_liquidity_rules.py::TestEdgeCases::test_zero_values_in_rules PASSED [ 77%]
+tests/test_main.py::TestApplication::test_init_creates_application_with_default_values PASSED [ 77%]
+tests/test_main.py::TestApplication::test_init_with_config_path_sets_path_correctly PASSED [ 77%]
+tests/test_main.py::TestApplication::test_initialize_sets_all_components_on_success PASSED [ 77%]
+tests/test_main.py::TestApplication::test_initialize_with_production_mode_initializes_database PASSED [ 77%]
+tests/test_main.py::TestApplication::test_initialize_in_production_mode_tests_api_connection PASSED [ 77%]
+tests/test_main.py::TestApplication::test_initialize_continues_when_api_connection_fails PASSED [ 77%]
+tests/test_main.py::TestApplication::test_initialize_config_validation_error PASSED [ 77%]
+tests/test_main.py::TestApplication::test_run_success PASSED             [ 77%]
+tests/test_main.py::TestApplication::test_run_keyboard_interrupt PASSED  [ 78%]
+tests/test_main.py::TestApplication::test_shutdown_all_components PASSED [ 78%]
+tests/test_main.py::TestApplication::test_shutdown_with_errors PASSED    [ 78%]
+tests/test_main.py::TestApplication::test_shutdown_partial_components PASSED [ 78%]
+tests/test_main.py::TestApplication::test_setup_signal_handlers PASSED   [ 78%]
+tests/test_main.py::TestApplication::test_signal_handler_sets_shutdown_event PASSED [ 78%]
+tests/test_main.py::TestMainFunction::test_main_default_arguments PASSED [ 78%]
+tests/test_main.py::TestMainFunction::test_main_with_config_argument PASSED [ 78%]
+tests/test_main.py::TestMainFunction::test_main_with_debug_flag PASSED   [ 78%]
+tests/test_main.py::TestMainFunction::test_main_with_log_level PASSED    [ 78%]
+tests/test_main.py::TestMainFunction::test_main_application_failure PASSED [ 78%]
+tests/test_main.py::TestWindowsEventLoopPolicy::test_windows_event_loop_policy_set PASSED [ 79%]
+tests/test_main.py::TestLogging::test_logging_setup_called PASSED        [ 79%]
+tests/test_main.py::TestLogging::test_logger_created PASSED              [ 79%]
+tests/test_pagination.py::TestPaginationManager::test_add_items_for_user PASSED [ 79%]
+tests/test_pagination.py::TestPaginationManager::test_get_page_empty PASSED [ 79%]
+tests/test_pagination.py::TestPaginationManager::test_get_page_with_items PASSED [ 79%]
+tests/test_pagination.py::TestPaginationManager::test_next_page PASSED   [ 79%]
+tests/test_pagination.py::TestPaginationManager::test_prev_page PASSED   [ 79%]
+tests/test_pagination.py::TestPaginationManager::test_prev_page_at_start PASSED [ 79%]
+tests/test_pagination.py::TestPaginationManager::test_next_page_at_end PASSED [ 79%]
+tests/test_pagination.py::TestPaginationManager::test_get_mode PASSED    [ 80%]
+tests/test_pagination.py::test_format_paginated_results PASSED           [ 80%]
+tests/test_performance.py::TestAdvancedCache::test_init_default_ttl PASSED [ 80%]
+tests/test_performance.py::TestAdvancedCache::test_init_custom_ttl PASSED [ 80%]
+tests/test_performance.py::TestAdvancedCache::test_register_cache PASSED [ 80%]
+tests/test_performance.py::TestAdvancedCache::test_register_cache_default_ttl PASSED [ 80%]
+tests/test_performance.py::TestAdvancedCache::test_set_and_get PASSED    [ 80%]
+tests/test_performance.py::TestAdvancedCache::test_get_nonexistent_key PASSED [ 80%]
+tests/test_performance.py::TestAdvancedCache::test_get_expired_cache PASSED [ 80%]
+tests/test_performance.py::TestAdvancedCache::test_invalidate_by_key PASSED [ 80%]
+tests/test_performance.py::TestAdvancedCache::test_invalidate_entire_cache PASSED [ 80%]
+tests/test_performance.py::TestAdvancedCache::test_clear_all PASSED      [ 81%]
+tests/test_performance.py::TestAdvancedCache::test_stats PASSED          [ 81%]
+tests/test_performance.py::TestAdvancedCache::test_hit_rate_calculation PASSED [ 81%]
+tests/test_performance.py::TestCachedDecorator::test_cached_sync_function PASSED [ 81%]
+tests/test_performance.py::TestCachedDecorator::test_cached_async_function PASSED [ 81%]
+tests/test_performance.py::TestCachedDecorator::test_cached_with_custom_key_function PASSED [ 81%]
+tests/test_performance.py::TestProfilePerformance::test_profile_sync_function PASSED [ 81%]
+tests/test_performance.py::TestProfilePerformance::test_profile_async_function PASSED [ 81%]
+tests/test_performance.py::TestAsyncBatch::test_init_default_values PASSED [ 81%]
+tests/test_performance.py::TestAsyncBatch::test_init_custom_values PASSED [ 81%]
+tests/test_performance.py::TestAsyncBatch::test_execute_tasks PASSED     [ 81%]
+tests/test_performance.py::TestAsyncBatch::test_execute_with_concurrency_limit PASSED [ 82%]
+tests/test_performance.py::TestAsyncBatch::test_execute_empty_list PASSED [ 82%]
+tests/test_performance.py::TestAsyncBatch::test_execute_single_task PASSED [ 82%]
+tests/test_performance.py::TestGlobalCache::test_global_cache_exists PASSED [ 82%]
+tests/test_performance.py::TestGlobalCache::test_global_cache_shared_state PASSED [ 82%]
+tests/test_performance.py::TestCacheIntegration::test_multiple_caches PASSED [ 82%]
+tests/test_performance.py::TestCacheIntegration::test_cache_with_complex_keys PASSED [ 82%]
+tests/test_performance.py::TestCacheIntegration::test_async_cache_performance PASSED [ 82%]
+tests/test_sqlite_fallback.py::TestSQLiteFallback::test_sqlite_connection PASSED [ 82%]
+tests/test_sqlite_fallback.py::TestSQLiteFallback::test_create_all_tables PASSED [ 82%]
+tests/test_sqlite_fallback.py::TestSQLiteFallback::test_user_model_sqlite PASSED [ 83%]
+tests/test_sqlite_fallback.py::TestSQLiteFallback::test_uuid_type_sqlite PASSED [ 83%]
+tests/test_sqlite_fallback.py::TestSQLiteFallback::test_market_data_model_sqlite PASSED [ 83%]
+tests/test_sqlite_fallback.py::TestSQLiteFallback::test_json_column_sqlite PASSED [ 83%]
+tests/test_sqlite_fallback.py::TestSQLiteFallback::test_indexes_created_sqlite PASSED [ 83%]
+tests/test_sqlite_fallback.py::TestSQLiteFallback::test_foreign_key_constraints_sqlite PASSED [ 83%]
+tests/test_sqlite_fallback.py::TestSQLiteFallback::test_concurrent_writes_sqlite PASSED [ 83%]
+tests/test_sqlite_fallback.py::TestDatabaseManagerSQLite::test_init_database_sqlite PASSED [ 83%]
+tests/test_sqlite_fallback.py::TestDatabaseManagerSQLite::test_get_or_create_user_sqlite PASSED [ 83%]
+tests/test_sqlite_fallback.py::TestDatabaseManagerSQLite::test_log_command_sqlite PASSED [ 83%]
+tests/test_sqlite_fallback.py::TestDatabaseManagerSQLite::test_save_market_data_sqlite PASSED [ 83%]
+tests/test_sqlite_fallback.py::TestSQLiteVsPostgreSQL::test_url_detection PASSED [ 84%]
+tests/test_sqlite_fallback.py::TestSQLiteVsPostgreSQL::test_sqlite_limitations_documented PASSED [ 84%]
+tests/test_sqlite_fallback.py::TestSQLiteIntegration::test_full_user_workflow_sqlite PASSED [ 84%]
+tests/test_targets.py::TestTargetManagerInitialization::test_init_creates_manager_with_api_client_reference PASSED [ 84%]
+tests/test_targets.py::TestTargetManagerInitialization::test_init_stores_api_reference_correctly PASSED [ 84%]
+tests/test_targets.py::TestCreateTarget::test_create_target_returns_success_with_valid_data PASSED [ 84%]
+tests/test_targets.py::TestCreateTarget::test_create_target_with_attributes_includes_attrs_in_api_call PASSED [ 84%]
+tests/test_targets.py::TestCreateTarget::test_create_target_raises_error_when_price_is_invalid PASSED [ 84%]
+tests/test_targets.py::TestCreateTarget::test_create_target_raises_error_when_amount_is_out_of_range PASSED [ 84%]
+tests/test_targets.py::TestCreateTarget::test_create_target_title_validation PASSED [ 84%]
+tests/test_targets.py::TestCreateTarget::test_create_target_game_conversion PASSED [ 85%]
+tests/test_targets.py::TestCreateTarget::test_create_target_price_conversion_to_cents PASSED [ 85%]
+tests/test_targets.py::TestCreateTarget::test_create_target_api_error PASSED [ 85%]
+tests/test_targets.py::TestCreateTarget::test_create_target_invalid_api_response PASSED [ 85%]
+tests/test_targets.py::TestGetUserTargets::test_get_user_targets_success PASSED [ 85%]
+tests/test_targets.py::TestGetUserTargets::test_get_user_targets_status_filter PASSED [ 85%]
+tests/test_targets.py::TestGetUserTargets::test_get_user_targets_empty_result PASSED [ 85%]
+tests/test_targets.py::TestGetUserTargets::test_get_user_targets_no_items_key PASSED [ 85%]
+tests/test_targets.py::TestGetUserTargets::test_get_user_targets_api_error PASSED [ 85%]
+tests/test_targets.py::TestDeleteTarget::test_delete_target_success PASSED [ 85%]
+tests/test_targets.py::TestDeleteTarget::test_delete_target_failed_status PASSED [ 85%]
+tests/test_targets.py::TestDeleteTarget::test_delete_target_invalid_response PASSED [ 86%]
+tests/test_targets.py::TestDeleteTarget::test_delete_target_api_error PASSED [ 86%]
+tests/test_targets.py::TestDeleteAllTargets::test_delete_all_targets_without_confirmation PASSED [ 86%]
+tests/test_targets.py::TestDeleteAllTargets::test_delete_all_targets_with_confirmation PASSED [ 86%]
+tests/test_targets.py::TestDeleteAllTargets::test_delete_all_targets_no_active_targets PASSED [ 86%]
+tests/test_targets.py::TestDeleteAllTargets::test_delete_all_targets_partial_failure PASSED [ 86%]
+tests/test_targets.py::TestGetTargetsByTitle::test_get_targets_by_title_success PASSED [ 86%]
+tests/test_targets.py::TestGetTargetsByTitle::test_get_targets_by_title_empty_result PASSED [ 86%]
+tests/test_targets.py::TestGetTargetsByTitle::test_get_targets_by_title_api_error PASSED [ 86%]
+tests/test_targets.py::TestCreateSmartTargets::test_create_smart_targets_success PASSED [ 86%]
+tests/test_targets.py::TestCreateSmartTargets::test_create_smart_targets_multiple_items PASSED [ 86%]
+tests/test_targets.py::TestCreateSmartTargets::test_create_smart_targets_max_limit PASSED [ 87%]
+tests/test_targets.py::TestCreateSmartTargets::test_create_smart_targets_item_not_found PASSED [ 87%]
+tests/test_targets.py::TestCreateSmartTargets::test_create_smart_targets_minimum_price PASSED [ 87%]
+tests/test_targets.py::TestCreateSmartTargets::test_create_smart_targets_with_attributes PASSED [ 87%]
+tests/test_targets.py::TestCreateSmartTargets::test_create_smart_targets_skip_invalid_items PASSED [ 87%]
+tests/test_targets.py::TestGetClosedTargets::test_get_closed_targets_success PASSED [ 87%]
+tests/test_targets.py::TestGetClosedTargets::test_get_closed_targets_with_status_filter PASSED [ 87%]
+tests/test_targets.py::TestGetClosedTargets::test_get_closed_targets_empty_result PASSED [ 87%]
+tests/test_targets.py::TestGetClosedTargets::test_get_closed_targets_api_error PASSED [ 87%]
+tests/test_targets.py::TestGetTargetStatistics::test_get_target_statistics_success PASSED [ 87%]
+tests/test_targets.py::TestGetTargetStatistics::test_get_target_statistics_no_closed_targets PASSED [ 88%]
+tests/test_targets.py::TestGetTargetStatistics::test_get_target_statistics_partial_success PASSED [ 88%]
+tests/test_targets.py::TestTargetManagerIntegration::test_full_target_workflow PASSED [ 88%]
+tests/test_targets.py::TestTargetManagerIntegration::test_smart_targets_workflow PASSED [ 88%]
+tests/test_targets.py::TestTargetManagerEdgeCases::test_concurrent_target_creation PASSED [ 88%]
+tests/test_targets.py::TestTargetManagerEdgeCases::test_extremely_high_price PASSED [ 88%]
+tests/test_targets.py::TestTargetManagerEdgeCases::test_extremely_low_price PASSED [ 88%]
+tests/utils/test_analytics_extended.py::test_chart_generator_init_default PASSED [ 88%]
+tests/utils/test_analytics_extended.py::test_chart_generator_init_custom PASSED [ 88%]
+tests/utils/test_analytics_extended.py::test_chart_generator_init_invalid_style PASSED [ 88%]
+tests/utils/test_analytics_extended.py::test_create_price_history_chart_basic PASSED [ 88%]
+tests/utils/test_analytics_extended.py::test_create_price_history_chart_empty_data PASSED [ 89%]
+tests/utils/test_analytics_extended.py::test_create_price_history_chart_custom_title PASSED [ 89%]
+tests/utils/test_analytics_extended.py::test_create_price_history_chart_custom_currency PASSED [ 89%]
+tests/utils/test_analytics_extended.py::test_create_market_overview_chart_basic PASSED [ 89%]
+tests/utils/test_analytics_extended.py::test_create_market_overview_chart_empty PASSED [ 89%]
+tests/utils/test_analytics_extended.py::test_create_market_overview_chart_custom_title PASSED [ 89%]
+tests/utils/test_analytics_extended.py::test_create_market_overview_chart_many_items PASSED [ 89%]
+tests/utils/test_analytics_extended.py::test_create_arbitrage_chart_basic PASSED [ 89%]
+tests/utils/test_analytics_extended.py::test_create_arbitrage_chart_empty PASSED [ 89%]
+tests/utils/test_analytics_extended.py::test_create_arbitrage_chart_custom_title PASSED [ 89%]
+tests/utils/test_analytics_extended.py::test_market_analyzer_init_default PASSED [ 90%]
+tests/utils/test_analytics_extended.py::test_chart_generator_init_parametrized[default-figsize0] PASSED [ 90%]
+tests/utils/test_analytics_extended.py::test_chart_generator_init_parametrized[bmh-figsize1] PASSED [ 90%]
+tests/utils/test_analytics_extended.py::test_chart_generator_init_parametrized[ggplot-figsize2] PASSED [ 90%]
+tests/utils/test_analytics_extended.py::test_chart_generator_init_parametrized[seaborn-v0_8-figsize3] PASSED [ 90%]
+tests/utils/test_analytics_extended.py::test_create_market_overview_chart_various_sizes[1] PASSED [ 90%]
+tests/utils/test_analytics_extended.py::test_create_market_overview_chart_various_sizes[5] PASSED [ 90%]
+tests/utils/test_analytics_extended.py::test_create_market_overview_chart_various_sizes[10] PASSED [ 90%]
+tests/utils/test_analytics_extended.py::test_create_market_overview_chart_various_sizes[20] PASSED [ 90%]
+tests/utils/test_analytics_extended.py::test_create_market_overview_chart_various_sizes[50] PASSED [ 90%]
+tests/utils/test_analytics_extended.py::test_chart_generation_workflow PASSED [ 90%]
+tests/utils/test_analytics_extended.py::test_multiple_generators_isolation PASSED [ 91%]
+tests/utils/test_analytics_extended.py::test_chart_generator_reusability PASSED [ 91%]
+tests/utils/test_analytics_extended.py::test_chart_with_invalid_date_format PASSED [ 91%]
+tests/utils/test_analytics_extended.py::test_chart_with_missing_fields PASSED [ 91%]
+tests/utils/test_analytics_extended.py::test_chart_with_negative_prices PASSED [ 91%]
+tests/utils/test_analytics_extended.py::test_chart_generation_performance PASSED [ 91%]
+tests/utils/test_analytics_extended.py::test_multiple_charts_generation_performance PASSED [ 91%]
+tests/utils/test_api_error_handling.py::test_api_error_creation PASSED   [ 91%]
+tests/utils/test_api_error_handling.py::test_handle_response PASSED      [ 91%]
+tests/utils/test_api_error_handling.py::test_retry_request PASSED        [ 91%]
+tests/utils/test_api_error_handling.py::test_retry_request_max_retries_exceeded PASSED [ 91%]
+tests/utils/test_market_analyzer.py::TestMarketAnalyzer::test_init PASSED [ 92%]
+tests/utils/test_market_analyzer.py::TestMarketAnalyzer::test_analyze_price_history_uptrend PASSED [ 92%]
+tests/utils/test_market_analyzer.py::TestMarketAnalyzer::test_analyze_price_history_downtrend PASSED [ 92%]
+tests/utils/test_market_analyzer.py::TestMarketAnalyzer::test_analyze_price_history_volatile PASSED [ 92%]
+tests/utils/test_market_analyzer.py::TestMarketAnalyzer::test_analyze_price_history_insufficient_data PASSED [ 92%]
+tests/utils/test_market_analyzer.py::TestMarketAnalyzer::test_analyze_trend PASSED [ 92%]
+tests/utils/test_market_analyzer.py::TestMarketAnalyzer::test_detect_patterns PASSED [ 92%]
+tests/utils/test_market_analyzer.py::TestMarketOpportunity::test_analyze_market_opportunity_uptrend PASSED [ 92%]
+tests/utils/test_market_analyzer.py::TestMarketOpportunity::test_analyze_market_opportunity_downtrend PASSED [ 92%]
+tests/utils/test_market_analyzer.py::TestMarketOpportunity::test_analyze_market_opportunity_with_patterns PASSED [ 92%]
+tests/utils/test_market_analyzer.py::TestMarketOpportunity::test_batch_analyze_items PASSED [ 93%]
+tests/utils/test_market_visualizer.py::TestMarketVisualizer::test_init PASSED [ 93%]
+tests/utils/test_market_visualizer.py::TestMarketVisualizer::test_setup_plot_style PASSED [ 93%]
+tests/utils/test_market_visualizer.py::TestMarketVisualizer::test_create_price_chart_empty PASSED [ 93%]
+tests/utils/test_market_visualizer.py::TestMarketVisualizer::test_create_price_chart PASSED [ 93%]
+tests/utils/test_market_visualizer.py::TestMarketVisualizer::test_create_price_chart_with_volume PASSED [ 93%]
+tests/utils/test_market_visualizer.py::TestMarketVisualizer::test_create_market_comparison_chart PASSED [ 93%]
+tests/utils/test_market_visualizer.py::TestMarketVisualizer::test_create_pattern_visualization PASSED [ 93%]
+tests/utils/test_market_visualizer.py::TestMarketVisualizer::test_create_market_summary_image PASSED [ 93%]
+tests/utils/test_market_visualizer.py::TestMarketVisualizer::test_process_price_data PASSED [ 93%]
+tests/utils/test_market_visualizer.py::TestMarketVisualizer::test_color_trend_regions PASSED [ 93%]
+tests/utils/test_market_visualizer.py::TestMarketVisualizer::test_add_support_resistance PASSED [ 94%]
+tests/utils/test_rate_limiter.py::TestRateLimiterInit::test_init_authorized PASSED [ 94%]
+tests/utils/test_rate_limiter.py::TestRateLimiterInit::test_init_unauthorized PASSED [ 94%]
+tests/utils/test_rate_limiter.py::TestRateLimiterInit::test_init_default PASSED [ 94%]
+tests/utils/test_rate_limiter.py::TestGetEndpointType::test_get_endpoint_type_market PASSED [ 94%]
+tests/utils/test_rate_limiter.py::TestGetEndpointType::test_get_endpoint_type_trade PASSED [ 94%]
+tests/utils/test_rate_limiter.py::TestGetEndpointType::test_get_endpoint_type_balance PASSED [ 94%]
+tests/utils/test_rate_limiter.py::TestGetEndpointType::test_get_endpoint_type_user PASSED [ 94%]
+tests/utils/test_rate_limiter.py::TestGetEndpointType::test_get_endpoint_type_other PASSED [ 94%]
+tests/utils/test_rate_limiter.py::TestGetEndpointType::test_get_endpoint_type_case_insensitive PASSED [ 94%]
+tests/utils/test_rate_limiter.py::TestUpdateFromHeaders::test_update_from_headers_with_remaining PASSED [ 95%]
+tests/utils/test_rate_limiter.py::TestUpdateFromHeaders::test_update_from_headers_with_limit PASSED [ 95%]
+tests/utils/test_rate_limiter.py::TestUpdateFromHeaders::test_update_from_headers_low_remaining PASSED [ 95%]
+tests/utils/test_rate_limiter.py::TestUpdateFromHeaders::test_update_from_headers_zero_remaining_with_reset PASSED [ 95%]
+tests/utils/test_rate_limiter.py::TestUpdateFromHeaders::test_update_from_headers_invalid_remaining PASSED [ 95%]
+tests/utils/test_rate_limiter.py::TestUpdateFromHeaders::test_update_from_headers_no_scope PASSED [ 95%]
+tests/utils/test_rate_limiter.py::TestWaitIfNeeded::test_wait_if_needed_no_wait PASSED [ 95%]
+tests/utils/test_rate_limiter.py::TestWaitIfNeeded::test_wait_if_needed_with_reset_time PASSED [ 95%]
+tests/utils/test_rate_limiter.py::TestWaitIfNeeded::test_wait_if_needed_rate_limiting PASSED [ 95%]
+tests/utils/test_rate_limiter.py::TestWaitIfNeeded::test_wait_if_needed_zero_rate_limit PASSED [ 95%]
+tests/utils/test_rate_limiter.py::TestHandle429::test_handle_429_with_retry_after PASSED [ 95%]
+tests/utils/test_rate_limiter.py::TestHandle429::test_handle_429_exponential_backoff PASSED [ 96%]
+tests/utils/test_rate_limiter.py::TestHandle429::test_handle_429_max_wait_time PASSED [ 96%]
+tests/utils/test_rate_limiter.py::TestResetRetryAttempts::test_reset_retry_attempts PASSED [ 96%]
+tests/utils/test_rate_limiter.py::TestResetRetryAttempts::test_reset_retry_attempts_nonexistent PASSED [ 96%]
+tests/utils/test_rate_limiter.py::TestGetRateLimit::test_get_rate_limit_standard PASSED [ 96%]
+tests/utils/test_rate_limiter.py::TestGetRateLimit::test_get_rate_limit_unauthorized PASSED [ 96%]
+tests/utils/test_rate_limiter.py::TestGetRateLimit::test_get_rate_limit_custom PASSED [ 96%]
+tests/utils/test_rate_limiter.py::TestGetRateLimit::test_get_rate_limit_unknown PASSED [ 96%]
+tests/utils/test_rate_limiter.py::TestSetCustomLimit::test_set_custom_limit PASSED [ 96%]
+tests/utils/test_rate_limiter.py::TestGetRemainingRequests::test_get_remaining_requests_known PASSED [ 96%]
+tests/utils/test_rate_limiter.py::TestGetRemainingRequests::test_get_remaining_requests_unknown PASSED [ 96%]
+tests/utils/test_rate_limiter.py::TestGetRemainingRequests::test_get_remaining_requests_under_reset PASSED [ 97%]
+tests/utils/test_rate_limiter.py::TestRateLimiterConstants::test_dmarket_api_rate_limits PASSED [ 97%]
+tests/utils/test_rate_limiter.py::TestRateLimiterConstants::test_base_retry_delay PASSED [ 97%]
+tests/utils/test_websocket_client.py::test_connect_success PASSED        [ 97%]
+tests/utils/test_websocket_client.py::test_connect_token_error PASSED    [ 97%]
+tests/utils/test_websocket_client.py::test_connect_no_token PASSED       [ 97%]
+tests/utils/test_websocket_client.py::test_subscribe PASSED              [ 97%]
+tests/utils/test_websocket_client.py::test_subscribe_not_connected PASSED [ 97%]
+tests/utils/test_websocket_client.py::test_unsubscribe PASSED            [ 97%]
+tests/utils/test_websocket_client.py::test_register_handler PASSED       [ 97%]
+tests/utils/test_websocket_client.py::test_listen_message_handling PASSED [ 98%]
+tests/utils/test_websocket_client.py::test_close PASSED                  [ 98%]
+tests/utils/test_websocket_client.py::test_init PASSED                   [ 98%]
+tests/utils/test_websocket_client.py::test_authenticate PASSED           [ 98%]
+tests/utils/test_websocket_client.py::test_authenticate_not_connected PASSED [ 98%]
+tests/utils/test_websocket_client.py::test_resubscribe PASSED            [ 98%]
+tests/utils/test_websocket_client.py::test_unsubscribe_all PASSED        [ 98%]
+tests/utils/test_websocket_client.py::test_handle_message_auth_success PASSED [ 98%]
+tests/utils/test_websocket_client.py::test_handle_message_auth_failure PASSED [ 98%]
+tests/utils/test_websocket_client.py::test_handle_message_subscription PASSED [ 98%]
+tests/utils/test_websocket_client.py::test_handle_message_json_decode_error PASSED [ 98%]
+tests/utils/test_websocket_client.py::test_attempt_reconnect_success PASSED [ 99%]
+tests/utils/test_websocket_client.py::test_attempt_reconnect_max_attempts PASSED [ 99%]
+tests/utils/test_websocket_client.py::test_unregister_handler PASSED     [ 99%]
+tests/utils/test_websocket_client.py::test_send_message PASSED           [ 99%]
+tests/utils/test_websocket_client.py::test_send_message_not_connected PASSED [ 99%]
+tests/utils/test_websocket_client.py::test_subscribe_to_market_updates PASSED [ 99%]
+tests/utils/test_websocket_client.py::test_subscribe_to_item_updates PASSED [ 99%]
+tests/utils/test_websocket_client.py::test_subscribe_with_params PASSED  [ 99%]
+tests/utils/test_websocket_client.py::test_connect_already_connected PASSED [ 99%]
+tests/utils/test_websocket_client.py::test_listen_cancelled_error PASSED [ 99%]
+tests/utils/test_websocket_client.py::test_listen_closed_message PASSED  [100%]
+
+================================== FAILURES ===================================
+_____ TestShowArbitrageOpportunities.test_show_opportunities_custom_page ______
+C:\Program Files\Python311\Lib\unittest\mock.py:939: in assert_called_with
+    raise AssertionError(_error_message()) from cause
+E   AssertionError: expected call not found.
+E   Expected: format_opportunities([{'item_name': 'AK-47 | Redline (FT)', 'buy_price': 10.5, 'sell_price': 12.0, 'profit': 1.11, 'profit_percent': 10.57, 'game': 'csgo'}, {'item_name': 'AWP | Asiimov (FT)', 'buy_price': 50.0, 'sell_price': 55.0, 'profit': 4.11, 'profit_percent': 8.22, 'game': 'csgo'}, {'item_name': 'M4A4 | Howl (FT)', 'buy_price': 500.0, 'sell_price': 550.0, 'profit': 41.15, 'profit_percent': 8.23, 'game': 'csgo'}], 1, 3)
+E     Actual: format_opportunities([{'item_name': 'AK-47 | Redline (FT)', 'buy_price': 10.5, 'sell_price': 12.0, 'profit': 1.11, 'profit_percent': 10.57, 'game': 'csgo'}, {'item_name': 'AWP | Asiimov (FT)', 'buy_price': 50.0, 'sell_price': 55.0, 'profit': 4.11, 'profit_percent': 8.22, 'game': 'csgo'}, {'item_name': 'M4A4 | Howl (FT)', 'buy_price': 500.0, 'sell_price': 550.0, 'profit': 41.15, 'profit_percent': 8.23, 'game': 'csgo'}], 0, 3)
+
+During handling of the above exception, another exception occurred:
+C:\Program Files\Python311\Lib\unittest\mock.py:951: in assert_called_once_with
+    return self.assert_called_with(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: expected call not found.
+E   Expected: format_opportunities([{'item_name': 'AK-47 | Redline (FT)', 'buy_price': 10.5, 'sell_price': 12.0, 'profit': 1.11, 'profit_percent': 10.57, 'game': 'csgo'}, {'item_name': 'AWP | Asiimov (FT)', 'buy_price': 50.0, 'sell_price': 55.0, 'profit': 4.11, 'profit_percent': 8.22, 'game': 'csgo'}, {'item_name': 'M4A4 | Howl (FT)', 'buy_price': 500.0, 'sell_price': 550.0, 'profit': 41.15, 'profit_percent': 8.23, 'game': 'csgo'}], 1, 3)
+E     Actual: format_opportunities([{'item_name': 'AK-47 | Redline (FT)', 'buy_price': 10.5, 'sell_price': 12.0, 'profit': 1.11, 'profit_percent': 10.57, 'game': 'csgo'}, {'item_name': 'AWP | Asiimov (FT)', 'buy_price': 50.0, 'sell_price': 55.0, 'profit': 4.11, 'profit_percent': 8.22, 'game': 'csgo'}, {'item_name': 'M4A4 | Howl (FT)', 'buy_price': 500.0, 'sell_price': 550.0, 'profit': 41.15, 'profit_percent': 8.23, 'game': 'csgo'}], 0, 3)
+E   
+E   pytest introspection follows:
+E   
+E   Args:
+E   assert ([{'item_name': 'AK-47 | Redline (FT)', 'buy_price': 10.5, 'sell_price': 12.0, 'profit': 1.11, 'profit_percent': 10.57, 'game': 'csgo'}, {'item_name': 'AWP | Asiimov (FT)', 'buy_price': 50.0, 'sell_price': 55.0, 'profit': 4.11, 'profit_percent': 8.22, 'game': 'csgo'}, {'item_name': 'M4A4 | Howl (FT)', 'buy_price': 500.0, 'sell_price': 550.0, 'profit': 41.15, 'profit_percent': 8.23, 'game': 'csgo'}], 0, 3) == ([{'item_name': 'AK-47 | Redline (FT)', 'buy_price': 10.5, 'sell_price': 12.0, 'profit': 1.11, 'profit_percent': 10.57, 'game': 'csgo'}, {'item_name': 'AWP | Asiimov (FT)', 'buy_price': 50.0, 'sell_price': 55.0, 'profit': 4.11, 'profit_percent': 8.22, 'game': 'csgo'}, {'item_name': 'M4A4 | Howl (FT)', 'buy_price': 500.0, 'sell_price': 550.0, 'profit': 41.15, 'profit_percent': 8.23, 'game': 'csgo'}], 1, 3)
+E     
+E     At index 1 diff: 0 != 1
+E     
+E     Full diff:
+E       (
+E           [
+E               {
+E                   'buy_price': 10.5,
+E                   'game': 'csgo',
+E                   'item_name': 'AK-47 | Redline (FT)',
+E                   'profit': 1.11,
+E                   'profit_percent': 10.57,
+E                   'sell_price': 12.0,
+E               },
+E               {
+E                   'buy_price': 50.0,
+E                   'game': 'csgo',
+E                   'item_name': 'AWP | Asiimov (FT)',
+E                   'profit': 4.11,
+E                   'profit_percent': 8.22,
+E                   'sell_price': 55.0,
+E               },
+E               {
+E                   'buy_price': 500.0,
+E                   'game': 'csgo',
+E                   'item_name': 'M4A4 | Howl (FT)',
+E                   'profit': 41.15,
+E                   'profit_percent': 8.23,
+E                   'sell_price': 550.0,
+E               },
+E           ],
+E     -     1,
+E     ?     ^
+E     +     0,
+E     ?     ^
+E           3,
+E       )
+
+During handling of the above exception, another exception occurred:
+tests\telegram_bot\handlers\test_callbacks.py:295: in test_show_opportunities_custom_page
+    mock_format_opps.assert_called_once_with(sample_opportunities, 1, 3)
+E   AssertionError: expected call not found.
+E   Expected: format_opportunities([{'item_name': 'AK-47 | Redline (FT)', 'buy_price': 10.5, 'sell_price': 12.0, 'profit': 1.11, 'profit_percent': 10.57, 'game': 'csgo'}, {'item_name': 'AWP | Asiimov (FT)', 'buy_price': 50.0, 'sell_price': 55.0, 'profit': 4.11, 'profit_percent': 8.22, 'game': 'csgo'}, {'item_name': 'M4A4 | Howl (FT)', 'buy_price': 500.0, 'sell_price': 550.0, 'profit': 41.15, 'profit_percent': 8.23, 'game': 'csgo'}], 1, 3)
+E     Actual: format_opportunities([{'item_name': 'AK-47 | Redline (FT)', 'buy_price': 10.5, 'sell_price': 12.0, 'profit': 1.11, 'profit_percent': 10.57, 'game': 'csgo'}, {'item_name': 'AWP | Asiimov (FT)', 'buy_price': 50.0, 'sell_price': 55.0, 'profit': 4.11, 'profit_percent': 8.22, 'game': 'csgo'}, {'item_name': 'M4A4 | Howl (FT)', 'buy_price': 500.0, 'sell_price': 550.0, 'profit': 41.15, 'profit_percent': 8.23, 'game': 'csgo'}], 0, 3)
+E   
+E   pytest introspection follows:
+E   
+E   Args:
+E   assert ([{'item_name': 'AK-47 | Redline (FT)', 'buy_price': 10.5, 'sell_price': 12.0, 'profit': 1.11, 'profit_percent': 10.57, 'game': 'csgo'}, {'item_name': 'AWP | Asiimov (FT)', 'buy_price': 50.0, 'sell_price': 55.0, 'profit': 4.11, 'profit_percent': 8.22, 'game': 'csgo'}, {'item_name': 'M4A4 | Howl (FT)', 'buy_price': 500.0, 'sell_price': 550.0, 'profit': 41.15, 'profit_percent': 8.23, 'game': 'csgo'}], 0, 3) == ([{'item_name': 'AK-47 | Redline (FT)', 'buy_price': 10.5, 'sell_price': 12.0, 'profit': 1.11, 'profit_percent': 10.57, 'game': 'csgo'}, {'item_name': 'AWP | Asiimov (FT)', 'buy_price': 50.0, 'sell_price': 55.0, 'profit': 4.11, 'profit_percent': 8.22, 'game': 'csgo'}, {'item_name': 'M4A4 | Howl (FT)', 'buy_price': 500.0, 'sell_price': 550.0, 'profit': 41.15, 'profit_percent': 8.23, 'game': 'csgo'}], 1, 3)
+E     
+E     At index 1 diff: 0 != 1
+E     
+E     Full diff:
+E       (
+E           [
+E               {
+E                   'buy_price': 10.5,
+E                   'game': 'csgo',
+E                   'item_name': 'AK-47 | Redline (FT)',
+E                   'profit': 1.11,
+E                   'profit_percent': 10.57,
+E                   'sell_price': 12.0,
+E               },
+E               {
+E                   'buy_price': 50.0,
+E                   'game': 'csgo',
+E                   'item_name': 'AWP | Asiimov (FT)',
+E                   'profit': 4.11,
+E                   'profit_percent': 8.22,
+E                   'sell_price': 55.0,
+E               },
+E               {
+E                   'buy_price': 500.0,
+E                   'game': 'csgo',
+E                   'item_name': 'M4A4 | Howl (FT)',
+E                   'profit': 41.15,
+E                   'profit_percent': 8.23,
+E                   'sell_price': 550.0,
+E               },
+E           ],
+E     -     1,
+E     ?     ^
+E     +     0,
+E     ?     ^
+E           3,
+E       )
+----------------------------- Captured log setup ------------------------------
+DEBUG    asyncio:proactor_events.py:633 Using proactor: IocpProactor
+___________ TestHandleArbitragePagination.test_pagination_next_page ___________
+tests\telegram_bot\handlers\test_callbacks.py:320: in test_pagination_next_page
+    assert mock_context.user_data["arbitrage_page"] == 1
+E   assert 0 == 1
+----------------------------- Captured log setup ------------------------------
+DEBUG    asyncio:proactor_events.py:633 Using proactor: IocpProactor
+________ TestHandleGameSelectedImpl.test_no_api_client_game_selection _________
+tests\telegram_bot\handlers\test_callbacks.py:481: in test_no_api_client_game_selection
+    assert mock_update.callback_query.edit_message_text.call_count == 2
+E   AssertionError: assert 3 == 2
+E    +  where 3 = <AsyncMock name='mock.callback_query.edit_message_text' id='1760615194512'>.call_count
+E    +    where <AsyncMock name='mock.callback_query.edit_message_text' id='1760615194512'> = <AsyncMock name='mock.callback_query' spec='CallbackQuery' id='1760616018640'>.edit_message_text
+E    +      where <AsyncMock name='mock.callback_query' spec='CallbackQuery' id='1760616018640'> = <MagicMock spec='Update' id='1760615199824'>.callback_query
+----------------------------- Captured log setup ------------------------------
+DEBUG    asyncio:proactor_events.py:633 Using proactor: IocpProactor
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.11.9-final-0 _______________
+
+Name                                                         Stmts   Miss Branch BrPart   Cover   Missing
+---------------------------------------------------------------------------------------------------------
+src\dmarket\auto_arbitrage.py                                   31     31      6      0   0.00%   9-117
+src\dmarket\models\__init__.py                                   1      1      0      0   0.00%   3
+src\dmarket\models\market_models.py                            147    147      2      0   0.00%   9-345
+src\models\__init__.py                                           2      2      0      0   0.00%   3-6
+src\models\target.py                                            49     49      0      0   0.00%   3-185
+src\models\trading.py                                           33     33      0      0   0.00%   3-122
+src\models\user.py                                              67     67      0      0   0.00%   3-231
+src\telegram_bot\arbitrage_scanner.py                          284    284    100      0   0.00%   9-873
+src\telegram_bot\enhanced_auto_arbitrage.py                    108    108     46      0   0.00%   7-322
+src\telegram_bot\handlers\dmarket_handlers.py                   45     45     14      0   0.00%   6-128
+src\telegram_bot\handlers\dmarket_status.py                     69     69     16      0   0.00%   1-144
+src\telegram_bot\handlers\enhanced_arbitrage_handler.py        131    131     40      0   0.00%   3-459
+src\telegram_bot\handlers\market_alerts_handler.py             278    278    130      0   0.00%   7-823
+src\telegram_bot\market_alerts.py                              293    293    116      0   0.00%   8-783
+src\telegram_bot\price_alerts_handler.py                       131    131     18      0   0.00%   7-521
+src\telegram_bot\profiles.py                                    25     25      4      0   0.00%   3-61
+src\telegram_bot\register_all_handlers.py                       71     71      2      0   0.00%   7-152
+src\telegram_bot\sales_analysis_callbacks.py                   212    212     62      0   0.00%   3-739
+src\telegram_bot\smart_notifier.py                             369    369    128      0   0.00%   11-1234
+src\utils\price_analyzer.py                                    188    172     72      0   6.15%   45-96, 111-148, 175-224, 255-332, 349-398, 425-488, 501-531
+src\telegram_bot\initialization.py                             123    103     38      0  12.42%   52-88, 103-142, 156-177, 198-223, 234-244, 257-280, 290-297, 326-353
+src\dmarket\arbitrage.py                                       552    422    210      7  19.03%   126-134, 192-193, 205-264, 393-483, 569-587, 591-596, 609-626, 630-648, 657-672, 704-793, 818-917, 936-958, 970-974, 990-1063, 1072, 1086->1089, 1089->1092, 1105-1113, 1143-1173, 1192-1238, 1257-1292, 1343, 1354-1365, 1396-1578, 1600-1648, 1663-1672, 1686-1696, 1711-1723
+src\utils\logging_utils.py                                      78     56     18      0  22.92%   24-67, 85-97, 122-176, 188-208, 227, 245, 273-275, 302, 324-331, 344
+src\telegram_bot\enhanced_bot.py                                59     44      6      0  23.08%   41-44, 51-69, 73-83, 87-96, 100-118, 126-142
+src\telegram_bot\utils\api_client.py                            46     31      8      1  29.63%   36-52, 69-94, 108-127
+src\telegram_bot\user_profiles.py                              209    136     74      6  30.04%   98-109, 124-130, 142-152, 157-159, 171->175, 173, 179, 183-185, 195-227, 240-241, 252, 277-294, 305-315, 328-333, 346-352, 365-378, 387, 398-406, 435-441, 454-460, 475-499, 512-513, 524-533, 548-575
+src\telegram_bot\handlers\callbacks.py                         166     99     80      2  31.30%   171, 217, 261-560
+src\utils\exceptions.py                                        194    105     52      1  36.59%   65-73, 104, 111, 123, 128, 140, 145, 160, 165, 186-187, 192, 214, 226, 231, 247, 252, 273-274, 279-291, 296-297, 306, 315, 324, 345-348, 369-372, 396-431, 450-497, 516-549, 576-585
+src\telegram_bot\game_filter_handlers.py                       287    168    110     13  38.29%   368, 399, 539, 556-606, 620-678, 695-747, 761-810, 827-875, 889-933, 947-990, 1011-1017, 1030-1042, 1046-1058, 1064-1065, 1074-1075, 1084-1085, 1094-1095, 1101-1118, 1146-1153, 1160
+src\dmarket\dmarket_api.py                                     724    418    234     55  39.77%   152-155, 185, 194, 203, 208-209, 232, 242, 249, 257-258, 261-264, 268-269, 274-276, 297-301, 320-338, 362, 392-396, 413, 425, 461, 477, 490-491, 508, 517-526, 559->563, 571->582, 583, 599->742, 604-612, 620-622, 661-662, 666, 678, 688-711, 715-730, 751, 760-761, 771-780, 806-807, 828-866, 872-874, 890->913, 898->890, 907-910, 914-931, 945-973, 993->1205, 1005-1038, 1042-1059, 1068-1088, 1094-1119, 1129-1132, 1137-1140, 1143->1192, 1151-1189, 1198-1202, 1212, 1216, 1234-1249, 1315, 1318, 1321, 1323->1326, 1341->1358, 1346-1353, 1360-1363, 1390-1419, 1439-1465, 1485-1507, 1526-1531, 1553-1578, 1600, 1612, 1645-1651, 1671-1672, 1692-1693, 1712-1713, 1735-1736, 1755, 1777-1782, 1822-1839, 1864-1870, 1898-1899, 1920-1924, 1960-1973, 1998-2007, 2030-2038, 2063-2070, 2095-2102, 2121-2125, 2148-2156, 2175-2179, 2204-2211, 2242-2244, 2269-2274, 2293-2295, 2317-2322, 2343-2354, 2389, 2397, 2400-2402, 2405, 2409-2411, 2424-2432, 2454-2515, 2529-2540
+src\telegram_bot\utils\formatters.py                           227    112     86     10  44.41%   28-60, 84-99, 123, 161, 191, 215-219, 238-274, 314->322, 339, 371->381, 384-389, 432, 524, 545-572, 589-624, 638-658
+src\utils\analytics.py                                         212    106     40      0  45.24%   28-30, 204-206, 236-282, 303-352, 388-390, 407-412, 439-468, 492-517, 539-577
+src\telegram_bot\notifier.py                                   386    197    148     11  47.94%   281->284, 293-294, 345->355, 352->355, 379-429, 473->482, 478-479, 484-487, 501->498, 513-514, 529-544, 591-592, 615-625, 639-656, 687->690, 707-793, 809-838, 855-899, 913-984, 998-1029
+src\dmarket\arbitrage_sales_analysis.py                        332    157    142     29  49.37%   56-58, 89->94, 110-111, 136->140, 259-260, 277, 284-286, 294, 299-302, 307-314, 322-325, 388-391, 408, 436-438, 443-450, 454, 472-474, 524-530, 535, 542, 546, 550, 553->557, 558-563, 567, 569, 576, 578, 582, 619-657, 679-749, 768-807, 830-903, 920-945, 970-971, 990
+src\telegram_bot\auto_arbitrage.py                             343    155    114     18  49.45%   85-87, 168-169, 186, 225-265, 288-297, 320-322, 341-343, 379-380, 410-415, 433-447, 504-532, 565->569, 571-572, 576-637, 665->569, 668-716, 765-774, 806-813, 833, 847, 860-923, 942, 952-955, 968, 991-1068, 1083, 1094-1118, 1150-1242
+src\telegram_bot\settings_handlers.py                          159     73     44      6  50.25%   91, 95, 119-120, 185, 207-209, 226, 260, 267-360, 371-381, 388-421, 432-453
+src\dmarket\filters\game_filters.py                            133     55     90     21  50.67%   56->59, 82-84, 88-90, 94-96, 100-102, 106-108, 122, 126-128, 132-134, 138-140, 144-146, 160, 164-166, 170-172, 194, 198-200, 204-206, 210-212, 216-218, 222-224, 228-230, 275
+src\telegram_bot\handlers\arbitrage_callback_impl.py           117     45     24      3  54.61%   130-132, 164-191, 230-232, 240-282, 331-431, 494, 528-537
+src\telegram_bot\auto_arbitrage_scanner.py                     229     86     86     22  60.00%   43-50, 96-97, 116-122, 145-154, 159, 188-191, 218, 236->246, 238, 242-243, 261-263, 267->273, 270-271, 307-308, 312-321, 360-361, 371-372, 394-400, 437-438, 455-457, 461-462, 500-501, 504-505, 510-513, 522-525, 540-617
+src\dmarket\arbitrage_scanner.py                               478    169    172     23  62.46%   269, 273-276, 306->310, 375-384, 389, 432, 455-457, 492-493, 507-537, 573-586, 668-670, 674-675, 716-717, 720-721, 728-731, 739-814, 843-872, 891-934, 953-985, 1019, 1047, 1049->1055, 1077, 1109, 1116, 1170-1171, 1242, 1244, 1300-1352, 1367, 1378-1379, 1401-1402, 1421-1424, 1449-1450, 1473-1476, 1495-1496, 1521-1522
+src\dmarket\__init__.py                                         11      4      0      0  63.64%   36-97
+src\dmarket\market_analysis.py                                 260     89    108     17  64.13%   83-88, 132, 140-159, 180-182, 185-188, 217-222, 254, 262, 281-283, 286-289, 316-321, 348, 356, 364-379, 399-401, 404-407, 428-433, 467-469, 480-483, 509-540, 570-574, 582-583, 686, 720, 743, 751
+src\utils\api_error_handling.py                                 41     10     22      7  66.67%   54-57, 63-64, 69->79, 73, 74->79, 76, 123-125
+src\telegram_bot\keyboards.py                                  249     70     76      6  67.38%   175, 185, 308-309, 537-548, 744-747, 766-769, 786-805, 994-1021, 1036-1051, 1061-1073, 1094-1101, 1152->1161, 1181->1184, 1204-1249, 1259-1284, 1294-1312, 1325, 1339-1341, 1362-1370, 1386-1411, 1426-1452
+src\dmarket\sales_history.py                                   256     78     82     14  68.64%   98->103, 105-110, 136, 152, 161-164, 351-452, 527-529, 549-550, 586-591, 599, 601->574, 606-608, 640, 663->670, 667-668, 684-686, 719-731, 766, 773, 776, 784-786
+src\telegram_bot\pagination.py                                 149     34     68     21  70.05%   53, 100, 137-138, 141-142, 170, 195, 213->exit, 221, 237->exit, 247, 268->270, 270->272, 272->274, 274->276, 277, 298, 337, 343, 347, 356-387, 406-418, 449
+src\telegram_bot\handlers\intramarket_arbitrage_handler.py     131     34     30      5  72.05%   47, 127, 174-195, 207-262, 275->278, 330-334, 358-372, 458-472
+src\dmarket\realtime_price_watcher.py                          273     62    106     16  73.61%   67->69, 170-172, 176-178, 196->exit, 202, 207, 212-213, 233-234, 247->exit, 253, 258, 263-264, 267->285, 285->248, 292-293, 312-320, 324-400, 451-452, 474->479, 523->533, 596->600, 600->603, 696->695
+src\telegram_bot\sales_analysis_handlers.py                     98     27     12      1  74.55%   104, 151-154, 184, 232-242, 264-269, 287, 325-335, 364, 402-412
+src\dmarket\intramarket_arbitrage.py                           266     52    154     34  74.76%   68-73, 97, 113->119, 124, 126, 136->142, 139-140, 142->94, 173->165, 181->165, 208, 236-241, 272, 276->282, 279-280, 288-291, 306->304, 311->317, 314-315, 317->321, 347->324, 364->324, 370->324, 396, 424-429, 498, 506, 510->516, 513-514, 535->540, 549-550, 568->503, 592, 622, 628-633, 648->665, 705->708, 710-717, 721-723, 733
+src\telegram_bot\utils\error_handler.py                        185     40     74     11  74.90%   90->94, 100-101, 149->153, 153->exit, 159-160, 193, 197->202, 202->exit, 208-209, 254-255, 283, 295, 302-355, 379->383, 452-453, 480->478, 496-500
+src\telegram_bot\handlers\market_analysis_handler.py           310     55    120     30  75.58%   90, 119, 191, 252-326, 363, 372->376, 380-385, 478-485, 554-558, 573, 579, 601, 609, 617, 697->706, 707->715, 758, 764->767, 837-841, 859-860, 882, 890, 898, 933-937, 955-956, 979, 987, 995, 1042, 1048->1051
+src\utils\market_analyzer.py                                   296     53    144     39  76.82%   91-94, 109->111, 118->144, 135, 138->140, 140->144, 157, 253, 272-273, 313, 326, 362, 373, 378, 388, 393, 403, 418, 452, 463->486, 478-483, 502, 526->525, 528->525, 569->576, 572-573, 586-587, 589->598, 594-595, 604-605, 610-617, 626-627, 632-640, 646-647, 655, 660->668, 664-665, 670-675, 714, 721-722
+src\dmarket\smart_market_finder.py                             297     49     96     29  79.13%   147, 151, 155, 222, 230->219, 239, 241, 277-279, 325, 331, 347, 353, 376, 476, 480, 528, 545-554, 558-560, 574, 584, 622-625, 672-674, 692, 695, 731-733, 752, 763-764, 767, 776, 796, 802, 806
+src\utils\market_visualizer.py                                 347     49    118     30  81.72%   136, 225-242, 251, 256, 261->248, 263->248, 320-337, 358, 367, 371, 442->446, 485-489, 494->501, 497-498, 586->595, 595->605, 606->628, 664-672, 676-678, 682->691, 684, 687-689, 692, 725, 737-738, 760, 791, 822, 839, 844->843
+src\utils\websocket_client.py                                  176     23     54     11  84.35%   71->75, 81-92, 114-115, 134->122, 143-146, 169, 194->exit, 202-203, 209-210, 234-235, 252, 312-313, 326->329, 343->346, 361->exit
+src\utils\config.py                                            159     18     58     12  86.18%   215, 225, 230, 234, 241, 247, 249, 258, 262-267, 270-275, 279, 282
+src\telegram_bot\liquidity_settings_handler.py                 127      7     52     16  87.15%   55, 199->exit, 219, 245->exit, 265, 268->271, 284->exit, 300, 303->306, 320->exit, 336, 339->342, 355->exit, 371, 422->exit, 452
+src\dmarket\liquidity_analyzer.py                              140     11     36      7  89.77%   177-184, 255-262, 311->303, 318, 341->339, 345, 351, 493, 497
+src\telegram_bot\handlers\scanner_handler.py                   147     10     52      3  90.45%   77-90, 190->exit, 432->436
+src\main.py                                                     98      7      6      2  91.35%   81, 124-126, 162-163, 171
+src\utils\rate_limiter.py                                      120      3     50      6  94.71%   98, 142->146, 146->exit, 156->165, 161, 184, 202->217, 236->242
+src\utils\database.py                                          158      5     22      4  95.00%   204, 205->208, 249-251, 255->257, 258
+src\telegram_bot\handlers\error_handlers.py                     29      2     12      0  95.12%   78-79
+src\utils\performance.py                                        96      1     22      3  96.61%   43->exit, 110, 113->exit
+src\telegram_bot\handlers\target_handler.py                     35      0     12      1  97.87%   116->exit
+src\dmarket\targets.py                                         172      3     46      1  98.17%   490->494, 496-498
+---------------------------------------------------------------------------------------------------------
+TOTAL                                                        12312   6051   4190    554  48.12%
+
+13 files skipped due to complete coverage.
+Coverage HTML written to dir htmlcov
+Coverage XML written to file coverage.xml
+Required test coverage of 25% reached. Total coverage: 48.12%
+=========================== short test summary info ===========================
+FAILED tests/telegram_bot/handlers/test_callbacks.py::TestShowArbitrageOpportunities::test_show_opportunities_custom_page - AssertionError: expected call not found.
+Expected: format_opportunities([{'item_name': 'AK-47 | Redline (FT)', 'buy_price': 10.5, 'sell_price': 12.0, 'profit': 1.11, 'profit_percent': 10.57, 'game': 'csgo'}, {'item_name': 'AWP | Asiimov (FT)', 'buy_price': 50.0, 'sell_price': 55.0, 'profit': 4.11, 'profit_percent': 8.22, 'game': 'csgo'}, {'item_name': 'M4A4 | Howl (FT)', 'buy_price': 500.0, 'sell_price': 550.0, 'profit': 41.15, 'profit_percent': 8.23, 'game': 'csgo'}], 1, 3)
+  Actual: format_opportunities([{'item_name': 'AK-47 | Redline (FT)', 'buy_price': 10.5, 'sell_price': 12.0, 'profit': 1.11, 'profit_percent': 10.57, 'game': 'csgo'}, {'item_name': 'AWP | Asiimov (FT)', 'buy_price': 50.0, 'sell_price': 55.0, 'profit': 4.11, 'profit_percent': 8.22, 'game': 'csgo'}, {'item_name': 'M4A4 | Howl (FT)', 'buy_price': 500.0, 'sell_price': 550.0, 'profit': 41.15, 'profit_percent': 8.23, 'game': 'csgo'}], 0, 3)
+
+pytest introspection follows:
+
+Args:
+assert ([{'item_name': 'AK-47 | Redline (FT)', 'buy_price': 10.5, 'sell_price': 12.0, 'profit': 1.11, 'profit_percent': 10.57, 'game': 'csgo'}, {'item_name': 'AWP | Asiimov (FT)', 'buy_price': 50.0, 'sell_price': 55.0, 'profit': 4.11, 'profit_percent': 8.22, 'game': 'csgo'}, {'item_name': 'M4A4 | Howl (FT)', 'buy_price': 500.0, 'sell_price': 550.0, 'profit': 41.15, 'profit_percent': 8.23, 'game': 'csgo'}], 0, 3) == ([{'item_name': 'AK-47 | Redline (FT)', 'buy_price': 10.5, 'sell_price': 12.0, 'profit': 1.11, 'profit_percent': 10.57, 'game': 'csgo'}, {'item_name': 'AWP | Asiimov (FT)', 'buy_price': 50.0, 'sell_price': 55.0, 'profit': 4.11, 'profit_percent': 8.22, 'game': 'csgo'}, {'item_name': 'M4A4 | Howl (FT)', 'buy_price': 500.0, 'sell_price': 550.0, 'profit': 41.15, 'profit_percent': 8.23, 'game': 'csgo'}], 1, 3)
+  
+  At index 1 diff: 0 != 1
+  
+  Full diff:
+    (
+        [
+            {
+                'buy_price': 10.5,
+                'game': 'csgo',
+                'item_name': 'AK-47 | Redline (FT)',
+                'profit': 1.11,
+                'profit_percent': 10.57,
+                'sell_price': 12.0,
+            },
+            {
+                'buy_price': 50.0,
+                'game': 'csgo',
+                'item_name': 'AWP | Asiimov (FT)',
+                'profit': 4.11,
+                'profit_percent': 8.22,
+                'sell_price': 55.0,
+            },
+            {
+                'buy_price': 500.0,
+                'game': 'csgo',
+                'item_name': 'M4A4 | Howl (FT)',
+                'profit': 41.15,
+                'profit_percent': 8.23,
+                'sell_price': 550.0,
+            },
+        ],
+  -     1,
+  ?     ^
+  +     0,
+  ?     ^
+        3,
+    )
+FAILED tests/telegram_bot/handlers/test_callbacks.py::TestHandleArbitragePagination::test_pagination_next_page - assert 0 == 1
+FAILED tests/telegram_bot/handlers/test_callbacks.py::TestHandleGameSelectedImpl::test_no_api_client_game_selection - AssertionError: assert 3 == 2
+ +  where 3 = <AsyncMock name='mock.callback_query.edit_message_text' id='1760615194512'>.call_count
+ +    where <AsyncMock name='mock.callback_query.edit_message_text' id='1760615194512'> = <AsyncMock name='mock.callback_query' spec='CallbackQuery' id='1760616018640'>.edit_message_text
+ +      where <AsyncMock name='mock.callback_query' spec='CallbackQuery' id='1760616018640'> = <MagicMock spec='Update' id='1760615199824'>.callback_query
+================== 3 failed, 1058 passed in 93.19s (0:01:33) ==================

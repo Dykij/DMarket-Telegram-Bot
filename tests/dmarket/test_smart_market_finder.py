@@ -690,3 +690,480 @@ async def test_analyze_item_opportunity_no_suggested_price(
     assert opportunity is not None
     assert opportunity.item_id == "no_price"
     assert opportunity.current_price == 50.0
+
+
+# ============================================================================
+# ДОПОЛНИТЕЛЬНЫЕ ТЕСТЫ ДЛЯ УЛУЧШЕНИЯ ПОКРЫТИЯ
+# ============================================================================
+
+
+@pytest.mark.asyncio()
+async def test_analyze_item_opportunity_no_title(mock_api_client):
+    """Тест анализа предмета без названия."""
+    finder = SmartMarketFinder(mock_api_client)
+
+    # Предмет без title
+    item_data = {
+        "itemId": "no_title",
+        # Нет title
+        "price": {"USD": "5000"},
+    }
+
+    opportunity = await finder._analyze_item_opportunity(item_data, game="csgo")
+
+    # Должен вернуть None
+    assert opportunity is None
+
+
+@pytest.mark.asyncio()
+async def test_analyze_item_opportunity_zero_price(mock_api_client):
+    """Тест анализа предмета с нулевой ценой."""
+    finder = SmartMarketFinder(mock_api_client)
+
+    # Предмет с нулевой ценой
+    item_data = {
+        "itemId": "zero_price",
+        "title": "Zero Price Item",
+        "price": {"USD": "0"},
+    }
+
+    opportunity = await finder._analyze_item_opportunity(item_data, game="csgo")
+
+    # Должен вернуть None
+    assert opportunity is None
+
+
+@pytest.mark.asyncio()
+async def test_analyze_item_opportunity_with_aggregated(mock_api_client):
+    """Тест анализа предмета с агрегированными данными."""
+    finder = SmartMarketFinder(mock_api_client)
+
+    # Предмет с агрегированными данными
+    item_data = {
+        "itemId": "with_agg",
+        "title": "Item With Aggregated",
+        "price": {"USD": "5000"},
+        "suggestedPrice": {"USD": "6000"},
+        "aggregated": {
+            "offerBestPrice": "5200",
+            "orderBestPrice": "4800",
+            "offerCount": 15,
+            "orderCount": 10,
+        },
+        "extra": {"popularity": 0.7},
+    }
+
+    opportunity = await finder._analyze_item_opportunity(item_data, game="csgo")
+
+    # Проверки
+    assert opportunity is not None
+    assert opportunity.best_offer_price == 52.0
+    assert opportunity.best_order_price == 48.0
+    assert opportunity.offers_count == 15
+    assert opportunity.orders_count == 10
+
+
+@pytest.mark.asyncio()
+async def test_analyze_item_opportunity_exception_handling(mock_api_client):
+    """Тест обработки исключения при анализе предмета."""
+    finder = SmartMarketFinder(mock_api_client)
+
+    # Некорректные данные, которые вызовут исключение
+    item_data = {
+        "itemId": "bad_data",
+        "title": "Bad Data",
+        "price": "invalid",  # Неверный формат
+    }
+
+    opportunity = await finder._analyze_item_opportunity(item_data, game="csgo")
+
+    # Должен обработать исключение и вернуть None
+    assert opportunity is None
+
+
+def test_generate_recommendation_default(mock_api_client):
+    """Тест генерации дефолтной рекомендации."""
+    finder = SmartMarketFinder(mock_api_client)
+
+    recommendation = finder._generate_recommendation(
+        opportunity_type=MarketOpportunityType.VALUE_INVESTMENT,
+        current_price=10.0,
+        suggested_price=12.0,
+        best_order=None,
+    )
+
+    assert isinstance(recommendation, str)
+    assert "$10.00" in recommendation
+    assert "$12.00" in recommendation
+
+
+def test_generate_notes_low_liquidity(mock_api_client):
+    """Тест генерации заметок при низкой ликвидности."""
+    finder = SmartMarketFinder(mock_api_client)
+
+    item = {"extra": {"popularity": 0.2}}
+
+    notes = finder._generate_notes(item, profit=5.0, profit_percent=10.0, liquidity=30.0)
+
+    assert any("низкая ликвидность" in note.lower() for note in notes)
+
+
+def test_determine_opportunity_type_value_investment(mock_api_client):
+    """Тест определения типа VALUE_INVESTMENT."""
+    finder = SmartMarketFinder(mock_api_client)
+
+    item_data = {"extra": {"popularity": 0.4}}
+    profit_percent = 7.0  # Между 5 и 10
+
+    opp_type = finder._determine_opportunity_type(item_data, profit_percent)
+
+    assert opp_type == MarketOpportunityType.VALUE_INVESTMENT
+
+
+def test_determine_opportunity_type_target_opportunity(mock_api_client):
+    """Тест определения типа TARGET_OPPORTUNITY."""
+    finder = SmartMarketFinder(mock_api_client)
+
+    item_data = {"extra": {"popularity": 0.3}}
+    profit_percent = 3.0  # Меньше 5%
+
+    opp_type = finder._determine_opportunity_type(item_data, profit_percent)
+
+    assert opp_type == MarketOpportunityType.TARGET_OPPORTUNITY
+
+
+@pytest.mark.asyncio()
+async def test_find_best_opportunities_filters_low_confidence(mock_api_client, sample_market_item):
+    """Тест фильтрации возможностей с низкой уверенностью."""
+    # Настройка моков
+    mock_api_client._request = AsyncMock(
+        side_effect=[
+            {"objects": [sample_market_item]},
+            {"aggregatedPrices": []},
+        ]
+    )
+
+    finder = SmartMarketFinder(mock_api_client)
+    opportunities = await finder.find_best_opportunities(
+        game="csgo",
+        min_confidence=95.0,  # Очень высокий порог
+    )
+
+    # Предметы с низкой уверенностью должны быть отфильтрованы
+    for opp in opportunities:
+        assert opp.confidence_score >= 95.0
+
+
+@pytest.mark.asyncio()
+async def test_find_best_opportunities_filters_by_type(mock_api_client, sample_market_item):
+    """Тест фильтрации возможностей по типу."""
+    # Настройка моков
+    mock_api_client._request = AsyncMock(
+        side_effect=[
+            {"objects": [sample_market_item]},
+            {"aggregatedPrices": []},
+        ]
+    )
+
+    finder = SmartMarketFinder(mock_api_client)
+    opportunities = await finder.find_best_opportunities(
+        game="csgo",
+        opportunity_types=[MarketOpportunityType.UNDERPRICED],
+    )
+
+    # Все возможности должны быть нужного типа
+    for opp in opportunities:
+        assert opp.opportunity_type == MarketOpportunityType.UNDERPRICED
+
+
+@pytest.mark.asyncio()
+async def test_find_underpriced_items_with_discount(mock_api_client):
+    """Тест поиска предметов с большой скидкой."""
+    # Предмет с 35% скидкой (высокий риск)
+    item = {
+        "itemId": "big_discount",
+        "title": "Big Discount Item",
+        "price": {"USD": "6500"},  # $65
+        "suggestedPrice": {"USD": "10000"},  # $100
+        "extra": {"popularity": 0.5},
+    }
+    mock_api_client._request = AsyncMock(return_value={"objects": [item]})
+
+    finder = SmartMarketFinder(mock_api_client)
+    underpriced = await finder.find_underpriced_items(game="csgo", min_discount_percent=30.0)
+
+    assert len(underpriced) > 0
+    if underpriced:
+        # Должен быть помечен как высокий риск
+        assert underpriced[0].risk_level == "high"
+
+
+@pytest.mark.asyncio()
+async def test_find_target_opportunities_no_aggregated_prices(mock_api_client):
+    """Тест когда нет агрегированных цен."""
+    mock_api_client._request = AsyncMock(
+        side_effect=[
+            {"objects": [{"title": "Test", "price": {"USD": "5000"}}]},
+            None,  # Нет агрегированных цен
+        ]
+    )
+
+    finder = SmartMarketFinder(mock_api_client)
+    opportunities = await finder.find_target_opportunities(game="csgo")
+
+    assert opportunities == []
+
+
+@pytest.mark.asyncio()
+async def test_find_target_opportunities_no_profit(mock_api_client):
+    """Тест когда нет прибыли при создании таргета."""
+    # Цены такие, что после комиссии прибыли нет
+    mock_api_client._request = AsyncMock(
+        side_effect=[
+            {"objects": [{"title": "No Profit", "price": {"USD": "5000"}}]},
+            {
+                "aggregatedPrices": [
+                    {
+                        "title": "No Profit",
+                        "orderBestPrice": "5000",  # $50
+                        # $51, прибыль после комиссии отрицательная
+                        "offerBestPrice": "5100",
+                        "orderCount": 5,
+                        "offerCount": 5,
+                    }
+                ]
+            },
+        ]
+    )
+
+    finder = SmartMarketFinder(mock_api_client)
+    opportunities = await finder.find_target_opportunities(game="csgo", min_spread_percent=1.0)
+
+    # Не должно быть возможностей с отрицательной прибылью
+    for opp in opportunities:
+        assert opp["profit_potential"] > 0
+
+
+@pytest.mark.asyncio()
+async def test_find_quick_flip_filters_high_risk(mock_api_client):
+    """Тест фильтрации по максимальному риску."""
+    finder = SmartMarketFinder(mock_api_client)
+
+    # Создаем мок для find_underpriced_items
+    high_risk_opp = MarketOpportunity(
+        item_id="high_risk",
+        title="High Risk Item",
+        current_price=20.0,
+        suggested_price=30.0,
+        profit_potential=7.0,
+        profit_percent=35.0,
+        opportunity_type=MarketOpportunityType.UNDERPRICED,
+        confidence_score=70.0,
+        liquidity_score=80.0,  # Высокая ликвидность
+        risk_level="high",  # Высокий риск
+    )
+
+    with patch.object(finder, "find_underpriced_items", return_value=[high_risk_opp]):
+        # Запрашиваем только низкий риск
+        opportunities = await finder.find_quick_flip_opportunities(game="csgo", max_risk="low")
+
+        # Предмет с высоким риском должен быть отфильтрован
+        assert len(opportunities) == 0
+
+
+@pytest.mark.asyncio()
+async def test_find_quick_flip_sets_estimated_time(mock_api_client):
+    """Тест установки estimated_time_to_sell."""
+    finder = SmartMarketFinder(mock_api_client)
+
+    # Предмет с очень высокой ликвидностью
+    high_liq_opp = MarketOpportunity(
+        item_id="high_liq",
+        title="High Liquidity",
+        current_price=10.0,
+        suggested_price=12.0,
+        profit_potential=1.0,
+        profit_percent=10.0,
+        opportunity_type=MarketOpportunityType.UNDERPRICED,
+        confidence_score=75.0,
+        liquidity_score=85.0,  # Высокая ликвидность > 70
+        risk_level="low",
+    )
+
+    with patch.object(finder, "find_underpriced_items", return_value=[high_liq_opp]):
+        opportunities = await finder.find_quick_flip_opportunities(game="csgo")
+
+        if opportunities:
+            # Должно быть установлено время продажи
+            assert opportunities[0].estimated_time_to_sell is not None
+            assert "час" in opportunities[0].estimated_time_to_sell.lower()
+
+
+@pytest.mark.asyncio()
+async def test_get_market_items_aggregated_prices_error(mock_api_client):
+    """Тест обработки ошибки при получении агрегированных цен."""
+    # Первый вызов успешен, второй выбрасывает ошибку
+    mock_api_client._request = AsyncMock(
+        side_effect=[
+            {"objects": [{"title": "Test", "price": {"USD": "5000"}}]},
+            Exception("Aggregated prices error"),
+        ]
+    )
+
+    finder = SmartMarketFinder(mock_api_client)
+    items = await finder._get_market_items_with_aggregated_prices(
+        game="csgo", min_price=1.0, max_price=100.0
+    )
+
+    # Должен вернуть предметы без агрегированных данных
+    assert len(items) > 0
+    assert "aggregated" not in items[0] or items[0].get("aggregated") is None
+
+
+@pytest.mark.asyncio()
+async def test_get_market_items_no_objects(mock_api_client):
+    """Тест когда API не возвращает objects."""
+    mock_api_client._request = AsyncMock(return_value={"invalid_key": []})
+
+    finder = SmartMarketFinder(mock_api_client)
+    items = await finder._get_market_items_with_aggregated_prices(
+        game="csgo", min_price=1.0, max_price=100.0
+    )
+
+    assert items == []
+
+
+@pytest.mark.asyncio()
+async def test_get_market_items_exception(mock_api_client):
+    """Тест обработки исключения при получении предметов."""
+    mock_api_client._request = AsyncMock(side_effect=Exception("API Error"))
+
+    finder = SmartMarketFinder(mock_api_client)
+    items = await finder._get_market_items_with_aggregated_prices(
+        game="csgo", min_price=1.0, max_price=100.0
+    )
+
+    assert items == []
+
+
+def test_calculate_confidence_with_suggested_price(mock_api_client):
+    """Тест увеличения уверенности при наличии suggestedPrice."""
+    finder = SmartMarketFinder(mock_api_client)
+
+    # С suggestedPrice
+    item_with_suggested = {
+        "extra": {"popularity": 0.5},
+        "suggestedPrice": {"USD": "5000"},
+    }
+
+    score_with = finder._calculate_confidence_score(item_with_suggested, profit_percent=10.0)
+
+    # Без suggestedPrice
+    item_without_suggested = {"extra": {"popularity": 0.5}}
+
+    score_without = finder._calculate_confidence_score(item_without_suggested, profit_percent=10.0)
+
+    # С suggested должна быть выше
+    assert score_with > score_without
+
+
+def test_calculate_liquidity_max_cap(mock_api_client):
+    """Тест ограничения ликвидности максимумом 100."""
+    finder = SmartMarketFinder(mock_api_client)
+
+    # Очень популярный предмет с большим количеством заявок
+    item = {
+        "extra": {"popularity": 1.0},
+        "aggregated": {"offerCount": 200, "orderCount": 200},
+    }
+
+    score = finder._calculate_liquidity_score(item)
+
+    # Не должна превышать 100
+    assert score <= 100.0
+
+
+def test_determine_risk_level_medium(mock_api_client):
+    """Тест определения среднего риска."""
+    finder = SmartMarketFinder(mock_api_client)
+
+    # Средние показатели
+    risk = finder._determine_risk_level(profit_percent=15.0, liquidity=60.0, confidence=65.0)
+
+    assert risk == "medium"
+
+
+def test_estimate_time_to_sell_boundaries(mock_api_client):
+    """Тест граничных значений для оценки времени продажи."""
+    finder = SmartMarketFinder(mock_api_client)
+
+    # Граница 80-60
+    time_80 = finder._estimate_time_to_sell(80.0)
+    time_60 = finder._estimate_time_to_sell(60.0)
+    assert time_80 != time_60
+
+    # Граница 60-40
+    time_40 = finder._estimate_time_to_sell(40.0)
+    assert time_60 != time_40
+
+    # Граница 40-20
+    time_20 = finder._estimate_time_to_sell(20.0)
+    assert time_40 != time_20
+
+
+@pytest.mark.asyncio()
+async def test_find_underpriced_invalid_response(mock_api_client):
+    """Тест обработки некорректного ответа при поиске заниженных цен."""
+    mock_api_client._request = AsyncMock(return_value=None)
+
+    finder = SmartMarketFinder(mock_api_client)
+    underpriced = await finder.find_underpriced_items(game="csgo")
+
+    assert underpriced == []
+
+
+@pytest.mark.asyncio()
+async def test_find_target_opportunities_empty_titles(mock_api_client):
+    """Тест когда нет названий предметов."""
+    # Предметы без title
+    mock_api_client._request = AsyncMock(
+        return_value={"objects": [{"itemId": "123", "price": {"USD": "5000"}}]}
+    )
+
+    finder = SmartMarketFinder(mock_api_client)
+    opportunities = await finder.find_target_opportunities(game="csgo")
+
+    assert opportunities == []
+
+
+@pytest.mark.asyncio()
+async def test_find_best_opportunities_sorts_by_confidence(mock_api_client):
+    """Тест сортировки возможностей по уверенности."""
+    # Создаем несколько предметов
+    items = [
+        {
+            "itemId": "low_conf",
+            "title": "Low Confidence",
+            "price": {"USD": "5000"},
+            "suggestedPrice": {"USD": "5500"},
+            "extra": {"popularity": 0.2},
+        },
+        {
+            "itemId": "high_conf",
+            "title": "High Confidence",
+            "price": {"USD": "5000"},
+            "suggestedPrice": {"USD": "6500"},
+            "extra": {"popularity": 0.9},
+        },
+    ]
+
+    mock_api_client._request = AsyncMock(side_effect=[{"objects": items}, {"aggregatedPrices": []}])
+
+    finder = SmartMarketFinder(mock_api_client)
+    opportunities = await finder.find_best_opportunities(game="csgo", limit=10)
+
+    # Первая возможность должна иметь самую высокую уверенность
+    if len(opportunities) > 1:
+        first_conf = opportunities[0].confidence_score
+        second_conf = opportunities[1].confidence_score
+        assert first_conf >= second_conf
