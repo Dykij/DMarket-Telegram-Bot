@@ -1,5 +1,10 @@
 # API Reference
 
+**Версия**: 2.0
+**Последнее обновление**: 19 ноября 2025 г.
+
+---
+
 ## DMarket API Client
 
 The DMarket API client provides a comprehensive interface to the DMarket marketplace API with built-in rate limiting, caching, and error handling.
@@ -21,7 +26,7 @@ DMarketAPI(
 
 **Parameters:**
 - `public_key`: Your DMarket API public key
-- `secret_key`: Your DMarket API secret key  
+- `secret_key`: Your DMarket API secret key
 - `api_url`: DMarket API base URL
 - `max_retries`: Maximum number of retries for failed requests
 - `connection_timeout`: Connection timeout in seconds
@@ -108,7 +113,7 @@ List an item for sale.
 
 ```python
 result = await api.sell_item(
-    item_id="item_67890", 
+    item_id="item_67890",
     price=30.75,
     game="csgo"
 )
@@ -181,7 +186,7 @@ config = Config.load("config/production.yaml")
 - `webhook_url`: Webhook URL for production
 - `webhook_secret`: Webhook secret key
 
-**DMarketConfig**  
+**DMarketConfig**
 - `api_url`: DMarket API URL
 - `public_key`: API public key
 - `secret_key`: API secret key
@@ -247,7 +252,7 @@ Save market data for analytics.
 ```python
 await db.save_market_data(
     item_id="item_123",
-    game="csgo", 
+    game="csgo",
     item_name="AK-47 | Redline",
     price_usd=12.50,
     volume_24h=150
@@ -335,7 +340,7 @@ Find support and resistance levels.
 ```python
 {
     "error": True,
-    "code": "RATE_LIMIT_EXCEEDED", 
+    "code": "RATE_LIMIT_EXCEEDED",
     "message": "Too many requests",
     "status_code": 429,
     "retry_after": 60
@@ -364,7 +369,7 @@ The API client includes built-in rate limiting to respect DMarket's API limits:
 # Clear all cache
 await api.clear_cache()
 
-# Clear specific endpoint cache  
+# Clear specific endpoint cache
 await api.clear_cache_for_endpoint("/marketplace-api/v1/items")
 
 # Disable caching for specific request

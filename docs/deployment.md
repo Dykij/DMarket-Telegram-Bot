@@ -1,5 +1,10 @@
 # Deployment Guide
 
+**Версия**: 2.0
+**Последнее обновление**: 19 ноября 2025 г.
+
+---
+
 This guide covers various deployment options for the DMarket Telegram Bot, from development to production environments.
 
 ## Table of Contents
@@ -18,11 +23,11 @@ This guide covers various deployment options for the DMarket Telegram Bot, from 
    ```bash
    git clone https://github.com/your-username/dmarket-telegram-bot.git
    cd dmarket-telegram-bot
-   
+
    # Create virtual environment
    python -m venv .venv
    source .venv/bin/activate  # Windows: .venv\Scripts\activate
-   
+
    # Install dependencies
    pip install -r requirements.txt
    ```
@@ -37,7 +42,7 @@ This guide covers various deployment options for the DMarket Telegram Bot, from 
    ```bash
    # For PostgreSQL
    createdb dmarket_bot_dev
-   
+
    # Run migrations (if using Alembic)
    alembic upgrade head
    ```
@@ -88,10 +93,10 @@ make docs
    ```bash
    # Start all services
    docker-compose up -d
-   
+
    # View logs
    docker-compose logs -f bot
-   
+
    # Stop services
    docker-compose down
    ```
@@ -124,7 +129,7 @@ make docs
 - 1 CPU core
 - 512 MB RAM
 - 1 GB disk space
-- Python 3.9+
+- Python 3.10+
 
 **Recommended for Production:**
 - 2+ CPU cores
@@ -139,10 +144,10 @@ make docs
    ```bash
    # Update system
    sudo apt update && sudo apt upgrade -y
-   
+
    # Install dependencies
    sudo apt install -y python3 python3-pip python3-venv git nginx postgresql redis-server
-   
+
    # Create application user
    sudo useradd -m -s /bin/bash dmarketbot
    sudo su - dmarketbot
@@ -153,11 +158,11 @@ make docs
    # Clone repository
    git clone https://github.com/your-username/dmarket-telegram-bot.git
    cd dmarket-telegram-bot
-   
+
    # Create virtual environment
    python3 -m venv .venv
    source .venv/bin/activate
-   
+
    # Install dependencies
    pip install -r requirements.txt
    ```
@@ -183,7 +188,7 @@ make docs
    WEBHOOK_URL=https://your-domain.com/webhook
    SENTRY_DSN=your_sentry_dsn
    EOF
-   
+
    # Secure the environment file
    chmod 600 .env
    ```
@@ -198,7 +203,7 @@ make docs
    [Unit]
    Description=DMarket Telegram Bot
    After=network.target postgresql.service redis.service
-   
+
    [Service]
    Type=exec
    User=dmarketbot
@@ -209,7 +214,7 @@ make docs
    ExecReload=/bin/kill -HUP \$MAINPID
    Restart=always
    RestartSec=5
-   
+
    [Install]
    WantedBy=multi-user.target
    EOF
@@ -220,7 +225,7 @@ make docs
    sudo systemctl daemon-reload
    sudo systemctl enable dmarket-bot
    sudo systemctl start dmarket-bot
-   
+
    # Check status
    sudo systemctl status dmarket-bot
    ```
@@ -262,7 +267,7 @@ pm2 startup
 server {
     listen 80;
     server_name your-domain.com;
-    
+
     # Redirect HTTP to HTTPS
     return 301 https://\$server_name\$request_uri;
 }
@@ -270,10 +275,10 @@ server {
 server {
     listen 443 ssl http2;
     server_name your-domain.com;
-    
+
     ssl_certificate /path/to/your/cert.pem;
     ssl_certificate_key /path/to/your/key.pem;
-    
+
     location /webhook {
         proxy_pass http://localhost:8000;
         proxy_set_header Host \$host;
@@ -281,7 +286,7 @@ server {
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
     }
-    
+
     location /health {
         proxy_pass http://localhost:8000;
         access_log off;
@@ -297,7 +302,7 @@ server {
    ```bash
    # Create Procfile
    echo "web: python -m src.main" > Procfile
-   
+
    # Create runtime.txt
    echo "python-3.11.0" > runtime.txt
    ```
@@ -306,27 +311,27 @@ server {
    ```bash
    # Install Heroku CLI and login
    heroku login
-   
+
    # Create application
    heroku create your-dmarket-bot
-   
+
    # Set environment variables
    heroku config:set TELEGRAM_BOT_TOKEN=your_token
    heroku config:set DMARKET_PUBLIC_KEY=your_key
    heroku config:set DMARKET_SECRET_KEY=your_secret
-   
+
    # Add PostgreSQL addon
    heroku addons:create heroku-postgresql:mini
-   
+
    # Add Redis addon
    heroku addons:create heroku-redis:mini
-   
+
    # Deploy
    git push heroku main
    ```
 
 3. **One-Click Deploy**
-   
+
    [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 ### DigitalOcean App Platform
@@ -372,12 +377,12 @@ server {
    ```yaml
    # serverless.yml
    service: dmarket-telegram-bot
-   
+
    provider:
      name: aws
      runtime: python3.9
      region: us-east-1
-   
+
    functions:
      webhook:
        handler: src.lambda_handler.webhook_handler
@@ -385,7 +390,7 @@ server {
          - http:
              path: webhook
              method: post
-   
+
    plugins:
      - serverless-python-requirements
    ```
@@ -432,7 +437,7 @@ server {
    ```bash
    # Build image
    docker build -t gcr.io/your-project/dmarket-bot .
-   
+
    # Push to Container Registry
    docker push gcr.io/your-project/dmarket-bot
    ```
@@ -486,7 +491,7 @@ async def readiness_check():
    ```python
    # Prometheus metrics
    from prometheus_client import Counter, Histogram, generate_latest
-   
+
    request_count = Counter('bot_requests_total', 'Total bot requests')
    response_time = Histogram('bot_response_seconds', 'Bot response time')
    ```
@@ -495,7 +500,7 @@ async def readiness_check():
    ```python
    # Sentry integration
    import sentry_sdk
-   
+
    sentry_sdk.init(
        dsn="your-sentry-dsn",
        traces_sample_rate=1.0,
@@ -510,9 +515,9 @@ async def readiness_check():
    #!/bin/bash
    BACKUP_DIR="/backups"
    DATE=$(date +%Y%m%d_%H%M%S)
-   
+
    pg_dump dmarket_bot_prod > $BACKUP_DIR/dmarket_bot_$DATE.sql
-   
+
    # Keep only last 30 days
    find $BACKUP_DIR -name "dmarket_bot_*.sql" -mtime +30 -delete
    ```

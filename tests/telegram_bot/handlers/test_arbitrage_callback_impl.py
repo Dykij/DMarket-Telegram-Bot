@@ -25,6 +25,7 @@ from src.telegram_bot.handlers.arbitrage_callback_impl import (
 )
 from src.utils.exceptions import APIError
 
+
 # ============================================================================
 # ФИКСТУРЫ
 # ============================================================================

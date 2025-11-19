@@ -1,12 +1,17 @@
 # Руководство по использованию модуля фильтрации предметов по играм
 
+**Версия**: 2.0
+**Последнее обновление**: 19 ноября 2025 г.
+
+---
+
 ## Общее описание
 
 Модуль `game_filters.py` предоставляет гибкую систему фильтрации предметов для различных игр на платформе DMarket. Он позволяет легко фильтровать списки предметов по различным параметрам, специфичным для каждой игры, а также создавать API-параметры для запросов к API DMarket.
 
 Поддерживаемые игры:
 - CS2/CSGO (`csgo`)
-- Dota 2 (`dota2`) 
+- Dota 2 (`dota2`)
 - Team Fortress 2 (`tf2`)
 - Rust (`rust`)
 
@@ -72,7 +77,7 @@ filtered_items = apply_filters_to_items(items, "csgo", {"min_price": 100, "categ
 Фильтрует список предметов по указанным параметрам. Аргументы:
 - `items`: список предметов для фильтрации
 - `game`: идентификатор игры (`csgo`, `dota2`, `tf2` или `rust`)
-- `filters`: словарь фильтров 
+- `filters`: словарь фильтров
 
 ### build_api_params_for_game
 
@@ -183,18 +188,18 @@ class NewGameFilter(BaseGameFilter):
     supported_filters = BaseGameFilter.supported_filters + [
         "custom_filter1", "custom_filter2"
     ]
-    
+
     def apply_filters(self, item, filters):
         if not super().apply_filters(item, filters):
             return False
-            
+
         # Логика проверки кастомных фильтров
         # ...
-        
+
         return True
-        
+
     # ... другие методы
-    
+
 # Добавление в фабрику
 FilterFactory._filters["new_game"] = NewGameFilter
 ```

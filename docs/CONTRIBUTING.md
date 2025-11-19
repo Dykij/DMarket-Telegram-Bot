@@ -1,5 +1,10 @@
 # Contributing to DMarket Telegram Bot
 
+**Версия**: 2.0
+**Последнее обновление**: 19 ноября 2025 г.
+
+---
+
 We love your input! We want to make contributing to this project as easy and transparent as possible, whether it's:
 
 - Reporting a bug
@@ -127,7 +132,7 @@ tests/
    git add .
    git commit -m "feat: add amazing feature"
    ```
-   
+
    Follow [Conventional Commits](https://www.conventionalcommits.org/):
    - `feat:` for new features
    - `fix:` for bug fixes

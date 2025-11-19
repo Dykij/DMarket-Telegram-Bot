@@ -19,6 +19,7 @@ from dotenv import load_dotenv
 from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.rate_limiter import RateLimiter
 
+
 # Загружаем переменные окружения
 load_dotenv()
 

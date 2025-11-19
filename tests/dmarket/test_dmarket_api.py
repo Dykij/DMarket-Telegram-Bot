@@ -1610,11 +1610,159 @@ class TestHighLevelAPIMethods:
 
 
 # ============================================================================
+# Дополнительные тесты для достижения 50%+ покрытия
+# ============================================================================
+
+
+class TestAdditionalMarketplaceMethods:
+    """Тесты для дополнительных marketplace методов."""
+
+    @pytest.mark.asyncio()
+    async def test_get_sales_history_success(self, dmarket_api):
+        """Тест получения истории продаж предмета."""
+        # Arrange
+        game = "csgo"
+        title = "AK-47 | Redline (Field-Tested)"
+        days = 7
+        currency = "USD"
+
+        mock_response = {
+            "sales": [
+                {"price": "1250", "date": 1699876543},
+                {"price": "1230", "date": 1699876123},
+            ]
+        }
+
+        # Mock _request
+        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+            mock_request.return_value = mock_response
+
+            # Act
+            result = await dmarket_api.get_sales_history(
+                game=game, title=title, days=days, currency=currency
+            )
+
+            # Assert
+            assert result == mock_response
+            call_args = mock_request.call_args
+            assert call_args[0][0] == "GET"
+            assert call_args[0][1] == "/account/v1/sales-history"
+            assert call_args[1]["params"]["gameId"] == game
+            assert call_args[1]["params"]["title"] == title
+            assert call_args[1]["params"]["days"] == days
+            assert call_args[1]["params"]["currency"] == currency
+
+    @pytest.mark.asyncio()
+    async def test_get_item_price_history_success(self, dmarket_api):
+        """Тест получения истории цен предмета."""
+        # Arrange
+        game = "csgo"
+        title = "AWP | Asiimov (Field-Tested)"
+        period = "last_month"
+        currency = "USD"
+
+        mock_response = {
+            "prices": [
+                {"date": "2023-10-01", "price": 5000},
+                {"date": "2023-10-15", "price": 5200},
+            ]
+        }
+
+        # Mock _request
+        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+            mock_request.return_value = mock_response
+
+            # Act
+            result = await dmarket_api.get_item_price_history(
+                game=game, title=title, period=period, currency=currency
+            )
+
+            # Assert
+            assert result == mock_response
+            call_args = mock_request.call_args
+            assert call_args[0][0] == "GET"
+            assert call_args[0][1] == "/exchange/v1/market/price-history"
+            assert call_args[1]["params"]["gameId"] == game
+            assert call_args[1]["params"]["title"] == title
+            assert call_args[1]["params"]["period"] == period
+            assert call_args[1]["params"]["currency"] == currency
+
+    @pytest.mark.asyncio()
+    async def test_get_item_price_history_different_periods(self, dmarket_api):
+        """Тест получения истории цен для разных периодов."""
+        # Arrange
+        game = "dota2"
+        title = "Arcana: Phantom Assassin"
+
+        periods = ["last_day", "last_week", "last_month", "last_year"]
+
+        # Mock _request
+        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+            mock_request.return_value = {"prices": []}
+
+            # Act & Assert для каждого периода
+            for period in periods:
+                result = await dmarket_api.get_item_price_history(
+                    game=game, title=title, period=period
+                )
+
+                assert result == {"prices": []}
+                # Проверяем что period передан правильно
+                call_params = mock_request.call_args[1]["params"]
+                assert call_params["period"] == period
+
+    @pytest.mark.asyncio()
+    async def test_get_market_meta_csgo(self, dmarket_api):
+        """Тест получения метаданных маркета для CS:GO."""
+        # Arrange
+        game = "csgo"
+
+        mock_response = {
+            "games": ["csgo"],
+            "categories": ["Rifle", "Knife", "Pistol"],
+            "rarities": ["Consumer", "Industrial", "Classified", "Covert"],
+        }
+
+        # Mock _request
+        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+            mock_request.return_value = mock_response
+
+            # Act
+            result = await dmarket_api.get_market_meta(game=game)
+
+            # Assert
+            assert result == mock_response
+            call_args = mock_request.call_args
+            assert call_args[0][0] == "GET"
+            assert call_args[0][1] == "/exchange/v1/market/meta"
+            assert call_args[1]["params"]["gameId"] == game
+
+    @pytest.mark.asyncio()
+    async def test_get_market_meta_default_game(self, dmarket_api):
+        """Тест получения метаданных с дефолтной игрой."""
+        # Arrange
+        mock_response = {"games": ["csgo"]}
+
+        # Mock _request
+        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+            mock_request.return_value = mock_response
+
+            # Act
+            result = await dmarket_api.get_market_meta()
+
+            # Assert
+            assert result == mock_response
+            # По умолчанию должна быть csgo
+            call_params = mock_request.call_args[1]["params"]
+            assert call_params["gameId"] == "csgo"
+
+
+# ============================================================================
 # Итоги
 # ============================================================================
 
-# Всего тестов: 57 + 6 + 4 = 67 тестов
-# Новые тесты для _request() (10 tests):
+# Всего тестов: 72 + 5 = 77 тестов
+# Предыдущие тесты для _request() (10 tests):
 # - Успешные GET/POST/PUT/DELETE запросы
 # - HTTP 429 с Retry-After заголовком
 # - HTTP 500 с retry логикой
@@ -1622,7 +1770,7 @@ class TestHighLevelAPIMethods:
 # - Сетевые ошибки с retry
 # - Исчерпание max_retries
 # - JSON parse errors
-# Новые тесты для high-level API (10 tests):
+# Предыдущие тесты для high-level API (10 tests):
 # - get_deposit_status: GET с path parameter
 # - get_aggregated_prices: POST с data
 # - get_sales_history_aggregator: GET с query params
@@ -1633,5 +1781,9 @@ class TestHighLevelAPIMethods:
 # - delete_offer: DELETE с offers list
 # - list_offers_by_title: GET с query params
 # - list_market_items: GET с params
-# Текущее покрытие: 44.47%
-# Ожидаемое покрытие после новых тестов: 50-51%
+# Новые тесты (5 tests):
+# - get_sales_history: GET с query params (game, title, days, currency)
+# - get_item_price_history: GET с различными периодами (last_day, week, month, year)
+# - get_market_meta: GET с gameId (csgo по умолчанию)
+# Покрытие до: 49.90%
+# Ожидаемое покрытие после новых тестов: 50.5-51%

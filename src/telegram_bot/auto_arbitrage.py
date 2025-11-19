@@ -39,6 +39,7 @@ from src.telegram_bot.keyboards import create_pagination_keyboard, get_back_to_a
 from src.telegram_bot.pagination import pagination_manager
 from src.utils.exceptions import APIError, handle_api_error
 
+
 # Настройка логирования
 logger = logging.getLogger(__name__)
 

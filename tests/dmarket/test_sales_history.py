@@ -4,6 +4,7 @@ import json
 import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import aiofiles
 import pytest
 
 from src.dmarket.sales_history import (
@@ -208,8 +209,8 @@ class TestGetItemSalesHistory:
 
         # Создаем кэш файл
         cache_file = cache_dir / "csgo_Test_Item_24h.json"
-        with open(cache_file, "w", encoding="utf-8") as f:
-            json.dump(cached_data, f)
+        async with aiofiles.open(cache_file, "w", encoding="utf-8") as f:
+            await f.write(json.dumps(cached_data))
 
         mock_api = MagicMock()
 

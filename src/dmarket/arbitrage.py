@@ -6,10 +6,12 @@ import os
 import time
 import traceback
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    import httpx
 
 from .dmarket_api import DMarketAPI
-
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
@@ -509,7 +511,7 @@ class ArbitrageTrader:
         api_url: str = "https://api.dmarket.com",
         max_retries: int = 3,
         connection_timeout: float = 5.0,
-        pool_limits: int = 10,
+        pool_limits: "httpx.Limits | None" = None,
         retry_codes: list[int] | None = None,
     ) -> None:
         """Инициализация трейдера.
@@ -520,7 +522,7 @@ class ArbitrageTrader:
             api_url: DMarket API URL
             max_retries: Максимальное количество повторных попыток
             connection_timeout: Таймаут соединения в секундах
-            pool_limits: Лимит соединений в пуле
+            pool_limits: httpx.Limits объект для управления пулом соединений
             retry_codes: HTTP коды для повторных попыток
 
         """
@@ -628,11 +630,12 @@ class ArbitrageTrader:
     async def _handle_trading_error(self) -> None:
         """Обрабатывает ошибку торговли и управляет частотой повторных попыток."""
         current_time = time.time()
+        last_error_time_old = self.last_error_time
         self.error_count += 1
         self.last_error_time = current_time
 
         # Если накопилось много ошибок за короткое время
-        if self.error_count >= 3 and current_time - self.last_error_time < 300:
+        if self.error_count >= 3 and current_time - last_error_time_old < 300:
             # Делаем паузу на 15 минут
             self.pause_until = current_time + 900  # 900 секунд = 15 минут
             logger.warning(

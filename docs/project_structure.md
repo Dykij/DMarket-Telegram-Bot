@@ -1,49 +1,65 @@
 # Структура проекта DMarket Bot
 
+**Версия**: 2.0
+**Последнее обновление**: 19 ноября 2025 г.
+
+---
+
 В этом документе описана структура проекта DMarket Bot, роль каждой директории и основные компоненты системы.
 
 ## Общая структура
 
 ```
-BotDmarket/
+DMarket-Telegram-Bot/
 ├── config/                  # Конфигурационные файлы
-│   ├── mypy.ini
-│   ├── pyproject.toml
-│   └── pyrightconfig.json
+│   ├── config.yaml
+│   └── .env.example
 ├── docs/                    # Документация
+│   ├── ARBITRAGE.md
+│   ├── ARCHITECTURE.md
+│   ├── QUICK_START.md
 │   └── project_structure.md
 ├── logs/                    # Логи приложения
 ├── scripts/                 # Скрипты для запуска и управления
-│   ├── run_bot.py
-│   └── ...
+│   ├── init_db.py
+│   ├── validate_config.py
+│   └── health_check.py
 ├── src/                     # Исходный код
 │   ├── dmarket/             # Модули для работы с DMarket API
 │   │   ├── api/             # API-клиенты
-│   │   │   ├── client.py
+│   │   │   ├── dmarket_api.py
 │   │   │   └── ...
 │   │   ├── models/          # Модели данных
-│   │   │   ├── market_models.py
-│   │   │   └── ...
 │   │   ├── filters/         # Фильтры для игр
-│   │   │   ├── game_filters.py
-│   │   │   └── ...
+│   │   │   └── game_filters.py
+│   │   ├── arbitrage.py
+│   │   ├── arbitrage_scanner.py
+│   │   ├── targets.py
 │   │   └── ...
 │   ├── telegram_bot/        # Модули для Telegram бота
 │   │   ├── commands/        # Команды бота
-│   │   │   ├── basic_commands.py
-│   │   │   └── ...
+│   │   │   └── basic_commands.py
 │   │   ├── handlers/        # Обработчики команд и сообщений
-│   │   │   ├── dmarket_handlers.py
-│   │   │   └── ...
+│   │   ├── enhanced_bot.py  # Расширенная версия бота
+│   │   ├── keyboards.py     # Генераторы клавиатур
+│   │   ├── localization.py  # Локализация
 │   │   └── ...
+│   ├── models/              # Модели SQLAlchemy
+│   │   ├── user.py
+│   │   ├── target.py
+│   │   └── trading.py
 │   └── utils/               # Утилиты
+│       ├── analytics.py
+│       ├── config.py
+│       ├── database.py
 │       ├── logging_utils.py
-│       ├── error_handling.py
-│       └── ...
-└── tests/                   # Тесты
+│       └── rate_limiter.py
+└── tests/                   # Тестирование
     ├── dmarket/             # Тесты для модулей DMarket
     ├── telegram_bot/        # Тесты для Telegram бота
-    └── utils/               # Тесты для утилит
+    ├── utils/               # Тесты для утилит
+    └── conftest.py          # Конфигурация pytest и фикстуры
+```
 ```
 
 ## Запуск приложения

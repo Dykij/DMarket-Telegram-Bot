@@ -2,7 +2,8 @@
 
 **Версия API**: v1.1.0
 **Базовый URL**: `https://api.dmarket.com`
-**Дата документа**: 12 ноября 2025 г.
+**Дата документа**: 19 ноября 2025 г.
+**Последнее обновление**: Синхронизировано с [официальной документацией](https://docs.dmarket.com/v1/swagger.html)
 
 ---
 
@@ -185,6 +186,8 @@ GET /exchange/v1/market/items?gameId=a8db&limit=100&currency=USD&priceFrom=100&p
 POST /marketplace-api/v1/aggregated-prices
 ```
 
+**Назначение**: Получить агрегированные данные о ценах для списка предметов, включая лучшие цены покупки (order) и продажи (offer), а также количество заявок.
+
 **Тело запроса**:
 ```json
 {
@@ -196,6 +199,14 @@ POST /marketplace-api/v1/aggregated-prices
   "cursor": ""
 }
 ```
+
+**Параметры запроса**:
+| Параметр          | Тип    | Описание                                       |
+| ----------------- | ------ | ---------------------------------------------- |
+| `filter.game`     | string | Идентификатор игры (csgo, dota2, tf2, rust)    |
+| `filter.titles[]` | array  | Список точных названий предметов для агрегации |
+| `limit`           | string | Лимит результатов на странице                  |
+| `cursor`          | string | Курсор для пагинации                           |
 
 **Ответ**:
 ```json
@@ -212,6 +223,12 @@ POST /marketplace-api/v1/aggregated-prices
   "nextCursor": "..."
 }
 ```
+
+**Описание полей ответа**:
+- `orderBestPrice` - лучшая цена покупки (buy order)
+- `orderCount` - количество активных заявок на покупку
+- `offerBestPrice` - лучшая цена продажи
+- `offerCount` - количество активных предложений
 
 ### Получить предложения по названию
 ```http
@@ -341,7 +358,15 @@ GET /marketplace-api/v1/user-targets
 GET /marketplace-api/v1/targets-by-title/{game_id}/{title}
 ```
 
-**Пример**:
+**Назначение**: Получить агрегированные заявки на покупку (buy orders/targets) для конкретной игры и названия предмета. Используется для оценки текущего спроса: сколько заявок существует и по каким ценам.
+
+**Параметры пути**:
+| Параметр  | Тип    | Описание                                      |
+| --------- | ------ | --------------------------------------------- |
+| `game_id` | string | Идентификатор игры (csgo, dota2, tf2, rust)   |
+| `title`   | string | Точное название предмета в игре (URL-encoded) |
+
+**Пример запроса**:
 ```http
 GET /marketplace-api/v1/targets-by-title/csgo/AK-47%20%7C%20Redline%20(Field-Tested)
 ```
@@ -361,6 +386,12 @@ GET /marketplace-api/v1/targets-by-title/csgo/AK-47%20%7C%20Redline%20(Field-Tes
   ]
 }
 ```
+
+**Описание полей ответа**:
+- `amount` - количество запрашиваемых предметов
+- `price` - лучшая цена для этого названия и атрибутов (в центах)
+- `title` - название предмета
+- `attributes` - параметры качества/редкости (зависит от игры)
 
 ### Удалить таргеты
 ```http
@@ -885,4 +916,322 @@ async def auto_trade(api_client, game='a8db', balance_limit=50.0):
 
 ---
 
-**Примечание**: Документация актуальна на 12 ноября 2025 г. Всегда проверяйте официальную документацию DMarket для получения последних обновлений.
+## 🆕 Новые возможности API v1.1.0
+
+### 1. Aggregated Prices API
+
+Новый эндпоинт для получения агрегированных данных о ценах:
+- **POST** `/marketplace-api/v1/aggregated-prices`
+- Позволяет получить лучшие цены покупки и продажи для списка предметов
+- Включает количество активных заявок (orderCount, offerCount)
+- Поддерживает пагинацию для больших запросов
+
+**Преимущества**:
+- Быстрая оценка глубины рынка
+- Массовая проверка цен (до 100+ предметов за запрос)
+- Оптимизировано для арбитражных стратегий
+
+### 2. Targets by Title API
+
+Новый эндпоинт для поиска таргетов по названию:
+- **GET** `/marketplace-api/v1/targets-by-title/{game_id}/{title}`
+- Показывает все активные заявки на покупку для конкретного предмета
+- Полезно для анализа спроса и конкуренции
+
+**Применение**:
+- Оценка текущего спроса на предмет
+- Определение оптимальной цены для таргета
+- Анализ конкуренции среди покупателей
+
+### 3. Enhanced Filtering & Pagination
+
+Улучшенная система фильтрации для всех списковых эндпоинтов:
+- Поддержка cursor-based пагинации (более эффективно для больших наборов данных)
+- Расширенные фильтры для инвентаря (SteamLockDays, AssetID arrays)
+- Улучшенная сортировка (SortType параметры)
+
+### 4. Deposit & Withdraw Operations
+
+Новые эндпоинты для управления переводами:
+- **POST** `/marketplace-api/v1/deposit-assets` - перевод предметов из Steam
+- **GET** `/marketplace-api/v1/deposit-status/{DepositID}` - статус депозита
+- **POST** `/exchange/v1/withdraw-assets` - вывод предметов в Steam
+
+**Статусы операций**:
+- `TransferStatusPending` - в обработке
+- `TransferStatusCompleted` - завершено
+- `TransferStatusFailed` - ошибка
+
+### 5. Inventory Sync
+
+Синхронизация инвентаря с внешними платформами:
+- **POST** `/marketplace-api/v1/user-inventory/sync`
+- Обновление данных инвентаря из Steam
+- Поддержка различных типов синхронизации
+
+---
+
+## 📊 Новые примеры использования API v1.1.0
+
+### Пример 1: Массовая проверка цен для арбитража
+
+```python
+async def check_arbitrage_opportunities(api_client, items_to_check):
+    """Проверить несколько предметов на арбитражные возможности."""
+
+    # Получить агрегированные цены
+    result = await api_client.get_aggregated_prices(
+        game='csgo',
+        titles=[item['title'] for item in items_to_check],
+        limit=100
+    )
+
+    opportunities = []
+    for price_data in result.get('aggregatedPrices', []):
+        offer_price = int(price_data['offerBestPrice']) / 100  # в USD
+        order_price = int(price_data['orderBestPrice']) / 100  # в USD
+
+        # Рассчитать потенциальную прибыль (с учетом 7% комиссии)
+        potential_profit = (offer_price * 0.93) - order_price
+
+        if potential_profit > 0:
+            opportunities.append({
+                'title': price_data['title'],
+                'buy_price': order_price,
+                'sell_price': offer_price,
+                'profit': potential_profit,
+                'profit_percent': (potential_profit / order_price) * 100,
+                'liquidity': {
+                    'buy_orders': price_data['orderCount'],
+                    'sell_offers': price_data['offerCount']
+                }
+            })
+
+    return sorted(opportunities, key=lambda x: x['profit_percent'], reverse=True)
+```
+
+### Пример 2: Умное создание таргетов на основе рыночных данных
+
+```python
+async def create_smart_targets(api_client, game='csgo'):
+    """Создать таргеты на основе анализа конкуренции."""
+
+    popular_items = [
+        "AK-47 | Redline (Field-Tested)",
+        "AWP | Asiimov (Field-Tested)",
+        "M4A4 | Howl (Field-Tested)"
+    ]
+
+    targets_to_create = []
+
+    for item_title in popular_items:
+        # Проверить существующие таргеты
+        existing_targets = await api_client.get_targets_by_title(
+            game_id=game,
+            title=item_title
+        )
+
+        # Получить текущие цены
+        prices = await api_client.get_aggregated_prices(
+            game=game,
+            titles=[item_title]
+        )
+
+        if prices.get('aggregatedPrices'):
+            price_info = prices['aggregatedPrices'][0]
+            best_order = int(price_info['orderBestPrice'])
+            best_offer = int(price_info['offerBestPrice'])
+
+            # Установить цену чуть выше лучшего текущего order
+            # но ниже лучшего offer для арбитража
+            target_price = min(best_order + 10, best_offer - 50)  # +$0.10, но -$0.50 от offer
+
+            if target_price > best_order:
+                targets_to_create.append({
+                    'Title': item_title,
+                    'Amount': 1,
+                    'Price': {
+                        'Amount': target_price,
+                        'Currency': 'USD'
+                    }
+                })
+
+    # Создать все таргеты одним запросом
+    if targets_to_create:
+        result = await api_client.create_targets(
+            game=game,
+            targets=targets_to_create
+        )
+        return result
+```
+
+### Пример 3: Мониторинг депозита предметов
+
+```python
+async def deposit_and_monitor(api_client, asset_ids):
+    """Перевести предметы из Steam и отслеживать статус."""
+
+    # Инициировать депозит
+    deposit_result = await api_client.deposit_assets(
+        asset_ids=asset_ids
+    )
+
+    deposit_id = deposit_result.get('DepositID')
+
+    if not deposit_id:
+        raise ValueError("Failed to initiate deposit")
+
+    # Мониторинг статуса
+    max_attempts = 30
+    attempt = 0
+
+    while attempt < max_attempts:
+        status = await api_client.get_deposit_status(deposit_id)
+
+        if status['Status'] == 'TransferStatusCompleted':
+            return {
+                'success': True,
+                'deposit_id': deposit_id,
+                'assets': status.get('Assets', [])
+            }
+        elif status['Status'] == 'TransferStatusFailed':
+            return {
+                'success': False,
+                'error': status.get('Error'),
+                'deposit_id': deposit_id
+            }
+
+        # Ожидание перед следующей проверкой
+        await asyncio.sleep(10)
+        attempt += 1
+
+    return {
+        'success': False,
+        'error': 'Timeout waiting for deposit completion',
+        'deposit_id': deposit_id
+    }
+```
+
+---
+
+## 🔄 Изменения и миграция с предыдущих версий
+
+### Изменения в v1.1.0
+
+1. **Cursor-based пагинация**:
+   - Старый метод: `offset` + `limit`
+   - Новый метод: `cursor` + `limit`
+   - Преимущество: более стабильная пагинация для больших данных
+
+2. **Расширенные фильтры**:
+   - Добавлены новые параметры фильтрации
+   - Улучшена поддержка атрибутов предметов
+   - Поддержка массовых операций
+
+3. **Новые статусы**:
+   - Добавлены `TransferStatus` для депозитов
+   - Расширены статусы для targets и offers
+
+### Миграция с v1.0
+
+**Изменение пагинации** (рекомендуется):
+```python
+# Старый метод (v1.0)
+offset = 0
+while True:
+    items = await api.get_market_items(game='csgo', offset=offset, limit=100)
+    if not items['objects']:
+        break
+    offset += 100
+
+# Новый метод (v1.1.0) - рекомендуется
+cursor = None
+while True:
+    items = await api.get_market_items(game='csgo', cursor=cursor, limit=100)
+    if not items['objects']:
+        break
+    cursor = items.get('cursor')
+    if not cursor:
+        break
+```
+
+**Использование aggregated prices**:
+```python
+# Старый метод - множественные запросы
+for item_title in items:
+    offers = await api.get_offers_by_title(title=item_title)
+    targets = await api.get_targets_by_title(game, item_title)
+    # Обработка...
+
+# Новый метод - один запрос
+prices = await api.get_aggregated_prices(
+    game='csgo',
+    titles=items
+)
+# Вся информация в одном ответе
+```
+
+---
+
+## 📝 Best Practices для API v1.1.0
+
+### 1. Эффективное использование aggregated prices
+
+✅ **Правильно** - пакетные запросы:
+```python
+# Проверить до 100 предметов за раз
+titles = get_items_to_check()[:100]
+prices = await api.get_aggregated_prices(game='csgo', titles=titles)
+```
+
+❌ **Неправильно** - много отдельных запросов:
+```python
+for title in titles:
+    price = await api.get_aggregated_prices(game='csgo', titles=[title])
+```
+
+### 2. Использование cursor для больших данных
+
+✅ **Правильно**:
+```python
+all_items = []
+cursor = None
+while True:
+    response = await api.get_user_inventory(game='csgo', cursor=cursor, limit=100)
+    all_items.extend(response['Items'])
+    cursor = response.get('Cursor')
+    if not cursor:
+        break
+```
+
+### 3. Оптимизация запросов на таргеты
+
+✅ **Правильно** - проверить перед созданием:
+```python
+# Сначала проверить существующие
+existing = await api.get_targets_by_title(game='csgo', title=item_title)
+if not existing['orders']:
+    # Только тогда создавать новый
+    await api.create_targets(...)
+```
+
+### 4. Мониторинг статусов операций
+
+✅ **Правильно** - с таймаутом и экспоненциальной задержкой:
+```python
+async def wait_for_deposit(deposit_id, max_wait=300):
+    start_time = time.time()
+    delay = 5
+
+    while time.time() - start_time < max_wait:
+        status = await api.get_deposit_status(deposit_id)
+        if status['Status'] != 'TransferStatusPending':
+            return status
+
+        await asyncio.sleep(delay)
+        delay = min(delay * 1.5, 30)  # Экспоненциальная задержка до 30 сек
+```
+
+---
+
+**Примечание**: Документация актуальна на 19 ноября 2025 г. Всегда проверяйте официальную документацию DMarket для получения последних обновлений.

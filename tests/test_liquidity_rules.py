@@ -231,8 +231,8 @@ class TestLiquidityRulesIntegration:
         assert BALANCED_RULES.min_liquidity_score <= CONSERVATIVE_RULES.min_liquidity_score
 
     @pytest.mark.parametrize(
-        "score,expected_category",
-        [
+        ("score", "expected_category"),
+        (
             (100, "very_high"),
             (85, "very_high"),
             (75, "high"),
@@ -243,7 +243,7 @@ class TestLiquidityRulesIntegration:
             (25, "low"),
             (10, "very_low"),
             (0, "very_low"),
-        ],
+        ),
     )
     def test_category_score_mapping(self, score, expected_category):
         """Параметризованный тест для проверки соответствия score и категории."""

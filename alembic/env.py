@@ -1,4 +1,11 @@
-"""Alembic environment configuration."""
+"""Alembic environment configuration.
+
+This module configures Alembic for database migrations with:
+- Naming conventions for constraints
+- Include/exclude logic for autogenerate
+- Async SQLAlchemy support
+- Batch operations for SQLite
+"""
 
 import os
 import sys
@@ -12,8 +19,20 @@ from alembic import context
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Import models after adding to sys.path
+# ruff: noqa: E402
 from src.models.target import Base as TargetBase
 from src.models.user import Base as UserBase
+
+# Naming conventions for constraints
+# This ensures consistent naming across all migrations
+NAMING_CONVENTION = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -46,13 +65,44 @@ if hasattr(TargetBase, "metadata"):
 if hasattr(UserBase, "metadata"):
     target_metadata_list.append(UserBase.metadata)
 
-# Combine all metadata
-combined_metadata = MetaData()
+# Combine all metadata with naming conventions
+combined_metadata = MetaData(naming_convention=NAMING_CONVENTION)
 for metadata in target_metadata_list:
     for table in metadata.tables.values():
         table.to_metadata(combined_metadata)
 
 target_metadata = combined_metadata
+
+
+def include_object(obj, name, type_, reflected, compare_to):
+    """Determine whether to include an object in autogenerate.
+
+    This function helps filter out objects that should not be included
+    in migrations (e.g., temporary tables, specific schemas).
+
+    Args:
+        obj: The schema object being considered
+        name: The name of the object
+        type_: The type of object ('table', 'column', 'index', etc.)
+        reflected: Whether the object was reflected from the database
+        compare_to: The object being compared to (for updates)
+
+    Returns:
+        bool: True if the object should be included in migrations
+    """
+    # Exclude temporary tables
+    if type_ == "table" and name.startswith("temp_"):
+        return False
+
+    # Exclude SQLite system tables
+    if type_ == "table" and name.startswith("sqlite_"):
+        return False
+
+    # Exclude alembic version table from autogenerate
+    if type_ == "table" and name == "alembic_version":
+        return False
+
+    return True
 
 
 def run_migrations_offline() -> None:
@@ -68,6 +118,10 @@ def run_migrations_offline() -> None:
 
     """
     url = config.get_main_option("sqlalchemy.url")
+
+    # Determine if we should use batch operations (for SQLite)
+    render_as_batch = url and url.startswith(("sqlite", "sqlite+"))
+
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -75,6 +129,8 @@ def run_migrations_offline() -> None:
         dialect_opts={"paramstyle": "named"},
         compare_type=True,
         compare_server_default=True,
+        include_object=include_object,
+        render_as_batch=render_as_batch,
     )
 
     with context.begin_transaction():
@@ -86,6 +142,7 @@ def run_migrations_online() -> None:
 
     In this scenario we need to create an Engine
     and associate a connection with the context.
+    Includes optimizations for PostgreSQL and SQLite.
 
     """
     connectable = engine_from_config(
@@ -95,11 +152,23 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
+        # Determine if we should use batch operations (for SQLite)
+        render_as_batch = connection.dialect.name == "sqlite"
+
+        # Set PostgreSQL lock timeout to prevent long-running locks
+        if connection.dialect.name == "postgresql":
+            connection.execute("SET lock_timeout = '10s'")
+            connection.execute("SET statement_timeout = '60s'")
+
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
             compare_type=True,
             compare_server_default=True,
+            include_object=include_object,
+            render_as_batch=render_as_batch,
+            # Process revision directives for advanced operations
+            process_revision_directives=None,
         )
 
         with context.begin_transaction():
