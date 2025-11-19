@@ -13,9 +13,12 @@ from telegram.ext import CallbackContext
 from src.telegram_bot.settings_handlers import (
     get_localized_text,
     get_user_profile,
+    handle_setup_input,
+    register_localization_handlers,
     save_user_profiles,
     settings_callback,
     settings_command,
+    setup_command,
 )
 
 
@@ -592,3 +595,390 @@ async def test_settings_callback_api_keys(
     assert "abcde...67890" in message_text  # Показаны первые 5 и последние 5 символов ключа
     assert "sec...456" in message_text  # Показаны первые 3 и последние 3 символа секрета
     assert call_args.kwargs.get("reply_markup") == mock_keyboard
+
+
+@pytest.mark.asyncio()
+@patch("src.telegram_bot.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.settings_handlers.save_user_profiles")
+@patch("src.telegram_bot.settings_handlers.get_localized_text")
+@patch("src.telegram_bot.settings_handlers.get_language_keyboard")
+async def test_settings_callback_language_invalid(
+    mock_get_language_keyboard,
+    mock_get_localized_text,
+    mock_save_profiles,
+    mock_get_user_profile,
+    mock_update,
+    mock_context,
+):
+    """Тестирует обработку callback с невалидным кодом языка."""
+    # Настройка моков
+    mock_profile = {"language": "ru"}
+    mock_get_user_profile.return_value = mock_profile
+    mock_keyboard = MagicMock(spec=InlineKeyboardMarkup)
+    mock_get_language_keyboard.return_value = mock_keyboard
+
+    # Настройка данных callback - несуществующий язык
+    mock_update.callback_query.data = "language:invalid"
+
+    # Вызываем тестируемую функцию
+    await settings_callback(mock_update, mock_context)
+
+    # Проверяем, что был вызван answer
+    mock_update.callback_query.answer.assert_called_once()
+
+    # Проверяем, что профиль НЕ был изменен
+    assert mock_profile["language"] == "ru"
+
+    # Проверяем, что НЕ было вызова save_user_profiles
+    mock_save_profiles.assert_not_called()
+
+    # Проверяем, что был показан error text
+    mock_update.callback_query.edit_message_text.assert_called_once()
+    call_args = mock_update.callback_query.edit_message_text.call_args
+
+    if call_args.kwargs and "text" in call_args.kwargs:
+        message_text = call_args.kwargs["text"]
+    elif call_args.args:
+        message_text = call_args.args[0]
+    else:
+        message_text = ""
+
+    assert "invalid" in message_text or "не поддерживается" in message_text
+
+
+@pytest.mark.asyncio()
+@patch("src.telegram_bot.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.settings_handlers.get_risk_profile_keyboard")
+async def test_settings_callback_settings_limits(
+    mock_get_risk_keyboard,
+    mock_get_user_profile,
+    mock_update,
+    mock_context,
+):
+    """Тестирует обработку callback с отображением лимитов торговли."""
+    # Настройка моков
+    mock_profile = {
+        "trade_settings": {
+            "min_profit": 3.5,
+            "max_price": 75.0,
+            "max_trades": 8,
+            "risk_level": "high",
+        },
+    }
+    mock_get_user_profile.return_value = mock_profile
+    mock_keyboard = MagicMock(spec=InlineKeyboardMarkup)
+    mock_get_risk_keyboard.return_value = mock_keyboard
+
+    # Настройка данных callback
+    mock_update.callback_query.data = "settings_limits"
+
+    # Вызываем тестируемую функцию
+    await settings_callback(mock_update, mock_context)
+
+    # Проверяем, что был вызван answer
+    mock_update.callback_query.answer.assert_called_once()
+
+    # Проверяем, что были вызваны правильные функции
+    mock_get_risk_keyboard.assert_called_once_with("high")
+
+    # Проверяем, что был вызван edit_message_text с правильными аргументами
+    mock_update.callback_query.edit_message_text.assert_called_once()
+    call_args = mock_update.callback_query.edit_message_text.call_args
+
+    if call_args.kwargs and "text" in call_args.kwargs:
+        message_text = call_args.kwargs["text"]
+    elif call_args.args:
+        message_text = call_args.args[0]
+    else:
+        message_text = ""
+
+    # Проверяем, что отображены правильные значения
+    assert "$3.50" in message_text
+    assert "$75.00" in message_text
+    assert "8" in message_text
+    assert "high" in message_text
+
+
+@pytest.mark.asyncio()
+@patch("src.telegram_bot.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.settings_handlers.save_user_profiles")
+@patch("src.telegram_bot.settings_handlers.get_back_to_settings_keyboard")
+async def test_settings_callback_risk_low(
+    mock_get_back_keyboard,
+    mock_save_profiles,
+    mock_get_user_profile,
+    mock_update,
+    mock_context,
+):
+    """Тестирует обработку callback с установкой низкого уровня риска."""
+    # Настройка моков
+    mock_profile = {"trade_settings": {}}
+    mock_get_user_profile.return_value = mock_profile
+    mock_keyboard = MagicMock(spec=InlineKeyboardMarkup)
+    mock_get_back_keyboard.return_value = mock_keyboard
+
+    # Настройка данных callback
+    mock_update.callback_query.data = "risk:low"
+
+    # Вызываем тестируемую функцию
+    await settings_callback(mock_update, mock_context)
+
+    # Проверяем, что был вызван answer
+    mock_update.callback_query.answer.assert_called_once()
+
+    # Проверяем, что профиль был обновлен правильно
+    assert mock_profile["trade_settings"]["risk_level"] == "low"
+    assert mock_profile["trade_settings"]["min_profit"] == 1.0
+    assert mock_profile["trade_settings"]["max_price"] == 30.0
+    assert mock_profile["trade_settings"]["max_trades"] == 2
+
+    # Проверяем, что профили были сохранены
+    mock_save_profiles.assert_called_once()
+
+    # Проверяем текст ответа
+    call_args = mock_update.callback_query.edit_message_text.call_args
+    if call_args.kwargs and "text" in call_args.kwargs:
+        message_text = call_args.kwargs["text"]
+    elif call_args.args:
+        message_text = call_args.args[0]
+    else:
+        message_text = ""
+
+    assert "low" in message_text
+    assert "$1.00" in message_text
+    assert "$30.00" in message_text
+
+
+@pytest.mark.asyncio()
+@patch("src.telegram_bot.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.settings_handlers.save_user_profiles")
+@patch("src.telegram_bot.settings_handlers.get_back_to_settings_keyboard")
+async def test_settings_callback_risk_medium(
+    mock_get_back_keyboard,
+    mock_save_profiles,
+    mock_get_user_profile,
+    mock_update,
+    mock_context,
+):
+    """Тестирует обработку callback с установкой среднего уровня риска."""
+    # Настройка моков
+    mock_profile = {"trade_settings": {}}
+    mock_get_user_profile.return_value = mock_profile
+    mock_keyboard = MagicMock(spec=InlineKeyboardMarkup)
+    mock_get_back_keyboard.return_value = mock_keyboard
+
+    # Настройка данных callback
+    mock_update.callback_query.data = "risk:medium"
+
+    # Вызываем тестируемую функцию
+    await settings_callback(mock_update, mock_context)
+
+    # Проверяем, что профиль был обновлен правильно
+    assert mock_profile["trade_settings"]["risk_level"] == "medium"
+    assert mock_profile["trade_settings"]["min_profit"] == 2.0
+    assert mock_profile["trade_settings"]["max_price"] == 50.0
+    assert mock_profile["trade_settings"]["max_trades"] == 5
+
+
+@pytest.mark.asyncio()
+@patch("src.telegram_bot.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.settings_handlers.save_user_profiles")
+@patch("src.telegram_bot.settings_handlers.get_back_to_settings_keyboard")
+async def test_settings_callback_risk_high(
+    mock_get_back_keyboard,
+    mock_save_profiles,
+    mock_get_user_profile,
+    mock_update,
+    mock_context,
+):
+    """Тестирует обработку callback с установкой высокого уровня риска."""
+    # Настройка моков
+    mock_profile = {"trade_settings": {}}
+    mock_get_user_profile.return_value = mock_profile
+    mock_keyboard = MagicMock(spec=InlineKeyboardMarkup)
+    mock_get_back_keyboard.return_value = mock_keyboard
+
+    # Настройка данных callback
+    mock_update.callback_query.data = "risk:high"
+
+    # Вызываем тестируемую функцию
+    await settings_callback(mock_update, mock_context)
+
+    # Проверяем, что профиль был обновлен правильно
+    assert mock_profile["trade_settings"]["risk_level"] == "high"
+    assert mock_profile["trade_settings"]["min_profit"] == 5.0
+    assert mock_profile["trade_settings"]["max_price"] == 100.0
+    assert mock_profile["trade_settings"]["max_trades"] == 10
+
+
+@pytest.mark.asyncio()
+@patch("src.telegram_bot.settings_handlers.get_localized_text")
+@patch("src.telegram_bot.keyboards.get_arbitrage_keyboard")
+async def test_settings_callback_back_to_menu(
+    mock_get_arbitrage_keyboard,
+    mock_get_localized_text,
+    mock_update,
+    mock_context,
+):
+    """Тестирует обработку callback с возвратом в главное меню."""
+    # Настройка моков
+    mock_get_localized_text.return_value = "Добро пожаловать!"
+    mock_keyboard = MagicMock(spec=InlineKeyboardMarkup)
+    mock_get_arbitrage_keyboard.return_value = mock_keyboard
+
+    # Настройка mock user для mention_html
+    mock_update.callback_query.from_user.mention_html = MagicMock(
+        return_value="<a href='tg://user?id=123456789'>Test User</a>",
+    )
+
+    # Настройка данных callback
+    mock_update.callback_query.data = "back_to_menu"
+
+    # Вызываем тестируемую функцию
+    await settings_callback(mock_update, mock_context)
+
+    # Проверяем, что был вызван answer
+    mock_update.callback_query.answer.assert_called_once()
+
+    # Проверяем, что были вызваны правильные функции
+    mock_get_arbitrage_keyboard.assert_called_once()
+    mock_get_localized_text.assert_called_once()
+
+    # Проверяем, что был вызван edit_message_text с правильными аргументами
+    call_args = mock_update.callback_query.edit_message_text.call_args
+    assert call_args.kwargs.get("parse_mode") == "HTML"
+    assert call_args.kwargs.get("reply_markup") == mock_keyboard
+
+
+@pytest.mark.asyncio()
+@patch("src.telegram_bot.settings_handlers.get_localized_text")
+async def test_setup_command(
+    mock_get_localized_text,
+    mock_update,
+    mock_context,
+):
+    """Тестирует обработку команды /setup."""
+    # Настройка моков
+    mock_get_localized_text.return_value = "Введите ваш публичный API ключ:"
+
+    # Вызываем тестируемую функцию
+    await setup_command(mock_update, mock_context)
+
+    # Проверяем, что был установлен setup_state
+    assert mock_context.user_data.get("setup_state") == "waiting_api_key"
+
+    # Проверяем, что был вызван reply_text с правильными аргументами
+    mock_update.message.reply_text.assert_called_once()
+    call_args = mock_update.message.reply_text.call_args
+
+    if call_args.args:
+        message_text = call_args.args[0]
+    else:
+        message_text = ""
+
+    assert "Настройка API ключей DMarket" in message_text
+    assert "Введите ваш публичный API ключ:" in message_text
+
+
+@pytest.mark.asyncio()
+@patch("src.telegram_bot.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.settings_handlers.save_user_profiles")
+@patch("src.telegram_bot.settings_handlers.get_localized_text")
+async def test_handle_setup_input_api_key(
+    mock_get_localized_text,
+    mock_save_profiles,
+    mock_get_user_profile,
+    mock_update,
+    mock_context,
+):
+    """Тестирует обработку ввода API ключа."""
+    # Настройка моков
+    mock_profile = {}
+    mock_get_user_profile.return_value = mock_profile
+    mock_get_localized_text.return_value = "Введите ваш секретный API ключ:"
+
+    # Устанавливаем состояние - ожидание API ключа
+    mock_context.user_data = {"setup_state": "waiting_api_key"}
+    mock_update.message.text = "test_public_key_12345"
+
+    # Вызываем тестируемую функцию
+    await handle_setup_input(mock_update, mock_context)
+
+    # Проверяем, что API ключ был сохранен
+    assert mock_profile["api_key"] == "test_public_key_12345"
+
+    # Проверяем, что профили были сохранены
+    mock_save_profiles.assert_called_once()
+
+    # Проверяем, что состояние изменилось на ожидание секретного ключа
+    assert mock_context.user_data["setup_state"] == "waiting_api_secret"
+
+    # Проверяем, что был запрошен секретный ключ
+    mock_update.message.reply_text.assert_called_once()
+
+
+@pytest.mark.asyncio()
+@patch("src.telegram_bot.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.settings_handlers.save_user_profiles")
+@patch("src.telegram_bot.settings_handlers.get_localized_text")
+async def test_handle_setup_input_api_secret(
+    mock_get_localized_text,
+    mock_save_profiles,
+    mock_get_user_profile,
+    mock_update,
+    mock_context,
+):
+    """Тестирует обработку ввода секретного ключа."""
+    # Настройка моков
+    mock_profile = {"api_key": "test_public_key"}
+    mock_get_user_profile.return_value = mock_profile
+    mock_get_localized_text.return_value = "API ключи успешно сохранены!"
+
+    # Устанавливаем состояние - ожидание секретного ключа
+    mock_context.user_data = {"setup_state": "waiting_api_secret"}
+    mock_update.message.text = "test_secret_key_67890"
+
+    # Вызываем тестируемую функцию
+    await handle_setup_input(mock_update, mock_context)
+
+    # Проверяем, что секретный ключ был сохранен
+    assert mock_profile["api_secret"] == "test_secret_key_67890"
+
+    # Проверяем, что профили были сохранены
+    mock_save_profiles.assert_called_once()
+
+    # Проверяем, что setup_state был удален
+    assert "setup_state" not in mock_context.user_data
+
+    # Проверяем, что было отправлено подтверждение
+    mock_update.message.reply_text.assert_called_once()
+
+
+@pytest.mark.asyncio()
+async def test_handle_setup_input_no_setup_state(
+    mock_update,
+    mock_context,
+):
+    """Тестирует обработку ввода при отсутствии активного setup."""
+    # Настройка - нет setup_state
+    mock_context.user_data = {}
+    mock_update.message.text = "random text"
+
+    # Вызываем тестируемую функцию
+    await handle_setup_input(mock_update, mock_context)
+
+    # Проверяем, что reply_text НЕ был вызван
+    mock_update.message.reply_text.assert_not_called()
+
+
+def test_register_localization_handlers():
+    """Тестирует регистрацию обработчиков."""
+
+    # Создаем мок application
+    mock_app = MagicMock()
+
+    # Вызываем функцию регистрации
+    register_localization_handlers(mock_app)
+
+    # Проверяем, что add_handler был вызван несколько раз
+    assert mock_app.add_handler.call_count >= 5  # Минимум 5 handlers
