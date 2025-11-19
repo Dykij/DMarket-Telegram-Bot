@@ -8,7 +8,6 @@ import logging
 from datetime import datetime
 from typing import Any
 
-
 logger = logging.getLogger(__name__)
 
 # Максимальная длина сообщения в Telegram
@@ -656,3 +655,207 @@ def split_long_message(message: str, max_length: int = MAX_MESSAGE_LENGTH) -> li
         parts.append(current_part)
 
     return parts
+
+
+def format_target_item(target: dict[str, Any]) -> str:
+    """Форматирует информацию о таргете.
+
+    Args:
+        target: Словарь с данными о таргете
+
+    Returns:
+        str: Отформатированный текст с информацией о таргете
+
+    """
+    title = target.get("Title", "Неизвестный предмет")
+    price_cents = target.get("Price", {}).get("Amount", 0)
+    price_usd = price_cents / 100 if price_cents else 0
+    amount = target.get("Amount", 1)
+    status = target.get("Status", "Unknown")
+
+    status_emoji = {
+        "TargetStatusActive": "✅ Активен",
+        "TargetStatusInactive": "❌ Неактивен",
+        "Created": "🆕 Создан",
+    }.get(status, status)
+
+    message = [
+        f"🎯 *{title}*",
+        f"💰 Цена: *${price_usd:.2f}*",
+        f"📦 Количество: {amount}",
+        f"📊 Статус: {status_emoji}",
+    ]
+
+    # Добавляем ID если есть
+    target_id = target.get("TargetID", "")
+    if target_id:
+        message.append(f"🔑 ID: `{target_id}`")
+
+    return "\n".join(message)
+
+
+def format_target_competition_analysis(analysis: dict[str, Any], item_title: str) -> str:
+    """Форматирует результаты анализа конкуренции buy orders.
+
+    Args:
+        analysis: Словарь с данными анализа конкуренции
+        item_title: Название предмета
+
+    Returns:
+        str: Отформатированный текст с анализом конкуренции
+
+    """
+    if not analysis:
+        return (
+            f"⚠️ *Данные о конкуренции не найдены*\n\n"
+            f"Предмет: `{item_title}`\n\n"
+            f"Возможно, для этого предмета нет активных buy orders."
+        )
+
+    competition_level = analysis.get("competition_level", "unknown")
+    total_orders = analysis.get("total_buy_orders", 0)
+    best_price = analysis.get("highest_buy_order_price", 0)
+    recommended_price = analysis.get("recommended_price", 0)
+    strategy = analysis.get("strategy", "Unknown")
+
+    # Эмодзи для уровня конкуренции
+    level_emoji = {
+        "low": "🟢 Низкая",
+        "medium": "🟡 Средняя",
+        "high": "🔴 Высокая",
+    }.get(competition_level, competition_level)
+
+    message = [
+        "🎯 *Анализ конкуренции*\n",
+        f"📦 Предмет: `{item_title}`\n",
+        f"👥 Активных buy orders: *{total_orders}*",
+        f"📊 Уровень конкуренции: {level_emoji}",
+        f"💎 Лучшая цена buy order: *${best_price:.2f}*\n",
+        f"💡 *Рекомендуемая цена*: *${recommended_price:.2f}*",
+        f"📋 Стратегия: _{strategy}_\n",
+    ]
+
+    # Добавляем детали по существующим ордерам
+    orders = analysis.get("existing_orders", [])
+    if orders:
+        message.append("📑 *Существующие buy orders:*")
+        for i, order in enumerate(orders[:5], 1):
+            order_price = order.get("price", 0)
+            order_amount = order.get("amount", 0)
+            message.append(f"  {i}. ${order_price:.2f} x {order_amount}")
+
+        if len(orders) > 5:
+            message.append(f"  ... и еще {len(orders) - 5}")
+
+    # Рекомендации
+    message.append("\n💡 *Рекомендации:*")
+    if competition_level == "low":
+        message.append("• Отличная возможность для создания таргета")
+        message.append("• Можно установить более низкую цену")
+    elif competition_level == "medium":
+        message.append("• Средняя конкуренция")
+        message.append("• Установите цену чуть выше лучшего buy order")
+    else:  # high
+        message.append("• Высокая конкуренция")
+        message.append("• Рекомендуется поднять цену для приоритета")
+
+    return "\n".join(message)
+
+
+def format_aggregated_prices(prices: list[dict[str, Any]], show_details: bool = True) -> str:
+    """Форматирует агрегированные цены из API v1.1.0.
+
+    Args:
+        prices: Список агрегированных цен
+        show_details: Показывать ли детальную информацию
+
+    Returns:
+        str: Отформатированный текст с ценами
+
+    """
+    if not prices:
+        return "🔍 *Цены не найдены*"
+
+    message = [f"💰 *Агрегированные цены* ({len(prices)} предметов)\n"]
+
+    for i, price_data in enumerate(prices[:10], 1):
+        title = price_data.get("title", "Неизвестный предмет")
+        best_buy = price_data.get("orderBestPrice", 0) / 100
+        buy_count = price_data.get("orderCount", 0)
+        best_sell = price_data.get("offerBestPrice", 0) / 100
+        sell_count = price_data.get("offerCount", 0)
+
+        # Рассчитываем спред
+        spread = best_sell - best_buy if best_sell and best_buy else 0
+        spread_percent = (spread / best_buy * 100) if best_buy > 0 else 0
+
+        message.append(f"{i}. *{title}*")
+        message.append(f"   🟢 Buy: ${best_buy:.2f} ({buy_count} orders)")
+        message.append(f"   🔴 Sell: ${best_sell:.2f} ({sell_count} offers)")
+
+        if show_details and spread > 0:
+            message.append(f"   📊 Спред: ${spread:.2f} ({spread_percent:.1f}%)")
+
+        message.append("")  # Пустая строка
+
+    if len(prices) > 10:
+        message.append(f"_... и еще {len(prices) - 10} предметов_")
+
+    return "\n".join(message)
+
+
+def format_market_depth(depth_data: dict[str, Any]) -> str:
+    """Форматирует данные глубины рынка.
+
+    Args:
+        depth_data: Данные анализа глубины рынка
+
+    Returns:
+        str: Отформатированный текст
+
+    """
+    if not depth_data:
+        return "⚠️ *Данные о глубине рынка не найдены*"
+
+    summary = depth_data.get("summary", {})
+    items = depth_data.get("items", [])
+
+    avg_liquidity = summary.get("average_liquidity_score", 0)
+    avg_spread = summary.get("average_spread_percent", 0)
+    high_liquidity_count = summary.get("high_liquidity_items", 0)
+    arb_opportunities = summary.get("arbitrage_opportunities", 0)
+    market_health = summary.get("market_health", "unknown")
+
+    # Эмодзи для здоровья рынка
+    health_emoji = {
+        "excellent": "🟢 Отличное",
+        "good": "🟡 Хорошее",
+        "moderate": "🟠 Среднее",
+        "poor": "🔴 Низкое",
+    }.get(market_health, market_health)
+
+    message = [
+        "📊 *Глубина рынка*\n",
+        f"💧 Средняя ликвидность: *{avg_liquidity:.1f}/100*",
+        f"📈 Средний спред: *{avg_spread:.2f}%*",
+        f"⭐ Высоколиквидных предметов: *{high_liquidity_count}*",
+        f"🎯 Арбитражных возможностей: *{arb_opportunities}*",
+        f"🏥 Здоровье рынка: {health_emoji}\n",
+    ]
+
+    # Топ предметов по ликвидности
+    if items:
+        message.append("🏆 *Топ по ликвидности:*\n")
+        for i, item in enumerate(items[:5], 1):
+            title = item.get("title", "Неизвестный предмет")
+            liquidity = item.get("liquidity_score", 0)
+            spread_pct = item.get("spread_percent", 0)
+
+            emoji = "🟢" if liquidity >= 80 else "🟡" if liquidity >= 60 else "🔴"
+
+            message.append(f"{i}. {emoji} *{title}*")
+            message.append(f"   💧 Ликвидность: {liquidity:.0f}/100")
+            message.append(f"   📊 Спред: {spread_pct:.2f}%")
+            message.append("")
+
+    return "\n".join(message)

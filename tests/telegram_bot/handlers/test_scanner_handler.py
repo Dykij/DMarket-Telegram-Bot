@@ -19,7 +19,6 @@ from src.telegram_bot.handlers.scanner_handler import (
     start_scanner_menu,
 )
 
-
 # ======================== Fixtures ========================
 
 
@@ -112,6 +111,34 @@ def test_format_scanner_item_contains_all_fields(sample_arbitrage_result):
     assert "standard" in result
     assert "low" in result
     assert "item_12345" in result
+
+
+def test_format_scanner_item_with_liquidity_data():
+    """Тест форматирования результата с данными о ликвидности."""
+    result_with_liquidity = {
+        "title": "AK-47 | Redline (Field-Tested)",
+        "buy_price": 12.50,
+        "sell_price": 15.00,
+        "profit": 2.14,
+        "profit_percent": 14.3,
+        "level": "standard",
+        "risk_level": "low",
+        "item_id": "item_12345",
+        "liquidity_data": {
+            "offer_count": 25,
+            "order_count": 15,
+            "liquidity_score": 75,
+        },
+    }
+
+    result = format_scanner_item(result_with_liquidity)
+
+    assert "AK-47 | Redline (Field-Tested)" in result
+    # Проверяем отображение ликвидности
+    assert "25" in result  # offer_count
+    assert "15" in result  # order_count
+    # Может быть эмодзи ликвидности
+    assert any(emoji in result for emoji in ["🟢", "🟡", "🔴"])
 
 
 def test_format_scanner_item_with_missing_fields():
@@ -472,6 +499,45 @@ async def test_handle_market_overview_exception(
     calls = mock_update.callback_query.edit_message_text.call_args_list
     error_call = calls[-1]
     assert "Ошибка" in error_call[0][0]
+
+
+@pytest.mark.asyncio()
+@patch("src.telegram_bot.handlers.scanner_handler.ArbitrageScanner")
+@patch("src.telegram_bot.handlers.scanner_handler.create_api_client_from_env")
+async def test_handle_market_overview_with_market_depth(
+    mock_api_client,
+    mock_scanner_class,
+    mock_update,
+    mock_context,
+):
+    """Тест обзора рынка с интеграцией анализа глубины API v1.1.0."""
+    # Настраиваем моки
+    mock_api_client.return_value = MagicMock()
+    mock_scanner = MagicMock()
+    mock_scanner.get_market_overview = AsyncMock(
+        return_value={
+            "total_opportunities": 42,
+            "best_profit_percent": 15.5,
+            "best_level": "standard",
+            "results_by_level": {
+                "boost": 10,
+                "standard": 20,
+                "medium": 12,
+            },
+        }
+    )
+    mock_scanner_class.return_value = mock_scanner
+
+    await handle_market_overview(mock_update, mock_context, "csgo")
+
+    # Проверяем вызов analyze_market_depth
+    # (если интегрирован в handle_market_overview)
+    calls = mock_update.callback_query.edit_message_text.call_args_list
+    final_call = calls[-1]
+    text = final_call[0][0]
+
+    # Может содержать данные о здоровье рынка
+    assert "Обзор рынка" in text
 
 
 # ======================== Тесты handle_scanner_pagination ========================

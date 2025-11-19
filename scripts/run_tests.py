@@ -60,9 +60,7 @@ def run_tests(module=None, html_report=False, xml_report=False):
 
 def main():
     """Основная функция скрипта."""
-    parser = argparse.ArgumentParser(
-        description="Запуск тестов и проверка покрытия кода"
-    )
+    parser = argparse.ArgumentParser(description="Запуск тестов и проверка покрытия кода")
     parser.add_argument(
         "--module",
         "-m",

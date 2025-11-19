@@ -99,10 +99,23 @@ class DMarketAPI:
     # Статистика и аналитика
     ENDPOINT_SALES_HISTORY = "/account/v1/sales-history"  # История продаж
     ENDPOINT_ITEM_PRICE_HISTORY = "/exchange/v1/market/price-history"  # История цен предмета
+    ENDPOINT_LAST_SALES = "/trade-aggregator/v1/last-sales"  # История последних продаж (API v1.1.0)
 
-    # Новые эндпоинты 2024
+    # Новые эндпоинты 2024/2025 (API v1.1.0)
     ENDPOINT_MARKET_BEST_OFFERS = "/exchange/v1/market/best-offers"  # Лучшие предложения на маркете
     ENDPOINT_MARKET_SEARCH = "/exchange/v1/market/search"  # Расширенный поиск
+    ENDPOINT_AGGREGATED_PRICES_POST = (
+        "/marketplace-api/v1/aggregated-prices"  # Агрегированные цены (POST, v1.1.0)
+    )
+    ENDPOINT_TARGETS_BY_TITLE = (
+        "/marketplace-api/v1/targets-by-title"  # Таргеты по названию (v1.1.0)
+    )
+    ENDPOINT_DEPOSIT_ASSETS = "/marketplace-api/v1/deposit-assets"  # Депозит активов (v1.1.0)
+    ENDPOINT_DEPOSIT_STATUS = "/marketplace-api/v1/deposit-status"  # Статус депозита (v1.1.0)
+    ENDPOINT_WITHDRAW_ASSETS = "/exchange/v1/withdraw-assets"  # Вывод активов (v1.1.0)
+    ENDPOINT_INVENTORY_SYNC = (
+        "/marketplace-api/v1/user-inventory/sync"  # Синхронизация инвентаря (v1.1.0)
+    )
 
     # Известные коды ошибок DMarket API и рекомендации по их обработке
     ERROR_CODES = {
@@ -1720,7 +1733,7 @@ class DMarketAPI:
         self,
         asset_ids: list[str],
     ) -> dict[str, Any]:
-        """Депозит активов из Steam в DMarket согласно DMarket API.
+        """Депозит активов из Steam в DMarket согласно DMarket API v1.1.0.
 
         Args:
             asset_ids: Список ID активов для депозита
@@ -1731,11 +1744,17 @@ class DMarketAPI:
         Response format:
             {"DepositID": "string"}
 
+        Example:
+            >>> result = await api.deposit_assets(["asset_id_1", "asset_id_2"])
+            >>> deposit_id = result["DepositID"]
+            >>> # Затем проверить статус:
+            >>> status = await api.get_deposit_status(deposit_id)
+
         """
         data = {"AssetID": asset_ids}
         return await self._request(
             "POST",
-            "/marketplace-api/v1/deposit-assets",
+            self.ENDPOINT_DEPOSIT_ASSETS,
             data=data,
         )
 
@@ -1743,7 +1762,7 @@ class DMarketAPI:
         self,
         deposit_id: str,
     ) -> dict[str, Any]:
-        """Получить статус депозита согласно DMarket API.
+        """Получить статус депозита согласно DMarket API v1.1.0.
 
         Args:
             deposit_id: ID депозита
@@ -1751,10 +1770,69 @@ class DMarketAPI:
         Returns:
             Dict[str, Any]: Статус депозита
 
+        Response format:
+            {
+                "DepositID": "string",
+                "Status": "TransferStatusPending | TransferStatusCompleted | TransferStatusFailed",
+                "Assets": [...],
+                "Error": "string" (если есть)
+            }
+
+        Example:
+            >>> status = await api.get_deposit_status("deposit_123")
+            >>> if status["Status"] == "TransferStatusCompleted":
+            ...     print("Депозит завершен!")
+
         """
+        path = f"{self.ENDPOINT_DEPOSIT_STATUS}/{deposit_id}"
+        return await self._request("GET", path)
+
+    async def withdraw_assets(
+        self,
+        asset_ids: list[str],
+    ) -> dict[str, Any]:
+        """Вывод активов из DMarket в Steam (API v1.1.0).
+
+        Args:
+            asset_ids: Список ID активов для вывода
+
+        Returns:
+            Dict[str, Any]: Результат операции вывода
+
+        Example:
+            >>> result = await api.withdraw_assets(["item_id_1", "item_id_2"])
+
+        """
+        data = {"AssetIDs": asset_ids}
         return await self._request(
-            "GET",
-            f"/marketplace-api/v1/deposit-status/{deposit_id}",
+            "POST",
+            self.ENDPOINT_WITHDRAW_ASSETS,
+            data=data,
+        )
+
+    async def sync_inventory(
+        self,
+        game_id: str = "a8db",
+    ) -> dict[str, Any]:
+        """Синхронизация инвентаря с внешними платформами (API v1.1.0).
+
+        Args:
+            game_id: ID игры для синхронизации
+
+        Returns:
+            Dict[str, Any]: Результат синхронизации
+
+        Example:
+            >>> result = await api.sync_inventory(game_id="a8db")
+            >>> if result.get("success"):
+            ...     print("Инвентарь синхронизирован")
+
+        """
+        data = {"GameID": game_id}
+        return await self._request(
+            "POST",
+            self.ENDPOINT_INVENTORY_SYNC,
+            data=data,
         )
 
     async def list_user_inventory(
@@ -1909,6 +1987,9 @@ class DMarketAPI:
     ) -> dict[str, Any]:
         """Получить агрегированные цены для списка предметов согласно DMarket API.
 
+        Устаревший метод, сохранен для обратной совместимости.
+        Рекомендуется использовать get_aggregated_prices_bulk() вместо него.
+
         Args:
             titles: Список названий предметов
             game_id: ID игры
@@ -1917,6 +1998,10 @@ class DMarketAPI:
             Dict[str, Any]: Агрегированные цены
 
         """
+        logger.warning(
+            "Метод get_aggregated_prices() устарел. "
+            "Используйте get_aggregated_prices_bulk() для API v1.1.0"
+        )
         data = {
             "Titles": titles,
             "GameID": game_id,
@@ -1924,6 +2009,68 @@ class DMarketAPI:
         return await self._request(
             "POST",
             "/marketplace-api/v1/aggregated-titles-by-games",
+            data=data,
+        )
+
+    async def get_aggregated_prices_bulk(
+        self,
+        game: str,
+        titles: list[str],
+        limit: int = 100,
+        cursor: str = "",
+    ) -> dict[str, Any]:
+        """Получить агрегированные цены для списка предметов (API v1.1.0).
+
+        Новый метод согласно обновленной документации DMarket API.
+        Позволяет получить лучшие цены покупки и продажи для множества предметов
+        одним запросом с поддержкой пагинации.
+
+        Args:
+            game: Идентификатор игры (csgo, dota2, tf2, rust)
+            titles: Список точных названий предметов
+            limit: Лимит результатов на странице (max 100)
+            cursor: Курсор для пагинации
+
+        Returns:
+            Dict[str, Any]: Агрегированные цены
+
+        Response format:
+            {
+                "aggregatedPrices": [
+                    {
+                        "title": "Item Name",
+                        "orderBestPrice": "1200",  # в центах
+                        "orderCount": 15,
+                        "offerBestPrice": "1250",  # в центах
+                        "offerCount": 23
+                    }
+                ],
+                "nextCursor": "..."
+            }
+
+        Example:
+            >>> prices = await api.get_aggregated_prices_bulk(
+            ...     game="csgo",
+            ...     titles=["AK-47 | Redline (Field-Tested)", "AWP | Asiimov (Field-Tested)"]
+            ... )
+            >>> for item in prices["aggregatedPrices"]:
+            ...     print(f"{item['title']}: Buy ${int(item['orderBestPrice'])/100:.2f}")
+
+        """
+        data = {
+            "filter": {
+                "game": game,
+                "titles": titles,
+            },
+            "limit": str(limit),
+            "cursor": cursor,
+        }
+
+        logger.debug(f"Запрос агрегированных цен для {len(titles)} предметов (игра: {game})")
+
+        return await self._request(
+            "POST",
+            self.ENDPOINT_AGGREGATED_PRICES_POST,
             data=data,
         )
 
@@ -2303,21 +2450,49 @@ class DMarketAPI:
         game_id: str,
         title: str,
     ) -> dict[str, Any]:
-        """Получить таргеты для конкретного предмета (агрегированные данные).
+        """Получить таргеты для конкретного предмета (агрегированные данные, API v1.1.0).
+
+        Новый эндпоинт согласно обновленной документации DMarket API.
+        Позволяет получить все активные заявки на покупку (buy orders/targets)
+        для конкретной игры и названия предмета.
 
         Args:
-            game_id: Идентификатор игры
-            title: Название предмета
+            game_id: Идентификатор игры (csgo, dota2, tf2, rust)
+            title: Точное название предмета в игре
 
         Returns:
-            Список таргетов для предмета
+            Dict[str, Any]: Список таргетов для предмета
+
+        Response format:
+            {
+                "orders": [
+                    {
+                        "amount": 10,
+                        "price": "1200",  # в центах
+                        "title": "AK-47 | Redline (Field-Tested)",
+                        "attributes": {
+                            "exterior": "Field-Tested"
+                        }
+                    }
+                ]
+            }
+
+        Example:
+            >>> targets = await api.get_targets_by_title(
+            ...     game_id="csgo",
+            ...     title="AK-47 | Redline (Field-Tested)"
+            ... )
+            >>> for target in targets["orders"]:
+            ...     print(f"Price: ${int(target['price'])/100:.2f}, Amount: {target['amount']}")
 
         """
         # URL-encode названия для правильной передачи
         from urllib.parse import quote
 
         encoded_title = quote(title)
-        path = f"/marketplace-api/v1/targets-by-title/{game_id}/{encoded_title}"
+        path = f"{self.ENDPOINT_TARGETS_BY_TITLE}/{game_id}/{encoded_title}"
+
+        logger.debug(f"Запрос таргетов для '{title}' (игра: {game_id})")
 
         return await self._request("GET", path)
 

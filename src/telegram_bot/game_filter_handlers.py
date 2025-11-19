@@ -15,9 +15,7 @@ from telegram.constants import ParseMode
 from telegram.ext import CallbackContext
 
 # Import filters from DMarket
-from src.dmarket.game_filters import (
-    FilterFactory,
-)
+from src.dmarket.game_filters import FilterFactory
 
 
 # Logger
@@ -263,16 +261,9 @@ def update_filters(
         filters = {}
         user_data["filters"] = filters
 
-    # Получаем текущие фильтры для игры
-    game_filters = filters.get(game, {})
-
-    # Если фильтров для данной игры нет, создаем пустой словарь
-    if not game_filters:
-        game_filters = {}
-        filters[game] = game_filters
-
-    # Обновляем фильтры новыми значениями
-    game_filters.update(new_filters)
+    # Заменяем фильтры для игры новыми значениями
+    # Используем полную замену вместо update(), чтобы корректно обрабатывать удаление ключей
+    filters[game] = new_filters
 
 
 def get_game_filter_keyboard(game: str) -> InlineKeyboardMarkup:

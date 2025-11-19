@@ -1,0 +1,161 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.1, pluggy-1.6.0
+rootdir: D:\Dmarket\DMarket-Telegram-Bot\DMarket-Telegram-Bot
+configfile: pyproject.toml
+plugins: anyio-4.11.0, Faker-38.0.0, asyncio-1.3.0, cov-7.0.0, mock-3.15.1, xdist-3.8.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collected 1408 items
+
+tests\dmarket\filters\test_game_filters.py ............................. [  2%]
+...................                                                      [  3%]
+tests\dmarket\test_api_unified.py ..........                             [  4%]
+tests\dmarket\test_arbitrage.py ........................................ [  6%]
+..................................................                       [ 10%]
+tests\dmarket\test_arbitrage_additional.py ...................           [ 11%]
+tests\dmarket\test_arbitrage_advanced.py ...........                     [ 12%]
+tests\dmarket\test_arbitrage_sales_analysis.py .................         [ 13%]
+tests\dmarket\test_arbitrage_scanner.py ................................ [ 16%]
+.........................                                                [ 17%]
+tests\dmarket\test_auto_arbitrage.py ................................... [ 20%]
+...                                                                      [ 20%]
+tests\dmarket\test_dmarket_api.py ...................................... [ 23%]
+.......................................                                  [ 26%]
+tests\dmarket\test_game_filters.py ...................................   [ 28%]
+tests\dmarket\test_intramarket_arbitrage.py ..........................   [ 30%]
+tests\dmarket\test_liquidity_analyzer.py ..............                  [ 31%]
+tests\dmarket\test_market_analysis.py .............................      [ 33%]
+tests\dmarket\test_realtime_price_watcher.py ........................... [ 35%]
+.............................                                            [ 37%]
+tests\dmarket\test_sales_history.py ..................................   [ 39%]
+tests\dmarket\test_smart_market_finder.py .............................. [ 41%]
+......................                                                   [ 43%]
+tests\dmarket\test_targets.py ...............                            [ 44%]
+tests\telegram_bot\handlers\test_arbitrage_callback_impl.py .....        [ 44%]
+tests\telegram_bot\handlers\test_callbacks.py .......................... [ 46%]
+.                                                                        [ 46%]
+tests\telegram_bot\handlers\test_commands.py ......................      [ 48%]
+tests\telegram_bot\handlers\test_dmarket_handlers.py ..........          [ 49%]
+tests\telegram_bot\handlers\test_dmarket_status.py ........              [ 49%]
+tests\telegram_bot\handlers\test_enhanced_arbitrage_handler.py ......... [ 50%]
+.............                                                            [ 51%]
+tests\telegram_bot\handlers\test_error_handlers.py ........              [ 51%]
+tests\telegram_bot\handlers\test_market_alerts_handler.py ..........     [ 52%]
+tests\telegram_bot\handlers\test_market_analysis_handler.py ............ [ 53%]
+........                                                                 [ 53%]
+tests\telegram_bot\handlers\test_scanner_handler.py .................... [ 55%]
+...............                                                          [ 56%]
+tests\telegram_bot\handlers\test_target_handler.py ....................  [ 57%]
+tests\telegram_bot\test_auto_arbitrage.py .....................          [ 59%]
+tests\telegram_bot\test_auto_arbitrage_scanner.py .........              [ 60%]
+tests\telegram_bot\test_constants_and_basic_commands.py ............     [ 60%]
+tests\telegram_bot\test_game_filter_handlers.py ........................ [ 62%]
+                                                                         [ 62%]
+tests\telegram_bot\test_intramarket_handler.py ..........                [ 63%]
+tests\telegram_bot\test_keyboards.py .............................       [ 65%]
+tests\telegram_bot\test_liquidity_settings_handler.py .................. [ 66%]
+..                                                                       [ 66%]
+tests\telegram_bot\test_notifier.py .................................... [ 69%]
+.......                                                                  [ 69%]
+tests\telegram_bot\test_notifier_alerts.py .....                         [ 70%]
+tests\telegram_bot\test_pagination.py ......................             [ 71%]
+tests\telegram_bot\test_sales_analysis_handlers.py ..........            [ 72%]
+tests\telegram_bot\test_scanner_handler.py .............                 [ 73%]
+tests\telegram_bot\test_settings_handlers.py .............               [ 74%]
+tests\telegram_bot\utils\test_error_handler.py ......................... [ 76%]
+.............                                                            [ 76%]
+tests\test_ci_smoke.py .......                                           [ 77%]
+tests\test_config.py .............                                       [ 78%]
+tests\test_database.py ............                                      [ 79%]
+tests\test_keyboards.py ............                                     [ 80%]
+tests\test_liquidity_rules.py ......................................     [ 82%]
+tests\test_main.py ......................                                [ 84%]
+tests\test_pagination.py .........                                       [ 85%]
+tests\test_performance.py ............................                   [ 87%]
+tests\test_sqlite_fallback.py ................                           [ 88%]
+tests\test_targets.py ..............................................     [ 91%]
+tests\utils\test_analytics_extended.py ................................  [ 93%]
+tests\utils\test_api_error_handling.py ....                              [ 93%]
+tests\utils\test_market_analyzer.py ...........                          [ 94%]
+tests\utils\test_market_visualizer.py ...........                        [ 95%]
+tests\utils\test_rate_limiter.py ..................................      [ 97%]
+tests\utils\test_websocket_client.py .............................       [100%]
+
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.11.9-final-0 _______________
+
+Name                                                         Stmts   Miss Branch BrPart   Cover   Missing
+---------------------------------------------------------------------------------------------------------
+src\dmarket\models\__init__.py                                   1      1      0      0   0.00%   3
+src\dmarket\models\market_models.py                            147    147      2      0   0.00%   9-345
+src\models\__init__.py                                           2      2      0      0   0.00%   3-6
+src\models\target.py                                            49     49      0      0   0.00%   3-185
+src\models\trading.py                                           33     33      0      0   0.00%   3-122
+src\models\user.py                                              67     67      0      0   0.00%   3-231
+src\telegram_bot\arbitrage_scanner.py                          284    284    100      0   0.00%   9-873
+src\telegram_bot\price_alerts_handler.py                       131    131     18      0   0.00%   7-521
+src\telegram_bot\register_all_handlers.py                       71     71      2      0   0.00%   7-152
+src\telegram_bot\sales_analysis_callbacks.py                   212    212     62      0   0.00%   3-739
+src\telegram_bot\smart_notifier.py                             369    369    128      0   0.00%   11-1234
+src\utils\price_analyzer.py                                    188    172     72      0   6.15%   45-96, 111-148, 175-224, 255-332, 349-398, 425-488, 501-531
+src\telegram_bot\market_alerts.py                              293    264    116      0   7.09%   39-85, 89-97, 101-113, 117-180, 184-263, 267-353, 357-424, 428-528, 541-549, 562-573, 585-595, 607, 622-633, 646-666, 679-692, 706-727, 742-751, 774-783
+src\telegram_bot\enhanced_auto_arbitrage.py                    108     90     46      0  11.69%   69-201, 223-266, 287-322
+src\telegram_bot\initialization.py                             123    103     38      0  12.42%   52-88, 103-142, 156-177, 198-223, 234-244, 257-280, 290-297, 326-353
+src\utils\logging_utils.py                                      78     56     18      0  22.92%   24-67, 85-97, 122-176, 188-208, 227, 245, 273-275, 302, 324-331, 344
+src\telegram_bot\enhanced_bot.py                                59     44      6      0  23.08%   41-44, 51-69, 73-83, 87-96, 100-118, 126-142
+src\telegram_bot\utils\api_client.py                            46     31      8      1  29.63%   36-52, 69-94, 108-127
+src\telegram_bot\user_profiles.py                              209    136     74      6  30.04%   98-109, 124-130, 142-152, 157-159, 171->175, 173, 179, 183-185, 195-227, 240-241, 252, 277-294, 305-315, 328-333, 346-352, 365-378, 387, 398-406, 435-441, 454-460, 475-499, 512-513, 524-533, 548-575
+src\telegram_bot\profiles.py                                    25     16      4      0  31.03%   16-19, 26-31, 44-61
+src\utils\exceptions.py                                        194    105     52      1  36.59%   65-73, 104, 111, 123, 128, 140, 145, 160, 165, 186-187, 192, 214, 226, 231, 247, 252, 273-274, 279-291, 296-297, 306, 315, 324, 345-348, 369-372, 396-431, 450-497, 516-549, 576-585
+src\telegram_bot\game_filter_handlers.py                       287    168    110     13  38.29%   368, 399, 539, 556-606, 620-678, 695-747, 761-810, 827-875, 889-933, 947-990, 1011-1017, 1030-1042, 1046-1058, 1064-1065, 1074-1075, 1084-1085, 1094-1095, 1101-1118, 1146-1153, 1160
+src\telegram_bot\utils\formatters.py                           227    112     86     10  44.41%   28-60, 84-99, 123, 161, 191, 215-219, 238-274, 314->322, 339, 371->381, 384-389, 432, 524, 545-572, 589-624, 638-658
+src\telegram_bot\handlers\market_alerts_handler.py             278    146    130     21  44.85%   109->118, 126->130, 157-158, 201-202, 213-214, 223-229, 238, 249, 254, 268, 275, 281-381, 445->454, 455, 462->466, 467, 487-490, 493-494, 496->508, 528-550, 564-579, 632-664, 681-787, 822-823
+src\utils\analytics.py                                         212    106     40      0  45.24%   28-30, 204-206, 236-282, 303-352, 388-390, 407-412, 439-468, 492-517, 539-577
+src\dmarket\arbitrage_sales_analysis.py                        332    157    142     29  49.37%   57-59, 90->95, 111-112, 137->141, 260-261, 278, 285-287, 295, 300-303, 308-315, 323-326, 389-392, 409, 437-439, 444-451, 455, 473-475, 525-531, 536, 543, 547, 551, 554->558, 559-564, 568, 570, 577, 579, 583, 620-658, 680-750, 769-808, 831-904, 921-946, 971-972, 991
+src\telegram_bot\auto_arbitrage.py                             343    155    114     18  49.45%   86-88, 169-170, 187, 226-266, 289-298, 321-323, 342-344, 380-381, 411-416, 434-448, 505-533, 566->570, 572-573, 577-638, 666->570, 669-717, 766-775, 807-814, 834, 848, 861-924, 943, 953-956, 969, 992-1069, 1084, 1095-1119, 1151-1243
+src\telegram_bot\notifier.py                                   386    186    148     12  50.19%   281->284, 293-294, 345->355, 352->355, 379-429, 473->482, 478-479, 484-487, 501->498, 513-514, 529-544, 591-592, 615-625, 639-656, 687->690, 707-793, 809-838, 855-899, 913-984, 1029
+src\telegram_bot\settings_handlers.py                          159     73     44      6  50.25%   91, 95, 119-120, 185, 207-209, 226, 260, 267-360, 371-381, 388-421, 432-453
+src\telegram_bot\handlers\arbitrage_callback_impl.py           117     45     24      3  54.61%   130-132, 164-191, 230-232, 240-282, 331-431, 494, 528-537
+src\telegram_bot\auto_arbitrage_scanner.py                     229     81     86     22  61.59%   43-50, 96-97, 116-122, 145-154, 159, 188-191, 218, 236->246, 238, 242-243, 261-263, 267->273, 270-271, 307-308, 312-321, 360-361, 371-372, 437-438, 455-457, 461-462, 500-501, 504-505, 510-513, 522-525, 540-617
+src\dmarket\arbitrage_scanner.py                               478    169    172     23  62.46%   269, 273-276, 306->310, 375-384, 389, 432, 455-457, 492-493, 507-537, 573-586, 668-670, 674-675, 716-717, 720-721, 728-731, 739-814, 843-872, 891-934, 953-985, 1019, 1047, 1049->1055, 1077, 1109, 1116, 1170-1171, 1242, 1244, 1300-1352, 1367, 1378-1379, 1401-1402, 1421-1424, 1449-1450, 1473-1476, 1495-1496, 1521-1522
+src\dmarket\__init__.py                                         11      4      0      0  63.64%   36-97
+src\dmarket\market_analysis.py                                 260     89    108     17  64.13%   83-88, 132, 140-159, 180-182, 185-188, 217-222, 254, 262, 281-283, 286-289, 316-321, 348, 356, 364-379, 399-401, 404-407, 428-433, 467-469, 480-483, 509-540, 570-574, 582-583, 686, 720, 743, 751
+src\dmarket\dmarket_api.py                                     724    235    234     51  64.51%   155, 249, 261-264, 268-269, 274-276, 324, 395-396, 425, 461, 477, 490-491, 508, 517-526, 599->742, 611-612, 661-662, 666, 692-694, 729-730, 751, 775, 778, 908-910, 925-926, 928-929, 945-973, 993->1205, 1005-1038, 1042-1059, 1068-1088, 1094-1119, 1129-1132, 1137-1140, 1143->1192, 1151-1189, 1198-1202, 1212, 1216, 1235-1249, 1323->1326, 1341->1358, 1346-1353, 1360-1363, 1409, 1570-1578, 1735-1736, 1831, 1834, 1837, 1968, 1971, 1998-2007, 2030-2038, 2204-2211, 2272, 2345->2348, 2348->2351, 2351->2354, 2389, 2397, 2400-2402, 2405, 2409-2411, 2424-2432, 2454-2515, 2529-2540
+src\utils\api_error_handling.py                                 41     10     22      7  66.67%   54-57, 63-64, 69->79, 73, 74->79, 76, 123-125
+src\telegram_bot\keyboards.py                                  249     70     76      6  67.38%   175, 185, 308-309, 537-548, 744-747, 766-769, 786-805, 994-1021, 1036-1051, 1061-1073, 1094-1101, 1152->1161, 1181->1184, 1204-1249, 1259-1284, 1294-1312, 1325, 1339-1341, 1362-1370, 1386-1411, 1426-1452
+src\dmarket\sales_history.py                                   256     78     82     14  68.64%   99->104, 106-111, 137, 153, 162-165, 352-453, 528-530, 550-551, 587-592, 600, 602->575, 607-609, 641, 664->671, 668-669, 685-687, 720-732, 767, 774, 777, 785-787
+src\telegram_bot\handlers\callbacks.py                         167     45     80     28  69.64%   216, 274-276, 288-290, 298, 308-310, 319-321, 333-334, 346, 350, 360, 369, 377, 385, 394-395, 399-405, 413, 417-422, 426, 434, 452, 461, 472, 481, 488, 498, 506, 515, 524-526, 555-558
+src\telegram_bot\pagination.py                                 149     34     68     21  70.05%   53, 100, 137-138, 141-142, 170, 195, 213->exit, 221, 237->exit, 247, 268->270, 270->272, 272->274, 274->276, 277, 298, 337, 343, 347, 356-387, 406-418, 449
+src\telegram_bot\handlers\intramarket_arbitrage_handler.py     131     34     30      5  72.05%   47, 127, 174-195, 207-262, 275->278, 330-334, 358-372, 458-472
+src\dmarket\realtime_price_watcher.py                          273     62    106     16  73.61%   67->69, 170-172, 176-178, 196->exit, 202, 207, 212-213, 233-234, 247->exit, 253, 258, 263-264, 267->285, 285->248, 292-293, 312-320, 324-400, 451-452, 474->479, 523->533, 596->600, 600->603, 696->695
+src\telegram_bot\sales_analysis_handlers.py                     98     27     12      1  74.55%   104, 151-154, 184, 232-242, 264-269, 287, 325-335, 364, 402-412
+src\dmarket\intramarket_arbitrage.py                           266     52    154     34  74.76%   69-74, 98, 114->120, 125, 127, 137->143, 140-141, 143->95, 174->166, 182->166, 209, 237-242, 273, 277->283, 280-281, 289-292, 307->305, 312->318, 315-316, 318->322, 348->325, 365->325, 371->325, 397, 425-430, 499, 507, 511->517, 514-515, 536->541, 550-551, 569->504, 593, 623, 629-634, 649->666, 706->709, 711-718, 722-724, 734
+src\telegram_bot\utils\error_handler.py                        185     40     74     11  74.90%   90->94, 100-101, 149->153, 153->exit, 159-160, 193, 197->202, 202->exit, 208-209, 254-255, 283, 295, 302-355, 379->383, 452-453, 480->478, 496-500
+src\telegram_bot\handlers\market_analysis_handler.py           310     55    120     30  75.58%   91, 120, 192, 253-327, 364, 373->377, 381-386, 479-486, 555-559, 574, 580, 602, 610, 618, 698->707, 708->716, 759, 765->768, 838-842, 860-861, 883, 891, 899, 934-938, 956-957, 980, 988, 996, 1043, 1049->1052
+src\utils\market_analyzer.py                                   296     53    144     39  76.82%   91-94, 109->111, 118->144, 135, 138->140, 140->144, 157, 253, 272-273, 313, 326, 362, 373, 378, 388, 393, 403, 418, 452, 463->486, 478-483, 502, 526->525, 528->525, 569->576, 572-573, 586-587, 589->598, 594-595, 604-605, 610-617, 626-627, 632-640, 646-647, 655, 660->668, 664-665, 670-675, 714, 721-722
+src\dmarket\filters\game_filters.py                            133     26     90     15  77.13%   90, 94-96, 102, 106-108, 122, 126-128, 134, 138-140, 144-146, 160, 194, 206, 212, 218, 224, 275
+src\dmarket\arbitrage.py                                       553    105    210     21  79.55%   576-577, 588-589, 644->exit, 744->752, 758->765, 763, 769, 775->729, 833-834, 865-920, 993->exit, 997-998, 1002-1061, 1064-1066, 1089->1092, 1092->1095, 1146-1176, 1195-1241, 1260-1295, 1437->1443, 1522->1512, 1541->1545, 1548->1552, 1552->1557, 1578-1581, 1645, 1673, 1691-1696
+src\utils\market_visualizer.py                                 347     49    118     30  81.72%   136, 225-242, 251, 256, 261->248, 263->248, 320-337, 358, 367, 371, 442->446, 485-489, 494->501, 497-498, 586->595, 595->605, 606->628, 664-672, 676-678, 682->691, 684, 687-689, 692, 725, 737-738, 760, 791, 822, 839, 844->843
+src\utils\websocket_client.py                                  176     23     54     11  84.35%   71->75, 81-92, 114-115, 134->122, 143-146, 169, 194->exit, 202-203, 209-210, 234-235, 252, 312-313, 326->329, 343->346, 361->exit
+src\utils\config.py                                            159     18     58     12  86.18%   215, 225, 230, 234, 241, 247, 249, 258, 262-267, 270-275, 279, 282
+src\telegram_bot\liquidity_settings_handler.py                 127      7     52     16  87.15%   55, 199->exit, 219, 245->exit, 265, 268->271, 284->exit, 300, 303->306, 320->exit, 336, 339->342, 355->exit, 371, 422->exit, 452
+src\telegram_bot\handlers\enhanced_arbitrage_handler.py        131     15     40      4  87.72%   61, 101->109, 195-212, 288-310, 341->345, 401
+src\dmarket\liquidity_analyzer.py                              140     11     36      7  89.77%   177-184, 255-262, 311->303, 318, 341->339, 345, 351, 493, 497
+src\telegram_bot\handlers\scanner_handler.py                   147     10     52      3  90.45%   77-90, 190->exit, 432->436
+src\telegram_bot\handlers\dmarket_status.py                     69      6     16      2  90.59%   86-87, 103, 143-145
+src\main.py                                                     98      7      6      2  91.35%   81, 124-126, 162-163, 171
+src\telegram_bot\handlers\dmarket_handlers.py                   45      0     14      4  93.22%   62->exit, 83->87, 93->exit, 102->exit
+src\dmarket\smart_market_finder.py                             297     14     96     11  93.64%   147, 222, 230->219, 241, 277-279, 325, 353, 476, 528, 552, 763-764, 802
+src\utils\rate_limiter.py                                      120      3     50      6  94.71%   98, 142->146, 146->exit, 156->165, 161, 184, 202->217, 236->242
+src\utils\database.py                                          158      5     22      4  95.00%   204, 205->208, 249-251, 255->257, 258
+src\telegram_bot\handlers\error_handlers.py                     29      2     12      0  95.12%   78-79
+src\utils\performance.py                                        96      1     22      3  96.61%   43->exit, 110, 113->exit
+src\telegram_bot\handlers\target_handler.py                     35      0     12      1  97.87%   116->exit
+src\dmarket\targets.py                                         172      3     46      1  98.17%   490->494, 496-498
+---------------------------------------------------------------------------------------------------------
+TOTAL                                                        12314   4974   4190    598  57.11%
+
+14 files skipped due to complete coverage.
+Coverage HTML written to dir htmlcov
+Coverage XML written to file coverage.xml
+Required test coverage of 25% reached. Total coverage: 57.11%
+====================== 1408 passed in 101.46s (0:01:41) =======================

@@ -16,7 +16,6 @@ from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.performance import cached, profile_performance
 from src.utils.rate_limiter import RateLimiter
 
-
 # Загружаем переменные окружения
 load_dotenv()
 
@@ -433,7 +432,7 @@ async def generate_market_report(
         close_client = True
 
     try:
-        # Запускаем задачи параллельно
+        # Запускаем задачи параллельно (добавлен анализ глубины рынка)
         tasks = [
             analyze_price_changes(
                 game=game,
@@ -443,23 +442,36 @@ async def generate_market_report(
             ),
             find_trending_items(game=game, dmarket_api=dmarket_api, limit=10),
             analyze_market_volatility(game=game, dmarket_api=dmarket_api, limit=10),
+            analyze_market_depth(
+                game=game,
+                items=None,  # Автоматически выбирает популярные
+                limit=20,
+                dmarket_api=dmarket_api,
+            ),
         ]
 
         results = await asyncio.gather(*tasks)
 
-        # Формируем отчет
+        # Формируем отчет с данными о глубине рынка
+        market_depth = results[3]
+
         return {
             "game": game,
             "timestamp": int(time.time()),
             "price_changes": results[0],
             "trending_items": results[1],
             "volatile_items": results[2],
+            "market_depth": market_depth,
             "market_summary": {
                 "price_change_direction": _get_market_direction(results[0]),
                 "top_trending_categories": _extract_trending_categories(results[1]),
                 "market_volatility_level": _calculate_market_volatility_level(
                     results[2],
                 ),
+                "average_market_liquidity": market_depth.get("summary", {}).get(
+                    "average_liquidity_score", 0
+                ),
+                "market_health": market_depth.get("summary", {}).get("market_health", "unknown"),
                 "recommended_actions": _generate_market_recommendations(results),
             },
         }
@@ -474,6 +486,201 @@ async def generate_market_report(
             "trending_items": [],
             "volatile_items": [],
             "market_summary": {},
+        }
+    finally:
+        if close_client and hasattr(dmarket_api, "_close_client"):
+            try:
+                await dmarket_api._close_client()
+            except Exception as e:
+                logger.warning(f"Ошибка при закрытии клиента API: {e}")
+
+
+@cached("market_depth_analysis", ttl=600)
+async def analyze_market_depth(
+    game: str = "csgo",
+    items: list[str] | None = None,
+    limit: int = 50,
+    dmarket_api: DMarketAPI | None = None,
+) -> dict[str, Any]:
+    """Анализ глубины рынка с использованием API v1.1.0 aggregated-prices.
+
+    Показывает спрос/предложение для списка предметов, помогая определить
+    ликвидность и потенциал для арбитража.
+
+    Args:
+        game: Код игры (csgo, dota2, rust, tf2)
+        items: Список названий предметов (если None, берутся популярные)
+        limit: Максимальное количество предметов для анализа
+        dmarket_api: Экземпляр DMarketAPI или None для создания нового
+
+    Returns:
+        Словарь с анализом глубины рынка
+
+    Example:
+        >>> analysis = await analyze_market_depth(
+        ...     game='csgo',
+        ...     items=['AK-47 | Redline (Field-Tested)', 'AWP | Asiimov (FT)']
+        ... )
+        >>> print(f"Глубина рынка: {analysis['average_depth_score']:.1f}/100")
+
+    """
+    close_client = False
+    if dmarket_api is None:
+        dmarket_api = DMarketAPI(
+            DMARKET_PUBLIC_KEY,
+            DMARKET_SECRET_KEY,
+            DMARKET_API_URL,
+        )
+        close_client = True
+
+    try:
+        logger.info(f"Анализ глубины рынка для {game}")
+
+        # Если список предметов не указан, получаем популярные
+        if items is None:
+            await rate_limiter.wait_if_needed("market")
+            market_items = await dmarket_api.get_market_items(
+                game=game,
+                limit=limit,
+                sort_by="best_deal",
+            )
+            items = [
+                item.get("title") for item in market_items.get("items", []) if item.get("title")
+            ][:limit]
+
+        if not items:
+            logger.warning("Нет предметов для анализа глубины рынка")
+            return {
+                "game": game,
+                "items_analyzed": 0,
+                "market_depth": [],
+                "summary": {},
+            }
+
+        # Используем новый API v1.1.0 для получения aggregated prices
+        await rate_limiter.wait_if_needed("market")
+        aggregated = await dmarket_api.get_aggregated_prices_bulk(
+            game=game,
+            titles=items,
+            limit=len(items),
+        )
+
+        if not aggregated or "aggregatedPrices" not in aggregated:
+            logger.warning("Не удалось получить aggregated prices")
+            return {
+                "game": game,
+                "items_analyzed": 0,
+                "market_depth": [],
+                "summary": {},
+            }
+
+        # Анализируем каждый предмет
+        depth_analysis = []
+
+        for price_data in aggregated["aggregatedPrices"]:
+            title = price_data["title"]
+            order_count = price_data.get("orderCount", 0)
+            offer_count = price_data.get("offerCount", 0)
+            order_price = float(price_data.get("orderBestPrice", 0)) / 100
+            offer_price = float(price_data.get("offerBestPrice", 0)) / 100
+
+            # Рассчитываем показатели глубины рынка
+            total_volume = order_count + offer_count
+            buy_pressure = (order_count / total_volume * 100) if total_volume > 0 else 0
+            sell_pressure = (offer_count / total_volume * 100) if total_volume > 0 else 0
+
+            # Спред между лучшей ценой покупки и продажи
+            spread = offer_price - order_price
+            spread_percent = (spread / order_price * 100) if order_price > 0 else 0
+
+            # Оценка ликвидности (0-100)
+            liquidity_score = min(100, total_volume * 2)
+
+            # Определяем баланс рынка
+            if buy_pressure > 60:
+                market_balance = "buyer_dominated"
+                balance_description = "Преобладают покупатели"
+            elif sell_pressure > 60:
+                market_balance = "seller_dominated"
+                balance_description = "Преобладают продавцы"
+            else:
+                market_balance = "balanced"
+                balance_description = "Сбалансированный рынок"
+
+            depth_analysis.append(
+                {
+                    "title": title,
+                    "order_count": order_count,
+                    "offer_count": offer_count,
+                    "total_volume": total_volume,
+                    "order_price": order_price,
+                    "offer_price": offer_price,
+                    "spread": spread,
+                    "spread_percent": spread_percent,
+                    "buy_pressure": buy_pressure,
+                    "sell_pressure": sell_pressure,
+                    "liquidity_score": liquidity_score,
+                    "market_balance": market_balance,
+                    "balance_description": balance_description,
+                    "arbitrage_potential": spread_percent > 5.0,
+                }
+            )
+
+        # Рассчитываем сводные показатели
+        if depth_analysis:
+            avg_liquidity = sum(item["liquidity_score"] for item in depth_analysis) / len(
+                depth_analysis
+            )
+            avg_spread = sum(item["spread_percent"] for item in depth_analysis) / len(
+                depth_analysis
+            )
+            high_liquidity_count = sum(
+                1 for item in depth_analysis if item["liquidity_score"] >= 50
+            )
+            arbitrage_opportunities = sum(
+                1 for item in depth_analysis if item["arbitrage_potential"]
+            )
+
+            summary = {
+                "items_analyzed": len(depth_analysis),
+                "average_liquidity_score": round(avg_liquidity, 1),
+                "average_spread_percent": round(avg_spread, 2),
+                "high_liquidity_items": high_liquidity_count,
+                "arbitrage_opportunities": arbitrage_opportunities,
+                "market_health": (
+                    "excellent"
+                    if avg_liquidity >= 75
+                    else "good"
+                    if avg_liquidity >= 50
+                    else "moderate"
+                    if avg_liquidity >= 25
+                    else "poor"
+                ),
+            }
+        else:
+            summary = {}
+
+        logger.info(
+            f"Проанализировано {len(depth_analysis)} предметов, "
+            f"средняя ликвидность: {summary.get('average_liquidity_score', 0):.1f}"
+        )
+
+        return {
+            "game": game,
+            "timestamp": int(time.time()),
+            "items_analyzed": len(depth_analysis),
+            "market_depth": depth_analysis,
+            "summary": summary,
+        }
+
+    except Exception as e:
+        logger.exception(f"Ошибка при анализе глубины рынка: {e}")
+        return {
+            "game": game,
+            "items_analyzed": 0,
+            "market_depth": [],
+            "summary": {},
+            "error": str(e),
         }
     finally:
         if close_client and hasattr(dmarket_api, "_close_client"):

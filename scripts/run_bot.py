@@ -9,6 +9,7 @@ import os
 import sys
 from pathlib import Path
 
+
 # Создаем директорию для логов, если её нет (ДО настройки логирования!)
 os.makedirs("logs", exist_ok=True)
 

@@ -314,9 +314,7 @@ def create_user_profile(user_id: str, data: dict[str, Any]) -> dict[str, Any]:
         if isinstance(data["auto_trading_enabled"], bool):
             profile["auto_trading_enabled"] = data["auto_trading_enabled"]
         elif isinstance(data["auto_trading_enabled"], str):
-            profile["auto_trading_enabled"] = (
-                data["auto_trading_enabled"].lower() == "true"
-            )
+            profile["auto_trading_enabled"] = data["auto_trading_enabled"].lower() == "true"
 
     # Извлекаем язык
     if "language" in data:
@@ -355,10 +353,7 @@ def migrate_single_user(
     if "trade_settings" in data and isinstance(data["trade_settings"], dict):
         trade_settings = data["trade_settings"]
         for key, value in trade_settings.items():
-            if (
-                "trade_settings" in profiles[user_id]
-                and key in profiles[user_id]["trade_settings"]
-            ):
+            if "trade_settings" in profiles[user_id] and key in profiles[user_id]["trade_settings"]:
                 profiles[user_id]["trade_settings"][key] = value
 
     logger.debug(f"Обновлен существующий профиль пользователя {user_id}")

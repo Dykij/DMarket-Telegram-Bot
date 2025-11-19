@@ -1026,6 +1026,7 @@ class ArbitrageScanner:
         game: str = "csgo",
         max_results: int = 10,
         use_cache: bool = True,
+        use_aggregated_api: bool = True,
     ) -> list[dict[str, Any]]:
         """Сканировать возможности арбитража для конкретного уровня.
 
@@ -1034,6 +1035,7 @@ class ArbitrageScanner:
             game: Код игры
             max_results: Максимальное количество результатов
             use_cache: Использовать кеширование
+            use_aggregated_api: Использовать API v1.1.0 aggregated-prices для оптимизации
 
         Returns:
             Список возможностей арбитража
@@ -1064,12 +1066,58 @@ class ArbitrageScanner:
             game=game_id,
             price_from=price_from_cents,
             price_to=price_to_cents,
-            limit=max_results * 2,  # Берем больше, т.к. часть отфильтруется
+            limit=max_results * 3,  # Берем больше, т.к. часть отфильтруется
         )
+
+        items = items_response.get("objects", [])
+
+        # Используем aggregated-prices для эффективного получения данных о ликвидности
+        if use_aggregated_api and items:
+            try:
+                # Получаем названия всех предметов
+                titles = [item.get("title") for item in items if item.get("title")]
+
+                # Получаем агрегированные данные одним запросом
+                aggregated = await self.api_client.get_aggregated_prices_bulk(
+                    game=game,
+                    titles=titles[:100],  # Ограничение API
+                    limit=len(titles[:100]),
+                )
+
+                if aggregated and "aggregatedPrices" in aggregated:
+                    # Создаем карту ликвидности: title -> liquidity_data
+                    liquidity_map = {}
+                    for price_data in aggregated["aggregatedPrices"]:
+                        title = price_data["title"]
+                        offer_count = price_data.get("offerCount", 0)
+                        order_count = price_data.get("orderCount", 0)
+
+                        # Рассчитываем простой показатель ликвидности
+                        # Больше офферов и ордеров = выше ликвидность
+                        liquidity_score = min(100, (offer_count + order_count) * 2)
+
+                        liquidity_map[title] = {
+                            "offer_count": offer_count,
+                            "order_count": order_count,
+                            "liquidity_score": liquidity_score,
+                            "is_liquid": offer_count >= 5 and order_count >= 3,
+                        }
+
+                    # Обогащаем items данными о ликвидности
+                    for item in items:
+                        title = item.get("title")
+                        if title in liquidity_map:
+                            item["_liquidity"] = liquidity_map[title]
+
+            except Exception as e:
+                logger.warning(
+                    f"Ошибка при получении aggregated prices: {e}, "
+                    "продолжаем без данных о ликвидности"
+                )
 
         # Анализируем каждый предмет
         results = []
-        for item in items_response.get("objects", []):
+        for item in items:
             analysis = await self._analyze_item(item, config, game)
             if analysis:
                 results.append(analysis)
@@ -1124,9 +1172,29 @@ class ArbitrageScanner:
             if profit_percent < min_profit_percent:
                 return None
 
-            # Анализ ликвидности (если включен фильтр)
+            # Проверяем данные ликвидности из aggregated API (если есть)
             liquidity_data = {}
-            if self.enable_liquidity_filter and self.liquidity_analyzer:
+            if "_liquidity" in item:
+                liq = item["_liquidity"]
+                liquidity_data = {
+                    "offer_count": liq["offer_count"],
+                    "order_count": liq["order_count"],
+                    "liquidity_score": liq["liquidity_score"],
+                    "is_liquid": liq["is_liquid"],
+                }
+
+                # Фильтруем неликвидные предметы если включен фильтр
+                if self.enable_liquidity_filter:
+                    if not liq["is_liquid"]:
+                        logger.debug(
+                            f"Предмет '{item.get('title')}' отфильтрован: "
+                            f"низкая ликвидность (offer_count={liq['offer_count']}, "
+                            f"order_count={liq['order_count']})"
+                        )
+                        return None
+
+            # Анализ ликвидности через старый метод (фоллбэк)
+            elif self.enable_liquidity_filter and self.liquidity_analyzer:
                 try:
                     item_title = item.get("title", "")
                     game_id = GAME_IDS.get(game, game)
@@ -1149,7 +1217,8 @@ class ArbitrageScanner:
                     if metrics.avg_time_to_sell_days > max_days:
                         logger.debug(
                             f"Предмет '{item_title}' отфильтрован: "
-                            f"долго продается ({metrics.avg_time_to_sell_days} дн)"
+                            f"долго продается "
+                            f"({metrics.avg_time_to_sell_days} дн)"
                         )
                         return None
 

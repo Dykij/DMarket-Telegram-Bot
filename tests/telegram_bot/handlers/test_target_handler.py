@@ -1,6 +1,6 @@
 """Тесты для обработчика таргетов (buy orders)."""
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from telegram import CallbackQuery, InlineKeyboardMarkup, Update, User
@@ -17,7 +17,6 @@ from src.telegram_bot.handlers.target_handler import (
     register_target_handlers,
     start_targets_menu,
 )
-
 
 # ============================================
 # Фикстуры
@@ -263,18 +262,37 @@ async def test_handle_target_callback_list_action(
 
 
 @pytest.mark.asyncio()
+@patch("src.telegram_bot.handlers.target_handler.create_api_client_from_env")
+@patch("src.telegram_bot.handlers.target_handler.TargetManager")
 async def test_handle_target_callback_smart_action(
+    mock_target_manager_class,
+    mock_api_client,
     mock_update,
     mock_context,
     mock_callback_query,
 ):
-    """Тест: handle_target_callback для умных таргетов (заглушка)."""
+    """Тест: handle_target_callback для умных таргетов."""
     mock_callback_query.data = f"{TARGET_ACTION}_{TARGET_SMART_ACTION}"
+
+    # Настраиваем моки
+    mock_api_client.return_value = MagicMock()
+    mock_target_manager = MagicMock()
+    mock_target_manager.create_smart_targets = AsyncMock(
+        return_value={
+            "created": [
+                {"target_id": "t1", "title": "AK-47", "price": 10.0},
+                {"target_id": "t2", "title": "AWP", "price": 20.0},
+            ],
+            "failed": [],
+        }
+    )
+    mock_target_manager_class.return_value = mock_target_manager
 
     await handle_target_callback(mock_update, mock_context)
 
-    # Проверяем заглушку
+    # Проверяем вызовы
     mock_callback_query.answer.assert_called()
+    mock_target_manager.create_smart_targets.assert_called_once()
 
 
 @pytest.mark.asyncio()
@@ -491,3 +509,162 @@ async def test_edge_case_unknown_callback_data(
     call_args = mock_callback_query.answer.call_args
     assert call_args is not None
     assert "будет реализована" in str(call_args)
+
+
+# ============================================
+# Тесты новой функциональности API v1.1.0
+# ============================================
+
+
+@pytest.mark.asyncio()
+@patch("src.telegram_bot.handlers.target_handler.create_api_client_from_env")
+@patch("src.telegram_bot.handlers.target_handler.TargetManager")
+async def test_handle_smart_targets_success(
+    mock_target_manager_class,
+    mock_api_client,
+    mock_update,
+    mock_context,
+):
+    """Тест успешного создания умных таргетов."""
+    # Настраиваем моки
+    mock_api_client.return_value = MagicMock()
+    mock_target_manager = MagicMock()
+    mock_target_manager.create_smart_targets = AsyncMock(
+        return_value=[
+            {"Title": "AK-47 | Redline (FT)", "Price": {"Amount": 1000}},
+            {"Title": "AWP | Asimov (FT)", "Price": {"Amount": 2000}},
+        ]
+    )
+    mock_target_manager_class.return_value = mock_target_manager
+
+    # Импортируем функцию
+    from src.telegram_bot.handlers.target_handler import handle_smart_targets
+
+    # Настраиваем update
+    mock_update.callback_query = MagicMock()
+    mock_update.callback_query.answer = AsyncMock()
+    mock_update.callback_query.edit_message_text = AsyncMock()
+    mock_update.effective_user = MagicMock()
+    mock_update.effective_user.id = 123456789
+
+    await handle_smart_targets(mock_update, mock_context)
+
+    # Проверяем вызовы
+    mock_target_manager.create_smart_targets.assert_called_once()
+    mock_update.callback_query.edit_message_text.assert_called()
+
+    # Проверяем текст сообщения
+    call_args = mock_update.callback_query.edit_message_text.call_args
+    text = call_args[0][0]
+    assert "Создано таргетов: 2" in text
+
+
+@pytest.mark.asyncio()
+@patch("src.telegram_bot.handlers.target_handler.create_api_client_from_env")
+@patch("src.telegram_bot.handlers.target_handler.TargetManager")
+async def test_handle_smart_targets_no_items(
+    mock_target_manager_class,
+    mock_api_client,
+    mock_update,
+    mock_context,
+):
+    """Тест создания умных таргетов без результатов."""
+    # Настраиваем моки
+    mock_api_client.return_value = MagicMock()
+    mock_target_manager = MagicMock()
+    mock_target_manager.create_smart_targets = AsyncMock(return_value=[])
+    mock_target_manager_class.return_value = mock_target_manager
+
+    from src.telegram_bot.handlers.target_handler import handle_smart_targets
+
+    mock_update.callback_query = MagicMock()
+    mock_update.callback_query.answer = AsyncMock()
+    mock_update.callback_query.edit_message_text = AsyncMock()
+    mock_update.effective_user = MagicMock()
+    mock_update.effective_user.id = 123456789
+
+    await handle_smart_targets(mock_update, mock_context)
+
+    # Проверяем сообщение о пустых результатах
+    call_args = mock_update.callback_query.edit_message_text.call_args
+    text = call_args[0][0]
+    assert "Не удалось создать умные таргеты" in text
+
+
+@pytest.mark.asyncio()
+@patch("src.telegram_bot.handlers.target_handler.format_target_competition_analysis")
+@patch("src.telegram_bot.handlers.target_handler.create_api_client_from_env")
+@patch("src.telegram_bot.handlers.target_handler.TargetManager")
+async def test_handle_competition_analysis_success(
+    mock_target_manager_class,
+    mock_api_client,
+    mock_format_func,
+    mock_update,
+    mock_context,
+):
+    """Тест успешного анализа конкуренции."""
+    # Настраиваем моки
+    mock_api_client.return_value = MagicMock()
+    mock_format_func.return_value = (
+        "🎯 *Анализ конкуренции*\n\nAK-47 | Redline (Field-Tested)\nУровень: medium"
+    )
+    mock_target_manager = MagicMock()
+    mock_target_manager.analyze_target_competition = AsyncMock(
+        return_value={
+            "title": "AK-47 | Redline (Field-Tested)",
+            "existing_orders": [
+                {"amount": 10, "price": 12.0},
+                {"amount": 5, "price": 12.5},
+            ],
+            "competition_level": "medium",
+            "recommended_price": 11.8,
+            "strategy": "aggressive",
+        }
+    )
+    mock_target_manager_class.return_value = mock_target_manager
+
+    from src.telegram_bot.handlers.target_handler import handle_competition_analysis
+
+    mock_update.callback_query = MagicMock()
+    mock_update.callback_query.answer = AsyncMock()
+    mock_update.callback_query.edit_message_text = AsyncMock()
+    mock_update.effective_user = MagicMock()
+    mock_update.effective_user.id = 123456789
+
+    await handle_competition_analysis(mock_update, mock_context, "AK-47")
+
+    # Проверяем вызовы
+    mock_target_manager.analyze_target_competition.assert_called_once()
+    mock_update.callback_query.edit_message_text.assert_called()
+
+    # Проверяем текст
+    call_args = mock_update.callback_query.edit_message_text.call_args
+    text = call_args[0][0] if call_args and call_args[0] else ""
+    assert "Анализ конкуренции" in text
+    assert "AK-47 | Redline" in text
+
+
+@pytest.mark.asyncio()
+@patch("src.telegram_bot.handlers.target_handler.format_target_competition_analysis")
+@patch("src.telegram_bot.handlers.target_handler.create_api_client_from_env")
+async def test_handle_competition_analysis_no_api_client(
+    mock_api_client,
+    mock_format_func,
+    mock_update,
+    mock_context,
+):
+    """Тест анализа конкуренции без API клиента."""
+    mock_api_client.return_value = None
+
+    from src.telegram_bot.handlers.target_handler import handle_competition_analysis
+
+    mock_update.callback_query = MagicMock()
+    mock_update.callback_query.answer = AsyncMock()
+    mock_update.callback_query.edit_message_text = AsyncMock()
+
+    await handle_competition_analysis(mock_update, mock_context, "AK-47")
+
+    # Проверяем сообщение об ошибке
+    call_args = mock_update.callback_query.edit_message_text.call_args
+    text = call_args[0][0] if call_args and call_args[0] else ""
+    assert "Не удалось создать API клиент" in text

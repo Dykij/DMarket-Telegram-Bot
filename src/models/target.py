@@ -1,8 +1,8 @@
 """Модель базы данных для таргетов (buy orders)."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 
-from sqlalchemy import JSON, BigInteger, Column, DateTime, Float, Integer, String
+from sqlalchemy import JSON, BigInteger, Boolean, Column, DateTime, Float, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -39,8 +39,10 @@ class Target(Base):
     price = Column(Float, nullable=False)
     amount = Column(Integer, default=1, nullable=False)
     status = Column(String(50), default="active", index=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
+    updated_at = Column(
+        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
     attributes = Column(JSON, nullable=True)
 
     def __repr__(self) -> str:
@@ -87,7 +89,7 @@ class TradeHistory(Base):
         status: Статус сделки (pending, completed, failed)
         created_at: Дата создания
         completed_at: Дата завершения
-        metadata: Дополнительные данные о сделке
+        trade_metadata: Дополнительные данные о сделке
 
     """
 
@@ -101,9 +103,9 @@ class TradeHistory(Base):
     profit = Column(Float, default=0.0)
     game = Column(String(50), nullable=False)
     status = Column(String(50), default="pending", index=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
     completed_at = Column(DateTime, nullable=True)
-    metadata = Column(JSON, nullable=True)
+    trade_metadata = Column(JSON, nullable=True)
 
     def __repr__(self) -> str:
         """Строковое представление записи истории."""
@@ -131,7 +133,7 @@ class TradeHistory(Base):
             "status": self.status,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "completed_at": (self.completed_at.isoformat() if self.completed_at else None),
-            "metadata": self.metadata,
+            "trade_metadata": self.trade_metadata,
         }
 
 
@@ -157,15 +159,17 @@ class TradingSettings(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, unique=True, nullable=False, index=True)
-    max_trade_value = Column(Float, default=50.0)
-    daily_limit = Column(Float, default=500.0)
-    min_profit_percent = Column(Float, default=5.0)
-    strategy = Column(String(50), default="balanced")
-    auto_trading_enabled = Column(Integer, default=0)  # 0 = False, 1 = True
-    games_enabled = Column(JSON, default=["csgo"])
-    notifications_enabled = Column(Integer, default=1)  # 0 = False, 1 = True
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    max_trade_value = Column(Float, default=50.0, nullable=False)
+    daily_limit = Column(Float, default=500.0, nullable=False)
+    min_profit_percent = Column(Float, default=5.0, nullable=False)
+    strategy = Column(String(50), default="balanced", nullable=False)
+    auto_trading_enabled = Column(Boolean, default=False, nullable=False)
+    games_enabled = Column(JSON, default=lambda: ["csgo"], nullable=False)
+    notifications_enabled = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
+    updated_at = Column(
+        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
 
     def __repr__(self) -> str:
         """Строковое представление настроек."""
@@ -189,9 +193,9 @@ class TradingSettings(Base):
             "daily_limit": self.daily_limit,
             "min_profit_percent": self.min_profit_percent,
             "strategy": self.strategy,
-            "auto_trading_enabled": bool(self.auto_trading_enabled),
+            "auto_trading_enabled": self.auto_trading_enabled,
             "games_enabled": self.games_enabled,
-            "notifications_enabled": bool(self.notifications_enabled),
+            "notifications_enabled": self.notifications_enabled,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

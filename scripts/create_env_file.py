@@ -13,7 +13,6 @@ import sys
 from getpass import getpass
 from typing import Any
 
-
 # Определяем необходимые переменные окружения
 ENV_VARS = [
     {
@@ -122,9 +121,7 @@ def validate_input(value: str, var_info: dict[str, Any]) -> tuple[bool, str]:
     return True, ""
 
 
-def get_input_with_validation(
-    var_info: dict[str, Any], current_value: str | None = None
-) -> str:
+def get_input_with_validation(var_info: dict[str, Any], current_value: str | None = None) -> str:
     """
     Запрашивает ввод от пользователя с валидацией.
 
@@ -141,16 +138,12 @@ def get_input_with_validation(
     # Показываем текущее значение, если оно есть
     current_display = f" [Текущее: {current_value}]" if current_value else ""
     default_display = (
-        f" [По умолчанию: {var_info.get('default', '')}]"
-        if "default" in var_info
-        else ""
+        f" [По умолчанию: {var_info.get('default', '')}]" if "default" in var_info else ""
     )
     required_display = " (обязательно)" if var_info["required"] else " (необязательно)"
 
     # Формируем приглашение к вводу
-    prompt = (
-        f"{name}{required_display}: {description}{current_display}{default_display}\n> "
-    )
+    prompt = f"{name}{required_display}: {description}{current_display}{default_display}\n> "
 
     while True:
         # Используем getpass для секретных ключей
@@ -263,9 +256,7 @@ def verify_api_keys(public_key: str, secret_key: str) -> bool:
         if response.status_code == 401:
             print("Ошибка: Неверные API ключи DMarket (401 Unauthorized)")
             return False
-        print(
-            f"Предупреждение: Необычный ответ от API DMarket (код {response.status_code})"
-        )
+        print(f"Предупреждение: Необычный ответ от API DMarket (код {response.status_code})")
         print(f"Ответ: {response.text}")
         return False
 
@@ -298,18 +289,14 @@ def main() -> None:
 
     if choice != "n":
         print("Проверка API ключей DMarket...")
-        if verify_api_keys(
-            new_env["DMARKET_PUBLIC_KEY"], new_env["DMARKET_SECRET_KEY"]
-        ):
+        if verify_api_keys(new_env["DMARKET_PUBLIC_KEY"], new_env["DMARKET_SECRET_KEY"]):
             print("✅ API ключи DMarket проверены успешно!")
         else:
             print("❌ Проверка API ключей не удалась.")
             print("Вы хотите продолжить сохранение ключей? [y/N]")
             choice = input("> ").strip().lower()
             if choice != "y":
-                print(
-                    "Отмена сохранения. Пожалуйста, проверьте ключи и попробуйте снова."
-                )
+                print("Отмена сохранения. Пожалуйста, проверьте ключи и попробуйте снова.")
                 sys.exit(1)
 
     # Сохраняем файл .env

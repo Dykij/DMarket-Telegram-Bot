@@ -398,6 +398,7 @@ class TargetManager:
         items: list[dict[str, Any]],
         price_reduction_percent: float = 5.0,
         max_targets: int = 10,
+        use_aggregated_prices: bool = True,
     ) -> list[dict[str, Any]]:
         """Автоматически создать умные таргеты для списка предметов.
 
@@ -409,6 +410,7 @@ class TargetManager:
             items: Список предметов с названиями
             price_reduction_percent: Процент снижения от рыночной цены (по умолчанию 5%)
             max_targets: Максимальное количество таргетов для создания
+            use_aggregated_prices: Использовать API v1.1.0 aggregated-prices для эффективности
 
         Returns:
             Список результатов создания таргетов
@@ -433,6 +435,65 @@ class TargetManager:
         results = []
         created_count = 0
 
+        # Используем новый API v1.1.0 для массового получения цен (эффективнее)
+        if use_aggregated_prices and len(items) > 1:
+            try:
+                titles = [item.get("title") for item in items[:max_targets] if item.get("title")]
+
+                # Получаем агрегированные цены одним запросом
+                aggregated = await self.api.get_aggregated_prices_bulk(
+                    game=game,
+                    titles=titles,
+                    limit=len(titles),
+                )
+
+                if aggregated and "aggregatedPrices" in aggregated:
+                    price_map = {
+                        price_data["title"]: float(price_data["offerBestPrice"]) / 100
+                        for price_data in aggregated["aggregatedPrices"]
+                    }
+
+                    # Создаем таргеты на основе агрегированных цен
+                    for item in items[:max_targets]:
+                        title = item.get("title")
+                        if not title or title not in price_map:
+                            continue
+
+                        market_price = price_map[title]
+                        target_price = market_price * (1 - price_reduction_percent / 100)
+                        target_price = max(0.10, round(target_price, 2))
+
+                        logger.info(
+                            f"Создание таргета для '{title}': "
+                            f"рынок ${market_price:.2f} -> таргет ${target_price:.2f}",
+                        )
+
+                        result = await self.create_target(
+                            game=game,
+                            title=title,
+                            price=target_price,
+                            amount=item.get("amount", 1),
+                            attrs=item.get("attrs"),
+                        )
+
+                        results.append(result)
+                        if result.get("success"):
+                            created_count += 1
+
+                        await asyncio.sleep(0.5)
+
+                    logger.info(
+                        f"Создано {created_count} из {len(items)} умных таргетов (aggregated API)",
+                    )
+                    return results
+
+            except Exception as e:
+                logger.warning(
+                    f"Ошибка при использовании aggregated prices: {e!s}, "
+                    "переключаюсь на стандартный метод"
+                )
+
+        # Фоллбэк: стандартный метод (по одному запросу на предмет)
         for item in items[:max_targets]:
             title = item.get("title")
             if not title:
@@ -622,3 +683,111 @@ class TargetManager:
         )
 
         return stats
+
+    async def analyze_target_competition(
+        self,
+        game: str,
+        title: str,
+    ) -> dict[str, Any]:
+        """Анализ конкуренции для создания таргета (API v1.1.0).
+
+        Использует новый эндпоинт targets-by-title для анализа
+        существующих buy orders и определения оптимальной цены таргета.
+
+        Args:
+            game: Код игры
+            title: Название предмета
+
+        Returns:
+            Словарь с анализом конкуренции
+
+        Example:
+            >>> analysis = await manager.analyze_target_competition(
+            ...     'csgo',
+            ...     'AK-47 | Redline (Field-Tested)'
+            ... )
+            >>> print(f"Конкурентов: {analysis['total_orders']}")
+            >>> print(f"Лучшая цена: ${analysis['best_price']:.2f}")
+            >>> print(f"Рекомендуемая цена: ${analysis['recommended_price']:.2f}")
+
+        """
+        logger.info(f"Анализ конкуренции для '{title}' в {game}")
+
+        try:
+            # Получаем существующие таргеты для предмета
+            existing_targets = await self.get_targets_by_title(game, title)
+
+            # Получаем агрегированные данные о ценах
+            aggregated = await self.api.get_aggregated_prices_bulk(
+                game=game,
+                titles=[title],
+                limit=1,
+            )
+
+            analysis = {
+                "title": title,
+                "game": game,
+                "total_orders": len(existing_targets),
+                "best_price": 0.0,
+                "average_price": 0.0,
+                "market_offer_price": 0.0,
+                "recommended_price": 0.0,
+                "competition_level": "low",
+                "strategy": "",
+            }
+
+            # Анализируем существующие таргеты
+            if existing_targets:
+                prices = [t["price"] for t in existing_targets]
+                analysis["best_price"] = max(prices)
+                analysis["average_price"] = sum(prices) / len(prices)
+
+                # Определяем уровень конкуренции
+                if len(existing_targets) < 5:
+                    analysis["competition_level"] = "low"
+                elif len(existing_targets) < 15:
+                    analysis["competition_level"] = "medium"
+                else:
+                    analysis["competition_level"] = "high"
+
+            # Получаем рыночную цену
+            if aggregated and "aggregatedPrices" in aggregated:
+                price_data = aggregated["aggregatedPrices"][0]
+                market_offer_price = float(price_data["offerBestPrice"]) / 100
+                analysis["market_offer_price"] = market_offer_price
+
+                # Рассчитываем рекомендуемую цену
+                if analysis["best_price"] > 0:
+                    # Если есть конкуренты, ставим чуть выше лучшей цены
+                    analysis["recommended_price"] = round(
+                        min(
+                            analysis["best_price"] + 0.10,
+                            market_offer_price * 0.95,
+                        ),
+                        2,
+                    )
+                    analysis["strategy"] = (
+                        f"Рекомендуется цена выше лучшего таргета "
+                        f"(${analysis['best_price']:.2f}) но ниже рынка"
+                    )
+                else:
+                    # Нет конкурентов, ставим на 5-7% ниже рынка
+                    analysis["recommended_price"] = round(market_offer_price * 0.93, 2)
+                    analysis["strategy"] = (
+                        "Конкурентов нет, рекомендуется 7% снижение от рыночной цены"
+                    )
+
+            logger.info(
+                f"Анализ завершен: конкурентов {analysis['total_orders']}, "
+                f"рекомендуемая цена ${analysis['recommended_price']:.2f}"
+            )
+
+            return analysis
+
+        except Exception as e:
+            logger.exception(f"Ошибка при анализе конкуренции для '{title}': {e!s}")
+            return {
+                "title": title,
+                "error": str(e),
+                "total_orders": 0,
+            }

@@ -12,7 +12,6 @@ from src.telegram_bot.keyboards import create_pagination_keyboard
 from src.telegram_bot.pagination import pagination_manager
 from src.telegram_bot.utils.api_client import create_api_client_from_env
 
-
 logger = logging.getLogger(__name__)
 
 # Константы для callback данных
@@ -70,12 +69,11 @@ def format_scanner_item(result: dict[str, Any]) -> str:
     risk = result.get("risk_level", "")
     item_id = result.get("item_id", "")
 
-    # Информация о ликвидности (если есть)
+    # Информация о ликвидности (если есть) - обновлено для API v1.1.0
     liquidity_data = result.get("liquidity_data", {})
     liquidity_text = ""
     if liquidity_data:
         score = liquidity_data.get("liquidity_score", 0.0)
-        time_days = liquidity_data.get("time_to_sell_days", 0.0)
 
         # Эмодзи по уровню ликвидности
         if score >= 80:
@@ -87,7 +85,19 @@ def format_scanner_item(result: dict[str, Any]) -> str:
         else:
             emoji = "🔴"
 
-        liquidity_text = f"\n💧 Ликвидность: {emoji} {score:.0f}/100 (~{time_days:.1f} дней)"
+        # Показываем offer_count и order_count если доступны
+        offer_count = liquidity_data.get("offer_count", 0)
+        order_count = liquidity_data.get("order_count", 0)
+
+        if offer_count > 0 or order_count > 0:
+            liquidity_text = (
+                f"\n💧 Ликвидность: {emoji} {score:.0f}/100\n"
+                f"   🔴 Offers: {offer_count} | 🟢 Orders: {order_count}"
+            )
+        else:
+            # Фоллбэк на старый формат
+            time_days = liquidity_data.get("time_to_sell_days", 0.0)
+            liquidity_text = f"\n💧 Ликвидность: {emoji} {score:.0f}/100 (~{time_days:.1f} дней)"
 
     return (
         f"🎯 *{title}*\n"
@@ -375,6 +385,25 @@ async def handle_market_overview(
             text_lines.append(f"  {level_name}: {count} шт.")
 
         text = "\n".join(text_lines)
+
+        # Добавляем информацию о глубине рынка (API v1.1.0)
+        try:
+            from src.dmarket.market_analysis import analyze_market_depth
+
+            # Получаем данные о глубине рынка
+            depth_data = await analyze_market_depth(api_client, game=game)
+            if depth_data and depth_data.get("summary"):
+                summary = depth_data["summary"]
+                health = summary.get("market_health", "unknown")
+                avg_liquidity = summary.get("average_liquidity_score", 0)
+
+                text += f"\n\n🏥 *Здоровье рынка*: {health}\n"
+                text += f"💧 Средняя ликвидность: {avg_liquidity:.1f}/100"
+        except Exception as depth_error:
+            logger.debug(
+                "Не удалось получить данные о глубине рынка: %s",
+                depth_error,
+            )
 
         await query.edit_message_text(
             text,

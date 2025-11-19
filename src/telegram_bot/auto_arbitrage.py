@@ -27,7 +27,7 @@ class _Environ(TypedDict, total=False):
 # This ensures os.environ is treated as a dictionary with string keys and values
 environ_type: MutableMapping[str, str] = os.environ  # type: ignore
 
-from telegram import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message, Update
 from telegram.constants import ParseMode
 from telegram.error import BadRequest
 from telegram.ext import CallbackContext
@@ -784,33 +784,43 @@ async def start_auto_trading(
 
 
 async def check_balance_command(
-    message: CallbackQuery | Update,
+    message: CallbackQuery | Update | Message,
     context: CallbackContext,
 ) -> None:
     """Проверяет баланс DMarket и связь с API, а также показывает статистику аккаунта.
 
     Args:
-        message: Исходное сообщение или объект запроса обратного вызова
+        message: Исходное сообщение, объект запроса обратного вызова или Update
         context: Контекст обратного вызова
 
     """
-    # Определяем, является ли message объектом CallbackQuery или Update
+    # Определяем тип входящего сообщения
     is_callback = isinstance(message, CallbackQuery)
-
+    is_message = isinstance(message, Message)
+    is_update = isinstance(message, Update) and (not is_callback and not is_message)
     if is_callback:
         # Для обратного вызова отправляем временное сообщение о проверке
         await message.edit_message_text(
             text="🔄 <b>Проверка подключения к DMarket API...</b>",
             parse_mode=ParseMode.HTML,
         )
-    # Для обычного сообщения отправляем временное сообщение о проверке
-    elif hasattr(message, "message") and message.message:
+        processing_message = None
+    elif is_message:
+        # Для обычного сообщения отправляем временное сообщение о проверке
+        processing_message = await message.reply_text(
+            text="🔄 <b>Проверка подключения к DMarket API...</b>",
+            parse_mode=ParseMode.HTML,
+        )
+    elif is_update and hasattr(message, "message") and message.message:
+        # Для Update объекта
         processing_message = await message.message.reply_text(
             text="🔄 <b>Проверка подключения к DMarket API...</b>",
             parse_mode=ParseMode.HTML,
         )
     else:
-        logger.error("Не удалось получить объект сообщения для отправки ответа")
+        logger.error(
+            f"Не удалось получить объект сообщения для отправки ответа. Тип: {type(message)}"
+        )
         return
 
     try:
@@ -830,7 +840,7 @@ async def check_balance_command(
                     reply_markup=get_back_to_arbitrage_keyboard(),
                     parse_mode=ParseMode.HTML,
                 )
-            else:
+            elif processing_message:
                 await processing_message.edit_text(
                     text=error_text,
                     parse_mode=ParseMode.HTML,
@@ -844,7 +854,7 @@ async def check_balance_command(
                 text=status_text,
                 parse_mode=ParseMode.HTML,
             )
-        else:
+        elif processing_message:
             await processing_message.edit_text(
                 text=status_text,
                 parse_mode=ParseMode.HTML,

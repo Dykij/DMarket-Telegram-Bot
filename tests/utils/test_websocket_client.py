@@ -526,3 +526,286 @@ async def test_listen_closed_message(websocket_client):
         await websocket_client.listen()
 
     assert websocket_client.is_connected is False
+
+
+@pytest.mark.asyncio()
+async def test_connect_with_full_flow(websocket_client):
+    """Тест полного цикла подключения с аутентификацией и подпиской."""
+    # Подготовка моков
+    mock_session = AsyncMock()
+    mock_ws = AsyncMock()
+    mock_ws.send_json = AsyncMock()
+
+    with patch("aiohttp.ClientSession", return_value=mock_session):
+        mock_session.ws_connect = AsyncMock(return_value=mock_ws)
+
+        # Добавляем подписки перед подключением
+        websocket_client.subscriptions.add("test:topic")
+
+        # Подключаемся
+        result = await websocket_client.connect()
+
+        # Проверки
+        assert result is True
+        assert websocket_client.is_connected is True
+        assert mock_session.ws_connect.called
+
+
+@pytest.mark.asyncio()
+async def test_authenticate_no_api_keys(websocket_client):
+    """Тест аутентификации без API ключей."""
+    websocket_client.is_connected = True
+    websocket_client.ws_connection = AsyncMock()
+    websocket_client.api_client.public_key = None
+    websocket_client.api_client.secret_key = None
+
+    # Не должно вызывать ошибок
+    await websocket_client._authenticate()
+
+
+@pytest.mark.asyncio()
+async def test_resubscribe_empty_subscriptions(websocket_client):
+    """Тест переподписки с пустым списком подписок."""
+    websocket_client.subscriptions = set()
+
+    # Не должно вызывать ошибок
+    await websocket_client._resubscribe()
+
+
+@pytest.mark.asyncio()
+async def test_unsubscribe_all_empty_subscriptions(websocket_client):
+    """Тест отписки от всех тем с пустым списком."""
+    websocket_client.subscriptions = set()
+
+    # Не должно вызывать ошибок
+    await websocket_client._unsubscribe_all()
+
+
+@pytest.mark.asyncio()
+async def test_handle_message_with_handler_exception(websocket_client):
+    """Тест обработки исключения в handler."""
+
+    # Регистрируем handler, который выбрасывает исключение
+    async def failing_handler(message):
+        raise ValueError("Handler error")
+
+    websocket_client.register_handler("test:event", failing_handler)
+
+    message_data = json.dumps({"type": "test:event", "data": "test"})
+
+    # Не должно прерывать обработку
+    await websocket_client._handle_message(message_data)
+
+
+@pytest.mark.asyncio()
+async def test_handle_message_generic_exception(websocket_client):
+    """Тест обработки общего исключения при обработке сообщения."""
+    # Создаём некорректные данные, которые вызовут исключение
+    with patch("json.loads", side_effect=Exception("Generic error")):
+        # Не должно прерывать работу
+        await websocket_client._handle_message('{"type": "test"}')
+
+
+@pytest.mark.asyncio()
+async def test_handle_auth_response_success(websocket_client):
+    """Тест обработки успешного ответа аутентификации."""
+    message = {"status": "success"}
+    websocket_client._handle_auth_response(message)
+
+    assert websocket_client.authenticated is True
+
+
+@pytest.mark.asyncio()
+async def test_handle_auth_response_with_error(websocket_client):
+    """Тест обработки ошибки аутентификации с сообщением."""
+    message = {"status": "failed", "error": "Invalid credentials"}
+    websocket_client._handle_auth_response(message)
+
+    assert websocket_client.authenticated is False
+
+
+@pytest.mark.asyncio()
+async def test_attempt_reconnect_failed(websocket_client):
+    """Тест неудачного реконнекта."""
+    websocket_client.reconnect_attempts = 2
+
+    mock_connect = AsyncMock(return_value=False)
+    with patch.object(websocket_client, "connect", mock_connect):
+        with patch("asyncio.sleep", AsyncMock()):
+            await websocket_client._attempt_reconnect()
+
+    assert websocket_client.reconnect_attempts == 3
+
+
+@pytest.mark.asyncio()
+async def test_attempt_reconnect_exponential_backoff(websocket_client):
+    """Тест экспоненциального увеличения задержки."""
+    websocket_client.reconnect_attempts = 5
+
+    sleep_called_with = None
+
+    async def mock_sleep(delay):
+        nonlocal sleep_called_with
+        sleep_called_with = delay
+
+    mock_connect = AsyncMock(return_value=False)
+    with patch.object(websocket_client, "connect", mock_connect):
+        with patch("asyncio.sleep", side_effect=mock_sleep):
+            await websocket_client._attempt_reconnect()
+
+    # 2^6 = 64, но максимум 60 секунд
+    assert sleep_called_with == 60
+
+
+@pytest.mark.asyncio()
+async def test_unregister_handler_nonexistent(websocket_client):
+    """Тест отмены регистрации несуществующего обработчика."""
+    handler = AsyncMock()
+
+    # Не должно вызывать ошибок
+    websocket_client.unregister_handler("nonexistent:event", handler)
+
+
+@pytest.mark.asyncio()
+async def test_unregister_handler_from_empty_list(websocket_client):
+    """Тест отмены регистрации из пустого списка обработчиков."""
+    handler = AsyncMock()
+    websocket_client.handlers["test:event"] = []
+
+    # Не должно вызывать ошибок
+    websocket_client.unregister_handler("test:event", handler)
+
+
+@pytest.mark.asyncio()
+async def test_close_without_connection(websocket_client):
+    """Тест закрытия без активного соединения."""
+    websocket_client.ws_connection = None
+    websocket_client.session = None
+
+    # Не должно вызывать ошибок
+    await websocket_client.close()
+
+
+@pytest.mark.asyncio()
+async def test_close_with_subscriptions(websocket_client):
+    """Тест закрытия с активными подписками."""
+    websocket_client.ws_connection = AsyncMock()
+    websocket_client.ws_connection.close = AsyncMock()
+    websocket_client.ws_connection.send_json = AsyncMock()
+    websocket_client.session = AsyncMock()
+    websocket_client.session.close = AsyncMock()
+    websocket_client.session.closed = False
+    websocket_client.is_connected = True
+    websocket_client.subscriptions = {"topic1", "topic2"}
+
+    await websocket_client.close()
+
+    # Проверяем что соединение закрыто
+    assert websocket_client.is_connected is False
+    assert websocket_client.ws_connection is None
+
+
+@pytest.mark.asyncio()
+async def test_listen_client_error(websocket_client):
+    """Тест обработки ClientError при listen."""
+    websocket_client.is_connected = True
+
+    async def mock_receive():
+        raise aiohttp.ClientError("Connection error")
+
+    websocket_client.ws_connection = AsyncMock()
+    websocket_client.ws_connection.receive = mock_receive
+
+    with patch.object(websocket_client, "_attempt_reconnect", AsyncMock()):
+        await websocket_client.listen()
+
+    assert websocket_client.is_connected is False
+
+
+@pytest.mark.asyncio()
+async def test_listen_multiple_messages(websocket_client):
+    """Тест обработки нескольких сообщений подряд."""
+    handler = AsyncMock()
+    websocket_client.register_handler("event:type", handler)
+
+    messages = [
+        WSMessage(
+            WSMsgType.TEXT,
+            json.dumps({"type": "event:type", "data": {"id": 1}}).encode(),
+            None,
+        ),
+        WSMessage(
+            WSMsgType.TEXT,
+            json.dumps({"type": "event:type", "data": {"id": 2}}).encode(),
+            None,
+        ),
+        WSMessage(WSMsgType.CLOSED, None, None),
+    ]
+
+    mock_ws = MockWebSocket(messages=messages)
+    websocket_client.ws_connection = mock_ws
+    websocket_client.is_connected = True
+
+    with patch.object(websocket_client, "_attempt_reconnect", AsyncMock()):
+        await websocket_client.listen()
+
+    # Handler должен быть вызван дважды
+    assert handler.call_count == 2
+
+
+@pytest.mark.asyncio()
+async def test_subscribe_to_market_updates_default_game(websocket_client):
+    """Тест подписки на обновления рынка с игрой по умолчанию."""
+    websocket_client.is_connected = True
+    websocket_client.ws_connection = AsyncMock()
+    websocket_client.ws_connection.send_json = AsyncMock()
+
+    # Используем значение по умолчанию
+    result = await websocket_client.subscribe_to_market_updates()
+
+    assert result is True
+    call_args = websocket_client.ws_connection.send_json.call_args[0][0]
+    assert call_args["params"]["gameId"] == "csgo"
+
+
+@pytest.mark.asyncio()
+async def test_unsubscribe_not_in_subscriptions(websocket_client):
+    """Тест отписки от темы, на которую не подписаны."""
+    websocket_client.is_connected = True
+    websocket_client.ws_connection = AsyncMock()
+    websocket_client.ws_connection.send_json = AsyncMock()
+    websocket_client.subscriptions = set()
+
+    result = await websocket_client.unsubscribe("nonexistent:topic")
+
+    assert result is True
+    # Не должно быть ошибок при попытке удаления
+
+
+@pytest.mark.asyncio()
+async def test_handle_message_multiple_handlers_for_event(websocket_client):
+    """Тест обработки события с несколькими обработчиками."""
+    handler1 = AsyncMock()
+    handler2 = AsyncMock()
+
+    websocket_client.register_handler("multi:event", handler1)
+    websocket_client.register_handler("multi:event", handler2)
+
+    message_data = json.dumps({"type": "multi:event", "data": "test"})
+
+    await websocket_client._handle_message(message_data)
+
+    # Оба обработчика должны быть вызваны
+    handler1.assert_called_once()
+    handler2.assert_called_once()
+
+
+@pytest.mark.asyncio()
+async def test_connection_id_is_unique(mock_api_client):
+    """Тест что каждый клиент имеет уникальный connection_id."""
+    client1 = DMarketWebSocketClient(api_client=mock_api_client)
+    client2 = DMarketWebSocketClient(api_client=mock_api_client)
+
+    assert client1.connection_id != client2.connection_id
+    assert client1.connection_id is not None
+    assert client2.connection_id is not None

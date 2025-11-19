@@ -2,6 +2,7 @@
 
 import re
 
+
 test_file = (
     r"d:\Dmarket\DMarket-Telegram-Bot\DMarket-Telegram-Bot"
     r"\tests\dmarket\test_arbitrage_sales_analysis.py"

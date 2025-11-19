@@ -245,6 +245,83 @@ class CreateTargetRequest(BaseModel):
     Targets: list[Target] = Field(description="Список таргетов для создания")
 
 
+# ==================== AGGREGATED PRICES MODELS (API v1.1.0) ====================
+
+
+class AggregatedPrice(BaseModel):
+    """Модель агрегированной цены для предмета (API v1.1.0).
+
+    Response format: /marketplace-api/v1/aggregated-prices
+    """
+
+    title: str = Field(description="Название предмета")
+    orderBestPrice: str = Field(description="Лучшая цена покупки (buy order) в центах")
+    orderCount: int = Field(description="Количество активных заявок на покупку")
+    offerBestPrice: str = Field(description="Лучшая цена продажи (offer) в центах")
+    offerCount: int = Field(description="Количество активных предложений")
+
+    @property
+    def order_price_usd(self) -> float:
+        """Конвертирует лучшую цену покупки из центов в доллары."""
+        try:
+            return float(self.orderBestPrice) / 100.0
+        except (ValueError, TypeError):
+            return 0.0
+
+    @property
+    def offer_price_usd(self) -> float:
+        """Конвертирует лучшую цену продажи из центов в доллары."""
+        try:
+            return float(self.offerBestPrice) / 100.0
+        except (ValueError, TypeError):
+            return 0.0
+
+    @property
+    def spread_usd(self) -> float:
+        """Вычисляет спред между лучшей ценой продажи и покупки в USD."""
+        return self.offer_price_usd - self.order_price_usd
+
+    @property
+    def spread_percent(self) -> float:
+        """Вычисляет спред в процентах."""
+        if self.order_price_usd == 0:
+            return 0.0
+        return (self.spread_usd / self.order_price_usd) * 100.0
+
+
+class AggregatedPricesResponse(BaseModel):
+    """Ответ от эндпоинта aggregated-prices (API v1.1.0)."""
+
+    aggregatedPrices: list[AggregatedPrice] = Field(description="Список агрегированных цен")
+    nextCursor: str | None = Field(None, description="Курсор для следующей страницы")
+
+
+# ==================== TARGETS BY TITLE MODELS (API v1.1.0) ====================
+
+
+class TargetOrder(BaseModel):
+    """Модель заявки на покупку из targets-by-title (API v1.1.0)."""
+
+    amount: int = Field(description="Количество запрашиваемых предметов")
+    price: str = Field(description="Цена в центах")
+    title: str = Field(description="Название предмета")
+    attributes: dict[str, Any] | None = Field(None, description="Атрибуты (exterior, phase, etc)")
+
+    @property
+    def price_usd(self) -> float:
+        """Конвертирует цену из центов в доллары."""
+        try:
+            return float(self.price) / 100.0
+        except (ValueError, TypeError):
+            return 0.0
+
+
+class TargetsByTitleResponse(BaseModel):
+    """Ответ от эндпоинта targets-by-title (API v1.1.0)."""
+
+    orders: list[TargetOrder] = Field(description="Список заявок на покупку")
+
+
 # ==================== SALES HISTORY MODELS ====================
 
 
@@ -369,4 +446,9 @@ __all__ = [
     "TradeStatus",
     "TransferStatus",
     "UserProfile",
+    # API v1.1.0 models
+    "AggregatedPrice",
+    "AggregatedPricesResponse",
+    "TargetOrder",
+    "TargetsByTitleResponse",
 ]

@@ -201,6 +201,146 @@ class TestDatabaseModels:
         assert alert.triggered_at is None  # Default value
 
 
+class TestDatabaseEngines:
+    """Test database engine creation."""
+
+    @pytest.mark.asyncio()
+    async def test_engine_lazy_initialization(self):
+        """Test lazy engine initialization."""
+        db_manager = DatabaseManager("sqlite:///:memory:")
+
+        # Engines should not be created until accessed
+        assert db_manager._engine is None
+        assert db_manager._async_engine is None
+
+        # Access engine property
+        engine = db_manager.engine
+        assert engine is not None
+        assert db_manager._engine is not None
+
+        # Access async engine property
+        async_engine = db_manager.async_engine
+        assert async_engine is not None
+        assert db_manager._async_engine is not None
+
+    @pytest.mark.asyncio()
+    async def test_session_maker_lazy_initialization(self):
+        """Test lazy session maker initialization."""
+        db_manager = DatabaseManager("sqlite:///:memory:")
+
+        # Session makers should not be created until accessed
+        assert db_manager._session_maker is None
+        assert db_manager._async_session_maker is None
+
+        # Access session maker property
+        session_maker = db_manager.session_maker
+        assert session_maker is not None
+        assert db_manager._session_maker is not None
+
+        # Access async session maker property
+        async_session_maker = db_manager.async_session_maker
+        assert async_session_maker is not None
+        assert db_manager._async_session_maker is not None
+
+    @pytest.mark.asyncio()
+    async def test_postgresql_url_conversion(self):
+        """Test PostgreSQL URL conversion to async."""
+        db_manager = DatabaseManager("postgresql://user:pass@localhost/db")
+
+        # Access async engine to trigger conversion
+        async_engine = db_manager.async_engine
+
+        # URL should be converted to asyncpg
+        assert "postgresql+asyncpg://" in str(async_engine.url)
+
+    @pytest.mark.asyncio()
+    async def test_sqlite_url_conversion(self):
+        """Test SQLite URL conversion to async."""
+        db_manager = DatabaseManager("sqlite:///test.db")
+
+        # Access async engine to trigger conversion
+        async_engine = db_manager.async_engine
+
+        # URL should be converted to aiosqlite
+        assert "sqlite+aiosqlite://" in str(async_engine.url)
+
+
+class TestDatabaseOperationsEdgeCases:
+    """Test edge cases in database operations."""
+
+    @pytest.mark.asyncio()
+    async def test_get_or_create_user_minimal_info(self):
+        """Test creating user with minimal information."""
+        db_manager = DatabaseManager("sqlite:///:memory:")
+        await db_manager.init_database()
+
+        try:
+            # Create user with only telegram_id
+            user = await db_manager.get_or_create_user(telegram_id=111222333)
+
+            assert user.telegram_id == 111222333
+            assert user.username is None
+            assert user.first_name is None
+            assert user.last_name is None
+            assert user.language_code == "en"  # default
+        finally:
+            await db_manager.close()
+
+    @pytest.mark.asyncio()
+    async def test_get_or_create_user_update_partial_info(self):
+        """Test updating user with partial information."""
+        db_manager = DatabaseManager("sqlite:///:memory:")
+        await db_manager.init_database()
+
+        try:
+            # Create user with full info
+            await db_manager.get_or_create_user(
+                telegram_id=444555666, username="original", first_name="John", last_name="Doe"
+            )
+
+            # Update with only first name
+            user2 = await db_manager.get_or_create_user(telegram_id=444555666, first_name="Jane")
+
+            # Should keep original last name
+            assert user2.first_name == "Jane"
+            # Username from second call is None, so original is kept
+            assert user2.username == "original"
+        finally:
+            await db_manager.close()
+
+    @pytest.mark.asyncio()
+    async def test_log_command_without_parameters(self):
+        """Test logging command without parameters."""
+        db_manager = DatabaseManager("sqlite:///:memory:")
+        await db_manager.init_database()
+
+        try:
+            user = await db_manager.get_or_create_user(telegram_id=777888999)
+
+            # Log command without parameters
+            await db_manager.log_command(user_id=user.id, command="/help")
+
+            # Should complete successfully
+        finally:
+            await db_manager.close()
+
+    @pytest.mark.asyncio()
+    async def test_save_market_data_minimal_fields(self):
+        """Test saving market data with minimal fields."""
+        db_manager = DatabaseManager("sqlite:///:memory:")
+        await db_manager.init_database()
+
+        try:
+            # Save with only required fields
+            await db_manager.save_market_data(
+                item_id="minimal_item", game="csgo", item_name="Minimal Test Item", price_usd=5.0
+            )
+
+            # Should complete successfully with defaults
+        finally:
+            await db_manager.close()
+
+
 class TestDatabaseIntegration:
     """Integration tests for database operations."""
 

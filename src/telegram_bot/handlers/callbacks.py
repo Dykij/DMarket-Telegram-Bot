@@ -221,8 +221,7 @@ async def handle_game_selected_impl(update, context, game=None) -> None:
 
     game_name = GAMES.get(game, "Неизвестная игра")
     await update.callback_query.edit_message_text(
-        f"🎮 <b>Выбрана игра: {game_name}</b>\n\n"
-        f"Выполняется поиск арбитражных возможностей для {game_name}...",
+        f"🎮 <b>Выбрана игра: {game_name}</b>",
         parse_mode=ParseMode.HTML,
     )
 
@@ -422,6 +421,37 @@ async def button_callback_handler(
             from src.telegram_bot.auto_arbitrage import handle_auto_trade
 
             await handle_auto_trade(query, context, mode)
+
+        elif callback_data.startswith("compare:"):
+            # Обработка сравнения рынков
+            parts = callback_data.split(":")
+            if len(parts) >= 3:
+                game = parts[1]  # csgo, dota2, tf2, rust
+                markets = parts[2]  # steam_dmarket, skinport_dmarket и т.д.
+
+                game_name = GAMES.get(game, "Неизвестная игра")
+                market_names = {
+                    "steam_dmarket": "Steam ↔ DMarket",
+                    "skinport_dmarket": "Skinport ↔ DMarket",
+                    "csgoempire_dmarket": "CSGOEmpire ↔ DMarket",
+                }
+                market_display = market_names.get(markets, markets)
+
+                await query.edit_message_text(
+                    f"📊 <b>Сравнение рынков</b>\n\n"
+                    f"🎮 Игра: {game_name}\n"
+                    f"🔄 Рынки: {market_display}\n\n"
+                    f"⚠️ Функция находится в разработке.\n\n"
+                    f"Скоро вы сможете сравнивать цены на разных площадках!",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=get_back_to_arbitrage_keyboard(),
+                )
+            else:
+                await query.edit_message_text(
+                    "⚠️ <b>Некорректный формат данных сравнения.</b>\n\nПопробуйте снова.",
+                    reply_markup=get_back_to_arbitrage_keyboard(),
+                    parse_mode=ParseMode.HTML,
+                )
 
         elif callback_data == "back_to_menu":
             # Возврат в главное меню

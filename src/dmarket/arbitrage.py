@@ -8,10 +8,12 @@ import traceback
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
+
 if TYPE_CHECKING:
     import httpx
 
 from .dmarket_api import DMarketAPI
+
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
