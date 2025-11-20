@@ -182,13 +182,29 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
         continue-on-error: true
 
+      - name: Verify test results file
+        if: always()
+        run: |
+          if [ -f build/test-results/junit.xml ]; then
+            echo "✅ JUnit XML file exists"
+            echo "📊 File size: $(stat -f%z build/test-results/junit.xml 2>/dev/null || stat -c%s build/test-results/junit.xml)"
+            echo "📄 First 10 lines:"
+            head -n 10 build/test-results/junit.xml
+          else
+            echo "❌ JUnit XML file not found!"
+            echo "📁 Contents of build/test-results/:"
+            ls -la build/test-results/ || echo "Directory does not exist"
+          fi
+        continue-on-error: true
+
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && hashFiles('build/test-results/junit.xml') != '' }}
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./build/test-results/junit.xml
           flags: python-${{ matrix.python-version }}
+          verbose: true
         continue-on-error: true
 
       - name: Archive test results
