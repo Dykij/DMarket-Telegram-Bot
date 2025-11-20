@@ -182,6 +182,15 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
         continue-on-error: true
 
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./build/test-results/junit.xml
+          flags: python-${{ matrix.python-version }}
+        continue-on-error: true
+
       - name: Archive test results
         if: always()
         uses: actions/upload-artifact@v4
