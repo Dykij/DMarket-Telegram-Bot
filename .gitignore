@@ -6,6 +6,7 @@ __pycache__/
 .Python
 env/
 build/
+!build/.gitkeep
 develop-eggs/
 dist/
 downloads/
@@ -28,6 +29,14 @@ htmlcov/
 dmypy.json
 .pyre/
 .pytype/
+
+# Test and coverage reports
+junit.xml
+coverage.xml
+coverage.json
+test_results*.txt
+test_run_output.txt
+.coverage.*
 
 # Virtual Environment
 venv/

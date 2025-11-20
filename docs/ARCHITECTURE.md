@@ -11,6 +11,7 @@
 DMarket Telegram Bot — это асинхронное Python-приложение для автоматизации торговли игровыми предметами на платформе DMarket. Проект построен на современных архитектурных принципах и следует лучшим практикам разработки.
 
 **Технологический стек**:
+
 - Python 3.10+ (3.11+ рекомендуется)
 - python-telegram-bot 20.7+
 - httpx 0.27+ (async HTTP)
@@ -165,12 +166,14 @@ BotDmarket-master/
 ### 1. Presentation Layer (Telegram Bot)
 
 **Ответственность:**
+
 - Прием команд от пользователя
 - Валидация входных данных
 - Форматирование ответов
 - Локализация
 
 **Компоненты:**
+
 - `src/telegram_bot/handlers/` - обработчики команд
 - `src/telegram_bot/keyboards.py` - UI элементы
 - `src/telegram_bot/localization.py` - переводы
@@ -178,12 +181,14 @@ BotDmarket-master/
 ### 2. Business Logic Layer
 
 **Ответственность:**
+
 - Бизнес-логика арбитража
 - Управление таргетами
 - Анализ рынка
 - Стратегии торговли
 
 **Компоненты:**
+
 - `src/dmarket/arbitrage_scanner.py`
 - `src/dmarket/targets.py`
 - `src/dmarket/arbitrage.py`
@@ -191,12 +196,14 @@ BotDmarket-master/
 ### 3. Data Access Layer
 
 **Ответственность:**
+
 - Взаимодействие с DMarket API
 - Кэширование данных
 - Rate limiting
 - Обработка ошибок API
 
 **Компоненты:**
+
 - `src/dmarket/dmarket_api.py`
 - `src/utils/cache.py`
 - `src/utils/rate_limiter.py`
@@ -204,11 +211,13 @@ BotDmarket-master/
 ### 4. Persistence Layer
 
 **Ответственность:**
+
 - Работа с базой данных
 - Хранение пользовательских данных
 - История сделок
 
 **Компоненты:**
+
 - `src/models/` - модели SQLAlchemy
 - `src/utils/database.py` - менеджер БД
 
