@@ -174,9 +174,9 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: matrix.upload-coverage && hashFiles('build/coverage/coverage.xml') != ''
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
-          file: ./build/coverage/coverage.xml
+          files: ./build/coverage/coverage.xml
           fail_ci_if_error: false
           flags: python-${{ matrix.python-version }}
           token: ${{ secrets.CODECOV_TOKEN }}
