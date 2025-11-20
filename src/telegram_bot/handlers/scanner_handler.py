@@ -12,6 +12,7 @@ from src.telegram_bot.keyboards import create_pagination_keyboard
 from src.telegram_bot.pagination import pagination_manager
 from src.telegram_bot.utils.api_client import create_api_client_from_env
 
+
 logger = logging.getLogger(__name__)
 
 # Константы для callback данных

@@ -1,42 +1,51 @@
 {
     "recommendations": [
-        // ========== Python Development ==========
-        "ms-python.python",
-        "ms-python.vscode-pylance",
-        "charliermarsh.ruff",
-        "ms-python.black-formatter",
-        "matangover.mypy",
-        // ========== Testing ==========
-        "littlefoxteam.vscode-python-test-adapter",
-        // ========== Docker ==========
-        "ms-azuretools.vscode-docker",
-        // ========== Git ==========
-        "eamodio.gitlens",
-        "donjayamanne.githistory",
-        // ========== Database ==========
-        "mtxr.sqltools",
-        "mtxr.sqltools-driver-pg",
-        // ========== Markdown & Documentation ==========
-        "yzhang.markdown-all-in-one",
-        "davidanson.vscode-markdownlint",
-        // ========== Code Quality ==========
-        "streetsidesoftware.code-spell-checker",
-        "streetsidesoftware.code-spell-checker-russian",
-        // ========== Productivity ==========
-        "usernamehw.errorlens",
-        "oderwat.indent-rainbow",
-        "PKief.material-icon-theme",
-        // ========== YAML/JSON ==========
-        "redhat.vscode-yaml",
-        // ========== GitHub ==========
-        "github.copilot",
-        "github.copilot-chat",
-        // ========== REST API Testing ==========
-        "humao.rest-client"
+        // ========== Python Development (REQUIRED) ==========
+        "ms-python.python", // Python language support
+        "ms-python.vscode-pylance", // Python language server (IntelliSense)
+        "ms-python.debugpy", // Python debugger
+        "charliermarsh.ruff", // Fast linter & formatter (replaces Black, isort, flake8)
+        "ms-python.mypy-type-checker", // Official MyPy type checker
+        // ========== Testing (REQUIRED) ==========
+        "littlefoxteam.vscode-python-test-adapter", // Python test explorer
+        // ========== Docker & Containers (RECOMMENDED) ==========
+        "ms-azuretools.vscode-docker", // Docker support
+        "ms-vscode-remote.remote-containers", // Dev Containers
+        "ms-azuretools.vscode-containers", // Container Tools
+        // ========== Git & GitHub (REQUIRED) ==========
+        "eamodio.gitlens", // Git supercharged
+        "donjayamanne.githistory", // Git history viewer
+        "github.vscode-pull-request-github", // GitHub PRs & Issues
+        // ========== Database (OPTIONAL - for PostgreSQL/SQLite) ==========
+        "mtxr.sqltools", // SQL Tools
+        "mtxr.sqltools-driver-pg", // PostgreSQL driver
+        // ========== Markdown & Documentation (RECOMMENDED) ==========
+        "yzhang.markdown-all-in-one", // Markdown all-in-one
+        "davidanson.vscode-markdownlint", // Markdown linter
+        // ========== Code Quality (REQUIRED) ==========
+        "streetsidesoftware.code-spell-checker", // Spell checker
+        "streetsidesoftware.code-spell-checker-russian", // Russian dictionary
+        "usernamehw.errorlens", // Error lens (inline errors)
+        // ========== Productivity (RECOMMENDED) ==========
+        "oderwat.indent-rainbow", // Rainbow indentation
+        "PKief.material-icon-theme", // Material icon theme
+        // ========== YAML/JSON (REQUIRED) ==========
+        "redhat.vscode-yaml", // YAML support
+        // ========== GitHub Copilot (REQUIRED) ==========
+        "github.copilot", // GitHub Copilot
+        "github.copilot-chat", // GitHub Copilot Chat
+        // ========== REST API Testing (OPTIONAL) ==========
+        "humao.rest-client" // REST client for API testing
     ],
     "unwantedRecommendations": [
+        // Old tools replaced by Ruff
         "ms-python.pylint",
         "ms-python.flake8",
-        "ms-python.isort"
+        "ms-python.isort",
+        "ms-python.black-formatter", // Use Ruff instead
+        "matangover.mypy", // Use ms-python.mypy-type-checker instead
+        // Not needed for this project
+        "esbenp.prettier-vscode", // Not needed for Python
+        "dbaeumer.vscode-eslint" // Not needed for Python
     ]
 }

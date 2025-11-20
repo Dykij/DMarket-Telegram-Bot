@@ -165,6 +165,7 @@ class MarketItem(BaseModel):
     type: str | None = Field(None, description="Тип предмета")
     tags: list[str] | None = Field(None, description="Теги предмета")
     extra: dict[str, Any] | None = Field(None, description="Дополнительные данные")
+    suggestedPrice: dict[str, str] | None = Field(None, description="Рекомендуемая цена")
 
     @property
     def price_usd(self) -> float:
@@ -176,6 +177,17 @@ class MarketItem(BaseModel):
                 return float(price_data.get("amount", 0)) / 100.0
             # Формат: {"USD": "12.34"}
             return float(price_data)
+        except (ValueError, TypeError):
+            return 0.0
+
+    @property
+    def suggested_price_usd(self) -> float:
+        """Получает рекомендуемую цену в USD."""
+        if not self.suggestedPrice:
+            return 0.0
+        try:
+            price_str = self.suggestedPrice.get("USD", "0")
+            return float(price_str) / 100.0
         except (ValueError, TypeError):
             return 0.0
 
@@ -191,6 +203,14 @@ class MarketItem(BaseModel):
 
         """
         return cls(**data)
+
+
+class MarketItemsResponse(BaseModel):
+    """Ответ от эндпоинта /exchange/v1/market/items."""
+
+    objects: list[MarketItem] = Field(default_factory=list, description="Список предметов")
+    total: int = Field(default=0, description="Общее количество предметов")
+    cursor: str | None = Field(None, description="Курсор для пагинации")
 
 
 # ==================== OFFER MODELS ====================
@@ -319,7 +339,113 @@ class TargetOrder(BaseModel):
 class TargetsByTitleResponse(BaseModel):
     """Ответ от эндпоинта targets-by-title (API v1.1.0)."""
 
-    orders: list[TargetOrder] = Field(description="Список заявок на покупку")
+    orders: list[TargetOrder] = Field(default_factory=list, description="Список заявок на покупку")
+
+
+# ==================== OFFERS BY TITLE MODELS ====================
+
+
+class OfferByTitle(BaseModel):
+    """Модель предложения из offers-by-title."""
+
+    offerId: str = Field(description="ID предложения")
+    price: MarketPrice = Field(description="Цена предложения")
+    title: str = Field(description="Название предмета")
+    image: str | None = Field(None, description="URL изображения")
+    gameId: str | None = Field(None, description="ID игры")
+
+    @property
+    def price_usd_float(self) -> float:
+        """Конвертирует цену USD в float."""
+        try:
+            return float(self.price.USD) / 100.0
+        except (ValueError, TypeError):
+            return 0.0
+
+
+class OffersByTitleResponse(BaseModel):
+    """Ответ от эндпоинта /exchange/v1/offers-by-title."""
+
+    objects: list[OfferByTitle] = Field(default_factory=list, description="Список предложений")
+    total: int = Field(default=0, description="Общее количество")
+    cursor: str | None = Field(None, description="Курсор для пагинации")
+
+
+# ==================== USER INVENTORY MODELS ====================
+
+
+class InventoryItem(BaseModel):
+    """Модель предмета из инвентаря пользователя."""
+
+    ItemID: str = Field(description="ID предмета")
+    AssetID: str = Field(description="ID актива")
+    Title: str = Field(description="Название предмета")
+    GameID: str = Field(description="ID игры")
+    Image: str | None = Field(None, description="URL изображения")
+    Price: Price | None = Field(None, description="Цена если в маркете")
+    InMarket: bool = Field(default=False, description="В маркете")
+    Withdrawable: bool = Field(default=True, description="Можно вывести")
+    Tradable: bool = Field(default=True, description="Можно торговать")
+    Attributes: dict[str, Any] | None = Field(None, description="Атрибуты")
+    Extra: dict[str, Any] | None = Field(None, description="Доп. данные")
+
+
+class UserInventoryResponse(BaseModel):
+    """Ответ от эндпоинта /marketplace-api/v1/user-inventory."""
+
+    Items: list[InventoryItem] = Field(default_factory=list, description="Список предметов")
+    Total: str = Field(default="0", description="Общее количество")
+    Cursor: str | None = Field(None, description="Курсор для пагинации")
+
+
+# ==================== BUY/SELL TRANSACTION MODELS ====================
+
+
+class BuyItemResponse(BaseModel):
+    """Ответ после покупки предмета."""
+
+    orderId: str = Field(description="ID заказа")
+    status: str = Field(description="Статус транзакции")
+    txId: str | None = Field(None, description="ID транзакции")
+    dmOffersStatus: dict[str, dict[str, str]] | None = Field(None, description="Статус офферов")
+
+
+class CreateOfferResponse(BaseModel):
+    """Ответ после создания предложения."""
+
+    Result: list[dict[str, str]] = Field(default_factory=list, description="Результаты создания")
+
+
+class UserOffersResponse(BaseModel):
+    """Ответ от эндпоинта /marketplace-api/v1/user-offers."""
+
+    Items: list[Offer] = Field(default_factory=list, description="Список предложений")
+    Total: str = Field(default="0", description="Общее количество")
+    Cursor: str | None = Field(None, description="Курсор для пагинации")
+
+
+class UserTargetsResponse(BaseModel):
+    """Ответ от эндпоинта /marketplace-api/v1/user-targets."""
+
+    Items: list[Target] = Field(default_factory=list, description="Список таргетов")
+    Total: str = Field(default="0", description="Общее количество")
+    Cursor: str | None = Field(None, description="Курсор для пагинации")
+
+
+class ClosedTargetsResponse(BaseModel):
+    """Ответ от /marketplace-api/v1/user-targets/closed."""
+
+    Trades: list[dict[str, Any]] = Field(
+        default_factory=list, description="Список закрытых таргетов"
+    )
+    Total: str = Field(default="0", description="Общее количество")
+    Cursor: str | None = Field(None, description="Курсор для пагинации")
+
+
+class LastSalesResponse(BaseModel):
+    """Ответ от /trade-aggregator/v1/last-sales."""
+
+    sales: list[SalesHistory] = Field(default_factory=list, description="История продаж")
 
 
 # ==================== SALES HISTORY MODELS ====================
@@ -420,35 +546,47 @@ class BalanceLegacy:
 
 # Экспортируем все модели
 __all__ = [
+    # API v1.1.0 models
+    "AggregatedPrice",
+    "AggregatedPricesResponse",
     # Account models
     "Balance",
-    # Legacy models
     "BalanceLegacy",
+    # Transaction models
+    "BuyItemResponse",
+    "ClosedTargetsResponse",
+    "CreateOfferResponse",
     "CreateTargetRequest",
     # Deposit/Withdraw models
     "DepositAsset",
     "DepositStatus",
+    # Inventory models
+    "InventoryItem",
+    # Sales history models
+    "LastSalesResponse",
     # Market item models
     "MarketItem",
+    "MarketItemsResponse",
+    # Price models
     "MarketPrice",
     # Offer models
     "Offer",
+    "OfferByTitle",
     # Enums
     "OfferStatus",
-    # Price models
+    "OffersByTitleResponse",
     "Price",
     # Sales history models
     "SalesHistory",
-    # Target models
     "Target",
     "TargetAttrs",
+    "TargetOrder",
     "TargetStatus",
+    "TargetsByTitleResponse",
     "TradeStatus",
     "TransferStatus",
+    "UserInventoryResponse",
+    "UserOffersResponse",
     "UserProfile",
-    # API v1.1.0 models
-    "AggregatedPrice",
-    "AggregatedPricesResponse",
-    "TargetOrder",
-    "TargetsByTitleResponse",
+    "UserTargetsResponse",
 ]

@@ -10,6 +10,7 @@ from src.dmarket.targets import TargetManager
 from src.telegram_bot.utils.api_client import create_api_client_from_env
 from src.telegram_bot.utils.formatters import format_target_competition_analysis
 
+
 logger = logging.getLogger(__name__)
 
 # Константы для callback данных

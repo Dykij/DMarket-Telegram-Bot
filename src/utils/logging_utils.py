@@ -2,18 +2,23 @@
 
 This module provides comprehensive logging configuration and utilities
 for the DMarket Telegram Bot, including structured logging, file rotation,
-and integration with monitoring systems.
+and integration with monitoring systems, including Sentry error tracking.
 """
 
 import json
 import logging
 import logging.handlers
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import sentry_sdk
 import structlog
+from sentry_sdk.integrations.asyncio import AsyncioIntegration
+from sentry_sdk.integrations.httpx import HttpxIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 
 class JSONFormatter(logging.Formatter):
@@ -97,6 +102,75 @@ class ColoredFormatter(logging.Formatter):
         return temp_formatter.format(record)
 
 
+def setup_sentry(
+    environment: str = "production",
+    traces_sample_rate: float = 0.1,
+    send_default_pii: bool = False,
+) -> None:
+    """Setup Sentry error tracking.
+
+    Args:
+        environment: Environment name (development, production)
+        traces_sample_rate: Sample rate for performance monitoring (0.0-1.0)
+        send_default_pii: Whether to send personally identifiable information
+
+    """
+    sentry_dsn = os.getenv("SENTRY_DSN")
+
+    if not sentry_dsn:
+        logger = logging.getLogger(__name__)
+        logger.info("Sentry DSN not configured, error tracking disabled")
+        return
+
+    def filter_sensitive_data(event, hint):
+        """Filter sensitive data from Sentry events."""
+        # Remove API keys and tokens
+        if "request" in event:
+            headers = event["request"].get("headers", {})
+            for key in list(headers.keys()):
+                if any(
+                    sensitive in key.lower()
+                    for sensitive in ["api", "token", "key", "secret", "auth"]
+                ):
+                    headers[key] = "[Filtered]"
+
+        # Remove sensitive context
+        if "extra" in event:
+            for key in list(event["extra"].keys()):
+                if any(
+                    sensitive in key.lower() for sensitive in ["password", "secret", "token", "key"]
+                ):
+                    event["extra"][key] = "[Filtered]"
+
+        return event
+
+    # Configure Sentry integrations
+    integrations = [
+        LoggingIntegration(
+            level=logging.INFO,  # Capture info and above as breadcrumbs
+            event_level=logging.ERROR,  # Send errors and above as events
+        ),
+        AsyncioIntegration(),
+        HttpxIntegration(),
+    ]
+
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        environment=environment,
+        traces_sample_rate=traces_sample_rate,
+        send_default_pii=send_default_pii,
+        integrations=integrations,
+        before_send=filter_sensitive_data,
+        release=os.getenv("BOT_VERSION", "unknown"),
+        attach_stacktrace=True,
+        max_breadcrumbs=50,
+        debug=False,
+    )
+
+    logger = logging.getLogger(__name__)
+    logger.info(f"Sentry initialized: env={environment}, sample_rate={traces_sample_rate}")
+
+
 def setup_logging(
     level: str = "INFO",
     log_file: str | None = None,
@@ -105,6 +179,8 @@ def setup_logging(
     max_file_size: int = 10 * 1024 * 1024,  # 10MB
     backup_count: int = 5,
     enable_structlog: bool = True,
+    enable_sentry: bool = True,
+    sentry_environment: str = "production",
 ) -> None:
     """Setup comprehensive logging configuration.
 
@@ -116,6 +192,8 @@ def setup_logging(
         max_file_size: Maximum log file size before rotation
         backup_count: Number of backup files to keep
         enable_structlog: Enable structured logging with structlog
+        enable_sentry: Enable Sentry error tracking
+        sentry_environment: Sentry environment (development, production)
 
     """
     # Convert string level to logging level
@@ -167,6 +245,13 @@ def setup_logging(
     if enable_structlog:
         setup_structlog(json_format=json_format)
 
+    # Configure Sentry if enabled
+    if enable_sentry:
+        setup_sentry(
+            environment=sentry_environment,
+            traces_sample_rate=0.1,
+        )
+
     # Suppress noisy loggers
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
@@ -174,7 +259,8 @@ def setup_logging(
 
     logger = logging.getLogger(__name__)
     logger.info(
-        f"Logging configured: level={level}, file={log_file}, json={json_format}",
+        f"Logging configured: level={level}, file={log_file}, "
+        f"json={json_format}, sentry={enable_sentry}",
     )
 
 

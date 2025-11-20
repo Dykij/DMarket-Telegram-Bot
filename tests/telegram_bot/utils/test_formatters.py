@@ -7,6 +7,7 @@ from src.telegram_bot.utils.formatters import (
     format_target_item,
 )
 
+
 # === Тесты для format_target_item ===
 
 
@@ -156,7 +157,8 @@ def test_format_aggregated_prices_with_data():
 
     assert "AK-47 | Redline" in result
     assert "AWP | Asiimov" in result
-    assert result is not None and len(result) > 0
+    assert result is not None
+    assert len(result) > 0
 
 
 def test_format_aggregated_prices_empty():

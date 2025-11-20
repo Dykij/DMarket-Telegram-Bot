@@ -959,7 +959,10 @@ async def test_check_all_alerts_sends_notification():
                 "active": True,
             }
         ],
-        "settings": {"enabled": True},
+        "settings": {
+            "enabled": True,
+            "quiet_hours": {"start": 0, "end": 0},  # Отключаем тихие часы
+        },
         "last_notification": 0,
         "daily_notifications": 0,
         "last_day": "2023-06-01",
@@ -1006,7 +1009,10 @@ async def test_check_all_alerts_increments_notification_counter():
                 "active": True,
             }
         ],
-        "settings": {"enabled": True},
+        "settings": {
+            "enabled": True,
+            "quiet_hours": {"start": 0, "end": 0},  # Отключаем тихие часы
+        },
         "last_notification": 0,
         "daily_notifications": 0,
         "last_day": "2023-06-01",
@@ -1028,7 +1034,8 @@ async def test_check_all_alerts_increments_notification_counter():
         await check_all_alerts(mock_api, mock_bot)
 
         # Счетчик должен увеличиться
-        assert notifier_module._user_alerts["12345"]["daily_notifications"] == 1
+        user_alerts = notifier_module._user_alerts["12345"]
+        assert user_alerts["daily_notifications"] == 1
 
 
 @pytest.mark.asyncio()
@@ -1050,7 +1057,10 @@ async def test_check_all_alerts_deactivates_one_time_alert():
                 "one_time": True,  # Одноразовый алерт
             }
         ],
-        "settings": {"enabled": True},
+        "settings": {
+            "enabled": True,
+            "quiet_hours": {"start": 0, "end": 0},
+        },
         "last_notification": 0,
         "daily_notifications": 0,
         "last_day": "2023-06-01",
@@ -1075,4 +1085,5 @@ async def test_check_all_alerts_deactivates_one_time_alert():
         await check_all_alerts(mock_api, mock_bot)
 
         # Алерт должен быть деактивирован
-        assert notifier_module._user_alerts["12345"]["alerts"][0]["active"] is False
+        alerts = notifier_module._user_alerts["12345"]["alerts"]
+        assert alerts[0]["active"] is False

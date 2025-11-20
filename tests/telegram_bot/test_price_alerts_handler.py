@@ -472,7 +472,7 @@ class TestHandleAlertConditionCallback:
         assert len(alerts) == 1
 
         # Проверяем данные созданного оповещения
-        alert = list(alerts.values())[0]
+        alert = next(iter(alerts.values()))
         assert alert["market_hash_name"] == "AK-47 | Redline (FT)"
         assert alert["target_price"] == 10.50
         assert alert["condition"] == "below"
@@ -494,7 +494,7 @@ class TestHandleAlertConditionCallback:
         )
 
         assert result == ConversationHandler.END
-        alert = list(mock_context.user_data[PRICE_ALERT_STORAGE_KEY].values())[0]
+        alert = next(iter(mock_context.user_data[PRICE_ALERT_STORAGE_KEY].values()))
         assert alert["condition"] == "above"
 
     @pytest.mark.asyncio()
@@ -617,7 +617,7 @@ class TestGetHandlers:
     def test_conversation_has_correct_states(self, price_alerts_handler):
         """Тест правильных состояний в ConversationHandler."""
         handlers = price_alerts_handler.get_handlers()
-        conversation = [h for h in handlers if isinstance(h, ConversationHandler)][0]
+        conversation = next(h for h in handlers if isinstance(h, ConversationHandler))
 
         assert ITEM_NAME in conversation.states
         assert ALERT_PRICE in conversation.states
@@ -658,7 +658,7 @@ class TestIntegrationScenarios:
 
         # Проверка созданного оповещения
         assert PRICE_ALERT_STORAGE_KEY in mock_context.user_data
-        alert = list(mock_context.user_data[PRICE_ALERT_STORAGE_KEY].values())[0]
+        alert = next(iter(mock_context.user_data[PRICE_ALERT_STORAGE_KEY].values()))
         assert alert["market_hash_name"] == "AK-47 | Redline (FT)"
         assert alert["target_price"] == 10.50
         assert alert["condition"] == "below"

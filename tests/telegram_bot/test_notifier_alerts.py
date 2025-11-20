@@ -45,7 +45,10 @@ async def test_check_all_alerts_with_triggered_alert():
                 "active": True,
             }
         ],
-        "settings": {"enabled": True},
+        "settings": {
+            "enabled": True,
+            "quiet_hours": {"start": 0, "end": 0},  # Отключаем тихие часы
+        },
         "last_notification": 0,
         "daily_notifications": 0,
         "last_day": "2023-06-01",
@@ -102,7 +105,10 @@ async def test_check_all_alerts_with_no_triggered_alerts():
 
     # Алерт не сработал
     with (
-        patch("src.telegram_bot.notifier.check_price_alert", return_value=None),
+        patch(
+            "src.telegram_bot.notifier.check_price_alert",
+            return_value=None,
+        ),
         patch("asyncio.sleep", return_value=None),
     ):
         await check_all_alerts(mock_api, mock_bot)

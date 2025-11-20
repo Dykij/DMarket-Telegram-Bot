@@ -19,6 +19,7 @@
 - **[Руководство по разработке](CONTRIBUTING.md)** - Как помочь проекту
 - **[Тестирование](testing_guide.md)** - Запуск и написание тестов
 - **[Качество кода](code_quality_tools_guide.md)** - Ruff, Black, MyPy
+- **[TODO Workflow](TODO_WORKFLOW_EXAMPLE.md)** - Примеры использования TODO-списков
 
 ---
 
