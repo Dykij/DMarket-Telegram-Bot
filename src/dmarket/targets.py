@@ -17,6 +17,7 @@ import time
 from typing import Any
 
 from .dmarket_api import DMarketAPI
+from .liquidity_analyzer import LiquidityAnalyzer
 
 
 logger = logging.getLogger(__name__)
@@ -33,14 +34,25 @@ class TargetManager:
 
     """
 
-    def __init__(self, api_client: DMarketAPI) -> None:
+    def __init__(
+        self,
+        api_client: DMarketAPI,
+        enable_liquidity_filter: bool = True,
+    ) -> None:
         """Инициализация менеджера таргетов.
 
         Args:
             api_client: Настроенный клиент DMarket API
+            enable_liquidity_filter: Включить фильтрацию по ликвидности
 
         """
         self.api = api_client
+        self.enable_liquidity_filter = enable_liquidity_filter
+        self.liquidity_analyzer = None
+
+        if self.enable_liquidity_filter:
+            self.liquidity_analyzer = LiquidityAnalyzer(api_client=self.api)
+
         logger.info("TargetManager инициализирован")
 
     async def create_target(
@@ -80,6 +92,15 @@ class TargetManager:
         # Валидация параметров
         if price <= 0:
             msg = f"Цена должна быть больше 0, получено: {price}"
+            raise ValueError(msg)
+
+        if price > 100000:
+            msg = f"Цена не может превышать $100,000, получено: {price}"
+            raise ValueError(msg)
+
+        # Проверка на количество знаков после запятой (макс 2)
+        if round(price, 2) != price:
+            msg = f"Цена не может иметь более 2 знаков после запятой, получено: {price}"
             raise ValueError(msg)
 
         if amount <= 0 or amount > 100:
@@ -399,6 +420,7 @@ class TargetManager:
         price_reduction_percent: float = 5.0,
         max_targets: int = 10,
         use_aggregated_prices: bool = True,
+        min_liquidity_score: int = 50,
     ) -> list[dict[str, Any]]:
         """Автоматически создать умные таргеты для списка предметов.
 
@@ -408,9 +430,12 @@ class TargetManager:
         Args:
             game: Код игры
             items: Список предметов с названиями
-            price_reduction_percent: Процент снижения от рыночной цены (по умолчанию 5%)
+            price_reduction_percent: Процент снижения от рыночной цены
+                (по умолчанию 5%)
             max_targets: Максимальное количество таргетов для создания
-            use_aggregated_prices: Использовать API v1.1.0 aggregated-prices для эффективности
+            use_aggregated_prices: Использовать API v1.1.0 aggregated-prices
+                для эффективности
+            min_liquidity_score: Минимальный балл ликвидности (0-100)
 
         Returns:
             Список результатов создания таргетов
@@ -438,7 +463,9 @@ class TargetManager:
         # Используем новый API v1.1.0 для массового получения цен (эффективнее)
         if use_aggregated_prices and len(items) > 1:
             try:
-                titles = [item.get("title") for item in items[:max_targets] if item.get("title")]
+                titles = [
+                    str(item.get("title")) for item in items[:max_targets] if item.get("title")
+                ]
 
                 # Получаем агрегированные цены одним запросом
                 aggregated = await self.api.get_aggregated_prices_bulk(
@@ -459,13 +486,31 @@ class TargetManager:
                         if not title or title not in price_map:
                             continue
 
+                        # Проверка ликвидности
+                        if self.enable_liquidity_filter and self.liquidity_analyzer:
+                            try:
+                                metrics = await self.liquidity_analyzer.analyze_item_liquidity(
+                                    item_title=title,
+                                    game=game,
+                                )
+                                if metrics.liquidity_score < min_liquidity_score:
+                                    logger.info(
+                                        f"Пропущен предмет '{title}': "
+                                        f"низкая ликвидность "
+                                        f"({metrics.liquidity_score})"
+                                    )
+                                    continue
+                            except Exception as e:
+                                logger.warning(f"Ошибка проверки ликвидности для '{title}': {e}")
+
                         market_price = price_map[title]
                         target_price = market_price * (1 - price_reduction_percent / 100)
                         target_price = max(0.10, round(target_price, 2))
 
                         logger.info(
                             f"Создание таргета для '{title}': "
-                            f"рынок ${market_price:.2f} -> таргет ${target_price:.2f}",
+                            f"рынок ${market_price:.2f} -> "
+                            f"таргет ${target_price:.2f}",
                         )
 
                         result = await self.create_target(
@@ -499,6 +544,22 @@ class TargetManager:
             if not title:
                 logger.warning(f"Пропущен предмет без названия: {item}")
                 continue
+
+            # Проверка ликвидности
+            if self.enable_liquidity_filter and self.liquidity_analyzer:
+                try:
+                    metrics = await self.liquidity_analyzer.analyze_item_liquidity(
+                        item_title=title,
+                        game=game,
+                    )
+                    if metrics.liquidity_score < min_liquidity_score:
+                        logger.info(
+                            f"Пропущен предмет '{title}': "
+                            f"низкая ликвидность ({metrics.liquidity_score})"
+                        )
+                        continue
+                except Exception as e:
+                    logger.warning(f"Ошибка проверки ликвидности для '{title}': {e}")
 
             try:
                 # Получаем текущую рыночную цену
@@ -534,7 +595,8 @@ class TargetManager:
 
                 logger.info(
                     f"Создание таргета для '{title}': "
-                    f"рынок ${market_price:.2f} -> таргет ${target_price:.2f}",
+                    f"рынок ${market_price:.2f} -> "
+                    f"таргет ${target_price:.2f}",
                 )
 
                 # Создаем таргет
@@ -576,14 +638,17 @@ class TargetManager:
 
         Args:
             limit: Максимальное количество результатов
-            status: Фильтр по статусу ('successful', 'reverted', 'trade_protected')
+            status: Фильтр по статусу ('successful', 'reverted',
+                'trade_protected')
             days: Количество дней истории (по умолчанию 7)
 
         Returns:
             Список закрытых таргетов
 
         Example:
-            >>> closed = await manager.get_closed_targets(limit=20, status='successful')
+            >>> closed = await manager.get_closed_targets(
+            ...     limit=20, status='successful'
+            ... )
             >>> for target in closed:
             ...     print(f"{target['title']}: ${target['price']:.2f}")
 
@@ -708,7 +773,9 @@ class TargetManager:
             ... )
             >>> print(f"Конкурентов: {analysis['total_orders']}")
             >>> print(f"Лучшая цена: ${analysis['best_price']:.2f}")
-            >>> print(f"Рекомендуемая цена: ${analysis['recommended_price']:.2f}")
+            >>> print(
+            ...     f"Рекомендуемая цена: ${analysis['recommended_price']:.2f}"
+            ... )
 
         """
         logger.info(f"Анализ конкуренции для '{title}' в {game}")
@@ -724,7 +791,7 @@ class TargetManager:
                 limit=1,
             )
 
-            analysis = {
+            analysis: dict[str, Any] = {
                 "title": title,
                 "game": game,
                 "total_orders": len(existing_targets),
@@ -736,10 +803,13 @@ class TargetManager:
                 "strategy": "",
             }
 
+            best_price = 0.0
+
             # Анализируем существующие таргеты
             if existing_targets:
-                prices = [t["price"] for t in existing_targets]
-                analysis["best_price"] = max(prices)
+                prices = [float(t["price"]) for t in existing_targets]
+                best_price = max(prices)
+                analysis["best_price"] = best_price
                 analysis["average_price"] = sum(prices) / len(prices)
 
                 # Определяем уровень конкуренции
@@ -757,18 +827,17 @@ class TargetManager:
                 analysis["market_offer_price"] = market_offer_price
 
                 # Рассчитываем рекомендуемую цену
-                if analysis["best_price"] > 0:
+                if best_price > 0:
                     # Если есть конкуренты, ставим чуть выше лучшей цены
                     analysis["recommended_price"] = round(
                         min(
-                            analysis["best_price"] + 0.10,
+                            best_price + 0.10,
                             market_offer_price * 0.95,
                         ),
                         2,
                     )
                     analysis["strategy"] = (
-                        f"Рекомендуется цена выше лучшего таргета "
-                        f"(${analysis['best_price']:.2f}) но ниже рынка"
+                        f"Рекомендуется цена выше лучшего таргета (${best_price:.2f}) но ниже рынка"
                     )
                 else:
                     # Нет конкурентов, ставим на 5-7% ниже рынка
@@ -789,5 +858,4 @@ class TargetManager:
             return {
                 "title": title,
                 "error": str(e),
-                "total_orders": 0,
             }

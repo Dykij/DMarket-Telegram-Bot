@@ -168,16 +168,26 @@ class AnalyticsEvent(Base):
 class DatabaseManager:
     """Database connection and operations manager."""
 
-    def __init__(self, database_url: str, echo: bool = False) -> None:
+    def __init__(
+        self,
+        database_url: str,
+        echo: bool = False,
+        pool_size: int = 5,
+        max_overflow: int = 10,
+    ) -> None:
         """Initialize database manager.
 
         Args:
             database_url: Database connection URL
             echo: Whether to echo SQL queries
+            pool_size: Connection pool size
+            max_overflow: Maximum number of connections to overflow
 
         """
         self.database_url = database_url
         self.echo = echo
+        self.pool_size = pool_size
+        self.max_overflow = max_overflow
         self._engine = None
         self._async_engine = None
         self._session_maker = None
@@ -187,10 +197,26 @@ class DatabaseManager:
     def engine(self):
         """Get synchronous SQLAlchemy engine."""
         if self._engine is None:
+            kwargs = {
+                "echo": self.echo,
+                "pool_pre_ping": True,
+            }
+
+            # Check for in-memory SQLite
+            is_memory = ":memory:" in self.database_url or "mode=memory" in self.database_url
+
+            if not is_memory:
+                kwargs["pool_size"] = self.pool_size
+                kwargs["max_overflow"] = self.max_overflow
+            else:
+                from sqlalchemy.pool import StaticPool
+
+                kwargs["poolclass"] = StaticPool
+                kwargs["connect_args"] = {"check_same_thread": False}
+
             self._engine = create_engine(
                 self.database_url,
-                echo=self.echo,
-                pool_pre_ping=True,
+                **kwargs,
             )
         return self._engine
 
@@ -205,10 +231,25 @@ class DatabaseManager:
             elif async_url.startswith("sqlite:///"):
                 async_url = async_url.replace("sqlite:///", "sqlite+aiosqlite:///")
 
+            kwargs = {
+                "echo": self.echo,
+                "pool_pre_ping": True,
+            }
+
+            # Check for in-memory SQLite
+            is_memory = ":memory:" in self.database_url or "mode=memory" in self.database_url
+
+            if not is_memory:
+                kwargs["pool_size"] = self.pool_size
+                kwargs["max_overflow"] = self.max_overflow
+            else:
+                from sqlalchemy.pool import StaticPool
+
+                kwargs["poolclass"] = StaticPool
+
             self._async_engine = create_async_engine(
                 async_url,
-                echo=self.echo,
-                pool_pre_ping=True,
+                **kwargs,
             )
         return self._async_engine
 
@@ -236,6 +277,37 @@ class DatabaseManager:
     def get_async_session(self) -> AsyncSession:
         """Get asynchronous database session."""
         return self.async_session_maker()
+
+    async def get_db_status(self) -> dict[str, Any]:
+        """Get database connection pool status."""
+        status = {
+            "pool_size": self.pool_size,
+            "max_overflow": self.max_overflow,
+            "sync_engine": "Not initialized",
+            "async_engine": "Not initialized",
+        }
+
+        if self._engine:
+            pool = self._engine.pool
+            status["sync_engine"] = {
+                "size": pool.size(),
+                "checkedin": pool.checkedin(),
+                "checkedout": pool.checkedout(),
+                "overflow": pool.overflow(),
+            }
+
+        if self._async_engine:
+            # Async engine pool status might be accessed differently depending on the driver
+            # But usually it wraps a sync pool
+            pool = self._async_engine.sync_engine.pool
+            status["async_engine"] = {
+                "size": pool.size(),
+                "checkedin": pool.checkedin(),
+                "checkedout": pool.checkedout(),
+                "overflow": pool.overflow(),
+            }
+
+        return status
 
     async def init_database(self) -> None:
         """Initialize database tables."""

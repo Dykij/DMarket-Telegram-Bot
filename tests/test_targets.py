@@ -247,6 +247,28 @@ class TestCreateTarget:
             )
 
     @pytest.mark.asyncio()
+    async def test_create_target_raises_error_when_price_is_too_high(self, target_manager):
+        """Тест проверяет выброс ошибки при слишком высокой цене."""
+        with pytest.raises(ValueError, match="Цена не может превышать"):
+            await target_manager.create_target(
+                game="csgo",
+                title="Expensive Item",
+                price=100001.0,
+            )
+
+    @pytest.mark.asyncio()
+    async def test_create_target_raises_error_when_price_has_too_many_decimals(
+        self, target_manager
+    ):
+        """Тест проверяет выброс ошибки при цене с > 2 знаками после запятой."""
+        with pytest.raises(ValueError, match="Цена не может иметь более 2 знаков"):
+            await target_manager.create_target(
+                game="csgo",
+                title="Precise Item",
+                price=10.555,
+            )
+
+    @pytest.mark.asyncio()
     async def test_create_target_raises_error_when_amount_is_out_of_range(self, target_manager):
         """Тест проверяет выброс ошибки при невалидном количестве."""
         # Arrange & Act & Assert - нулевое количество

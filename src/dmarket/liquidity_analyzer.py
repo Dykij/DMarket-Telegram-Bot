@@ -210,14 +210,20 @@ class LiquidityAnalyzer:
             Список продаж
         """
         try:
-            # Используем метод API для получения истории продаж
-            sales = await self.api.get_sales_history(
-                game=game,
+            # Используем метод API для получения истории продаж из агрегатора
+            # Limit 100 должно быть достаточно для анализа ликвидности
+            sales_data = await self.api.get_sales_history_aggregator(
+                game_id=game,
                 title=item_title,
-                days=days,
+                limit=100,
             )
+            sales = sales_data.get("sales", [])
 
-            return sales.get("sales", [])
+            # Фильтрация по дням
+            import time
+
+            cutoff_time = time.time() - (days * 24 * 60 * 60)
+            return [s for s in sales if int(s.get("date", 0)) >= cutoff_time]
 
         except Exception as e:
             logger.exception(
@@ -243,10 +249,10 @@ class LiquidityAnalyzer:
             Список активных предложений
         """
         try:
-            # Используем метод API для получения предложений
-            offers = await self.api.get_offers_by_title(
+            # Используем метод API для получения лучших предложений
+            offers = await self.api.get_market_best_offers(
+                game=game,
                 title=item_title,
-                game_id=game,
                 limit=100,
             )
 
@@ -473,7 +479,8 @@ class LiquidityAnalyzer:
         meets_offers_criteria = active_offers_count <= self.max_active_offers
         meets_score_criteria = liquidity_score >= self.min_liquidity_score
 
-        # Предмет ликвиден если выполнены все критерии ИЛИ liquidity score достаточно высокий
+        # Предмет ликвиден если выполнены все критерии
+        # ИЛИ liquidity score достаточно высокий
         return (
             meets_sales_criteria and meets_time_criteria and meets_offers_criteria
         ) or meets_score_criteria

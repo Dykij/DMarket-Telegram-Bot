@@ -145,6 +145,14 @@ class Config:
             db_data = data["database"]
             self.database.url = db_data.get("url", self.database.url)
             self.database.echo = db_data.get("echo", self.database.echo)
+            self.database.pool_size = db_data.get(
+                "pool_size",
+                self.database.pool_size,
+            )
+            self.database.max_overflow = db_data.get(
+                "max_overflow",
+                self.database.max_overflow,
+            )
 
         if "security" in data:
             security_data = data["security"]

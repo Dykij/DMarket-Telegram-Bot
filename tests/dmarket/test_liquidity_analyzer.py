@@ -39,8 +39,8 @@ class TestLiquidityMetrics:
 def mock_api_client() -> AsyncMock:
     """Мок DMarket API клиента."""
     client = AsyncMock()
-    client.get_sales_history = AsyncMock()
-    client.get_market_items = AsyncMock()
+    client.get_sales_history_aggregator = AsyncMock()
+    client.get_market_best_offers = AsyncMock()
     return client
 
 
@@ -77,7 +77,7 @@ class TestLiquidityAnalyzer:
     ) -> None:
         """Тест анализа высоколиквидного предмета."""
         # Мок данных: высокая ликвидность
-        mock_api_client.get_sales_history = AsyncMock(
+        mock_api_client.get_sales_history_aggregator = AsyncMock(
             return_value={
                 "sales": [
                     {
@@ -89,7 +89,7 @@ class TestLiquidityAnalyzer:
             }
         )
 
-        mock_api_client.get_offers_by_title = AsyncMock(
+        mock_api_client.get_market_best_offers = AsyncMock(
             return_value={
                 "objects": [{"itemId": f"item_{i}"} for i in range(20)]  # 20 предложений
             }
@@ -116,7 +116,7 @@ class TestLiquidityAnalyzer:
     ) -> None:
         """Тест анализа низколиквидного предмета."""
         # Мок данных: низкая ликвидность
-        mock_api_client.get_sales_history = AsyncMock(
+        mock_api_client.get_sales_history_aggregator = AsyncMock(
             return_value={
                 "sales": [
                     {
@@ -128,7 +128,7 @@ class TestLiquidityAnalyzer:
             }
         )
 
-        mock_api_client.get_offers_by_title = AsyncMock(
+        mock_api_client.get_market_best_offers = AsyncMock(
             return_value={
                 "objects": [{"itemId": f"item_{i}"} for i in range(80)]  # 80 предложений
             }
@@ -330,8 +330,8 @@ class TestLiquidityAnalyzer:
         mock_api_client: AsyncMock,
     ) -> None:
         """Тест обработки пустой истории продаж."""
-        mock_api_client.get_sales_history = AsyncMock(return_value={"sales": []})
-        mock_api_client.get_offers_by_title = AsyncMock(return_value={"objects": []})
+        mock_api_client.get_sales_history_aggregator = AsyncMock(return_value={"sales": []})
+        mock_api_client.get_market_best_offers = AsyncMock(return_value={"objects": []})
 
         metrics = await liquidity_analyzer.analyze_item_liquidity(
             item_title="New Item", game="csgo"
@@ -348,8 +348,8 @@ class TestLiquidityAnalyzer:
         mock_api_client: AsyncMock,
     ) -> None:
         """Тест обработки ошибок API."""
-        mock_api_client.get_sales_history = AsyncMock(side_effect=Exception("API Error"))
-        mock_api_client.get_offers_by_title = AsyncMock(return_value={"objects": []})
+        mock_api_client.get_sales_history_aggregator = AsyncMock(side_effect=Exception("API Error"))
+        mock_api_client.get_market_best_offers = AsyncMock(return_value={"objects": []})
 
         # Должен вернуть метрики с is_liquid=False при ошибке
         # При пустой истории score будет около 15.0

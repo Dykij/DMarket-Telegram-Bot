@@ -35,10 +35,10 @@ from typing import Any
 import httpx
 import nacl.encoding
 import nacl.signing
-import requests
+from circuitbreaker import CircuitBreakerError
 
+from src.utils.api_circuit_breaker import call_with_circuit_breaker
 from src.utils.rate_limiter import RateLimiter
-
 
 logger = logging.getLogger(__name__)
 
@@ -613,13 +613,19 @@ class DMarketAPI:
             try:
                 # Выполняем запрос с нужным методом
                 if method.upper() == "GET":
-                    response = await client.get(url, params=params, headers=headers)
+                    response = await call_with_circuit_breaker(
+                        client.get, url, params=params, headers=headers
+                    )
                 elif method.upper() == "POST":
-                    response = await client.post(url, json=data, headers=headers)
+                    response = await call_with_circuit_breaker(
+                        client.post, url, json=data, headers=headers
+                    )
                 elif method.upper() == "PUT":
-                    response = await client.put(url, json=data, headers=headers)
+                    response = await call_with_circuit_breaker(
+                        client.put, url, json=data, headers=headers
+                    )
                 elif method.upper() == "DELETE":
-                    response = await client.delete(url, headers=headers)
+                    response = await call_with_circuit_breaker(client.delete, url, headers=headers)
                 else:
                     msg = f"Неподдерживаемый HTTP метод: {method}"
                     raise ValueError(msg)
@@ -642,6 +648,11 @@ class DMarketAPI:
                     self._save_to_cache(cache_key, result, ttl_type)
 
                 return result
+
+            except CircuitBreakerError as e:
+                logger.warning(f"Circuit breaker open for {method} {path}: {e}")
+                last_error = e
+                break
 
             except httpx.HTTPStatusError as e:
                 status_code = e.response.status_code
@@ -2621,8 +2632,13 @@ class DMarketAPI:
 
             logger.debug(f"Выполняем прямой запрос к {endpoint}")
 
-            # Выполняем запрос
-            response = requests.get(full_url, headers=headers, timeout=10)
+            # Получаем клиент
+            client = await self._get_client()
+
+            # Выполняем запрос через httpx с circuit breaker
+            response = await call_with_circuit_breaker(
+                client.get, full_url, headers=headers, timeout=10
+            )
 
             # Если запрос успешен (HTTP 200)
             if response.status_code == 200:
@@ -2710,6 +2726,12 @@ class DMarketAPI:
                 "error": f"Ошибка HTTP {response.status_code}: {response.text}",
             }
 
+        except CircuitBreakerError as e:
+            logger.exception(f"Circuit breaker open for direct balance request: {e}")
+            return {
+                "success": False,
+                "error": f"Circuit breaker open: {e}",
+            }
         except Exception as e:
             logger.exception(f"Исключение при прямом запросе баланса: {e!s}")
             return {

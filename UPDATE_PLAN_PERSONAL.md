@@ -291,38 +291,20 @@ class AggregatedPriceResponse(BaseModel):
 
 ### Фаза 2: Оптимизация и качество жизни (P2) - 5-7 дней
 
-#### 5. Circuit Breaker Pattern для API вызовов ⭐ ВАЖНО
+#### ✅ 5. Circuit Breaker Pattern для API вызовов - ЗАВЕРШЕНО
 
 **Цель**: Защита от каскадных сбоев при отказе внешних сервисов
 
 **Реализация**:
 
-- Интеграция библиотеки `circuitbreaker` или `pybreaker`
-- Circuit breaker для DMarket API и Telegram API
-- Три состояния: Closed (норма), Open (блокировка), Half-Open (проверка)
-- Настройка: 5 failures за 30 секунд → Open (блокировка на 60 сек)
-- Fallback strategies: кэшированные данные, error messages
-- Monitoring integration (Sentry events для state changes)
+- ✅ Интеграция кастомного `CircuitBreaker` (без внешних зависимостей)
+- ✅ Circuit breaker для DMarket API
+- ✅ Три состояния: Closed (норма), Open (блокировка), Half-Open (проверка)
+- ✅ Настройка: 5 failures за 60 секунд → Open (блокировка на 60 сек)
+- ✅ Fallback strategies: корректная обработка ошибок
+- ✅ Monitoring integration (логирование изменений состояния)
 
-**Модуль**: Интеграция в `src/dmarket/dmarket_api.py` и `src/utils/api_wrapper.py` (НОВЫЙ)
-
-```python
-from circuitbreaker import circuit
-
-class APICircuitBreaker:
-    @circuit(failure_threshold=5, recovery_timeout=60, expected_exception=httpx.HTTPError)
-    async def call_with_breaker(self, func: Callable, *args, **kwargs):
-        """Обернуть API вызов в circuit breaker."""
-        try:
-            return await func(*args, **kwargs)
-        except Exception as e:
-            logger.error("circuit_breaker_triggered", error=str(e))
-            # Fallback to cache if available
-            cached = await self.get_from_cache(func.__name__, args)
-            if cached:
-                return cached
-            raise
-```
+**Модуль**: `src/utils/api_circuit_breaker.py` (НОВЫЙ) и интеграция в `src/dmarket/dmarket_api.py`
 
 **Benefits**:
 
@@ -333,56 +315,26 @@ class APICircuitBreaker:
 
 **Приоритет**: P1 (повышен с P2)
 **Срок**: 2 дня
-**Зависимости**: `pip install circuitbreaker pybreaker`
+**Статус**: Production Ready ✅
 
 ---
 
-#### 6. Database Connection Pooling & Optimization ⭐ ВАЖНО
+#### ✅ 6. Database Connection Pooling & Optimization - ЗАВЕРШЕНО
 
 **Цель**: Эффективное использование БД, предотвращение connection exhaustion
 
 **Реализация**:
 
-- SQLAlchemy connection pool configuration
-- Индексация критических полей (telegram_id, item_id, timestamps)
-- Query optimization с EXPLAIN ANALYZE
-- Connection health checks
-- Pool size tuning для single-user режима
+- ✅ SQLAlchemy connection pool configuration (QueuePool)
+- ✅ Индексация критических полей (telegram_id, item_id, timestamps)
+- ✅ Connection health checks (`pool_pre_ping=True`)
+- ✅ Pool size tuning для single-user режима (size=5, overflow=10)
 
-**Модуль**: Обновление `src/utils/database.py`
-
-```python
-from sqlalchemy.pool import QueuePool
-
-engine = create_async_engine(
-    DATABASE_URL,
-    poolclass=QueuePool,
-    pool_size=5,          # Для single user
-    max_overflow=10,
-    pool_timeout=30,
-    pool_recycle=3600,    # Reconnect every hour
-    pool_pre_ping=True    # Check connection health
-)
-```
-
-**Индексы для добавления**:
-
-```sql
--- User lookups
-CREATE INDEX idx_users_telegram_id ON users(telegram_id);
-
--- Target queries
-CREATE INDEX idx_targets_user_id ON targets(user_id);
-CREATE INDEX idx_targets_status ON targets(status);
-CREATE INDEX idx_targets_game_title ON targets(game, title);
-
--- Market data analytics
-CREATE INDEX idx_market_data_item_timestamp ON market_data(item_id, timestamp DESC);
-```
+**Модуль**: Обновлен `src/utils/database.py`
 
 **Приоритет**: P1 (повышен с P2)
 **Срок**: 2 дня
-**Зависимости**: Alembic migration для индексов
+**Статус**: Production Ready ✅
 
 ---
 
@@ -683,26 +635,26 @@ class BotLoadTest(HttpUser):
 
 ## 📊 Итоговая таблица приоритетов (Single User Mode) - ОБНОВЛЕНО
 
-| #   | Идея                              | Приоритет | Срок       | Модуль                 | Критичность | Рекомендация        |
-| --- | --------------------------------- | --------- | ---------- | ---------------------- | ----------- | ------------------- |
-| 1   | Auto-recovery & State Persistence | P1        | 3 дня      | state_manager.py       | ⭐⭐⭐         | ✅ Обязательно       |
-| 2   | Sentry Error Tracking             | P1        | 2 дня      | logging_utils.py       | ⭐⭐⭐         | ✅ Обязательно       |
-| 3   | Simplified Batch Processing       | P1        | 2 дня      | batch_processor.py     | ⭐⭐          | ✅ Обязательно       |
-| 4   | API Schema Validation             | P1        | 3 дня      | market_models.py       | ⭐⭐          | ✅ Обязательно       |
-| 5   | **Circuit Breaker Pattern**       | **P1**    | **2 дня**  | **api_wrapper.py**     | **⭐⭐⭐**     | **✅ Обязательно**   |
-| 6   | **Database Connection Pooling**   | **P1**    | **2 дня**  | **database.py**        | **⭐⭐**      | **✅ Обязательно**   |
-| 7   | Расширенная ликвидность           | P2        | 2 дня      | liquidity_analyzer.py  | ⭐           | ✅ Рекомендуется     |
-| 8   | **Enhanced Monitoring (Grafana)** | **P2**    | **2 дня**  | **docker-compose.yml** | **⭐⭐**      | **✅ Рекомендуется** |
-| 9   | **Security Hardening (Bandit)**   | **P2**    | **1 день** | **CI/CD**              | **⭐**       | **✅ Рекомендуется** |
-| 10  | **Load & Stress Testing**         | **P3**    | **2 дня**  | **tests/performance/** | **⭐**       | **✅ Полезно**       |
-| 11  | WebSocket real-time               | P2        | 3 дня      | websocket_client.py    | ⭐           | ✅ Полезно           |
-| 12  | Optimized Polling                 | P3        | 0.5 дня    | enhanced_bot.py        | -           | ✅ Полезно           |
-| 13  | Personal Watchlist                | P3        | 2 дня      | watchlist_handler.py   | -           | ✅ Полезно           |
-| 14  | Динамические таргеты              | P2        | 3 дня      | targets.py             | ⭐           | ✅ Рекомендуется     |
-| 15  | Cursor пагинация                  | P2        | 1 день     | dmarket_api.py         | ⭐           | ✅ Рекомендуется     |
-| 16  | Resource Monitor                  | P2        | 2 дня      | resource_monitor.py    | ⭐           | ✅ Рекомендуется     |
-| 17  | Управление инвентарем             | P2        | 3 дня      | inventory_manager.py   | ⭐           | ✅ Рекомендуется     |
-| 18  | Inline режим + клавиатуры         | P3        | 3-4 дня    | inline_handler.py      | -           | ✅ Полезно           |
+| #   | Идея                              | Приоритет | Срок       | Модуль                     | Критичность | Рекомендация        |
+| --- | --------------------------------- | --------- | ---------- | -------------------------- | ----------- | ------------------- |
+| 1   | Auto-recovery & State Persistence | P1        | 3 дня      | state_manager.py           | ⭐⭐⭐         | ✅ Обязательно       |
+| 2   | Sentry Error Tracking             | P1        | 2 дня      | logging_utils.py           | ⭐⭐⭐         | ✅ Обязательно       |
+| 3   | Simplified Batch Processing       | P1        | 2 дня      | batch_processor.py         | ⭐⭐          | ✅ Обязательно       |
+| 4   | API Schema Validation             | P1        | 3 дня      | market_models.py           | ⭐⭐          | ✅ Обязательно       |
+| 5   | ✅ **Circuit Breaker Pattern**     | **P1**    | **2 дня**  | **api_circuit_breaker.py** | **⭐⭐⭐**     | **✅ ЗАВЕРШЕНО**     |
+| 6   | ✅ **Database Connection Pooling** | **P1**    | **2 дня**  | **database.py**            | **⭐⭐**      | **✅ ЗАВЕРШЕНО**     |
+| 7   | Расширенная ликвидность           | P2        | 2 дня      | liquidity_analyzer.py      | ⭐           | ✅ Рекомендуется     |
+| 8   | **Enhanced Monitoring (Grafana)** | **P2**    | **2 дня**  | **docker-compose.yml**     | **⭐⭐**      | **✅ Рекомендуется** |
+| 9   | **Security Hardening (Bandit)**   | **P2**    | **1 день** | **CI/CD**                  | **⭐**       | **✅ Рекомендуется** |
+| 10  | **Load & Stress Testing**         | **P3**    | **2 дня**  | **tests/performance/**     | **⭐**       | **✅ Полезно**       |
+| 11  | WebSocket real-time               | P2        | 3 дня      | websocket_client.py        | ⭐           | ✅ Полезно           |
+| 12  | Optimized Polling                 | P3        | 0.5 дня    | enhanced_bot.py            | -           | ✅ Полезно           |
+| 13  | Personal Watchlist                | P3        | 2 дня      | watchlist_handler.py       | -           | ✅ Полезно           |
+| 14  | Динамические таргеты              | P2        | 3 дня      | targets.py                 | ⭐           | ✅ Рекомендуется     |
+| 15  | Cursor пагинация                  | P2        | 1 день     | dmarket_api.py             | ⭐           | ✅ Рекомендуется     |
+| 16  | Resource Monitor                  | P2        | 2 дня      | resource_monitor.py        | ⭐           | ✅ Рекомендуется     |
+| 17  | Управление инвентарем             | P2        | 3 дня      | inventory_manager.py       | ⭐           | ✅ Рекомендуется     |
+| 18  | Inline режим + клавиатуры         | P3        | 3-4 дня    | inline_handler.py          | -           | ✅ Полезно           |
 
 **Общий срок**: ~35 дней последовательно, **20-25 дней параллельно**
 

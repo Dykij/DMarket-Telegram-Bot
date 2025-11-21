@@ -210,7 +210,12 @@ class ArbitrageScanner:
 
         # Инициализируем анализатор ликвидности если включен
         if self.enable_liquidity_filter and self.liquidity_analyzer is None:
-            self.liquidity_analyzer = LiquidityAnalyzer(self.api_client)
+            self.liquidity_analyzer = LiquidityAnalyzer(
+                api_client=self.api_client,
+                min_sales_per_week=self.min_sales_per_week,
+                max_time_to_sell_days=self.max_time_to_sell_days,
+                min_liquidity_score=self.min_liquidity_score,
+            )
 
         return self.api_client
 
