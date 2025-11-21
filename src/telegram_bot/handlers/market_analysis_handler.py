@@ -4,7 +4,7 @@ import logging
 from typing import Any
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import CallbackContext, CallbackQueryHandler, CommandHandler
+from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
 
 from src.dmarket.arbitrage import GAMES
 from src.dmarket.market_analysis import (
@@ -26,7 +26,7 @@ from src.utils.price_analyzer import find_undervalued_items, get_investment_reco
 logger = logging.getLogger(__name__)
 
 
-async def market_analysis_command(update: Update, context: CallbackContext) -> None:
+async def market_analysis_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обрабатывает команду /market_analysis для начала анализа рынка.
 
     Args:
@@ -102,7 +102,7 @@ async def market_analysis_command(update: Update, context: CallbackContext) -> N
     )
 
 
-async def market_analysis_callback(update: Update, context: CallbackContext) -> None:
+async def market_analysis_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обрабатывает колбэки для анализа рынка.
 
     Args:
@@ -215,9 +215,9 @@ async def market_analysis_callback(update: Update, context: CallbackContext) -> 
     user_settings = context.user_data["market_analysis"]
     current_game = user_settings.get("current_game", game)
 
-    # Показываем сообщение о загрузке
+    game_name = GAMES.get(current_game, current_game)
     await query.edit_message_text(
-        f"⏳ Загрузка данных анализа рынка для {GAMES.get(current_game, current_game)}...",
+        f"⏳ Загрузка данных анализа рынка для {game_name}...",
         parse_mode="Markdown",
     )
 
@@ -295,7 +295,8 @@ async def market_analysis_callback(update: Update, context: CallbackContext) -> 
             await show_market_report(query, context, report)
 
         elif action == "undervalued":
-            # Поиск недооцененных предметов с помощью нового модуля price_analyzer
+            # Поиск недооцененных предметов с помощью нового модуля
+            # price_analyzer
             results = await find_undervalued_items(
                 api_client,
                 game=current_game,
@@ -312,7 +313,8 @@ async def market_analysis_callback(update: Update, context: CallbackContext) -> 
             await show_undervalued_items_results(query, context, current_game)
 
         elif action == "recommendations":
-            # Получаем инвестиционные рекомендации с помощью нового модуля price_analyzer
+            # Получаем инвестиционные рекомендации с помощью нового модуля
+            # price_analyzer
             results = await get_investment_recommendations(
                 api_client,
                 game=current_game,
@@ -346,7 +348,7 @@ async def market_analysis_callback(update: Update, context: CallbackContext) -> 
                 logger.warning(f"Ошибка при закрытии клиента API: {e}")
 
 
-async def handle_pagination_analysis(update: Update, context: CallbackContext) -> None:
+async def handle_pagination_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обрабатывает пагинацию для результатов анализа рынка.
 
     Args:
@@ -412,7 +414,8 @@ async def show_price_changes_results(query, context, game: str) -> None:
         return
 
     # Используем унифицированный форматтер для рыночных предметов
-    # При необходимости создаем специализированный форматтер для ценовых изменений
+    # При необходимости создаем специализированный форматтер
+    # для ценовых изменений
     formatted_text = format_market_items(
         items=items,
         page=current_page,
@@ -422,7 +425,8 @@ async def show_price_changes_results(query, context, game: str) -> None:
     # Добавляем заголовок для анализа цен
     header_text = (
         f"📉 *Анализ изменений цен - {GAMES.get(game, game)}*\n\n"
-        f"Показаны предметы с наибольшими изменениями цен за последние 24 часа.\n"
+        f"Показаны предметы с наибольшими изменениями цен "
+        f"за последние 24 часа.\n"
     )
 
     # Добавляем периоды сравнения
@@ -585,7 +589,8 @@ async def show_volatility_results(query, context, game: str) -> None:
             f"   💰 Цена: ${current_price:.2f}\n"
             f"   📈 Изменение (24ч): {change_24h:.1f}%\n"
             f"   📈 Изменение (7д): {change_7d:.1f}%\n"
-            f"   🔄 Волатильность: {volatility_level} ({volatility_score:.1f})\n\n"
+            f"   🔄 Волатильность: {volatility_level} "
+            f"({volatility_score:.1f})\n\n"
         )
 
         text += item_text
@@ -742,7 +747,7 @@ async def show_market_report(query, context, report: dict[str, Any]) -> None:
     )
 
 
-async def handle_period_change(update: Update, context: CallbackContext) -> None:
+async def handle_period_change(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обрабатывает изменение периода анализа.
 
     Args:
@@ -835,8 +840,9 @@ async def show_undervalued_items_results(query, context, game: str) -> None:
     items, current_page, total_pages = pagination_manager.get_page(user_id)
 
     if not items:
+        game_name = GAMES.get(game, game)
         await query.edit_message_text(
-            f"ℹ️ Не найдено недооцененных предметов для {GAMES.get(game, game)}",
+            f"ℹ️ Не найдено недооцененных предметов для {game_name}",
             reply_markup=get_back_to_market_analysis_keyboard(game),
         )
         return
@@ -931,8 +937,9 @@ async def show_investment_recommendations_results(query, context, game: str) -> 
     items, current_page, total_pages = pagination_manager.get_page(user_id)
 
     if not items:
+        game_name = GAMES.get(game, game)
         await query.edit_message_text(
-            f"ℹ️ Не удалось сформировать инвестиционные рекомендации для {GAMES.get(game, game)}",
+            f"ℹ️ Не удалось сформировать инвестиционные рекомендации для {game_name}",
             reply_markup=get_back_to_market_analysis_keyboard(game),
         )
         return
@@ -1026,7 +1033,10 @@ async def show_investment_recommendations_results(query, context, game: str) -> 
     )
 
 
-async def handle_risk_level_change(update: Update, context: CallbackContext) -> None:
+async def handle_risk_level_change(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> None:
     """Обрабатывает изменение уровня риска для инвестиционных рекомендаций.
 
     Args:

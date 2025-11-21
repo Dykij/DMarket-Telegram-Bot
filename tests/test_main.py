@@ -100,8 +100,9 @@ class TestApplication:
             patch("src.main.Config.load", return_value=mock_config),
             patch("src.main.setup_logging"),
             patch("src.main.DMarketAPI", return_value=mock_dmarket_api),
-            patch("src.main.DMarketBot", return_value=mock_bot),
+            patch("src.main.ApplicationBuilder") as MockBuilder,
         ):
+            MockBuilder.return_value.token.return_value.build.return_value = mock_bot
             await app.initialize()
 
         # Assert
@@ -125,8 +126,9 @@ class TestApplication:
             patch("src.main.setup_logging"),
             patch("src.main.DatabaseManager", return_value=mock_database),
             patch("src.main.DMarketAPI", return_value=mock_dmarket_api),
-            patch("src.main.DMarketBot", return_value=mock_bot),
+            patch("src.main.ApplicationBuilder") as MockBuilder,
         ):
+            MockBuilder.return_value.token.return_value.build.return_value = mock_bot
             await app.initialize()
 
         # Assert
@@ -137,7 +139,7 @@ class TestApplication:
     async def test_initialize_in_production_mode_tests_api_connection(
         self, mock_config, mock_dmarket_api, mock_bot
     ):
-        """Тест проверяет, что в production режиме выполняется проверка подключения к API."""
+        """Тест проверяет проверку подключения к API в production режиме."""
         # Arrange
         mock_config.testing = False
         app = Application()
@@ -147,8 +149,9 @@ class TestApplication:
             patch("src.main.Config.load", return_value=mock_config),
             patch("src.main.setup_logging"),
             patch("src.main.DMarketAPI", return_value=mock_dmarket_api),
-            patch("src.main.DMarketBot", return_value=mock_bot),
+            patch("src.main.ApplicationBuilder") as MockBuilder,
         ):
+            MockBuilder.return_value.token.return_value.build.return_value = mock_bot
             await app.initialize()
 
         # Assert
@@ -158,7 +161,7 @@ class TestApplication:
     async def test_initialize_continues_when_api_connection_fails(
         self, mock_config, mock_dmarket_api, mock_bot
     ):
-        """Тест проверяет, что инициализация продолжается при ошибке подключения к API."""
+        """Тест проверяет продолжение инициализации при ошибке API."""
         # Arrange
         mock_config.testing = False
         mock_dmarket_api.get_balance = AsyncMock(side_effect=Exception("Connection failed"))
@@ -169,11 +172,12 @@ class TestApplication:
             patch("src.main.Config.load", return_value=mock_config),
             patch("src.main.setup_logging"),
             patch("src.main.DMarketAPI", return_value=mock_dmarket_api),
-            patch("src.main.DMarketBot", return_value=mock_bot),
+            patch("src.main.ApplicationBuilder") as MockBuilder,
         ):
+            MockBuilder.return_value.token.return_value.build.return_value = mock_bot
             await app.initialize()
 
-        # Assert - должно только залогировать предупреждение, но не выбросить исключение
+        # Assert - должно только залогировать предупреждение
         assert app.dmarket_api == mock_dmarket_api
 
     @pytest.mark.asyncio()
@@ -407,7 +411,7 @@ class TestWindowsEventLoopPolicy:
 
         with (
             patch("asyncio.set_event_loop_policy") as mock_set_policy,
-            patch("asyncio.WindowsProactorEventLoopPolicy") as MockPolicy,
+            patch("asyncio.WindowsProactorEventLoopPolicy"),
         ):
             # This would normally be in __main__ block
             # We test the logic separately
@@ -429,8 +433,9 @@ class TestLogging:
             patch("src.main.Config.load", return_value=mock_config),
             patch("src.main.setup_logging") as mock_setup_logging,
             patch("src.main.DMarketAPI", return_value=AsyncMock()),
-            patch("src.main.DMarketBot", return_value=AsyncMock()),
+            patch("src.main.ApplicationBuilder") as MockBuilder,
         ):
+            MockBuilder.return_value.token.return_value.build.return_value = AsyncMock()
             await app.initialize()
 
             mock_setup_logging.assert_called_once_with(

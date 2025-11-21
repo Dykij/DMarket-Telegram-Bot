@@ -10,7 +10,7 @@ import pytest
 from telegram import InlineKeyboardMarkup, Message, Update, User
 from telegram.ext import CallbackContext
 
-from src.telegram_bot.settings_handlers import (
+from src.telegram_bot.handlers.settings_handlers import (
     get_localized_text,
     get_user_profile,
     handle_setup_input,
@@ -68,7 +68,7 @@ def mock_user_profiles():
     }
 
 
-@patch("src.telegram_bot.settings_handlers.USER_PROFILES", {})
+@patch("src.telegram_bot.handlers.settings_handlers.USER_PROFILES", {})
 def test_get_user_profile_new_user():
     """Тестирует получение профиля для нового пользователя."""
     # Получаем профиль для нового пользователя
@@ -86,7 +86,7 @@ def test_get_user_profile_new_user():
 def test_get_user_profile_existing_user():
     """Тестирует получение профиля для существующего пользователя."""
     # Настройка - работаем с UserProfileManager
-    from src.telegram_bot import settings_handlers
+    from src.telegram_bot.handlers import settings_handlers
 
     # Получаем доступ к _profile_manager
     try:
@@ -144,7 +144,7 @@ def test_get_user_profile_existing_user():
 
 
 @patch(
-    "src.telegram_bot.settings_handlers.LOCALIZATIONS",
+    "src.telegram_bot.handlers.settings_handlers.LOCALIZATIONS",
     {
         "ru": {"greeting": "Привет", "settings": "Настройки"},
         "en": {"greeting": "Hello", "settings": "Settings"},
@@ -153,7 +153,7 @@ def test_get_user_profile_existing_user():
 def test_get_localized_text():
     """Тестирует получение локализованного текста."""
     # Настройка - работаем с UserProfileManager
-    from src.telegram_bot import settings_handlers
+    from src.telegram_bot.handlers import settings_handlers
 
     try:
         manager = settings_handlers._profile_manager
@@ -189,7 +189,7 @@ def test_get_localized_text():
 
 
 @patch(
-    "src.telegram_bot.settings_handlers.LOCALIZATIONS",
+    "src.telegram_bot.handlers.settings_handlers.LOCALIZATIONS",
     {
         "ru": {"greeting": "Привет, {name}!", "settings": "Настройки"},
         "en": {"greeting": "Hello, {name}!", "settings": "Settings"},
@@ -198,7 +198,7 @@ def test_get_localized_text():
 def test_get_localized_text_with_params():
     """Тестирует получение локализованного текста с параметрами."""
     # Настройка - работаем с UserProfileManager
-    from src.telegram_bot import settings_handlers
+    from src.telegram_bot.handlers import settings_handlers
 
     try:
         manager = settings_handlers._profile_manager
@@ -233,9 +233,9 @@ def test_get_localized_text_with_params():
             settings_handlers.USER_PROFILES.update(original_profiles)
 
 
-@patch("src.telegram_bot.settings_handlers.USER_PROFILES")
+@patch("src.telegram_bot.handlers.settings_handlers.USER_PROFILES")
 @patch(
-    "src.telegram_bot.settings_handlers.LOCALIZATIONS",
+    "src.telegram_bot.handlers.settings_handlers.LOCALIZATIONS",
     {
         "ru": {"greeting": "Привет", "settings": "Настройки"},
         "en": {"hello": "Hello"},  # "greeting" отсутствует в английском
@@ -256,9 +256,9 @@ def test_get_localized_text_missing_key(mock_profiles):
     assert text == "Привет"
 
 
-@patch("src.telegram_bot.settings_handlers.USER_PROFILES")
+@patch("src.telegram_bot.handlers.settings_handlers.USER_PROFILES")
 @patch(
-    "src.telegram_bot.settings_handlers.LOCALIZATIONS",
+    "src.telegram_bot.handlers.settings_handlers.LOCALIZATIONS",
     {
         "ru": {"greeting": "Привет", "settings": "Настройки"},
         "en": {"greeting": "Hello", "settings": "Settings"},
@@ -280,7 +280,7 @@ def test_get_localized_text_unsupported_language(mock_profiles):
 
 
 @patch(
-    "src.telegram_bot.settings_handlers.USER_PROFILES",
+    "src.telegram_bot.handlers.settings_handlers.USER_PROFILES",
     {"123456789": {"language": "ru"}},
 )
 @patch("os.path.dirname")
@@ -312,9 +312,9 @@ def test_save_user_profiles(mock_json_dump, mock_file_open, mock_dirname):
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.settings_handlers.get_user_profile")
-@patch("src.telegram_bot.settings_handlers.get_localized_text")
-@patch("src.telegram_bot.settings_handlers.get_settings_keyboard")
+@patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
+@patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
 async def test_settings_command(
     mock_get_settings_keyboard,
     mock_get_localized_text,
@@ -349,9 +349,9 @@ async def test_settings_command(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.settings_handlers.get_user_profile")
-@patch("src.telegram_bot.settings_handlers.get_localized_text")
-@patch("src.telegram_bot.settings_handlers.get_settings_keyboard")
+@patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
+@patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
 async def test_settings_callback_main_menu(
     mock_get_settings_keyboard,
     mock_get_localized_text,
@@ -394,9 +394,9 @@ async def test_settings_callback_main_menu(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.settings_handlers.get_user_profile")
-@patch("src.telegram_bot.settings_handlers.get_localized_text")
-@patch("src.telegram_bot.settings_handlers.get_language_keyboard")
+@patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
+@patch("src.telegram_bot.handlers.settings_handlers.get_language_keyboard")
 async def test_settings_callback_language_menu(
     mock_get_language_keyboard,
     mock_get_localized_text,
@@ -436,12 +436,12 @@ async def test_settings_callback_language_menu(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.settings_handlers.get_user_profile")
-@patch("src.telegram_bot.settings_handlers.save_user_profiles")
-@patch("src.telegram_bot.settings_handlers.get_localized_text")
-@patch("src.telegram_bot.settings_handlers.get_back_to_settings_keyboard")
+@patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.handlers.settings_handlers.save_user_profiles")
+@patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
+@patch("src.telegram_bot.handlers.settings_handlers.get_back_to_settings_keyboard")
 @patch(
-    "src.telegram_bot.settings_handlers.LANGUAGES",
+    "src.telegram_bot.handlers.settings_handlers.LANGUAGES",
     {"ru": "Русский", "en": "English"},
 )
 async def test_settings_callback_language_set(
@@ -486,10 +486,10 @@ async def test_settings_callback_language_set(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.settings_handlers.get_user_profile")
-@patch("src.telegram_bot.settings_handlers.save_user_profiles")
-@patch("src.telegram_bot.settings_handlers.get_localized_text")
-@patch("src.telegram_bot.settings_handlers.get_settings_keyboard")
+@patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.handlers.settings_handlers.save_user_profiles")
+@patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
+@patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
 async def test_settings_callback_toggle_trading(
     mock_get_settings_keyboard,
     mock_get_localized_text,
@@ -546,8 +546,8 @@ async def test_settings_callback_toggle_trading(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.settings_handlers.get_user_profile")
-@patch("src.telegram_bot.settings_handlers.get_back_to_settings_keyboard")
+@patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.handlers.settings_handlers.get_back_to_settings_keyboard")
 async def test_settings_callback_api_keys(
     mock_get_back_keyboard,
     mock_get_user_profile,
@@ -598,10 +598,10 @@ async def test_settings_callback_api_keys(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.settings_handlers.get_user_profile")
-@patch("src.telegram_bot.settings_handlers.save_user_profiles")
-@patch("src.telegram_bot.settings_handlers.get_localized_text")
-@patch("src.telegram_bot.settings_handlers.get_language_keyboard")
+@patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.handlers.settings_handlers.save_user_profiles")
+@patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
+@patch("src.telegram_bot.handlers.settings_handlers.get_language_keyboard")
 async def test_settings_callback_language_invalid(
     mock_get_language_keyboard,
     mock_get_localized_text,
@@ -647,8 +647,8 @@ async def test_settings_callback_language_invalid(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.settings_handlers.get_user_profile")
-@patch("src.telegram_bot.settings_handlers.get_risk_profile_keyboard")
+@patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.handlers.settings_handlers.get_risk_profile_keyboard")
 async def test_settings_callback_settings_limits(
     mock_get_risk_keyboard,
     mock_get_user_profile,
@@ -700,9 +700,9 @@ async def test_settings_callback_settings_limits(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.settings_handlers.get_user_profile")
-@patch("src.telegram_bot.settings_handlers.save_user_profiles")
-@patch("src.telegram_bot.settings_handlers.get_back_to_settings_keyboard")
+@patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.handlers.settings_handlers.save_user_profiles")
+@patch("src.telegram_bot.handlers.settings_handlers.get_back_to_settings_keyboard")
 async def test_settings_callback_risk_low(
     mock_get_back_keyboard,
     mock_save_profiles,
@@ -750,9 +750,9 @@ async def test_settings_callback_risk_low(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.settings_handlers.get_user_profile")
-@patch("src.telegram_bot.settings_handlers.save_user_profiles")
-@patch("src.telegram_bot.settings_handlers.get_back_to_settings_keyboard")
+@patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.handlers.settings_handlers.save_user_profiles")
+@patch("src.telegram_bot.handlers.settings_handlers.get_back_to_settings_keyboard")
 async def test_settings_callback_risk_medium(
     mock_get_back_keyboard,
     mock_save_profiles,
@@ -781,9 +781,9 @@ async def test_settings_callback_risk_medium(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.settings_handlers.get_user_profile")
-@patch("src.telegram_bot.settings_handlers.save_user_profiles")
-@patch("src.telegram_bot.settings_handlers.get_back_to_settings_keyboard")
+@patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.handlers.settings_handlers.save_user_profiles")
+@patch("src.telegram_bot.handlers.settings_handlers.get_back_to_settings_keyboard")
 async def test_settings_callback_risk_high(
     mock_get_back_keyboard,
     mock_save_profiles,
@@ -812,7 +812,7 @@ async def test_settings_callback_risk_high(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.settings_handlers.get_localized_text")
+@patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
 @patch("src.telegram_bot.keyboards.get_arbitrage_keyboard")
 async def test_settings_callback_back_to_menu(
     mock_get_arbitrage_keyboard,
@@ -851,7 +851,7 @@ async def test_settings_callback_back_to_menu(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.settings_handlers.get_localized_text")
+@patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
 async def test_setup_command(
     mock_get_localized_text,
     mock_update,
@@ -881,9 +881,9 @@ async def test_setup_command(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.settings_handlers.get_user_profile")
-@patch("src.telegram_bot.settings_handlers.save_user_profiles")
-@patch("src.telegram_bot.settings_handlers.get_localized_text")
+@patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.handlers.settings_handlers.save_user_profiles")
+@patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
 async def test_handle_setup_input_api_key(
     mock_get_localized_text,
     mock_save_profiles,
@@ -918,9 +918,9 @@ async def test_handle_setup_input_api_key(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.settings_handlers.get_user_profile")
-@patch("src.telegram_bot.settings_handlers.save_user_profiles")
-@patch("src.telegram_bot.settings_handlers.get_localized_text")
+@patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
+@patch("src.telegram_bot.handlers.settings_handlers.save_user_profiles")
+@patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
 async def test_handle_setup_input_api_secret(
     mock_get_localized_text,
     mock_save_profiles,

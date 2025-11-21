@@ -210,20 +210,47 @@ class LiquidityAnalyzer:
             Список продаж
         """
         try:
-            # Используем метод API для получения истории продаж из агрегатора
-            # Limit 100 должно быть достаточно для анализа ликвидности
-            sales_data = await self.api.get_sales_history_aggregator(
-                game_id=game,
-                title=item_title,
-                limit=100,
-            )
-            sales = sales_data.get("sales", [])
+            all_sales = []
+            limit = 20  # API limit per request
+            offset = 0
+            max_items = 100  # Total items we want to fetch to analyze liquidity
 
-            # Фильтрация по дням
             import time
 
             cutoff_time = time.time() - (days * 24 * 60 * 60)
-            return [s for s in sales if int(s.get("date", 0)) >= cutoff_time]
+
+            while len(all_sales) < max_items:
+                # Используем метод API для получения истории продаж из агрегатора
+                sales_data = await self.api.get_sales_history_aggregator(
+                    game_id=game,
+                    title=item_title,
+                    limit=limit,
+                    offset=offset,
+                )
+                sales = sales_data.get("sales", [])
+
+                if not sales:
+                    break
+
+                all_sales.extend(sales)
+
+                # Если вернулось меньше лимита, значит больше нет
+                if len(sales) < limit:
+                    break
+
+                # Проверяем, не ушли ли мы за пределы нужного времени
+                # (предполагаем, что продажи отсортированы по дате убывания)
+                try:
+                    last_sale_time = int(sales[-1].get("date", 0))
+                    if last_sale_time < cutoff_time:
+                        break
+                except (ValueError, TypeError):
+                    pass
+
+                offset += limit
+
+            # Фильтрация по дням
+            return [s for s in all_sales if int(s.get("date", 0)) >= cutoff_time]
 
         except Exception as e:
             logger.exception(

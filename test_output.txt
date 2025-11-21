@@ -1,0 +1,169 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.1, pluggy-1.6.0 -- D:\Dmarket\DMarket-Telegram-Bot\DMarket-Telegram-Bot\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\Dmarket\DMarket-Telegram-Bot\DMarket-Telegram-Bot
+configfile: pyproject.toml
+plugins: anyio-4.11.0, Faker-38.0.0, asyncio-1.3.0, cov-7.0.0, mock-3.15.1, xdist-3.8.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 1 item
+
+tests/telegram_bot/test_notification_queue.py::test_rate_limiting FAILED
+ERROR: Coverage failure: total of 3.19 is less than fail-under=25.00
+
+
+================================== FAILURES ===================================
+_____________________________ test_rate_limiting ______________________________
+tests\telegram_bot\test_notification_queue.py:81: in test_rate_limiting
+    await notification_queue.enqueue(chat_id=123, text=f"Msg {i}")
+src\telegram_bot\notification_queue.py:89: in enqueue
+    await self.queue.put((priority, time.time(), message))
+C:\Program Files\Python311\Lib\asyncio\queues.py:135: in put
+    return self.put_nowait(item)
+           ^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\Python311\Lib\asyncio\queues.py:144: in put_nowait
+    self._put(item)
+C:\Program Files\Python311\Lib\asyncio\queues.py:228: in _put
+    heappush(self._queue, item)
+E   TypeError: '<' not supported between instances of 'NotificationMessage' and 'NotificationMessage'
+----------------------------- Captured log setup ------------------------------
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.address`.
+DEBUG    faker.factory:factory.py:97 Provider `faker.providers.address` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.automotive`.
+DEBUG    faker.factory:factory.py:97 Provider `faker.providers.automotive` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.bank`.
+DEBUG    faker.factory:factory.py:88 Specified locale `en_US` is not available for provider `faker.providers.bank`. Locale reset to `en_GB` for this provider.
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.barcode`.
+DEBUG    faker.factory:factory.py:97 Provider `faker.providers.barcode` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.color`.
+DEBUG    faker.factory:factory.py:97 Provider `faker.providers.color` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.company`.
+DEBUG    faker.factory:factory.py:97 Provider `faker.providers.company` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.credit_card`.
+DEBUG    faker.factory:factory.py:97 Provider `faker.providers.credit_card` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.currency`.
+DEBUG    faker.factory:factory.py:97 Provider `faker.providers.currency` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.date_time`.
+DEBUG    faker.factory:factory.py:97 Provider `faker.providers.date_time` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:108 Provider `faker.providers.doi` does not feature localization. Specified locale `en_US` is not used for this provider.
+DEBUG    faker.factory:factory.py:108 Provider `faker.providers.emoji` does not feature localization. Specified locale `en_US` is not used for this provider.
+DEBUG    faker.factory:factory.py:108 Provider `faker.providers.file` does not feature localization. Specified locale `en_US` is not used for this provider.
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.geo`.
+DEBUG    faker.factory:factory.py:97 Provider `faker.providers.geo` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.internet`.
+DEBUG    faker.factory:factory.py:97 Provider `faker.providers.internet` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.isbn`.
+DEBUG    faker.factory:factory.py:97 Provider `faker.providers.isbn` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.job`.
+DEBUG    faker.factory:factory.py:97 Provider `faker.providers.job` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.lorem`.
+DEBUG    faker.factory:factory.py:97 Provider `faker.providers.lorem` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.misc`.
+DEBUG    faker.factory:factory.py:97 Provider `faker.providers.misc` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.passport`.
+DEBUG    faker.factory:factory.py:97 Provider `faker.providers.passport` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.person`.
+DEBUG    faker.factory:factory.py:97 Provider `faker.providers.person` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.phone_number`.
+DEBUG    faker.factory:factory.py:97 Provider `faker.providers.phone_number` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:108 Provider `faker.providers.profile` does not feature localization. Specified locale `en_US` is not used for this provider.
+DEBUG    faker.factory:factory.py:108 Provider `faker.providers.python` does not feature localization. Specified locale `en_US` is not used for this provider.
+DEBUG    faker.factory:factory.py:108 Provider `faker.providers.sbn` does not feature localization. Specified locale `en_US` is not used for this provider.
+DEBUG    faker.factory:factory.py:78 Looking for locale `en_US` in provider `faker.providers.ssn`.
+DEBUG    faker.factory:factory.py:97 Provider `faker.providers.ssn` has been localized to `en_US`.
+DEBUG    faker.factory:factory.py:108 Provider `faker.providers.user_agent` does not feature localization. Specified locale `en_US` is not used for this provider.
+DEBUG    asyncio:proactor_events.py:633 Using proactor: IocpProactor
+DEBUG    asyncio:proactor_events.py:633 Using proactor: IocpProactor
+------------------------------ Captured log call ------------------------------
+INFO     src.telegram_bot.notification_queue:notification_queue.py:56 Notification queue worker started
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.11.9-final-0 _______________
+
+Name                                                         Stmts   Miss Branch BrPart  Cover   Missing
+--------------------------------------------------------------------------------------------------------
+src\dmarket\arbitrage_sales_analysis.py                        332    332    142      0  0.00%   13-991
+src\dmarket\arbitrage_scanner.py                               503    503    188      0  0.00%   9-1604
+src\dmarket\auto_arbitrage.py                                   31     31      6      0  0.00%   9-117
+src\dmarket\filters\__init__.py                                  1      1      0      0  0.00%   3
+src\dmarket\filters\game_filters.py                            133    133     90      0  0.00%   8-298
+src\dmarket\game_filters.py                                      2      2      0      0  0.00%   7-18
+src\dmarket\intramarket_arbitrage.py                           266    266    154      0  0.00%   10-734
+src\dmarket\liquidity_analyzer.py                              159    159     44      0  0.00%   7-531
+src\dmarket\liquidity_rules.py                                  27     27      8      0  0.00%   3-114
+src\dmarket\market_analysis.py                                 320    320    124      0  0.00%   7-985
+src\dmarket\models\__init__.py                                   1      1      0      0  0.00%   3
+src\dmarket\models\market_models.py                            257    257      6      0  0.00%   9-550
+src\dmarket\realtime_price_watcher.py                          273    273    106      0  0.00%   9-711
+src\dmarket\sales_history.py                                   256    256     82      0  0.00%   9-787
+src\dmarket\smart_market_finder.py                             297    297     96      0  0.00%   15-860
+src\dmarket\targets.py                                         298    298    112      0  0.00%   14-944
+src\main.py                                                     98     98      6      0  0.00%   7-218
+src\models\__init__.py                                           2      2      0      0  0.00%   3-6
+src\models\target.py                                            49     49      0      0  0.00%   3-189
+src\models\user.py                                              67     67      0      0  0.00%   3-231
+src\telegram_bot\arbitrage_scanner.py                          284    284    100      0  0.00%   9-873
+src\telegram_bot\auto_arbitrage.py                             349    349    118      0  0.00%   9-1261
+src\telegram_bot\auto_arbitrage_scanner.py                     229    229     86      0  0.00%   3-624
+src\telegram_bot\commands\__init__.py                            1      1      0      0  0.00%   3
+src\telegram_bot\commands\basic_commands.py                     16     16      4      0  0.00%   7-46
+src\telegram_bot\constants.py                                   10     10      0      0  0.00%   4-39
+src\telegram_bot\enhanced_auto_arbitrage.py                    108    108     46      0  0.00%   7-322
+src\telegram_bot\game_filter_handlers.py                       283    283    108      0  0.00%   10-1157
+src\telegram_bot\handlers\arbitrage_callback_impl.py           117    117     24      0  0.00%   10-537
+src\telegram_bot\handlers\callbacks.py                         177    177     84      0  0.00%   6-594
+src\telegram_bot\handlers\commands.py                           38     38     14      0  0.00%   7-172
+src\telegram_bot\handlers\dmarket_handlers.py                   45     45     14      0  0.00%   6-128
+src\telegram_bot\handlers\dmarket_status.py                     69     69     16      0  0.00%   1-145
+src\telegram_bot\handlers\enhanced_arbitrage_handler.py        131    131     40      0  0.00%   3-459
+src\telegram_bot\handlers\error_handlers.py                     29     29     12      0  0.00%   7-83
+src\telegram_bot\handlers\intramarket_arbitrage_handler.py     131    131     30      0  0.00%   3-472
+src\telegram_bot\handlers\market_alerts_handler.py             278    278    130      0  0.00%   7-823
+src\telegram_bot\handlers\market_analysis_handler.py           310    310    120      0  0.00%   3-1059
+src\telegram_bot\handlers\scanner_handler.py                   162    162     56      0  0.00%   3-541
+src\telegram_bot\handlers\target_handler.py                     87     87     30      0  0.00%   3-301
+src\telegram_bot\keyboards.py                                  249    249     76      0  0.00%   8-1452
+src\telegram_bot\liquidity_settings_handler.py                 127    127     52      0  0.00%   3-459
+src\telegram_bot\localization.py                                 1      1      0      0  0.00%   12
+src\telegram_bot\market_alerts.py                              293    293    116      0  0.00%   8-783
+src\telegram_bot\notifier.py                                   391    391    152      0  0.00%   10-1050
+src\telegram_bot\pagination.py                                 149    149     68      0  0.00%   3-463
+src\telegram_bot\price_alerts_handler.py                       131    131     18      0  0.00%   7-521
+src\telegram_bot\profiles.py                                    25     25      4      0  0.00%   3-61
+src\telegram_bot\register_all_handlers.py                       71     71      2      0  0.00%   7-152
+src\telegram_bot\sales_analysis_callbacks.py                   212    212     62      0  0.00%   3-739
+src\telegram_bot\sales_analysis_handlers.py                     98     98     12      0  0.00%   3-412
+src\telegram_bot\settings_handlers.py                          159    159     44      0  0.00%   3-453
+src\telegram_bot\smart_notifier.py                             394    394    134      0  0.00%   11-1306
+src\telegram_bot\utils\formatters.py                           311    311    110      0  0.00%   7-862
+src\utils\analytics.py                                         212    212     40      0  0.00%   7-577
+src\utils\api_error_handling.py                                 41     41     22      0  0.00%   8-125
+src\utils\batch_processor.py                                    98     98     26      0  0.00%   8-297
+src\utils\exceptions.py                                        194    194     52      0  0.00%   7-646
+src\utils\logging_utils.py                                     104    104     30      0  0.00%   8-430
+src\utils\market_analyzer.py                                   296    296    144      0  0.00%   7-727
+src\utils\market_visualizer.py                                 347    347    118      0  0.00%   12-868
+src\utils\performance.py                                        96     96     22      0  0.00%   3-307
+src\utils\price_analyzer.py                                    188    188     72      0  0.00%   10-531
+src\utils\state_manager.py                                     145    145     22      0  0.00%   8-446
+src\utils\websocket_client.py                                  176    176     54      0  0.00%   7-404
+src\dmarket\arbitrage.py                                       553    497    210      0  7.34%   81-91, 105-106, 129-162, 186-284, 307, 330, 353, 359-360, 365-366, 371-372, 397-487, 496-497, 531-564, 573-591, 595-600, 613-630, 634-653, 662-677, 700-807, 823-922, 941-963, 975-979, 995-1068, 1077, 1091-1097, 1110-1118, 1148-1178, 1197-1243, 1262-1297, 1322-1372, 1401-1583, 1605-1653, 1668-1677, 1691-1701, 1716-1728
+src\utils\rate_limiter.py                                      120    104     50      0  9.41%   43-63, 77-118, 128-186, 197-245, 263-291, 300-301, 314-325, 335-336, 351-356
+src\dmarket\dmarket_api.py                                     753    654    234      0 10.03%   157-190, 197-198, 207, 211-216, 220-222, 244-314, 333-351, 375, 396-411, 425-477, 489-504, 520-539, 566-775, 784-785, 795-804, 826-1273, 1295-1299, 1331-1387, 1414-1443, 1463-1489, 1509-1531, 1550-1555, 1577-1602, 1624, 1636, 1669-1675, 1695-1696, 1716-1717, 1736-1737, 1765-1766, 1798-1799, 1817-1818, 1842-1843, 1866-1871, 1911-1928, 1953-1959, 1987-1988, 2012-2020, 2071-2082, 2118-2131, 2156-2165, 2188-2196, 2221-2228, 2253-2260, 2279-2283, 2306-2314, 2333-2337, 2362-2369, 2400-2402, 2427-2432, 2451-2453, 2501-2508, 2529-2540, 2558-2737
+src\telegram_bot\utils\error_handler.py                        185    159     74      0 10.04%   70-101, 114-123, 138-160, 177-209, 226-255, 276-355, 375-385, 406-420, 444-455, 472-485, 494-506
+src\telegram_bot\initialization.py                             123    103     38      0 12.42%   52-88, 103-142, 156-177, 198-223, 234-244, 257-280, 290-297, 326-353
+src\telegram_bot\utils\api_client.py                            46     37      8      0 16.67%   27-52, 69-94, 108-127
+src\telegram_bot\enhanced_bot.py                                65     50      8      0 20.55%   40-43, 50-75, 79-89, 93-107, 111-129, 137-153
+src\utils\config.py                                            161    107     58      0 24.66%   100-115, 119-169, 174-213, 217-299
+src\telegram_bot\user_profiles.py                              209    139     74      7 27.92%   62->65, 69, 98-109, 124-130, 142-152, 157-159, 171->175, 173, 179, 183-185, 195-227, 239-243, 252, 277-294, 305-315, 328-333, 346-352, 365-378, 387, 398-406, 435-441, 454-460, 475-499, 512-513, 524-533, 548-575
+src\utils\database.py                                          184     85     30      0 46.26%   45-47, 55-57, 187-194, 199-221, 226-254, 259-261, 266-271, 275, 279, 283-310, 314-323, 327-330, 342-419, 443-467, 481-509
+src\telegram_bot\notification_queue.py                          94     30     18      4 62.50%   52, 60-67, 93->exit, 109-111, 121, 127, 147-163, 168-175
+src\dmarket\__init__.py                                         11      4      0      0 63.64%   36-97
+--------------------------------------------------------------------------------------------------------
+TOTAL                                                        13253  12703   4450     11  3.19%
+
+6 files skipped due to complete coverage.
+Coverage HTML written to dir htmlcov
+Coverage XML written to file coverage.xml
+FAIL Required test coverage of 25% not reached. Total coverage: 3.19%
+=========================== short test summary info ===========================
+FAILED tests/telegram_bot/test_notification_queue.py::test_rate_limiting - TypeError: '<' not supported between instances of 'NotificationMessage' and 'NotificationMessage'
+============================= 1 failed in 12.14s ==============================

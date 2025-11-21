@@ -9,8 +9,11 @@ import logging
 import signal
 import sys
 
+from telegram.ext import Application as TelegramApplication
+from telegram.ext import ApplicationBuilder
+
 from src.dmarket.dmarket_api import DMarketAPI
-from src.telegram_bot.enhanced_bot import DMarketBot
+from src.telegram_bot.register_all_handlers import register_all_handlers
 from src.utils.config import Config
 from src.utils.database import DatabaseManager
 from src.utils.logging_utils import setup_logging
@@ -33,7 +36,7 @@ class Application:
         self.config: Config | None = None
         self.database: DatabaseManager | None = None
         self.dmarket_api: DMarketAPI | None = None
-        self.bot: DMarketBot | None = None
+        self.bot: TelegramApplication | None = None
         self._shutdown_event = asyncio.Event()
 
     async def initialize(self) -> None:
@@ -90,12 +93,26 @@ class Application:
 
             # Initialize Telegram Bot
             logger.info("Initializing Telegram Bot...")
-            self.bot = DMarketBot(
-                config=self.config,
-                dmarket_api=self.dmarket_api,
-                database=self.database,
+
+            if not self.config.telegram.bot_token:
+                raise ValueError("Telegram bot token is not configured")
+
+            builder = ApplicationBuilder().token(
+                self.config.telegram.bot_token,
             )
+            self.bot = builder.build()
+
+            # Store dependencies in bot_data
+            self.bot.bot_data["config"] = self.config
+            self.bot.bot_data["dmarket_api"] = self.dmarket_api
+            self.bot.bot_data["database"] = self.database
+
+            # Register handlers
+            register_all_handlers(self.bot)
+
+            # Initialize application
             await self.bot.initialize()
+
             logger.info("Telegram Bot initialized successfully")
 
         except Exception as e:
@@ -113,7 +130,10 @@ class Application:
             logger.info("Starting DMarket Telegram Bot...")
 
             # Start the bot
-            await self.bot.start()
+            if self.bot:
+                await self.bot.start()
+                await self.bot.updater.start_polling()
+                logger.info("Bot polling started")
 
             # Wait for shutdown signal
             logger.info("Bot is running. Press Ctrl+C to stop.")
@@ -135,7 +155,11 @@ class Application:
             # Stop the bot
             if self.bot:
                 logger.info("Stopping Telegram Bot...")
-                await self.bot.stop()
+                if self.bot.updater.running:
+                    await self.bot.updater.stop()
+                if self.bot.running:
+                    await self.bot.stop()
+                await self.bot.shutdown()
                 logger.info("Telegram Bot stopped")
 
             # Close DMarket API connections
@@ -177,7 +201,12 @@ async def main() -> None:
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="DMarket Telegram Bot")
-    parser.add_argument("--config", "-c", type=str, help="Path to configuration file")
+    parser.add_argument(
+        "--config",
+        "-c",
+        type=str,
+        help="Path to configuration file",
+    )
     parser.add_argument(
         "--debug",
         "-d",

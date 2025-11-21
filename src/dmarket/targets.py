@@ -13,6 +13,7 @@
 
 import asyncio
 import logging
+import re
 import time
 from typing import Any
 
@@ -134,6 +135,7 @@ class TargetManager:
 
         # Добавляем атрибуты если указаны
         if attrs:
+            self._validate_attributes(game, attrs)
             target_data["Attrs"] = attrs
             logger.debug(f"Добавлены атрибуты: {attrs}")
 
@@ -513,12 +515,21 @@ class TargetManager:
                             f"таргет ${target_price:.2f}",
                         )
 
+                        # Автоматическое извлечение атрибутов если не указаны
+                        target_attrs = item.get("attrs")
+                        if not target_attrs:
+                            target_attrs = self._extract_attributes_from_title(game, title)
+                            if target_attrs:
+                                logger.info(
+                                    f"Автоматически извлечены атрибуты для '{title}': {target_attrs}"
+                                )
+
                         result = await self.create_target(
                             game=game,
                             title=title,
                             price=target_price,
                             amount=item.get("amount", 1),
-                            attrs=item.get("attrs"),
+                            attrs=target_attrs,
                         )
 
                         results.append(result)
@@ -599,13 +610,22 @@ class TargetManager:
                     f"таргет ${target_price:.2f}",
                 )
 
+                # Автоматическое извлечение атрибутов если не указаны
+                target_attrs = item.get("attrs")
+                if not target_attrs:
+                    target_attrs = self._extract_attributes_from_title(game, title)
+                    if target_attrs:
+                        logger.info(
+                            f"Автоматически извлечены атрибуты для '{title}': {target_attrs}"
+                        )
+
                 # Создаем таргет
                 result = await self.create_target(
                     game=game,
                     title=title,
                     price=target_price,
                     amount=item.get("amount", 1),
-                    attrs=item.get("attrs"),
+                    attrs=target_attrs,
                 )
 
                 results.append(result)
@@ -859,3 +879,67 @@ class TargetManager:
                 "title": title,
                 "error": str(e),
             }
+
+    def _validate_attributes(self, game: str, attrs: dict[str, Any]) -> None:
+        """Валидация атрибутов таргета.
+
+        Args:
+            game: Код игры
+            attrs: Словарь атрибутов
+
+        Raises:
+            ValueError: Если атрибуты невалидны
+        """
+        if not attrs:
+            return
+
+        # Валидация для CS:GO/CS2
+        if game in ("csgo", "a8db", "cs2"):
+            # Проверка floatPartValue
+            if "floatPartValue" in attrs:
+                try:
+                    float_val = float(attrs["floatPartValue"])
+                    if not (0 <= float_val <= 1):
+                        raise ValueError("floatPartValue должен быть от 0 до 1")
+                except (TypeError, ValueError):
+                    raise ValueError("floatPartValue должен быть числом")
+
+            # Проверка paintSeed
+            if "paintSeed" in attrs:
+                try:
+                    seed = int(attrs["paintSeed"])
+                    if seed < 0:
+                        raise ValueError("paintSeed должен быть положительным")
+                except (TypeError, ValueError):
+                    raise ValueError("paintSeed должен быть целым числом")
+
+    def _extract_attributes_from_title(self, game: str, title: str) -> dict[str, Any]:
+        """Извлечение атрибутов из названия предмета.
+
+        Args:
+            game: Код игры
+            title: Название предмета
+
+        Returns:
+            Словарь атрибутов
+        """
+        attrs = {}
+
+        if game in ("csgo", "a8db", "cs2"):
+            # Извлечение фазы (Doppler)
+            # Пример: "Karambit | Doppler (Factory New) Phase 2"
+            phase_match = re.search(r"Phase\s+(\d+)", title, re.IGNORECASE)
+            if phase_match:
+                attrs["phase"] = f"Phase {phase_match.group(1)}"
+
+            # Ruby / Sapphire / Black Pearl / Emerald
+            if "Ruby" in title:
+                attrs["phase"] = "Ruby"
+            elif "Sapphire" in title:
+                attrs["phase"] = "Sapphire"
+            elif "Black Pearl" in title:
+                attrs["phase"] = "Black Pearl"
+            elif "Emerald" in title:
+                attrs["phase"] = "Emerald"
+
+        return attrs

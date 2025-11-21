@@ -22,6 +22,7 @@ from telegram.ext import CallbackContext
 # Импортируем константы игр
 from src.dmarket.arbitrage import GAMES
 from src.dmarket.dmarket_api import DMarketAPI
+from src.telegram_bot.notification_queue import NotificationQueue, Priority
 from src.utils.price_analyzer import (
     analyze_supply_demand,
     calculate_price_trend,
@@ -432,12 +433,14 @@ async def check_good_deal_alerts(
 async def check_all_alerts(
     api: DMarketAPI,
     bot: Bot,
+    notification_queue: NotificationQueue | None = None,
 ) -> None:
     """Проверяет все активные оповещения и отправляет уведомления.
 
     Args:
         api: Экземпляр DMarketAPI
         bot: Экземпляр Telegram Bot
+        notification_queue: Очередь уведомлений (опционально)
 
     """
     for user_id_str, user_data in _user_alerts.items():
@@ -562,13 +565,22 @@ async def check_all_alerts(
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
                 try:
-                    # Отправляем сообщение
-                    await bot.send_message(
-                        chat_id=int(user_id_str),
-                        text=message,
-                        reply_markup=reply_markup,
-                        parse_mode="Markdown",
-                    )
+                    # Отправляем сообщение через очередь или напрямую
+                    if notification_queue:
+                        await notification_queue.enqueue(
+                            chat_id=int(user_id_str),
+                            text=message,
+                            reply_markup=reply_markup,
+                            parse_mode="Markdown",
+                            priority=Priority.HIGH,  # Оповещения имеют высокий приоритет
+                        )
+                    else:
+                        await bot.send_message(
+                            chat_id=int(user_id_str),
+                            text=message,
+                            reply_markup=reply_markup,
+                            parse_mode="Markdown",
+                        )
 
                     # Обновляем время последнего оповещения и счетчик
                     user_data["last_notification"] = time.time()
@@ -586,7 +598,9 @@ async def check_all_alerts(
                     save_user_alerts()
 
                     # Делаем небольшую паузу между сообщениями, чтобы избежать флуда
-                    await asyncio.sleep(0.5)
+                    # Если используется очередь, пауза не нужна здесь, но оставим для обратной совместимости
+                    if not notification_queue:
+                        await asyncio.sleep(0.5)
 
                 except Exception as e:
                     logger.exception(
@@ -603,6 +617,7 @@ async def run_alerts_checker(
     api: DMarketAPI,
     bot: Bot,
     interval: int = 300,
+    notification_queue: NotificationQueue | None = None,
 ) -> None:
     """Запускает периодическую проверку оповещений.
 
@@ -610,12 +625,13 @@ async def run_alerts_checker(
         api: Экземпляр DMarketAPI
         bot: Экземпляр Telegram Bot
         interval: Интервал проверки в секундах
+        notification_queue: Очередь уведомлений
 
     """
     while True:
         try:
             logger.debug("Проверка оповещений...")
-            await check_all_alerts(api, bot)
+            await check_all_alerts(api, bot, notification_queue)
 
         except Exception as e:
             logger.exception(f"Ошибка при выполнении проверки оповещений: {e}")
@@ -1022,8 +1038,14 @@ def register_notification_handlers(application) -> None:
 
     # Запускаем периодическую проверку оповещений
     api = application.bot_data.get("dmarket_api")
+    notification_queue = application.bot_data.get("notification_queue")
+
     if api:
-        asyncio.create_task(run_alerts_checker(api, application.bot, interval=300))
+        asyncio.create_task(
+            run_alerts_checker(
+                api, application.bot, interval=300, notification_queue=notification_queue
+            )
+        )
         logger.info("Запущена периодическая проверка оповещений")
     else:
         logger.error(

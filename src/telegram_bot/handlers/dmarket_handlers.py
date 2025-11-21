@@ -87,18 +87,43 @@ class DMarketHandler:
             return
 
         try:
-            balance = self.api.get_balance()
-            available_balance = balance.totalBalance - balance.blockedBalance
+            balance_data = await self.api.get_balance()
+
+            if not balance_data:
+                await update.message.reply_text(
+                    "Не удалось получить информацию о балансе.\nПожалуйста, попробуйте позже.",
+                )
+                return
+
+            if balance_data.get("error"):
+                error_msg = balance_data.get(
+                    "error_message",
+                    "Неизвестная ошибка",
+                )
+                if update.message:
+                    await update.message.reply_text(
+                        f"Ошибка при получении баланса: {error_msg}",
+                    )
+                return
+
+            # Получаем значения в центах (строки)
+            usd_cents = int(balance_data.get("usd", 0))
+            usd_available_cents = int(balance_data.get("usdAvailableToWithdraw", 0))
+
+            # Конвертируем в доллары
+            total_balance = usd_cents / 100.0
+            available_balance = usd_available_cents / 100.0
+            blocked_balance = total_balance - available_balance
 
             if update.message:
                 await update.message.reply_text(
                     f"Баланс на DMarket:\n"
-                    f"Общий баланс: ${balance.totalBalance:.2f}\n"
-                    f"Заблокировано: ${balance.blockedBalance:.2f}\n"
+                    f"Общий баланс: ${total_balance:.2f}\n"
+                    f"Заблокировано: ${blocked_balance:.2f}\n"
                     f"Доступно: ${available_balance:.2f}",
                 )
         except Exception as e:
-            logger.error(f"Ошибка при получении баланса: {e}", exc_info=True)
+            logger.error("Ошибка при получении баланса: %s", e, exc_info=True)
             if update.message:
                 await update.message.reply_text(
                     "Не удалось получить информацию о балансе.\nПожалуйста, попробуйте позже.",

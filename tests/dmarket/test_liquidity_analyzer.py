@@ -363,3 +363,48 @@ class TestLiquidityAnalyzer:
         assert metrics.is_liquid is False
         # Score может быть >0 т.к. используются дефолтные значения
         assert metrics.liquidity_score >= 0.0
+
+    @pytest.mark.asyncio()
+    async def test_get_sales_history_pagination(
+        self,
+        liquidity_analyzer: LiquidityAnalyzer,
+        mock_api_client: AsyncMock,
+    ) -> None:
+        """Тест пагинации при получении истории продаж."""
+        import time
+
+        current_time = time.time()
+
+        # Страница 1: 20 элементов
+        page1 = {"sales": [{"date": current_time - i * 3600, "price": 100} for i in range(20)]}
+
+        # Страница 2: 20 элементов (полная страница, должен запросить следующую)
+        page2 = {
+            "sales": [{"date": current_time - (20 + i) * 3600, "price": 100} for i in range(20)]
+        }
+
+        # Страница 3: пустая (конец)
+        page3 = {"sales": []}
+
+        mock_api_client.get_sales_history_aggregator.side_effect = [
+            page1,
+            page2,
+            page3,
+        ]
+
+        # Вызов приватного метода для теста
+        history = await liquidity_analyzer._get_sales_history(
+            item_title="Test Item",
+            game="csgo",
+            days=7,
+        )
+
+        # Проверки
+        assert len(history) == 40
+        assert mock_api_client.get_sales_history_aggregator.call_count == 3
+
+        # Проверка параметров вызова (offset увеличивается)
+        calls = mock_api_client.get_sales_history_aggregator.call_args_list
+        assert calls[0].kwargs["offset"] == 0
+        assert calls[1].kwargs["offset"] == 20
+        assert calls[2].kwargs["offset"] == 40

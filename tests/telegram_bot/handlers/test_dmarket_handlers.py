@@ -32,10 +32,12 @@ def mock_context():
 @pytest.fixture()
 def mock_balance():
     """Фикстура мока баланса."""
-    balance = MagicMock()
-    balance.totalBalance = 100.50
-    balance.blockedBalance = 10.25
-    return balance
+    return {
+        "usd": "10050",  # $100.50
+        "usdAvailableToWithdraw": "9025",  # $90.25
+        "dmc": "5000",
+        "dmcAvailableToWithdraw": "4500",
+    }
 
 
 # =============== Тесты DMarketHandler ===============
@@ -164,7 +166,8 @@ class TestBalanceCommand:
         """Тест успешного получения баланса."""
         with patch("src.telegram_bot.handlers.dmarket_handlers.DMarketAPI") as mock_api_class:
             mock_api_instance = MagicMock()
-            mock_api_instance.get_balance.return_value = mock_balance
+            # Make get_balance an AsyncMock to support await
+            mock_api_instance.get_balance = AsyncMock(return_value=mock_balance)
             mock_api_class.return_value = mock_api_instance
 
             handler = DMarketHandler(
@@ -178,16 +181,16 @@ class TestBalanceCommand:
             mock_update.message.reply_text.assert_called_once()
             call_args = mock_update.message.reply_text.call_args
             text = call_args.args[0] if call_args.args else call_args.kwargs.get("text", "")
-            assert "100.50" in text  # totalBalance
-            assert "10.25" in text  # blockedBalance
-            assert "90.25" in text  # available (100.50 - 10.25)
+            assert "100.50" in text  # totalBalance ($100.50)
+            assert "90.25" in text  # available ($90.25)
 
     @pytest.mark.asyncio()
     async def test_balance_command_exception(self, mock_update, mock_context):
         """Тест обработки ошибки при получении баланса."""
         with patch("src.telegram_bot.handlers.dmarket_handlers.DMarketAPI") as mock_api_class:
             mock_api_instance = MagicMock()
-            mock_api_instance.get_balance.side_effect = Exception("API Error")
+            # Make get_balance an AsyncMock to support await
+            mock_api_instance.get_balance = AsyncMock(side_effect=Exception("API Error"))
             mock_api_class.return_value = mock_api_instance
 
             handler = DMarketHandler(

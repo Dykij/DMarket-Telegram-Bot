@@ -23,7 +23,6 @@ from src.telegram_bot.keyboards import (
 from src.telegram_bot.utils.formatters import format_best_opportunities, format_dmarket_results
 from src.utils.exceptions import APIError
 
-
 # Removed: execute_api_request - использовать прямые вызовы API
 
 
@@ -350,7 +349,7 @@ async def handle_best_opportunities_impl(
         await query.message.chat.send_action(ChatAction.TYPING)
 
         # Получаем арбитражные возможности
-        from src.telegram_bot.arbitrage_scanner import find_arbitrage_opportunities
+        from src.dmarket.arbitrage_scanner import find_arbitrage_opportunities_async
 
         # Отображаем прогресс
         await query.edit_message_text(
@@ -363,7 +362,7 @@ async def handle_best_opportunities_impl(
         )
 
         # Находим арбитражные возможности
-        opportunities = await find_arbitrage_opportunities(
+        opportunities = await find_arbitrage_opportunities_async(
             game=game,
             min_profit_percentage=5.0,
             max_items=10,

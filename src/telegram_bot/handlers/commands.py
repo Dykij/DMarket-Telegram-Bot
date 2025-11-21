@@ -10,7 +10,7 @@ from telegram import Update
 from telegram.constants import ChatAction, ParseMode
 from telegram.ext import ContextTypes
 
-from src.telegram_bot.auto_arbitrage import check_balance_command
+from src.telegram_bot.handlers.dmarket_status import dmarket_status_impl
 from src.telegram_bot.keyboards import (
     get_game_selection_keyboard,
     get_marketplace_comparison_keyboard,
@@ -107,10 +107,7 @@ async def dmarket_status_command(update, context) -> None:
         context: Контекст взаимодействия с ботом
 
     """
-    await update.message.reply_text(
-        "🔍 <b>Проверка статуса DMarket API...</b>",
-        parse_mode=ParseMode.HTML,
-    )
+    await dmarket_status_impl(update, context, status_message=update.message)
 
 
 async def arbitrage_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -149,7 +146,7 @@ async def handle_text_buttons(
     if text == "🔍 Арбитраж":
         await arbitrage_command(update, context)
     elif text == "📊 Баланс":
-        await check_balance_command(update.message, context)
+        await dmarket_status_impl(update, context, status_message=update.message)
     elif text == "🌐 Открыть DMarket":
         await webapp_command(update, context)
     elif text == "📈 Анализ рынка":

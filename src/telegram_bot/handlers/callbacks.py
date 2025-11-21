@@ -6,23 +6,23 @@
 import logging
 import traceback
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
 from src.dmarket.arbitrage import GAMES, find_arbitrage_opportunities_advanced
-from src.telegram_bot.auto_arbitrage import (
-    handle_pagination,
-    show_auto_stats_with_pagination,
-    start_auto_trading,
-)
+from src.telegram_bot.handlers.dmarket_status import dmarket_status_impl
 from src.telegram_bot.keyboards import (
     create_pagination_keyboard,
+    get_alert_keyboard,
     get_auto_arbitrage_keyboard,
     get_back_to_arbitrage_keyboard,
     get_dmarket_webapp_keyboard,
     get_game_selection_keyboard,
+    get_main_menu_keyboard,
+    get_marketplace_comparison_keyboard,
     get_modern_arbitrage_keyboard,
+    get_settings_keyboard,
 )
 from src.telegram_bot.utils.api_client import setup_api_client
 from src.telegram_bot.utils.formatters import format_opportunities
@@ -31,7 +31,7 @@ from src.telegram_bot.utils.formatters import format_opportunities
 logger = logging.getLogger(__name__)
 
 
-async def arbitrage_callback_impl(update, context) -> None:
+async def arbitrage_callback_impl(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обрабатывает callback 'arbitrage'.
 
     Args:
@@ -39,6 +39,9 @@ async def arbitrage_callback_impl(update, context) -> None:
         context: Контекст взаимодействия с ботом
 
     """
+    if not update.callback_query:
+        return
+
     await update.callback_query.edit_message_text(
         "🔍 <b>Меню арбитража:</b>",
         reply_markup=get_modern_arbitrage_keyboard(),
@@ -46,7 +49,9 @@ async def arbitrage_callback_impl(update, context) -> None:
     )
 
 
-async def handle_dmarket_arbitrage_impl(update, context, mode="normal") -> None:
+async def handle_dmarket_arbitrage_impl(
+    update: Update, context: ContextTypes.DEFAULT_TYPE, mode: str = "normal"
+) -> None:
     """Обрабатывает callback 'dmarket_arbitrage'.
 
     Args:
@@ -55,6 +60,9 @@ async def handle_dmarket_arbitrage_impl(update, context, mode="normal") -> None:
         mode: Режим арбитража
 
     """
+    if not update.callback_query:
+        return
+
     query = update.callback_query
     # Сообщаем пользователю, что начался поиск возможностей
     await query.edit_message_text(
@@ -92,16 +100,16 @@ async def handle_dmarket_arbitrage_impl(update, context, mode="normal") -> None:
             return
 
         # Сохраняем результаты в контексте для пагинации
-        context.user_data["arbitrage_opportunities"] = opportunities
-        context.user_data["arbitrage_page"] = 0
-        context.user_data["arbitrage_mode"] = mode
+        if context.user_data is not None:
+            context.user_data["arbitrage_opportunities"] = opportunities
+            context.user_data["arbitrage_page"] = 0
+            context.user_data["arbitrage_mode"] = mode
 
         # Форматируем и отображаем результаты
         await show_arbitrage_opportunities(query, context)
 
     except Exception as e:
-        logger.exception(f"Ошибка при поиске арбитражных возможностей: {e}")
-        logger.exception(traceback.format_exc())
+        logger.exception("Ошибка при поиске арбитражных возможностей: %s", e)
 
         await query.edit_message_text(
             f"❌ <b>Ошибка при поиске возможностей</b>\n\nПроизошла ошибка: {e!s}",
@@ -110,7 +118,11 @@ async def handle_dmarket_arbitrage_impl(update, context, mode="normal") -> None:
         )
 
 
-async def show_arbitrage_opportunities(query, context, page=None) -> None:
+async def show_arbitrage_opportunities(
+    query: CallbackQuery,
+    context: ContextTypes.DEFAULT_TYPE,
+    page: int | None = None,
+) -> None:
     """Отображает результаты арбитража с пагинацией.
 
     Args:
@@ -120,12 +132,16 @@ async def show_arbitrage_opportunities(query, context, page=None) -> None:
 
     """
     # Получаем данные из контекста
+    if context.user_data is None:
+        return
+
     opportunities = context.user_data.get("arbitrage_opportunities", [])
     current_page = page if page is not None else context.user_data.get("arbitrage_page", 0)
     context.user_data.get("arbitrage_mode", "normal")
 
     # Пересчитываем текущую страницу при необходимости
-    total_pages = max(1, (len(opportunities) + 2) // 3)  # по 3 возможности на странице
+    # по 3 возможности на странице
+    total_pages = max(1, (len(opportunities) + 2) // 3)
     if current_page >= total_pages:
         current_page = 0
 
@@ -154,7 +170,9 @@ async def show_arbitrage_opportunities(query, context, page=None) -> None:
     )
 
 
-async def handle_arbitrage_pagination(query, context, direction) -> None:
+async def handle_arbitrage_pagination(
+    query: CallbackQuery, context: ContextTypes.DEFAULT_TYPE, direction: str
+) -> None:
     """Обрабатывает пагинацию результатов арбитража.
 
     Args:
@@ -163,6 +181,9 @@ async def handle_arbitrage_pagination(query, context, direction) -> None:
         direction: Направление (next_page или prev_page)
 
     """
+    if context.user_data is None:
+        return
+
     current_page = context.user_data.get("arbitrage_page", 0)
     opportunities = context.user_data.get("arbitrage_opportunities", [])
     total_pages = max(1, (len(opportunities) + 2) // 3)
@@ -176,7 +197,9 @@ async def handle_arbitrage_pagination(query, context, direction) -> None:
     await show_arbitrage_opportunities(query, context, current_page)
 
 
-async def handle_best_opportunities_impl(update, context) -> None:
+async def handle_best_opportunities_impl(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
     """Обрабатывает callback 'best_opportunities'.
 
     Args:
@@ -184,11 +207,12 @@ async def handle_best_opportunities_impl(update, context) -> None:
         context: Контекст взаимодействия с ботом
 
     """
-    # Перенаправляем на функцию поиска арбитражных возможностей с режимом "best"
+    # Перенаправляем на функцию поиска арбитражных возможностей
+    # с режимом "best"
     await handle_dmarket_arbitrage_impl(update, context, mode="best")
 
 
-async def handle_game_selection_impl(update, context) -> None:
+async def handle_game_selection_impl(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обрабатывает callback 'game_selection'.
 
     Args:
@@ -196,6 +220,9 @@ async def handle_game_selection_impl(update, context) -> None:
         context: Контекст взаимодействия с ботом
 
     """
+    if not update.callback_query:
+        return
+
     await update.callback_query.edit_message_text(
         "🎮 <b>Выберите игру для арбитража:</b>",
         reply_markup=get_game_selection_keyboard(),
@@ -203,7 +230,9 @@ async def handle_game_selection_impl(update, context) -> None:
     )
 
 
-async def handle_game_selected_impl(update, context, game=None) -> None:
+async def handle_game_selected_impl(
+    update: Update, context: ContextTypes.DEFAULT_TYPE, game: str | None = None
+) -> None:
     """Обрабатывает callback 'game_selected:...'.
 
     Args:
@@ -212,12 +241,23 @@ async def handle_game_selected_impl(update, context, game=None) -> None:
         game: Код выбранной игры
 
     """
+    if not update.callback_query:
+        return
+
     # Извлекаем код игры из callback_data
-    if game is None and update.callback_query.data.startswith("game_selected:"):
+    if (
+        game is None
+        and update.callback_query.data
+        and update.callback_query.data.startswith("game_selected:")
+    ):
         game = update.callback_query.data.split(":", 1)[1]
 
+    if game is None:
+        return
+
     # Сохраняем выбранную игру в контексте пользователя
-    context.user_data["selected_game"] = game
+    if context.user_data is not None:
+        context.user_data["selected_game"] = game
 
     game_name = GAMES.get(game, "Неизвестная игра")
     await update.callback_query.edit_message_text(
@@ -229,7 +269,7 @@ async def handle_game_selected_impl(update, context, game=None) -> None:
     await handle_dmarket_arbitrage_impl(update, context, mode=f"game_{game}")
 
 
-async def handle_market_comparison_impl(update, context) -> None:
+async def handle_market_comparison_impl(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обрабатывает callback 'market_comparison'.
 
     Args:
@@ -237,7 +277,8 @@ async def handle_market_comparison_impl(update, context) -> None:
         context: Контекст взаимодействия с ботом
 
     """
-    from src.telegram_bot.keyboards import get_marketplace_comparison_keyboard
+    if not update.callback_query:
+        return
 
     await update.callback_query.edit_message_text(
         "📊 <b>Сравнение рынков</b>\n\nВыберите рынки для сравнения:",
@@ -272,22 +313,18 @@ async def button_callback_handler(
     try:
         # Обработка для баланса
         if callback_data == "balance":
-            from src.telegram_bot.auto_arbitrage import check_balance_command
-
-            await check_balance_command(query, context)
+            await dmarket_status_impl(update, context, status_message=query.message)
 
         # Обработка для поиска
         elif callback_data == "search":
             await query.edit_message_text(
                 "🔍 <b>Поиск предметов на DMarket</b>\n\nВыберите игру для поиска предметов:",
-                reply_markup=get_game_selection_keyboard(),
+                reply_markup=get_game_selection_keyboard("search"),
                 parse_mode=ParseMode.HTML,
             )
 
         # Обработка для настроек
         elif callback_data == "settings":
-            from src.telegram_bot.keyboards import get_settings_keyboard
-
             await query.edit_message_text(
                 "⚙️ <b>Настройки бота</b>\n\nВыберите раздел для настройки:",
                 reply_markup=get_settings_keyboard(),
@@ -306,19 +343,16 @@ async def button_callback_handler(
 
         # Обработка для оповещений
         elif callback_data == "alerts":
-            from src.telegram_bot.keyboards import get_alert_keyboard
-
             await query.edit_message_text(
                 "🔔 <b>Управление оповещениями</b>\n\n"
-                "Настройте оповещения о изменении цен и других рыночных событиях:",
+                "Настройте оповещения о изменении цен и "
+                "других рыночных событиях:",
                 reply_markup=get_alert_keyboard(),
                 parse_mode=ParseMode.HTML,
             )
 
         # Обработка для возврата в главное меню
         elif callback_data == "back_to_main":
-            from src.telegram_bot.keyboards import get_main_menu_keyboard
-
             await query.edit_message_text(
                 "👋 <b>Главное меню</b>\n\nВыберите действие:",
                 reply_markup=get_main_menu_keyboard(),
@@ -369,7 +403,7 @@ async def button_callback_handler(
             # Обработка для анализа рынка
             await query.edit_message_text(
                 "📊 <b>Анализ рынка</b>\n\nВыберите игру для анализа рыночных тенденций и цен:",
-                reply_markup=get_game_selection_keyboard(),
+                reply_markup=get_game_selection_keyboard("analysis"),
                 parse_mode=ParseMode.HTML,
             )
 
@@ -377,7 +411,7 @@ async def button_callback_handler(
             # Обработка фильтров
             await query.edit_message_text(
                 "⚙️ <b>Настройка фильтров</b>\n\nВыберите игру для настройки фильтров:",
-                reply_markup=get_game_selection_keyboard(),
+                reply_markup=get_game_selection_keyboard("filters"),
                 parse_mode=ParseMode.HTML,
             )
 
@@ -392,35 +426,19 @@ async def button_callback_handler(
 
         elif callback_data.startswith("auto_start:"):
             # Извлекаем режим автоарбитража и запускаем его
-            mode = callback_data.split(":", 1)[1]
-            await start_auto_trading(query, context, mode)
+            await query.answer("⚠️ Функция авто-торговли временно недоступна.")
 
         elif callback_data.startswith("paginate:"):
             # Обработка пагинации для результатов автоарбитража
-            parts = callback_data.split(":")
-            if len(parts) >= 3:
-                direction = parts[1]  # prev или next
-                mode = parts[2]  # режим автоарбитража
-                await handle_pagination(query, context, direction, mode)
-            else:
-                await query.edit_message_text(
-                    "⚠️ <b>Некорректный формат данных пагинации.</b>\n\nПопробуйте снова.",
-                    reply_markup=get_back_to_arbitrage_keyboard(),
-                    parse_mode=ParseMode.HTML,
-                )
+            await query.answer("⚠️ Функция пагинации временно недоступна.")
 
         elif callback_data == "auto_stats":
             # Показываем статистику автоарбитража
-            await show_auto_stats_with_pagination(query, context)
+            await query.answer("⚠️ Статистика временно недоступна.")
 
         elif callback_data.startswith("auto_trade:"):
             # Запускаем автоматическую торговлю для выбранного режима
-            mode = callback_data.split(":", 1)[1]
-
-            # Делегируем обработку соответствующему модулю
-            from src.telegram_bot.auto_arbitrage import handle_auto_trade
-
-            await handle_auto_trade(query, context, mode)
+            await query.answer("⚠️ Функция авто-торговли временно недоступна.")
 
         elif callback_data.startswith("compare:"):
             # Обработка сравнения рынков
@@ -503,26 +521,26 @@ async def button_callback_handler(
         elif callback_data == "settings_intervals":
             await query.edit_message_text(
                 "⏰ <b>Настройка интервалов обновления</b>\n\nФункция находится в разработке.",
-                parse_mode=ParseMode.HTML,
                 reply_markup=InlineKeyboardMarkup(
                     [[InlineKeyboardButton("« Назад", callback_data="settings")]]
                 ),
+                parse_mode=ParseMode.HTML,
             )
 
         elif callback_data == "settings_filters":
             await query.edit_message_text(
-                "📋 <b>Настройка фильтров</b>\n\nВыберите игру для настройки фильтров:",
+                "⚙️ <b>Настройка фильтров</b>\n\nВыберите игру для настройки фильтров:",
+                reply_markup=get_game_selection_keyboard("filters"),
                 parse_mode=ParseMode.HTML,
-                reply_markup=get_game_selection_keyboard(),
             )
 
         elif callback_data == "settings_auto_refresh":
             await query.edit_message_text(
                 "🔄 <b>Автоматическое обновление</b>\n\nФункция находится в разработке.",
-                parse_mode=ParseMode.HTML,
                 reply_markup=InlineKeyboardMarkup(
                     [[InlineKeyboardButton("« Назад", callback_data="settings")]]
                 ),
+                parse_mode=ParseMode.HTML,
             )
 
         # Обработчики для оповещений
@@ -546,33 +564,32 @@ async def button_callback_handler(
         elif callback_data == "alert_settings":
             await query.edit_message_text(
                 "⚙️ <b>Настройки оповещений</b>\n\nФункция находится в разработке.",
-                parse_mode=ParseMode.HTML,
                 reply_markup=InlineKeyboardMarkup(
                     [[InlineKeyboardButton("« Назад", callback_data="alerts")]]
                 ),
+                parse_mode=ParseMode.HTML,
             )
 
         elif callback_data == "back_to_alerts":
-            from src.telegram_bot.keyboards import get_alert_keyboard
-
             await query.edit_message_text(
                 "🔔 <b>Управление оповещениями</b>\n\n"
-                "Настройте оповещения о изменении цен и других рыночных событиях:",
+                "Настройте оповещения о изменении цен и "
+                "других рыночных событиях:",
                 reply_markup=get_alert_keyboard(),
                 parse_mode=ParseMode.HTML,
             )
 
         else:
             # Неизвестный callback
-            logger.warning(f"Неизвестный callback_data: {callback_data}")
+            logger.warning("Неизвестный callback_data: %s", callback_data)
             await query.edit_message_text(
                 "⚠️ <b>Неизвестная команда.</b>\n\nПожалуйста, вернитесь в главное меню:",
-                parse_mode=ParseMode.HTML,
                 reply_markup=get_back_to_arbitrage_keyboard(),
+                parse_mode=ParseMode.HTML,
             )
 
     except Exception as e:
-        logger.exception(f"Ошибка при обработке callback {callback_data}: {e}")
+        logger.exception("Ошибка при обработке callback %s: %s", callback_data, e)
         logger.exception(traceback.format_exc())
 
         # Оповещение пользователя об ошибке
@@ -580,13 +597,13 @@ async def button_callback_handler(
             await query.edit_message_text(
                 f"❌ <b>Произошла ошибка при обработке команды</b>\n\n"
                 f"Ошибка: {e!s}\n\n"
-                f"Пожалуйста, попробуйте позже или обратитесь к администратору.",
+                f"Пожалуйста, попробуйте позже или обратитесь к "
+                f"администратору.",
                 parse_mode=ParseMode.HTML,
                 reply_markup=get_back_to_arbitrage_keyboard(),
             )
         except Exception as edit_error:
-            logger.exception(f"Ошибка при отправке сообщения об ошибке: {edit_error}")
-            # Простое уведомление, если не удалось отредактировать сообщение
+            logger.exception("Ошибка при отправке сообщения об ошибке: %s", edit_error)
             await query.answer("Произошла ошибка. Пожалуйста, попробуйте позже.")
 
 

@@ -11,7 +11,7 @@ from telegram import CallbackQuery, Message, Update, User
 from telegram.ext import CallbackContext, ConversationHandler
 
 from src.telegram_bot.constants import PRICE_ALERT_STORAGE_KEY
-from src.telegram_bot.price_alerts_handler import (
+from src.telegram_bot.handlers.price_alerts_handler import (
     ALERT_CONDITION,
     ALERT_PRICE,
     CALLBACK_ADD_ALERT,
@@ -23,7 +23,6 @@ from src.telegram_bot.price_alerts_handler import (
     ITEM_NAME,
     PriceAlertsHandler,
 )
-
 
 # ======================== Fixtures ========================
 
@@ -37,7 +36,7 @@ def mock_api_client():
 @pytest.fixture()
 def price_alerts_handler(mock_api_client):
     """Создать экземпляр PriceAlertsHandler."""
-    with patch("src.telegram_bot.price_alerts_handler.RealtimePriceWatcher"):
+    with patch("src.telegram_bot.handlers.price_alerts_handler.RealtimePriceWatcher"):
         handler = PriceAlertsHandler(mock_api_client)
         handler._is_watcher_started = False
         return handler
@@ -104,7 +103,9 @@ class TestPriceAlertsHandlerInitialization:
     @pytest.mark.asyncio()
     async def test_initialization_success(self, mock_api_client):
         """Тест успешной инициализации обработчика."""
-        with patch("src.telegram_bot.price_alerts_handler.RealtimePriceWatcher") as MockWatcher:
+        with patch(
+            "src.telegram_bot.handlers.price_alerts_handler.RealtimePriceWatcher"
+        ) as MockWatcher:
             handler = PriceAlertsHandler(mock_api_client)
 
             assert handler.api_client is mock_api_client
@@ -115,7 +116,9 @@ class TestPriceAlertsHandlerInitialization:
     @pytest.mark.asyncio()
     async def test_alert_handler_registered(self, mock_api_client):
         """Тест регистрации обработчика оповещений."""
-        with patch("src.telegram_bot.price_alerts_handler.RealtimePriceWatcher") as MockWatcher:
+        with patch(
+            "src.telegram_bot.handlers.price_alerts_handler.RealtimePriceWatcher"
+        ) as MockWatcher:
             mock_watcher_instance = MockWatcher.return_value
             mock_watcher_instance.register_alert_handler = MagicMock()
 

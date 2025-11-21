@@ -40,6 +40,7 @@ from circuitbreaker import CircuitBreakerError
 from src.utils.api_circuit_breaker import call_with_circuit_breaker
 from src.utils.rate_limiter import RateLimiter
 
+
 logger = logging.getLogger(__name__)
 
 # TTL для кэша в секундах

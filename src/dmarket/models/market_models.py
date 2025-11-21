@@ -81,6 +81,9 @@ class Price(BaseModel):
         return cls(Currency=currency, Amount=int(amount * 100))
 
 
+PriceModel = Price
+
+
 class MarketPrice(BaseModel):
     """Модель цены предмета на маркете (упрощенная версия)."""
 
@@ -103,8 +106,8 @@ class Balance(BaseModel):
     }
     """
 
-    usd: str = Field(description="USD баланс в центах (строка)")
-    usdAvailableToWithdraw: str = Field(description="Доступный для вывода USD в центах")
+    usd: str | int = Field(description="USD баланс в центах (строка)")
+    usdAvailableToWithdraw: str | int = Field(description="Доступный для вывода USD в центах")
     dmc: str | None = Field(None, description="DMC баланс")
     dmcAvailableToWithdraw: str | None = Field(None, description="Доступный для вывода DMC")
 
@@ -382,7 +385,7 @@ class InventoryItem(BaseModel):
     Title: str = Field(description="Название предмета")
     GameID: str = Field(description="ID игры")
     Image: str | None = Field(None, description="URL изображения")
-    Price: Price | None = Field(None, description="Цена если в маркете")
+    Price: PriceModel | None = Field(None, description="Цена если в маркете")
     InMarket: bool = Field(default=False, description="В маркете")
     Withdrawable: bool = Field(default=True, description="Можно вывести")
     Tradable: bool = Field(default=True, description="Можно торговать")

@@ -20,7 +20,6 @@ from src.telegram_bot.handlers.commands import (
     webapp_command,
 )
 
-
 if TYPE_CHECKING:
     from telegram.ext import Application
 
@@ -65,32 +64,20 @@ def register_all_handlers(application: "Application") -> None:
 
     # Регистрация дополнительных обработчиков
     try:
-        from src.telegram_bot.handlers.enhanced_arbitrage_handler import (
-            register_enhanced_arbitrage_handlers,
-        )
-
-        register_enhanced_arbitrage_handlers(application)
-        logger.info("Enhanced arbitrage обработчики зарегистрированы")
-    except ImportError as e:
-        logger.warning(f"Не удалось импортировать enhanced_arbitrage обработчики: {e}")
-
-    try:
         from src.telegram_bot.handlers.scanner_handler import register_scanner_handlers
 
         register_scanner_handlers(application)
         logger.info("Scanner обработчики зарегистрированы")
     except ImportError as e:
-        logger.warning(f"Не удалось импортировать scanner обработчики: {e}")
+        logger.warning("Не удалось импортировать scanner обработчики: %s", e)
 
     try:
-        from src.telegram_bot.handlers.market_alerts_handler import (
-            register_alerts_handlers,
-        )
+        from src.telegram_bot.handlers.market_alerts_handler import register_alerts_handlers
 
         register_alerts_handlers(application)
         logger.info("Market alerts обработчики зарегистрированы")
     except ImportError as e:
-        logger.warning(f"Не удалось импортировать market_alerts обработчики: {e}")
+        logger.warning("Не удалось импортировать market_alerts обработчики: %s", e)
 
     try:
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -100,7 +87,7 @@ def register_all_handlers(application: "Application") -> None:
         register_market_analysis_handlers(application)
         logger.info("Market analysis обработчики зарегистрированы")
     except ImportError as e:
-        logger.warning(f"Не удалось импортировать market_analysis обработчики: {e}")
+        logger.warning("Не удалось импортировать market_analysis обработчики: %s", e)
 
     try:
         from src.telegram_bot.handlers.intramarket_arbitrage_handler import (
@@ -110,15 +97,40 @@ def register_all_handlers(application: "Application") -> None:
         register_intramarket_handlers(application)
         logger.info("Intramarket arbitrage обработчики зарегистрированы")
     except ImportError as e:
-        logger.warning(f"Не удалось импортировать intramarket_arbitrage обработчики: {e}")
+        logger.warning("Не удалось импортировать intramarket_arbitrage обработчики: %s", e)
 
     try:
-        from src.telegram_bot.settings_handlers import register_localization_handlers
+        from src.telegram_bot.handlers.game_filter_handlers import register_game_filter_handlers
+
+        register_game_filter_handlers(application)
+        logger.info("Game filter обработчики зарегистрированы")
+    except ImportError as e:
+        logger.warning(
+            "Не удалось импортировать game_filter обработчики: %s",
+            e,
+        )
+
+    try:
+        from src.telegram_bot.handlers.liquidity_settings_handler import register_liquidity_handlers
+
+        register_liquidity_handlers(application)
+        logger.info("Liquidity settings обработчики зарегистрированы")
+    except ImportError as e:
+        logger.warning(
+            "Не удалось импортировать liquidity_settings обработчики: %s",
+            e,
+        )
+
+    try:
+        from src.telegram_bot.handlers.settings_handlers import register_localization_handlers
 
         register_localization_handlers(application)
         logger.info("Localization обработчики зарегистрированы")
     except ImportError as e:
-        logger.warning(f"Не удалось импортировать localization обработчики: {e}")
+        logger.warning(
+            "Не удалось импортировать localization обработчики: %s",
+            e,
+        )
 
     try:
         from src.telegram_bot.handlers.target_handler import register_target_handlers
@@ -126,15 +138,13 @@ def register_all_handlers(application: "Application") -> None:
         register_target_handlers(application)
         logger.info("Target обработчики зарегистрированы")
     except ImportError as e:
-        logger.warning(f"Не удалось импортировать target обработчики: {e}")
+        logger.warning("Не удалось импортировать target обработчики: %s", e)
 
     # Регистрация DMarket handlers, если доступны API ключи
     try:
         dmarket_api = application.bot_data.get("dmarket_api")
         if dmarket_api:
-            from src.telegram_bot.handlers.dmarket_handlers import (
-                register_dmarket_handlers,
-            )
+            from src.telegram_bot.handlers.dmarket_handlers import register_dmarket_handlers
 
             register_dmarket_handlers(
                 application,
@@ -143,8 +153,11 @@ def register_all_handlers(application: "Application") -> None:
                 api_url=dmarket_api.api_url,
             )
             logger.info("DMarket обработчики зарегистрированы")
-    except Exception as e:
-        logger.warning(f"Не удалось зарегистрировать DMarket обработчики: {e}")
+    except (ImportError, AttributeError) as e:
+        logger.warning(
+            "Не удалось зарегистрировать DMarket обработчики: %s",
+            e,
+        )
 
     logger.info("Все обработчики успешно зарегистрированы")
 

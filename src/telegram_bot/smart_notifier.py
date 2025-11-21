@@ -21,11 +21,13 @@ from telegram.constants import ParseMode
 from telegram.ext import CallbackContext
 
 from src.dmarket.dmarket_api import DMarketAPI
+from src.telegram_bot.notification_queue import NotificationQueue, Priority
 from src.telegram_bot.utils.formatters import (
     format_market_item,
     format_opportunities,
     split_long_message,
 )
+from src.utils.exceptions import APIError, NetworkError
 from src.utils.market_analyzer import MarketAnalyzer, analyze_market_opportunity
 
 
@@ -81,7 +83,7 @@ def load_user_preferences() -> None:
                 logger.info(
                     f"Loaded preferences for {len(_user_preferences)} users and {len(_active_alerts)} alerts",
                 )
-    except Exception as e:
+    except (OSError, json.JSONDecodeError) as e:
         logger.exception(f"Error loading user preferences: {e}")
         _user_preferences = {}
         _active_alerts = {}
@@ -101,7 +103,7 @@ def save_user_preferences() -> None:
                 indent=2,
             )
         logger.debug("User preferences saved successfully")
-    except Exception as e:
+    except OSError as e:
         logger.exception(f"Error saving user preferences: {e}")
 
 
@@ -304,12 +306,17 @@ async def get_user_alerts(user_id: int) -> list[dict[str, Any]]:
     return [alert for alert in _active_alerts[user_id_str] if alert["active"]]
 
 
-async def check_price_alerts(api: DMarketAPI, bot: Bot) -> None:
+async def check_price_alerts(
+    api: DMarketAPI,
+    bot: Bot,
+    notification_queue: NotificationQueue | None = None,
+) -> None:
     """Check price alerts for all users and send notifications.
 
     Args:
         api: DMarketAPI instance
         bot: Telegram Bot instance
+        notification_queue: Notification queue instance
 
     """
     for user_id_str, alerts in _active_alerts.items():
@@ -369,6 +376,7 @@ async def check_price_alerts(api: DMarketAPI, bot: Bot) -> None:
                             item_data,
                             current_price,
                             user_prefs,
+                            notification_queue,
                         )
 
                         # Update alert data
@@ -379,19 +387,26 @@ async def check_price_alerts(api: DMarketAPI, bot: Bot) -> None:
                         if alert.get("one_time", False):
                             alert["active"] = False
 
-        except Exception as e:
+        except (APIError, NetworkError) as e:
             logger.exception(f"Error checking price alerts for user {user_id_str}: {e}")
+        except Exception as e:  # noqa: BLE001
+            logger.exception(f"Unexpected error checking price alerts for user {user_id_str}: {e}")
 
     # Save changes
     save_user_preferences()
 
 
-async def check_market_opportunities(api: DMarketAPI, bot: Bot) -> None:
+async def check_market_opportunities(
+    api: DMarketAPI,
+    bot: Bot,
+    notification_queue: NotificationQueue | None = None,
+) -> None:
     """Scan for market opportunities and send notifications to interested users.
 
     Args:
         api: DMarketAPI instance
         bot: Telegram Bot instance
+        notification_queue: Notification queue instance
 
     """
     # Get users interested in market opportunities
@@ -448,8 +463,10 @@ async def check_market_opportunities(api: DMarketAPI, bot: Bot) -> None:
                     # Add to opportunities if score is high enough
                     if opportunity["opportunity_score"] >= 60:
                         opportunities.append(opportunity)
-                except Exception as e:
+                except (APIError, NetworkError) as e:
                     logger.exception(f"Error analyzing item {item_id}: {e}")
+                except Exception as e:  # noqa: BLE001
+                    logger.exception(f"Unexpected error analyzing item {item_id}: {e}")
 
             # Sort opportunities by score
             opportunities.sort(key=lambda x: x["opportunity_score"], reverse=True)
@@ -492,10 +509,13 @@ async def check_market_opportunities(api: DMarketAPI, bot: Bot) -> None:
                         int(user_id),
                         opportunity,
                         prefs,
+                        notification_queue,
                     )
 
-    except Exception as e:
+    except (APIError, NetworkError) as e:
         logger.exception(f"Error checking market opportunities: {e}")
+    except Exception as e:  # noqa: BLE001
+        logger.exception(f"Unexpected error checking market opportunities: {e}")
 
 
 async def should_throttle_notification(
@@ -587,6 +607,7 @@ async def send_price_alert_notification(
     item_data: dict[str, Any],
     current_price: float,
     user_prefs: dict[str, Any],
+    notification_queue: NotificationQueue | None = None,
 ) -> None:
     """Send a price alert notification to a user.
 
@@ -597,6 +618,7 @@ async def send_price_alert_notification(
         item_data: Item data from DMarket
         current_price: Current price of the item
         user_prefs: User preferences
+        notification_queue: Notification queue instance
 
     """
     try:
@@ -665,13 +687,23 @@ async def send_price_alert_notification(
             message = message[:3900] + "...\n\n(Сообщение было сокращено)"
 
         # Send the notification
-        await bot.send_message(
-            chat_id=chat_id,
-            text=message,
-            parse_mode=ParseMode.HTML,
-            reply_markup=markup,
-            disable_web_page_preview=False,
-        )
+        if notification_queue:
+            await notification_queue.enqueue(
+                chat_id=chat_id,
+                text=message,
+                parse_mode=ParseMode.HTML,
+                reply_markup=markup,
+                disable_web_page_preview=False,
+                priority=Priority.HIGH,
+            )
+        else:
+            await bot.send_message(
+                chat_id=chat_id,
+                text=message,
+                parse_mode=ParseMode.HTML,
+                reply_markup=markup,
+                disable_web_page_preview=False,
+            )
 
         logger.info(
             f"Sent price alert notification to user {user_id} for {alert.get('item_name')}",
@@ -686,7 +718,7 @@ async def send_price_alert_notification(
             alert["active"] = False
             save_user_preferences()
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.exception(f"Error sending price alert notification: {e}")
 
 
@@ -695,6 +727,7 @@ async def send_market_opportunity_notification(
     user_id: int,
     opportunity: dict[str, Any],
     user_prefs: dict[str, Any],
+    notification_queue: NotificationQueue | None = None,
 ) -> None:
     """Send a market opportunity notification to a user.
 
@@ -703,6 +736,7 @@ async def send_market_opportunity_notification(
         user_id: User ID to notify
         opportunity: Market opportunity data
         user_prefs: User preferences
+        notification_queue: Notification queue instance
 
     """
     try:
@@ -798,13 +832,25 @@ async def send_market_opportunity_notification(
         # Send the notification(s)
         for i, msg_part in enumerate(messages):
             # Send markup only with the last part
-            await bot.send_message(
-                chat_id=chat_id,
-                text=msg_part,
-                parse_mode=ParseMode.HTML,
-                reply_markup=markup if i == len(messages) - 1 else None,
-                disable_web_page_preview=True,
-            )
+            reply_markup_part = markup if i == len(messages) - 1 else None
+
+            if notification_queue:
+                await notification_queue.enqueue(
+                    chat_id=chat_id,
+                    text=msg_part,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=reply_markup_part,
+                    disable_web_page_preview=True,
+                    priority=Priority.MEDIUM,
+                )
+            else:
+                await bot.send_message(
+                    chat_id=chat_id,
+                    text=msg_part,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=reply_markup_part,
+                    disable_web_page_preview=True,
+                )
 
         logger.info(
             f"Sent market opportunity notification to user {user_id} for {item_name}",
@@ -817,7 +863,7 @@ async def send_market_opportunity_notification(
             opportunity.get("item_id"),
         )
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.exception(f"Error sending market opportunity notification: {e}")
 
 
@@ -929,7 +975,7 @@ async def handle_notification_callback(
                 f"Created price alerts for user {query.from_user.id} on item {item_name}",
             )
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.exception(
                 f"Error creating alert for user {query.from_user.id} on item {item_id}: {e}",
             )
@@ -991,8 +1037,10 @@ async def get_market_data_for_items(
             if i + batch_size < len(item_ids):
                 await asyncio.sleep(0.5)
 
-    except Exception as e:
+    except (APIError, NetworkError) as e:
         logger.exception(f"Error getting market data for items: {e}")
+    except Exception as e:  # noqa: BLE001
+        logger.exception(f"Unexpected error getting market data for items: {e}")
 
     return result
 
@@ -1033,8 +1081,10 @@ async def get_item_by_id(
         if items:
             return items[0]
 
-    except Exception as e:
+    except (APIError, NetworkError) as e:
         logger.exception(f"Error getting item {item_id}: {e}")
+    except Exception as e:  # noqa: BLE001
+        logger.exception(f"Unexpected error getting item {item_id}: {e}")
 
     return None
 
@@ -1070,8 +1120,11 @@ async def get_market_items_for_game(
 
         return response.get("items", [])
 
-    except Exception as e:
+    except (APIError, NetworkError) as e:
         logger.exception(f"Error getting market items for game {game}: {e}")
+        return []
+    except Exception as e:  # noqa: BLE001
+        logger.exception(f"Unexpected error getting market items for game {game}: {e}")
         return []
 
 
@@ -1116,8 +1169,10 @@ async def get_price_history_for_items(
             # Small delay between requests
             await asyncio.sleep(0.2)
 
-    except Exception as e:
+    except (APIError, NetworkError) as e:
         logger.exception(f"Error getting price history for items: {e}")
+    except Exception as e:  # noqa: BLE001
+        logger.exception(f"Unexpected error getting price history for items: {e}")
 
     return result
 
@@ -1146,6 +1201,7 @@ async def notify_user(
     user_id: int,
     message: str,
     reply_markup: InlineKeyboardMarkup | None = None,
+    notification_queue: NotificationQueue | None = None,
 ) -> bool:
     """Send a notification to a user.
 
@@ -1154,20 +1210,30 @@ async def notify_user(
         user_id: Telegram user ID
         message: Message text
         reply_markup: Optional reply markup
+        notification_queue: Notification queue instance
 
     Returns:
         True if notification was sent successfully, False otherwise
 
     """
     try:
-        await bot.send_message(
-            chat_id=user_id,
-            text=message,
-            reply_markup=reply_markup,
-            parse_mode=ParseMode.MARKDOWN,
-        )
+        if notification_queue:
+            await notification_queue.enqueue(
+                chat_id=user_id,
+                text=message,
+                reply_markup=reply_markup,
+                parse_mode=ParseMode.MARKDOWN,
+                priority=Priority.HIGH,
+            )
+        else:
+            await bot.send_message(
+                chat_id=user_id,
+                text=message,
+                reply_markup=reply_markup,
+                parse_mode=ParseMode.MARKDOWN,
+            )
         return True
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.exception(f"Error sending notification to user {user_id}: {e}")
         return False
 
@@ -1176,6 +1242,7 @@ async def start_notification_checker(
     api: DMarketAPI,
     bot: Bot,
     interval: int = 300,
+    notification_queue: NotificationQueue | None = None,
 ) -> None:
     """Start the notification checker loop.
 
@@ -1183,6 +1250,7 @@ async def start_notification_checker(
         api: DMarketAPI instance
         bot: Telegram Bot instance
         interval: Check interval in seconds
+        notification_queue: Notification queue instance
 
     """
     # Load user preferences
@@ -1191,15 +1259,15 @@ async def start_notification_checker(
     while True:
         try:
             # Check price alerts
-            await check_price_alerts(api, bot)
+            await check_price_alerts(api, bot, notification_queue)
 
             # Check market opportunities
-            await check_market_opportunities(api, bot)
+            await check_market_opportunities(api, bot, notification_queue)
 
             # Log progress
             logger.debug("Notification check complete")
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.exception(f"Error in notification checker: {e}")
 
         # Wait for next cycle
@@ -1225,9 +1293,13 @@ def register_notification_handlers(application) -> None:
 
     # Start notification checker
     api = application.bot_data.get("dmarket_api")
+    notification_queue = application.bot_data.get("notification_queue")
+
     if api:
         asyncio.create_task(
-            start_notification_checker(api, application.bot, interval=300),
+            start_notification_checker(
+                api, application.bot, interval=300, notification_queue=notification_queue
+            ),
         )
         logger.info("Started notification checker")
     else:

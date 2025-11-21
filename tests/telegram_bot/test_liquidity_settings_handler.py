@@ -6,7 +6,7 @@ import pytest
 from telegram import CallbackQuery, Message, Update, User
 from telegram.ext import ContextTypes
 
-from src.telegram_bot.liquidity_settings_handler import (
+from src.telegram_bot.handlers.liquidity_settings_handler import (
     DEFAULT_LIQUIDITY_SETTINGS,
     cancel_liquidity_input,
     get_liquidity_settings,
@@ -83,7 +83,7 @@ def mock_context():
 @pytest.fixture(autouse=True)
 def reset_profile_manager():
     """Сбрасывает профиль пользователя перед каждым тестом."""
-    with patch("src.telegram_bot.liquidity_settings_handler.profile_manager") as mock_pm:
+    with patch("src.telegram_bot.handlers.liquidity_settings_handler.profile_manager") as mock_pm:
         mock_pm.get_profile.return_value = {"liquidity_settings": DEFAULT_LIQUIDITY_SETTINGS.copy()}
         mock_pm.update_profile = MagicMock()
         yield mock_pm

@@ -47,7 +47,7 @@ class TestDMarketStatusBasic:
             patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
             patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.auto_arbitrage_scanner.check_user_balance") as mock_balance,
+            patch("src.dmarket.arbitrage_scanner.check_user_balance") as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -77,7 +77,7 @@ class TestDMarketStatusBasic:
             patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
             patch("src.telegram_bot.handlers.dmarket_status.getenv") as mock_getenv,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.auto_arbitrage_scanner.check_user_balance") as mock_balance,
+            patch("src.dmarket.arbitrage_scanner.check_user_balance") as mock_balance,
         ):
             mock_profile.return_value = {}
             mock_text.return_value = "Checking..."
@@ -141,7 +141,7 @@ class TestDMarketStatusErrors:
             patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
             patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.auto_arbitrage_scanner.check_user_balance") as mock_balance,
+            patch("src.dmarket.arbitrage_scanner.check_user_balance") as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "wrong", "api_secret": "wrong"}
             mock_text.return_value = "Checking..."
@@ -171,7 +171,7 @@ class TestDMarketStatusErrors:
             patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
             patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.auto_arbitrage_scanner.check_user_balance") as mock_balance,
+            patch("src.dmarket.arbitrage_scanner.check_user_balance") as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -200,7 +200,7 @@ class TestDMarketStatusErrors:
             patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
             patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.auto_arbitrage_scanner.check_user_balance") as mock_balance,
+            patch("src.dmarket.arbitrage_scanner.check_user_balance") as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -230,7 +230,7 @@ class TestDMarketStatusIntegration:
         with (
             patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.auto_arbitrage_scanner.check_user_balance") as mock_balance,
+            patch("src.dmarket.arbitrage_scanner.check_user_balance") as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
 
@@ -255,7 +255,7 @@ class TestDMarketStatusIntegration:
             patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
             patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.auto_arbitrage_scanner.check_user_balance") as mock_balance,
+            patch("src.dmarket.arbitrage_scanner.check_user_balance") as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."

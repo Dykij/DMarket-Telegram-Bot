@@ -4,12 +4,11 @@ from os import getenv
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.constants import ChatAction, ParseMode
-from telegram.ext import CallbackContext
+from telegram.ext import ContextTypes
 
+from src.telegram_bot.handlers.settings_handlers import get_localized_text
 from src.telegram_bot.profiles import get_user_profile
-from src.telegram_bot.settings_handlers import get_localized_text
 from src.utils.exceptions import APIError
-
 
 # Загружаем переменные окружения
 load_dotenv()
@@ -17,7 +16,7 @@ load_dotenv()
 
 async def dmarket_status_impl(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
     status_message=None,
 ) -> None:
     """Реализация проверки статуса DMarket API.
@@ -44,10 +43,11 @@ async def dmarket_status_impl(
 
         import httpx
 
+        from src.dmarket.arbitrage_scanner import check_user_balance
         from src.dmarket.dmarket_api import DMarketAPI
-        from src.telegram_bot.auto_arbitrage_scanner import check_user_balance
 
-        # Получаем API ключи из профиля пользователя или из переменных окружения
+        # Получаем API ключи из профиля пользователя
+        # или из переменных окружения
         public_key = profile.get("api_key", "")
         secret_key = profile.get("api_secret", "")
         auth_source = ""
@@ -126,7 +126,8 @@ async def dmarket_status_impl(
                 "3. Создайте новые ключи API на DMarket, если необходимо"
             )
 
-        # Формируем текст сообщения (не переопределяя переменную status_message!)
+        # Формируем текст сообщения
+        # (не переопределяя переменную status_message!)
         final_text = (
             f"{api_status}\n"
             f"{auth_status}\n"
@@ -143,7 +144,8 @@ async def dmarket_status_impl(
     except Exception as e:
         traceback.format_exc()
         await status_message.edit_text(
-            "❌ <b>Произошла критическая ошибка при проверке статуса DMarket API.</b>\n\n"
+            "❌ <b>Произошла критическая ошибка при проверке "
+            "статуса DMarket API.</b>\n\n"
             f"<i>Ошибка:</i> <code>{e!s}</code>\n\n"
             "🕒 <i>Последнее обновление: только что</i>",
             parse_mode=ParseMode.HTML,

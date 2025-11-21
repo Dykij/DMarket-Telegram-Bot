@@ -4,7 +4,7 @@ import logging
 from typing import Any
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import CallbackContext, CallbackQueryHandler, CommandHandler
+from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
 
 from src.dmarket.targets import TargetManager
 from src.telegram_bot.utils.api_client import create_api_client_from_env
@@ -25,7 +25,7 @@ TARGET_COMPETITION_ACTION = "target_competition"
 
 async def start_targets_menu(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Показать главное меню таргетов.
 
@@ -110,7 +110,7 @@ async def start_targets_menu(
 
 async def handle_smart_targets(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
     game: str = "csgo",
 ) -> None:
     """Обработать создание умных таргетов.
@@ -191,7 +191,7 @@ async def handle_smart_targets(
 
 async def handle_competition_analysis(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
     game: str = "csgo",
 ) -> None:
     """Обработать анализ конкуренции buy orders.
@@ -261,7 +261,7 @@ async def handle_competition_analysis(
 
 async def handle_target_callback(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обработать callback-запросы для таргетов.
 

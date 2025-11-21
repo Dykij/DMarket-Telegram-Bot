@@ -1,5 +1,5 @@
 {
-  "<MagicMock name='mock.effective_user.id' id='2644983001040'>": {
+  "123456789": {
     "language": "ru",
     "api_key": "",
     "api_secret": "",
@@ -10,19 +10,6 @@
       "max_trades": 3,
       "risk_level": "medium"
     },
-    "last_activity": 1746345382.7739766
-  },
-  "<MagicMock name='mock.effective_user.id' id='2644982602384'>": {
-    "language": "ru",
-    "api_key": "",
-    "api_secret": "",
-    "auto_trading_enabled": false,
-    "trade_settings": {
-      "min_profit": 2.0,
-      "max_price": 50.0,
-      "max_trades": 3,
-      "risk_level": "medium"
-    },
-    "last_activity": 1746345383.1341405
+    "last_activity": 1763749354.4524808
   }
 }

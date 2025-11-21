@@ -4,7 +4,7 @@ import logging
 from typing import Any
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import CallbackContext, CallbackQueryHandler
+from telegram.ext import CallbackQueryHandler, ContextTypes
 
 from src.dmarket.arbitrage import GAMES
 from src.dmarket.arbitrage_scanner import ARBITRAGE_LEVELS, ArbitrageScanner
@@ -112,7 +112,7 @@ def format_scanner_item(result: dict[str, Any]) -> str:
 
 async def start_scanner_menu(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Показать главное меню многоуровневого сканера.
 
@@ -209,7 +209,7 @@ async def start_scanner_menu(
 
 async def handle_level_scan(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
     level: str,
     game: str = "csgo",
 ) -> None:
@@ -334,7 +334,7 @@ async def handle_level_scan(
 
 async def handle_market_overview(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
     game: str = "csgo",
 ) -> None:
     """Показать обзор рынка по всем уровням.
@@ -373,11 +373,14 @@ async def handle_market_overview(
         overview = await scanner.get_market_overview(game=game)
 
         # Форматируем результаты
+        best_level = overview["best_level"]
+        best_level_name = ARBITRAGE_LEVELS[best_level]["name"] if best_level else "N/A"
+
         text_lines = [
             f"📊 *Обзор рынка {GAMES.get(game, game)}*\n",
             f"🎯 Всего возможностей: {overview['total_opportunities']}",
             f"💰 Лучшая прибыль: {overview['best_profit_percent']:.1f}%",
-            f"🏆 Лучший уровень: {ARBITRAGE_LEVELS[overview['best_level']]['name'] if overview['best_level'] else 'N/A'}\n",
+            f"🏆 Лучший уровень: {best_level_name}\n",
             "📈 *По уровням:*",
         ]
 
@@ -427,7 +430,7 @@ async def handle_market_overview(
 
 async def handle_scanner_pagination(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обработать навигацию по страницам результатов сканера.
 
@@ -492,7 +495,7 @@ async def handle_scanner_pagination(
 
 async def handle_scanner_callback(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обработать callback-запросы для сканера.
 

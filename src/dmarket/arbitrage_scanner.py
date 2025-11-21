@@ -273,12 +273,8 @@ class ArbitrageScanner:
                         # По умолчанию используем средний режим
                         items = arbitrage_mid(game)
 
-                    # Если нашли достаточно предметов, возвращаем результат
-                    if len(items) >= max_items:
-                        results = items[:max_items]
-                        self._save_to_cache(cache_key, results)
-                        self.total_items_found += len(results)
-                        return results
+                    # Если нашли достаточно предметов, переходим к фильтрации
+                    # Раньше здесь был ранний выход, но теперь мы хотим применить фильтр ликвидности ко всем предметам
                 except Exception as e:
                     logger.warning(
                         f"Ошибка при использовании встроенных функций арбитража: {e!s}",
@@ -335,11 +331,23 @@ class ArbitrageScanner:
             except Exception as e:
                 logger.warning(f"Ошибка при использовании ArbitrageTrader: {e!s}")
 
-            # Ограничиваем количество предметов в результате
-            results = items[:max_items]
+            # Сортируем все найденные предметы по прибыльности (от большей к меньшей)
+            items.sort(key=lambda x: x.get("profit", 0), reverse=True)
 
-            # Сортируем по прибыльности (от большей к меньшей)
-            results.sort(key=lambda x: x.get("profit", 0), reverse=True)
+            # Если включен фильтр ликвидности, проверяем топ предметов
+            if self.enable_liquidity_filter and self.liquidity_analyzer:
+                # Берем больше предметов для проверки, так как часть отсеется
+                candidates = items[: max_items * 2]
+
+                # Фильтруем через анализатор ликвидности
+                # Это добавит метрики ликвидности и удалит неликвидные предметы
+                results = await self.liquidity_analyzer.filter_liquid_items(candidates, game=game)
+            else:
+                # Если фильтр выключен, просто берем топ по прибыли
+                results = items
+
+            # Ограничиваем количество предметов в результате
+            results = results[:max_items]
 
             # Сохраняем в кэш
             self._save_to_cache(cache_key, results)

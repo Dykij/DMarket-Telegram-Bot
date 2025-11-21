@@ -429,9 +429,7 @@ class MarketAlertsManager:
 
         try:
             # Импортируем функцию для поиска арбитражных возможностей
-            from src.telegram_bot.enhanced_auto_arbitrage import (
-                start_auto_arbitrage_enhanced,
-            )
+            from src.telegram_bot.enhanced_auto_arbitrage import start_auto_arbitrage_enhanced
 
             # Ищем арбитражные возможности
             arbitrage_items = await start_auto_arbitrage_enhanced(
@@ -772,8 +770,14 @@ def get_alerts_manager(
     global _alerts_manager
 
     if _alerts_manager is None:
-        if bot is None or dmarket_api is None:
-            msg = "Для создания менеджера уведомлений требуются bot и dmarket_api"
+        # Если dmarket_api не передан, пытаемся создать его через api_helper
+        if dmarket_api is None:
+            from src.telegram_bot.utils.api_helper import create_dmarket_api_client
+
+            dmarket_api = create_dmarket_api_client()
+
+        if bot is None:
+            msg = "Для создания менеджера уведомлений требуется bot"
             raise ValueError(
                 msg,
             )

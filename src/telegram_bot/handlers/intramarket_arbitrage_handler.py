@@ -3,8 +3,8 @@
 import logging
 from typing import Any
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import CallbackContext, CallbackQueryHandler
+from telegram import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import CallbackQueryHandler, ContextTypes
 
 from src.dmarket.arbitrage import GAMES
 from src.dmarket.intramarket_arbitrage import (
@@ -30,7 +30,7 @@ RARE_ACTION = "rare"
 def format_intramarket_results(
     items: list[dict[str, Any]],
     current_page: int,
-    items_per_page: int,
+    _items_per_page: int,
 ) -> str:
     """Форматирует результаты внутрирыночного арбитража для отображения.
 
@@ -99,7 +99,9 @@ def format_intramarket_item(result: dict[str, Any]) -> str:
             f"📈 *{item_title}*\n"
             f"💰 Текущая цена: ${current_price:.2f}\n"
             f"🚀 Прогноз цены: ${projected_price:.2f} (+{price_change_percent:.1f}%)\n"
-            f"💵 Потенциальная прибыль: ${projected_price - current_price:.2f} ({potential_profit_percent:.1f}%)\n"
+            f"💵 Потенциальная прибыль: "
+            f"${projected_price - current_price:.2f} "
+            f"({potential_profit_percent:.1f}%)\n"
             f"🔄 Объем продаж: {sales_velocity} шт.\n"
             f"🏷️ ID для покупки: `{item.get('itemId', '')}`"
         )
@@ -118,7 +120,8 @@ def format_intramarket_item(result: dict[str, Any]) -> str:
         return (
             f"💎 *{item_title}*\n"
             f"💰 Текущая цена: ${current_price:.2f}\n"
-            f"⭐ Оценочная стоимость: ${estimated_value:.2f} (+{price_difference_percent:.1f}%)\n"
+            f"⭐ Оценочная стоимость: ${estimated_value:.2f} "
+            f"(+{price_difference_percent:.1f}%)\n"
             f"✨ Редкие особенности:\n{traits_text}\n"
             f"🏷️ ID для покупки: `{item.get('itemId', '')}`"
         )
@@ -128,7 +131,7 @@ def format_intramarket_item(result: dict[str, Any]) -> str:
 
 
 async def display_results_with_pagination(
-    query,
+    query: CallbackQuery,
     results: list[dict[str, Any]],
     title: str,
     user_id: int,
@@ -148,8 +151,9 @@ async def display_results_with_pagination(
     """
     # Если результаты не найдены
     if not results:
+        msg = f"ℹ️ *{title}*\n\nВозможности не найдены. Попробуйте другой тип сканирования или игру."
         await query.edit_message_text(
-            f"ℹ️ *{title}*\n\nВозможности не найдены. Попробуйте другой тип сканирования или игру.",
+            msg,
             parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(
                 [
@@ -165,7 +169,11 @@ async def display_results_with_pagination(
         return
 
     # Создаем пагинацию для результатов используя унифицированный подход
-    pagination_manager.add_items_for_user(user_id, results, f"intra_{action_type}")
+    pagination_manager.add_items_for_user(
+        user_id,
+        results,
+        f"intra_{action_type}",
+    )
 
     # Получаем текущую страницу
     items, current_page, total_pages = pagination_manager.get_page(user_id)
@@ -201,10 +209,12 @@ async def display_results_with_pagination(
 
 async def handle_intramarket_pagination(
     update: Update,
-    context: CallbackContext,
+    _context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает навигацию по страницам результатов."""
     query = update.callback_query
+    if not query:
+        return
     await query.answer()
 
     user_id = update.effective_user.id
@@ -227,12 +237,13 @@ async def handle_intramarket_pagination(
         pagination_manager.prev_page(user_id)
 
     # Получаем заголовок на основе типа действия
+    default_title = f"Результаты для {GAMES.get(game, game)}"
     title_map = {
         ANOMALY_ACTION: f"🔍 Ценовые аномалии для {GAMES.get(game, game)}",
         TRENDING_ACTION: f"📈 Растущие в цене {GAMES.get(game, game)}",
         RARE_ACTION: f"💎 Редкие предметы {GAMES.get(game, game)}",
     }
-    title = title_map.get(action_type, f"Результаты для {GAMES.get(game, game)}")
+    title = title_map.get(action_type, default_title)
 
     # Получаем текущую страницу
     items, current_page, total_pages = pagination_manager.get_page(user_id)
@@ -268,38 +279,44 @@ async def handle_intramarket_pagination(
 
 async def start_intramarket_arbitrage(
     update: Update,
-    context: CallbackContext,
+    _context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает команду запуска внутрирыночного арбитража."""
     query = update.callback_query
     if query:
         await query.answer()
 
+    if not update.effective_user:
+        return
     user_id = update.effective_user.id
 
+    anomaly_cb = f"{INTRA_ARBITRAGE_ACTION}_{ANOMALY_ACTION}"
+    trending_cb = f"{INTRA_ARBITRAGE_ACTION}_{TRENDING_ACTION}"
+    rare_cb = f"{INTRA_ARBITRAGE_ACTION}_{RARE_ACTION}"
+
     # Отправляем сообщение о начале сканирования
-    await context.bot.send_message(
+    await _context.bot.send_message(
         chat_id=user_id,
-        text="🔍 *Поиск возможностей арбитража внутри DMarket*\n\nВыберите тип арбитража:",
+        text=("🔍 *Поиск возможностей арбитража внутри DMarket*\n\nВыберите тип арбитража:"),
         parse_mode="Markdown",
         reply_markup=InlineKeyboardMarkup(
             [
                 [
                     InlineKeyboardButton(
                         "🔄 Ценовые аномалии",
-                        callback_data=f"{INTRA_ARBITRAGE_ACTION}_{ANOMALY_ACTION}",
+                        callback_data=anomaly_cb,
                     ),
                 ],
                 [
                     InlineKeyboardButton(
                         "📈 Растущие в цене",
-                        callback_data=f"{INTRA_ARBITRAGE_ACTION}_{TRENDING_ACTION}",
+                        callback_data=trending_cb,
                     ),
                 ],
                 [
                     InlineKeyboardButton(
                         "💎 Редкие предметы",
-                        callback_data=f"{INTRA_ARBITRAGE_ACTION}_{RARE_ACTION}",
+                        callback_data=rare_cb,
                     ),
                 ],
                 [
@@ -315,13 +332,20 @@ async def start_intramarket_arbitrage(
 
 async def handle_intramarket_callback(
     update: Update,
-    context: CallbackContext,
+    _context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает callback-запросы для внутрирыночного арбитража."""
     query = update.callback_query
+    if not query:
+        return
     await query.answer()
 
+    if not update.effective_user:
+        return
     user_id = update.effective_user.id
+
+    if not query.data:
+        return
     callback_data = query.data
 
     # Парсим данные callback
@@ -429,8 +453,8 @@ async def handle_intramarket_callback(
             game=game,
         )
 
-    except Exception as e:
-        logger.exception(f"Ошибка при поиске возможностей арбитража: {e}")
+    except Exception as e:  # noqa: BLE001
+        logger.exception("Ошибка при поиске возможностей арбитража")
         await query.edit_message_text(
             f"⚠️ Произошла ошибка при сканировании: {e!s}",
             parse_mode="Markdown",
@@ -447,7 +471,7 @@ async def handle_intramarket_callback(
         )
 
 
-def register_intramarket_handlers(dispatcher) -> None:
+def register_intramarket_handlers(dispatcher: Any) -> None:
     """Регистрирует обработчики для внутрирыночного арбитража.
 
     Args:
@@ -470,5 +494,8 @@ def register_intramarket_handlers(dispatcher) -> None:
 
     # Обработчик пагинации
     dispatcher.add_handler(
-        CallbackQueryHandler(handle_intramarket_pagination, pattern="^intra_paginate:"),
+        CallbackQueryHandler(
+            handle_intramarket_pagination,
+            pattern="^intra_paginate:",
+        ),
     )

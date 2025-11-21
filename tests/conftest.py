@@ -15,10 +15,8 @@ import pytest
 import pytest_asyncio
 
 from src.dmarket.dmarket_api import DMarketAPI
-from src.telegram_bot.enhanced_bot import DMarketBot
 from src.utils.config import BotConfig, Config, DatabaseConfig, DMarketConfig
 from src.utils.database import DatabaseManager
-
 
 # Test configuration
 TEST_CONFIG = {
@@ -157,23 +155,25 @@ async def test_bot(
     test_config: Config,
     mock_dmarket_api: DMarketAPI,
     test_database: DatabaseManager,
-) -> AsyncGenerator[DMarketBot, None]:
+) -> AsyncGenerator[MagicMock, None]:
     """Create test bot instance."""
-    bot = DMarketBot(
-        config=test_config,
-        dmarket_api=mock_dmarket_api,
-        database=test_database,
-    )
+    bot = MagicMock()
+    bot.config = test_config
+    bot.dmarket_api = mock_dmarket_api
+    bot.database = test_database
+    bot.bot_data = {
+        "config": test_config,
+        "dmarket_api": mock_dmarket_api,
+        "database": test_database,
+    }
 
-    # Mock telegram application to avoid actual API calls
-    with patch("src.telegram_bot.enhanced_bot.create_bot_application") as mock_create:
-        mock_app = AsyncMock()
-        mock_create.return_value = mock_app
+    # Mock initialize and stop methods
+    bot.initialize = AsyncMock()
+    bot.stop = AsyncMock()
+    bot.start = AsyncMock()
+    bot.shutdown = AsyncMock()
 
-        await bot.initialize()
-        yield bot
-
-        await bot.stop()
+    yield bot
 
 
 @pytest.fixture()

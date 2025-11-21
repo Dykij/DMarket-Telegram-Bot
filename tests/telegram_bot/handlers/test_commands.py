@@ -21,7 +21,6 @@ from src.telegram_bot.handlers.commands import (
     webapp_command,
 )
 
-
 # ============================================================================
 # ФИКСТУРЫ
 # ============================================================================
@@ -212,20 +211,17 @@ async def test_markets_command_sends_marketplace_comparison(mock_update, mock_co
 
 
 @pytest.mark.asyncio()
-async def test_dmarket_status_command_sends_status_message(mock_update, mock_context):
-    """Тест: команда /status отправляет сообщение о проверке статуса."""
+@patch("src.telegram_bot.handlers.commands.dmarket_status_impl")
+async def test_dmarket_status_command_sends_status_message(
+    mock_dmarket_status, mock_update, mock_context
+):
+    """Тест: команда /status вызывает dmarket_status_impl."""
     await dmarket_status_command(mock_update, mock_context)
 
-    # Проверяем вызов
-    mock_update.message.reply_text.assert_called_once()
-    call_args = mock_update.message.reply_text.call_args
-
-    # Проверяем содержимое
-    message_text = call_args[0][0]
-    assert "Проверка статуса DMarket API" in message_text
-
-    # Проверяем параметры
-    assert call_args[1]["parse_mode"] == ParseMode.HTML
+    # Проверяем вызов dmarket_status_impl
+    mock_dmarket_status.assert_called_once_with(
+        mock_update, mock_context, status_message=mock_update.message
+    )
 
 
 # ============================================================================
@@ -280,16 +276,18 @@ async def test_handle_text_buttons_arbitrage_button(mock_update, mock_context):
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.handlers.commands.check_balance_command")
-async def test_handle_text_buttons_balance_button(mock_check_balance, mock_update, mock_context):
-    """Тест: текстовая кнопка '📊 Баланс' вызывает check_balance_command."""
-    mock_check_balance.return_value = AsyncMock()
+@patch("src.telegram_bot.handlers.commands.dmarket_status_impl")
+async def test_handle_text_buttons_balance_button(mock_dmarket_status, mock_update, mock_context):
+    """Тест: текстовая кнопка '📊 Баланс' вызывает dmarket_status_impl."""
+    mock_dmarket_status.return_value = AsyncMock()
     mock_update.message.text = "📊 Баланс"
 
     await handle_text_buttons(mock_update, mock_context)
 
-    # Проверяем вызов check_balance_command
-    mock_check_balance.assert_called_once_with(mock_update.message, mock_context)
+    # Проверяем вызов dmarket_status_impl
+    mock_dmarket_status.assert_called_once_with(
+        mock_update, mock_context, status_message=mock_update.message
+    )
 
 
 @pytest.mark.asyncio()
@@ -307,7 +305,7 @@ async def test_handle_text_buttons_open_dmarket_button(mock_update, mock_context
 
 @pytest.mark.asyncio()
 async def test_handle_text_buttons_market_analysis_button(mock_update, mock_context):
-    """Тест: текстовая кнопка '📈 Анализ рынка' отправляет сообщение с выбором игры."""
+    """Тест: текстовая кнопка '📈 Анализ рынка' отправляет сообщение."""
     mock_update.message.text = "📈 Анализ рынка"
 
     await handle_text_buttons(mock_update, mock_context)
@@ -328,7 +326,7 @@ async def test_handle_text_buttons_market_analysis_button(mock_update, mock_cont
 
 @pytest.mark.asyncio()
 async def test_handle_text_buttons_settings_button(mock_update, mock_context):
-    """Тест: текстовая кнопка '⚙️ Настройки' отправляет сообщение о разработке."""
+    """Тест: текстовая кнопка '⚙️ Настройки' отправляет сообщение."""
     mock_update.message.text = "⚙️ Настройки"
 
     await handle_text_buttons(mock_update, mock_context)
@@ -399,7 +397,6 @@ async def test_all_commands_use_html_parse_mode(mock_update, mock_context):
         help_command,
         webapp_command,
         markets_command,
-        dmarket_status_command,
         arbitrage_command,
     ]
 

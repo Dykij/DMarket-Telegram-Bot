@@ -9,7 +9,7 @@ import pytest
 from telegram import Message, Update
 from telegram.ext import CallbackContext
 
-from src.telegram_bot.sales_analysis_handlers import (
+from src.telegram_bot.handlers.sales_analysis_handlers import (
     get_liquidity_emoji,
     get_trend_emoji,
     handle_arbitrage_with_sales,
@@ -38,7 +38,7 @@ def mock_context():
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.sales_analysis_handlers.execute_api_request")
+@patch("src.telegram_bot.handlers.sales_analysis_handlers.execute_api_request")
 async def test_handle_sales_analysis_success(
     mock_execute_api,
     mock_update,
@@ -100,7 +100,7 @@ async def test_handle_sales_analysis_success(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.sales_analysis_handlers.execute_api_request")
+@patch("src.telegram_bot.handlers.sales_analysis_handlers.execute_api_request")
 async def test_handle_sales_analysis_no_data(
     mock_execute_api,
     mock_update,
@@ -139,7 +139,7 @@ async def test_handle_sales_analysis_no_data(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.sales_analysis_handlers.execute_api_request")
+@patch("src.telegram_bot.handlers.sales_analysis_handlers.execute_api_request")
 async def test_handle_sales_analysis_api_error(
     mock_execute_api,
     mock_update,
@@ -172,7 +172,7 @@ async def test_handle_sales_analysis_api_error(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.sales_analysis_handlers.execute_api_request")
+@patch("src.telegram_bot.handlers.sales_analysis_handlers.execute_api_request")
 async def test_handle_sales_analysis_missing_item_name(
     mock_execute_api,
     mock_update,
@@ -192,7 +192,7 @@ async def test_handle_sales_analysis_missing_item_name(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.sales_analysis_handlers.execute_api_request")
+@patch("src.telegram_bot.handlers.sales_analysis_handlers.execute_api_request")
 async def test_handle_arbitrage_with_sales(mock_execute_api, mock_update, mock_context):
     """Тестирует обработку запроса на поиск арбитражных возможностей с учетом продаж."""
     # Настройка мока для reply_text
@@ -267,7 +267,7 @@ async def test_handle_arbitrage_with_sales(mock_execute_api, mock_update, mock_c
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.sales_analysis_handlers.execute_api_request")
+@patch("src.telegram_bot.handlers.sales_analysis_handlers.execute_api_request")
 async def test_handle_arbitrage_with_sales_no_opportunities(
     mock_execute_api,
     mock_update,
@@ -309,7 +309,7 @@ async def test_handle_arbitrage_with_sales_no_opportunities(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.sales_analysis_handlers.execute_api_request")
+@patch("src.telegram_bot.handlers.sales_analysis_handlers.execute_api_request")
 async def test_handle_liquidity_analysis(mock_execute_api, mock_update, mock_context):
     """Тестирует обработку запроса на анализ ликвидности предмета."""
     # Настройка текста команды
@@ -366,7 +366,7 @@ async def test_handle_liquidity_analysis(mock_execute_api, mock_update, mock_con
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.sales_analysis_handlers.execute_api_request")
+@patch("src.telegram_bot.handlers.sales_analysis_handlers.execute_api_request")
 async def test_handle_sales_volume_stats(mock_execute_api, mock_update, mock_context):
     """Тестирует обработку запроса на статистику объемов продаж."""
     # Настройка мока для reply_text
