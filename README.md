@@ -15,18 +15,21 @@ A comprehensive Telegram bot for DMarket platform operations, market analytics, 
 ## 🌟 Features
 
 ### 📊 Market Analytics
+
 - **Real-time Market Data**: Live prices, volume, and market trends
 - **Price History Visualization**: Interactive charts and graphs
 - **Market Statistics**: Comprehensive analytics and insights
 - **Multi-game Support**: CS:GO, Dota 2, TF2, Rust, and more
 
 ### 💰 Trading & Arbitrage
+
 - **Arbitrage Scanner**: Find profitable trading opportunities
 - **Auto-trading**: Automated buy/sell operations
 - **Price Alerts**: Custom notifications for price changes
 - **Portfolio Tracking**: Monitor your investments
 
 ### 🔧 Advanced Features
+
 - **Multi-language Support**: English, Russian, and more
 - **Database Analytics**: Historical data storage and analysis
 - **Rate Limiting**: Respectful API usage
@@ -34,6 +37,8 @@ A comprehensive Telegram bot for DMarket platform operations, market analytics, 
 - **Webhook Support**: Production-ready webhook integration
 
 ### 🛡️ Security & Performance
+
+- **DRY_RUN Mode**: Safe testing without real trades (enabled by default)
 - **Encrypted API Keys**: Secure credential management
 - **Rate Limiting**: Built-in API throttling
 - **Caching**: Intelligent response caching
@@ -53,6 +58,7 @@ A comprehensive Telegram bot for DMarket platform operations, market analytics, 
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Python 3.10 or higher (3.11+ recommended)
 - Telegram Bot Token ([create one with @BotFather](https://t.me/BotFather))
 - DMarket API Keys ([get them here](https://dmarket.com/profile/api))
@@ -130,9 +136,11 @@ docker-compose logs -f bot
 ### Method 3: One-Click Deployment
 
 #### Heroku
+
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 #### DigitalOcean
+
 [![Deploy to DigitalOcean](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/your-username/dmarket-telegram-bot/tree/main)
 
 ### Development Dependencies
@@ -211,6 +219,7 @@ security:
 ```
 
 Run with config file:
+
 ```bash
 python -m src.main --config config/local.yaml
 ```
@@ -249,11 +258,13 @@ python scripts/health_check.py
 ### API Keys Setup
 
 #### 1. Telegram Bot Token
+
 1. Message [@BotFather](https://t.me/BotFather) on Telegram
 2. Send `/newbot` and follow instructions
 3. Copy the provided token to your `.env` file
 
 #### 2. DMarket API Keys
+
 1. Visit [DMarket Profile](https://dmarket.com/profile/api)
 2. Create new API credentials
 3. Copy Public Key and Secret Key to your `.env` file
@@ -261,32 +272,57 @@ python scripts/health_check.py
 
 ## 📱 Usage
 
+### ⚠️ Important: Trading Safety Mode
+
+By default, the bot operates in **DRY_RUN mode** for your safety:
+
+- 🔵 **DRY_RUN=true (default)**: Bot simulates all trades without spending real money
+- 🔴 **DRY_RUN=false**: Bot makes REAL trades with your balance
+
+**Before switching to live trading:**
+
+1. Test for at least 48-72 hours in DRY_RUN mode
+2. Review all logs marked with `[DRY-RUN]` or `[LIVE]`
+3. Read the [Security Guide](docs/SECURITY.md)
+4. Start with small amounts
+
+To change mode, edit `.env`:
+
+```env
+DRY_RUN=false  # ⚠️ Use with caution!
+```
+
 ### Bot Commands
 
 #### Basic Commands
+
 - `/start` - Welcome message and main menu
 - `/help` - Show all available commands
 - `/balance` - Check your DMarket balance
 - `/market <game>` - Browse market items (e.g., `/market csgo`)
 
 #### Market Analysis
+
 - `/stats <item_name>` - Get item statistics and price history
 - `/trends <game>` - Show market trends for a game
 - `/top <game>` - Top items by volume/price
 - `/arbitrage` - Find arbitrage opportunities
 
 #### Trading Operations
+
 - `/buy <item_id> <price>` - Buy an item
 - `/sell <item_id> <price>` - Sell an item
 - `/inventory` - View your inventory
 - `/orders` - View active orders
 
 #### Alerts & Notifications
+
 - `/alert <item> <price>` - Set price alert
 - `/alerts` - Manage your alerts
 - `/notify on/off` - Toggle notifications
 
 #### Analytics & Visualization
+
 - `/chart <item>` - Generate price chart
 - `/portfolio` - Portfolio analysis
 - `/report` - Generate market report
@@ -317,6 +353,7 @@ The bot also provides a web interface for advanced features:
 ```
 
 Features include:
+
 - Advanced market filtering
 - Bulk operations
 - Detailed analytics
@@ -395,6 +432,9 @@ python scripts/validate_config.py
 # Run health checks
 python scripts/health_check.py
 
+# 🧪 Run Debug Suite (REQUIRED before deployment)
+python scripts/debug_suite.py
+
 # Run quality checks
 make qa
 
@@ -463,20 +503,33 @@ python scripts/validate_config.py
 # 2. Check service connectivity
 python scripts/health_check.py
 
-# 3. Run database migrations
+# 3. 🧪 Run Debug Suite (MANDATORY BEFORE DEPLOYMENT)
+python scripts/debug_suite.py
+# This script performs 6 critical tests:
+# - DMarket API connection + balance check
+# - Database connection and schema validation
+# - User management operations
+# - Real market data and profit calculations
+# - Order simulation in DRY-RUN mode
+# - Telegram notification delivery
+
+# 4. Run database migrations
 python scripts/init_db.py
 
-# 4. Run tests
+# 5. Run tests
 pytest --cov=src
 
-# 5. Check code quality
+# 6. Check code quality
 ruff check src/ tests/
 mypy src/
 ```
 
+**⚠️ IMPORTANT**: Always run `python scripts/debug_suite.py` before every deployment to prevent costly errors!
+
 ### Adding New Features
 
 1. **Create Feature Branch**
+
    ```bash
    git checkout -b feature/amazing-feature
    ```
@@ -487,6 +540,7 @@ mypy src/
    - Update documentation
 
 3. **Test Thoroughly**
+
    ```bash
    make test-cov
    make lint
@@ -506,6 +560,98 @@ We use modern Python best practices:
 - **Error Handling**: Comprehensive error handling and logging
 - **Testing**: 80%+ test coverage required
 - **Documentation**: Docstrings for all public functions
+
+### 🧪 Debug Suite - Pre-Deployment Testing
+
+**CRITICAL**: Run Debug Suite before every deployment to production!
+
+The Debug Suite (`scripts/debug_suite.py`) performs comprehensive system checks:
+
+#### What it Tests
+
+1. **🌐 DMarket API Connection**
+   - Validates API credentials
+   - Checks balance availability
+   - Warns if balance < $1.00
+
+2. **🗄️ Database Connection**
+   - Tests PostgreSQL/SQLite connectivity
+   - Validates database schema
+   - Ensures migrations are applied
+
+3. **👤 User Management**
+   - Creates/retrieves test user
+   - Validates database operations
+   - Tests user data persistence
+
+4. **📊 Market Data & Profit Calculation**
+   - Fetches real market items
+   - Tests price parsing
+   - Validates profit calculation logic
+
+5. **🛒 Order Simulation (DRY-RUN)**
+   - Simulates buy order creation
+   - Logs BUY_INTENT for auditing
+   - Tests without spending real money
+
+6. **📱 Telegram Notifications**
+   - Validates bot token
+   - Tests message delivery
+   - Checks bot permissions
+
+#### Running Debug Suite
+
+```bash
+# Basic usage
+python scripts/debug_suite.py
+
+# Expected output:
+# ======================================================================
+# 🧪 DMARKET BOT DEBUG SUITE
+# ======================================================================
+# ⏰ Время запуска: 2025-11-23 15:30:45
+# 🔧 Режим: DRY-RUN ✅
+# ======================================================================
+#
+# [1/6] 🌐 Подключение к DMarket API...
+#    ✅ Подключение успешно
+#    💰 Баланс: $100.50
+#    💵 Доступно для вывода: $95.25
+#
+# [2/6] 🗄️  Подключение к базе данных...
+#    ✅ Подключение к БД успешно
+#
+# ... (остальные тесты)
+#
+# ======================================================================
+# 📊 ИТОГОВЫЙ ОТЧЁТ
+# ======================================================================
+# ✅ Успешных тестов: 6/6
+# ❌ Провалившихся тестов: 0/6
+#
+# 🎉 ВСЕ ТЕСТЫ ПРОШЛИ УСПЕШНО!
+# ✅ Бот готов к запуску.
+# ======================================================================
+```
+
+#### When to Run
+
+- ✅ **Before every production deployment**
+- ✅ After changing API credentials
+- ✅ After database schema changes
+- ✅ After major code refactoring
+- ✅ Weekly for health monitoring
+
+#### Exit Codes
+
+- `0` - All tests passed ✅
+- `1` - At least one test failed ❌
+
+Use in CI/CD:
+
+```bash
+python scripts/debug_suite.py || exit 1
+```
 
 ### Architecture Overview
 

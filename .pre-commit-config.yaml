@@ -33,11 +33,15 @@ repos:
           - --show-error-codes
           - --pretty
           - --show-column-numbers
+          - --cache-dir=.mypy_cache  # Incremental cache для ускорения
+          - --install-types
+          - --non-interactive
         additional_dependencies:
           - types-requests
           - types-redis
           - types-PyYAML
           - types-psutil
+          - sqlalchemy[mypy]  # SQLAlchemy plugin для MyPy
         files: ^src/
         exclude: ^(tests/|scripts/)
 

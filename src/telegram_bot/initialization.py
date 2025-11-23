@@ -5,11 +5,11 @@
 """
 
 import asyncio
+from collections.abc import Callable
 import logging
 import os
 import signal
 import sys
-from collections.abc import Callable
 
 from telegram.ext import (
     Application,

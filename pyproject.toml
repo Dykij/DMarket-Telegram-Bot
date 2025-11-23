@@ -37,17 +37,22 @@ dependencies = [
 dev = [
     "ruff>=0.8.0",
     "mypy>=1.11.0",
-    "pytest>=7.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.0",
-    "pytest-xdist>=3.0",
-    "pytest-mock>=3.10.0",
+    "pytest>=7.4",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1",
+    "pytest-xdist>=3.5",
+    "pytest-mock>=3.12.0",
+    "pytest-rerunfailures>=14.0",  # Retry для flaky async tests
+    "pytest-timeout>=2.2",         # Таймауты для зависших тестов
+    "pytest-randomly>=3.15",       # Рандомизация порядка тестов
     "black>=24.0",
     "sphinx>=7.0",
     "sphinx-rtd-theme>=2.0",
     "pre-commit>=3.0",
     "bandit>=1.7.0",
     "safety>=3.0",
+    "coverage[toml]>=7.4",         # Coverage с TOML support
+    "aiosqlite>=0.19.0",           # In-memory DB для тестов
 ]
 
 [project.urls]
@@ -133,7 +138,7 @@ include = '\.pyi?$'  # Включая stub-файлы (.pyi)
 # Принудительно использовать одинарные кавычки для совместимости с Ruff
 skip-string-normalization = false
 # Включить режим предварительного просмотра для новых функций
-preview = false
+preview = true  # Новые фичи Black - тестируем постепенно
 extend-exclude = '''
 /(
   # directories
@@ -154,6 +159,9 @@ extend-exclude = '''
   | htmlcov
   | \.eggs
   | \.egg-info
+  | alembic/versions  # Не трогаем auto-generated миграции Alembic
+  | data/
+  | logs/
 )/
 '''
 
@@ -395,7 +403,7 @@ unfixable = [
 
 [tool.ruff.lint.isort]
 # Конфигурация сортировки импортов
-known-first-party = ["src"]
+known-first-party = ["src", "src.dmarket", "src.telegram_bot", "src.models", "src.utils"]
 section-order = [
     "future",
     "standard-library",
@@ -404,6 +412,9 @@ section-order = [
     "local-folder",
 ]
 lines-after-imports = 2
+# Группировка related imports
+combine-as-imports = true
+force-sort-within-sections = true
 
 [tool.ruff.lint.flake8-quotes]
 # Использовать двойные кавычки
@@ -463,6 +474,11 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+# Preview mode для новых фич форматирования
+preview = true
+# Docstring стиль
+docstring-code-format = true
+docstring-code-line-length = 88
 
 [tool.mypy]
 python_version = "3.11"
@@ -552,7 +568,10 @@ incremental = true                  # Инкрементальная прове�
 cache_dir = ".mypy_cache"          # Директория кэша
 
 # Плагины
-plugins = []                        # Плагины MyPy (например, "pydantic.mypy")
+plugins = [
+    "sqlalchemy.ext.mypy.plugin",  # Плагин для SQLAlchemy моделей
+    # "pydantic.mypy",               # Для Pydantic моделей (если используется)
+]
 
 # Дополнительные опции
 show_traceback = false              # Показывать traceback при внутренних ошибках
@@ -698,7 +717,7 @@ badge-format = "svg"
 # ============================================================================
 
 [tool.pytest.ini_options]
-minversion = "7.0"
+minversion = "7.4"
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
@@ -706,28 +725,33 @@ python_functions = ["test_*"]
 addopts = [
     "--strict-markers",
     "--strict-config",
+    "-v",
     "--cov=src",
     "--cov-report=html",
     "--cov-report=term-missing:skip-covered",
     "--cov-report=xml",
     "--cov-branch",
-    # "--cov-context=test",  # Отключено - вызывает конфликты
-    "--cov-fail-under=25",  # Этап 1: Минимальное покрытие (постепенное улучшение)
-    "-v",
+    "--cov-fail-under=85",  # Production-grade: fail CI если coverage <85%
     "--tb=short",
-    "--maxfail=100",  # Увеличено для полного прогона
+    "--maxfail=3",  # Быстрый fail для CI (изменено с 100)
     "-ra",
+    "--durations=10",  # Показывать 10 самых медленных тестов
+    "--strict-config",
 ]
 markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "integration: marks tests as integration tests",
-    "unit: marks tests as unit tests",
-    "asyncio: marks tests as async",
-    "smoke: marks tests as smoke tests",
-    "e2e: marks tests as end-to-end tests",
+    "unit: Quick unit tests (no DB/API)",
+    "integration: DB/Redis/API mocks required",
+    "e2e: Full end-to-end with fixtures",
+    "slow: Marks tests as slow (deselect with '-m \"not slow\"')",
+    "asyncio: Async tests (auto-detected)",
+    "smoke: Critical path smoke tests",
+    "flaky: Tests that may fail intermittently (retry enabled)",
+    "database: Tests requiring database",
+    "redis: Tests requiring Redis",
+    "api: Tests calling external APIs",
 ]
-asyncio_mode = "auto"
-asyncio_default_fixture_loop_scope = "function"  # Область видимости event loop
+asyncio_mode = "auto"  # Auto-detect async tests
+asyncio_default_fixture_loop_scope = "function"
 
 # Логирование в тестах
 log_cli = false

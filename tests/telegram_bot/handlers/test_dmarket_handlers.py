@@ -99,9 +99,10 @@ class TestDMarketHandlerInit:
         handler.api_url = "https://api.dmarket.com"
         handler.api = None
 
-        handler.initialize_api()
-
-        assert handler.api is None
+        # Ожидаем, что исключение будет выброшено
+        # (из-за reraise=True в декораторе)
+        with pytest.raises(Exception, match="API Error"):
+            handler.initialize_api()
 
 
 class TestStatusCommand:
@@ -199,12 +200,10 @@ class TestBalanceCommand:
                 api_url="https://api.dmarket.com",
             )
 
-            await handler.balance_command(mock_update, mock_context)
-
-            mock_update.message.reply_text.assert_called_once()
-            call_args = mock_update.message.reply_text.call_args
-            text = call_args.args[0] if call_args.args else call_args.kwargs.get("text", "")
-            assert "Не удалось получить" in text
+            # Ожидаем, что исключение будет выброшено
+            # (из-за reraise=True в декораторе)
+            with pytest.raises(Exception, match="API Error"):
+                await handler.balance_command(mock_update, mock_context)
 
 
 class TestRegisterDMarketHandlers:

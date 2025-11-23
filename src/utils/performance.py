@@ -1,10 +1,10 @@
 """Утилиты для оптимизации производительности проекта."""
 
 import asyncio
+from collections.abc import Callable
 import functools
 import logging
 import time
-from collections.abc import Callable
 from typing import Any, TypeVar
 
 
@@ -134,7 +134,7 @@ class AdvancedCache:
         total_requests = self._hits + self._misses
         hit_rate = (self._hits / total_requests * 100) if total_requests > 0 else 0
 
-        stats = {
+        stats: dict[str, Any] = {
             "hits": self._hits,
             "misses": self._misses,
             "hit_rate_percent": hit_rate,

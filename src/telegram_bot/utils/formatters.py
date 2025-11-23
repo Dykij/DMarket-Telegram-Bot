@@ -4,8 +4,8 @@
 возможности арбитража, баланс и т.д.) в читаемый текст для отправки в сообщениях Telegram.
 """
 
-import logging
 from datetime import datetime
+import logging
 from typing import Any
 
 

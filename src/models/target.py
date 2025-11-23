@@ -1,12 +1,11 @@
 """Модель базы данных для таргетов (buy orders)."""
 
 from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import JSON, BigInteger, Boolean, Column, DateTime, Float, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
 
-
-Base = declarative_base()
+from src.models.base import Base
 
 
 class Target(Base):
@@ -41,7 +40,9 @@ class Target(Base):
     status = Column(String(50), default="active", index=True)
     created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
     updated_at = Column(
-        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+        DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
     attributes = Column(JSON, nullable=True)
 
@@ -53,7 +54,7 @@ class Target(Base):
             f"status='{self.status}')>"
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Преобразовать модель в словарь.
 
         Returns:
@@ -69,8 +70,8 @@ class Target(Base):
             "price": self.price,
             "amount": self.amount,
             "status": self.status,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "created_at": (self.created_at.isoformat() if self.created_at else None),
+            "updated_at": (self.updated_at.isoformat() if self.updated_at else None),
             "attributes": self.attributes,
         }
 
@@ -115,7 +116,7 @@ class TradeHistory(Base):
             f"price=${self.price:.2f}, status='{self.status}')>"
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Преобразовать модель в словарь.
 
         Returns:
@@ -131,7 +132,7 @@ class TradeHistory(Base):
             "profit": self.profit,
             "game": self.game,
             "status": self.status,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "created_at": (self.created_at.isoformat() if self.created_at else None),
             "completed_at": (self.completed_at.isoformat() if self.completed_at else None),
             "trade_metadata": self.trade_metadata,
         }
@@ -168,7 +169,9 @@ class TradingSettings(Base):
     notifications_enabled = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
     updated_at = Column(
-        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+        DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     def __repr__(self) -> str:
@@ -179,7 +182,7 @@ class TradingSettings(Base):
             f"strategy='{self.strategy}')>"
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Преобразовать модель в словарь.
 
         Returns:
@@ -196,6 +199,6 @@ class TradingSettings(Base):
             "auto_trading_enabled": self.auto_trading_enabled,
             "games_enabled": self.games_enabled,
             "notifications_enabled": self.notifications_enabled,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "created_at": (self.created_at.isoformat() if self.created_at else None),
+            "updated_at": (self.updated_at.isoformat() if self.updated_at else None),
         }

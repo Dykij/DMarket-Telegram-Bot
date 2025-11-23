@@ -131,7 +131,7 @@ def get_games_keyboard(callback_prefix: str = "game") -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(keyboard)
 
 
-def get_arbitrage_keyboard():
+def get_arbitrage_keyboard() -> InlineKeyboardMarkup:
     """Создает основную клавиатуру арбитража."""
     return InlineKeyboardMarkup(
         [
@@ -174,7 +174,14 @@ def get_price_range_keyboard(
     elif max_price <= 500:
         ranges = [(0, 20), (20, 50), (50, 100), (100, 200), (200, 500)]
     else:
-        ranges = [(0, 50), (50, 100), (100, 300), (300, 500), (500, 1000), (1000, 2000)]
+        ranges = [
+            (0, 50),
+            (50, 100),
+            (100, 300),
+            (300, 500),
+            (500, 1000),
+            (1000, 2000),
+        ]
 
     keyboard = []
     row = []
@@ -353,7 +360,9 @@ def get_pagination_keyboard(
     items_per_page: int = 10,
     prefix: str = "page",
 ) -> InlineKeyboardMarkup:
-    """Устаревшая функция для создания клавиатуры пагинации (для обратной совместимости).
+    """Устаревшая функция для создания клавиатуры пагинации.
+
+    (для обратной совместимости).
 
     Использует новую унифицированную create_pagination_keyboard.
 
@@ -656,7 +665,7 @@ def get_webapp_keyboard(title: str, webapp_url: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(keyboard)
 
 
-def get_dmarket_webapp_keyboard():
+def get_dmarket_webapp_keyboard() -> InlineKeyboardMarkup:
     """Создает клавиатуру с WebApp DMarket."""
     return InlineKeyboardMarkup(
         [
@@ -773,7 +782,9 @@ def get_request_location_keyboard(
     )
 
 
-def get_combined_web_app_keyboard(items: list[tuple[str, str]]) -> InlineKeyboardMarkup:
+def get_combined_web_app_keyboard(
+    items: list[tuple[str, str]],
+) -> InlineKeyboardMarkup:
     """Создает клавиатуру с несколькими WebApp кнопками.
 
     Args:
@@ -805,7 +816,7 @@ def get_combined_web_app_keyboard(items: list[tuple[str, str]]) -> InlineKeyboar
     return InlineKeyboardMarkup(keyboard)
 
 
-def get_marketplace_comparison_keyboard():
+def get_marketplace_comparison_keyboard() -> InlineKeyboardMarkup:
     """Создает клавиатуру сравнения маркетплейсов."""
     return InlineKeyboardMarkup(
         [
@@ -832,7 +843,7 @@ def get_marketplace_comparison_keyboard():
     )
 
 
-def get_modern_arbitrage_keyboard():
+def get_modern_arbitrage_keyboard() -> InlineKeyboardMarkup:
     """Создает современную клавиатуру с функциями арбитража."""
     return InlineKeyboardMarkup(
         [
@@ -875,7 +886,7 @@ def get_modern_arbitrage_keyboard():
     )
 
 
-def get_auto_arbitrage_keyboard():
+def get_auto_arbitrage_keyboard() -> InlineKeyboardMarkup:
     """Создает клавиатуру выбора режима автоматического арбитража."""
     return InlineKeyboardMarkup(
         [
@@ -902,7 +913,7 @@ def get_auto_arbitrage_keyboard():
     )
 
 
-def get_game_selection_keyboard():
+def get_game_selection_keyboard() -> InlineKeyboardMarkup:
     """Создает клавиатуру выбора игры."""
     games = {
         "csgo": "CS2",
@@ -928,7 +939,7 @@ def get_game_selection_keyboard():
     return InlineKeyboardMarkup(keyboard)
 
 
-def get_back_to_arbitrage_keyboard():
+def get_back_to_arbitrage_keyboard() -> InlineKeyboardMarkup:
     """Создает клавиатуру с кнопкой возврата к арбитражу."""
     return InlineKeyboardMarkup(
         [
@@ -942,7 +953,7 @@ def get_back_to_arbitrage_keyboard():
     )
 
 
-def get_webapp_button():
+def get_webapp_button() -> InlineKeyboardMarkup:
     """Создает кнопку для открытия WebApp."""
     return InlineKeyboardMarkup(
         [
@@ -976,12 +987,14 @@ def get_permanent_reply_keyboard() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard,
         resize_keyboard=True,
-        one_time_keyboard=False,  # Заменено с is_persistent на противоположное значение
+        one_time_keyboard=False,  # is_persistent -> one_time_keyboard=False
         input_field_placeholder="Выберите функцию или введите команду",
     )
 
 
-def create_main_keyboard(include_all_buttons: bool = True) -> ReplyKeyboardMarkup:
+def create_main_keyboard(
+    include_all_buttons: bool = True,
+) -> ReplyKeyboardMarkup:
     """Создает основную клавиатуру бота.
 
     Args:
@@ -1021,7 +1034,7 @@ def create_main_keyboard(include_all_buttons: bool = True) -> ReplyKeyboardMarku
     return ReplyKeyboardMarkup(
         keyboard,
         resize_keyboard=True,
-        one_time_keyboard=False,  # Заменено с is_persistent на противоположное значение
+        one_time_keyboard=False,  # is_persistent -> one_time_keyboard=False
         input_field_placeholder="Выберите функцию или введите команду",
     )
 
@@ -1166,7 +1179,8 @@ def create_pagination_keyboard(
             ),
         )
 
-    # Кнопка "В конец" и "Последняя" если не на последней странице и если запрошено
+    # Кнопка "В конец" и "Последняя" если не на последней странице
+    # и если запрошено
     if include_first_last and current_page < total_pages - 1:
         nav_buttons.append(
             InlineKeyboardButton(
@@ -1356,7 +1370,8 @@ def build_menu(
         footer_buttons: Кнопки футера (отдельная строка)
 
     Returns:
-        List[List[InlineKeyboardButton]]: Двумерный список кнопок для InlineKeyboardMarkup
+        List[List[InlineKeyboardButton]]: Двумерный список кнопок
+            для InlineKeyboardMarkup
 
     """
     menu = [buttons[i : i + n_cols] for i in range(0, len(buttons), n_cols)]

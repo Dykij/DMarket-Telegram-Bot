@@ -519,8 +519,7 @@ async def analyze_market_depth(
 
     Example:
         >>> analysis = await analyze_market_depth(
-        ...     game='csgo',
-        ...     items=['AK-47 | Redline (Field-Tested)', 'AWP | Asiimov (FT)']
+        ...     game="csgo", items=["AK-47 | Redline (Field-Tested)", "AWP | Asiimov (FT)"]
         ... )
         >>> print(f"Глубина рынка: {analysis['average_depth_score']:.1f}/100")
 
@@ -608,24 +607,22 @@ async def analyze_market_depth(
                 market_balance = "balanced"
                 balance_description = "Сбалансированный рынок"
 
-            depth_analysis.append(
-                {
-                    "title": title,
-                    "order_count": order_count,
-                    "offer_count": offer_count,
-                    "total_volume": total_volume,
-                    "order_price": order_price,
-                    "offer_price": offer_price,
-                    "spread": spread,
-                    "spread_percent": spread_percent,
-                    "buy_pressure": buy_pressure,
-                    "sell_pressure": sell_pressure,
-                    "liquidity_score": liquidity_score,
-                    "market_balance": market_balance,
-                    "balance_description": balance_description,
-                    "arbitrage_potential": spread_percent > 5.0,
-                }
-            )
+            depth_analysis.append({
+                "title": title,
+                "order_count": order_count,
+                "offer_count": offer_count,
+                "total_volume": total_volume,
+                "order_price": order_price,
+                "offer_price": offer_price,
+                "spread": spread,
+                "spread_percent": spread_percent,
+                "buy_pressure": buy_pressure,
+                "sell_pressure": sell_pressure,
+                "liquidity_score": liquidity_score,
+                "market_balance": market_balance,
+                "balance_description": balance_description,
+                "arbitrage_potential": spread_percent > 5.0,
+            })
 
         # Рассчитываем сводные показатели
         if depth_analysis:

@@ -1,8 +1,8 @@
 """Balance command handler."""
 
+from datetime import datetime
 import logging
 import traceback
-from datetime import datetime
 
 from telegram import CallbackQuery, Message, Update
 from telegram.constants import ParseMode

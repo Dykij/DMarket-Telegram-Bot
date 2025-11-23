@@ -7,11 +7,11 @@
 """
 
 import asyncio
+from collections import defaultdict
+from collections.abc import Callable
 import contextlib
 import logging
 import time
-from collections import defaultdict
-from collections.abc import Callable
 from typing import Any
 
 from src.dmarket.dmarket_api import DMarketAPI

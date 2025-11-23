@@ -6,18 +6,17 @@ after crashes or restarts without losing progress.
 """
 
 import asyncio
+from datetime import UTC, datetime, timedelta
 import json
+from pathlib import Path
 import signal
 import sys
-from datetime import UTC, datetime, timedelta
-from pathlib import Path
 from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 from sqlalchemy import Column, DateTime, Integer, String, Text, select
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.dialects.postgresql import UUID as PGUUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.user import Base
@@ -66,17 +65,27 @@ class ScanCheckpoint(Base):
 class StateManager:
     """Manager for operation state and checkpoints."""
 
-    def __init__(self, session: AsyncSession, checkpoint_interval: int = 100):
+    def __init__(
+        self,
+        session: AsyncSession,
+        checkpoint_interval: int = 100,
+        max_consecutive_errors: int = 5,
+    ):
         """Initialize state manager.
 
         Args:
             session: Database session
             checkpoint_interval: Save checkpoint every N items
+            max_consecutive_errors: Max consecutive errors before shutdown
 
         """
         self.session = session
         self.checkpoint_interval = checkpoint_interval
+        self.max_consecutive_errors = max_consecutive_errors
         self._shutdown_handlers_registered = False
+        self._consecutive_errors = 0
+        self._is_paused = False
+        self._shutdown_callback: callable | None = None
 
     async def create_checkpoint(
         self,
@@ -346,6 +355,81 @@ class StateManager:
 
         self._shutdown_handlers_registered = True
         logger.info("Shutdown handlers registered for graceful termination")
+
+    def record_error(self) -> bool:
+        """Record a consecutive error.
+
+        Returns:
+            bool: True if should trigger shutdown, False otherwise
+
+        """
+        self._consecutive_errors += 1
+        logger.warning(
+            f"Consecutive error recorded: {self._consecutive_errors}/{self.max_consecutive_errors}",
+        )
+
+        if self._consecutive_errors >= self.max_consecutive_errors:
+            logger.critical(
+                f"Maximum consecutive errors ({self.max_consecutive_errors}) reached! Triggering shutdown...",
+            )
+            return True
+
+        return False
+
+    def reset_error_counter(self) -> None:
+        """Reset consecutive error counter after successful operation."""
+        if self._consecutive_errors > 0:
+            logger.info(
+                f"Resetting error counter from {self._consecutive_errors} to 0",
+            )
+            self._consecutive_errors = 0
+
+    def pause_operations(self) -> None:
+        """Pause bot operations until manual resume."""
+        self._is_paused = True
+        logger.warning("Bot operations PAUSED")
+
+    def resume_operations(self) -> None:
+        """Resume bot operations after pause."""
+        self._is_paused = False
+        self._consecutive_errors = 0
+        logger.info("Bot operations RESUMED")
+
+    @property
+    def is_paused(self) -> bool:
+        """Check if operations are paused."""
+        return self._is_paused
+
+    @property
+    def consecutive_errors(self) -> int:
+        """Get current consecutive error count."""
+        return self._consecutive_errors
+
+    def set_shutdown_callback(self, callback: callable) -> None:
+        """Set callback to be called on critical shutdown.
+
+        Args:
+            callback: Async function to call on shutdown
+
+        """
+        self._shutdown_callback = callback
+        logger.info("Shutdown callback registered")
+
+    async def trigger_emergency_shutdown(self, reason: str) -> None:
+        """Trigger emergency shutdown.
+
+        Args:
+            reason: Reason for shutdown
+
+        """
+        logger.critical(f"EMERGENCY SHUTDOWN: {reason}")
+        self.pause_operations()
+
+        if self._shutdown_callback:
+            try:
+                await self._shutdown_callback(reason)
+            except Exception as e:
+                logger.exception(f"Error in shutdown callback: {e}")
 
 
 class LocalStateManager:

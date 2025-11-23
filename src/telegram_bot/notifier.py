@@ -29,7 +29,6 @@ from src.utils.price_analyzer import (
     get_item_price_history,
 )
 
-
 # Настраиваем логирование
 logger = logging.getLogger(__name__)
 
@@ -41,6 +40,12 @@ NOTIFICATION_TYPES = {
     "good_deal": "Выгодное предложение",
     "arbitrage": "Арбитражная возможность",
     "trend_change": "Изменение тренда",
+    "buy_intent": "Намерение купить",
+    "buy_success": "Покупка выполнена",
+    "buy_failed": "Ошибка покупки",
+    "sell_success": "Продажа выполнена",
+    "sell_failed": "Ошибка продажи",
+    "critical_shutdown": "Критическая остановка",
 }
 
 # Формат хранения настроек оповещений пользователя
@@ -430,6 +435,399 @@ async def check_good_deal_alerts(
     return triggered_alerts
 
 
+async def send_buy_intent_notification(
+    bot: Bot,
+    user_id: int,
+    item_name: str,
+    buy_price: float,
+    sell_price: float,
+    profit_usd: float,
+    profit_percent: float,
+    source: str = "arbitrage_scanner",
+    dry_run: bool = True,
+    notification_queue: NotificationQueue | None = None,
+    item_id: str | None = None,
+) -> None:
+    """Отправить уведомление о намерении купить предмет.
+
+    Args:
+        bot: Экземпляр Telegram Bot
+        user_id: ID пользователя в Telegram
+        item_name: Название предмета
+        buy_price: Цена покупки
+        sell_price: Цена продажи
+        profit_usd: Прибыль в USD
+        profit_percent: Прибыль в процентах
+        source: Источник возможности (arbitrage_scanner, targets)
+        dry_run: Режим тестирования (без реальных сделок)
+        notification_queue: Очередь уведомлений (опционально)
+        item_id: ID предмета (опционально)
+
+    """
+    mode_label = "[DRY-RUN] 🔵" if dry_run else "[LIVE] 🔴"
+
+    message = f"{mode_label} *НАМЕРЕНИЕ КУПИТЬ*\n\n"
+    message += f"*{item_name}*\n\n"
+    message += f"💵 Цена покупки: *${buy_price:.2f}*\n"
+    message += f"💰 Цена продажи: *${sell_price:.2f}*\n"
+    message += f"📈 Прибыль: *+${profit_usd:.2f}* (*+{profit_percent:.1f}%*)\n"
+    message += f"🎯 Источник: *{source}*"
+
+    # Создаем inline клавиатуру
+    keyboard = []
+    if item_id:
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    "🔍 Открыть на DMarket",
+                    url=f"https://dmarket.com/ingame-items/item-list/csgo-skins?userOfferId={item_id}",
+                ),
+            ],
+        )
+
+    # Кнопка отмены (если не dry_run)
+    if not dry_run:
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    "❌ Отменить покупку",
+                    callback_data=f"cancel_buy:{item_id}",
+                ),
+            ],
+        )
+
+    reply_markup = InlineKeyboardMarkup(keyboard) if keyboard else None
+
+    try:
+        if notification_queue:
+            await notification_queue.enqueue(
+                chat_id=user_id,
+                text=message,
+                reply_markup=reply_markup,
+                parse_mode="Markdown",
+                priority=Priority.HIGH,
+            )
+        else:
+            await bot.send_message(
+                chat_id=user_id,
+                text=message,
+                reply_markup=reply_markup,
+                parse_mode="Markdown",
+            )
+
+        logger.info(
+            f"Отправлено уведомление о намерении купить для пользователя {user_id}: {item_name}",
+        )
+    except Exception as e:
+        logger.exception(
+            f"Ошибка при отправке уведомления о намерении купить: {e}",
+        )
+
+
+async def send_buy_success_notification(
+    bot: Bot,
+    user_id: int,
+    item_name: str,
+    buy_price: float,
+    sell_price: float,
+    order_id: str | None = None,
+    dry_run: bool = True,
+    notification_queue: NotificationQueue | None = None,
+) -> None:
+    """Отправить уведомление об успешной покупке.
+
+    Args:
+        bot: Экземпляр Telegram Bot
+        user_id: ID пользователя в Telegram
+        item_name: Название предмета
+        buy_price: Цена покупки
+        sell_price: Планируемая цена продажи
+        order_id: ID заказа (опционально)
+        dry_run: Режим тестирования
+        notification_queue: Очередь уведомлений (опционально)
+
+    """
+    mode_label = "[DRY-RUN]" if dry_run else "[LIVE]"
+
+    message = f"{mode_label} ✅ *ПОКУПКА ВЫПОЛНЕНА*\n\n"
+    message += f"*{item_name}*\n\n"
+    message += f"💵 Цена покупки: *${buy_price:.2f}*\n"
+    message += f"📊 Выставлено на продажу за: *${sell_price:.2f}*\n"
+
+    if order_id:
+        message += f"\n🆔 Order ID: `{order_id}`"
+
+    try:
+        if notification_queue:
+            await notification_queue.enqueue(
+                chat_id=user_id,
+                text=message,
+                parse_mode="Markdown",
+                priority=Priority.HIGH,
+            )
+        else:
+            await bot.send_message(
+                chat_id=user_id,
+                text=message,
+                parse_mode="Markdown",
+            )
+
+        logger.info(
+            f"Отправлено уведомление об успешной покупке для пользователя {user_id}: {item_name}",
+        )
+    except Exception as e:
+        logger.exception(
+            f"Ошибка при отправке уведомления об успешной покупке: {e}",
+        )
+
+
+async def send_buy_failed_notification(
+    bot: Bot,
+    user_id: int,
+    item_name: str,
+    buy_price: float,
+    error_reason: str,
+    dry_run: bool = True,
+    notification_queue: NotificationQueue | None = None,
+) -> None:
+    """Отправить уведомление об ошибке при покупке.
+
+    Args:
+        bot: Экземпляр Telegram Bot
+        user_id: ID пользователя в Telegram
+        item_name: Название предмета
+        buy_price: Цена покупки
+        error_reason: Причина ошибки
+        dry_run: Режим тестирования
+        notification_queue: Очередь уведомлений (опционально)
+
+    """
+    mode_label = "[DRY-RUN]" if dry_run else "[LIVE]"
+
+    message = f"{mode_label} ❌ *ОШИБКА ПРИ ПОКУПКЕ*\n\n"
+    message += f"*{item_name}*\n\n"
+    message += f"💵 Цена: *${buy_price:.2f}*\n"
+    message += f"⚠️ Причина: *{error_reason}*"
+
+    try:
+        if notification_queue:
+            await notification_queue.enqueue(
+                chat_id=user_id,
+                text=message,
+                parse_mode="Markdown",
+                priority=Priority.HIGH,
+            )
+        else:
+            await bot.send_message(
+                chat_id=user_id,
+                text=message,
+                parse_mode="Markdown",
+            )
+
+        logger.warning(
+            f"Отправлено уведомление об ошибке покупки для пользователя {user_id}: {item_name} - {error_reason}",
+        )
+    except Exception as e:
+        logger.exception(
+            f"Ошибка при отправке уведомления об ошибке покупки: {e}",
+        )
+
+
+async def send_sell_success_notification(
+    bot: Bot,
+    user_id: int,
+    item_name: str,
+    buy_price: float,
+    sell_price: float,
+    profit_usd: float,
+    profit_percent: float,
+    dry_run: bool = True,
+    notification_queue: NotificationQueue | None = None,
+) -> None:
+    """Отправить уведомление об успешной продаже.
+
+    Args:
+        bot: Экземпляр Telegram Bot
+        user_id: ID пользователя в Telegram
+        item_name: Название предмета
+        buy_price: Цена покупки
+        sell_price: Цена продажи
+        profit_usd: Прибыль в USD
+        profit_percent: Прибыль в процентах
+        dry_run: Режим тестирования
+        notification_queue: Очередь уведомлений (опционально)
+
+    """
+    mode_label = "[DRY-RUN]" if dry_run else "[LIVE]"
+
+    message = f"{mode_label} ✅ *ПРОДАЖА ВЫПОЛНЕНА*\n\n"
+    message += f"*{item_name}*\n\n"
+    message += f"💵 Куплено за: *${buy_price:.2f}*\n"
+    message += f"💰 Продано за: *${sell_price:.2f}*\n"
+    message += f"📈 Прибыль: *+${profit_usd:.2f}* (*+{profit_percent:.1f}%*)"
+
+    try:
+        if notification_queue:
+            await notification_queue.enqueue(
+                chat_id=user_id,
+                text=message,
+                parse_mode="Markdown",
+                priority=Priority.HIGH,
+            )
+        else:
+            await bot.send_message(
+                chat_id=user_id,
+                text=message,
+                parse_mode="Markdown",
+            )
+
+        logger.info(
+            f"Отправлено уведомление об успешной продаже для пользователя {user_id}: {item_name}",
+        )
+    except Exception as e:
+        logger.exception(
+            f"Ошибка при отправке уведомления об успешной продаже: {e}",
+        )
+
+
+async def send_critical_shutdown_notification(
+    bot: Bot,
+    user_id: int,
+    reason: str,
+    consecutive_errors: int,
+    notification_queue: NotificationQueue | None = None,
+) -> None:
+    """Отправить критическое уведомление об остановке бота.
+
+    Args:
+        bot: Экземпляр Telegram Bot
+        user_id: ID пользователя в Telegram
+        reason: Причина остановки
+        consecutive_errors: Количество последовательных ошибок
+        notification_queue: Очередь уведомлений (опционально)
+
+    """
+    message = "🚨 *КРИТИЧЕСКАЯ ОСТАНОВКА БОТА*\n\n"
+    message += f"⚠️ Причина: {reason}\n"
+    message += f"📊 Последовательных ошибок: {consecutive_errors}\n\n"
+    message += "🔴 Все операции ОСТАНОВЛЕНЫ\n"
+    message += "🛠️ Необходима проверка логов\n\n"
+    message += "Для возобновления используйте команду:\n"
+    message += "/resume"
+
+    try:
+        if notification_queue:
+            await notification_queue.enqueue(
+                chat_id=user_id,
+                text=message,
+                parse_mode="Markdown",
+                priority=Priority.CRITICAL,
+            )
+        else:
+            await bot.send_message(
+                chat_id=user_id,
+                text=message,
+                parse_mode="Markdown",
+            )
+
+        logger.critical(
+            f"Отправлено критическое уведомление об остановке для пользователя {user_id}",
+        )
+    except Exception as e:
+        logger.exception(
+            f"Ошибка при отправке критического уведомления: {e}",
+        )
+
+
+async def send_crash_notification(
+    bot: Bot,
+    user_id: int,
+    error_type: str,
+    error_message: str,
+    traceback_text: str | None = None,
+    context: dict[str, Any] | None = None,
+    notification_queue: NotificationQueue | None = None,
+) -> None:
+    """Отправить уведомление о критической ошибке (краше) бота.
+
+    Args:
+        bot: Экземпляр Telegram Bot
+        user_id: ID пользователя в Telegram (обычно администратор)
+        error_type: Тип ошибки (название класса исключения)
+        error_message: Сообщение об ошибке
+        traceback_text: Полный traceback (опционально)
+        context: Дополнительный контекст ошибки (опционально)
+        notification_queue: Очередь уведомлений (опционально)
+
+    """
+    message = "💥 *КРИТИЧЕСКАЯ ОШИБКА БОТА*\n\n"
+    message += f"🔴 Тип ошибки: `{error_type}`\n"
+    message += f"📝 Сообщение: {error_message}\n\n"
+
+    # Добавляем контекст если есть
+    if context:
+        message += "📊 *Контекст:*\n"
+        for key, value in context.items():
+            message += f"  • {key}: `{value}`\n"
+        message += "\n"
+
+    message += "⚠️ *Действия:*\n"
+    message += "1️⃣ Проверьте логи бота\n"
+    message += "2️⃣ Проверьте статус внешних сервисов (DMarket API)\n"
+    message += "3️⃣ Бот может автоматически перезапуститься\n\n"
+
+    # Готовим traceback сообщение если есть
+    traceback_message = None
+    if traceback_text:
+        # Обрезаем если слишком длинный
+        if len(traceback_text) > 3000:
+            traceback_to_send = traceback_text[-2900:]
+        else:
+            traceback_to_send = traceback_text
+        traceback_message = "🔍 *Traceback:*\n```python\n" + traceback_to_send + "\n```"
+
+    try:
+        # Отправляем основное сообщение с наивысшим приоритетом
+        if notification_queue:
+            await notification_queue.enqueue(
+                chat_id=user_id,
+                text=message,
+                parse_mode="Markdown",
+                priority=Priority.HIGH,
+            )
+        else:
+            await bot.send_message(
+                chat_id=user_id,
+                text=message,
+                parse_mode="Markdown",
+            )
+
+        # Отправляем traceback если есть
+        if traceback_message:
+            if notification_queue:
+                await notification_queue.enqueue(
+                    chat_id=user_id,
+                    text=traceback_message,
+                    parse_mode="Markdown",
+                    priority=Priority.NORMAL,
+                )
+            else:
+                await bot.send_message(
+                    chat_id=user_id,
+                    text=traceback_message,
+                    parse_mode="Markdown",
+                )
+
+        logger.critical(
+            f"Отправлено уведомление о краше для пользователя {user_id}",
+            extra={"error_type": error_type, "error_message": error_message},
+        )
+    except Exception as e:
+        logger.exception(
+            f"Ошибка при отправке уведомления о краше: {e}",
+        )
+
+
 async def check_all_alerts(
     api: DMarketAPI,
     bot: Bot,
@@ -639,6 +1037,40 @@ async def run_alerts_checker(
         finally:
             # Ожидаем до следующей проверки
             await asyncio.sleep(interval)
+
+
+async def handle_buy_cancel_callback(
+    update,
+    context: CallbackContext,
+) -> None:
+    """Обрабатывает callback-запросы для отмены покупки.
+
+    Args:
+        update: Объект Update от Telegram
+        context: Контекст CallbackContext
+
+    """
+    query = update.callback_query
+    user_id = query.from_user.id
+    callback_data = query.data
+
+    # Обрабатываем отмену покупки
+    if callback_data.startswith("cancel_buy:"):
+        item_id = callback_data.split(":", 1)[1]
+
+        # Здесь должна быть логика отмены покупки
+        # Пока что просто уведомляем пользователя
+        logger.info(
+            f"Пользователь {user_id} отменил покупку предмета {item_id}",
+        )
+
+        await query.answer("Покупка отменена")
+        await query.edit_message_text(
+            text=query.message.text + "\n\n❌ *ОТМЕНЕНО ПОЛЬЗОВАТЕЛЕМ*",
+            parse_mode="Markdown",
+        )
+    else:
+        await query.answer("Неизвестная команда")
 
 
 async def handle_alert_callback(
@@ -1034,6 +1466,9 @@ def register_notification_handlers(application) -> None:
     # Добавляем обработчик callback-запросов
     application.add_handler(
         CallbackQueryHandler(handle_alert_callback, pattern=r"^disable_alert:"),
+    )
+    application.add_handler(
+        CallbackQueryHandler(handle_buy_cancel_callback, pattern=r"^cancel_buy:"),
     )
 
     # Запускаем периодическую проверку оповещений

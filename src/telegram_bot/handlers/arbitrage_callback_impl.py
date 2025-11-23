@@ -7,8 +7,6 @@
 - Индикацию действий через ChatAction
 """
 
-import logging
-
 from telegram import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ChatAction, ParseMode
 from telegram.ext import CallbackContext
@@ -21,17 +19,23 @@ from src.telegram_bot.keyboards import (
     get_modern_arbitrage_keyboard,
 )
 from src.telegram_bot.utils.formatters import format_best_opportunities, format_dmarket_results
-from src.utils.exceptions import APIError
+from src.utils.exceptions import handle_exceptions
+from src.utils.logging_utils import get_logger
+
 
 # Removed: execute_api_request - использовать прямые вызовы API
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Состояния для ConversationHandler
 SELECTING_GAME, SELECTING_MODE, CONFIRMING_ACTION = range(3)
 
 
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка в обработчике арбитража",
+)
 async def arbitrage_callback_impl(
     update: Update,
     context: CallbackContext,
@@ -58,7 +62,10 @@ async def arbitrage_callback_impl(
     # Если у пользователя есть настройка современного UI, используем её
     use_modern_ui = user_data.get("use_modern_ui", False)
 
-    keyboard = get_modern_arbitrage_keyboard() if use_modern_ui else get_arbitrage_keyboard()
+    if use_modern_ui:
+        keyboard = get_modern_arbitrage_keyboard()
+    else:
+        keyboard = get_arbitrage_keyboard()
 
     await query.edit_message_text(
         text="🔍 <b>Выберите режим арбитража:</b>",
@@ -70,6 +77,10 @@ async def arbitrage_callback_impl(
     return SELECTING_MODE
 
 
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка при поиске арбитража",
+)
 async def handle_dmarket_arbitrage_impl(
     query: CallbackQuery,
     context: CallbackContext,
@@ -112,209 +123,129 @@ async def handle_dmarket_arbitrage_impl(
         parse_mode=ParseMode.HTML,
     )
 
-    try:
-        # Показываем индикатор загрузки
-        await query.message.chat.send_action(ChatAction.TYPING)
+    # Показываем индикатор загрузки
+    await query.message.chat.send_action(ChatAction.TYPING)
 
-        # Определяем функцию для получения данных арбитража
-        async def get_arbitrage_data():
-            from src.dmarket.arbitrage import (
-                arbitrage_boost_async,
-                arbitrage_mid_async,
-                arbitrage_pro_async,
-            )
+    # Определяем функцию для получения данных арбитража
+    async def get_arbitrage_data():
+        from src.dmarket.arbitrage import (
+            arbitrage_boost_async,
+            arbitrage_mid_async,
+            arbitrage_pro_async,
+        )
 
-            if mode == "boost":
-                return await arbitrage_boost_async(game)
-            if mode == "pro":
-                return await arbitrage_pro_async(game)
-            return await arbitrage_mid_async(game)
+        if mode == "boost":
+            return await arbitrage_boost_async(game)
+        if mode == "pro":
+            return await arbitrage_pro_async(game)
+        return await arbitrage_mid_async(game)
 
-        # Выполняем API запрос напрямую
-        try:
-            results = await get_arbitrage_data()
-        except APIError as e:
-            logger.exception(f"API error: {e}")
-            results = []
+    # Выполняем API запрос напрямую
+    results = await get_arbitrage_data()
 
-        # Если получены результаты
-        if results:
-            from src.telegram_bot.pagination import format_paginated_results, pagination_manager
+    # Если получены результаты
+    if results:
+        from src.telegram_bot.pagination import format_paginated_results, pagination_manager
 
-            # Подготавливаем пагинацию результатов
-            user_id = query.from_user.id
-            pagination_manager.add_items_for_user(user_id, results, mode)
-            page_items, current_page, total_pages = pagination_manager.get_page(user_id)
+        # Подготавливаем пагинацию результатов
+        user_id = query.from_user.id
+        pagination_manager.add_items_for_user(user_id, results, mode)
+        page_data = pagination_manager.get_page(user_id)
+        page_items, current_page, total_pages = page_data
 
-            # Форматируем текст с результатами
-            formatted_text = format_paginated_results(
-                page_items,
-                game,
-                mode,
-                current_page,
-                total_pages,
-            )
+        # Форматируем текст с результатами
+        formatted_text = format_paginated_results(
+            page_items,
+            game,
+            mode,
+            current_page,
+            total_pages,
+        )
 
-            # Создаем клавиатуру с кнопками пагинации
-            keyboard = []
+        # Создаем клавиатуру с кнопками пагинации
+        keyboard = []
 
-            # Добавляем кнопки пагинации, если страниц больше одной
-            if total_pages > 1:
-                pagination_row = []
+        # Добавляем кнопки пагинации, если страниц больше одной
+        if total_pages > 1:
+            pagination_row = []
 
-                if current_page > 0:
-                    pagination_row.append(
-                        InlineKeyboardButton(
-                            "⬅️ Пред.",
-                            callback_data=f"paginate:prev:{mode}",
-                        ),
-                    )
-
-                # Добавляем индикатор текущей страницы
+            if current_page > 0:
                 pagination_row.append(
                     InlineKeyboardButton(
-                        f"{current_page + 1}/{total_pages}",
-                        callback_data="page_info",
+                        "⬅️ Пред.",
+                        callback_data=f"paginate:prev:{mode}",
                     ),
                 )
 
-                if current_page < total_pages - 1:
-                    pagination_row.append(
-                        InlineKeyboardButton(
-                            "След. ➡️",
-                            callback_data=f"paginate:next:{mode}",
-                        ),
-                    )
+            # Добавляем индикатор текущей страницы
+            pagination_row.append(
+                InlineKeyboardButton(
+                    f"{current_page + 1}/{total_pages}",
+                    callback_data="page_info",
+                ),
+            )
 
-                if pagination_row:
-                    keyboard.append(pagination_row)
-
-            # Добавляем кнопки действий с результатами
-            keyboard.append(
-                [
+            if current_page < total_pages - 1:
+                pagination_row.append(
                     InlineKeyboardButton(
-                        "📊 Подробный анализ",
-                        callback_data=f"analyze:{mode}",
+                        "След. ➡️",
+                        callback_data=f"paginate:next:{mode}",
                     ),
-                    InlineKeyboardButton(
-                        "🔄 Обновить",
-                        callback_data=f"refresh:{mode}",
-                    ),
-                ],
-            )
+                )
 
-            # Добавляем кнопку открытия DMarket
-            keyboard.append(
-                [
-                    InlineKeyboardButton(
-                        "🌐 Открыть DMarket",
-                        web_app={"url": "https://dmarket.com"},
-                    ),
-                ],
-            )
+            if pagination_row:
+                keyboard.append(pagination_row)
 
-            # Добавляем стандартные кнопки меню арбитража
-            arbitrage_keyboard = get_arbitrage_keyboard().inline_keyboard
-            keyboard.extend(arbitrage_keyboard[-1:])  # Только кнопка "Назад"
-
-            # Отправляем сообщение с результатами
-            await query.edit_message_text(
-                text=formatted_text,
-                reply_markup=InlineKeyboardMarkup(keyboard),
-                parse_mode=ParseMode.HTML,
-            )
-        else:
-            # Если результатов нет, показываем соответствующее сообщение
-            formatted_text = format_dmarket_results(results, mode, game)
-            keyboard = get_arbitrage_keyboard()
-
-            await query.edit_message_text(
-                text=formatted_text,
-                reply_markup=keyboard,
-                parse_mode=ParseMode.HTML,
-            )
-
-    except APIError as e:
-        # Обрабатываем ошибки API
-        logger.exception(f"Ошибка API при поиске арбитражных возможностей: {e.message}")
-
-        # Формируем сообщение об ошибке в зависимости от статус-кода
-        if e.status_code == 429:
-            error_message = (
-                "⏱️ <b>Превышен лимит запросов к DMarket API.</b>\n\n"
-                "Пожалуйста, подождите немного и попробуйте снова."
-            )
-        elif e.status_code == 401:
-            error_message = (
-                "🔐 <b>Ошибка авторизации в DMarket API.</b>\n\nПроверьте настройки API ключей."
-            )
-        elif e.status_code == 404:
-            error_message = (
-                "🔍 <b>Запрашиваемые данные не найдены в DMarket API.</b>\n\n"
-                "Возможно, указаны неверные параметры запроса."
-            )
-        elif e.status_code >= 500:
-            error_message = (
-                f"🔧 <b>Сервер DMarket временно недоступен.</b>\n\n"
-                f"Статус: {e.status_code}\n"
-                f"Попробуйте повторить запрос позже."
-            )
-        else:
-            error_message = (
-                f"❌ <b>Ошибка DMarket API:</b>\n\nКод: {e.status_code}\nСообщение: {e.message}"
-            )
-
-        # Создаем клавиатуру с кнопкой повтора
-        keyboard = InlineKeyboardMarkup(
+        # Добавляем кнопки действий с результатами
+        keyboard.append(
             [
-                [
-                    InlineKeyboardButton(
-                        "🔄 Попробовать снова",
-                        callback_data="arbitrage",
-                    ),
-                ],
-                [InlineKeyboardButton("« Назад", callback_data="back_to_menu")],
+                InlineKeyboardButton(
+                    "📊 Подробный анализ",
+                    callback_data=f"analyze:{mode}",
+                ),
+                InlineKeyboardButton(
+                    "🔄 Обновить",
+                    callback_data=f"refresh:{mode}",
+                ),
             ],
         )
 
-        # Отправляем сообщение об ошибке
+        # Добавляем кнопку открытия DMarket
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    "🌐 Открыть DMarket",
+                    web_app={"url": "https://dmarket.com"},
+                ),
+            ],
+        )
+
+        # Добавляем стандартные кнопки меню арбитража
+        arbitrage_keyboard = get_arbitrage_keyboard().inline_keyboard
+        keyboard.extend(arbitrage_keyboard[-1:])  # Только кнопка "Назад"
+
+        # Отправляем сообщение с результатами
         await query.edit_message_text(
-            text=error_message,
-            reply_markup=keyboard,
+            text=formatted_text,
+            reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode=ParseMode.HTML,
         )
-
-    except Exception as e:
-        # Обрабатываем непредвиденные ошибки
-        logger.exception(f"Ошибка при поиске арбитражных возможностей: {e!s}")
-
-        # Создаем клавиатуру с кнопкой повтора
-        keyboard = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton(
-                        "🔄 Попробовать снова",
-                        callback_data="arbitrage",
-                    ),
-                ],
-                [InlineKeyboardButton("« Назад", callback_data="back_to_menu")],
-            ],
-        )
-
-        # Отправляем сообщение об ошибке
-        error_message = (
-            f"❌ <b>Непредвиденная ошибка:</b>\n\n"
-            f"<code>{e!s}</code>\n\n"
-            f"Пожалуйста, сообщите об этой ошибке разработчикам."
-        )
+    else:
+        # Если результатов нет, показываем соответствующее сообщение
+        formatted_text = format_dmarket_results(results, mode, game)
+        keyboard = get_arbitrage_keyboard()
 
         await query.edit_message_text(
-            text=error_message,
+            text=formatted_text,
             reply_markup=keyboard,
             parse_mode=ParseMode.HTML,
         )
 
 
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка при поиске лучших возможностей",
+)
 async def handle_best_opportunities_impl(
     query: CallbackQuery,
     context: CallbackContext,
@@ -344,105 +275,79 @@ async def handle_best_opportunities_impl(
         parse_mode=ParseMode.HTML,
     )
 
-    try:
-        # Показываем индикатор загрузки
-        await query.message.chat.send_action(ChatAction.TYPING)
+    # Показываем индикатор загрузки
+    await query.message.chat.send_action(ChatAction.TYPING)
 
-        # Получаем арбитражные возможности
-        from src.dmarket.arbitrage_scanner import find_arbitrage_opportunities_async
+    # Получаем арбитражные возможности
+    from src.dmarket.arbitrage_scanner import find_arbitrage_opportunities_async
 
-        # Отображаем прогресс
-        await query.edit_message_text(
-            text=(
-                f"🔍 <b>Поиск лучших арбитражных возможностей</b>\n\n"
-                f"Игра: <b>{GAMES.get(game, game)}</b>\n\n"
-                f"<i>Анализ цен... (1/3)</i>"
-            ),
-            parse_mode=ParseMode.HTML,
-        )
+    # Отображаем прогресс
+    await query.edit_message_text(
+        text=(
+            f"🔍 <b>Поиск лучших арбитражных возможностей</b>\n\n"
+            f"Игра: <b>{GAMES.get(game, game)}</b>\n\n"
+            f"<i>Анализ цен... (1/3)</i>"
+        ),
+        parse_mode=ParseMode.HTML,
+    )
 
-        # Находим арбитражные возможности
-        opportunities = await find_arbitrage_opportunities_async(
-            game=game,
-            min_profit_percentage=5.0,
-            max_items=10,
-        )
+    # Находим арбитражные возможности
+    opportunities = await find_arbitrage_opportunities_async(
+        game=game,
+        max_items=10,
+    )
 
-        # Обновляем прогресс
-        await query.edit_message_text(
-            text=(
-                f"🔍 <b>Поиск лучших арбитражных возможностей</b>\n\n"
-                f"Игра: <b>{GAMES.get(game, game)}</b>\n\n"
-                f"<i>Подготовка результатов... (3/3)</i>"
-            ),
-            parse_mode=ParseMode.HTML,
-        )
+    # Обновляем прогресс
+    await query.edit_message_text(
+        text=(
+            f"🔍 <b>Поиск лучших арбитражных возможностей</b>\n\n"
+            f"Игра: <b>{GAMES.get(game, game)}</b>\n\n"
+            f"<i>Подготовка результатов... (3/3)</i>"
+        ),
+        parse_mode=ParseMode.HTML,
+    )
 
-        # Форматируем результаты
-        formatted_text = format_best_opportunities(opportunities, game)
+    # Форматируем результаты
+    formatted_text = format_best_opportunities(opportunities, game)
 
-        # Создаем клавиатуру с кнопками действий
-        keyboard = InlineKeyboardMarkup(
+    # Создаем клавиатуру с кнопками действий
+    keyboard = InlineKeyboardMarkup(
+        [
             [
-                [
-                    InlineKeyboardButton(
-                        "🔄 Обновить",
-                        callback_data="best_opportunities",
-                    ),
-                    InlineKeyboardButton(
-                        "🌐 DMarket",
-                        web_app={"url": "https://dmarket.com"},
-                    ),
-                ],
-                [InlineKeyboardButton("« Назад", callback_data="arbitrage")],
+                InlineKeyboardButton(
+                    "🔄 Обновить",
+                    callback_data="best_opportunities",
+                ),
+                InlineKeyboardButton(
+                    "🌐 DMarket",
+                    web_app={"url": "https://dmarket.com"},
+                ),
             ],
-        )
+            [InlineKeyboardButton("« Назад", callback_data="arbitrage")],
+        ],
+    )
 
-        # Отправляем результаты
-        await query.edit_message_text(
-            text=formatted_text,
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML,
-        )
-
-    except Exception as e:
-        # Обрабатываем ошибки
-        logger.exception(f"Ошибка при поиске лучших арбитражных возможностей: {e!s}")
-
-        # Создаем клавиатуру с кнопкой повтора
-        keyboard = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton(
-                        "🔄 Попробовать снова",
-                        callback_data="best_opportunities",
-                    ),
-                ],
-                [InlineKeyboardButton("« Назад", callback_data="arbitrage")],
-            ],
-        )
-
-        # Отправляем сообщение об ошибке
-        error_message = (
-            f"❌ <b>Ошибка при поиске лучших арбитражных возможностей:</b>\n\n<code>{e!s}</code>"
-        )
-
-        await query.edit_message_text(
-            text=error_message,
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML,
-        )
+    # Отправляем результаты
+    await query.edit_message_text(
+        text=formatted_text,
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML,
+    )
 
 
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка при выборе игры",
+)
 async def handle_game_selection_impl(
     query: CallbackQuery,
-    context: CallbackContext,
+    _: CallbackContext,
 ) -> int | None:
     """Обрабатывает выбор игры для арбитража.
 
     Args:
         query: Объект callback-запроса
-        context: Контекст бота
+        _: Контекст бота (не используется)
 
     Returns:
         int: Следующее состояние разговора или None
@@ -470,6 +375,10 @@ async def handle_game_selection_impl(
     return SELECTING_GAME
 
 
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка при обработке выбора игры",
+)
 async def handle_game_selected_impl(
     query: CallbackQuery,
     context: CallbackContext,
@@ -501,10 +410,9 @@ async def handle_game_selected_impl(
     keyboard = get_arbitrage_keyboard()
 
     # Отправляем сообщение с подтверждением выбора
+    game_name = GAMES.get(game, game)
     await query.edit_message_text(
-        text=(
-            f"✅ <b>Выбрана игра:</b> {GAMES.get(game, game)}\n\nТеперь выберите режим арбитража:"
-        ),
+        text=(f"✅ <b>Выбрана игра:</b> {game_name}\n\nТеперь выберите режим арбитража:"),
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML,
     )
@@ -513,15 +421,19 @@ async def handle_game_selected_impl(
     return SELECTING_MODE
 
 
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка при сравнении площадок",
+)
 async def handle_market_comparison_impl(
     query: CallbackQuery,
-    context: CallbackContext,
+    _: CallbackContext,
 ) -> None:
     """Показывает сравнение различных торговых площадок.
 
     Args:
         query: Объект callback-запроса
-        context: Контекст бота
+        _: Контекст бота (не используется)
 
     """
     await query.answer()

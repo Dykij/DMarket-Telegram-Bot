@@ -210,7 +210,7 @@ class LiquidityAnalyzer:
             Список продаж
         """
         try:
-            all_sales = []
+            all_sales: list[dict[str, Any]] = []
             limit = 20  # API limit per request
             offset = 0
             max_items = 100  # Total items we want to fetch to analyze liquidity
@@ -283,7 +283,10 @@ class LiquidityAnalyzer:
                 limit=100,
             )
 
-            return offers.get("objects", [])
+            result = offers.get("objects", [])
+            if isinstance(result, list):
+                return result
+            return []
 
         except Exception as e:
             logger.exception(
@@ -332,7 +335,7 @@ class LiquidityAnalyzer:
             return float("inf")  # Нет достаточных данных
 
         # Рассчитать интервалы между продажами
-        intervals = []
+        intervals: list[float] = []
         for i in range(1, len(sales_history)):
             prev_sale = sales_history[i - 1]
             curr_sale = sales_history[i]
@@ -412,7 +415,7 @@ class LiquidityAnalyzer:
 
         # Общий объем продаж за период
         total_volume = sum(
-            sale.get("price", 0)
+            float(sale.get("price", 0))
             for sale in sales_history
             if isinstance(sale.get("price"), (int, float))
         )

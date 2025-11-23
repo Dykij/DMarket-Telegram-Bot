@@ -7,10 +7,10 @@
 - Анализа спроса и предложения
 """
 
+from datetime import datetime
 import logging
 import statistics
 import time
-from datetime import datetime
 from typing import Any
 
 # Импортируем DMarketAPI для взаимодействия с API

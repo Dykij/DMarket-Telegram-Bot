@@ -1,11 +1,11 @@
 """Unit tests for the market visualizer module."""
 
-import io
 from datetime import UTC, datetime, timedelta
+import io
 from unittest.mock import MagicMock, patch
 
-import pytest
 from PIL import Image
+import pytest
 
 from src.utils.market_visualizer import MarketVisualizer
 

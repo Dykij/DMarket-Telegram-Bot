@@ -1,6 +1,5 @@
 """Обработчик команд для многоуровневого сканирования арбитража."""
 
-import logging
 from typing import Any
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
@@ -11,9 +10,11 @@ from src.dmarket.arbitrage_scanner import ARBITRAGE_LEVELS, ArbitrageScanner
 from src.telegram_bot.keyboards import create_pagination_keyboard
 from src.telegram_bot.pagination import pagination_manager
 from src.telegram_bot.utils.api_client import create_api_client_from_env
+from src.utils.exceptions import handle_exceptions
+from src.utils.logging_utils import get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Константы для callback данных
 SCANNER_ACTION = "scanner"
@@ -110,6 +111,7 @@ def format_scanner_item(result: dict[str, Any]) -> str:
     )
 
 
+@handle_exceptions(logger_instance=logger, default_error_message="Ошибка в меню сканера")
 async def start_scanner_menu(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -207,6 +209,10 @@ async def start_scanner_menu(
         )
 
 
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка при сканировании уровня",
+)
 async def handle_level_scan(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -250,88 +256,80 @@ async def handle_level_scan(
         parse_mode="Markdown",
     )
 
-    try:
-        # Получаем API клиент
-        api_client = create_api_client_from_env()
-        if api_client is None:
-            await query.edit_message_text(
-                "❌ Не удалось создать API клиент. Проверьте настройки.",
-                parse_mode="Markdown",
-                reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("⬅️ Назад", callback_data=SCANNER_ACTION)]],
-                ),
-            )
-            return
-
-        # Создаем сканер
-        scanner = ArbitrageScanner(api=api_client, cache_ttl=300)
-
-        # Сканируем уровень
-        results = await scanner.scan_level(level=level, game=game, max_results=50)
-
-        if not results:
-            await query.edit_message_text(
-                f"ℹ️ *{level_name}*\n\n"
-                f"Возможности не найдены на текущий момент.\n\n"
-                f"💡 Попробуйте:\n"
-                f"• Другой уровень арбитража\n"
-                f"• Другую игру\n"
-                f"• Подождать обновления рынка",
-                parse_mode="Markdown",
-                reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("⬅️ Назад", callback_data=SCANNER_ACTION)]],
-                ),
-            )
-            return
-
-        # Сохраняем в пагинацию
-        pagination_manager.add_items_for_user(user_id, results, f"scanner_{level}")
-
-        # Получаем первую страницу
-        items, current_page, total_pages = pagination_manager.get_page(user_id)
-
-        # Форматируем текст
-        formatted_text = format_scanner_results(
-            items,
-            current_page,
-            pagination_manager.get_items_per_page(user_id),
-        )
-
-        # Создаем клавиатуру с пагинацией
-        keyboard = create_pagination_keyboard(
-            current_page=current_page,
-            total_pages=total_pages,
-            prefix=f"scanner_paginate:{level}_{game}_",
-            with_nums=True,
-            back_button=True,
-            back_text="⬅️ Назад к сканеру",
-            back_callback=SCANNER_ACTION,
-        )
-
-        # Отправляем результаты
-        header = (
-            f"*{level_name}*\n"
-            f"🎮 {GAMES.get(game, game)}\n"
-            f"📊 Найдено: {len(results)} возможностей\n\n"
-        )
-
+    # Получаем API клиент
+    api_client = create_api_client_from_env()
+    if api_client is None:
         await query.edit_message_text(
-            header + formatted_text,
-            parse_mode="Markdown",
-            reply_markup=keyboard,
-        )
-
-    except Exception as e:
-        logger.error(f"Ошибка при сканировании уровня {level}: {e}", exc_info=True)
-        await query.edit_message_text(
-            f"⚠️ Произошла ошибка при сканировании: {e!s}",
+            "❌ Не удалось создать API клиент. Проверьте настройки.",
             parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(
                 [[InlineKeyboardButton("⬅️ Назад", callback_data=SCANNER_ACTION)]],
             ),
         )
+        return
+
+    # Создаем сканер
+    scanner = ArbitrageScanner(api_client=api_client)
+    scanner.cache_ttl = 300
+
+    # Сканируем уровень
+    results = await scanner.scan_level(level=level, game=game, max_results=50)
+
+    if not results:
+        await query.edit_message_text(
+            f"ℹ️ *{level_name}*\n\n"
+            f"Возможности не найдены на текущий момент.\n\n"
+            f"💡 Попробуйте:\n"
+            f"• Другой уровень арбитража\n"
+            f"• Другую игру\n"
+            f"• Подождать обновления рынка",
+            parse_mode="Markdown",
+            reply_markup=InlineKeyboardMarkup(
+                [[InlineKeyboardButton("⬅️ Назад", callback_data=SCANNER_ACTION)]],
+            ),
+        )
+        return
+
+    # Сохраняем в пагинацию
+    pagination_manager.add_items_for_user(user_id, results, f"scanner_{level}")
+
+    # Получаем первую страницу
+    items, current_page, total_pages = pagination_manager.get_page(user_id)
+
+    # Форматируем текст
+    formatted_text = format_scanner_results(
+        items,
+        current_page,
+        pagination_manager.get_items_per_page(user_id),
+    )
+
+    # Создаем клавиатуру с пагинацией
+    keyboard = create_pagination_keyboard(
+        current_page=current_page,
+        total_pages=total_pages,
+        prefix=f"scanner_paginate:{level}_{game}_",
+        with_nums=True,
+        back_button=True,
+        back_text="⬅️ Назад к сканеру",
+        back_callback=SCANNER_ACTION,
+    )
+
+    # Отправляем результаты
+    header = (
+        f"*{level_name}*\n🎮 {GAMES.get(game, game)}\n📊 Найдено: {len(results)} возможностей\n\n"
+    )
+
+    await query.edit_message_text(
+        header + formatted_text,
+        parse_mode="Markdown",
+        reply_markup=keyboard,
+    )
 
 
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка при получении обзора рынка",
+)
 async def handle_market_overview(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -356,81 +354,74 @@ async def handle_market_overview(
         parse_mode="Markdown",
     )
 
+    # Получаем API клиент
+    api_client = create_api_client_from_env()
+    if api_client is None:
+        await query.edit_message_text(
+            "❌ Не удалось создать API клиент.",
+            parse_mode="Markdown",
+        )
+        return
+
+    # Создаем сканер
+    scanner = ArbitrageScanner(api_client=api_client)
+    scanner.cache_ttl = 300
+
+    # Получаем обзор рынка
+    overview = await scanner.get_market_overview(game=game)
+
+    # Форматируем результаты
+    best_level = overview["best_level"]
+    best_level_name = ARBITRAGE_LEVELS[best_level]["name"] if best_level else "N/A"
+
+    text_lines = [
+        f"📊 *Обзор рынка {GAMES.get(game, game)}*\n",
+        f"🎯 Всего возможностей: {overview['total_opportunities']}",
+        f"💰 Лучшая прибыль: {overview['best_profit_percent']:.1f}%",
+        f"🏆 Лучший уровень: {best_level_name}\n",
+        "📈 *По уровням:*",
+    ]
+
+    for level_key, count in overview["results_by_level"].items():
+        level_name = ARBITRAGE_LEVELS[level_key]["name"]
+        text_lines.append(f"  {level_name}: {count} шт.")
+
+    text = "\n".join(text_lines)
+
+    # Добавляем информацию о глубине рынка (API v1.1.0)
     try:
-        # Получаем API клиент
-        api_client = create_api_client_from_env()
-        if api_client is None:
-            await query.edit_message_text(
-                "❌ Не удалось создать API клиент.",
-                parse_mode="Markdown",
-            )
-            return
+        from src.dmarket.market_analysis import analyze_market_depth
 
-        # Создаем сканер
-        scanner = ArbitrageScanner(api=api_client, cache_ttl=300)
+        # Получаем данные о глубине рынка
+        depth_data = await analyze_market_depth(game=game, dmarket_api=api_client)
+        if depth_data and depth_data.get("summary"):
+            summary = depth_data["summary"]
+            health = summary.get("market_health", "unknown")
+            avg_liquidity = summary.get("average_liquidity_score", 0)
 
-        # Получаем обзор рынка
-        overview = await scanner.get_market_overview(game=game)
-
-        # Форматируем результаты
-        best_level = overview["best_level"]
-        best_level_name = ARBITRAGE_LEVELS[best_level]["name"] if best_level else "N/A"
-
-        text_lines = [
-            f"📊 *Обзор рынка {GAMES.get(game, game)}*\n",
-            f"🎯 Всего возможностей: {overview['total_opportunities']}",
-            f"💰 Лучшая прибыль: {overview['best_profit_percent']:.1f}%",
-            f"🏆 Лучший уровень: {best_level_name}\n",
-            "📈 *По уровням:*",
-        ]
-
-        for level_key, count in overview["results_by_level"].items():
-            level_name = ARBITRAGE_LEVELS[level_key]["name"]
-            text_lines.append(f"  {level_name}: {count} шт.")
-
-        text = "\n".join(text_lines)
-
-        # Добавляем информацию о глубине рынка (API v1.1.0)
-        try:
-            from src.dmarket.market_analysis import analyze_market_depth
-
-            # Получаем данные о глубине рынка
-            depth_data = await analyze_market_depth(api_client, game=game)
-            if depth_data and depth_data.get("summary"):
-                summary = depth_data["summary"]
-                health = summary.get("market_health", "unknown")
-                avg_liquidity = summary.get("average_liquidity_score", 0)
-
-                text += f"\n\n🏥 *Здоровье рынка*: {health}\n"
-                text += f"💧 Средняя ликвидность: {avg_liquidity:.1f}/100"
-        except Exception as depth_error:
-            logger.debug(
-                "Не удалось получить данные о глубине рынка: %s",
-                depth_error,
-            )
-
-        await query.edit_message_text(
-            text,
-            parse_mode="Markdown",
-            reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("⬅️ Назад", callback_data=SCANNER_ACTION)]],
-            ),
+            text += f"\n\n🏥 *Здоровье рынка*: {health}\n"
+            text += f"💧 Средняя ликвидность: {avg_liquidity:.1f}/100"
+    except (ImportError, ValueError, RuntimeError) as depth_error:
+        logger.debug(
+            "Не удалось получить данные о глубине рынка: %s",
+            depth_error,
         )
+    except Exception as e:  # noqa: BLE001
+        logger.debug("Непредвиденная ошибка при анализе рынка: %s", e)
 
-    except Exception as e:
-        logger.error(f"Ошибка при получении обзора рынка: {e}", exc_info=True)
-        await query.edit_message_text(
-            f"⚠️ Ошибка: {e!s}",
-            parse_mode="Markdown",
-            reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("⬅️ Назад", callback_data=SCANNER_ACTION)]],
-            ),
-        )
+    await query.edit_message_text(
+        text,
+        parse_mode="Markdown",
+        reply_markup=InlineKeyboardMarkup(
+            [[InlineKeyboardButton("⬅️ Назад", callback_data=SCANNER_ACTION)]],
+        ),
+    )
 
 
+@handle_exceptions(logger_instance=logger, default_error_message="Ошибка пагинации сканера")
 async def handle_scanner_pagination(
     update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
+    _: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обработать навигацию по страницам результатов сканера.
 
@@ -450,6 +441,8 @@ async def handle_scanner_pagination(
 
     user_id = update.effective_user.id
     callback_data = query.data
+    if not callback_data:
+        return
 
     # Парсим данные callback: scanner_paginate:direction:level_game_
     parts = callback_data.split(":")
@@ -493,6 +486,10 @@ async def handle_scanner_pagination(
     )
 
 
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка в обработчике сканера",
+)
 async def handle_scanner_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -505,7 +502,7 @@ async def handle_scanner_callback(
 
     """
     query = update.callback_query
-    if not query:
+    if not query or not query.data:
         return
 
     callback_data = query.data

@@ -11,16 +11,12 @@ import tempfile
 import pytest
 from sqlalchemy import inspect, text
 
-from src.utils.database import (
-    AnalyticsEvent,
-    Base,
-    CommandLog,
-    DatabaseManager,
-    MarketData,
-    PriceAlert,
-    User,
-    UserSettings,
-)
+from src.models.alert import PriceAlert
+from src.models.base import Base
+from src.models.log import AnalyticsEvent, CommandLog
+from src.models.market import MarketData
+from src.models.user import User, UserSettings
+from src.utils.database import DatabaseManager
 
 
 @pytest.fixture()

@@ -1,18 +1,18 @@
 """Модуль с функциями для арбитража на платформе DMarket."""
 
 import asyncio
+from datetime import datetime
 import logging
 import os
 import time
 import traceback
-from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 
 if TYPE_CHECKING:
     import httpx
 
-from .dmarket_api import DMarketAPI
+from src.dmarket.dmarket_api import DMarketAPI
 
 
 # Настройка логирования

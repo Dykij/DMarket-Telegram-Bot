@@ -12,9 +12,9 @@
 Основан на официальной документации DMarket API.
 """
 
-import logging
 from dataclasses import dataclass
 from enum import Enum
+import logging
 from typing import Any
 
 from src.dmarket.dmarket_api import DMarketAPI
@@ -388,33 +388,31 @@ class SmartMarketFinder:
                 # Confidence на основе спреда и ликвидности
                 confidence = min(100, spread_percent * 2 + liquidity_score * 0.3)
 
-                opportunities.append(
-                    {
-                        "title": agg_data.get("title"),
-                        "order_best_price": order_price,
-                        "offer_best_price": offer_price,
-                        "spread": spread,
-                        "spread_percent": spread_percent,
-                        "recommended_target_price": target_price,
-                        "recommended_sell_price": sell_price,
-                        "profit_potential": profit,
-                        "profit_percent": profit_percent,
-                        "order_count": order_count,
-                        "offer_count": offer_count,
-                        "liquidity_score": liquidity_score,
-                        "confidence_score": confidence,
-                        "risk_level": risk_level,
-                        "game": game,
-                        "recommended_action": (
-                            f"Создать таргет по ${target_price:.2f}, продать по ${sell_price:.2f}"
-                        ),
-                        "notes": [
-                            f"Спред между лучшим таргетом и офером: {spread_percent:.1f}%",
-                            f"Заявок на покупку: {order_count}, на продажу: {offer_count}",
-                            f"Потенциальная прибыль: ${profit:.2f} ({profit_percent:.1f}%)",
-                        ],
-                    }
-                )
+                opportunities.append({
+                    "title": agg_data.get("title"),
+                    "order_best_price": order_price,
+                    "offer_best_price": offer_price,
+                    "spread": spread,
+                    "spread_percent": spread_percent,
+                    "recommended_target_price": target_price,
+                    "recommended_sell_price": sell_price,
+                    "profit_potential": profit,
+                    "profit_percent": profit_percent,
+                    "order_count": order_count,
+                    "offer_count": offer_count,
+                    "liquidity_score": liquidity_score,
+                    "confidence_score": confidence,
+                    "risk_level": risk_level,
+                    "game": game,
+                    "recommended_action": (
+                        f"Создать таргет по ${target_price:.2f}, продать по ${sell_price:.2f}"
+                    ),
+                    "notes": [
+                        f"Спред между лучшим таргетом и офером: {spread_percent:.1f}%",
+                        f"Заявок на покупку: {order_count}, на продажу: {offer_count}",
+                        f"Потенциальная прибыль: ${profit:.2f} ({profit_percent:.1f}%)",
+                    ],
+                })
 
             # Сортируем по прибыльности и уверенности
             opportunities.sort(

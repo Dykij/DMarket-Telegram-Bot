@@ -324,4 +324,42 @@ pre-push: fix check test-cov
 	@cmd /c echo.
 	@echo Готово к push!
 
+# ============================================================================
+# ДОПОЛНИТЕЛЬНЫЕ КОМАНДЫ (из рекомендаций senior dev)
+# ============================================================================
+
+# Composite check - форматирование + линтинг + типы (без тестов)
+fast-check: $(VENV)
+	@echo === Быстрая проверка кода ===
+	@echo.
+	@echo [1/3] Форматирование...
+	@$(VENV_PYTHON) -m ruff format --check .
+	@echo.
+	@echo [2/3] Линтинг...
+	@$(VENV_PYTHON) -m ruff check . --output-format=concise
+	@echo.
+	@echo [3/3] Типы...
+	@$(VENV_PYTHON) -m mypy src/ --cache-dir .mypy_cache --no-error-summary
+	@echo.
+	@echo ✅ Быстрая проверка завершена!
+
+# Incremental MyPy с кэшем (для CI)
+typecheck-ci: $(VENV)
+	@echo Проверка типов (incremental mode)...
+	@$(VENV_PYTHON) -m mypy src/ --cache-dir .mypy_cache --incremental
+
+# Оптимизированные тесты (только измененные файлы)
+test-lf: $(VENV)
+	@echo Тесты последних неудачных...
+	@$(VENV_PYTHON) -m pytest --lf $(PYTEST_OPTS)
+
+# Полная проверка для CI (без интерактива)
+ci-check: $(VENV)
+	@echo === CI: Полная проверка ===
+	@$(VENV_PYTHON) -m ruff format --check .
+	@$(VENV_PYTHON) -m ruff check . --output-format=github
+	@$(VENV_PYTHON) -m mypy src/ --cache-dir .mypy_cache --incremental
+	@$(VENV_PYTHON) -m pytest $(PYTEST_COV_OPTS) --junitxml=build/test-results/pytest.xml
+	@echo ✅ CI проверка завершена!
+
 

@@ -32,10 +32,10 @@ import time
 import traceback
 from typing import Any
 
+from circuitbreaker import CircuitBreakerError  # type: ignore[import-untyped]
 import httpx
 import nacl.encoding
 import nacl.signing
-from circuitbreaker import CircuitBreakerError
 
 from src.utils.api_circuit_breaker import call_with_circuit_breaker
 from src.utils.rate_limiter import RateLimiter
@@ -51,7 +51,7 @@ CACHE_TTL = {
 }
 
 # Кэш для хранения результатов запросов
-api_cache = {}
+api_cache: dict[str, Any] = {}
 
 
 class DMarketAPI:
@@ -134,13 +134,14 @@ class DMarketAPI:
     def __init__(
         self,
         public_key: str,
-        secret_key: str,
+        secret_key: str | bytes,
         api_url: str = "https://api.dmarket.com",
         max_retries: int = 3,
         connection_timeout: float = 30.0,
-        pool_limits: httpx.Limits = None,
+        pool_limits: httpx.Limits | None = None,
         retry_codes: list[int] | None = None,
         enable_cache: bool = True,
+        dry_run: bool = True,
     ) -> None:
         """Initialize DMarket API client.
 
@@ -153,20 +154,25 @@ class DMarketAPI:
             pool_limits: Connection pool limits
             retry_codes: HTTP status codes to retry on
             enable_cache: Enable caching of frequent requests
+            dry_run: If True, simulates trading operations without real API calls (default: True for safety)
 
         """
         self.public_key = public_key
         self._public_key = public_key  # Store for test access
-        self._secret_key = (
-            secret_key if isinstance(secret_key, str) else secret_key.decode("utf-8")
-        )  # Store original string for test access
-        # Convert secret_key to bytes if it's a string
+
         if isinstance(secret_key, str):
+            self._secret_key = secret_key
             self.secret_key = secret_key.encode("utf-8")
-        elif isinstance(secret_key, bytes):
-            self.secret_key = secret_key
         else:
-            self.secret_key = b""
+            self._secret_key = secret_key.decode("utf-8")
+            self.secret_key = secret_key
+
+        self.api_url = api_url
+        self.max_retries = max_retries
+        self.connection_timeout = connection_timeout
+        self.enable_cache = enable_cache
+        self.dry_run = dry_run
+
         self.api_url = api_url
         self.max_retries = max_retries
         self.connection_timeout = connection_timeout
@@ -182,16 +188,26 @@ class DMarketAPI:
         )
 
         # HTTP client
-        self._client = None
+        self._client: httpx.AsyncClient | None = None
 
         # Initialize RateLimiter with authorization check
         self.rate_limiter = RateLimiter(
             is_authorized=bool(public_key and secret_key),
         )
+
+        # Log initialization with trading mode
+        mode = "[DRY-RUN]" if dry_run else "[LIVE]"
         logger.info(
-            f"Initialized DMarketAPI client "
-            f"(authorized: {'yes' if public_key and secret_key else 'no'}, cache: {'enabled' if enable_cache else 'disabled'})",
+            f"Initialized DMarketAPI client {mode} "
+            f"(authorized: {'yes' if public_key and secret_key else 'no'}, "
+            f"cache: {'enabled' if enable_cache else 'disabled'})",
         )
+
+        if not dry_run:
+            logger.warning(
+                "⚠️  DRY_RUN=false - API client will make REAL TRADES! "
+                "Ensure you understand the risks."
+            )
 
     async def __aenter__(self) -> "DMarketAPI":
         """Context manager to use the client with async with."""
@@ -218,7 +234,7 @@ class DMarketAPI:
 
     async def _close_client(self) -> None:
         """Close HTTP client if it exists."""
-        if self._client and not self._client.is_closed:
+        if self._client is not None and not self._client.is_closed:
             await self._client.aclose()
             self._client = None
 
@@ -259,10 +275,7 @@ class DMarketAPI:
 
             # Convert secret key from string to bytes
             # DMarket API keys can be in different formats
-            if isinstance(self.secret_key, str):
-                secret_key_str = self._secret_key
-            else:
-                secret_key_str = self.secret_key.decode("utf-8")
+            secret_key_str = self._secret_key
 
             # Try different formats for secret key
             try:
@@ -337,11 +350,7 @@ class DMarketAPI:
         if body:
             string_to_sign += body
 
-        secret_key = (
-            self.secret_key
-            if isinstance(self.secret_key, bytes)
-            else self.secret_key.encode("utf-8")
-        )
+        secret_key = self.secret_key
 
         signature = hmac.new(
             secret_key,
@@ -497,7 +506,7 @@ class DMarketAPI:
         data, expire_time = cache_entry
         if time.time() < expire_time:
             logger.debug(f"Cache hit for key {cache_key[:8]}...")
-            return data
+            return data  # type: ignore[no-any-return]
 
         # Удаляем устаревшие данные
         logger.debug(f"Cache expired for key {cache_key[:8]}...")
@@ -648,7 +657,7 @@ class DMarketAPI:
                 if method.upper() == "GET" and self.enable_cache and is_cacheable:
                     self._save_to_cache(cache_key, result, ttl_type)
 
-                return result
+                return result  # type: ignore[no-any-return]
 
             except CircuitBreakerError as e:
                 logger.warning(f"Circuit breaker open for {method} {path}: {e}")
@@ -920,11 +929,7 @@ class DMarketAPI:
                         endpoint,
                     )
 
-                    if (
-                        response
-                        and isinstance(response, dict)
-                        and not ("error" in response or "code" in response)
-                    ):
+                    if response and not ("error" in response or "code" in response):
                         logger.info(f"Успешно получили баланс через {endpoint}")
                         successful_endpoint = endpoint
                         break
@@ -966,7 +971,7 @@ class DMarketAPI:
                 }
 
             # Проверяем на ошибки API
-            if isinstance(response, dict) and ("error" in response or "code" in response):
+            if response and ("error" in response or "code" in response):
                 error_code = response.get("code", "unknown")
                 error_message = response.get(
                     "message",
@@ -1011,11 +1016,11 @@ class DMarketAPI:
             usd_amount = 0  # общий баланс в центах
             usd_available = 0  # доступный баланс в центах
             usd_total = 0  # полный баланс в центах
-            additional_info = {
+            additional_info: dict[str, Any] = {
                 "endpoint": successful_endpoint,
             }  # дополнительная информация о балансе
 
-            if response and isinstance(response, dict):
+            if response:
                 logger.info(
                     f"🔍 RAW ОТВЕТ API БАЛАНСА (get_balance): {response}",
                 )
@@ -1448,6 +1453,10 @@ class DMarketAPI:
         item_id: str,
         price: float,
         game: str = "csgo",
+        item_name: str | None = None,
+        sell_price: float | None = None,
+        profit: float | None = None,
+        source: str = "manual",
     ) -> dict[str, Any]:
         """Покупает предмет с указанным ID и ценой.
 
@@ -1455,11 +1464,36 @@ class DMarketAPI:
             item_id: ID предмета для покупки
             price: Цена в USD (будет конвертирована в центы)
             game: Код игры (csgo, dota2, tf2, rust)
+            item_name: Название предмета (для логирования)
+            sell_price: Ожидаемая цена продажи (для логирования)
+            profit: Ожидаемая прибыль (для логирования)
+            source: Источник намерения (arbitrage_scanner, manual и т.д.)
 
         Returns:
             Результат операции покупки
 
         """
+        from src.utils.logging_utils import BotLogger
+
+        bot_logger = BotLogger(__name__)
+
+        # Рассчитываем профит если возможно
+        profit_usd = profit if profit else (sell_price - price if sell_price else None)
+        profit_percent = (profit_usd / price * 100) if profit_usd and price > 0 else None
+
+        # INTENT логирование ПЕРЕД покупкой
+        bot_logger.log_buy_intent(
+            item_name=item_name or item_id,
+            price_usd=price,
+            sell_price_usd=sell_price,
+            profit_usd=profit_usd,
+            profit_percent=profit_percent,
+            source=source,
+            dry_run=self.dry_run,
+            game=game,
+            item_id=item_id,
+        )
+
         # Конвертируем цену из USD в центы
         price_cents = int(price * 100)
 
@@ -1473,27 +1507,83 @@ class DMarketAPI:
             "gameType": game,
         }
 
-        # Выполняем запрос на покупку
-        result = await self._request(
-            "POST",
-            self.ENDPOINT_PURCHASE,
-            data=data,
+        # DRY-RUN mode: simulate purchase without real API call
+        if self.dry_run:
+            mode_label = "[DRY-RUN]"
+            logger.info(
+                f"{mode_label} 🔵 SIMULATED BUY: item_id={item_id}, price=${price:.2f}, game={game}"
+            )
+            result = {
+                "success": True,
+                "dry_run": True,
+                "operation": "buy",
+                "item_id": item_id,
+                "price_usd": price,
+                "game": game,
+                "message": "Simulated purchase (DRY_RUN mode)",
+            }
+            # Логируем результат
+            bot_logger.log_trade_result(
+                operation="buy",
+                success=True,
+                item_name=item_name or item_id,
+                price_usd=price,
+                dry_run=True,
+            )
+            return result
+
+        # LIVE mode: make real purchase
+        mode_label = "[LIVE]"
+        logger.warning(
+            f"{mode_label} 🔴 REAL BUY: item_id={item_id}, price=${price:.2f}, game={game}"
         )
 
-        # Очищаем кэш для инвентаря, т.к. он изменился
-        await self.clear_cache_for_endpoint(self.ENDPOINT_USER_INVENTORY)
+        try:
+            # Выполняем запрос на покупку
+            result = await self._request(
+                "POST",
+                self.ENDPOINT_PURCHASE,
+                data=data,
+            )
 
-        # Очищаем кэш для баланса, т.к. он также изменился
-        await self.clear_cache_for_endpoint(self.ENDPOINT_BALANCE)
-        await self.clear_cache_for_endpoint(self.ENDPOINT_BALANCE_LEGACY)
+            # Логируем успешный результат
+            bot_logger.log_trade_result(
+                operation="buy",
+                success=True,
+                item_name=item_name or item_id,
+                price_usd=price,
+                dry_run=False,
+            )
 
-        return result
+            # Очищаем кэш для инвентаря, т.к. он изменился
+            await self.clear_cache_for_endpoint(self.ENDPOINT_USER_INVENTORY)
+
+            # Очищаем кэш для баланса, т.к. он также изменился
+            await self.clear_cache_for_endpoint(self.ENDPOINT_BALANCE)
+            await self.clear_cache_for_endpoint(self.ENDPOINT_BALANCE_LEGACY)
+
+            return result
+
+        except Exception as e:
+            # Логируем ошибку
+            bot_logger.log_trade_result(
+                operation="buy",
+                success=False,
+                item_name=item_name or item_id,
+                price_usd=price,
+                error_message=str(e),
+                dry_run=False,
+            )
+            raise
 
     async def sell_item(
         self,
         item_id: str,
         price: float,
         game: str = "csgo",
+        item_name: str | None = None,
+        buy_price: float | None = None,
+        source: str = "manual",
     ) -> dict[str, Any]:
         """Выставляет предмет на продажу.
 
@@ -1501,11 +1591,35 @@ class DMarketAPI:
             item_id: ID предмета для продажи
             price: Цена в USD (будет конвертирована в центы)
             game: Код игры (csgo, dota2, tf2, rust)
+            item_name: Название предмета (для логирования)
+            buy_price: Цена покупки (для расчёта профита)
+            source: Источник намерения (auto_sell, manual и т.д.)
 
         Returns:
             Результат операции продажи
 
         """
+        from src.utils.logging_utils import BotLogger
+
+        bot_logger = BotLogger(__name__)
+
+        # Рассчитываем профит если возможно
+        profit_usd = price - buy_price if buy_price else None
+        profit_percent = (profit_usd / buy_price * 100) if profit_usd and buy_price else None
+
+        # INTENT логирование ПЕРЕД продажей
+        bot_logger.log_sell_intent(
+            item_name=item_name or item_id,
+            price_usd=price,
+            buy_price_usd=buy_price,
+            profit_usd=profit_usd,
+            profit_percent=profit_percent,
+            source=source,
+            dry_run=self.dry_run,
+            game=game,
+            item_id=item_id,
+        )
+
         # Конвертируем цену из USD в центы
         price_cents = int(price * 100)
 
@@ -1518,18 +1632,72 @@ class DMarketAPI:
             },
         }
 
-        # Выполняем запрос на продажу
-        result = await self._request(
-            "POST",
-            self.ENDPOINT_SELL,
-            data=data,
+        # DRY-RUN mode: simulate sell without real API call
+        if self.dry_run:
+            mode_label = "[DRY-RUN]"
+            logger.info(
+                f"{mode_label} 🔵 SIMULATED SELL: item_id={item_id}, "
+                f"price=${price:.2f}, game={game}"
+            )
+            result = {
+                "success": True,
+                "dry_run": True,
+                "operation": "sell",
+                "item_id": item_id,
+                "price_usd": price,
+                "game": game,
+                "message": "Simulated sale (DRY_RUN mode)",
+            }
+            # Логируем результат
+            bot_logger.log_trade_result(
+                operation="sell",
+                success=True,
+                item_name=item_name or item_id,
+                price_usd=price,
+                dry_run=True,
+            )
+            return result
+
+        # LIVE mode: make real sale
+        mode_label = "[LIVE]"
+        logger.warning(
+            f"{mode_label} 🔴 REAL SELL: item_id={item_id}, price=${price:.2f}, game={game}"
         )
 
-        # Очищаем кэш для инвентаря и списка предложений, т.к. они изменились
-        await self.clear_cache_for_endpoint(self.ENDPOINT_USER_INVENTORY)
-        await self.clear_cache_for_endpoint(self.ENDPOINT_USER_OFFERS)
+        try:
+            # Выполняем запрос на продажу
+            result = await self._request(
+                "POST",
+                self.ENDPOINT_SELL,
+                data=data,
+            )
 
-        return result
+            # Логируем успешный результат
+            bot_logger.log_trade_result(
+                operation="sell",
+                success=True,
+                item_name=item_name or item_id,
+                price_usd=price,
+                dry_run=False,
+            )
+
+            # Очищаем кэш для инвентаря и списка предложений, т.к. они изменились
+            await self.clear_cache_for_endpoint(self.ENDPOINT_USER_INVENTORY)
+            await self.clear_cache_for_endpoint(self.ENDPOINT_USER_OFFERS)
+
+            return result
+
+        except Exception as e:
+            # Логируем ошибку
+            bot_logger.log_trade_result(
+                operation="sell",
+                success=False,
+                item_name=item_name or item_id,
+                price_usd=price,
+                error_message=str(e),
+                dry_run=False,
+            )
+            raise
 
     async def get_user_inventory(
         self,
@@ -2063,10 +2231,10 @@ class DMarketAPI:
         Example:
             >>> prices = await api.get_aggregated_prices_bulk(
             ...     game="csgo",
-            ...     titles=["AK-47 | Redline (Field-Tested)", "AWP | Asiimov (Field-Tested)"]
+            ...     titles=["AK-47 | Redline (Field-Tested)", "AWP | Asiimov (Field-Tested)"],
             ... )
             >>> for item in prices["aggregatedPrices"]:
-            ...     print(f"{item['title']}: Buy ${int(item['orderBestPrice'])/100:.2f}")
+            ...     print(f"{item['title']}: Buy ${int(item['orderBestPrice']) / 100:.2f}")
 
         """
         data = {
@@ -2116,7 +2284,7 @@ class DMarketAPI:
             }
 
         """
-        params = {
+        params: dict[str, Any] = {
             "gameId": game_id,
             "title": title,
             "limit": str(limit),
@@ -2390,12 +2558,14 @@ class DMarketAPI:
             Результат создания таргетов
 
         Example:
-            >>> targets = [{
-            ...     'Title': 'AK-47 | Redline (Field-Tested)',
-            ...     'Amount': 1,
-            ...     'Price': {'Amount': 800, 'Currency': 'USD'}
-            ... }]
-            >>> result = await api.create_targets('a8db', targets)
+            >>> targets = [
+            ...     {
+            ...         "Title": "AK-47 | Redline (Field-Tested)",
+            ...         "Amount": 1,
+            ...         "Price": {"Amount": 800, "Currency": "USD"},
+            ...     }
+            ... ]
+            >>> result = await api.create_targets("a8db", targets)
 
         """
         data = {"GameID": game_id, "Targets": targets}
@@ -2491,11 +2661,10 @@ class DMarketAPI:
 
         Example:
             >>> targets = await api.get_targets_by_title(
-            ...     game_id="csgo",
-            ...     title="AK-47 | Redline (Field-Tested)"
+            ...     game_id="csgo", title="AK-47 | Redline (Field-Tested)"
             ... )
             >>> for target in targets["orders"]:
-            ...     print(f"Price: ${int(target['price'])/100:.2f}, Amount: {target['amount']}")
+            ...     print(f"Price: ${int(target['price']) / 100:.2f}, Amount: {target['amount']}")
 
         """
         # URL-encode названия для правильной передачи
@@ -2572,10 +2741,7 @@ class DMarketAPI:
 
             try:
                 # Convert secret key from string to bytes
-                if isinstance(self.secret_key, str):
-                    secret_key_str = self._secret_key
-                else:
-                    secret_key_str = self.secret_key.decode("utf-8")
+                secret_key_str = self._secret_key
 
                 # Try different formats for secret key
                 try:
@@ -2611,11 +2777,7 @@ class DMarketAPI:
             except Exception as sig_error:
                 logger.exception(f"Error generating Ed25519 signature: {sig_error}")
                 # Fallback to HMAC if Ed25519 fails
-                secret_key = (
-                    self.secret_key
-                    if isinstance(self.secret_key, bytes)
-                    else self.secret_key.encode("utf-8")
-                )
+                secret_key = self.secret_key
                 signature = hmac.new(
                     secret_key,
                     string_to_sign.encode(),

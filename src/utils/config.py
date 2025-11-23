@@ -5,9 +5,9 @@ from various sources including environment variables, YAML files, and defaults.
 """
 
 import contextlib
+from dataclasses import dataclass, field
 import logging
 import os
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -59,8 +59,8 @@ class DMarketConfig:
 class SecurityConfig:
     """Security configuration."""
 
-    allowed_users: list[str] = field(default_factory=list)
-    admin_users: list[str] = field(default_factory=list)
+    allowed_users: list[str | int] = field(default_factory=list)
+    admin_users: list[str | int] = field(default_factory=list)
 
 
 @dataclass
@@ -75,6 +75,17 @@ class LoggingConfig:
 
 
 @dataclass
+class TradingSafetyConfig:
+    """Trading safety configuration."""
+
+    # Санитарная проверка цен
+    max_price_multiplier: float = 1.5  # Максимум 50% выше средней цены
+    price_history_days: int = 7  # Период анализа истории цен
+    min_history_samples: int = 3  # Минимум сэмплов для расчета средней
+    enable_price_sanity_check: bool = True  # Включить проверку цен
+
+
+@dataclass
 class Config:
     """Main application configuration."""
 
@@ -83,8 +94,10 @@ class Config:
     database: DatabaseConfig = field(default_factory=DatabaseConfig)
     security: SecurityConfig = field(default_factory=SecurityConfig)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
+    trading_safety: TradingSafetyConfig = field(default_factory=TradingSafetyConfig)
     debug: bool = False
     testing: bool = False
+    dry_run: bool = True  # По умолчанию True для защиты от случайных реальных сделок
 
     @classmethod
     def load(cls, config_path: str | None = None) -> "Config":
@@ -168,6 +181,25 @@ class Config:
             self.logging.level = log_data.get("level", self.logging.level)
             self.logging.file = log_data.get("file", self.logging.file)
 
+        if "trading_safety" in data:
+            safety_data = data["trading_safety"]
+            self.trading_safety.max_price_multiplier = safety_data.get(
+                "max_price_multiplier",
+                self.trading_safety.max_price_multiplier,
+            )
+            self.trading_safety.price_history_days = safety_data.get(
+                "price_history_days",
+                self.trading_safety.price_history_days,
+            )
+            self.trading_safety.min_history_samples = safety_data.get(
+                "min_history_samples",
+                self.trading_safety.min_history_samples,
+            )
+            self.trading_safety.enable_price_sanity_check = safety_data.get(
+                "enable_price_sanity_check",
+                self.trading_safety.enable_price_sanity_check,
+            )
+
     def _update_from_env(self) -> None:
         """Update configuration from environment variables."""
         # Bot configuration
@@ -211,6 +243,29 @@ class Config:
         # Debug and testing flags
         self.debug = os.getenv("DEBUG", "false").lower() == "true"
         self.testing = os.getenv("TESTING", "false").lower() == "true"
+
+        # Trading safety mode - defaults to True for safety
+        dry_run_env = os.getenv("DRY_RUN", "true").lower()
+        self.dry_run = dry_run_env == "true"
+
+        # Trading safety configuration
+        max_price_mult = os.getenv("MAX_PRICE_MULTIPLIER")
+        if max_price_mult:
+            with contextlib.suppress(ValueError):
+                self.trading_safety.max_price_multiplier = float(max_price_mult)
+
+        price_hist_days = os.getenv("PRICE_HISTORY_DAYS")
+        if price_hist_days:
+            with contextlib.suppress(ValueError):
+                self.trading_safety.price_history_days = int(price_hist_days)
+
+        min_hist_samples = os.getenv("MIN_HISTORY_SAMPLES")
+        if min_hist_samples:
+            with contextlib.suppress(ValueError):
+                self.trading_safety.min_history_samples = int(min_hist_samples)
+
+        enable_sanity = os.getenv("ENABLE_PRICE_SANITY_CHECK", "true").lower()
+        self.trading_safety.enable_price_sanity_check = enable_sanity == "true"
 
     def validate(self) -> None:
         """Validate configuration and raise errors for required missing values."""
@@ -269,7 +324,8 @@ class Config:
         if self.security.allowed_users:
             try:
                 self.security.allowed_users = [
-                    int(uid) if uid.isdigit() else uid for uid in self.security.allowed_users
+                    int(uid) if isinstance(uid, str) and uid.isdigit() else uid
+                    for uid in self.security.allowed_users
                 ]
             except ValueError as e:
                 errors.append(f"Invalid ALLOWED_USERS format: {e}")
@@ -277,7 +333,8 @@ class Config:
         if self.security.admin_users:
             try:
                 self.security.admin_users = [
-                    int(uid) if uid.isdigit() else uid for uid in self.security.admin_users
+                    int(uid) if isinstance(uid, str) and uid.isdigit() else uid
+                    for uid in self.security.admin_users
                 ]
             except ValueError as e:
                 errors.append(f"Invalid ADMIN_USERS format: {e}")
@@ -290,6 +347,14 @@ class Config:
             errors.append(
                 f"Database max_overflow must be non-negative, got: {self.database.max_overflow}"
             )
+
+        # Log safety warnings
+        if not self.dry_run and not self.testing:
+            logger.warning(
+                "⚠️  DRY_RUN=false - BOT WILL MAKE REAL TRADES! Make sure you understand the risks."
+            )
+        elif self.dry_run:
+            logger.info("✅ DRY_RUN=true - Bot is in safe mode (no real trades will be made)")
 
         # Raise all errors at once
         if errors:

@@ -1,8 +1,8 @@
 """Обработчик команд для внутрирыночного арбитража на DMarket."""
 
-import logging
 from typing import Any
 
+import structlog
 from telegram import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackQueryHandler, ContextTypes
 
@@ -16,9 +16,10 @@ from src.dmarket.intramarket_arbitrage import (
 from src.telegram_bot.keyboards import create_pagination_keyboard
 from src.telegram_bot.pagination import pagination_manager
 from src.telegram_bot.utils.api_client import create_api_client_from_env
+from src.utils.exceptions import handle_exceptions
 
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 # Константы для callback данных
 INTRA_ARBITRAGE_ACTION = "intra"
@@ -130,6 +131,7 @@ def format_intramarket_item(result: dict[str, Any]) -> str:
     return "❓ Неизвестный тип результата"
 
 
+@handle_exceptions
 async def display_results_with_pagination(
     query: CallbackQuery,
     results: list[dict[str, Any]],
@@ -207,6 +209,7 @@ async def display_results_with_pagination(
     )
 
 
+@handle_exceptions
 async def handle_intramarket_pagination(
     update: Update,
     _context: ContextTypes.DEFAULT_TYPE,
@@ -277,6 +280,7 @@ async def handle_intramarket_pagination(
     )
 
 
+@handle_exceptions
 async def start_intramarket_arbitrage(
     update: Update,
     _context: ContextTypes.DEFAULT_TYPE,
@@ -330,6 +334,7 @@ async def start_intramarket_arbitrage(
     )
 
 
+@handle_exceptions
 async def handle_intramarket_callback(
     update: Update,
     _context: ContextTypes.DEFAULT_TYPE,
@@ -374,89 +379,12 @@ async def handle_intramarket_callback(
     # Определяем тип сканирования и запускаем соответствующую функцию
     results = []
 
-    try:
-        # Получаем API клиент с использованием улучшенного подхода
-        api_client = create_api_client_from_env()
+    # Получаем API клиент с использованием улучшенного подхода
+    api_client = create_api_client_from_env()
 
-        if api_client is None:
-            await query.edit_message_text(
-                "❌ Не удалось создать API клиент. Проверьте настройки API ключей.",
-                parse_mode="Markdown",
-                reply_markup=InlineKeyboardMarkup(
-                    [
-                        [
-                            InlineKeyboardButton(
-                                "⬅️ Назад",
-                                callback_data=INTRA_ARBITRAGE_ACTION,
-                            ),
-                        ],
-                    ],
-                ),
-            )
-            return
-
-        if action_type == ANOMALY_ACTION:
-            # Поиск ценовых аномалий
-            anomalies = await find_price_anomalies(
-                game=game,
-                max_results=50,
-                dmarket_api=api_client,
-            )
-            results = anomalies
-            title = f"🔍 Ценовые аномалии для {GAMES.get(game, game)}"
-
-        elif action_type == TRENDING_ACTION:
-            # Поиск предметов с растущей ценой
-            trending = await find_trending_items(
-                game=game,
-                max_results=50,
-                dmarket_api=api_client,
-            )
-            results = trending
-            title = f"📈 Растущие в цене {GAMES.get(game, game)}"
-
-        elif action_type == RARE_ACTION:
-            # Поиск редких предметов
-            rare_items = await find_mispriced_rare_items(
-                game=game,
-                max_results=50,
-                dmarket_api=api_client,
-            )
-            results = rare_items
-            title = f"💎 Редкие предметы {GAMES.get(game, game)}"
-
-        else:
-            # Неизвестный тип действия
-            await query.edit_message_text(
-                "⚠️ Неизвестный тип сканирования.",
-                parse_mode="Markdown",
-                reply_markup=InlineKeyboardMarkup(
-                    [
-                        [
-                            InlineKeyboardButton(
-                                "⬅️ Назад",
-                                callback_data=INTRA_ARBITRAGE_ACTION,
-                            ),
-                        ],
-                    ],
-                ),
-            )
-            return
-
-        # Отображаем результаты с использованием унифицированной функции
-        await display_results_with_pagination(
-            query=query,
-            results=results,
-            title=title,
-            user_id=user_id,
-            action_type=action_type,
-            game=game,
-        )
-
-    except Exception as e:  # noqa: BLE001
-        logger.exception("Ошибка при поиске возможностей арбитража")
+    if api_client is None:
         await query.edit_message_text(
-            f"⚠️ Произошла ошибка при сканировании: {e!s}",
+            "❌ Не удалось создать API клиент. Проверьте настройки API ключей.",
             parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(
                 [
@@ -469,6 +397,65 @@ async def handle_intramarket_callback(
                 ],
             ),
         )
+        return
+
+    if action_type == ANOMALY_ACTION:
+        # Поиск ценовых аномалий
+        anomalies = await find_price_anomalies(
+            game=game,
+            max_results=50,
+            dmarket_api=api_client,
+        )
+        results = anomalies
+        title = f"🔍 Ценовые аномалии для {GAMES.get(game, game)}"
+
+    elif action_type == TRENDING_ACTION:
+        # Поиск предметов с растущей ценой
+        trending = await find_trending_items(
+            game=game,
+            max_results=50,
+            dmarket_api=api_client,
+        )
+        results = trending
+        title = f"📈 Растущие в цене {GAMES.get(game, game)}"
+
+    elif action_type == RARE_ACTION:
+        # Поиск редких предметов
+        rare_items = await find_mispriced_rare_items(
+            game=game,
+            max_results=50,
+            dmarket_api=api_client,
+        )
+        results = rare_items
+        title = f"💎 Редкие предметы {GAMES.get(game, game)}"
+
+    else:
+        # Неизвестный тип действия
+        await query.edit_message_text(
+            "⚠️ Неизвестный тип сканирования.",
+            parse_mode="Markdown",
+            reply_markup=InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            "⬅️ Назад",
+                            callback_data=INTRA_ARBITRAGE_ACTION,
+                        ),
+                    ],
+                ],
+            ),
+        )
+        return
+
+    # Отображаем результаты с использованием унифицированной функции
+    await display_results_with_pagination(
+        query=query,
+        results=results,
+        title=title,
+        user_id=user_id,
+        action_type=action_type,
+        game=game,
+    )
 
 
 def register_intramarket_handlers(dispatcher: Any) -> None:

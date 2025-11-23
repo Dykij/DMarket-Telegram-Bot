@@ -9,9 +9,9 @@ This module provides utilities for creating visual representations of market dat
 - Supply/demand heat maps
 """
 
+from datetime import datetime
 import io
 import logging
-from datetime import datetime
 from typing import Any
 
 import matplotlib as mpl
@@ -21,9 +21,9 @@ mpl.use("Agg")  # Non-interactive backend for server use
 import contextlib
 
 import matplotlib.dates as mdates
+from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
 import pandas as pd
-from matplotlib.patches import Rectangle
 from PIL import Image, ImageDraw, ImageFont
 
 

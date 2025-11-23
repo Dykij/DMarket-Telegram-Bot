@@ -1,13 +1,13 @@
 """Comprehensive test configuration and fixtures for DMarket Bot tests.
 
 This module provides shared test configuration, fixtures, and utilities
-for testing the DMarket Telegram Bot.
+for testing the DMarket Telegram Bot with production-grade async support.
 """
 
 import asyncio
+from collections.abc import AsyncGenerator, Generator
 import os
 import tempfile
-from collections.abc import AsyncGenerator, Generator
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -17,6 +17,7 @@ import pytest_asyncio
 from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.config import BotConfig, Config, DatabaseConfig, DMarketConfig
 from src.utils.database import DatabaseManager
+
 
 # Test configuration
 TEST_CONFIG = {
@@ -124,11 +125,77 @@ async def test_config() -> Config:
 
 @pytest_asyncio.fixture
 async def test_database() -> AsyncGenerator[DatabaseManager, None]:
-    """Create test database manager."""
-    db_manager = DatabaseManager("sqlite:///:memory:")
+    """Create test database manager with in-memory SQLite."""
+    db_manager = DatabaseManager("sqlite+aiosqlite:///:memory:")  # Async SQLite
     await db_manager.init_database()
     yield db_manager
     await db_manager.close()
+
+
+@pytest_asyncio.fixture
+async def async_engine() -> AsyncGenerator:
+    """Create async database engine for advanced tests.
+
+    Uses in-memory SQLite for fast, isolated testing.
+    For integration tests, override with real DB engine.
+    """
+    from sqlalchemy.ext.asyncio import create_async_engine
+
+    engine = create_async_engine(
+        "sqlite+aiosqlite:///:memory:",  # In-memory для скорости
+        echo=False,  # Выключаем SQL logging в тестах
+        future=True,  # SQLAlchemy 2.0 mode
+    )
+
+    # Создаем все таблицы
+    from src.models.base import Base  # Базовый класс для моделей
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    yield engine
+
+    # Cleanup
+    await engine.dispose()
+
+
+@pytest_asyncio.fixture
+async def async_db_session(async_engine) -> AsyncGenerator:
+    """Create async database session for tests.
+
+    Each test gets fresh session with automatic rollback after test.
+    """
+    from sqlalchemy.ext.asyncio import AsyncSession
+    from sqlalchemy.orm import sessionmaker
+
+    async_session = sessionmaker(
+        async_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,  # Важно для async
+    )
+
+    async with async_session() as session:
+        yield session
+        # Автоматический rollback после каждого теста
+        await session.rollback()
+
+
+@pytest.fixture()
+def mock_redis(mocker):
+    """Mock Redis client for caching tests.
+
+    Example usage:
+        def test_cache(mock_redis):
+            mock_redis.get.return_value = b"cached_value"
+            result = await get_from_cache("key")
+            assert result == "cached_value"
+    """
+    mock = mocker.patch("src.utils.cache.get_redis")
+    mock.return_value.get = AsyncMock(return_value=None)
+    mock.return_value.set = AsyncMock(return_value=True)
+    mock.return_value.delete = AsyncMock(return_value=True)
+    mock.return_value.exists = AsyncMock(return_value=False)
+    return mock.return_value
 
 
 @pytest_asyncio.fixture
@@ -243,8 +310,8 @@ class TestUtils:
         volatility: float = 0.1,
     ) -> list[dict[str, Any]]:
         """Create mock price history data."""
-        import random
         from datetime import datetime, timedelta
+        import random
 
         history = []
         for i in range(days):

@@ -3,8 +3,9 @@
 This module configures Alembic for database migrations with:
 - Naming conventions for constraints
 - Include/exclude logic for autogenerate
-- Async SQLAlchemy support
+- Async SQLAlchemy 2.0 support
 - Batch operations for SQLite
+- Type and default comparison
 """
 
 import os
@@ -12,7 +13,7 @@ import sys
 from logging.config import fileConfig
 from pathlib import Path
 
-from sqlalchemy import MetaData, engine_from_config, pool
+from sqlalchemy import MetaData, pool
 
 from alembic import context
 
@@ -145,6 +146,8 @@ def run_migrations_online() -> None:
     Includes optimizations for PostgreSQL and SQLite.
 
     """
+    from sqlalchemy import engine_from_config
+
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
@@ -175,7 +178,73 @@ def run_migrations_online() -> None:
             context.run_migrations()
 
 
+from typing import Any
+
+
+def do_run_migrations(connection: Any) -> None:
+    """Execute migrations with the provided connection.
+
+    Args:
+        connection: SQLAlchemy connection to use for migrations
+    """
+    # Determine if we should use batch operations (for SQLite)
+    render_as_batch = connection.dialect.name == "sqlite"
+
+    # Set PostgreSQL lock timeout to prevent long-running locks
+    if connection.dialect.name == "postgresql":
+        connection.execute("SET lock_timeout = '10s'")
+        connection.execute("SET statement_timeout = '60s'")
+
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        compare_type=True,
+        compare_server_default=True,
+        include_object=include_object,
+        render_as_batch=render_as_batch,
+    )
+
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+async def run_async_migrations() -> None:
+    """Run migrations in async mode with SQLAlchemy 2.0.
+
+    This is the recommended approach for async applications.
+    Uses create_async_engine for proper async support.
+    """
+    from sqlalchemy.ext.asyncio import create_async_engine
+
+    # Get async database URL
+    async_url = config.get_main_option("sqlalchemy.url")
+
+    # Create async engine
+    connectable = create_async_engine(
+        async_url,
+        poolclass=pool.NullPool,
+    )
+
+    async with connectable.connect() as connection:
+        await connection.run_sync(do_run_migrations)
+
+    await connectable.dispose()
+
+
+def run_migrations_online_async() -> None:
+    """Entry point for async migrations.
+
+    Wraps run_async_migrations in asyncio.run for alembic compatibility.
+    """
+    import asyncio
+
+    asyncio.run(run_async_migrations())
+
+
 if context.is_offline_mode():
     run_migrations_offline()
+# Use async migrations if DATABASE_URL contains asyncpg or aiosqlite
+elif "+asyncpg" in database_url or "+aiosqlite" in database_url:
+    run_migrations_online_async()
 else:
     run_migrations_online()

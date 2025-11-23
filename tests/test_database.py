@@ -10,7 +10,10 @@ from uuid import UUID
 import pytest
 import pytest_asyncio
 
-from src.utils.database import DatabaseManager, MarketData, PriceAlert, User
+from src.models.alert import PriceAlert
+from src.models.market import MarketData
+from src.models.user import User
+from src.utils.database import DatabaseManager
 from tests.conftest import generate_test_user_data
 
 

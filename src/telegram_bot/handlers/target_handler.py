@@ -1,6 +1,5 @@
 """Обработчик команд для таргетов (buy orders)."""
 
-import logging
 from typing import Any
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
@@ -9,9 +8,11 @@ from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
 from src.dmarket.targets import TargetManager
 from src.telegram_bot.utils.api_client import create_api_client_from_env
 from src.telegram_bot.utils.formatters import format_target_competition_analysis
+from src.utils.exceptions import handle_exceptions
+from src.utils.logging_utils import get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Константы для callback данных
 TARGET_ACTION = "target"
@@ -23,6 +24,7 @@ TARGET_STATS_ACTION = "target_stats"
 TARGET_COMPETITION_ACTION = "target_competition"
 
 
+@handle_exceptions(logger_instance=logger, default_error_message="Ошибка в меню таргетов")
 async def start_targets_menu(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -108,6 +110,10 @@ async def start_targets_menu(
         )
 
 
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка при создании умных таргетов",
+)
 async def handle_smart_targets(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -145,7 +151,7 @@ async def handle_smart_targets(
             return
 
         # Создаем менеджер таргетов
-        target_manager = TargetManager(api=api_client)
+        target_manager = TargetManager(api_client=api_client)
 
         # Список популярных предметов для умных таргетов
         popular_items = [
@@ -179,7 +185,7 @@ async def handle_smart_targets(
         )
 
     except Exception as e:
-        logger.error(f"Ошибка при создании умных таргетов: {e}", exc_info=True)
+        # Логирование выполняется декоратором handle_exceptions при re-raise
         await query.edit_message_text(
             f"⚠️ Произошла ошибка: {e!s}",
             parse_mode="Markdown",
@@ -187,8 +193,13 @@ async def handle_smart_targets(
                 [[InlineKeyboardButton("⬅️ Назад", callback_data=TARGET_ACTION)]],
             ),
         )
+        raise  # Пробрасываем исключение для логирования
 
 
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка при анализе конкуренции",
+)
 async def handle_competition_analysis(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -226,7 +237,7 @@ async def handle_competition_analysis(
             return
 
         # Создаем менеджер таргетов
-        target_manager = TargetManager(api=api_client)
+        target_manager = TargetManager(api_client=api_client)
 
         # Анализируем конкуренцию для популярного предмета
         item_title = "AK-47 | Redline (Field-Tested)"
@@ -249,7 +260,7 @@ async def handle_competition_analysis(
         )
 
     except Exception as e:
-        logger.error(f"Ошибка при анализе конкуренции: {e}", exc_info=True)
+        # Логирование выполняется декоратором handle_exceptions при re-raise
         await query.edit_message_text(
             f"⚠️ Произошла ошибка: {e!s}",
             parse_mode="Markdown",
@@ -257,8 +268,13 @@ async def handle_competition_analysis(
                 [[InlineKeyboardButton("⬅️ Назад", callback_data=TARGET_ACTION)]],
             ),
         )
+        raise  # Пробрасываем исключение для логирования
 
 
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка в обработчике таргетов",
+)
 async def handle_target_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -271,7 +287,7 @@ async def handle_target_callback(
 
     """
     query = update.callback_query
-    if not query:
+    if not query or not query.data:
         return
 
     callback_data = query.data

@@ -17,8 +17,8 @@ import re
 import time
 from typing import Any
 
-from .dmarket_api import DMarketAPI
-from .liquidity_analyzer import LiquidityAnalyzer
+from src.dmarket.dmarket_api import DMarketAPI
+from src.dmarket.liquidity_analyzer import LiquidityAnalyzer
 
 
 logger = logging.getLogger(__name__)
@@ -79,10 +79,7 @@ class TargetManager:
         Example:
             >>> manager = TargetManager(api)
             >>> result = await manager.create_target(
-            ...     game='csgo',
-            ...     title='AK-47 | Redline (Field-Tested)',
-            ...     price=8.00,
-            ...     amount=1
+            ...     game="csgo", title="AK-47 | Redline (Field-Tested)", price=8.00, amount=1
             ... )
 
         """
@@ -185,7 +182,7 @@ class TargetManager:
             Список таргетов пользователя
 
         Example:
-            >>> targets = await manager.get_user_targets('csgo', 'active')
+            >>> targets = await manager.get_user_targets("csgo", "active")
             >>> for target in targets:
             ...     print(f"{target['title']}: ${target['price']:.2f}")
 
@@ -254,7 +251,7 @@ class TargetManager:
             True если удаление успешно, False в противном случае
 
         Example:
-            >>> success = await manager.delete_target('target_123')
+            >>> success = await manager.delete_target("target_123")
             >>> if success:
             ...     print("Таргет удален")
 
@@ -299,7 +296,7 @@ class TargetManager:
             Результат операции с количеством удаленных таргетов
 
         Example:
-            >>> result = await manager.delete_all_targets('csgo', confirm=True)
+            >>> result = await manager.delete_all_targets("csgo", confirm=True)
             >>> print(f"Удалено таргетов: {result['deleted_count']}")
 
         """
@@ -364,10 +361,7 @@ class TargetManager:
             Список таргетов для предмета
 
         Example:
-            >>> targets = await manager.get_targets_by_title(
-            ...     'csgo',
-            ...     'AK-47 | Redline (Field-Tested)'
-            ... )
+            >>> targets = await manager.get_targets_by_title("csgo", "AK-47 | Redline (Field-Tested)")
             >>> for target in targets:
             ...     print(f"Цена: ${target['price']:.2f}, Количество: {target['amount']}")
 
@@ -444,14 +438,10 @@ class TargetManager:
 
         Example:
             >>> items = [
-            ...     {'title': 'AK-47 | Redline (Field-Tested)'},
-            ...     {'title': 'AWP | Asiimov (Field-Tested)'}
+            ...     {"title": "AK-47 | Redline (Field-Tested)"},
+            ...     {"title": "AWP | Asiimov (Field-Tested)"},
             ... ]
-            >>> results = await manager.create_smart_targets(
-            ...     'csgo',
-            ...     items,
-            ...     price_reduction_percent=5.0
-            ... )
+            >>> results = await manager.create_smart_targets("csgo", items, price_reduction_percent=5.0)
 
         """
         logger.info(
@@ -666,9 +656,7 @@ class TargetManager:
             Список закрытых таргетов
 
         Example:
-            >>> closed = await manager.get_closed_targets(
-            ...     limit=20, status='successful'
-            ... )
+            >>> closed = await manager.get_closed_targets(limit=20, status="successful")
             >>> for target in closed:
             ...     print(f"{target['title']}: ${target['price']:.2f}")
 
@@ -731,7 +719,7 @@ class TargetManager:
             Словарь со статистикой
 
         Example:
-            >>> stats = await manager.get_target_statistics('csgo', days=30)
+            >>> stats = await manager.get_target_statistics("csgo", days=30)
             >>> print(f"Успешных: {stats['successful_count']}")
             >>> print(f"Средняя цена: ${stats['average_price']:.2f}")
 
@@ -788,14 +776,11 @@ class TargetManager:
 
         Example:
             >>> analysis = await manager.analyze_target_competition(
-            ...     'csgo',
-            ...     'AK-47 | Redline (Field-Tested)'
+            ...     "csgo", "AK-47 | Redline (Field-Tested)"
             ... )
             >>> print(f"Конкурентов: {analysis['total_orders']}")
             >>> print(f"Лучшая цена: ${analysis['best_price']:.2f}")
-            >>> print(
-            ...     f"Рекомендуемая цена: ${analysis['recommended_price']:.2f}"
-            ... )
+            >>> print(f"Рекомендуемая цена: ${analysis['recommended_price']:.2f}")
 
         """
         logger.info(f"Анализ конкуренции для '{title}' в {game}")

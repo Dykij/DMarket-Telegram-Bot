@@ -4,165 +4,27 @@ This module provides database connection management, model definitions,
 and common database operations.
 """
 
+from datetime import UTC, datetime
 import json
 import logging
-from datetime import UTC, datetime
-from typing import Any, TypeVar
+from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import (
-    JSON,
-    Boolean,
-    Column,
-    DateTime,
-    Float,
-    Integer,
-    String,
-    Text,
-    TypeDecorator,
-    create_engine,
-    text,
+from sqlalchemy import create_engine, text
+from sqlalchemy.engine import Engine
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
 )
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
+
+from src.models.base import Base
+from src.models.user import User
 
 
 logger = logging.getLogger(__name__)
-
-
-class SQLiteUUID(TypeDecorator):
-    """UUID type for SQLite - stores as string."""
-
-    impl = String(36)
-    cache_ok = True
-
-    def process_bind_param(
-        self,
-        value: UUID | str | None,
-        dialect: Any,
-    ) -> str | None:
-        """Convert UUID to string when storing."""
-        if value is None:
-            return None
-        return str(value) if isinstance(value, UUID) else value
-
-    def process_result_value(
-        self,
-        value: str | None,
-        dialect: Any,
-    ) -> UUID | None:
-        """Convert string back to UUID when retrieving."""
-        if value is None:
-            return None
-        return UUID(value) if isinstance(value, str) else value
-
-
-# Use SQLiteUUID for all UUID columns
-UUIDType = SQLiteUUID
-
-
-logger = logging.getLogger(__name__)
-
-
-# SQLAlchemy Base (updated for 2.0)
-class Base(DeclarativeBase):
-    """Base class for all SQLAlchemy models."""
-
-
-T = TypeVar("T", bound=Base)
-
-
-class User(Base):
-    """User model."""
-
-    __tablename__ = "users"
-
-    id = Column(UUIDType, primary_key=True, default=uuid4)
-    telegram_id = Column(Integer, unique=True, nullable=False, index=True)
-    username = Column(String(255))
-    first_name = Column(String(255))
-    last_name = Column(String(255))
-    language_code = Column(String(10), default="en")
-    is_active = Column(Boolean, default=True, index=True)
-    is_admin = Column(Boolean, default=False)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
-    last_activity = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
-
-
-class UserSettings(Base):
-    """User settings model."""
-
-    __tablename__ = "user_settings"
-
-    id = Column(UUIDType, primary_key=True, default=uuid4)
-    user_id = Column(UUIDType, nullable=False, index=True)
-    notifications_enabled = Column(Boolean, default=True)
-    price_alerts_enabled = Column(Boolean, default=True)
-    language = Column(String(10), default="en")
-    timezone = Column(String(50), default="UTC")
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-
-
-class MarketData(Base):
-    """Market data model."""
-
-    __tablename__ = "market_data"
-
-    id = Column(UUIDType, primary_key=True, default=uuid4)
-    item_id = Column(String(255), nullable=False, index=True)
-    game = Column(String(100), nullable=False, index=True)
-    item_name = Column(Text, nullable=False)
-    price_usd = Column(Float, nullable=False)
-    price_change_24h = Column(Float)
-    volume_24h = Column(Integer)
-    market_cap = Column(Float)
-    data_source = Column(String(50), default="dmarket")
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, index=True)
-
-
-class PriceAlert(Base):
-    """Price alert model."""
-
-    __tablename__ = "price_alerts"
-
-    id = Column(UUIDType, primary_key=True, default=uuid4)
-    user_id = Column(UUIDType, nullable=False, index=True)
-    item_id = Column(String(255), nullable=False)
-    target_price = Column(Float, nullable=False)
-    condition = Column(String(10), nullable=False)  # 'above' or 'below'
-    is_active = Column(Boolean, default=True, index=True)
-    triggered_at = Column(DateTime(timezone=True))
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-
-
-class CommandLog(Base):
-    """Command log model."""
-
-    __tablename__ = "command_log"
-
-    id = Column(UUIDType, primary_key=True, default=uuid4)
-    user_id = Column(UUIDType, index=True)
-    command = Column(String(100), nullable=False, index=True)
-    parameters = Column(JSON)
-    success = Column(Boolean, default=True)
-    error_message = Column(Text)
-    execution_time_ms = Column(Integer)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, index=True)
-
-
-class AnalyticsEvent(Base):
-    """Analytics event model."""
-
-    __tablename__ = "events"
-
-    id = Column(UUIDType, primary_key=True, default=uuid4)
-    user_id = Column(UUIDType, index=True)
-    event_type = Column(String(100), nullable=False, index=True)
-    event_data = Column(JSON)
-    session_id = Column(String(255))
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, index=True)
 
 
 class DatabaseManager:
@@ -188,16 +50,16 @@ class DatabaseManager:
         self.echo = echo
         self.pool_size = pool_size
         self.max_overflow = max_overflow
-        self._engine = None
-        self._async_engine = None
-        self._session_maker = None
-        self._async_session_maker = None
+        self._engine: Engine | None = None
+        self._async_engine: AsyncEngine | None = None
+        self._session_maker: sessionmaker[Session] | None = None
+        self._async_session_maker: async_sessionmaker[AsyncSession] | None = None
 
     @property
-    def engine(self):
+    def engine(self) -> Engine:
         """Get synchronous SQLAlchemy engine."""
         if self._engine is None:
-            kwargs = {
+            kwargs: dict[str, Any] = {
                 "echo": self.echo,
                 "pool_pre_ping": True,
             }
@@ -221,7 +83,7 @@ class DatabaseManager:
         return self._engine
 
     @property
-    def async_engine(self):
+    def async_engine(self) -> AsyncEngine:
         """Get asynchronous SQLAlchemy engine."""
         if self._async_engine is None:
             # Convert sync URL to async URL if needed
@@ -231,7 +93,7 @@ class DatabaseManager:
             elif async_url.startswith("sqlite:///"):
                 async_url = async_url.replace("sqlite:///", "sqlite+aiosqlite:///")
 
-            kwargs = {
+            kwargs: dict[str, Any] = {
                 "echo": self.echo,
                 "pool_pre_ping": True,
             }
@@ -254,14 +116,14 @@ class DatabaseManager:
         return self._async_engine
 
     @property
-    def session_maker(self):
+    def session_maker(self) -> sessionmaker[Session]:
         """Get session maker for synchronous operations."""
         if self._session_maker is None:
             self._session_maker = sessionmaker(bind=self.engine)
         return self._session_maker
 
     @property
-    def async_session_maker(self):
+    def async_session_maker(self) -> async_sessionmaker[AsyncSession]:
         """Get session maker for asynchronous operations."""
         if self._async_session_maker is None:
             self._async_session_maker = async_sessionmaker(
@@ -280,7 +142,7 @@ class DatabaseManager:
 
     async def get_db_status(self) -> dict[str, Any]:
         """Get database connection pool status."""
-        status = {
+        status: dict[str, Any] = {
             "pool_size": self.pool_size,
             "max_overflow": self.max_overflow,
             "sync_engine": "Not initialized",
@@ -297,8 +159,8 @@ class DatabaseManager:
             }
 
         if self._async_engine:
-            # Async engine pool status might be accessed differently depending on the driver
-            # But usually it wraps a sync pool
+            # Async engine pool status might be accessed differently
+            # depending on the driver. But usually it wraps a sync pool
             pool = self._async_engine.sync_engine.pool
             status["async_engine"] = {
                 "size": pool.size(),
@@ -390,13 +252,15 @@ class DatabaseManager:
                 text(
                     """
                         INSERT INTO users (
-                            id, telegram_id, username, first_name, last_name,
-                            language_code, is_active, is_admin, created_at,
-                            updated_at, last_activity
+                            id, telegram_id, username, first_name,
+                            last_name, language_code, is_active,
+                            is_admin, created_at, updated_at,
+                            last_activity
                         ) VALUES (
-                            :id, :telegram_id, :username, :first_name, :last_name,
-                            :language_code, :is_active, :is_admin, :created_at,
-                            :updated_at, :last_activity
+                            :id, :telegram_id, :username, :first_name,
+                            :last_name, :language_code, :is_active,
+                            :is_admin, :created_at, :updated_at,
+                            :last_activity
                         )
                     """,
                 ),
@@ -457,7 +321,7 @@ class DatabaseManager:
                     "id": str(uuid4()),
                     "user_id": str(user_id),
                     "command": command,
-                    "parameters": json.dumps(parameters) if parameters else None,
+                    "parameters": (json.dumps(parameters) if parameters else None),
                     "success": success,
                     "error_message": error_message,
                     "execution_time_ms": execution_time_ms,
@@ -507,3 +371,47 @@ class DatabaseManager:
                 },
             )
             await session.commit()
+
+    async def get_price_history(
+        self,
+        item_name: str,
+        game: str,
+        start_date: datetime,
+    ) -> list[dict[str, Any]]:
+        """Get price history for an item.
+
+        Args:
+            item_name: Name of the item
+            game: Game identifier (csgo, dota2, etc.)
+            start_date: Start date for history
+
+        Returns:
+            list: List of price records with timestamp and price_usd
+        """
+        async with self.get_async_session() as session:
+            result = await session.execute(
+                text(
+                    """
+                    SELECT price_usd, created_at as timestamp
+                    FROM market_data
+                    WHERE item_name = :item_name
+                      AND game = :game
+                      AND created_at >= :start_date
+                    ORDER BY created_at DESC
+                """
+                ),
+                {
+                    "item_name": item_name,
+                    "game": game,
+                    "start_date": start_date,
+                },
+            )
+
+            rows = result.fetchall()
+            return [
+                {
+                    "price_usd": row[0],
+                    "timestamp": row[1],
+                }
+                for row in rows
+            ]

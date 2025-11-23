@@ -3,15 +3,15 @@
 Этот модуль содержит команды для взаимодействия с API DMarket.
 """
 
-import logging
-
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
 from src.dmarket.dmarket_api import DMarketAPI
+from src.utils.exceptions import handle_exceptions
+from src.utils.logging_utils import get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class DMarketHandler:
@@ -34,29 +34,29 @@ class DMarketHandler:
         if public_key and secret_key:
             self.initialize_api()
 
+    @handle_exceptions(logger, "Ошибка инициализации API")
     def initialize_api(self) -> None:
         """Инициализирует API клиент."""
-        try:
-            self.api = DMarketAPI(
-                public_key=self.public_key,
-                secret_key=self.secret_key,
-                api_url=self.api_url,
-            )
-            logger.info("DMarket API клиент инициализирован успешно")
-        except Exception as e:
-            logger.error(
-                f"Не удалось инициализировать DMarket API клиент: {e}",
-                exc_info=True,
-            )
+        self.api = DMarketAPI(
+            public_key=self.public_key,
+            secret_key=self.secret_key,
+            api_url=self.api_url,
+        )
+        logger.info("DMarket API клиент инициализирован успешно")
 
+    @handle_exceptions(logger, "Ошибка при проверке статуса")
     async def status_command(
         self,
         update: Update,
         context: ContextTypes.DEFAULT_TYPE,
     ) -> None:
         """Проверяет статус настройки API ключей DMarket."""
+        if not update.effective_user:
+            return
+
         logger.info(
-            f"Пользователь {update.effective_user.id} использовал команду /dmarket",
+            "Пользователь %s использовал команду /dmarket",
+            update.effective_user.id,
         )
 
         if update.message:
@@ -69,14 +69,19 @@ class DMarketHandler:
                     "API ключи DMarket не настроены.\nПожалуйста, добавьте их в .env файл.",
                 )
 
+    @handle_exceptions(logger, "Ошибка при получении баланса")
     async def balance_command(
         self,
         update: Update,
-        context: ContextTypes.DEFAULT_TYPE,
+        _context: ContextTypes.DEFAULT_TYPE,
     ) -> None:
         """Проверяет баланс на DMarket."""
+        if not update.effective_user:
+            return
+
         logger.info(
-            f"Пользователь {update.effective_user.id} использовал команду /balance",
+            "Пользователь %s использовал команду /balance",
+            update.effective_user.id,
         )
 
         if not self.api:
@@ -86,48 +91,42 @@ class DMarketHandler:
                 )
             return
 
-        try:
-            balance_data = await self.api.get_balance()
+        balance_data = await self.api.get_balance()
 
-            if not balance_data:
-                await update.message.reply_text(
-                    "Не удалось получить информацию о балансе.\nПожалуйста, попробуйте позже.",
-                )
-                return
-
-            if balance_data.get("error"):
-                error_msg = balance_data.get(
-                    "error_message",
-                    "Неизвестная ошибка",
-                )
-                if update.message:
-                    await update.message.reply_text(
-                        f"Ошибка при получении баланса: {error_msg}",
-                    )
-                return
-
-            # Получаем значения в центах (строки)
-            usd_cents = int(balance_data.get("usd", 0))
-            usd_available_cents = int(balance_data.get("usdAvailableToWithdraw", 0))
-
-            # Конвертируем в доллары
-            total_balance = usd_cents / 100.0
-            available_balance = usd_available_cents / 100.0
-            blocked_balance = total_balance - available_balance
-
-            if update.message:
-                await update.message.reply_text(
-                    f"Баланс на DMarket:\n"
-                    f"Общий баланс: ${total_balance:.2f}\n"
-                    f"Заблокировано: ${blocked_balance:.2f}\n"
-                    f"Доступно: ${available_balance:.2f}",
-                )
-        except Exception as e:
-            logger.error("Ошибка при получении баланса: %s", e, exc_info=True)
+        if not balance_data:
             if update.message:
                 await update.message.reply_text(
                     "Не удалось получить информацию о балансе.\nПожалуйста, попробуйте позже.",
                 )
+            return
+
+        if balance_data.get("error"):
+            error_msg = balance_data.get(
+                "error_message",
+                "Неизвестная ошибка",
+            )
+            if update.message:
+                await update.message.reply_text(
+                    f"Ошибка при получении баланса: {error_msg}",
+                )
+            return
+
+        # Получаем значения в центах (строки)
+        usd_cents = int(balance_data.get("usd", 0))
+        usd_available_cents = int(balance_data.get("usdAvailableToWithdraw", 0))
+
+        # Конвертируем в доллары
+        total_balance = usd_cents / 100.0
+        available_balance = usd_available_cents / 100.0
+        blocked_balance = total_balance - available_balance
+
+        if update.message:
+            await update.message.reply_text(
+                f"Баланс на DMarket:\n"
+                f"Общий баланс: ${total_balance:.2f}\n"
+                f"Заблокировано: ${blocked_balance:.2f}\n"
+                f"Доступно: ${available_balance:.2f}",
+            )
 
 
 def register_dmarket_handlers(

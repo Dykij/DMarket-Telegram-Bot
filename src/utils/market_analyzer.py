@@ -4,9 +4,9 @@ This module provides tools for analyzing market data to detect trends, patterns,
 opportunities in DMarket prices, volumes, and sales history.
 """
 
+from datetime import datetime
 import logging
 import math
-from datetime import datetime
 from typing import Any
 
 import numpy as np

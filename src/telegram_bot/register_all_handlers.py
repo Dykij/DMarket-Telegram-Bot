@@ -9,9 +9,11 @@ from typing import TYPE_CHECKING
 
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler, filters
 
+from src.telegram_bot.commands.logs_command import logs_command
 from src.telegram_bot.handlers.callbacks import button_callback_handler
 from src.telegram_bot.handlers.commands import (
     arbitrage_command,
+    dashboard_command,
     dmarket_status_command,
     handle_text_buttons,
     help_command,
@@ -19,6 +21,7 @@ from src.telegram_bot.handlers.commands import (
     start_command,
     webapp_command,
 )
+
 
 if TYPE_CHECKING:
     from telegram.ext import Application
@@ -39,11 +42,14 @@ def register_all_handlers(application: "Application") -> None:
     # Регистрация базовых команд
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("dashboard", dashboard_command))
     application.add_handler(CommandHandler("arbitrage", arbitrage_command))
     application.add_handler(CommandHandler("dmarket", dmarket_status_command))
     application.add_handler(CommandHandler("status", dmarket_status_command))
     application.add_handler(CommandHandler("markets", markets_command))
     application.add_handler(CommandHandler("webapp", webapp_command))
+    application.add_handler(CommandHandler("logs", logs_command))
+    application.add_handler(CommandHandler("resume", resume_command))
 
     logger.info("Базовые команды зарегистрированы")
 
@@ -139,6 +145,40 @@ def register_all_handlers(application: "Application") -> None:
         logger.info("Target обработчики зарегистрированы")
     except ImportError as e:
         logger.warning("Не удалось импортировать target обработчики: %s", e)
+
+    # Регистрация Dashboard handlers
+    try:
+        from src.telegram_bot.handlers.dashboard_handler import register_dashboard_handlers
+
+        register_dashboard_handlers(application)
+        logger.info("Dashboard обработчики зарегистрированы")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать dashboard обработчики: %s", e)
+
+    # Регистрация Notification Filters handlers
+    try:
+        from src.telegram_bot.handlers.notification_filters_handler import (
+            register_notification_filter_handlers,
+        )
+
+        register_notification_filter_handlers(application)
+        logger.info("Notification filter обработчики зарегистрированы")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать notification filter обработчики: %s", e)
+
+    # Регистрация Notification Digest handlers
+    try:
+        from src.telegram_bot.handlers.notification_digest_handler import (
+            register_notification_digest_handlers,
+        )
+
+        register_notification_digest_handlers(application)
+        logger.info("Notification digest обработчики зарегистрированы")
+    except ImportError as e:
+        logger.warning(
+            "Не удалось импортировать notification digest обработчики: %s",
+            e,
+        )
 
     # Регистрация DMarket handlers, если доступны API ключи
     try:

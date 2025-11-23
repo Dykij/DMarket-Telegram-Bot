@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 from circuitbreaker import CircuitBreakerError
+import pytest
 
 from src.dmarket.dmarket_api import DMarketAPI
 

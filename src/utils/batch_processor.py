@@ -7,9 +7,9 @@ Perfect for single-user scenarios.
 
 import asyncio
 from collections.abc import Callable
-from typing import Any, TypeVar
+from typing import Any, Awaitable, TypeVar
 
-from src.utils.logging_utils import get_logger
+from structlog import get_logger
 
 
 logger = get_logger(__name__)
@@ -35,9 +35,9 @@ class SimpleBatchProcessor:
     async def process_in_batches(
         self,
         items: list[T],
-        process_fn: Callable[[list[T]], Any],
-        progress_callback: Callable[[int, int], Any] | None = None,
-        error_callback: Callable[[Exception, list[T]], Any] | None = None,
+        process_fn: Callable[[list[T]], Awaitable[Any]],
+        progress_callback: Callable[[int, int], Awaitable[Any]] | None = None,
+        error_callback: Callable[[Exception, list[T]], Awaitable[Any]] | None = None,
     ) -> list[R]:
         """Process items in batches.
 
@@ -112,9 +112,9 @@ class SimpleBatchProcessor:
     async def process_with_concurrency(
         self,
         items: list[T],
-        process_fn: Callable[[T], Any],
+        process_fn: Callable[[T], Awaitable[R]],
         max_concurrent: int = 5,
-        progress_callback: Callable[[int, int], Any] | None = None,
+        progress_callback: Callable[[int, int], Awaitable[Any]] | None = None,
     ) -> list[R]:
         """Process items with limited concurrency.
 
@@ -165,10 +165,10 @@ class SimpleBatchProcessor:
         tasks = [process_with_semaphore(item) for item in items]
 
         # Execute concurrently
-        results = await asyncio.gather(*tasks, return_exceptions=False)
+        raw_results = await asyncio.gather(*tasks, return_exceptions=False)
 
         # Filter out None results
-        results = [r for r in results if r is not None]
+        results = [r for r in raw_results if r is not None]
 
         logger.info(
             "Concurrent processing completed",

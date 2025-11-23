@@ -5,8 +5,8 @@
 - MarketAnalyzer - анализ рыночных данных
 """
 
-import io
 from datetime import datetime, timedelta
+import io
 
 import pytest
 

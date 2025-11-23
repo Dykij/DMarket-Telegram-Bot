@@ -9,17 +9,19 @@ import logging
 import signal
 import sys
 
-from telegram.ext import Application as TelegramApplication
-from telegram.ext import ApplicationBuilder
+from telegram.ext import Application as TelegramApplication, ApplicationBuilder
 
 from src.dmarket.dmarket_api import DMarketAPI
+from src.telegram_bot.notifier import send_crash_notification, send_critical_shutdown_notification
 from src.telegram_bot.register_all_handlers import register_all_handlers
 from src.utils.config import Config
 from src.utils.database import DatabaseManager
-from src.utils.logging_utils import setup_logging
+from src.utils.logging_utils import BotLogger, setup_logging
+from src.utils.state_manager import StateManager
 
 
 logger = logging.getLogger(__name__)
+bot_logger = BotLogger(__name__)
 
 
 class Application:
@@ -37,6 +39,7 @@ class Application:
         self.database: DatabaseManager | None = None
         self.dmarket_api: DMarketAPI | None = None
         self.bot: TelegramApplication | None = None
+        self.state_manager: StateManager | None = None
         self._shutdown_event = asyncio.Event()
 
     async def initialize(self) -> None:
@@ -67,6 +70,14 @@ class Application:
                 )
                 await self.database.init_database()
                 logger.info("Database initialized successfully")
+
+                # Initialize StateManager
+                session = self.database.get_session()
+                self.state_manager = StateManager(
+                    session=session,
+                    max_consecutive_errors=5,
+                )
+                logger.info("StateManager initialized")
 
             # Initialize DMarket API
             logger.info("Initializing DMarket API...")
@@ -106,6 +117,13 @@ class Application:
             self.bot.bot_data["config"] = self.config
             self.bot.bot_data["dmarket_api"] = self.dmarket_api
             self.bot.bot_data["database"] = self.database
+            self.bot.bot_data["state_manager"] = self.state_manager
+
+            # Register critical shutdown callback
+            if self.state_manager:
+                self.state_manager.set_shutdown_callback(
+                    self._handle_critical_shutdown,
+                )
 
             # Register handlers
             register_all_handlers(self.bot)
@@ -143,6 +161,23 @@ class Application:
             logger.info("Received keyboard interrupt")
         except Exception as e:
             logger.exception(f"Application error: {e}")
+
+            # Log crash with BotLogger
+            import traceback as tb
+
+            traceback_text = tb.format_exc()
+            bot_logger.log_crash(
+                error=e,
+                traceback_text=traceback_text,
+                context={"component": "main_application"},
+            )
+
+            # Send crash notification to admins
+            await self._send_crash_notifications(
+                error=e,
+                traceback_text=traceback_text,
+            )
+
             raise
         finally:
             await self.shutdown()
@@ -178,6 +213,97 @@ class Application:
             logger.exception(f"Error during shutdown: {e}")
 
         logger.info("Application shutdown complete")
+
+    async def _handle_critical_shutdown(self, reason: str) -> None:
+        """Handle critical shutdown event.
+
+        Args:
+            reason: Reason for critical shutdown
+
+        """
+        logger.critical(f"CRITICAL SHUTDOWN TRIGGERED: {reason}")
+
+        # Отправить уведомления всем администраторам
+        if self.bot and self.config:
+            # Получить список администраторов
+            admin_users = []
+            if hasattr(self.config.security, "admin_users"):
+                admin_users = self.config.security.admin_users
+
+            if not admin_users and hasattr(
+                self.config.security,
+                "allowed_users",
+            ):
+                # Если нет админов, отправить первому разрешенному
+                admin_users = self.config.security.allowed_users[:1]
+
+            # Получить количество ошибок
+            consecutive_errors = self.state_manager.consecutive_errors if self.state_manager else 0
+
+            # Отправить уведомления
+            for user_id in admin_users:
+                try:
+                    await send_critical_shutdown_notification(
+                        bot=self.bot.bot,
+                        user_id=int(user_id),
+                        reason=reason,
+                        consecutive_errors=consecutive_errors,
+                    )
+                    logger.info(
+                        f"Critical shutdown notification sent to {user_id}",
+                    )
+                except Exception as e:
+                    logger.exception(
+                        f"Failed to send shutdown notification to {user_id}: {e}",
+                    )
+
+    async def _send_crash_notifications(
+        self,
+        error: Exception,
+        traceback_text: str,
+    ) -> None:
+        """Send crash notifications to all administrators.
+
+        Args:
+            error: Exception that caused the crash
+            traceback_text: Full traceback string
+
+        """
+        if not self.bot or not self.config:
+            return
+
+        # Получить список администраторов
+        admin_users = []
+        if hasattr(self.config.security, "admin_users"):
+            admin_users = self.config.security.admin_users
+
+        if not admin_users and hasattr(self.config.security, "allowed_users"):
+            # Если нет админов, отправить первому разрешенному пользователю
+            admin_users = self.config.security.allowed_users[:1]
+
+        # Контекст ошибки
+        context = {
+            "component": "main_application",
+            "dry_run": getattr(self.config, "dry_run", True),
+            "debug": getattr(self.config, "debug", False),
+        }
+
+        # Отправить уведомления
+        for user_id in admin_users:
+            try:
+                await send_crash_notification(
+                    bot=self.bot.bot,
+                    user_id=int(user_id),
+                    error_type=type(error).__name__,
+                    error_message=str(error),
+                    traceback_text=traceback_text,
+                    context=context,
+                )
+                logger.info(f"Crash notification sent to user {user_id}")
+            except Exception as e:
+                logger.exception(
+                    f"Failed to send crash notification to {user_id}: {e}",
+                )
 
     def _setup_signal_handlers(self) -> None:
         """Setup signal handlers for graceful shutdown."""

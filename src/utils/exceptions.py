@@ -4,11 +4,12 @@
 и утилиты для обработки ошибок.
 """
 
+import asyncio
+from collections.abc import Callable
+from enum import Enum
 import functools
 import logging
 import traceback
-from collections.abc import Callable
-from enum import Enum
 from typing import Any, TypeVar, cast
 
 from src.utils.logging_utils import get_logger
@@ -190,7 +191,8 @@ class RateLimitExceeded(APIError):
     def human_readable(self) -> str:
         """Человекочитаемое сообщение об ошибке."""
         return (
-            f"Превышен лимит запросов: пожалуйста, подождите {self.retry_after} секунд.\n"
+            f"Превышен лимит запросов: пожалуйста, подождите "
+            f"{self.retry_after} секунд.\n"
             f"Детали: {self.message}"
         )
 
@@ -504,6 +506,8 @@ def handle_exceptions(
 ) -> Callable[[F], F]:
     """Декоратор для обработки исключений с логированием.
 
+    Поддерживает как синхронные, так и асинхронные функции.
+
     Args:
         logger_instance: Логгер для записи ошибок.
         default_error_message: Сообщение по умолчанию при ошибке.
@@ -520,7 +524,32 @@ def handle_exceptions(
             logger_instance = get_logger(f"{func.__module__}.{func.__qualname__}")
 
         @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
+        async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+            try:
+                return await func(*args, **kwargs)
+            except BaseAppException as e:
+                # Логируем исключение приложения
+                logger_instance.exception(
+                    f"{default_error_message}: {e!s}",
+                    extra={"context": e.to_dict()},
+                )
+                if reraise:
+                    raise
+            except Exception as e:
+                # Логируем неожиданное исключение
+                error_details = {
+                    "exception_type": e.__class__.__name__,
+                    "traceback": traceback.format_exc().split("\n"),
+                }
+                logger_instance.exception(
+                    f"Необработанное исключение в {func.__qualname__}: {e!s}",
+                    extra={"context": error_details},
+                )
+                if reraise:
+                    raise
+
+        @functools.wraps(func)
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 return func(*args, **kwargs)
             except BaseAppException as e:
@@ -544,7 +573,9 @@ def handle_exceptions(
                 if reraise:
                     raise
 
-        return cast("F", wrapper)
+        if asyncio.iscoroutinefunction(func):
+            return cast("F", async_wrapper)
+        return cast("F", sync_wrapper)
 
     return decorator
 
@@ -604,7 +635,6 @@ def retry_async(
         Decorated function with retry logic
 
     """
-    import asyncio
 
     def decorator(func: F) -> F:
         @functools.wraps(func)
@@ -626,7 +656,8 @@ def retry_async(
                             delay = retry_delay
 
                         logger.warning(
-                            f"Attempt {attempt + 1}/{max_retries} failed, retrying in {delay}s: {e}",
+                            f"Attempt {attempt + 1}/{max_retries} failed, "
+                            f"retrying in {delay}s: {e}",
                         )
                         await asyncio.sleep(delay)
                     else:

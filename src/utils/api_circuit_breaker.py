@@ -1,7 +1,7 @@
-from typing import Any, Callable, TypeVar
+from typing import Any, Awaitable, Callable, TypeVar
 
+from circuitbreaker import CircuitBreaker, CircuitBreakerError  # type: ignore
 import httpx
-from circuitbreaker import CircuitBreaker, CircuitBreakerError
 from structlog import get_logger
 
 
@@ -25,7 +25,12 @@ class APICircuitBreaker(CircuitBreaker):
             expected_exception=self.EXPECTED_EXCEPTION,
         )
 
-    # def _on_state_change(self, cb: "CircuitBreaker", old_state: str, new_state: str) -> None:
+    # def _on_state_change(
+    #     self,
+    #     cb: "CircuitBreaker",
+    #     old_state: str,
+    #     new_state: str,
+    # ) -> None:
     #     """Log state changes."""
     #     logger.warning(
     #         "circuit_breaker_state_change",
@@ -42,7 +47,7 @@ dmarket_api_breaker = APICircuitBreaker(name="dmarket_api")
 async def call_with_circuit_breaker(
     func: Callable[..., Any],
     *args: Any,
-    fallback: Callable[[], Any] | None = None,
+    fallback: Callable[[], Awaitable[Any]] | None = None,
     **kwargs: Any,
 ) -> Any:
     """Call an async function with circuit breaker protection.
@@ -76,7 +81,5 @@ async def call_with_circuit_breaker(
         )
         if fallback:
             logger.info("executing_fallback", circuit="dmarket_api")
-            if callable(fallback):
-                return await fallback()
-            return fallback
+            return await fallback()
         raise

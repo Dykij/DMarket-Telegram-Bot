@@ -4,12 +4,11 @@
 Все обработчики команд, начинающихся с / собраны здесь.
 """
 
-import logging
-
 from telegram import Update
 from telegram.constants import ChatAction, ParseMode
 from telegram.ext import ContextTypes
 
+from src.telegram_bot.handlers.dashboard_handler import show_dashboard
 from src.telegram_bot.handlers.dmarket_status import dmarket_status_impl
 from src.telegram_bot.keyboards import (
     get_game_selection_keyboard,
@@ -18,12 +17,13 @@ from src.telegram_bot.keyboards import (
     get_permanent_reply_keyboard,
     get_webapp_button,
 )
+from src.utils.logging_utils import get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
-async def start_command(update, context) -> None:
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обрабатывает команду /start.
 
     Args:
@@ -31,6 +31,9 @@ async def start_command(update, context) -> None:
         context: Контекст взаимодействия с ботом
 
     """
+    if not update.message:
+        return
+
     # Отправляем приветственное сообщение с inline кнопками
     await update.message.reply_text(
         "👋 Привет! Я бот для работы с DMarket API. Выберите действие:",
@@ -38,19 +41,26 @@ async def start_command(update, context) -> None:
         parse_mode=ParseMode.HTML,
     )
 
-    # Добавляем постоянную клавиатуру для быстрого доступа с улучшенными параметрами
+    # Добавляем постоянную клавиатуру для быстрого доступа
+    # с улучшенными параметрами
     await update.message.reply_text(
-        "⚡ <b>Быстрый доступ</b>\n\nИспользуйте клавиатуру ниже для быстрого доступа к основным функциям:",
+        "⚡ <b>Быстрый доступ</b>\n\n"
+        "Используйте клавиатуру ниже для быстрого доступа "
+        "к основным функциям:",
         reply_markup=get_permanent_reply_keyboard(),
         parse_mode=ParseMode.HTML,
     )
 
-    # Сохраняем в контексте пользователя информацию о том, что клавиатура активирована
-    if hasattr(context, "user_data"):
+    # Сохраняем в контексте пользователя информацию о том,
+    # что клавиатура активирована
+    if hasattr(context, "user_data") and context.user_data is not None:
         context.user_data["keyboard_enabled"] = True
 
 
-async def help_command(update, context) -> None:
+async def help_command(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> None:
     """Обрабатывает команду /help.
 
     Args:
@@ -58,6 +68,9 @@ async def help_command(update, context) -> None:
         context: Контекст взаимодействия с ботом
 
     """
+    if not update.message:
+        return
+
     await update.message.reply_text(
         "❓ <b>Доступные команды:</b>\n"
         "/start - Начать работу с ботом\n"
@@ -69,7 +82,10 @@ async def help_command(update, context) -> None:
     )
 
 
-async def webapp_command(update, context) -> None:
+async def webapp_command(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> None:
     """Обрабатывает команду /webapp.
 
     Args:
@@ -77,6 +93,9 @@ async def webapp_command(update, context) -> None:
         context: Контекст взаимодействия с ботом
 
     """
+    if not update.message:
+        return
+
     await update.message.reply_text(
         "🌐 <b>DMarket WebApp</b>\n\nНажмите кнопку ниже, чтобы открыть DMarket прямо в Telegram:",
         reply_markup=get_webapp_button(),
@@ -84,7 +103,24 @@ async def webapp_command(update, context) -> None:
     )
 
 
-async def markets_command(update, context) -> None:
+async def dashboard_command(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> None:
+    """Обрабатывает команду /dashboard.
+
+    Args:
+        update: Объект Update от Telegram
+        context: Контекст взаимодействия с ботом
+
+    """
+    await show_dashboard(update, context)
+
+
+async def markets_command(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> None:
     """Обрабатывает команду /markets.
 
     Args:
@@ -92,6 +128,9 @@ async def markets_command(update, context) -> None:
         context: Контекст взаимодействия с ботом
 
     """
+    if not update.message:
+        return
+
     await update.message.reply_text(
         "📊 <b>Сравнение рынков</b>\n\nВыберите рынки для сравнения:",
         reply_markup=get_marketplace_comparison_keyboard(),
@@ -99,7 +138,10 @@ async def markets_command(update, context) -> None:
     )
 
 
-async def dmarket_status_command(update, context) -> None:
+async def dmarket_status_command(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> None:
     """Обрабатывает команду /status или /dmarket.
 
     Args:
@@ -110,7 +152,10 @@ async def dmarket_status_command(update, context) -> None:
     await dmarket_status_impl(update, context, status_message=update.message)
 
 
-async def arbitrage_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def arbitrage_command(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> None:
     """Обрабатывает команду /arbitrage.
 
     Args:
@@ -118,6 +163,9 @@ async def arbitrage_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         context: Контекст взаимодействия с ботом
 
     """
+    if not update.effective_chat or not update.message:
+        return
+
     await update.effective_chat.send_action(ChatAction.TYPING)
 
     # Используем современную клавиатуру для арбитража
@@ -140,13 +188,20 @@ async def handle_text_buttons(
         context: Контекст взаимодействия с ботом
 
     """
+    if not update.message or not update.message.text:
+        return
+
     text = update.message.text
 
     # Обрабатываем различные текстовые команды от клавиатуры
     if text == "🔍 Арбитраж":
         await arbitrage_command(update, context)
     elif text == "📊 Баланс":
-        await dmarket_status_impl(update, context, status_message=update.message)
+        await dmarket_status_impl(
+            update,
+            context,
+            status_message=update.message,
+        )
     elif text == "🌐 Открыть DMarket":
         await webapp_command(update, context)
     elif text == "📈 Анализ рынка":

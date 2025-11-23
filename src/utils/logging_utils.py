@@ -5,20 +5,20 @@ for the DMarket Telegram Bot, including structured logging, file rotation,
 and integration with monitoring systems, including Sentry error tracking.
 """
 
+from datetime import datetime
 import json
 import logging
 import logging.handlers
 import os
-import sys
-from datetime import datetime
 from pathlib import Path
+import sys
 from typing import Any
 
 import sentry_sdk
-import structlog
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.httpx import HttpxIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
+import structlog
 
 
 class JSONFormatter(logging.Formatter):
@@ -104,10 +104,10 @@ class ColoredFormatter(logging.Formatter):
 
 def setup_sentry(
     environment: str = "production",
-    traces_sample_rate: float = 0.1,
+    traces_sample_rate: float = 0.5,
     send_default_pii: bool = False,
 ) -> None:
-    """Setup Sentry error tracking.
+    """Setup Sentry error tracking with enhanced integrations.
 
     Args:
         environment: Environment name (development, production)
@@ -144,15 +144,31 @@ def setup_sentry(
 
         return event
 
-    # Configure Sentry integrations
+    # Configure enhanced Sentry integrations
     integrations = [
         LoggingIntegration(
             level=logging.INFO,  # Capture info and above as breadcrumbs
             event_level=logging.ERROR,  # Send errors and above as events
         ),
-        AsyncioIntegration(),
-        HttpxIntegration(),
+        AsyncioIntegration(),  # Async error tracking
+        HttpxIntegration(),  # HTTP request breadcrumbs
     ]
+
+    # Add SQLAlchemy integration if available
+    try:
+        from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+
+        integrations.append(SqlalchemyIntegration())
+    except ImportError:
+        pass
+
+    # Add Redis integration if available
+    try:
+        from sentry_sdk.integrations.redis import RedisIntegration
+
+        integrations.append(RedisIntegration())
+    except ImportError:
+        pass
 
     sentry_sdk.init(
         dsn=sentry_dsn,
@@ -163,12 +179,21 @@ def setup_sentry(
         before_send=filter_sensitive_data,
         release=os.getenv("BOT_VERSION", "unknown"),
         attach_stacktrace=True,
-        max_breadcrumbs=50,
+        max_breadcrumbs=100,  # Increased for better context
         debug=False,
+        # Performance monitoring
+        enable_tracing=True,
+        # Database query spans
+        _experiments={
+            "profiles_sample_rate": 0.5 if environment == "production" else 1.0,
+        },
     )
 
     logger = logging.getLogger(__name__)
-    logger.info(f"Sentry initialized: env={environment}, sample_rate={traces_sample_rate}")
+    logger.info(
+        f"Sentry initialized: env={environment}, sample_rate={traces_sample_rate}, "
+        f"integrations={len(integrations)}"
+    )
 
 
 def setup_logging(
@@ -415,6 +440,193 @@ class BotLogger:
         }
 
         self.logger.error("Error occurred", **error_context)
+
+    def log_buy_intent(
+        self,
+        item_name: str,
+        price_usd: float,
+        sell_price_usd: float | None = None,
+        profit_usd: float | None = None,
+        profit_percent: float | None = None,
+        source: str = "unknown",
+        dry_run: bool = True,
+        user_id: int | None = None,
+        game: str = "csgo",
+        **kwargs: Any,
+    ) -> None:
+        """Log buy intent before purchase.
+
+        Args:
+            item_name: Item name
+            price_usd: Buy price in USD
+            sell_price_usd: Expected sell price in USD
+            profit_usd: Expected profit in USD
+            profit_percent: Expected profit percentage
+            source: Source of the intent (arbitrage_scanner, manual, etc)
+            dry_run: Whether this is a dry run
+            user_id: Telegram user ID
+            game: Game identifier
+            **kwargs: Additional context
+
+        """
+        from datetime import UTC, datetime
+
+        intent_data = {
+            "intent_type": "BUY_INTENT",
+            "item": item_name,
+            "price_usd": price_usd,
+            "sell_price_usd": sell_price_usd,
+            "profit_usd": profit_usd,
+            "profit_percent": profit_percent,
+            "source": source,
+            "dry_run": dry_run,
+            "user_id": user_id,
+            "game": game,
+            "timestamp": datetime.now(tz=UTC).isoformat(),
+            **kwargs,
+        }
+
+        # Log with CRITICAL level to ensure visibility
+        mode = "DRY-RUN" if dry_run else "LIVE"
+        msg = f"[{mode}] 🔵 BUY_INTENT: {item_name} @ ${price_usd:.2f}"
+        self.logger.info(msg, **intent_data)
+
+    def log_sell_intent(
+        self,
+        item_name: str,
+        price_usd: float,
+        buy_price_usd: float | None = None,
+        profit_usd: float | None = None,
+        profit_percent: float | None = None,
+        source: str = "unknown",
+        dry_run: bool = True,
+        user_id: int | None = None,
+        game: str = "csgo",
+        **kwargs: Any,
+    ) -> None:
+        """Log sell intent before selling.
+
+        Args:
+            item_name: Item name
+            price_usd: Sell price in USD
+            buy_price_usd: Original buy price in USD
+            profit_usd: Actual profit in USD
+            profit_percent: Actual profit percentage
+            source: Source of the intent (auto_sell, manual, etc)
+            dry_run: Whether this is a dry run
+            user_id: Telegram user ID
+            game: Game identifier
+            **kwargs: Additional context
+
+        """
+        from datetime import UTC, datetime
+
+        intent_data = {
+            "intent_type": "SELL_INTENT",
+            "item": item_name,
+            "price_usd": price_usd,
+            "buy_price_usd": buy_price_usd,
+            "profit_usd": profit_usd,
+            "profit_percent": profit_percent,
+            "source": source,
+            "dry_run": dry_run,
+            "user_id": user_id,
+            "game": game,
+            "timestamp": datetime.now(tz=UTC).isoformat(),
+            **kwargs,
+        }
+
+        # Log with INFO level
+        mode = "DRY-RUN" if dry_run else "LIVE"
+        msg = f"[{mode}] 🟢 SELL_INTENT: {item_name} @ ${price_usd:.2f}"
+        self.logger.info(msg, **intent_data)
+
+    def log_trade_result(
+        self,
+        operation: str,
+        success: bool,
+        item_name: str,
+        price_usd: float,
+        error_message: str | None = None,
+        dry_run: bool = True,
+        **kwargs: Any,
+    ) -> None:
+        """Log trade result after operation.
+
+        Args:
+            operation: Operation type (buy/sell)
+            success: Whether operation succeeded
+            item_name: Item name
+            price_usd: Price in USD
+            error_message: Error message if failed
+            dry_run: Whether this was a dry run
+            **kwargs: Additional context
+
+        """
+        from datetime import UTC, datetime
+
+        result_data = {
+            "result_type": f"{operation.upper()}_RESULT",
+            "success": success,
+            "item": item_name,
+            "price_usd": price_usd,
+            "error": error_message,
+            "dry_run": dry_run,
+            "timestamp": datetime.now(tz=UTC).isoformat(),
+            **kwargs,
+        }
+
+        level = "info" if success else "error"
+        emoji = "✅" if success else "❌"
+        status = "SUCCESS" if success else "FAILED"
+        mode = "DRY-RUN" if dry_run else "LIVE"
+        msg = f"[{mode}] {emoji} {operation.upper()}_{status}: {item_name}"
+
+        self.logger.log(level, msg, **result_data)
+
+    def log_crash(
+        self,
+        error: Exception,
+        traceback_text: str | None = None,
+        context: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> None:
+        """Log critical crash with full context and traceback.
+
+        Args:
+            error: Exception object
+            traceback_text: Full traceback string
+            context: Additional context about the crash
+            **kwargs: Additional context
+
+        """
+        from datetime import UTC, datetime
+
+        crash_data = {
+            "crash_type": "BOT_CRASH",
+            "error_type": type(error).__name__,
+            "error_message": str(error),
+            "traceback": traceback_text,
+            "context": context or {},
+            "timestamp": datetime.now(tz=UTC).isoformat(),
+            **kwargs,
+        }
+
+        self.logger.critical(
+            f"💥 BOT CRASH: {type(error).__name__} - {error!s}",
+            **crash_data,
+        )
+
+        # Также отправляем в Sentry если доступен
+        if sentry_sdk.is_initialized():
+            with sentry_sdk.push_scope() as scope:
+                # Добавляем весь контекст в Sentry
+                for key, value in crash_data.items():
+                    if key != "traceback":  # traceback уже в exception
+                        scope.set_context(key, value)
+
+                # Отправляем исключение в Sentry
+                sentry_sdk.capture_exception(error)
 
 
 def get_logger(name: str) -> logging.Logger:

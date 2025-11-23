@@ -428,13 +428,18 @@ class MarketAlertsManager:
         logger.info("Проверка арбитражных возможностей")
 
         try:
-            # Импортируем функцию для поиска арбитражных возможностей
-            from src.telegram_bot.enhanced_auto_arbitrage import start_auto_arbitrage_enhanced
+            # Используем ArbitrageScanner для поиска возможностей
+            from src.dmarket.arbitrage_scanner import ArbitrageScanner
+            from src.dmarket.dmarket_api import DMarketAPI
+
+            # Создаем API клиент и сканер
+            api_client = DMarketAPI()
+            scanner = ArbitrageScanner(api_client=api_client)
 
             # Ищем арбитражные возможности
-            arbitrage_items = await start_auto_arbitrage_enhanced(
-                games=["csgo"],
-                mode="high",  # Используем высокий режим для уведомлений
+            arbitrage_items = await scanner.scan_level(
+                level="advanced",  # Используем продвинутый уровень
+                game="csgo",
                 max_items=10,
             )
 

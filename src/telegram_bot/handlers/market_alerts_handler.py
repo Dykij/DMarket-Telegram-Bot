@@ -4,15 +4,10 @@
 о значимых изменениях на рынке, трендах и арбитражных возможностях.
 """
 
-import logging
-
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 
-# Импортируем DMarketAPI из правильного модуля
 from src.telegram_bot.market_alerts import get_alerts_manager
-
-# Импортируем новый модуль уведомлений
 from src.telegram_bot.notifier import (
     NOTIFICATION_TYPES,
     get_user_alerts,
@@ -20,10 +15,12 @@ from src.telegram_bot.notifier import (
     register_notification_handlers,
     remove_price_alert,
 )
+from src.utils.exceptions import handle_exceptions
+from src.utils.logging_utils import get_logger
 
 
 # Настройка логирования
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 # Функция преобразования типов уведомлений в человекочитаемые названия
@@ -40,6 +37,10 @@ ALERT_TYPES = {
 }
 
 
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка при обработке команды /alerts",
+)
 async def alerts_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -51,146 +52,143 @@ async def alerts_command(
         context: Контекст бота
 
     """
-    if not update.effective_user:
+    if not update.effective_user or not update.message:
         return
     user_id = update.effective_user.id
 
     # Получаем менеджер уведомлений
-    try:
-        alerts_manager = get_alerts_manager()
+    # Передаем bot из context, если менеджер еще не инициализирован
+    alerts_manager = get_alerts_manager(bot=context.bot)
 
-        # Получаем текущие подписки пользователя
-        user_subscriptions = alerts_manager.get_user_subscriptions(user_id)
+    # Получаем текущие подписки пользователя
+    user_subscriptions = alerts_manager.get_user_subscriptions(user_id)
 
-        # Получаем настроенные оповещения о ценах из нового модуля
-        price_alerts = await get_user_alerts(user_id)
+    # Получаем настроенные оповещения о ценах из нового модуля
+    price_alerts = await get_user_alerts(user_id)
 
-        # Создаем клавиатуру для управления подписками
-        keyboard = []
+    # Создаем клавиатуру для управления подписками
+    keyboard = []
 
-        # Кнопки для глобального мониторинга рынка
-        for alert_type, alert_name in ALERT_TYPES.items():
-            if alert_type in [
-                "price_changes",
-                "trending",
-                "volatility",
-                "arbitrage",
-            ]:
-                if alert_type in user_subscriptions:
-                    button_text = f"✅ {alert_name}"
-                else:
-                    button_text = alert_name
-                keyboard.append(
-                    [
-                        InlineKeyboardButton(
-                            button_text,
-                            callback_data=f"alerts:{alert_type}",
-                        ),
-                    ],
-                )
-
-        # Добавляем кнопки управления
-        keyboard.append(
-            [
-                InlineKeyboardButton("📊 Мои оповещения", callback_data="alerts:my_alerts"),
-            ],
-        )
-
-        keyboard.append(
-            [
-                InlineKeyboardButton(
-                    "➕ Добавить оповещение",
-                    callback_data="alerts:create_alert",
-                ),
-            ],
-        )
-
-        # Добавляем кнопки управления
-        control_row = []
-
-        # Кнопка "Подписаться на все", если есть неактивные подписки
-        if len(user_subscriptions) < 4:  # Только для основных 4 типов
-            control_row.append(
-                InlineKeyboardButton(
-                    "🔔 Подписаться на все",
-                    callback_data="alerts:subscribe_all",
-                ),
-            )
-
-        # Кнопка "Отписаться от всех", если есть активные подписки
-        if user_subscriptions:
-            control_row.append(
-                InlineKeyboardButton(
-                    "🔕 Отписаться от всех",
-                    callback_data="alerts:unsubscribe_all",
-                ),
-            )
-
-        if control_row:
-            keyboard.append(control_row)
-
-        # Добавляем кнопку настроек, если есть хотя бы одна подписка
-        if user_subscriptions or price_alerts:
+    # Кнопки для глобального мониторинга рынка
+    for alert_type, alert_name in ALERT_TYPES.items():
+        if alert_type in [
+            "price_changes",
+            "trending",
+            "volatility",
+            "arbitrage",
+        ]:
+            if alert_type in user_subscriptions:
+                button_text = f"✅ {alert_name}"
+            else:
+                button_text = alert_name
             keyboard.append(
                 [
                     InlineKeyboardButton(
-                        "⚙️ Настройки уведомлений",
-                        callback_data="alerts:settings",
+                        button_text,
+                        callback_data=f"alerts:{alert_type}",
                     ),
                 ],
             )
 
-        # Добавляем кнопку возврата к основному меню
+    # Добавляем кнопки управления
+    keyboard.append(
+        [
+            InlineKeyboardButton("📊 Мои оповещения", callback_data="alerts:my_alerts"),
+        ],
+    )
+
+    keyboard.append(
+        [
+            InlineKeyboardButton(
+                "➕ Добавить оповещение",
+                callback_data="alerts:create_alert",
+            ),
+        ],
+    )
+
+    # Добавляем кнопки управления
+    control_row = []
+
+    # Кнопка "Подписаться на все", если есть неактивные подписки
+    if len(user_subscriptions) < 4:  # Только для основных 4 типов
+        control_row.append(
+            InlineKeyboardButton(
+                "🔔 Подписаться на все",
+                callback_data="alerts:subscribe_all",
+            ),
+        )
+
+    # Кнопка "Отписаться от всех", если есть активные подписки
+    if user_subscriptions:
+        control_row.append(
+            InlineKeyboardButton(
+                "🔕 Отписаться от всех",
+                callback_data="alerts:unsubscribe_all",
+            ),
+        )
+
+    if control_row:
+        keyboard.append(control_row)
+
+    # Добавляем кнопку настроек, если есть хотя бы одна подписка
+    if user_subscriptions or price_alerts:
         keyboard.append(
             [
-                InlineKeyboardButton("⬅️ Назад в меню", callback_data="arbitrage"),
+                InlineKeyboardButton(
+                    "⚙️ Настройки уведомлений",
+                    callback_data="alerts:settings",
+                ),
             ],
         )
 
-        # Формируем сообщение
-        message_text = "🔔 *Управление уведомлениями*\n\n"
+    # Добавляем кнопку возврата к основному меню
+    keyboard.append(
+        [
+            InlineKeyboardButton("⬅️ Назад в меню", callback_data="arbitrage"),
+        ],
+    )
 
-        if user_subscriptions:
-            message_text += "Вы подписаны на следующие типы уведомлений о рынке:\n"
-            for alert_type in user_subscriptions:
-                message_text += f"• {ALERT_TYPES.get(alert_type, alert_type)}\n"
-            message_text += "\n"
+    # Формируем сообщение
+    message_text = "🔔 *Управление уведомлениями*\n\n"
 
-        if price_alerts:
-            message_text += f"У вас {len(price_alerts)} активных оповещений о ценах предметов.\n"
-            message_text += "Нажмите 'Мои оповещения' для просмотра и управления.\n\n"
+    if user_subscriptions:
+        message_text += "Вы подписаны на следующие типы уведомлений о рынке:\n"
+        for alert_type in user_subscriptions:
+            message_text += f"• {ALERT_TYPES.get(alert_type, alert_type)}\n"
+        message_text += "\n"
 
-        if not user_subscriptions and not price_alerts:
-            message_text += (
-                "Вы не подписаны ни на какие уведомления. "
-                "Выберите типы уведомлений, которые хотите получать:\n\n"
-                "• 📈 *Изменения цен* - уведомления о значительных "
-                "изменениях цен на предметы\n"
-                "• 🔥 *Трендовые предметы* - уведомления о популярных "
-                "предметах с высоким спросом\n"
-                "• 📊 *Волатильность рынка* - уведомления о нестабильности "
-                "цен и возможностях для трейдинга\n"
-                "• 💰 *Арбитражные возможности* - уведомления о выгодных "
-                "возможностях для арбитража\n\n"
-                "Также вы можете настроить персональные оповещения "
-                "для конкретных предметов."
-            )
+    if price_alerts:
+        message_text += f"У вас {len(price_alerts)} активных оповещений о ценах предметов.\n"
+        message_text += "Нажмите 'Мои оповещения' для просмотра и управления.\n\n"
 
-        # Отправляем сообщение с клавиатурой
-        await update.message.reply_text(
-            message_text,
-            reply_markup=InlineKeyboardMarkup(keyboard),
-            parse_mode="Markdown",
+    if not user_subscriptions and not price_alerts:
+        message_text += (
+            "Вы не подписаны ни на какие уведомления. "
+            "Выберите типы уведомлений, которые хотите получать:\n\n"
+            "• 📈 *Изменения цен* - уведомления о значительных "
+            "изменениях цен на предметы\n"
+            "• 🔥 *Трендовые предметы* - уведомления о популярных "
+            "предметах с высоким спросом\n"
+            "• 📊 *Волатильность рынка* - уведомления о нестабильности "
+            "цен и возможностях для трейдинга\n"
+            "• 💰 *Арбитражные возможности* - уведомления о выгодных "
+            "возможностях для арбитража\n\n"
+            "Также вы можете настроить персональные оповещения "
+            "для конкретных предметов."
         )
 
-    except Exception as e:
-        logger.exception(f"Ошибка при обработке команды /alerts: {e}")
+    # Отправляем сообщение с клавиатурой
+    await update.message.reply_text(
+        message_text,
+        reply_markup=InlineKeyboardMarkup(keyboard),
+        parse_mode="Markdown",
+    )
 
-        await update.message.reply_text(
-            "❌ Произошла ошибка при получении данных о подписках. Попробуйте позже.",
-        )
 
-
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка при обработке колбэка уведомлений",
+)
 async def alerts_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -208,7 +206,7 @@ async def alerts_callback(
     user_id = query.from_user.id
 
     # Разбираем данные колбэка
-    parts = query.data.split(":")
+    parts = query.data.split(":")  # type: ignore
 
     if len(parts) < 2:
         await query.answer("Неверный формат данных")
@@ -216,206 +214,197 @@ async def alerts_callback(
 
     action = parts[1]
 
-    try:
-        alerts_manager = get_alerts_manager()
+    alerts_manager = get_alerts_manager(bot=context.bot)
 
-        # Обрабатываем различные действия
-        if action == "toggle":
-            # Переключение подписки на конкретный тип уведомлений
-            if len(parts) < 3:
-                await query.answer("Неверный формат данных")
-                return
+    # Обрабатываем различные действия
+    if action == "toggle":
+        # Переключение подписки на конкретный тип уведомлений
+        if len(parts) < 3:
+            await query.answer("Неверный формат данных")
+            return
 
-            alert_type = parts[2]
+        alert_type = parts[2]
 
-            # Проверяем, подписан ли пользователь
+        # Проверяем, подписан ли пользователь
+        user_subscriptions = alerts_manager.get_user_subscriptions(user_id)
+
+        if alert_type in user_subscriptions:
+            # Отписываем
+            success = alerts_manager.unsubscribe(user_id, alert_type)
+            if success:
+                alert_name = ALERT_TYPES.get(alert_type, alert_type)
+                await query.answer(
+                    f"Вы отписались от уведомлений: {alert_name}",
+                )
+            else:
+                await query.answer(
+                    "Не удалось отписаться от уведомлений",
+                )
+        else:
+            # Подписываем
+            success = alerts_manager.subscribe(user_id, alert_type)
+            if success:
+                alert_name = ALERT_TYPES.get(alert_type, alert_type)
+                await query.answer(
+                    f"Вы подписались на уведомления: {alert_name}",
+                )
+            else:
+                await query.answer(
+                    "Не удалось подписаться на уведомления",
+                )
+
+        # Обновляем клавиатуру
+        await update_alerts_keyboard(query, alerts_manager, user_id)
+
+    elif action == "subscribe_all":
+        count = 0
+        for alert_type in ALERT_TYPES:
+            if alerts_manager.subscribe(user_id, alert_type):
+                count += 1
+
+        await query.answer(f"Подписано на {count} типов уведомлений")
+        await update_alerts_keyboard(query, alerts_manager, user_id)
+
+    elif action == "unsubscribe_all":
+        # Отписка от всех уведомлений
+        # Используем метод unsubscribe_all если он есть, иначе цикл
+        if hasattr(alerts_manager, "unsubscribe_all"):
+            success = alerts_manager.unsubscribe_all(user_id)
+        else:
+            # Fallback to loop
             user_subscriptions = alerts_manager.get_user_subscriptions(user_id)
+            success = True
+            for alert_type in user_subscriptions:
+                if not alerts_manager.unsubscribe(user_id, alert_type):
+                    success = False
 
-            if alert_type in user_subscriptions:
-                # Отписываем
-                success = alerts_manager.unsubscribe(user_id, alert_type)
-                if success:
-                    alert_name = ALERT_TYPES.get(alert_type, alert_type)
-                    await query.answer(
-                        f"Вы отписались от уведомлений: {alert_name}",
-                    )
-                else:
-                    await query.answer(
-                        "Не удалось отписаться от уведомлений",
-                    )
-            else:
-                # Подписываем
-                success = alerts_manager.subscribe(user_id, alert_type)
-                if success:
-                    alert_name = ALERT_TYPES.get(alert_type, alert_type)
-                    await query.answer(
-                        f"Вы подписались на уведомления: {alert_name}",
-                    )
-                else:
-                    await query.answer(
-                        "Не удалось подписаться на уведомления",
-                    )
+        if success:
+            await query.answer("Вы отписались от всех уведомлений")
+        else:
+            await query.answer("Возникли ошибки при отписке от уведомлений")
 
-            # Обновляем клавиатуру
-            await update_alerts_keyboard(query, alerts_manager, user_id)
+        # Обновляем клавиатуру
+        await update_alerts_keyboard(query, alerts_manager, user_id)
 
-        elif action == "subscribe_all":
-            count = 0
-            for alert_type in ALERT_TYPES:
-                if alerts_manager.subscribe(user_id, alert_type):
-                    count += 1
+    elif action == "settings":
+        # Показываем настройки уведомлений
+        await show_alerts_settings(query, alerts_manager, user_id)
 
-            await query.answer(f"Подписано на {count} типов уведомлений")
-            await update_alerts_keyboard(query, alerts_manager, user_id)
+    elif action == "my_alerts":
+        # Показываем список оповещений пользователя
+        await show_user_alerts_list(query, user_id)
 
-        elif action == "unsubscribe_all":
-            # Отписка от всех уведомлений
-            # Используем метод unsubscribe_all если он есть, иначе цикл
-            if hasattr(alerts_manager, "unsubscribe_all"):
-                success = alerts_manager.unsubscribe_all(user_id)
-            else:
-                # Fallback to loop
-                user_subscriptions = alerts_manager.get_user_subscriptions(user_id)
-                success = True
-                for alert_type in user_subscriptions:
-                    if not alerts_manager.unsubscribe(user_id, alert_type):
-                        success = False
+    elif action == "create_alert":
+        # Показываем форму создания оповещения
+        await show_create_alert_form(query, user_id)
 
-            if success:
-                await query.answer("Вы отписались от всех уведомлений")
-            else:
-                await query.answer("Возникли ошибки при отписке от уведомлений")
+    elif action == "remove_alert":
+        # Удаление оповещения
+        if len(parts) < 3:
+            await query.answer("Неверный формат данных")
+            return
 
-            # Обновляем клавиатуру
-            await update_alerts_keyboard(query, alerts_manager, user_id)
+        alert_id = parts[2]
+        success = await remove_price_alert(user_id, alert_id)
 
-        elif action == "settings":
-            # Показываем настройки уведомлений
-            await show_alerts_settings(query, alerts_manager, user_id)
-
-        elif action == "my_alerts":
-            # Показываем список оповещений пользователя
+        if success:
+            await query.answer("Оповещение удалено")
+            # Обновляем список оповещений
             await show_user_alerts_list(query, user_id)
+        else:
+            await query.answer("Ошибка при удалении оповещения")
 
-        elif action == "create_alert":
-            # Показываем форму создания оповещения
-            await show_create_alert_form(query, user_id)
+    elif action == "threshold":
+        # Изменение порога срабатывания
+        # Format: alerts:threshold:<alert_type>:<direction>
+        if len(parts) < 4:
+            await query.answer("Неверный формат данных")
+            return
 
-        elif action == "remove_alert":
-            # Удаление оповещения
-            if len(parts) < 3:
-                await query.answer("Неверный формат данных")
-                return
+        alert_type = parts[2]
+        direction = parts[3]
 
-            alert_id = parts[2]
-            success = await remove_price_alert(user_id, alert_id)
+        threshold_key = f"{alert_type}_threshold"
+        current_threshold = alerts_manager.alert_thresholds.get(
+            threshold_key,
+            0,
+        )
 
-            if success:
-                await query.answer("Оповещение удалено")
-                # Обновляем список оповещений
-                await show_user_alerts_list(query, user_id)
-            else:
-                await query.answer("Ошибка при удалении оповещения")
+        if direction == "up":
+            new_threshold = current_threshold * 1.5
+        elif direction == "down":
+            new_threshold = max(
+                current_threshold * 0.7,
+                1.0,
+            )  # Не меньше 1%
+        else:
+            new_threshold = current_threshold
 
-        elif action == "threshold":
-            # Изменение порога срабатывания
-            # Format: alerts:threshold:<alert_type>:<direction>
-            if len(parts) < 4:
-                await query.answer("Неверный формат данных")
-                return
+        success = alerts_manager.update_alert_threshold(
+            alert_type,
+            new_threshold,
+        )
 
-            alert_type = parts[2]
-            direction = parts[3]
-
-            threshold_key = f"{alert_type}_threshold"
-            current_threshold = alerts_manager.alert_thresholds.get(
-                threshold_key,
-                0,
+        if success:
+            await query.answer(
+                f"Порог уведомлений изменен: {new_threshold:.1f}",
             )
+        else:
+            await query.answer("Не удалось изменить порог уведомлений")
 
-            if direction == "up":
-                new_threshold = current_threshold * 1.5
-            elif direction == "down":
-                new_threshold = max(
-                    current_threshold * 0.7,
-                    1.0,
-                )  # Не меньше 1%
-            else:
-                new_threshold = current_threshold
+        # Обновляем клавиатуру настроек
+        await show_alerts_settings(query, alerts_manager, user_id)
 
-            success = alerts_manager.update_alert_threshold(
-                alert_type,
-                new_threshold,
+    elif action == "interval":
+        # Изменение интервала проверки
+        # Format: alerts:interval:<alert_type>:<direction>
+        if len(parts) < 4:
+            await query.answer("Неверный формат данных")
+            return
+
+        alert_type = parts[2]
+        direction = parts[3]
+
+        current_interval = alerts_manager.check_intervals.get(
+            alert_type,
+            3600,
+        )
+
+        if direction == "up":
+            new_interval = min(
+                current_interval * 2,
+                86400,
+            )  # Максимум 24 часа
+        elif direction == "down":
+            new_interval = max(
+                current_interval // 2,
+                300,
+            )  # Минимум 5 минут
+        else:
+            new_interval = current_interval
+
+        success = alerts_manager.update_check_interval(
+            alert_type,
+            new_interval,
+        )
+
+        if success:
+            interval_display = f"{new_interval // 60} мин"
+            if new_interval >= 3600:
+                interval_display = f"{new_interval // 3600} ч"
+
+            await query.answer(
+                f"Интервал проверки изменен: {interval_display}",
             )
+        else:
+            await query.answer("Не удалось изменить интервал проверки")
 
-            if success:
-                await query.answer(
-                    f"Порог уведомлений изменен: {new_threshold:.1f}",
-                )
-            else:
-                await query.answer("Не удалось изменить порог уведомлений")
+        # Обновляем клавиатуру настроек
+        await show_alerts_settings(query, alerts_manager, user_id)
 
-            # Обновляем клавиатуру настроек
-            await show_alerts_settings(query, alerts_manager, user_id)
-
-        elif action == "interval":
-            # Изменение интервала проверки
-            # Format: alerts:interval:<alert_type>:<direction>
-            if len(parts) < 4:
-                await query.answer("Неверный формат данных")
-                return
-
-            alert_type = parts[2]
-            direction = parts[3]
-
-            current_interval = alerts_manager.check_intervals.get(
-                alert_type,
-                3600,
-            )
-
-            if direction == "up":
-                new_interval = min(
-                    current_interval * 2,
-                    86400,
-                )  # Максимум 24 часа
-            elif direction == "down":
-                new_interval = max(
-                    current_interval // 2,
-                    300,
-                )  # Минимум 5 минут
-            else:
-                new_interval = current_interval
-
-            success = alerts_manager.update_check_interval(
-                alert_type,
-                new_interval,
-            )
-
-            if success:
-                interval_display = f"{new_interval // 60} мин"
-                if new_interval >= 3600:
-                    interval_display = f"{new_interval // 3600} ч"
-
-                await query.answer(
-                    f"Интервал проверки изменен: {interval_display}",
-                )
-            else:
-                await query.answer("Не удалось изменить интервал проверки")
-
-            # Обновляем клавиатуру настроек
-            await show_alerts_settings(query, alerts_manager, user_id)
-
-        elif action == "back_to_alerts":
-            # Возврат к главному меню уведомлений
-            await update_alerts_keyboard(query, alerts_manager, user_id)
-
-    except Exception as e:
-        logger.exception(f"Ошибка при обработке колбэка уведомлений: {e}")
-        import traceback
-
-        logger.exception(traceback.format_exc())
-
-        await query.answer("Произошла ошибка при обработке запроса")
+    elif action == "back_to_alerts":
+        # Возврат к главному меню уведомлений
+        await update_alerts_keyboard(query, alerts_manager, user_id)
 
 
 async def update_alerts_keyboard(query, alerts_manager, user_id: int) -> None:
@@ -666,7 +655,7 @@ async def show_user_alerts_list(query, user_id: int) -> None:
     )
 
 
-async def show_create_alert_form(query, user_id: int) -> None:
+async def show_create_alert_form(query, _user_id: int) -> None:
     """Показывает форму создания оповещения.
 
     Args:
@@ -861,17 +850,17 @@ def register_alerts_handlers(application: Application) -> None:
     register_notification_handlers(application)
 
 
-async def initialize_alerts_manager(application: Application) -> None:
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка при инициализации менеджера уведомлений",
+    reraise=False,
+)
+async def initialize_alerts_manager(_application: Application) -> None:
     """Инициализирует менеджер уведомлений.
 
     Args:
-        application: Экземпляр приложения Telegram
+        _application: Экземпляр приложения Telegram
 
     """
-    try:
-        # Пока ничего не инициализируем, это заглушка
-        logger.info("Инициализация менеджера уведомлений")
-    except Exception as e:
-        logger.exception(
-            f"Ошибка при инициализации менеджера уведомлений: {e}",
-        )
+    # Пока ничего не инициализируем, это заглушка
+    logger.info("Инициализация менеджера уведомлений")

@@ -1,11 +1,12 @@
 """Обработчики для настроек и локализации в Telegram-боте DMarket."""
 
-import logging
+import json
 import os
+import time
 from typing import Any
 
 from telegram import Update
-from telegram.ext import CallbackContext
+from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes, MessageHandler, filters
 
 from src.telegram_bot.keyboards import (
     get_back_to_settings_keyboard,
@@ -14,17 +15,17 @@ from src.telegram_bot.keyboards import (
     get_settings_keyboard,
 )
 from src.telegram_bot.localization import LANGUAGES, LOCALIZATIONS
+from src.utils.exceptions import handle_exceptions
+from src.utils.logging_utils import get_logger
 
 
 # Настраиваем логирование
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO,
-)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 # Глобальный словарь для хранения пользовательских профилей
+USER_PROFILES: dict[Any, Any]
+
 try:
     from src.telegram_bot.user_profiles import UserProfileManager
 
@@ -52,8 +53,6 @@ except ImportError:
         user_id_str = str(user_id)
 
         if user_id_str not in USER_PROFILES:
-            import time
-
             USER_PROFILES[user_id_str] = {
                 "language": "ru",
                 "api_key": "",
@@ -68,10 +67,10 @@ except ImportError:
                 "last_activity": time.time(),
             }
 
-        return USER_PROFILES[user_id_str]
+        return USER_PROFILES[user_id_str]  # type: ignore[no-any-return]
 
 
-def get_localized_text(user_id: int, key: str, **kwargs) -> str:
+def get_localized_text(user_id: int, key: str, **kwargs: Any) -> str:
     """Получает локализованный текст для пользователя.
 
     Args:
@@ -103,56 +102,66 @@ def get_localized_text(user_id: int, key: str, **kwargs) -> str:
     return text
 
 
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка при сохранении профилей",
+    reraise=False,
+)
 def save_user_profiles() -> None:
     """Сохраняет профили пользователей в файл"""
-    try:
-        import json
+    user_profiles_file = os.path.join(
+        os.path.dirname(__file__),
+        "user_profiles.json",
+    )
 
-        user_profiles_file = os.path.join(
-            os.path.dirname(__file__),
-            "user_profiles.json",
-        )
-
-        with open(user_profiles_file, "w", encoding="utf-8") as f:
-            json.dump(USER_PROFILES, f, ensure_ascii=False, indent=2)
-        logger.info(f"Сохранено {len(USER_PROFILES)} пользовательских профилей")
-    except Exception as e:
-        logger.exception(f"Ошибка при сохранении профилей: {e!s}")
+    with open(user_profiles_file, "w", encoding="utf-8") as f:
+        json.dump(USER_PROFILES, f, ensure_ascii=False, indent=2)
+    logger.info("Сохранено %d пользовательских профилей", len(USER_PROFILES))
 
 
-async def settings_command(update: Update, context: CallbackContext) -> None:
+@handle_exceptions(logger_instance=logger, default_error_message="Ошибка в команде настроек")
+async def settings_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик команды /settings."""
+    if not update.effective_user or not update.message:
+        return
+
     user_id = update.effective_user.id
-    profile = get_user_profile(user_id)
+    # profile = get_user_profile(user_id) # Unused
 
     # Получаем локализованный текст для настроек
     settings_text = get_localized_text(user_id, "settings")
 
     # Создаем клавиатуру настроек
-    keyboard = get_settings_keyboard(
-        auto_trading_enabled=profile.get("auto_trading_enabled", False),
-    )
+    keyboard = get_settings_keyboard()
 
     # Отправляем сообщение с настройками
     await update.message.reply_text(settings_text, reply_markup=keyboard)
 
 
-async def settings_callback(update: Update, context: CallbackContext) -> None:
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка в обработчике настроек",
+)
+async def settings_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик callback-запросов для настроек."""
+    if not update.callback_query:
+        return
+
     query = update.callback_query
     user_id = query.from_user.id
     data = query.data
+
+    if not data:
+        return
 
     # Отвечаем на query, чтобы убрать часы ожидания
     await query.answer()
 
     if data == "settings":
         # Показываем основное меню настроек
-        profile = get_user_profile(user_id)
+        # profile = get_user_profile(user_id) # Unused
         settings_text = get_localized_text(user_id, "settings")
-        keyboard = get_settings_keyboard(
-            auto_trading_enabled=profile.get("auto_trading_enabled", False),
-        )
+        keyboard = get_settings_keyboard()
         await query.edit_message_text(
             text=settings_text,
             reply_markup=keyboard,
@@ -249,9 +258,7 @@ async def settings_callback(update: Update, context: CallbackContext) -> None:
 
         # Отправляем обновленное меню настроек
         settings_text = get_localized_text(user_id, "settings")
-        keyboard = get_settings_keyboard(
-            auto_trading_enabled=profile["auto_trading_enabled"],
-        )
+        keyboard = get_settings_keyboard()
 
         # Добавляем уведомление о текущем состоянии
         if profile["auto_trading_enabled"]:
@@ -289,7 +296,7 @@ async def settings_callback(update: Update, context: CallbackContext) -> None:
             reply_markup=keyboard,
         )
 
-    elif data.startswith("risk:"):
+    elif data.startswith("risk_profile:"):
         # Устанавливаем выбранный профиль риска
         risk_profile = data.split(":")[1]
         profile = get_user_profile(user_id)
@@ -364,17 +371,21 @@ async def settings_callback(update: Update, context: CallbackContext) -> None:
         )
 
 
-async def setup_command(update: Update, context: CallbackContext) -> None:
+@handle_exceptions(logger_instance=logger, default_error_message="Ошибка в команде настройки")
+async def setup_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик команды /setup для настройки API ключей.
     Запускает диалог настройки API ключей.
     """
+    if not update.effective_user or not update.message:
+        return
+
     user_id = update.effective_user.id
 
     # Отправляем запрос на ввод публичного ключа
     api_key_prompt = get_localized_text(user_id, "api_key_prompt")
 
     # Устанавливаем следующее состояние - ожидание ввода API ключа
-    if hasattr(context, "user_data"):
+    if context.user_data is not None:
         context.user_data["setup_state"] = "waiting_api_key"
 
     # Отправляем приветственное сообщение
@@ -383,13 +394,16 @@ async def setup_command(update: Update, context: CallbackContext) -> None:
     )
 
 
-async def handle_setup_input(update: Update, context: CallbackContext) -> None:
+async def handle_setup_input(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик ввода текста во время настройки API ключей."""
+    if not update.effective_user or not update.message or not update.message.text:
+        return
+
     user_id = update.effective_user.id
     text = update.message.text
 
     # Проверяем текущее состояние настройки
-    if not hasattr(context, "user_data") or "setup_state" not in context.user_data:
+    if context.user_data is None or "setup_state" not in context.user_data:
         # Если нет активной настройки, игнорируем сообщение
         return
 
@@ -422,20 +436,13 @@ async def handle_setup_input(update: Update, context: CallbackContext) -> None:
 
 
 # Функции для интеграции в основной модуль bot_v2.py
-def register_localization_handlers(application) -> None:
+def register_localization_handlers(application: Any) -> None:
     """Регистрирует обработчики для локализации и настроек в приложении.
 
     Args:
         application: Экземпляр Application из python-telegram-bot
 
     """
-    from telegram.ext import (
-        CallbackQueryHandler,
-        CommandHandler,
-        MessageHandler,
-        filters,
-    )
-
     # Добавляем обработчики команд
     application.add_handler(CommandHandler("settings", settings_command))
     application.add_handler(CommandHandler("setup", setup_command))
@@ -447,7 +454,7 @@ def register_localization_handlers(application) -> None:
     application.add_handler(
         CallbackQueryHandler(settings_callback, pattern="^language:"),
     )
-    application.add_handler(CallbackQueryHandler(settings_callback, pattern="^risk:"))
+    application.add_handler(CallbackQueryHandler(settings_callback, pattern="^risk_profile:"))
 
     # Добавляем обработчик текстовых сообщений для настройки API ключей
     application.add_handler(

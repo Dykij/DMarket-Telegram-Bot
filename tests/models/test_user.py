@@ -1,13 +1,17 @@
 """Тесты для модели User."""
 
 from datetime import UTC, datetime
+from uuid import uuid4
 
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
-from src.models.user import Base, MarketDataCache, PriceAlert, User, UserPreferences
+from src.models.alert import PriceAlert
+from src.models.base import Base
+from src.models.market import MarketDataCache
+from src.models.user import User, UserSettings
 
 
 @pytest.fixture()
@@ -41,7 +45,7 @@ class TestUserModel:
         assert user.is_active is True
         assert user.is_admin is False
         assert user.is_banned is False
-        assert user.language_code == "ru"
+        assert user.language_code == "en"
 
     def test_create_user_with_all_fields(self, session):
         """Тест создания пользователя со всеми полями."""
@@ -126,8 +130,6 @@ class TestUserModel:
         session.add(user)
         session.commit()
 
-        old_updated_at = user.updated_at
-
         # Обновить пользователя
         user.username = "new_name"
         session.commit()
@@ -204,73 +206,78 @@ class TestUserModel:
         assert deleted_user is None
 
 
-class TestUserPreferencesModel:
-    """Тесты модели UserPreferences."""
+class TestUserSettingsModel:
+    """Тесты модели UserSettings."""
 
-    def test_create_preferences_with_defaults(self, session):
-        """Тест создания предпочтений с дефолтными значениями."""
-        prefs = UserPreferences(user_id="user-123")
-        session.add(prefs)
+    def test_create_settings_with_defaults(self, session):
+        """Тест создания настроек с дефолтными значениями."""
+        user_id = str(uuid4())
+        settings = UserSettings(user_id=user_id)
+        session.add(settings)
         session.commit()
 
-        assert prefs.id is not None
-        assert prefs.user_id == "user-123"
-        assert prefs.default_game == "csgo"
-        assert prefs.notification_enabled is True
-        assert prefs.price_alert_enabled is True
-        assert prefs.min_profit_percent == "5.0"
-        assert prefs.preferred_currency == "USD"
-        assert prefs.timezone == "UTC"
+        assert settings.id is not None
+        assert str(settings.user_id) == user_id
+        assert settings.default_game == "csgo"
+        assert settings.notifications_enabled is True
+        assert settings.price_alerts_enabled is True
+        assert settings.min_profit_percent == 5.0
+        assert settings.preferred_currency == "USD"
+        assert settings.timezone == "UTC"
 
-    def test_create_preferences_with_custom_values(self, session):
-        """Тест создания предпочтений с кастомными значениями."""
-        prefs = UserPreferences(
-            user_id="user-123",
+    def test_create_settings_with_custom_values(self, session):
+        """Тест создания настроек с кастомными значениями."""
+        user_id = str(uuid4())
+        settings = UserSettings(
+            user_id=user_id,
             default_game="dota2",
-            notification_enabled=False,
-            min_profit_percent="10.5",
+            notifications_enabled=False,
+            min_profit_percent=10.5,
             preferred_currency="EUR",
             timezone="Europe/Moscow",
         )
-        session.add(prefs)
+        session.add(settings)
         session.commit()
 
-        assert prefs.default_game == "dota2"
-        assert prefs.notification_enabled is False
-        assert prefs.min_profit_percent == "10.5"
-        assert prefs.preferred_currency == "EUR"
-        assert prefs.timezone == "Europe/Moscow"
+        assert settings.default_game == "dota2"
+        assert settings.notifications_enabled is False
+        assert settings.min_profit_percent == 10.5
+        assert settings.preferred_currency == "EUR"
+        assert settings.timezone == "Europe/Moscow"
 
-    def test_preferences_repr(self, session):
+    def test_settings_repr(self, session):
         """Тест строкового представления."""
-        prefs = UserPreferences(user_id="user-123", default_game="dota2")
-        session.add(prefs)
+        user_id = str(uuid4())
+        settings = UserSettings(user_id=user_id, default_game="dota2")
+        session.add(settings)
         session.commit()
 
-        repr_str = repr(prefs)
-        assert "UserPreferences" in repr_str
-        assert "user-123" in repr_str
+        repr_str = repr(settings)
+        assert "UserSettings" in repr_str
+        assert user_id in repr_str
         assert "dota2" in repr_str
 
-    def test_preferences_to_dict(self, session):
+    def test_settings_to_dict(self, session):
         """Тест преобразования в словарь."""
-        prefs = UserPreferences(user_id="user-123", default_game="dota2", min_profit_percent="7.5")
-        session.add(prefs)
+        user_id = str(uuid4())
+        settings = UserSettings(user_id=user_id, default_game="dota2", min_profit_percent=7.5)
+        session.add(settings)
         session.commit()
 
-        prefs_dict = prefs.to_dict()
-        assert prefs_dict["user_id"] == "user-123"
-        assert prefs_dict["default_game"] == "dota2"
-        assert prefs_dict["min_profit_percent"] == 7.5  # converted to float
-        assert "created_at" in prefs_dict
+        settings_dict = settings.to_dict()
+        assert settings_dict["user_id"] == user_id
+        assert settings_dict["default_game"] == "dota2"
+        assert settings_dict["min_profit_percent"] == 7.5
+        assert "created_at" in settings_dict
 
-    def test_query_preferences_by_user(self, session):
-        """Тест поиска предпочтений по user_id."""
-        prefs = UserPreferences(user_id="user-123", default_game="csgo")
-        session.add(prefs)
+    def test_query_settings_by_user(self, session):
+        """Тест поиска настроек по user_id."""
+        user_id = str(uuid4())
+        settings = UserSettings(user_id=user_id, default_game="csgo")
+        session.add(settings)
         session.commit()
 
-        found = session.query(UserPreferences).filter_by(user_id="user-123").first()
+        found = session.query(UserSettings).filter_by(user_id=user_id).first()
         assert found is not None
         assert found.default_game == "csgo"
 
@@ -280,30 +287,32 @@ class TestPriceAlertModel:
 
     def test_create_alert_with_required_fields(self, session):
         """Тест создания алерта с обязательными полями."""
+        user_id = str(uuid4())
         alert = PriceAlert(
-            user_id="user-123",
+            user_id=user_id,
             market_hash_name="AK-47 | Redline (FT)",
             game="csgo",
-            target_price="15.50",
+            target_price=15.50,
         )
         session.add(alert)
         session.commit()
 
         assert alert.id is not None
         assert alert.market_hash_name == "AK-47 | Redline (FT)"
-        assert alert.target_price == "15.50"
+        assert alert.target_price == 15.50
         assert alert.condition == "below"
         assert alert.is_active is True
         assert alert.triggered is False
 
     def test_create_alert_with_all_fields(self, session):
         """Тест создания алерта со всеми полями."""
+        user_id = str(uuid4())
         alert = PriceAlert(
-            user_id="user-123",
+            user_id=user_id,
             item_id="item-abc",
             market_hash_name="AWP | Asiimov (FT)",
             game="csgo",
-            target_price="50.00",
+            target_price=50.00,
             condition="above",
             triggered=True,
         )
@@ -316,11 +325,12 @@ class TestPriceAlertModel:
 
     def test_alert_repr(self, session):
         """Тест строкового представления."""
+        user_id = str(uuid4())
         alert = PriceAlert(
-            user_id="user-123",
+            user_id=user_id,
             market_hash_name="AK-47 | Redline (FT)",
             game="csgo",
-            target_price="15.50",
+            target_price=15.50,
             condition="below",
         )
         session.add(alert)
@@ -329,42 +339,43 @@ class TestPriceAlertModel:
         repr_str = repr(alert)
         assert "PriceAlert" in repr_str
         assert "AK-47 | Redline (FT)" in repr_str
-        assert "15.50" in repr_str
-        assert "below" in repr_str
+        assert "15.5" in repr_str
 
     def test_alert_to_dict(self, session):
         """Тест преобразования в словарь."""
+        user_id = str(uuid4())
         alert = PriceAlert(
-            user_id="user-123",
+            user_id=user_id,
             market_hash_name="AK-47 | Redline (FT)",
             game="csgo",
-            target_price="15.50",
+            target_price=15.50,
             condition="below",
         )
         session.add(alert)
         session.commit()
 
         alert_dict = alert.to_dict()
-        assert alert_dict["user_id"] == "user-123"
+        assert alert_dict["user_id"] == user_id
         assert alert_dict["market_hash_name"] == "AK-47 | Redline (FT)"
-        assert alert_dict["target_price"] == 15.50  # converted to float
+        assert alert_dict["target_price"] == 15.50
         assert alert_dict["is_active"] is True
         assert alert_dict["triggered"] is False
 
     def test_query_active_alerts(self, session):
         """Тест поиска активных алертов."""
+        user_id = str(uuid4())
         alert1 = PriceAlert(
-            user_id="user-123",
+            user_id=user_id,
             market_hash_name="Item 1",
             game="csgo",
-            target_price="10.00",
+            target_price=10.00,
             is_active=True,
         )
         alert2 = PriceAlert(
-            user_id="user-123",
+            user_id=user_id,
             market_hash_name="Item 2",
             game="csgo",
-            target_price="20.00",
+            target_price=20.00,
             is_active=False,
         )
         session.add_all([alert1, alert2])
@@ -375,22 +386,24 @@ class TestPriceAlertModel:
 
     def test_query_alerts_by_user(self, session):
         """Тест поиска алертов по user_id."""
+        user_id1 = str(uuid4())
+        user_id2 = str(uuid4())
         alert1 = PriceAlert(
-            user_id="user-123",
+            user_id=user_id1,
             market_hash_name="Item 1",
             game="csgo",
-            target_price="10.00",
+            target_price=10.00,
         )
         alert2 = PriceAlert(
-            user_id="user-456",
+            user_id=user_id2,
             market_hash_name="Item 2",
             game="csgo",
-            target_price="20.00",
+            target_price=20.00,
         )
         session.add_all([alert1, alert2])
         session.commit()
 
-        user_alerts = session.query(PriceAlert).filter_by(user_id="user-123").all()
+        user_alerts = session.query(PriceAlert).filter_by(user_id=user_id1).all()
         assert len(user_alerts) == 1
 
 

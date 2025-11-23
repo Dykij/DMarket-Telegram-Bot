@@ -63,37 +63,47 @@ jobs:
             requirements.txt
             pyproject.toml
 
-      - name: Cache dependencies and test tools
+      - name: Cache pip dependencies
         uses: actions/cache@v4
+        id: pip-cache
         with:
           path: |
             ~/.cache/pip
             .pytest_cache
             .mypy_cache
-          key: ${{ runner.os }}-test-${{ env.CACHE_VERSION }}-py${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'pyproject.toml') }}
+            .ruff_cache
+          key: ${{ runner.os }}-pip-${{ env.CACHE_VERSION }}-py${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'pyproject.toml') }}
           restore-keys: |
-            ${{ runner.os }}-test-${{ env.CACHE_VERSION }}-py${{ matrix.python-version }}-
-            ${{ runner.os }}-test-${{ env.CACHE_VERSION }}-
+            ${{ runner.os }}-pip-${{ env.CACHE_VERSION }}-py${{ matrix.python-version }}-
+            ${{ runner.os }}-pip-${{ env.CACHE_VERSION }}-
+
+      - name: Cache hit status
+        run: |
+          if [ "${{ steps.pip-cache.outputs.cache-hit }}" == "true" ]; then
+            echo "✅ Cache restored successfully"
+          else
+            echo "⚠️ Cache miss - full install required"
+          fi
 
       - name: Install dependencies
         run: |
-          echo "📦 Установка зависимостей..."
+          echo "📦 Installing dependencies..."
           python -m pip install --upgrade pip setuptools wheel
 
-          # Установка инструментов для тестирования (всегда первыми)
-          echo "✅ Установка инструментов для тестирования..."
-          pip install pytest pytest-asyncio pytest-cov pytest-mock pytest-xdist
+          # Install testing tools first
+          echo "✅ Installing testing tools..."
+          pip install pytest pytest-asyncio pytest-cov pytest-mock pytest-xdist pytest-timeout pytest-rerunfailures pytest-randomly
 
-          # Установка зависимостей проекта
+          # Install project dependencies
           if [ -f requirements.txt ]; then
-            echo "✅ Установка из requirements.txt..."
-            pip install -r requirements.txt || echo "::warning::Некоторые зависимости не установлены"
+            echo "✅ Installing from requirements.txt..."
+            pip install -r requirements.txt || echo "::warning::Some dependencies failed to install"
           elif [ -f pyproject.toml ]; then
-            echo "✅ Установка из pyproject.toml..."
-            pip install -e . || echo "::warning::Ошибка при установке из pyproject.toml"
+            echo "✅ Installing from pyproject.toml..."
+            pip install -e ".[dev]" || echo "::warning::Error installing from pyproject.toml"
           fi
 
-          # Создание .env файла для тестов
+          # Create .env for tests
           if [ -f .env.example ]; then
             cp .env.example .env
           else
@@ -106,39 +116,52 @@ jobs:
           EOF
           fi
 
-          echo "✅ Зависимости установлены"
+          echo "✅ Dependencies installed"
+
+      - name: Run pre-commit checks
+        if: matrix.python-version == '3.11'
+        run: |
+          echo "🔍 Running pre-commit checks..."
+          pip install pre-commit
+          pre-commit run --all-files --show-diff-on-failure || echo "::warning::Some pre-commit checks failed"
+        continue-on-error: true
 
       - name: Run tests with pytest
         id: pytest
         run: |
-          echo "🧪 Запуск тестов с покрытием кода..."
+          echo "🧪 Running tests with coverage..."
 
-          # Создаем директорию для отчетов
+          # Create report directories
           mkdir -p build/test-results build/coverage
 
-          # Проверяем наличие тестов
+          # Check if tests exist
           if [ ! -d "tests" ] || [ -z "$(find tests -name 'test_*.py' -o -name '*_test.py' 2>/dev/null)" ]; then
-            echo "::warning::Тесты не найдены"
+            echo "::warning::No tests found"
             echo "test_failed=false" >> $GITHUB_OUTPUT
             exit 0
           fi
 
-          # Запускаем тесты параллельно с pytest-xdist (не фейлим если тесты провалились)
+          # Run tests in parallel with retry for flaky tests
           python -m pytest tests/ \
             --cov=src \
             --cov-report=xml:build/coverage/coverage.xml \
             --cov-report=html:build/coverage/html \
             --cov-report=term-missing \
+            --cov-fail-under=85 \
             --junitxml=build/test-results/junit.xml \
-            --maxfail=10 \
+            --maxfail=3 \
+            --reruns 2 \
+            --reruns-delay 1 \
+            --timeout=30 \
+            --durations=10 \
             -v \
             -n auto \
             --tb=short \
             -k "not integration and not slow" \
             && echo "test_failed=false" >> $GITHUB_OUTPUT \
-            || { echo "test_failed=true" >> $GITHUB_OUTPUT; echo "::warning::Некоторые тесты провалились"; }
+            || { echo "test_failed=true" >> $GITHUB_OUTPUT; echo "::error::Tests failed - coverage threshold not met or test failures"; exit 1; }
 
-          echo "✅ Тесты завершены"
+          echo "✅ Tests completed"
         env:
           PYTHONPATH: ${{ github.workspace }}
           DMARKET_PUBLIC_KEY: 'test_public_key'

@@ -1,7 +1,7 @@
 """Модуль для управления пагинацией результатов в Telegram-боте."""
 
-import logging
 from collections.abc import Callable
+import logging
 from typing import Any
 
 from telegram import InlineKeyboardMarkup

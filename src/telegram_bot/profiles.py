@@ -5,7 +5,7 @@ import os
 import time
 from typing import Any
 
-from .constants import USER_PROFILES_FILE
+from src.telegram_bot.constants import USER_PROFILES_FILE
 
 
 USER_PROFILES: dict[str, dict[str, Any]] = {}

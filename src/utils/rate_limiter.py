@@ -43,10 +43,10 @@ class RateLimiter:
         self.is_authorized = is_authorized
 
         # Лимиты запросов для разных типов эндпоинтов
-        self.rate_limits = DMARKET_API_RATE_LIMITS.copy()
+        self.rate_limits: dict[str, int] = DMARKET_API_RATE_LIMITS.copy()
 
         # Пользовательские лимиты запросов
-        self.custom_limits = {}
+        self.custom_limits: dict[str, float] = {}
 
         # Временные точки последних запросов для разных типов эндпоинтов
         self.last_request_times: dict[str, float] = {}
@@ -318,14 +318,15 @@ class RateLimiter:
         if endpoint_type in self.rate_limits:
             # Dlya neavtorizovannyh polzovateley snizhaem limity
             if not self.is_authorized and endpoint_type in ["market", "trade"]:
-                return self.rate_limits[endpoint_type] / 2  # 50% ot avtorizovannogo limita
-            return self.rate_limits[endpoint_type]
+                # 50% ot avtorizovannogo limita
+                return float(self.rate_limits[endpoint_type]) / 2.0
+            return float(self.rate_limits[endpoint_type])
 
         # Esli tip endpointa neizvesten, ispolzuem limit dlya "other"
-        return self.rate_limits.get("other", 5)
+        return float(self.rate_limits.get("other", 5))
 
     def set_custom_limit(self, endpoint_type: str, limit: float) -> None:
-        """Ustanavlivaet polzovatelskiy limit zaprosov dlya ukazannogo tipa endpointa.
+        """Ustanavlivaet polzovatelskiy limit dlya ukazannogo tipa endpointa.
 
         Args:
             endpoint_type: Tip endpointa
