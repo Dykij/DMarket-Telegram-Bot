@@ -3,7 +3,11 @@
 import asyncio
 import logging
 import time
+from typing import TYPE_CHECKING
 
+
+if TYPE_CHECKING:
+    from src.utils.notifier import Notifier
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
@@ -21,6 +25,12 @@ DMARKET_API_RATE_LIMITS = {
 # Базовая задержка для экспоненциального отступа при ошибках 429
 BASE_RETRY_DELAY = 1.0  # 1 секунда
 
+# Порог для предупреждения о приближении к лимиту (90%)
+RATE_LIMIT_WARNING_THRESHOLD = 0.9
+
+# Максимальное время ожидания при exponential backoff (секунды)
+MAX_BACKOFF_TIME = 60.0
+
 
 class RateLimiter:
     """Класс для контроля скорости запросов к API DMarket.
@@ -32,15 +42,21 @@ class RateLimiter:
     - Реализовывать экспоненциальную задержку для обработки ошибок 429
     """
 
-    def __init__(self, is_authorized: bool = True) -> None:
+    def __init__(
+        self,
+        is_authorized: bool = True,
+        notifier: "Notifier | None" = None,
+    ) -> None:
         """Инициализирует контроллер лимитов запросов.
 
         Args:
             is_authorized: Является ли клиент авторизованным
                 (влияет на доступные лимиты запросов)
+            notifier: Опциональный notifier для отправки уведомлений
 
         """
         self.is_authorized = is_authorized
+        self.notifier = notifier
 
         # Лимиты запросов для разных типов эндпоинтов
         self.rate_limits: dict[str, int] = DMARKET_API_RATE_LIMITS.copy()
@@ -59,6 +75,13 @@ class RateLimiter:
 
         # Счетчики попыток для экспоненциальной задержки
         self.retry_attempts: dict[str, int] = {}
+
+        # Флаги отправки уведомлений о приближении к лимиту
+        self._warning_sent: dict[str, bool] = {}
+
+        # Общая статистика запросов
+        self.total_requests: dict[str, int] = {}
+        self.total_429_errors: dict[str, int] = {}
 
         logger.info(
             f"Инициализирован контроллер лимитов запросов API (авторизован: {is_authorized})",
@@ -161,6 +184,34 @@ class RateLimiter:
                     except (ValueError, KeyError):
                         pass
 
+                # Проверяем приближение к лимиту (90%)
+                limit = self.rate_limits.get(endpoint_type, 5)
+                usage_percent = 1.0 - (remaining / limit) if limit > 0 else 0.0
+
+                # Отправляем уведомление при достижении 90% использования
+                if usage_percent >= RATE_LIMIT_WARNING_THRESHOLD:
+                    if not self._warning_sent.get(endpoint_type, False):
+                        logger.warning(
+                            f"⚠️ Приближение к лимиту {endpoint_type}: "
+                            f"использовано {usage_percent * 100:.1f}% ({limit - remaining}/{limit})",
+                        )
+                        self._warning_sent[endpoint_type] = True
+
+                        # Отправляем уведомление в Telegram
+                        if self.notifier:
+                            asyncio.create_task(
+                                self._send_rate_limit_warning(
+                                    endpoint_type,
+                                    usage_percent,
+                                    remaining,
+                                    limit,
+                                ),
+                            )
+
+                # Если лимит восстановился, сбрасываем флаг
+                if usage_percent < 0.5:  # Менее 50% использования
+                    self._warning_sent[endpoint_type] = False
+
                 # Esli ostavsheeesya kolichestvo zaprosov malo, logiruem preduprezhdenie
                 if remaining <= 2:
                     logger.warning(
@@ -244,48 +295,72 @@ class RateLimiter:
         # Obnovlyaem vremya poslednego zaprosa
         self.last_request_times[endpoint_type] = time.time()
 
+        # Увеличиваем счетчик общих запросов
+        self.total_requests[endpoint_type] = self.total_requests.get(endpoint_type, 0) + 1
+
     async def handle_429(
         self,
         endpoint_type: str,
         retry_after: int | None = None,
     ) -> tuple[float, int]:
-        """Obrabatyvaet oshibku 429 (Too Many Requests) s eksponentsialnoy zaderzhkoy.
+        """Обрабатывает ошибку 429 (Too Many Requests) с экспоненциальной задержкой.
+
+        Реализует улучшенный exponential backoff с:
+        - Учетом заголовка Retry-After
+        - Экспоненциальным ростом задержки
+        - Jitter для распределения нагрузки
+        - Максимальным лимитом ожидания
+        - Логированием и уведомлениями
 
         Args:
-            endpoint_type: Tip endpointa
-            retry_after: Rekomenduemoe vremya ozhidaniya iz zagolovka Retry-After
+            endpoint_type: Тип эндпоинта
+            retry_after: Рекомендуемое время ожидания из заголовка Retry-After
 
         Returns:
-            Tuple[float, int]: (vremya ozhidaniya v sekundah, novoe kolichestvo popytok)
+            Tuple[float, int]: (время ожидания в секундах, новое количество попыток)
 
         """
-        # Uvelichivaem schetchik popytok dlya dannogo endpointa
+        # Увеличиваем счетчик попыток и ошибок 429
         current_attempts = self.retry_attempts.get(endpoint_type, 0) + 1
         self.retry_attempts[endpoint_type] = current_attempts
+        self.total_429_errors[endpoint_type] = self.total_429_errors.get(endpoint_type, 0) + 1
 
-        # Esli est zagolovok Retry-After, ispolzuem ego znachenie
+        # Определяем время ожидания
         if retry_after is not None and retry_after > 0:
-            wait_time = retry_after
+            # Используем значение из заголовка Retry-After
+            wait_time = float(retry_after)
         else:
-            # Inache ispolzuem eksponentialnuyu zaderzhku s nebolshim sluchaynym komponentom
-            # Base * 2^(attempts - 1) + random jitter
+            # Экспоненциальная задержка: Base * 2^(attempts - 1) + jitter
             base_wait = BASE_RETRY_DELAY * (2 ** (current_attempts - 1))
-            jitter = 0.1 * base_wait * (0.5 - (time.time() % 1.0))  # 10% sluchaynoe otklonenie
+
+            # Добавляем jitter (±10% случайное отклонение) для распределения нагрузки
+            import random
+
+            jitter_percent = random.uniform(-0.1, 0.1)
+            jitter = base_wait * jitter_percent
             wait_time = base_wait + jitter
 
-            # Ogranichivaem maksimalnoe vremya ozhidaniya 30 sekundami
-            wait_time = min(wait_time, 30.0)
+            # Ограничиваем максимальное время ожидания
+            wait_time = min(wait_time, MAX_BACKOFF_TIME)
 
-        # Ustanavlivaem vremya sbrosa limita
+        # Устанавливаем время сброса лимита
         self.reset_times[endpoint_type] = time.time() + wait_time
 
         logger.warning(
-            f"Prevyshen limit zaprosov dlya {endpoint_type} "
-            f"(popytka {current_attempts}). "
-            f"Ozhidanie {wait_time:.2f} sek pered sleduyushchey popytkoy.",
+            f"🚨 Rate Limit 429 для {endpoint_type} "
+            f"(попытка {current_attempts}, всего 429: {self.total_429_errors[endpoint_type]}). "
+            f"Экспоненциальная задержка: {wait_time:.2f} сек",
         )
 
-        # Vypolnyaem ozhidanie
+        # Отправляем критическое уведомление при множественных ошибках
+        if current_attempts >= 3 and self.notifier:
+            await self._send_429_alert(
+                endpoint_type,
+                current_attempts,
+                wait_time,
+            )
+
+        # Выполняем ожидание
         await asyncio.sleep(wait_time)
 
         return wait_time, current_attempts
@@ -360,3 +435,108 @@ class RateLimiter:
                 self.get_rate_limit(endpoint_type) * 60,
             ),  # Primernaya otsenka na 1 minutu
         )
+
+    def get_usage_stats(
+        self, endpoint_type: str | None = None
+    ) -> dict[str, dict[str, int | float]]:
+        """Получить статистику использования rate limit.
+
+        Args:
+            endpoint_type: Конкретный тип эндпоинта или None для всех
+
+        Returns:
+            Словарь со статистикой для каждого эндпоинта
+
+        """
+        stats = {}
+
+        endpoints = [endpoint_type] if endpoint_type else list(self.rate_limits.keys())
+
+        for ep in endpoints:
+            limit = self.rate_limits.get(ep, 0)
+            remaining = self.remaining_requests.get(ep, limit)
+            usage_percent = (1.0 - (remaining / limit)) * 100 if limit > 0 else 0.0
+
+            stats[ep] = {
+                "limit": limit,
+                "remaining": remaining,
+                "usage_percent": round(usage_percent, 1),
+                "total_requests": self.total_requests.get(ep, 0),
+                "total_429_errors": self.total_429_errors.get(ep, 0),
+                "retry_attempts": self.retry_attempts.get(ep, 0),
+            }
+
+        return stats
+
+    async def _send_rate_limit_warning(
+        self,
+        endpoint_type: str,
+        usage_percent: float,
+        remaining: int,
+        limit: int,
+    ) -> None:
+        """Отправить уведомление о приближении к лимиту.
+
+        Args:
+            endpoint_type: Тип эндпоинта
+            usage_percent: Процент использования (0.0-1.0)
+            remaining: Оставшиеся запросы
+            limit: Максимальный лимит
+
+        """
+        if not self.notifier:
+            return
+
+        try:
+            message = (
+                f"⚠️ <b>Приближение к Rate Limit</b>\n\n"
+                f"<b>Эндпоинт:</b> <code>{endpoint_type}</code>\n"
+                f"<b>Использование:</b> {usage_percent * 100:.1f}%\n"
+                f"<b>Осталось:</b> {remaining}/{limit} запросов\n\n"
+                f"<i>Бот автоматически замедлит запросы для предотвращения ошибок 429.</i>"
+            )
+
+            await self.notifier.send_message(
+                message,
+                priority="high",
+                category="system",
+            )
+        except Exception as e:
+            logger.error(f"Ошибка отправки уведомления о rate limit: {e}")
+
+    async def _send_429_alert(
+        self,
+        endpoint_type: str,
+        attempts: int,
+        wait_time: float,
+    ) -> None:
+        """Отправить критическое уведомление о множественных ошибках 429.
+
+        Args:
+            endpoint_type: Тип эндпоинта
+            attempts: Количество попыток
+            wait_time: Время ожидания
+
+        """
+        if not self.notifier:
+            return
+
+        try:
+            total_errors = self.total_429_errors.get(endpoint_type, 0)
+
+            message = (
+                f"🚨 <b>Множественные ошибки Rate Limit 429</b>\n\n"
+                f"<b>Эндпоинт:</b> <code>{endpoint_type}</code>\n"
+                f"<b>Попыток подряд:</b> {attempts}\n"
+                f"<b>Всего ошибок 429:</b> {total_errors}\n"
+                f"<b>Задержка:</b> {wait_time:.1f} секунд\n\n"
+                f"<i>Бот применяет экспоненциальную задержку для восстановления.</i>"
+            )
+
+            await self.notifier.send_message(
+                message,
+                priority="critical",
+                category="system",
+            )
+        except Exception as e:
+            logger.error(f"Ошибка отправки критического уведомления 429: {e}")

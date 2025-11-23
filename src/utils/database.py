@@ -415,3 +415,183 @@ class DatabaseManager:
                 }
                 for row in rows
             ]
+
+    async def get_trade_statistics(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> dict[str, Any]:
+        """Get trade statistics for a date range.
+
+        Args:
+            start_date: Start of the period
+            end_date: End of the period
+
+        Returns:
+            Dictionary with trade statistics
+
+        """
+        async with self.get_async_session() as session:
+            result = await session.execute(
+                text(
+                    """
+                    SELECT
+                        COUNT(*) as total_trades,
+                        SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END)
+                            as successful_trades,
+                        SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END)
+                            as cancelled_trades,
+                        SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END)
+                            as failed_trades,
+                        COALESCE(SUM(profit_usd), 0.0) as total_profit_usd,
+                        COALESCE(AVG(profit_percent), 0.0)
+                            as avg_profit_percent
+                    FROM trades
+                    WHERE created_at >= :start_date
+                      AND created_at < :end_date
+                """
+                ),
+                {"start_date": start_date, "end_date": end_date},
+            )
+
+            row = result.fetchone()
+            if row:
+                return {
+                    "total_trades": row[0] or 0,
+                    "successful_trades": row[1] or 0,
+                    "cancelled_trades": row[2] or 0,
+                    "failed_trades": row[3] or 0,
+                    "total_profit_usd": float(row[4] or 0.0),
+                    "avg_profit_percent": float(row[5] or 0.0),
+                }
+            return {}
+
+    async def get_error_statistics(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> dict[str, Any]:
+        """Get error statistics for a date range.
+
+        Args:
+            start_date: Start of the period
+            end_date: End of the period
+
+        Returns:
+            Dictionary with error statistics
+
+        """
+        async with self.get_async_session() as session:
+            # API errors breakdown
+            result = await session.execute(
+                text(
+                    """
+                    SELECT error_message, COUNT(*) as count
+                    FROM command_log
+                    WHERE success = false
+                      AND created_at >= :start_date
+                      AND created_at < :end_date
+                      AND error_message LIKE '%API%'
+                    GROUP BY error_message
+                    ORDER BY count DESC
+                    LIMIT 10
+                """
+                ),
+                {"start_date": start_date, "end_date": end_date},
+            )
+
+            api_errors = {}
+            for row in result.fetchall():
+                error_type = self._categorize_error(row[0])
+                api_errors[error_type] = row[1]
+
+            # Critical errors count
+            result_critical = await session.execute(
+                text(
+                    """
+                    SELECT COUNT(*) as critical_count
+                    FROM command_log
+                    WHERE success = false
+                      AND created_at >= :start_date
+                      AND created_at < :end_date
+                      AND error_message LIKE '%CRITICAL%'
+                """
+                ),
+                {"start_date": start_date, "end_date": end_date},
+            )
+
+            critical_row = result_critical.fetchone()
+            critical_errors = critical_row[0] if critical_row else 0
+
+            return {
+                "api_errors": api_errors,
+                "critical_errors": critical_errors,
+            }
+
+    async def get_scan_statistics(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> dict[str, Any]:
+        """Get scan statistics for a date range.
+
+        Args:
+            start_date: Start of the period
+            end_date: End of the period
+
+        Returns:
+            Dictionary with scan statistics
+
+        """
+        async with self.get_async_session() as session:
+            result = await session.execute(
+                text(
+                    """
+                    SELECT
+                        COUNT(*) as scans_performed,
+                        COALESCE(
+                            SUM(
+                                CAST(
+                                    json_extract(
+                                        parameters, '$.opportunities_found'
+                                    ) AS INTEGER
+                                )
+                            ), 0
+                        ) as opportunities_found
+                    FROM command_log
+                    WHERE command LIKE '%scan%'
+                      AND success = true
+                      AND created_at >= :start_date
+                      AND created_at < :end_date
+                """
+                ),
+                {"start_date": start_date, "end_date": end_date},
+            )
+
+            row = result.fetchone()
+            if row:
+                return {
+                    "scans_performed": row[0] or 0,
+                    "opportunities_found": row[1] or 0,
+                }
+            return {}
+
+    def _categorize_error(self, error_message: str) -> str:
+        """Categorize error message into a type.
+
+        Args:
+            error_message: Full error message
+
+        Returns:
+            Error category/type
+
+        """
+        if "rate_limit" in error_message.lower():
+            return "rate_limit"
+        if "timeout" in error_message.lower():
+            return "timeout"
+        if "connection" in error_message.lower():
+            return "connection"
+        if "authentication" in error_message.lower():
+            return "authentication"
+        return "other"

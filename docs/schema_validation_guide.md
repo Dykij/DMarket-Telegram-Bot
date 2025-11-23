@@ -541,8 +541,208 @@ def test_market_item_validation_error_on_missing_field():
 
 ---
 
+---
+
+## 🆕 Новая система валидации (Pydantic v2)
+
+### Расположение: `src/dmarket/schemas.py`
+
+Новая версия схем с улучшенной архитектурой:
+
+#### Ключевые улучшения
+
+1. **Pydantic v2 API** - Использование современного ConfigDict
+2. **Decimal для денег** - Точность для финансовых операций
+3. **Field aliases** - Поддержка camelCase ↔ snake_case
+4. **Валидаторы** - Кастомные проверки через @field_validator
+5. **Helper методы** - Удобные конверторы для работы с ценами
+
+#### Новые модели
+
+```python
+from src.dmarket.schemas import (
+    BalanceResponse,
+    MarketItemsResponse,
+    CreateTargetsResponse,
+    AggregatedPricesResponse,
+    SalesHistoryResponse,
+)
+
+# Использование с валидацией через декоратор
+from src.dmarket.api_validator import validate_response
+
+@validate_response(BalanceResponse, endpoint="/account/v1/balance")
+async def get_balance(self) -> dict[str, Any]:
+    """Получить баланс с автоматической валидацией."""
+    return await self._request("GET", "/account/v1/balance")
+```
+
+#### Пример: BalanceResponse
+
+```python
+class BalanceResponse(BaseModel):
+    """Ответ от /account/v1/balance."""
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="allow",
+    )
+
+    usd: str = Field(description="USD баланс в центах")
+    usd_available_to_withdraw: str = Field(
+        alias="usdAvailableToWithdraw"
+    )
+    dmc: str | None = None
+    dmc_available_to_withdraw: str | None = Field(
+        default=None,
+        alias="dmcAvailableToWithdraw",
+    )
+
+    def get_usd_decimal(self) -> Decimal:
+        """Получить USD баланс как Decimal."""
+        return Decimal(self.usd) / Decimal(100)
+
+    def get_available_usd_decimal(self) -> Decimal:
+        """Получить доступный USD баланс."""
+        return Decimal(self.usd_available_to_withdraw) / Decimal(100)
+```
+
+#### Пример: MarketItemModel с валидатором
+
+```python
+class MarketItemModel(BaseModel):
+    """Модель предмета с маркета."""
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="allow",
+    )
+
+    item_id: str = Field(alias="itemId")
+    title: str
+    price: dict[str, Any]
+    suggested_price: dict[str, Any] | None = Field(
+        default=None,
+        alias="suggestedPrice",
+    )
+    game_id: str = Field(alias="gameId")
+
+    @field_validator("price", "suggested_price")
+    @classmethod
+    def validate_price_dict(cls, v: dict[str, Any] | None) -> dict[str, Any] | None:
+        """Валидация структуры цены."""
+        if v is None:
+            return None
+
+        # Проверить что есть хотя бы одна валюта
+        if not any(key in v for key in ["USD", "EUR"]):
+            raise ValueError("Price must contain USD or EUR")
+
+        return v
+
+    def get_price_decimal(self, currency: str = "USD") -> Decimal:
+        """Получить цену как Decimal."""
+        price_str = str(self.price.get(currency, "0"))
+        return Decimal(price_str) / Decimal(100)
+```
+
+#### Автоматическая валидация с уведомлениями
+
+```python
+from src.dmarket.api_validator import send_api_change_notification
+
+# При ValidationError отправляется критическое уведомление в Telegram
+try:
+    validated = BalanceResponse.model_validate(api_response)
+except ValidationError as e:
+    await send_api_change_notification(
+        endpoint="/account/v1/balance",
+        errors=e.errors(),
+        raw_response=api_response,
+        notifier=self.notifier,
+    )
+    # Возвращаем raw data для backward compatibility
+    return api_response
+```
+
+#### Декоратор @validate_response
+
+Автоматическая валидация для методов API:
+
+```python
+from src.dmarket.api_validator import validate_response
+
+class DMarketAPI:
+    @validate_response(MarketItemsResponse, endpoint="/exchange/v1/market/items")
+    async def get_market_items(
+        self,
+        game: str,
+        limit: int = 100,
+        **filters,
+    ) -> dict[str, Any]:
+        """
+        Получить предметы с маркета.
+
+        Ответ автоматически валидируется через MarketItemsResponse.
+        При ValidationError:
+        - Логируется CRITICAL ошибка
+        - Отправляется Telegram уведомление
+        - Возвращается raw response для совместимости
+        """
+        params = {"gameId": game, "limit": limit, **filters}
+        return await self._request("GET", "/exchange/v1/market/items", params=params)
+```
+
+#### Сравнение: market_models.py vs schemas.py
+
+| Аспект                     | market_models.py | schemas.py (NEW)              |
+| -------------------------- | ---------------- | ----------------------------- |
+| Pydantic версия            | v1 API           | v2 API (ConfigDict)           |
+| Денежные операции          | float            | Decimal (точность)            |
+| Field aliases              | Частично         | Полная поддержка              |
+| Кастомные валидаторы       | Нет              | @field_validator              |
+| Telegram уведомления       | Нет              | Автоматически                 |
+| Декоратор валидации        | Нет              | @validate_response            |
+| Helper методы              | Properties       | Методы get_*_decimal()        |
+| ConfigDict extra="allow"   | Частично         | Везде (forward compatibility) |
+| DMarket API v1.1.0 support | Частично         | Полная поддержка              |
+
+#### Миграция на новые схемы
+
+**Шаг 1**: Импортировать новые модели
+
+```python
+# Старый код
+from src.dmarket.models.market_models import MarketItemsResponse
+
+# Новый код
+from src.dmarket.schemas import MarketItemsResponse
+```
+
+**Шаг 2**: Применить декораторы
+
+```python
+# Добавить к методам API
+@validate_response(BalanceResponse, endpoint="/account/v1/balance")
+async def get_balance(self) -> dict[str, Any]:
+    ...
+```
+
+**Шаг 3**: Использовать Decimal вместо float
+
+```python
+# Старый код
+price_usd = item.price_usd  # float
+
+# Новый код
+price_usd = item.get_price_decimal("USD")  # Decimal
+```
+
+---
+
 ## ✅ Чеклист интеграции
 
+### Старые модели (market_models.py)
 - [x] Модели созданы для всех критических эндпоинтов
 - [x] Properties для конверсий типов (центы → доллары)
 - [x] Validation errors обрабатываются
@@ -552,8 +752,22 @@ def test_market_item_validation_error_on_missing_field():
 - [ ] Unit тесты для всех моделей (TODO)
 - [ ] Integration тесты с реальным API (TODO)
 
+### Новые схемы (schemas.py) ✨
+- [x] Все модели переписаны с Pydantic v2 API
+- [x] Decimal для всех денежных операций
+- [x] ConfigDict с extra="allow" для forward compatibility
+- [x] Field aliases для camelCase ↔ snake_case
+- [x] Кастомные валидаторы через @field_validator
+- [x] Helper методы get_*_decimal() для конверсий
+- [x] Создан api_validator.py с декоратором @validate_response
+- [x] Автоматические Telegram уведомления при ValidationError
+- [x] DMarket API v1.1.0 полностью покрыт
+- [ ] Применить @validate_response ко всем методам API (TODO)
+- [ ] Unit тесты для новых схем (TODO)
+- [ ] Integration тесты с реальными API responses (TODO)
+
 ---
 
-**Статус**: ✅ Production Ready
-**Версия**: 1.0
-**Дата**: 20 ноября 2025 г.
+**Статус**: 🚧 В разработке (новые схемы) + ✅ Production Ready (старые модели)
+**Версия**: 2.0
+**Дата**: 23 ноября 2025 г.

@@ -9,11 +9,11 @@
 
 import asyncio
 import contextlib
+from datetime import datetime
 import json
 import logging
-import time
-from datetime import datetime
 from pathlib import Path  # Добавляем импорт для работы с путями
+import time
 from typing import Any
 
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
@@ -28,6 +28,7 @@ from src.utils.price_analyzer import (
     calculate_price_trend,
     get_item_price_history,
 )
+
 
 # Настраиваем логирование
 logger = logging.getLogger(__name__)

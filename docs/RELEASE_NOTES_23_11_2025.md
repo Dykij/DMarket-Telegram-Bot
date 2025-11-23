@@ -23,6 +23,7 @@
 ### 1. 🏗️ Production Infrastructure
 
 #### PM2 Configuration (`ecosystem.config.js`)
+
 - **Назначение**: Production-ready процесс менеджер
 - **Возможности**:
   - Кластеризация для масштабирования
@@ -32,6 +33,7 @@
   - Environment-based конфигурация (dev/prod)
 
 **Команды**:
+
 ```bash
 pm2 start ecosystem.config.js --env production
 pm2 logs dmarket-bot
@@ -43,6 +45,7 @@ pm2 monit
 ### 2. 🧪 Debug & Testing Suite
 
 #### Debug Suite (`scripts/debug_suite.py`)
+
 - **Назначение**: Пре-деплой валидация всей системы
 - **6 критических тестов**:
   1. ✅ DMarket API Connection + Balance Check
@@ -53,11 +56,13 @@ pm2 monit
   6. ✅ Telegram Notification Delivery
 
 **Использование**:
+
 ```bash
 python scripts/debug_suite.py
 ```
 
 #### Crash Notification Tests
+
 - `test_crash_notif.py`: Упрощённые тесты
 - `test_crash_notifications.py`: Комплексные с интеграцией
 - `test_crash_notifications_simple.py`: Альтернативный набор
@@ -69,6 +74,7 @@ python scripts/debug_suite.py
 ### 3. 📊 Interactive Dashboard System
 
 #### Dashboard Handler (`dashboard_handler.py`)
+
 - **Назначение**: Центр управления сканером через Telegram
 - **Функции**:
   - 📈 Статистика в реальном времени
@@ -78,6 +84,7 @@ python scripts/debug_suite.py
   - 🕒 История операций
 
 **Примеры команд**:
+
 ```
 /dashboard - Открыть главное меню
 📊 View Statistics - Статистика
@@ -86,6 +93,7 @@ python scripts/debug_suite.py
 ```
 
 #### Chart Generator (`chart_generator.py`)
+
 - **Интеграция**: QuickChart.io API
 - **Типы графиков**:
   - 💰 Profit over Time (линейный)
@@ -100,6 +108,7 @@ python scripts/debug_suite.py
 ### 4. 🔔 Advanced Notification System
 
 #### Notification Digest Handler (`notification_digest_handler.py`)
+
 - **Назначение**: Группировка уведомлений в дайджесты
 - **Частоты**:
   - ⏱️ Hourly (каждый час)
@@ -112,6 +121,7 @@ python scripts/debug_suite.py
   - Комбинированный
 
 **Пример дайджеста**:
+
 ```
 📊 Daily Digest (23.11.2025)
 💼 Total Opportunities: 45
@@ -121,6 +131,7 @@ python scripts/debug_suite.py
 ```
 
 #### Notification Filter Handler (`notification_filters_handler.py`)
+
 - **Назначение**: Гибкая фильтрация уведомлений
 - **Фильтры**:
   - 🎮 По играм (CS:GO, Dota 2, TF2, Rust)
@@ -135,6 +146,7 @@ python scripts/debug_suite.py
 ### 5. 🛡️ Safety Mechanisms
 
 #### Price Sanity Checker (`price_sanity_checker.py`)
+
 - **Назначение**: Защита от аномальных цен
 - **Алгоритм**:
   1. Получить историю цен за 7 дней
@@ -143,6 +155,7 @@ python scripts/debug_suite.py
   4. Блокировать покупку при превышении
 
 **Пример использования**:
+
 ```python
 checker = PriceSanityChecker(db_manager)
 try:
@@ -159,6 +172,7 @@ except PriceSanityCheckFailed as e:
 **Защита**: Автоматическая блокировка + критический алерт в Telegram
 
 #### Trading Notifier (`trading_notifier.py`)
+
 - **Назначение**: Обёртка DMarketAPI с уведомлениями
 - **Методы**:
   - `buy_item_with_notifications()`: Покупка + уведомление
@@ -173,6 +187,7 @@ except PriceSanityCheckFailed as e:
 ### 6. 📊 Monitoring & Metrics
 
 #### Prometheus Metrics (`prometheus_metrics.py`)
+
 - **Назначение**: Метрики для мониторинга
 - **Счётчики**:
   - `bot_commands_total`: Всего команд выполнено
@@ -188,6 +203,7 @@ except PriceSanityCheckFailed as e:
 **Endpoint**: `/metrics` (ASGI app)
 
 **Интеграция с Grafana**:
+
 ```yaml
 scrape_configs:
   - job_name: 'dmarket-bot'
@@ -199,7 +215,8 @@ scrape_configs:
 
 ### 7. 🗄️ Database Models Enhancement
 
-#### New Models:
+#### New Models
+
 1. **PriceAlert** (`alert.py`):
    - Триггеры цен
    - Условия срабатывания
@@ -217,6 +234,7 @@ scrape_configs:
    - TTL для кэша
 
 **SQLAlchemy Base** (`base.py`):
+
 - SQLiteUUID custom type
 - Общие mixins
 - Миграции Alembic-ready
@@ -226,6 +244,7 @@ scrape_configs:
 ### 8. 🎮 Commands Enhancement
 
 #### Logs Command (`logs_command.py`)
+
 - **Назначение**: Просмотр INTENT логов
 - **Функции**:
   - Последние 20 BUY_INTENT/SELL_INTENT записей
@@ -234,11 +253,13 @@ scrape_configs:
   - Форматированный вывод
 
 **Использование**:
+
 ```
 /logs - Показать последние 20 INTENT логов
 ```
 
 #### Resume Command (`resume_command.py`)
+
 - **Назначение**: Ручное возобновление после паузы
 - **Функции**:
   - Проверка прав администратора
@@ -247,6 +268,7 @@ scrape_configs:
   - Подтверждающее уведомление
 
 **Использование**:
+
 ```
 /resume - Возобновить работу бота после error-based pause
 ```
@@ -256,18 +278,21 @@ scrape_configs:
 ## 🔧 Technical Improvements
 
 ### Code Quality
+
 - ✅ Ruff linting пройден
 - ✅ MyPy type checking (99% coverage)
 - ✅ Black formatting
 - ✅ Comprehensive docstrings
 
 ### Architecture
+
 - **Модульность**: Чёткое разделение ответственности
 - **Async/Await**: Полностью асинхронная архитектура
 - **Error Handling**: Многоуровневая обработка ошибок
 - **Logging**: Структурированное JSON-логирование
 
 ### Performance
+
 - **Кэширование**: Intelligent caching для частых запросов
 - **Rate Limiting**: Защита от API throttling
 - **Connection Pooling**: Оптимизация БД соединений
@@ -277,11 +302,13 @@ scrape_configs:
 
 ## 📚 Updated Documentation
 
-### Modified Files:
+### Modified Files
+
 - `ROADMAP.md`: Обновлена статистика (69.6% выполнено)
 - `RELEASE_NOTES_23_11_2025.md`: Этот документ
 
-### Documentation Status:
+### Documentation Status
+
 - ✅ Inline code documentation (docstrings)
 - ✅ Type hints везде
 - ⏳ User guides (pending)
@@ -291,13 +318,15 @@ scrape_configs:
 
 ## 🚀 Deployment Guide
 
-### Prerequisites:
+### Prerequisites
+
 1. Python 3.10+ установлен
 2. Node.js + PM2 установлены (`npm install -g pm2`)
 3. PostgreSQL/SQLite настроен
 4. `.env` файл с ключами API
 
-### Quick Start:
+### Quick Start
+
 ```bash
 # 1. Запустить Debug Suite
 python scripts/debug_suite.py
@@ -313,7 +342,8 @@ pm2 monit
 curl http://localhost:9090/metrics
 ```
 
-### Rollback:
+### Rollback
+
 ```bash
 pm2 stop dmarket-bot
 pm2 delete dmarket-bot
@@ -327,7 +357,8 @@ pm2 start ecosystem.config.js --env production
 
 **Нет критических breaking changes** в этом релизе.
 
-### Рекомендуемые обновления:
+### Рекомендуемые обновления
+
 1. Обновить `.env` с новыми переменными (если есть)
 2. Запустить `scripts/debug_suite.py` перед деплоем
 3. Проверить логи после запуска
@@ -336,11 +367,13 @@ pm2 start ecosystem.config.js --env production
 
 ## 🐛 Known Issues
 
-### Minor Issues:
+### Minor Issues
+
 1. **Markdown linting warning** в ROADMAP.md (line 140) - не критично
 2. **MyPy warnings** в `performance.py`, `base.py` - не влияют на работу
 
-### Workarounds:
+### Workarounds
+
 - Для MD040: Добавить язык в code blocks (future fix)
 - Для MyPy: Warnings не блокируют выполнение
 
@@ -348,7 +381,8 @@ pm2 start ecosystem.config.js --env production
 
 ## 🔮 Next Steps (Phase 4)
 
-### Priority Queue:
+### Priority Queue
+
 1. 🟡 **Caching optimization** (~4 hours)
    - In-memory cache с TTL
    - Query caching для БД

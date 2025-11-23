@@ -15,6 +15,7 @@ from src.dmarket.dmarket_api import DMarketAPI
 from src.telegram_bot.notifier import send_crash_notification, send_critical_shutdown_notification
 from src.telegram_bot.register_all_handlers import register_all_handlers
 from src.utils.config import Config
+from src.utils.daily_report_scheduler import DailyReportScheduler
 from src.utils.database import DatabaseManager
 from src.utils.logging_utils import BotLogger, setup_logging
 from src.utils.state_manager import StateManager
@@ -40,6 +41,7 @@ class Application:
         self.dmarket_api: DMarketAPI | None = None
         self.bot: TelegramApplication | None = None
         self.state_manager: StateManager | None = None
+        self.daily_report_scheduler: DailyReportScheduler | None = None
         self._shutdown_event = asyncio.Event()
 
     async def initialize(self) -> None:
@@ -133,6 +135,44 @@ class Application:
 
             logger.info("Telegram Bot initialized successfully")
 
+            # Initialize Daily Report Scheduler
+            if not self.config.testing and self.database and self.config.daily_report.enabled:
+                logger.info("Initializing Daily Report Scheduler...")
+                from datetime import time
+
+                admin_users = (
+                    self.config.security.admin_users
+                    if hasattr(self.config.security, "admin_users")
+                    else []
+                )
+
+                if not admin_users and hasattr(
+                    self.config.security,
+                    "allowed_users",
+                ):
+                    admin_users = self.config.security.allowed_users
+
+                report_time = time(
+                    hour=self.config.daily_report.report_time_hour,
+                    minute=self.config.daily_report.report_time_minute,
+                )
+
+                self.daily_report_scheduler = DailyReportScheduler(
+                    database=self.database,
+                    bot=self.bot.bot,
+                    admin_users=admin_users,
+                    report_time=report_time,
+                    enabled=self.config.daily_report.enabled,
+                )
+
+                # Store scheduler in bot_data for command access
+                self.bot.bot_data["daily_report_scheduler"] = self.daily_report_scheduler
+
+                logger.info(
+                    "Daily Report Scheduler initialized at %s",
+                    report_time.strftime("%H:%M"),
+                )
+
         except Exception as e:
             logger.exception(f"Failed to initialize application: {e}")
             raise
@@ -146,6 +186,11 @@ class Application:
             self._setup_signal_handlers()
 
             logger.info("Starting DMarket Telegram Bot...")
+
+            # Start Daily Report Scheduler
+            if self.daily_report_scheduler:
+                await self.daily_report_scheduler.start()
+                logger.info("Daily Report Scheduler started")
 
             # Start the bot
             if self.bot:
@@ -187,6 +232,12 @@ class Application:
         logger.info("Shutting down application...")
 
         try:
+            # Stop Daily Report Scheduler
+            if self.daily_report_scheduler:
+                logger.info("Stopping Daily Report Scheduler...")
+                await self.daily_report_scheduler.stop()
+                logger.info("Daily Report Scheduler stopped")
+
             # Stop the bot
             if self.bot:
                 logger.info("Stopping Telegram Bot...")
@@ -379,4 +430,5 @@ if __name__ == "__main__":
         asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
     # Run the application
+    asyncio.run(main())
     asyncio.run(main())

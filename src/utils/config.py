@@ -86,6 +86,37 @@ class TradingSafetyConfig:
 
 
 @dataclass
+class RateLimitConfig:
+    """Rate limiting configuration."""
+
+    # Мониторинг rate limit
+    warning_threshold: float = 0.9  # Порог для уведомлений (90%)
+    enable_notifications: bool = True  # Включить уведомления
+
+    # Exponential backoff
+    base_retry_delay: float = 1.0  # Базовая задержка (секунды)
+    max_backoff_time: float = 60.0  # Максимальное время backoff (секунды)
+    max_retry_attempts: int = 5  # Максимум попыток повтора
+
+    # Лимиты для разных эндпоинтов (запросов в секунду)
+    market_limit: int = 2  # Рыночные запросы
+    trade_limit: int = 1  # Торговые операции
+    user_limit: int = 5  # Пользовательские данные
+    balance_limit: int = 10  # Запросы баланса
+    other_limit: int = 5  # Прочие запросы
+
+
+@dataclass
+class DailyReportConfig:
+    """Daily report configuration."""
+
+    enabled: bool = True  # Включить ежедневные отчёты
+    report_time_hour: int = 9  # Час отправки отчёта (UTC)
+    report_time_minute: int = 0  # Минута отправки отчёта
+    include_days: int = 1  # Количество дней в отчёте
+
+
+@dataclass
 class Config:
     """Main application configuration."""
 
@@ -95,9 +126,11 @@ class Config:
     security: SecurityConfig = field(default_factory=SecurityConfig)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     trading_safety: TradingSafetyConfig = field(default_factory=TradingSafetyConfig)
+    rate_limit: RateLimitConfig = field(default_factory=RateLimitConfig)
+    daily_report: DailyReportConfig = field(default_factory=DailyReportConfig)
     debug: bool = False
     testing: bool = False
-    dry_run: bool = True  # По умолчанию True для защиты от случайных реальных сделок
+    dry_run: bool = True  # По умолчанию True для защиты
 
     @classmethod
     def load(cls, config_path: str | None = None) -> "Config":
@@ -200,6 +233,68 @@ class Config:
                 self.trading_safety.enable_price_sanity_check,
             )
 
+        if "daily_report" in data:
+            report_data = data["daily_report"]
+            self.daily_report.enabled = report_data.get(
+                "enabled",
+                self.daily_report.enabled,
+            )
+            self.daily_report.report_time_hour = report_data.get(
+                "report_time_hour",
+                self.daily_report.report_time_hour,
+            )
+            self.daily_report.report_time_minute = report_data.get(
+                "report_time_minute",
+                self.daily_report.report_time_minute,
+            )
+            self.daily_report.include_days = report_data.get(
+                "include_days",
+                self.daily_report.include_days,
+            )
+
+        if "rate_limit" in data:
+            rl_data = data["rate_limit"]
+            self.rate_limit.warning_threshold = rl_data.get(
+                "warning_threshold",
+                self.rate_limit.warning_threshold,
+            )
+            self.rate_limit.enable_notifications = rl_data.get(
+                "enable_notifications",
+                self.rate_limit.enable_notifications,
+            )
+            self.rate_limit.base_retry_delay = rl_data.get(
+                "base_retry_delay",
+                self.rate_limit.base_retry_delay,
+            )
+            self.rate_limit.max_backoff_time = rl_data.get(
+                "max_backoff_time",
+                self.rate_limit.max_backoff_time,
+            )
+            self.rate_limit.max_retry_attempts = rl_data.get(
+                "max_retry_attempts",
+                self.rate_limit.max_retry_attempts,
+            )
+            self.rate_limit.market_limit = rl_data.get(
+                "market_limit",
+                self.rate_limit.market_limit,
+            )
+            self.rate_limit.trade_limit = rl_data.get(
+                "trade_limit",
+                self.rate_limit.trade_limit,
+            )
+            self.rate_limit.user_limit = rl_data.get(
+                "user_limit",
+                self.rate_limit.user_limit,
+            )
+            self.rate_limit.balance_limit = rl_data.get(
+                "balance_limit",
+                self.rate_limit.balance_limit,
+            )
+            self.rate_limit.other_limit = rl_data.get(
+                "other_limit",
+                self.rate_limit.other_limit,
+            )
+
     def _update_from_env(self) -> None:
         """Update configuration from environment variables."""
         # Bot configuration
@@ -266,6 +361,49 @@ class Config:
 
         enable_sanity = os.getenv("ENABLE_PRICE_SANITY_CHECK", "true").lower()
         self.trading_safety.enable_price_sanity_check = enable_sanity == "true"
+
+        # Daily report configuration
+        daily_enabled = os.getenv("DAILY_REPORT_ENABLED", "true").lower()
+        self.daily_report.enabled = daily_enabled == "true"
+
+        report_hour = os.getenv("DAILY_REPORT_HOUR")
+        if report_hour:
+            with contextlib.suppress(ValueError):
+                self.daily_report.report_time_hour = int(report_hour)
+
+        report_minute = os.getenv("DAILY_REPORT_MINUTE")
+        if report_minute:
+            with contextlib.suppress(ValueError):
+                self.daily_report.report_time_minute = int(report_minute)
+
+        include_days = os.getenv("DAILY_REPORT_DAYS")
+        if include_days:
+            with contextlib.suppress(ValueError):
+                self.daily_report.include_days = int(include_days)
+
+        # Rate limit configuration
+        warning_threshold = os.getenv("RATE_LIMIT_WARNING_THRESHOLD")
+        if warning_threshold:
+            with contextlib.suppress(ValueError):
+                self.rate_limit.warning_threshold = float(warning_threshold)
+
+        enable_rl_notif = os.getenv("RATE_LIMIT_NOTIFICATIONS", "true").lower()
+        self.rate_limit.enable_notifications = enable_rl_notif == "true"
+
+        base_delay = os.getenv("RATE_LIMIT_BASE_DELAY")
+        if base_delay:
+            with contextlib.suppress(ValueError):
+                self.rate_limit.base_retry_delay = float(base_delay)
+
+        max_backoff = os.getenv("RATE_LIMIT_MAX_BACKOFF")
+        if max_backoff:
+            with contextlib.suppress(ValueError):
+                self.rate_limit.max_backoff_time = float(max_backoff)
+
+        max_attempts = os.getenv("RATE_LIMIT_MAX_ATTEMPTS")
+        if max_attempts:
+            with contextlib.suppress(ValueError):
+                self.rate_limit.max_retry_attempts = int(max_attempts)
 
     def validate(self) -> None:
         """Validate configuration and raise errors for required missing values."""

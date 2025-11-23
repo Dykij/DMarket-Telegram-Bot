@@ -7,12 +7,13 @@
 3. Приоритеты уведомлений
 """
 
+from pathlib import Path
 import sys
 import traceback
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+
 
 # Добавляем src в путь для импорта
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))

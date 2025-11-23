@@ -30,16 +30,28 @@ import json
 import logging
 import time
 import traceback
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from circuitbreaker import CircuitBreakerError  # type: ignore[import-untyped]
 import httpx
 import nacl.encoding
 import nacl.signing
+from circuitbreaker import CircuitBreakerError  # type: ignore[import-untyped]
 
+from src.dmarket.api_validator import validate_response
+
+if TYPE_CHECKING:
+    from src.telegram_bot.notifier import Notifier
+
+from src.dmarket.schemas import (
+    AggregatedPricesResponse,
+    BuyOffersResponse,
+    CreateTargetsResponse,
+    MarketItemsResponse,
+    SalesHistoryResponse,
+    UserTargetsResponse,
+)
 from src.utils.api_circuit_breaker import call_with_circuit_breaker
 from src.utils.rate_limiter import RateLimiter
-
 
 logger = logging.getLogger(__name__)
 
@@ -142,6 +154,7 @@ class DMarketAPI:
         retry_codes: list[int] | None = None,
         enable_cache: bool = True,
         dry_run: bool = True,
+        notifier: "Notifier | None" = None,
     ) -> None:
         """Initialize DMarket API client.
 
@@ -155,6 +168,7 @@ class DMarketAPI:
             retry_codes: HTTP status codes to retry on
             enable_cache: Enable caching of frequent requests
             dry_run: If True, simulates trading operations without real API calls (default: True for safety)
+            notifier: Notifier instance for sending alerts on API changes (optional)
 
         """
         self.public_key = public_key
@@ -172,11 +186,7 @@ class DMarketAPI:
         self.connection_timeout = connection_timeout
         self.enable_cache = enable_cache
         self.dry_run = dry_run
-
-        self.api_url = api_url
-        self.max_retries = max_retries
-        self.connection_timeout = connection_timeout
-        self.enable_cache = enable_cache
+        self.notifier = notifier  # Store notifier for API validation alerts
 
         # Default retry codes: server errors and too many requests
         self.retry_codes = retry_codes or [429, 500, 502, 503, 504]
@@ -1304,6 +1314,7 @@ class DMarketAPI:
         )
         return await self.get_balance()
 
+    @validate_response(MarketItemsResponse, endpoint="/exchange/v1/market/items")
     async def get_market_items(
         self,
         game: str = "csgo",
@@ -1317,6 +1328,9 @@ class DMarketAPI:
         force_refresh: bool = False,
     ) -> dict[str, Any]:
         """Get items from the marketplace.
+
+        Response is automatically validated through MarketItemsResponse schema.
+        If validation fails, a CRITICAL error is logged and Telegram notification sent.
 
         Args:
             game: Game name (csgo, dota2, tf2, rust etc)
@@ -2131,11 +2145,14 @@ class DMarketAPI:
             params=params,
         )
 
+    @validate_response(BuyOffersResponse, endpoint="/exchange/v1/offers-buy")
     async def buy_offers(
         self,
         offers: list[dict[str, Any]],
     ) -> dict[str, Any]:
         """Купить предложения с маркета согласно DMarket API.
+
+        Response is automatically validated through BuyOffersResponse schema.
 
         Args:
             offers: Список предложений для покупки
@@ -2192,6 +2209,10 @@ class DMarketAPI:
             data=data,
         )
 
+    @validate_response(
+        AggregatedPricesResponse,
+        endpoint="/marketplace-api/v1/aggregated-prices",
+    )
     async def get_aggregated_prices_bulk(
         self,
         game: str,
@@ -2201,6 +2222,7 @@ class DMarketAPI:
     ) -> dict[str, Any]:
         """Получить агрегированные цены для списка предметов (API v1.1.0).
 
+        Response is automatically validated through AggregatedPricesResponse schema.
         Новый метод согласно обновленной документации DMarket API.
         Позволяет получить лучшие цены покупки и продажи для множества предметов
         одним запросом с поддержкой пагинации.
@@ -2368,6 +2390,10 @@ class DMarketAPI:
             params=params,
         )
 
+    @validate_response(
+        SalesHistoryResponse,
+        endpoint="/account/v1/sales-history",
+    )
     async def get_sales_history(
         self,
         game: str,
@@ -2376,6 +2402,8 @@ class DMarketAPI:
         currency: str = "USD",
     ) -> dict[str, Any]:
         """Получает историю продаж предмета.
+
+        Response is automatically validated through SalesHistoryResponse schema.
 
         Args:
             game: Идентификатор игры
@@ -2543,12 +2571,18 @@ class DMarketAPI:
 
     # ==================== МЕТОДЫ ДЛЯ РАБОТЫ С ТАРГЕТАМИ ====================
 
+    @validate_response(
+        CreateTargetsResponse,
+        endpoint="/marketplace-api/v1/user-targets/create",
+    )
     async def create_targets(
         self,
         game_id: str,
         targets: list[dict[str, Any]],
     ) -> dict[str, Any]:
         """Создать таргеты (buy orders) для предметов.
+
+        Response is automatically validated through CreateTargetsResponse schema.
 
         Args:
             game_id: Идентификатор игры (a8db, 9a92, tf2, rust)
@@ -2576,6 +2610,10 @@ class DMarketAPI:
             data=data,
         )
 
+    @validate_response(
+        UserTargetsResponse,
+        endpoint="/marketplace-api/v1/user-targets",
+    )
     async def get_user_targets(
         self,
         game_id: str,
@@ -2584,6 +2622,8 @@ class DMarketAPI:
         offset: int = 0,
     ) -> dict[str, Any]:
         """Получить список таргетов пользователя.
+
+        Response is automatically validated through UserTargetsResponse schema.
 
         Args:
             game_id: Идентификатор игры

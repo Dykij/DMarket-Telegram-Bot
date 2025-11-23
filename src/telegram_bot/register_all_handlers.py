@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler, filters
 
+from src.telegram_bot.commands.daily_report_command import daily_report_command
 from src.telegram_bot.commands.logs_command import logs_command
 from src.telegram_bot.handlers.callbacks import button_callback_handler
 from src.telegram_bot.handlers.commands import (
@@ -49,7 +50,7 @@ def register_all_handlers(application: "Application") -> None:
     application.add_handler(CommandHandler("markets", markets_command))
     application.add_handler(CommandHandler("webapp", webapp_command))
     application.add_handler(CommandHandler("logs", logs_command))
-    application.add_handler(CommandHandler("resume", resume_command))
+    application.add_handler(CommandHandler("dailyreport", daily_report_command))
 
     logger.info("Базовые команды зарегистрированы")
 
