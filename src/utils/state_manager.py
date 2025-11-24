@@ -11,13 +11,14 @@ import json
 from pathlib import Path
 import signal
 import sys
-from typing import Any
+from typing import Any, Callable
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 from sqlalchemy import Column, DateTime, Integer, String, Text, select
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.types import JSON
 
 from src.models.user import Base
 from src.utils.logging_utils import get_logger
@@ -34,7 +35,7 @@ class CheckpointData(BaseModel):
     processed_items: int = 0
     total_items: int | None = None
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-    metadata: dict[str, Any] = Field(default_factory=dict)
+    extra_data: dict[str, Any] = Field(default_factory=dict)
     status: str = "in_progress"  # in_progress, completed, failed
 
 
@@ -51,7 +52,7 @@ class ScanCheckpoint(Base):
     processed_items = Column(Integer, default=0)
     total_items = Column(Integer, nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
-    metadata = Column(JSONB, default={})
+    extra_data = Column(JSON, default={})  # Changed from JSONB to JSON for SQLite compatibility
     status = Column(String(20), default="in_progress")
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(
@@ -85,7 +86,7 @@ class StateManager:
         self._shutdown_handlers_registered = False
         self._consecutive_errors = 0
         self._is_paused = False
-        self._shutdown_callback: callable | None = None
+        self._shutdown_callback: Callable[[], None] | None = None
 
     async def create_checkpoint(
         self,
@@ -167,7 +168,7 @@ class StateManager:
             checkpoint.timestamp = datetime.now(UTC)
 
             if metadata:
-                checkpoint.metadata.update(metadata)
+                checkpoint.extra_data.update(metadata)
         else:
             logger.warning(
                 "Checkpoint not found for save operation",
@@ -208,7 +209,7 @@ class StateManager:
             processed_items=checkpoint.processed_items,
             total_items=checkpoint.total_items,
             timestamp=checkpoint.timestamp,
-            metadata=checkpoint.metadata,
+            extra_data=checkpoint.extra_data,
             status=checkpoint.status,
         )
 
@@ -245,7 +246,7 @@ class StateManager:
                 processed_items=cp.processed_items,
                 total_items=cp.total_items,
                 timestamp=cp.timestamp,
-                metadata=cp.metadata,
+                extra_data=cp.extra_data,
                 status=cp.status,
             )
             for cp in checkpoints
@@ -277,7 +278,11 @@ class StateManager:
 
         await self.session.commit()
 
-        logger.info(f"Cleaned up {count} old checkpoints (older than {days} days)")
+        logger.info(
+            "Cleaned up %s old checkpoints (older than %s days)",
+            count,
+            days,
+        )
 
         return count
 
@@ -318,7 +323,7 @@ class StateManager:
     def register_shutdown_handlers(
         self,
         scan_id: UUID,
-        cleanup_callback: callable | None = None,
+        cleanup_callback: Callable[[], None] | None = None,
     ) -> None:
         """Register graceful shutdown handlers.
 
@@ -332,7 +337,10 @@ class StateManager:
 
         def signal_handler(signum, frame):
             """Handle shutdown signals."""
-            logger.warning(f"Received signal {signum}, saving checkpoint and shutting down...")
+            logger.warning(
+                "Received signal %s, saving checkpoint and shutting down...",
+                signum,
+            )
 
             # Save final checkpoint
             asyncio.create_task(
@@ -365,12 +373,15 @@ class StateManager:
         """
         self._consecutive_errors += 1
         logger.warning(
-            f"Consecutive error recorded: {self._consecutive_errors}/{self.max_consecutive_errors}",
+            "Consecutive error recorded: %s/%s",
+            self._consecutive_errors,
+            self.max_consecutive_errors,
         )
 
         if self._consecutive_errors >= self.max_consecutive_errors:
             logger.critical(
-                f"Maximum consecutive errors ({self.max_consecutive_errors}) reached! Triggering shutdown...",
+                "Maximum consecutive errors (%s) reached! Triggering shutdown...",
+                self.max_consecutive_errors,
             )
             return True
 
@@ -380,7 +391,8 @@ class StateManager:
         """Reset consecutive error counter after successful operation."""
         if self._consecutive_errors > 0:
             logger.info(
-                f"Resetting error counter from {self._consecutive_errors} to 0",
+                "Resetting error counter from %s to 0",
+                self._consecutive_errors,
             )
             self._consecutive_errors = 0
 
@@ -422,7 +434,7 @@ class StateManager:
             reason: Reason for shutdown
 
         """
-        logger.critical(f"EMERGENCY SHUTDOWN: {reason}")
+        logger.critical("EMERGENCY SHUTDOWN: %s", reason)
         self.pause_operations()
 
         if self._shutdown_callback:
@@ -526,5 +538,5 @@ class LocalStateManager:
             except (json.JSONDecodeError, KeyError, ValueError, OSError):
                 continue
 
-        logger.info(f"Cleaned up {count} old checkpoint files")
+        logger.info("Cleaned up %s old checkpoint files", count)
         return count

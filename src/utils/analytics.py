@@ -385,7 +385,7 @@ class ChartGenerator:
             plt.close(fig)
 
             return img_buffer
-        except Exception:
+        except (OSError, ValueError, RuntimeError):
             # If even error chart fails, return empty BytesIO
             return io.BytesIO()
 

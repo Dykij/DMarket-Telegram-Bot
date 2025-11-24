@@ -137,6 +137,15 @@ repos:
   # ============================================================================
   - repo: local
     hooks:
+      # Проверка кириллицы в скриптах
+      - id: check-cyrillic
+        name: Check for Cyrillic in scripts
+        entry: python scripts/check_cyrillic.py
+        language: system
+        types_or: [shell, batch, powershell, python]
+        files: \.(sh|bash|bat|cmd|ps1|psm1|psd1|py)$
+        exclude: ^(tests/|docs/|src/telegram_bot/localization\.py|scripts/check_cyrillic\.py)
+
       # Pytest - запуск тестов
       - id: pytest-check
         name: pytest-check

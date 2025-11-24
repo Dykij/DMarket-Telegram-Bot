@@ -28,7 +28,7 @@ def mock_config():
     config.dmarket.secret_key = "test_secret_key"
     config.dmarket.api_url = "https://api.dmarket.com"
     config.database.url = "sqlite:///:memory:"
-    config.bot.token = "test_token"
+    config.telegram.bot_token = "test_token"
     return config
 
 
@@ -142,6 +142,7 @@ class TestApplication:
         """Тест проверяет проверку подключения к API в production режиме."""
         # Arrange
         mock_config.testing = False
+        mock_dmarket_api.get_balance = AsyncMock(return_value={"balance": 100.0})
         app = Application()
 
         # Act

@@ -116,7 +116,7 @@ class NotificationQueue:
 
             except asyncio.CancelledError:
                 break
-            except Exception:
+            except (RuntimeError, OSError, ConnectionError):
                 logger.exception("Error in notification worker")
                 await asyncio.sleep(1)
 
@@ -171,7 +171,7 @@ class NotificationQueue:
             count = next(self._counter)
             await self.queue.put((message.priority, time.time(), count, message))
 
-        except Exception:
+        except (RuntimeError, OSError, ConnectionError):
             logger.exception(f"Failed to send message to {message.chat_id}")
             # Don't retry for other errors (e.g. user blocked bot)
 

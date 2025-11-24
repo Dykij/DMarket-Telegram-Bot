@@ -26,18 +26,19 @@ Documentation: https://docs.dmarket.com/v1/swagger.html
 import asyncio
 import hashlib
 import hmac
-import json
 import logging
 import time
 import traceback
 from typing import TYPE_CHECKING, Any
 
+from circuitbreaker import CircuitBreakerError  # type: ignore[import-untyped]
 import httpx
 import nacl.encoding
 import nacl.signing
-from circuitbreaker import CircuitBreakerError  # type: ignore[import-untyped]
 
 from src.dmarket.api_validator import validate_response
+from src.utils import json_utils as json
+
 
 if TYPE_CHECKING:
     from src.telegram_bot.notifier import Notifier
@@ -52,6 +53,8 @@ from src.dmarket.schemas import (
 )
 from src.utils.api_circuit_breaker import call_with_circuit_breaker
 from src.utils.rate_limiter import RateLimiter
+from src.utils.sentry_breadcrumbs import add_api_breadcrumb, add_trading_breadcrumb
+
 
 logger = logging.getLogger(__name__)
 
@@ -630,7 +633,16 @@ class DMarketAPI:
 
         # Основной цикл запросов с повторами при ошибках
         while retries <= self.max_retries:
+            start_time = time.time()
             try:
+                # Добавляем breadcrumb перед API запросом
+                add_api_breadcrumb(
+                    endpoint=path,
+                    method=method.upper(),
+                    retry_attempt=retries,
+                    has_cache=cache_key != "" and self._get_from_cache(cache_key) is not None,
+                )
+
                 # Выполняем запрос с нужным методом
                 if method.upper() == "GET":
                     response = await call_with_circuit_breaker(
@@ -653,10 +665,21 @@ class DMarketAPI:
                 # Проверяем статус ответа
                 response.raise_for_status()
 
+                # Рассчитываем время ответа
+                response_time_ms = (time.time() - start_time) * 1000
+
+                # Добавляем breadcrumb об успешном запросе
+                add_api_breadcrumb(
+                    endpoint=path,
+                    method=method.upper(),
+                    status_code=response.status_code,
+                    response_time_ms=response_time_ms,
+                )
+
                 # Парсим JSON ответа
                 try:
                     result = response.json()
-                except Exception:
+                except (json.JSONDecodeError, TypeError):
                     # Если не получается распарсить JSON, возвращаем текст
                     result = {
                         "text": response.text,
@@ -671,16 +694,34 @@ class DMarketAPI:
 
             except CircuitBreakerError as e:
                 logger.warning(f"Circuit breaker open for {method} {path}: {e}")
+                # Добавляем breadcrumb об ошибке circuit breaker
+                add_api_breadcrumb(
+                    endpoint=path,
+                    method=method.upper(),
+                    error="circuit_breaker_open",
+                    error_message=str(e),
+                )
                 last_error = e
                 break
 
             except httpx.HTTPStatusError as e:
                 status_code = e.response.status_code
                 response_text = e.response.text
+                response_time_ms = (time.time() - start_time) * 1000
 
                 # Подробное логирование ошибки
                 logger.warning(
                     f"HTTP ошибка {status_code} при запросе {method} {path}: {response_text}",
+                )
+
+                # Добавляем breadcrumb об HTTP ошибке
+                add_api_breadcrumb(
+                    endpoint=path,
+                    method=method.upper(),
+                    status_code=status_code,
+                    response_time_ms=response_time_ms,
+                    error="http_error",
+                    retry_attempt=retries,
                 )
 
                 # Получаем описание ошибки из словаря кодов ошибок
@@ -733,7 +774,7 @@ class DMarketAPI:
                     error_json = e.response.json()
                     error_message = error_json.get("message", str(e))
                     error_code = error_json.get("code", status_code)
-                except Exception:
+                except (json.JSONDecodeError, TypeError, AttributeError):
                     error_message = response_text
                     error_code = status_code
 
@@ -757,6 +798,16 @@ class DMarketAPI:
             except (httpx.ConnectError, httpx.ReadError, httpx.WriteError) as e:
                 # Сетевые ошибки
                 logger.warning(f"Сетевая ошибка при запросе {method} {path}: {e!s}")
+
+                # Добавляем breadcrumb о сетевой ошибке
+                add_api_breadcrumb(
+                    endpoint=path,
+                    method=method.upper(),
+                    error="network_error",
+                    error_message=str(e),
+                    retry_attempt=retries,
+                )
+
                 retries += 1
                 retry_delay = min(
                     retry_delay * 1.5,
@@ -779,6 +830,16 @@ class DMarketAPI:
                     f"Непредвиденная ошибка при запросе {method} {path}: {e!s}",
                 )
                 logger.exception(traceback.format_exc())
+
+                # Добавляем breadcrumb о непредвиденной ошибке
+                add_api_breadcrumb(
+                    endpoint=path,
+                    method=method.upper(),
+                    error="unexpected_error",
+                    error_message=str(e),
+                    retry_attempt=retries,
+                )
+
                 last_error = e
                 break
 
@@ -1448,7 +1509,7 @@ class DMarketAPI:
                 sort=sort,
             )
 
-            items = response.get("items", [])
+            items = response.get("objects", [])
             if not items:
                 break
 
@@ -1494,6 +1555,19 @@ class DMarketAPI:
         # Рассчитываем профит если возможно
         profit_usd = profit if profit else (sell_price - price if sell_price else None)
         profit_percent = (profit_usd / price * 100) if profit_usd and price > 0 else None
+
+        # Добавляем breadcrumb для Sentry
+        add_trading_breadcrumb(
+            action="buy_item_intent",
+            game=game,
+            item_id=item_id,
+            price=price,
+            item_name=item_name,
+            sell_price=sell_price,
+            profit=profit_usd,
+            profit_percent=profit_percent,
+            dry_run=self.dry_run,
+        )
 
         # INTENT логирование ПЕРЕД покупкой
         bot_logger.log_buy_intent(

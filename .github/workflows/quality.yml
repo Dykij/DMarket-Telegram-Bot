@@ -1,0 +1,218 @@
+name: Code Quality Check
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - '**.py'
+      - 'requirements.txt'
+      - 'pyproject.toml'
+  push:
+    branches: [ main, develop ]
+    paths:
+      - '**.py'
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.11"
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  ruff-check:
+    name: Ruff Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Run Ruff check
+        run: |
+          ruff check src/ tests/ scripts/ \
+            --output-format=github \
+            --select=ALL \
+            --ignore=D,ANN101,ANN102,ANN401,S101,PLR0913
+
+      - name: Ruff check with annotations
+        if: always()
+        uses: chartboost/ruff-action@v1
+        with:
+          args: 'check --output-format=github'
+
+  ruff-format:
+    name: Ruff Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Check formatting
+        run: ruff format --check src/ tests/ scripts/
+
+      - name: Show diff if formatting needed
+        if: failure()
+        run: ruff format --diff src/ tests/ scripts/
+
+  mypy-check:
+    name: MyPy Type Checking
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install mypy
+          pip install -r requirements.txt || true
+
+      - name: Run MyPy
+        run: |
+          mypy src/ \
+            --install-types \
+            --non-interactive \
+            --ignore-missing-imports \
+            --show-error-codes \
+            --pretty
+        continue-on-error: true
+
+      - name: Generate MyPy report
+        if: always()
+        run: |
+          mypy src/ \
+            --install-types \
+            --non-interactive \
+            --ignore-missing-imports \
+            --html-report mypy-report \
+            --any-exprs-report mypy-report \
+            || true
+
+      - name: Upload MyPy report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mypy-report
+          path: mypy-report/
+          retention-days: 7
+
+  complexity:
+    name: Code Complexity Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install tools
+        run: |
+          pip install radon xenon
+
+      - name: Calculate cyclomatic complexity
+        run: |
+          echo "## 📊 Cyclomatic Complexity" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          radon cc src/ -a -s >> $GITHUB_STEP_SUMMARY || true
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Calculate maintainability index
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔧 Maintainability Index" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          radon mi src/ -s >> $GITHUB_STEP_SUMMARY || true
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check complexity thresholds
+        run: |
+          # Проверяем, что сложность не превышает порогов
+          xenon --max-absolute B --max-modules A --max-average A src/ || {
+            echo "::warning::Code complexity exceeds recommended thresholds"
+          }
+        continue-on-error: true
+
+  quality-summary:
+    name: Quality Summary
+    runs-on: ubuntu-latest
+    needs: [ruff-check, ruff-format, mypy-check, complexity]
+    if: always()
+
+    steps:
+      - name: Generate summary
+        run: |
+          echo "# 📊 Code Quality Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruff Linting | ${{ needs.ruff-check.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruff Formatting | ${{ needs.ruff-format.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| MyPy Type Check | ${{ needs.mypy-check.result == 'success' && '✅ Passed' || '⚠️ Warnings' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Complexity Analysis | ${{ needs.complexity.result == 'success' && '✅ Passed' || '⚠️ Review' }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const results = {
+              ruff: '${{ needs.ruff-check.result }}',
+              format: '${{ needs.ruff-format.result }}',
+              mypy: '${{ needs.mypy-check.result }}',
+              complexity: '${{ needs.complexity.result }}'
+            };
+
+            const status = (result) => result === 'success' ? '✅' : '❌';
+
+            const comment = `
+            ## 📊 Code Quality Report
+
+            | Check | Status |
+            |-------|--------|
+            | Ruff Linting | ${status(results.ruff)} |
+            | Ruff Formatting | ${status(results.format)} |
+            | MyPy Type Check | ${results.mypy === 'success' ? '✅' : '⚠️'} |
+            | Complexity | ${results.complexity === 'success' ? '✅' : '⚠️'} |
+
+            ${results.ruff !== 'success' ? '⚠️ **Please fix linting errors before merging**' : ''}
+            ${results.format !== 'success' ? '⚠️ **Please format code using `ruff format`**' : ''}
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

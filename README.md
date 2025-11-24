@@ -1,14 +1,15 @@
 # 🤖 DMarket Telegram Bot
 
 ![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)
-[![CI/CD Pipeline](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/ci.yml/badge.svg)](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/ci.yml)
-[![Code Quality](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/code-quality.yml/badge.svg)](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/code-quality.yml)
-[![Python Tests](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/python-tests.yml/badge.svg)](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/python-tests.yml)
-[![Security Scan](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/security-scan.yml/badge.svg)](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/security-scan.yml)
-![Coverage](https://img.shields.io/badge/coverage-85%25-green)
+[![CI](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/ci.yml/badge.svg)](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/ci.yml)
+[![Code Quality](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/quality.yml/badge.svg)](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/quality.yml)
+[![Coverage](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/coverage.yml/badge.svg)](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/coverage.yml)
+[![codecov](https://codecov.io/gh/Dykij/DMarket-Telegram-Bot/branch/main/graph/badge.svg)](https://codecov.io/gh/Dykij/DMarket-Telegram-Bot)
 ![License](https://img.shields.io/badge/license-MIT-blue)
-![Code Style](https://img.shields.io/badge/code%20style-black-black)
+![Code Style](https://img.shields.io/badge/code%20style-ruff-orange)
+![Type Checked](https://img.shields.io/badge/type%20checked-mypy-blue)
 ![Docker](https://img.shields.io/badge/docker-ready-blue)
+[![Release](https://img.shields.io/github/v/release/Dykij/DMarket-Telegram-Bot)](https://github.com/Dykij/DMarket-Telegram-Bot/releases)
 
 A comprehensive Telegram bot for DMarket platform operations, market analytics, and automated trading opportunities. Built with modern Python, async/await, and enterprise-grade architecture.
 
@@ -561,6 +562,46 @@ We use modern Python best practices:
 - **Testing**: 80%+ test coverage required
 - **Documentation**: Docstrings for all public functions
 
+### 🔄 CI/CD Pipeline
+
+The project uses GitHub Actions for automated testing and deployment:
+
+#### Workflows
+
+1. **CI Pipeline** - Runs on every push/PR
+   - ✅ Ruff linting and formatting
+   - ✅ MyPy type checking
+   - ✅ Tests on Python 3.10, 3.11, 3.12
+   - ✅ Security scan (Bandit, Safety)
+
+2. **Code Quality** - Detailed quality checks
+   - ✅ Complexity analysis
+   - ✅ Automated PR comments
+
+3. **Coverage** - Test coverage reports
+   - ✅ Codecov integration
+   - ✅ Coverage diff on PRs
+   - ✅ Minimum 80% coverage enforced
+
+4. **Release** - Automated releases
+   - ✅ Docker image build (multi-platform)
+   - ✅ GitHub Container Registry
+   - ✅ Automatic changelog generation
+
+#### Pre-commit Hooks
+
+```bash
+# Install pre-commit
+pip install pre-commit
+pre-commit install
+
+# Run manually
+pre-commit run --all-files
+```
+
+📖 **Full CI/CD Documentation**: [docs/CI_CD_GUIDE.md](docs/CI_CD_GUIDE.md)
+🚀 **Quick Start**: [docs/CI_CD_QUICKSTART.md](docs/CI_CD_QUICKSTART.md)
+
 ### 🧪 Debug Suite - Pre-Deployment Testing
 
 **CRITICAL**: Run Debug Suite before every deployment to production!
@@ -864,7 +905,188 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 - 💬 [Discussions](https://github.com/your-username/dmarket-telegram-bot/discussions)
 - 📧 [Contact Maintainers](mailto:maintainers@example.com)
 
-## 📄 License
+## � Production Readiness Checklist
+
+**⚠️ КРИТИЧЕСКИ ВАЖНО**: Перед запуском на реальных деньгах выполните **ВСЕ** пункты этого чеклиста!
+
+### 📋 Обязательные шаги перед запуском
+
+#### 1. Тестирование (48-72 часа минимум)
+
+- [ ] **DRY_RUN режим включен** (`DRY_RUN=true` в `.env`)
+- [ ] **Бот протестирован минимум 48-72 часа** без критических ошибок
+- [ ] **debug_suite.py выполнен успешно** (см. [DEBUG_WORKFLOW.md](docs/DEBUG_WORKFLOW.md))
+- [ ] **Все integration тесты проходят** (`pytest tests/integration/`)
+- [ ] **Логи проверены на отсутствие ошибок** (см. `logs/dmarket_bot.log`)
+- [ ] **Метрики Sentry в норме** (если настроено)
+
+```bash
+# Запуск финальной проверки
+python scripts/debug_suite.py --production-check
+```
+
+#### 2. Конфигурация безопасных лимитов
+
+- [ ] **Торговые лимиты установлены**:
+  - `MAX_TRADE_VALUE` <= $50 (первую неделю)
+  - `DAILY_TRADE_LIMIT` <= $500
+  - `MIN_PROFIT_PERCENT` >= 3.0%
+- [ ] **Защита от убытков настроена**:
+  - `STOP_LOSS_PERCENT` = 10.0%
+  - `MAX_CONSECUTIVE_LOSSES` = 5
+- [ ] **Контроль баланса установлен**:
+  - `MIN_BALANCE_THRESHOLD` >= $10
+  - `BALANCE_CHECK_INTERVAL` = 300 (5 мин)
+- [ ] **MAX_CONCURRENT_TRADES** = 3 (не более)
+
+#### 3. Система мониторинга
+
+- [ ] **Sentry настроен** для отслеживания ошибок
+- [ ] **Telegram алерты работают**:
+  - Тест: `/test_alerts` отправляет уведомление
+  - Критические события настроены (баланс, убытки)
+- [ ] **Email уведомления** (опционально, но рекомендуется)
+- [ ] **Логирование работает корректно**:
+  - `logs/dmarket_bot.log` создается
+  - Ротация логов настроена
+  - `LOG_LEVEL=INFO` (не DEBUG в production!)
+
+```bash
+# Проверка системы алертов
+python scripts/test_alerts.py
+```
+
+#### 4. Резервное копирование
+
+- [ ] **Автоматический бэкап БД настроен** (ежедневно в 3:00 AM)
+- [ ] **Бэкап конфигурации .env** (в безопасном месте!)
+- [ ] **План восстановления готов** (см. [DEBUG_WORKFLOW.md](docs/DEBUG_WORKFLOW.md))
+- [ ] **Тестовое восстановление проведено** (убедитесь, что бэкапы рабочие!)
+
+```bash
+# Настройка cron для автобэкапа
+0 3 * * * /path/to/scripts/backup_database.sh
+```
+
+#### 5. Финальная проверка
+
+- [ ] **Начальный баланс записан** (`python scripts/record_initial_balance.py`)
+- [ ] **Доступ к серверу есть** для экстренной остановки
+- [ ] **Контакты экстренной поддержки добавлены** в `.env`
+- [ ] **Документация прочитана**:
+  - [SECURITY.md](docs/SECURITY.md) - Безопасность
+  - [DEBUG_WORKFLOW.md](docs/DEBUG_WORKFLOW.md) - Отладка и запуск
+  - [QUICK_START.md](docs/QUICK_START.md) - Быстрый старт
+
+### ⚠️ Переключение на реальную торговлю
+
+**ТОЛЬКО** после выполнения всех пунктов выше:
+
+```bash
+# 1. Отредактировать .env
+nano .env
+
+# 2. Изменить (ВНИМАТЕЛЬНО!):
+# DRY_RUN=false  # ⚠️ РЕАЛЬНАЯ ТОРГОВЛЯ!
+
+# 3. Перезапустить бота
+systemctl restart dmarket-bot
+# или
+docker-compose restart bot
+
+# 4. НЕМЕДЛЕННО проверить логи
+tail -f logs/dmarket_bot.log
+
+# 5. Проверить первые 5 минут:
+# - Логи показывают [LIVE] вместо [DRY-RUN]
+# - Нет критических ошибок
+# - Баланс отображается корректно
+```
+
+### 📅 Что проверять ежедневно
+
+#### Утренний чек (5 минут)
+
+- [ ] **Баланс DMarket** соответствует ожидаемому
+- [ ] **Нет критических ошибок** в Sentry/логах
+- [ ] **Бот активен** и отвечает на `/status`
+- [ ] **Последние сделки** были прибыльными
+- [ ] **API DMarket доступен** (проверить через `/health`)
+
+```bash
+# Быстрая проверка здоровья
+curl http://localhost:8000/health
+```
+
+#### Вечерний чек (10 минут)
+
+- [ ] **Ежедневный отчет** (`python scripts/generate_daily_report.py`)
+- [ ] **Общая прибыль/убыток** за день
+- [ ] **Все сделки** прошли в рамках лимитов
+- [ ] **Нет зацикливаний** (покупка одного предмета)
+- [ ] **Анализ убыточных сделок** (если есть)
+
+```bash
+# Генерация отчета
+python scripts/generate_daily_report.py --date $(date +%Y-%m-%d)
+```
+
+#### Еженедельный чек (30 минут)
+
+- [ ] **Полный аудит** всех сделок за неделю
+- [ ] **Здоровье базы данных** (`python scripts/check_database_health.py`)
+- [ ] **Обновление зависимостей** (если есть патчи безопасности)
+- [ ] **Ротация логов** (`find logs/ -name "*.log" -mtime +30 -delete`)
+- [ ] **Бэкап всех данных** вручную (помимо автоматического)
+- [ ] **Анализ эффективности** стратегий
+
+### 🚨 Красные флаги - остановить торговлю НЕМЕДЛЕННО!
+
+Остановите бота **СРАЗУ** если:
+
+1. 🔴 **Баланс резко упал** (>10% за час)
+2. 🔴 **5+ убыточных сделок подряд**
+3. 🔴 **DMarket API ошибки** 429/500/503
+4. 🔴 **Необычно высокие цены** (в 2-3 раза выше рынка)
+5. 🔴 **Бот покупает одно и то же** (зацикливание)
+6. 🔴 **Нет прибыльных сделок 24+ часа**
+7. 🔴 **Sentry показывает критические ошибки**
+8. 🔴 **Дневной лимит исчерпан раньше времени**
+
+**Экстренная остановка:**
+
+```bash
+# Метод 1: Telegram
+/stop_trading
+/cancel_all_targets
+
+# Метод 2: Сервер
+systemctl stop dmarket-bot
+# или
+docker-compose down
+
+# Метод 3: Переключить обратно
+nano .env  # DRY_RUN=true
+systemctl restart dmarket-bot
+```
+
+### 📞 Поддержка
+
+Если возникли проблемы:
+
+1. **Проверьте логи**: `logs/dmarket_bot.log`
+2. **Проверьте Sentry**: Трейсы ошибок
+3. **Создайте Issue**: [GitHub Issues](https://github.com/Dykij/DMarket-Telegram-Bot/issues)
+4. **Экстренная помощь**: См. `.env` → `EMERGENCY_CONTACT_*`
+
+**Подробнее:**
+- 🐛 [DEBUG_WORKFLOW.md](docs/DEBUG_WORKFLOW.md) - Полное руководство по отладке
+- 🔒 [SECURITY.md](docs/SECURITY.md) - Безопасная торговля
+- 🚀 [QUICK_START.md](docs/QUICK_START.md) - Быстрый старт
+
+---
+
+## �📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 

@@ -45,6 +45,18 @@ def dmarket_api(api_keys):
 
 
 @pytest.fixture()
+def dmarket_api_live(api_keys):
+    """Fixture: DMarket API client with DRY_RUN disabled for trade tests."""
+    return DMarketAPI(
+        public_key=api_keys["public_key"],
+        secret_key=api_keys["secret_key"],
+        max_retries=2,
+        connection_timeout=10.0,
+        dry_run=False,  # Отключаем DRY_RUN для реальных тестов API
+    )
+
+
+@pytest.fixture()
 def dmarket_api_no_auth():
     """Фикстура неавторизованного клиента."""
     return DMarketAPI(public_key="", secret_key="")
@@ -496,7 +508,7 @@ class TestBuyItem:
     """Тесты метода buy_item."""
 
     @pytest.mark.asyncio()
-    async def test_buy_item_success(self, dmarket_api):
+    async def test_buy_item_success(self, dmarket_api_live):
         """Тест успешной покупки предмета."""
         mock_response = {
             "success": True,
@@ -505,12 +517,12 @@ class TestBuyItem:
         }
 
         with patch.object(
-            dmarket_api,
+            dmarket_api_live,
             "_request",
             new_callable=AsyncMock,
             return_value=mock_response,
         ):
-            result = await dmarket_api.buy_item(
+            result = await dmarket_api_live.buy_item(
                 item_id="item_123",
                 price=25.50,
                 game="csgo",
@@ -521,7 +533,7 @@ class TestBuyItem:
             assert result["status"] == "TxPending"
 
     @pytest.mark.asyncio()
-    async def test_buy_item_insufficient_funds(self, dmarket_api):
+    async def test_buy_item_insufficient_funds(self, dmarket_api_live):
         """Тест покупки при недостаточных средствах."""
         mock_response = {
             "success": False,
@@ -529,12 +541,12 @@ class TestBuyItem:
         }
 
         with patch.object(
-            dmarket_api,
+            dmarket_api_live,
             "_request",
             new_callable=AsyncMock,
             return_value=mock_response,
         ):
-            result = await dmarket_api.buy_item(
+            result = await dmarket_api_live.buy_item(
                 item_id="item_123",
                 price=1000.0,
             )
@@ -552,7 +564,7 @@ class TestSellItem:
     """Тесты метода sell_item."""
 
     @pytest.mark.asyncio()
-    async def test_sell_item_success(self, dmarket_api):
+    async def test_sell_item_success(self, dmarket_api_live):
         """Тест успешной продажи предмета."""
         mock_response = {
             "success": True,
@@ -560,12 +572,12 @@ class TestSellItem:
         }
 
         with patch.object(
-            dmarket_api,
+            dmarket_api_live,
             "_request",
             new_callable=AsyncMock,
             return_value=mock_response,
         ):
-            result = await dmarket_api.sell_item(
+            result = await dmarket_api_live.sell_item(
                 item_id="item_123",
                 price=30.00,
             )
@@ -574,7 +586,7 @@ class TestSellItem:
             assert result["offerId"] == "offer_12345"
 
     @pytest.mark.asyncio()
-    async def test_sell_item_invalid_price(self, dmarket_api):
+    async def test_sell_item_invalid_price(self, dmarket_api_live):
         """Тест продажи с некорректной ценой."""
         mock_response = {
             "success": False,
@@ -582,12 +594,12 @@ class TestSellItem:
         }
 
         with patch.object(
-            dmarket_api,
+            dmarket_api_live,
             "_request",
             new_callable=AsyncMock,
             return_value=mock_response,
         ):
-            result = await dmarket_api.sell_item(
+            result = await dmarket_api_live.sell_item(
                 item_id="item_123",
                 price=0.01,  # Слишком низкая
             )
@@ -608,7 +620,7 @@ class TestGetAllMarketItems:
         """Тест получения всех предметов с одной страницы."""
         # Arrange
         mock_response = {
-            "items": [
+            "objects": [
                 {"itemId": "item_1", "title": "Item 1"},
                 {"itemId": "item_2", "title": "Item 2"},
             ],
@@ -633,10 +645,10 @@ class TestGetAllMarketItems:
         # Arrange
         responses = [
             {
-                "items": [{"itemId": f"item_{i}"} for i in range(100)],
+                "objects": [{"itemId": f"item_{i}"} for i in range(100)],
             },
             {
-                "items": [{"itemId": f"item_{i}"} for i in range(100, 150)],
+                "objects": [{"itemId": f"item_{i}"} for i in range(100, 150)],
             },
         ]
 
@@ -657,7 +669,7 @@ class TestGetAllMarketItems:
         """Тест соблюдения max_items лимита."""
         # Arrange
         mock_response = {
-            "items": [{"itemId": f"item_{i}"} for i in range(100)],
+            "objects": [{"itemId": f"item_{i}"} for i in range(100)],
         }
 
         # Act

@@ -48,11 +48,11 @@ async def get_item_price_history(
     if cache_key in _price_history_cache:
         cache_data = _price_history_cache[cache_key]
         if time.time() - cache_data["last_update"] < _CACHE_TTL:
-            logger.debug(f"Использую кэшированную историю цен для {item_id}")
+            logger.debug("Использую кэшированную историю цен для %s", item_id)
             return cache_data["data"]
 
     try:
-        logger.info(f"Запрашиваю историю цен для предмета {item_id} за {days} дней")
+        logger.info("Запрашиваю историю цен для предмета %s за %s дней", item_id, days)
 
         # Используем API для получения данных о продажах
         # Путь к API может отличаться в зависимости от документации DMarket
@@ -63,7 +63,7 @@ async def get_item_price_history(
         )
 
         if not history_data or "sales" not in history_data:
-            logger.warning(f"Не удалось получить историю цен для {item_id}")
+            logger.warning("Не удалось получить историю цен для %s", item_id)
             return []
 
         # Преобразуем данные в удобный формат
@@ -285,7 +285,7 @@ async def find_undervalued_items(
             price_history = await get_item_price_history(api, item_id, days=30)
 
             if not price_history:
-                logger.debug(f"Нет данных об истории цен для {title}")
+                logger.debug("Нет данных об истории цен для %s", title)
                 continue
 
             # Рассчитываем статистику

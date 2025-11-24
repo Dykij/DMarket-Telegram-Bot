@@ -28,13 +28,41 @@ def mock_api():
     api.get_targets_by_title = AsyncMock()
     api.get_market_items = AsyncMock()
     api.get_closed_targets = AsyncMock()
+    # Методы для LiquidityAnalyzer
+    api.get_sales_history_aggregated = AsyncMock(return_value={"objects": []})
+    api.get_market_best_offers = AsyncMock(return_value={"objects": []})
+
+    # Методы для SmartTargets (aggregated prices bulk)
+    # Возвращаем функцию которая генерирует цены для любого предмета
+    async def mock_get_aggregated_prices(titles, **kwargs):
+        return {
+            "aggregatedPrices": [
+                {
+                    "title": title,
+                    "offerBestPrice": "1000",  # $10.00 в центах
+                    "orderBestPrice": "950",  # $9.50 в центах
+                    "offerCount": 10,
+                    "orderCount": 5,
+                }
+                for title in titles
+            ]
+        }
+
+    api.get_aggregated_prices_bulk = AsyncMock(side_effect=mock_get_aggregated_prices)
     return api
 
 
 @pytest.fixture()
 def target_manager(mock_api):
     """Создать экземпляр TargetManager с моком API."""
-    return TargetManager(mock_api)
+    manager = TargetManager(mock_api)
+    # Замокать liquidity_analyzer для тестов SmartTargets
+    # Возвращаем фейковые метрики с высокой ликвидностью
+    fake_metrics = MagicMock()
+    fake_metrics.liquidity_score = 80.0  # Выше порога 60.0
+    fake_metrics.is_liquid = True
+    manager.liquidity_analyzer.analyze_item_liquidity = AsyncMock(return_value=fake_metrics)
+    return manager
 
 
 @pytest.fixture()

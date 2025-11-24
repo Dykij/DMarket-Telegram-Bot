@@ -11,6 +11,7 @@ from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler, f
 
 from src.telegram_bot.commands.daily_report_command import daily_report_command
 from src.telegram_bot.commands.logs_command import logs_command
+from src.telegram_bot.commands.test_sentry_command import test_sentry_command, test_sentry_info
 from src.telegram_bot.handlers.callbacks import button_callback_handler
 from src.telegram_bot.handlers.commands import (
     arbitrage_command,
@@ -51,6 +52,10 @@ def register_all_handlers(application: "Application") -> None:
     application.add_handler(CommandHandler("webapp", webapp_command))
     application.add_handler(CommandHandler("logs", logs_command))
     application.add_handler(CommandHandler("dailyreport", daily_report_command))
+
+    # Sentry тестирование (только для отладки и администраторов)
+    application.add_handler(CommandHandler("test_sentry", test_sentry_command))
+    application.add_handler(CommandHandler("sentry_info", test_sentry_info))
 
     logger.info("Базовые команды зарегистрированы")
 

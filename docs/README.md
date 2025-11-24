@@ -49,11 +49,19 @@
 - **[Развертывание](deployment.md)** - Деплой (Docker, Heroku, AWS, GCP)
 - **[Безопасность](SECURITY.md)** - Защита ключей и данных
 - **[Логирование](logging_and_error_handling.md)** - Логирование и обработка ошибок
+- **[Кэширование](CACHING_GUIDE.md)** - Система кэширования (TTLCache, orjson, Query Cache)
 - **[Защита от кириллицы](vs_code_cyrillic_protection.md)** - Настройка VS Code и терминала
 - **[Ежедневные отчеты](DAILY_REPORTS_GUIDE.md)** - Автоматическая статистика и мониторинг
 - **[Интерактивный дашборд](DASHBOARD_GUIDE.md)** - UI для управления сканером и статистикой
 - **[Фильтры уведомлений](NOTIFICATION_FILTERS_GUIDE.md)** - Настройка фильтрации уведомлений
 - **[Система дайджестов](NOTIFICATION_DIGESTS_GUIDE.md)** - Группировка уведомлений по расписанию
+
+### Мониторинг и ошибки (Sentry)
+
+- **[Тестирование Sentry](SENTRY_TESTING_GUIDE.md)** - Полное руководство по тестированию интеграции
+- **[Production Quickstart](SENTRY_PRODUCTION_QUICKSTART.md)** - Быстрый запуск Sentry в production
+- **[Настройка алертов](SENTRY_ALERTS_SETUP.md)** - Уведомления о критических ошибках
+- **[Очистка тестовых данных](SENTRY_CLEANUP.md)** - Удаление тестовых issues перед production
 
 ---
 

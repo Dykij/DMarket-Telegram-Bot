@@ -64,7 +64,7 @@ class DMarketWebSocketClient:
             logger.info("WebSocket already connected")
             return True
 
-        logger.info(f"Connecting to DMarket WebSocket ({self.WS_ENDPOINT})...")
+        logger.info("Connecting to DMarket WebSocket (%s)...", self.WS_ENDPOINT)
 
         try:
             # Create new session if needed
@@ -149,7 +149,8 @@ class DMarketWebSocketClient:
         """Attempt to reconnect to WebSocket."""
         if self.reconnect_attempts >= self.max_reconnect_attempts:
             logger.error(
-                f"Failed to reconnect after {self.reconnect_attempts} attempts, giving up",
+                "Failed to reconnect after %s attempts, giving up",
+                self.reconnect_attempts,
             )
             return
 
@@ -160,14 +161,17 @@ class DMarketWebSocketClient:
         )  # Exponential backoff with 60s max
 
         logger.info(
-            f"Attempting to reconnect in {delay} seconds (attempt {self.reconnect_attempts})",
+            "Attempting to reconnect in %s seconds (attempt %s)",
+            delay,
+            self.reconnect_attempts,
         )
         await asyncio.sleep(delay)
 
         success = await self.connect()
         if not success:
             logger.warning(
-                f"Reconnect attempt {self.reconnect_attempts} failed",
+                "Reconnect attempt %s failed",
+                self.reconnect_attempts,
             )
 
     async def _handle_message(self, data: str) -> None:
@@ -199,14 +203,14 @@ class DMarketWebSocketClient:
                 for handler in handlers:
                     try:
                         await handler(message)
-                    except Exception:
+                    except (TypeError, RuntimeError, asyncio.CancelledError):
                         logger.exception(
                             f"Error in event handler for {event_type}",
                         )
 
         except json.JSONDecodeError:
             logger.exception(f"Failed to parse WebSocket message: {data}")
-        except Exception:
+        except (TypeError, KeyError, AttributeError):
             logger.exception("Error handling WebSocket message")
 
     def _handle_auth_response(self, message: dict[str, Any]) -> None:
@@ -222,7 +226,7 @@ class DMarketWebSocketClient:
         else:
             error = message.get("error", "Unknown error")
             self.authenticated = False
-            logger.error(f"Authentication failed: {error}")
+            logger.error("Authentication failed: %s", error)
 
     async def _authenticate(self) -> None:
         """Authenticate with the WebSocket API using API keys."""
@@ -278,7 +282,7 @@ class DMarketWebSocketClient:
 
         """
         if not self.ws_connection or not self.is_connected:
-            logger.error(f"Cannot subscribe to {topic}: WebSocket not connected")
+            logger.error("Cannot subscribe to %s: WebSocket not connected", topic)
             return False
 
         # Build subscription message
@@ -292,7 +296,7 @@ class DMarketWebSocketClient:
 
         # Send subscription request
         await self.ws_connection.send_json(subscription)
-        logger.info(f"Subscribed to {topic}")
+        logger.info("Subscribed to %s", topic)
 
         # Add to active subscriptions
         self.subscriptions.add(topic)
@@ -309,7 +313,7 @@ class DMarketWebSocketClient:
 
         """
         if not self.ws_connection or not self.is_connected:
-            logger.error(f"Cannot unsubscribe from {topic}: WebSocket not connected")
+            logger.error("Cannot unsubscribe from %s: WebSocket not connected", topic)
             return False
 
         # Build unsubscription message
@@ -320,7 +324,7 @@ class DMarketWebSocketClient:
 
         # Send unsubscription request
         await self.ws_connection.send_json(unsubscription)
-        logger.info(f"Unsubscribed from {topic}")
+        logger.info("Unsubscribed from %s", topic)
 
         # Remove from active subscriptions
         if topic in self.subscriptions:

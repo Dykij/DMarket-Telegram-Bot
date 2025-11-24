@@ -10,7 +10,7 @@
 from pathlib import Path
 import sys
 import traceback
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -19,6 +19,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from telegram_bot.notifier import send_crash_notification  # noqa: E402
+from utils.logging_utils import BotLogger  # noqa: E402
 
 
 class TestCrashNotifications:
@@ -109,7 +110,7 @@ class TestCrashNotifications:
     @pytest.mark.asyncio()
     async def test_send_crash_notification_without_queue(self, mock_bot, test_error):
         """Тест отправки напрямую через bot без очереди."""
-        error, traceback_text = test_error
+        _error, traceback_text = test_error
         user_id = 123456789
 
         await send_crash_notification(

@@ -502,7 +502,7 @@ class RateLimiter:
                 category="system",
             )
         except Exception as e:
-            logger.error(f"Ошибка отправки уведомления о rate limit: {e}")
+            logger.exception(f"Ошибка отправки уведомления о rate limit: {e}")
 
     async def _send_429_alert(
         self,
@@ -539,4 +539,4 @@ class RateLimiter:
                 category="system",
             )
         except Exception as e:
-            logger.error(f"Ошибка отправки критического уведомления 429: {e}")
+            logger.exception(f"Ошибка отправки критического уведомления 429: {e}")

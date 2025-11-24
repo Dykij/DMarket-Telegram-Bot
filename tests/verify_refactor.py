@@ -1,11 +1,11 @@
 import asyncio
-import os
+from pathlib import Path
 import sys
 from unittest.mock import MagicMock
 
 
 # Add project root to path
-sys.path.append(os.getcwd())
+sys.path.append(str(Path.cwd()))
 
 
 async def test_refactor():

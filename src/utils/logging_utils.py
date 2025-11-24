@@ -576,7 +576,9 @@ class BotLogger:
             **kwargs,
         }
 
-        level = "info" if success else "error"
+        import logging
+
+        level = logging.INFO if success else logging.ERROR
         emoji = "✅" if success else "❌"
         status = "SUCCESS" if success else "FAILED"
         mode = "DRY-RUN" if dry_run else "LIVE"

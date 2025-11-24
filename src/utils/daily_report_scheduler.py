@@ -124,7 +124,7 @@ class DailyReportScheduler:
                         text=report_text,
                     )
                 except Exception as send_error:
-                    logger.error(
+                    logger.exception(
                         "Failed to send report to admin %d: %s",
                         admin_id,
                         send_error,
@@ -132,7 +132,7 @@ class DailyReportScheduler:
 
             logger.info("Daily report sent successfully")
 
-        except Exception:
+        except (RuntimeError, ValueError, TypeError, KeyError):
             logger.exception("Failed to generate/send daily report")
             # Пытаемся уведомить админов об ошибке
             for admin_id in self.admin_users:
@@ -141,7 +141,7 @@ class DailyReportScheduler:
                         chat_id=admin_id,
                         text="❌ Ошибка генерации ежедневного отчёта",
                     )
-                except Exception:
+                except (OSError, ConnectionError):
                     pass
 
     async def _collect_statistics(
@@ -199,7 +199,7 @@ class DailyReportScheduler:
                 stats["scans_performed"] = scan_stats.get("scans_performed", 0)
                 stats["opportunities_found"] = scan_stats.get("opportunities_found", 0)
 
-        except Exception:
+        except (RuntimeError, KeyError, TypeError, ValueError):
             logger.exception("Error collecting statistics")
 
         return stats

@@ -12,6 +12,7 @@ from src.telegram_bot.config_data import ARBITRAGE_MODES
 from src.telegram_bot.keyboards import get_back_to_arbitrage_keyboard
 from src.telegram_bot.utils.api_helper import create_dmarket_api_client
 from src.utils.exceptions import APIError, handle_api_error
+from src.utils.sentry_breadcrumbs import add_command_breadcrumb
 
 
 logger = logging.getLogger(__name__)
@@ -28,6 +29,29 @@ async def check_balance_command(
         context: Callback context
 
     """
+    # Extract user info for breadcrumb
+    if isinstance(message, CallbackQuery):
+        user = message.from_user
+        chat_id = message.message.chat_id if message.message else 0
+    elif isinstance(message, Message):
+        user = message.from_user
+        chat_id = message.chat_id
+    elif isinstance(message, Update) and message.effective_user:
+        user = message.effective_user
+        chat_id = message.effective_chat.id if message.effective_chat else 0
+    else:
+        user = None
+        chat_id = 0
+
+    # Add command breadcrumb
+    if user:
+        add_command_breadcrumb(
+            command="/balance",
+            user_id=user.id,
+            username=user.username or "",
+            chat_id=chat_id,
+        )
+
     # Determine message type
     is_callback = isinstance(message, CallbackQuery)
     is_message = isinstance(message, Message)

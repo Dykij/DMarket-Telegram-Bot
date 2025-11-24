@@ -6,6 +6,7 @@ from the main exceptions module.
 """
 
 from collections.abc import Callable
+import json
 from typing import Any
 
 from src.utils.exceptions import (
@@ -73,7 +74,7 @@ async def handle_response(response: Any) -> dict:
                 error_data = response.json
             if isinstance(error_data, dict):
                 error_message = error_data.get("error", error_message)
-    except Exception:
+    except (json.JSONDecodeError, TypeError, AttributeError):
         pass
 
     raise APIError(

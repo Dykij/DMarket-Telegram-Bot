@@ -9,13 +9,24 @@ import logging
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
+from src.utils.sentry_breadcrumbs import add_command_breadcrumb
+
 
 logger = logging.getLogger(__name__)
 
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Отправляет приветственное сообщение при команде /start."""
-    logger.info(f"Пользователь {update.effective_user.id} использовал команду /start")
+    user = update.effective_user
+    logger.info(f"Пользователь {user.id} использовал команду /start")
+
+    # Добавляем breadcrumb о команде
+    add_command_breadcrumb(
+        command="/start",
+        user_id=user.id,
+        username=user.username or "",
+        chat_id=update.effective_chat.id if update.effective_chat else 0,
+    )
 
     if update.message:
         await update.message.reply_text(
@@ -25,7 +36,16 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Отправляет список доступных команд при команде /help."""
-    logger.info(f"Пользователь {update.effective_user.id} использовал команду /help")
+    user = update.effective_user
+    logger.info(f"Пользователь {user.id} использовал команду /help")
+
+    # Добавляем breadcrumb о команде
+    add_command_breadcrumb(
+        command="/help",
+        user_id=user.id,
+        username=user.username or "",
+        chat_id=update.effective_chat.id if update.effective_chat else 0,
+    )
 
     if update.message:
         await update.message.reply_text(

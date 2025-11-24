@@ -65,12 +65,12 @@ class TestCrashNotifications:
         )
 
         # Проверяем, что уведомление добавлено в очередь
-        assert mock_notification_queue.add_notification.call_count >= 1
-        args_list = mock_notification_queue.add_notification.call_args_list
+        assert mock_notification_queue.enqueue.call_count >= 1
+        args_list = mock_notification_queue.enqueue.call_args_list
         call_args = args_list[0]
 
-        # Проверяем формат сообщения
-        message = call_args[0][0]
+        # Проверяем формат сообщения (из kwargs)
+        message = call_args.kwargs.get("text", "")
         assert "💥 *КРИТИЧЕСКАЯ ОШИБКА БОТА*" in message
         assert "ZeroDivisionError" in message
         assert "division by zero" in message
@@ -98,13 +98,13 @@ class TestCrashNotifications:
 
         # Проверяем, что было минимум 2 вызова
         # (основное сообщение + traceback)
-        count = mock_notification_queue.add_notification.call_count
+        count = mock_notification_queue.enqueue.call_count
         assert count >= 2
 
         # Проверяем truncation traceback
-        args_list = mock_notification_queue.add_notification.call_args_list
+        args_list = mock_notification_queue.enqueue.call_args_list
         traceback_call = args_list[1]
-        traceback_message = traceback_call[0][0]
+        traceback_message = traceback_call.kwargs.get("text", "")
 
         # Traceback должен быть урезан до ~2900 символов
         assert len(traceback_message) <= 3000
@@ -156,9 +156,9 @@ class TestCrashNotifications:
             notification_queue=mock_notification_queue,
         )
 
-        args_list = mock_notification_queue.add_notification.call_args_list
+        args_list = mock_notification_queue.enqueue.call_args_list
         call_args = args_list[0]
-        message = call_args[0][0]
+        message = call_args.kwargs.get("text", "")
 
         # Проверяем наличие всех ключевых элементов
         assert "💥" in message
@@ -184,21 +184,23 @@ class TestCrashNotifications:
         )
 
         # Должно быть 2 вызова:
-        # основное сообщение (CRITICAL) и traceback (HIGH)
-        count = mock_notification_queue.add_notification.call_count
+        # основное сообщение (HIGH) и traceback (NORMAL)
+        count = mock_notification_queue.enqueue.call_count
         assert count == 2
 
         # Проверяем приоритеты
         from telegram_bot.notification_queue import Priority  # noqa: E402
 
-        args_list = mock_notification_queue.add_notification.call_args_list
+        args_list = mock_notification_queue.enqueue.call_args_list
         main_call = args_list[0]
-        traceback_call = args_list[1]
 
-        # Основное сообщение - HIGH (наивысший приоритет)
-        assert main_call[0][2] == Priority.HIGH
-        # Traceback - NORMAL
-        assert traceback_call[0][2] == Priority.NORMAL
+        # Проверяем приоритет основного сообщения
+        main_priority = main_call.kwargs.get("priority", Priority.NORMAL)
+        assert main_priority == Priority.HIGH
+
+        traceback_call = args_list[1]
+        traceback_priority = traceback_call.kwargs.get("priority", Priority.NORMAL)
+        assert traceback_priority == Priority.NORMAL
 
 
 def print_test_summary():

@@ -148,10 +148,11 @@ total_profit_usd = Gauge(
 )
 
 # Транзакции
+# Labels: type (buy/sell), status (success/failed)
 transactions_total = Counter(
     "transactions_total",
     "Total number of transactions",
-    ["type", "status"],  # type: buy/sell, status: success/failed
+    ["type", "status"],
 )
 
 # Средняя сумма транзакции
@@ -269,11 +270,11 @@ def create_metrics_app():
 # =============================================================================
 
 
-class timer:
+class Timer:
     """Context manager for timing code blocks.
 
     Usage:
-        with timer() as t:
+        with Timer() as t:
             # code to time
             pass
         print(f"Elapsed: {t.elapsed}s")

@@ -12,6 +12,7 @@ from src.telegram_bot.pagination import pagination_manager
 from src.telegram_bot.utils.api_client import create_api_client_from_env
 from src.utils.exceptions import handle_exceptions
 from src.utils.logging_utils import get_logger
+from src.utils.sentry_breadcrumbs import add_command_breadcrumb, add_trading_breadcrumb
 
 
 logger = get_logger(__name__)
@@ -239,6 +240,15 @@ async def handle_level_scan(
 
     user_id = update.effective_user.id
 
+    # Добавить breadcrumb для сканирования
+    add_command_breadcrumb(
+        command="level_scan",
+        user_id=user_id,
+        username=update.effective_user.username,
+        level=level,
+        game=game,
+    )
+
     # Получаем конфигурацию уровня
     if level not in ARBITRAGE_LEVELS:
         await query.edit_message_text(
@@ -272,8 +282,25 @@ async def handle_level_scan(
     scanner = ArbitrageScanner(api_client=api_client)
     scanner.cache_ttl = 300
 
+    # Добавить breadcrumb для начала сканирования
+    add_trading_breadcrumb(
+        action="arbitrage_scan_started",
+        game=game,
+        level=level,
+        user_id=user_id,
+    )
+
     # Сканируем уровень
     results = await scanner.scan_level(level=level, game=game, max_results=50)
+
+    # Добавить breadcrumb для завершения сканирования
+    add_trading_breadcrumb(
+        action="arbitrage_scan_completed",
+        game=game,
+        level=level,
+        user_id=user_id,
+        opportunities_found=len(results),
+    )
 
     if not results:
         await query.edit_message_text(

@@ -96,7 +96,7 @@ class AdvancedCache:
             self.register_cache(cache_name)
 
         self._caches[cache_name][key] = (value, time.time())
-        logger.debug(f"Сохранено в кеш '{cache_name}', ключ: {key}")
+        logger.debug("Сохранено в кеш '%s', ключ: %s", cache_name, key)
 
     def invalidate(self, cache_name: str, key: CacheKey | None = None) -> None:
         """Инвалидирует кеш (полностью или по ключу).
@@ -112,10 +112,10 @@ class AdvancedCache:
         if key is not None:
             if key in self._caches[cache_name]:
                 del self._caches[cache_name][key]
-                logger.debug(f"Инвалидирован ключ {key} в кеше '{cache_name}'")
+                logger.debug("Инвалидирован ключ %s в кеше '%s'", key, cache_name)
         else:
             self._caches[cache_name].clear()
-            logger.debug(f"Полностью очищен кеш '{cache_name}'")
+            logger.debug("Полностью очищен кеш '%s'", cache_name)
 
     def clear_all(self) -> None:
         """Очищает все кеши."""
@@ -190,7 +190,7 @@ def cached(
                 # Проверяем кеш
                 cached_result = global_cache.get(cache_name, cache_key)
                 if cached_result is not None:
-                    logger.debug(f"Возвращен результат из кеша для {func.__name__}")
+                    logger.debug("Возвращен результат из кеша для %s", func.__name__)
                     return cached_result
 
                 # Выполняем функцию и кешируем результат
@@ -261,7 +261,11 @@ def profile_performance(func: Callable) -> Callable:
             return func(*args, **kwargs)
         finally:
             execution_time = time.time() - start_time
-            logger.info(f"Время выполнения {func.__name__}: {execution_time:.4f} сек")
+            logger.info(
+                "Время выполнения %s: %.4f сек",
+                func.__name__,
+                execution_time,
+            )
 
     return wrapper
 

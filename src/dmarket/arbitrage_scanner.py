@@ -22,6 +22,7 @@ from src.dmarket.arbitrage import (
 from src.dmarket.dmarket_api import DMarketAPI
 from src.dmarket.liquidity_analyzer import LiquidityAnalyzer
 from src.utils.rate_limiter import RateLimiter
+from src.utils.sentry_breadcrumbs import add_trading_breadcrumb
 
 
 # Настройка логирования
@@ -240,6 +241,16 @@ class ArbitrageScanner:
             Список найденных предметов для арбитража
 
         """
+        # Добавляем breadcrumb для отслеживания сканирования
+        add_trading_breadcrumb(
+            action="scan_game_started",
+            game=game,
+            level=mode,
+            max_items=max_items,
+            price_from=price_from,
+            price_to=price_to,
+        )
+
         # Создаем ключ кеша
         cache_key = (game, mode, price_from or 0, price_to or float("inf"))
 
@@ -247,6 +258,12 @@ class ArbitrageScanner:
         cached_results = self._get_cached_results(cache_key)
         if cached_results:
             logger.debug(f"Использую кэшированные данные для {game} в режиме {mode}")
+            add_trading_breadcrumb(
+                action="scan_game_cache_hit",
+                game=game,
+                level=mode,
+                cached_items=len(cached_results),
+            )
             return cached_results[:max_items]
 
         try:
@@ -349,6 +366,15 @@ class ArbitrageScanner:
             # Ограничиваем количество предметов в результате
             results = results[:max_items]
 
+            # Добавляем breadcrumb об успешном сканировании
+            add_trading_breadcrumb(
+                action="scan_game_completed",
+                game=game,
+                level=mode,
+                items_found=len(results),
+                liquidity_filter=self.enable_liquidity_filter,
+            )
+
             # Сохраняем в кэш
             self._save_to_cache(cache_key, results)
 
@@ -358,6 +384,13 @@ class ArbitrageScanner:
             return results
         except Exception as e:
             logger.exception(f"Ошибка при сканировании игры {game}: {e!s}")
+            # Добавляем breadcrumb об ошибке
+            add_trading_breadcrumb(
+                action="scan_game_error",
+                game=game,
+                level=mode,
+                error=str(e),
+            )
             return []
 
     def _standardize_items(
@@ -1162,7 +1195,9 @@ class ArbitrageScanner:
 
         """
         try:
-            price_usd = item.get("price", {}).get("USD", 0) / 100
+            # Convert price to float (API sometimes returns string)
+            price_value = item.get("price", {}).get("USD", 0)
+            price_usd = float(price_value) / 100 if price_value else 0.0
             price_from, price_to = config["price_range"]
 
             # Проверяем диапазон цен
@@ -1170,7 +1205,9 @@ class ArbitrageScanner:
                 return None
 
             # Получаем suggestedPrice или рассчитываем наценку 20%
-            suggested_price_cents = item.get("suggestedPrice", {}).get("USD", 0)
+            # Convert suggested price to float (API sometimes returns string)
+            suggested_value = item.get("suggestedPrice", {}).get("USD", 0)
+            suggested_price_cents = float(suggested_value) if suggested_value else 0.0
             if suggested_price_cents > 0:
                 suggested_price = suggested_price_cents / 100
             else:

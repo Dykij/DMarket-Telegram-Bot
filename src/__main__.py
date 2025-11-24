@@ -56,12 +56,12 @@ def main() -> None:
                 import psutil
 
                 if psutil.pid_exists(pid):
-                    logger.warning(f"Bot already running with PID {pid}. Exiting.")
+                    logger.warning("Bot already running with PID %s. Exiting.", pid)
                     sys.exit(1)
                 else:
                     logger.warning("Invalid lock file detected. Overwriting.")
             except Exception as e:
-                logger.exception(f"Error reading lock file: {e}")
+                logger.exception("Error reading lock file: %s", e)
 
         # Create lock file with current PID
         with open(lock_file, "w") as f:

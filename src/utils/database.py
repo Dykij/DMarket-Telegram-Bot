@@ -4,24 +4,27 @@ This module provides database connection management, model definitions,
 and common database operations.
 """
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 import json
 import logging
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import create_engine, text
-from sqlalchemy.engine import Engine
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.orm import Session, sessionmaker
 
+# Import all models to ensure they're registered with Base.metadata
+from src.models import (
+    MarketData,  # noqa: F401
+    User,
+)
 from src.models.base import Base
-from src.models.user import User
+from src.utils.memory_cache import _user_cache, cached, get_all_cache_stats
 
 
 logger = logging.getLogger(__name__)
@@ -50,37 +53,8 @@ class DatabaseManager:
         self.echo = echo
         self.pool_size = pool_size
         self.max_overflow = max_overflow
-        self._engine: Engine | None = None
         self._async_engine: AsyncEngine | None = None
-        self._session_maker: sessionmaker[Session] | None = None
         self._async_session_maker: async_sessionmaker[AsyncSession] | None = None
-
-    @property
-    def engine(self) -> Engine:
-        """Get synchronous SQLAlchemy engine."""
-        if self._engine is None:
-            kwargs: dict[str, Any] = {
-                "echo": self.echo,
-                "pool_pre_ping": True,
-            }
-
-            # Check for in-memory SQLite
-            is_memory = ":memory:" in self.database_url or "mode=memory" in self.database_url
-
-            if not is_memory:
-                kwargs["pool_size"] = self.pool_size
-                kwargs["max_overflow"] = self.max_overflow
-            else:
-                from sqlalchemy.pool import StaticPool
-
-                kwargs["poolclass"] = StaticPool
-                kwargs["connect_args"] = {"check_same_thread": False}
-
-            self._engine = create_engine(
-                self.database_url,
-                **kwargs,
-            )
-        return self._engine
 
     @property
     def async_engine(self) -> AsyncEngine:
@@ -109,18 +83,21 @@ class DatabaseManager:
 
                 kwargs["poolclass"] = StaticPool
 
+            # Enable Write-Ahead Logging (WAL) mode for better concurrency
+            if "sqlite" in async_url and not is_memory:
+                # aiosqlite specific connection arguments
+                kwargs["connect_args"] = {
+                    "timeout": 30,
+                    "check_same_thread": False,
+                    # Enable autocommit mode for better performance
+                    "isolation_level": None,
+                }
+
             self._async_engine = create_async_engine(
                 async_url,
                 **kwargs,
             )
         return self._async_engine
-
-    @property
-    def session_maker(self) -> sessionmaker[Session]:
-        """Get session maker for synchronous operations."""
-        if self._session_maker is None:
-            self._session_maker = sessionmaker(bind=self.engine)
-        return self._session_maker
 
     @property
     def async_session_maker(self) -> async_sessionmaker[AsyncSession]:
@@ -129,12 +106,9 @@ class DatabaseManager:
             self._async_session_maker = async_sessionmaker(
                 bind=self.async_engine,
                 class_=AsyncSession,
+                expire_on_commit=False,
             )
         return self._async_session_maker
-
-    def get_session(self) -> Session:
-        """Get synchronous database session."""
-        return self.session_maker()
 
     def get_async_session(self) -> AsyncSession:
         """Get asynchronous database session."""
@@ -145,51 +119,111 @@ class DatabaseManager:
         status: dict[str, Any] = {
             "pool_size": self.pool_size,
             "max_overflow": self.max_overflow,
-            "sync_engine": "Not initialized",
             "async_engine": "Not initialized",
         }
 
-        if self._engine:
-            pool = self._engine.pool
-            status["sync_engine"] = {
-                "size": pool.size(),
-                "checkedin": pool.checkedin(),
-                "checkedout": pool.checkedout(),
-                "overflow": pool.overflow(),
-            }
-
         if self._async_engine:
-            # Async engine pool status might be accessed differently
-            # depending on the driver. But usually it wraps a sync pool
-            pool = self._async_engine.sync_engine.pool
-            status["async_engine"] = {
-                "size": pool.size(),
-                "checkedin": pool.checkedin(),
-                "checkedout": pool.checkedout(),
-                "overflow": pool.overflow(),
-            }
+            try:
+                # Async engine pool status might be accessed differently
+                # depending on the driver. But usually it wraps a sync pool
+                pool = self._async_engine.sync_engine.pool
+                status["async_engine"] = {
+                    "size": pool.size(),
+                    "checkedin": pool.checkedin(),
+                    "checkedout": pool.checkedout(),
+                    "overflow": pool.overflow(),
+                }
+            except AttributeError:
+                # Some async engines don't expose sync_engine
+                status["async_engine"] = "Initialized (pool stats unavailable)"
 
         return status
 
     async def init_database(self) -> None:
-        """Initialize database tables."""
+        """Initialize database tables and indexes."""
         try:
             async with self.async_engine.begin() as conn:
-                # SQLite doesn't support CREATE SCHEMA
-                # Create tables directly
+                # Create tables
                 await conn.run_sync(Base.metadata.create_all)
+
+                # Create indexes for better performance
+                await self._create_indexes(conn)
+
+                # Enable WAL mode and optimizations for SQLite
+                if "sqlite" in self.database_url:
+                    await self._optimize_sqlite(conn)
 
             logger.info("Database initialized successfully")
         except Exception as e:
             logger.exception(f"Failed to initialize database: {e}")
             raise
 
+    async def _optimize_sqlite(self, conn) -> None:
+        """Optimize SQLite database settings for performance.
+
+        Enables Write-Ahead Logging (WAL) mode and other optimizations
+        for better concurrency and performance.
+
+        Args:
+            conn: Database connection
+        """
+        try:
+            # WAL mode for better concurrency
+            await conn.execute(text("PRAGMA journal_mode=WAL"))
+            # Faster synchronization
+            await conn.execute(text("PRAGMA synchronous=NORMAL"))
+            # Larger cache for better performance
+            await conn.execute(text("PRAGMA cache_size=10000"))
+            # Store temp tables in memory
+            await conn.execute(text("PRAGMA temp_store=MEMORY"))
+            # Enable memory-mapped I/O (mmap) for faster reads
+            await conn.execute(text("PRAGMA mmap_size=268435456"))  # 256MB
+            # Optimize page size (4KB is optimal for most cases)
+            await conn.execute(text("PRAGMA page_size=4096"))
+            # Enable automatic vacuuming
+            await conn.execute(text("PRAGMA auto_vacuum=INCREMENTAL"))
+
+            logger.debug("SQLite optimizations applied")
+        except Exception as e:
+            logger.warning(f"Failed to apply SQLite optimizations: {e}")
+
+    async def _create_indexes(self, conn) -> None:
+        """Create database indexes for performance optimization."""
+        indexes = [
+            # Users table indexes
+            "CREATE INDEX IF NOT EXISTS idx_users_telegram_id ON users(telegram_id)",
+            "CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active)",
+            "CREATE INDEX IF NOT EXISTS idx_users_last_activity ON users(last_activity DESC)",
+            # Command log indexes (table: command_log)
+            "CREATE INDEX IF NOT EXISTS idx_cmdlog_user_id ON command_log(user_id)",
+            "CREATE INDEX IF NOT EXISTS idx_cmdlog_created_at ON command_log(created_at DESC)",
+            "CREATE INDEX IF NOT EXISTS idx_cmdlog_command ON command_log(command)",
+            "CREATE INDEX IF NOT EXISTS idx_cmdlog_success ON command_log(success)",
+            # Market data indexes (table: market_data)
+            "CREATE INDEX IF NOT EXISTS idx_market_game ON market_data(game)",
+            "CREATE INDEX IF NOT EXISTS idx_market_created_at ON market_data(created_at DESC)",
+            "CREATE INDEX IF NOT EXISTS idx_market_item_id ON market_data(item_id)",
+            # Trade history indexes (table: trade_history)
+            "CREATE INDEX IF NOT EXISTS idx_trade_history_created_at ON trade_history(created_at DESC)",
+            "CREATE INDEX IF NOT EXISTS idx_trade_history_status ON trade_history(status)",
+            "CREATE INDEX IF NOT EXISTS idx_trade_history_user_id ON trade_history(user_id)",
+            # Composite indexes for common queries
+            "CREATE INDEX IF NOT EXISTS idx_cmdlog_user_cmd ON command_log(user_id, command)",
+            "CREATE INDEX IF NOT EXISTS idx_market_game_date ON market_data(game, created_at DESC)",
+        ]
+
+        for index_sql in indexes:
+            try:
+                await conn.execute(text(index_sql))
+            except Exception as e:
+                # Index might already exist or table might not exist yet
+                logger.debug(f"Index creation skipped: {index_sql} - {e}")
+
     async def close(self) -> None:
         """Close database connections."""
         if self._async_engine:
             await self._async_engine.dispose()
-        if self._engine:
-            self._engine.dispose()
+            logger.info("Database connections closed")
 
     # User operations
     async def get_or_create_user(
@@ -229,6 +263,9 @@ class DatabaseManager:
                     },
                 )
                 await session.commit()
+
+                # Инвалидация кэша после обновления
+                await self.invalidate_user_cache(telegram_id)
 
                 # Return updated user with new data
                 return User(
@@ -595,3 +632,224 @@ class DatabaseManager:
         if "authentication" in error_message.lower():
             return "authentication"
         return "other"
+
+    # Кэшируемые методы для оптимизации частых запросов
+
+    @cached(cache=_user_cache, ttl=600, key_prefix="user_by_telegram")
+    async def get_user_by_telegram_id_cached(self, telegram_id: int) -> User | None:
+        """
+        Получить пользователя по telegram_id с кэшированием.
+
+        Args:
+            telegram_id: Telegram ID пользователя
+
+        Returns:
+            User object или None
+        """
+        async with self.get_async_session() as session:
+            result = await session.execute(
+                text("SELECT * FROM users WHERE telegram_id = :telegram_id"),
+                {"telegram_id": telegram_id},
+            )
+            user_row = result.fetchone()
+
+            if not user_row:
+                return None
+
+            return User(
+                id=(UUID(user_row.id) if isinstance(user_row.id, str) else user_row.id),
+                telegram_id=user_row.telegram_id,
+                username=user_row.username,
+                first_name=user_row.first_name,
+                last_name=user_row.last_name,
+                language_code=user_row.language_code,
+                is_active=user_row.is_active,
+                is_admin=user_row.is_admin,
+                created_at=user_row.created_at,
+                updated_at=user_row.updated_at,
+                last_activity=user_row.last_activity,
+            )
+
+    @cached(cache=None, ttl=300, key_prefix="recent_scans")
+    async def get_recent_scans_cached(self, user_id: UUID, limit: int = 10) -> list[dict[str, Any]]:
+        """
+        Получить последние сканирования пользователя с кэшированием.
+
+        Args:
+            user_id: ID пользователя
+            limit: Максимальное количество записей
+
+        Returns:
+            Список сканирований
+        """
+        async with self.get_async_session() as session:
+            result = await session.execute(
+                text(
+                    """
+                    SELECT
+                        command,
+                        parameters,
+                        created_at,
+                        success,
+                        execution_time_ms
+                    FROM command_log
+                    WHERE user_id = :user_id
+                      AND command LIKE '%scan%'
+                    ORDER BY created_at DESC
+                    LIMIT :limit
+                """
+                ),
+                {"user_id": str(user_id), "limit": limit},
+            )
+
+            scans = []
+            for row in result.fetchall():
+                params = json.loads(row[1]) if row[1] else {}
+                scans.append({
+                    "command": row[0],
+                    "parameters": params,
+                    "created_at": row[2],
+                    "success": row[3],
+                    "execution_time_ms": row[4],
+                })
+
+            return scans
+
+    async def get_cache_stats(self) -> dict[str, Any]:
+        """
+        Получить агрегированную статистику кэширования базы данных.
+
+        Returns:
+            Словарь со статистикой всех кэшей
+        """
+        return await get_all_cache_stats()
+
+    async def invalidate_user_cache(self, telegram_id: int) -> None:
+        """
+        Инвалидировать кэш пользователя по telegram_id.
+
+        Args:
+            telegram_id: Telegram ID пользователя
+        """
+        cache_key = f"user_by_telegram:{telegram_id}"
+        await _user_cache.delete(cache_key)
+        logger.debug(f"Invalidated cache for user {telegram_id}")
+
+    # Batch operations for performance
+
+    async def bulk_save_market_data(self, items: list[dict[str, Any]]) -> None:
+        """
+        Сохранить множество записей market_data одной транзакцией.
+
+        Args:
+            items: Список словарей с данными для сохранения
+        """
+        if not items:
+            return
+
+        async with self.get_async_session() as session:
+            values = []
+            for item in items:
+                values.append({
+                    "id": str(uuid4()),
+                    "item_id": item.get("item_id"),
+                    "game": item.get("game"),
+                    "item_name": item.get("item_name"),
+                    "price_usd": item.get("price_usd"),
+                    "price_change_24h": item.get("price_change_24h"),
+                    "volume_24h": item.get("volume_24h"),
+                    "market_cap": item.get("market_cap"),
+                    "data_source": item.get("data_source", "dmarket"),
+                    "created_at": datetime.now(UTC),
+                })
+
+            # Batch insert
+            await session.execute(
+                text(
+                    """
+                    INSERT INTO market_data (
+                        id, item_id, game, item_name, price_usd,
+                        price_change_24h, volume_24h, market_cap,
+                        data_source, created_at
+                    ) VALUES (
+                        :id, :item_id, :game, :item_name, :price_usd,
+                        :price_change_24h, :volume_24h, :market_cap,
+                        :data_source, :created_at
+                    )
+                """
+                ),
+                values,
+            )
+            await session.commit()
+            logger.debug(f"Bulk saved {len(items)} market data records")
+
+    async def cleanup_old_market_data(self, days: int = 30) -> int:
+        """
+        Удалить старые записи market_data для экономии места.
+
+        Args:
+            days: Количество дней для хранения данных
+
+        Returns:
+            Количество удаленных записей
+        """
+        cutoff_date = datetime.now(UTC) - timedelta(days=days)
+
+        async with self.get_async_session() as session:
+            result = await session.execute(
+                text(
+                    """
+                    DELETE FROM market_data
+                    WHERE created_at < :cutoff_date
+                """
+                ),
+                {"cutoff_date": cutoff_date},
+            )
+            await session.commit()
+            deleted_count = result.rowcount or 0
+            logger.info(f"Cleaned up {deleted_count} old market data records")
+            return deleted_count
+
+    async def cleanup_expired_cache(self) -> int:
+        """
+        Удалить просроченные записи из market_data_cache.
+
+        Returns:
+            Количество удаленных записей
+        """
+        now = datetime.now(UTC)
+
+        async with self.get_async_session() as session:
+            result = await session.execute(
+                text(
+                    """
+                    DELETE FROM market_data_cache
+                    WHERE expires_at < :now
+                """
+                ),
+                {"now": now},
+            )
+            await session.commit()
+            deleted_count = result.rowcount or 0
+            if deleted_count > 0:
+                logger.info(f"Cleaned up {deleted_count} expired cache records")
+            return deleted_count
+
+    async def vacuum_database(self) -> None:
+        """
+        Выполнить VACUUM для SQLite базы данных.
+
+        Освобождает неиспользуемое пространство и оптимизирует БД.
+        Работает только для SQLite.
+        """
+        if "sqlite" not in self.database_url:
+            logger.debug("VACUUM skipped - not a SQLite database")
+            return
+
+        try:
+            async with self.async_engine.begin() as conn:
+                # VACUUM не может быть выполнен в транзакции
+                await conn.execute(text("PRAGMA incremental_vacuum"))
+                logger.info("Database vacuumed successfully")
+        except Exception as e:
+            logger.warning(f"Failed to vacuum database: {e}")

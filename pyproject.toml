@@ -280,6 +280,7 @@ ignore = [
     "FIX002",   # Line contains TODO
     "COM812",   # Missing trailing comma (может конфликтовать с formatter)
     "ISC001",   # Implicitly concatenated string (может конфликтовать с formatter)
+    "TC002",    # Type-checking import используется в runtime (pytest fixtures)
     # Дополнительные игнорирования для практичности
     "G004",     # Logging statement uses f-string (современный подход)
     "TRY401",   # Redundant exception object in logging.exception (читаемость)

@@ -74,7 +74,7 @@ class Application:
                 logger.info("Database initialized successfully")
 
                 # Initialize StateManager
-                session = self.database.get_session()
+                session = self.database.get_async_session()
                 self.state_manager = StateManager(
                     session=session,
                     max_consecutive_errors=5,
@@ -430,5 +430,6 @@ if __name__ == "__main__":
         asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
     # Run the application
+    asyncio.run(main())
     asyncio.run(main())
     asyncio.run(main())

@@ -106,6 +106,96 @@
   "python.testing.autoTestDiscoverOnSaveEnabled": true,
   "python.testing.promptToConfigure": false,
   // ==================== Editor Settings ====================
+  "editor.fontFamily": "'Cascadia Code NF', 'JetBrains Mono NF', 'Fira Code NF', Consolas, monospace",
+  "editor.fontSize": 14,
+  "editor.fontLigatures": true,
+  "editor.renderWhitespace": "all",
+  "editor.renderControlCharacters": true,
+  "editor.unicodeHighlight.ambiguousCharacters": true,
+  "editor.unicodeHighlight.invisibleCharacters": true,
+  "editor.unicodeHighlight.nonBasicASCII": true,
+  "editor.unicodeHighlight.includeComments": true,
+  "editor.unicodeHighlight.includeStrings": true,
+  // ==================== Gremlins Tracker Settings ====================
+  "gremlins.color_info": "#00ff00",
+  "gremlins.color_warning": "#ffff00",
+  "gremlins.color_error": "#ff0000",
+  "gremlins.showInProblemPane": true,
+  "gremlins.gutterIconSize": "75%",
+  "gremlins.characters": {
+    "2013": {
+      "zeroWidth": false,
+      "description": "EN DASH",
+      "level": "error"
+    },
+    "2014": {
+      "zeroWidth": false,
+      "description": "EM DASH",
+      "level": "error"
+    },
+    "2018": {
+      "zeroWidth": false,
+      "description": "LEFT SINGLE QUOTATION MARK",
+      "level": "error"
+    },
+    "2019": {
+      "zeroWidth": false,
+      "description": "RIGHT SINGLE QUOTATION MARK",
+      "level": "error"
+    },
+    "201C": {
+      "zeroWidth": false,
+      "description": "LEFT DOUBLE QUOTATION MARK",
+      "level": "error"
+    },
+    "201D": {
+      "zeroWidth": false,
+      "description": "RIGHT DOUBLE QUOTATION MARK",
+      "level": "error"
+    },
+    "00A0": {
+      "zeroWidth": false,
+      "description": "NO-BREAK SPACE",
+      "level": "error"
+    },
+    "200B": {
+      "zeroWidth": true,
+      "description": "ZERO WIDTH SPACE",
+      "level": "error"
+    },
+    "200C": {
+      "zeroWidth": true,
+      "description": "ZERO WIDTH NON-JOINER",
+      "level": "error"
+    },
+    "200D": {
+      "zeroWidth": true,
+      "description": "ZERO WIDTH JOINER",
+      "level": "error"
+    },
+    "FEFF": {
+      "zeroWidth": true,
+      "description": "ZERO WIDTH NO-BREAK SPACE",
+      "level": "error"
+    },
+    "037E": {
+      "zeroWidth": false,
+      "description": "GREEK QUESTION MARK",
+      "level": "error"
+    },
+    "0430-044F": {
+      "zeroWidth": false,
+      "description": "CYRILLIC SMALL LETTERS (а-я)",
+      "level": "error",
+      "overviewRulerColor": "rgba(255,0,0,1)"
+    },
+    "0410-042F": {
+      "zeroWidth": false,
+      "description": "CYRILLIC CAPITAL LETTERS (А-Я)",
+      "level": "error",
+      "overviewRulerColor": "rgba(255,0,0,1)"
+    }
+  },
   "editor.formatOnSave": true,
   "editor.formatOnPaste": false,
   "editor.formatOnType": false,
@@ -134,6 +224,10 @@
   "git.suggestSmartCommit": true,
   "git.enableCommitSigning": false,
   // ==================== Terminal Settings ====================
+  "terminal.integrated.fontFamily": "'Cascadia Code NF', 'JetBrains Mono NF', Consolas, monospace",
+  "terminal.integrated.fontSize": 13,
+  "terminal.integrated.fontWeight": "normal",
+  "terminal.integrated.cursorStyle": "line",
   "terminal.integrated.defaultProfile.windows": "PowerShell",
   "terminal.integrated.env.windows": {
     "PYTHONPATH": "${workspaceFolder}"
@@ -150,7 +244,6 @@
     }
   },
   "terminal.integrated.scrollback": 10000,
-  "terminal.integrated.cursorBlinking": true,
   // ==================== Spell Checker ====================
   "cSpell.words": [
     "aiofiles",
