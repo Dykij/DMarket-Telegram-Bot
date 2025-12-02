@@ -865,6 +865,213 @@ class TargetManager:
                 "error": str(e),
             }
 
+    async def assess_competition(
+        self,
+        game: str,
+        title: str,
+        max_competition: int = 3,
+        price_threshold: float | None = None,
+    ) -> dict[str, Any]:
+        """Оценить уровень конкуренции для создания buy order.
+
+        Позволяет определить, стоит ли создавать таргет для данного предмета
+        на основе количества существующих buy orders.
+
+        Args:
+            game: Код игры (csgo, dota2, tf2, rust)
+            title: Название предмета
+            max_competition: Максимально допустимое количество конкурирующих ордеров.
+                Если ордеров больше - рекомендуется пропустить предмет.
+            price_threshold: Порог цены для фильтрации (в USD).
+                Если указан, учитываются только ордера с ценой >= порога.
+
+        Returns:
+            Dict[str, Any]: Результат оценки конкуренции
+
+        Response format:
+            {
+                "title": "AK-47 | Redline (Field-Tested)",
+                "game": "csgo",
+                "should_proceed": True/False,
+                "competition_level": "low" | "medium" | "high",
+                "total_orders": 5,
+                "total_amount": 15,
+                "best_price": 8.50,
+                "recommendation": "Низкая конкуренция - рекомендуется создать таргет",
+                "suggested_price": 8.55,  # Рекомендуемая цена (чуть выше лучшего ордера)
+            }
+
+        Example:
+            >>> result = await manager.assess_competition(
+            ...     game="csgo",
+            ...     title="AK-47 | Redline (Field-Tested)",
+            ...     max_competition=3
+            ... )
+            >>> if result["should_proceed"]:
+            ...     await manager.create_target(...)
+            >>> else:
+            ...     print(f"Пропускаем: {result['recommendation']}")
+
+        """
+        logger.info(
+            f"Оценка конкуренции для '{title}' (игра: {game}, макс. конкуренция: {max_competition})"
+        )
+
+        # Конвертируем игру в gameId
+        game_ids = {
+            "csgo": "a8db",
+            "dota2": "9a92",
+            "tf2": "tf2",
+            "rust": "rust",
+        }
+        game_id = game_ids.get(game.lower(), game)
+
+        try:
+            # Получаем данные о конкуренции через API
+            competition = await self.api.get_buy_orders_competition(
+                game_id=game_id,
+                title=title,
+                price_threshold=price_threshold,
+            )
+
+            # Извлекаем ключевые метрики
+            total_orders = competition.get("total_orders", 0)
+            total_amount = competition.get("total_amount", 0)
+            competition_level = competition.get("competition_level", "unknown")
+            best_price = competition.get("best_price", 0.0)
+            average_price = competition.get("average_price", 0.0)
+
+            # Определяем, стоит ли продолжать
+            should_proceed = total_orders <= max_competition
+
+            # Формируем рекомендацию
+            if total_orders == 0:
+                recommendation = "Нет конкурентов - отличная возможность для таргета"
+                suggested_price = None  # Нужно получить рыночную цену отдельно
+            elif should_proceed:
+                recommendation = (
+                    f"Низкая конкуренция ({total_orders} ордеров) - "
+                    "рекомендуется создать таргет"
+                )
+                # Предлагаем цену на $0.05-$0.10 выше лучшего ордера для приоритета
+                suggested_price = round(best_price + 0.05, 2) if best_price > 0 else None
+            else:
+                recommendation = (
+                    f"Высокая конкуренция ({total_orders} ордеров, "
+                    f"{total_amount} заявок) - рекомендуется пропустить или "
+                    f"увеличить цену выше ${best_price:.2f}"
+                )
+                # Предлагаем цену на 3-5% выше лучшего ордера для "перебивания"
+                suggested_price = round(best_price * 1.03, 2) if best_price > 0 else None
+
+            result = {
+                "title": title,
+                "game": game,
+                "should_proceed": should_proceed,
+                "competition_level": competition_level,
+                "total_orders": total_orders,
+                "total_amount": total_amount,
+                "best_price": best_price,
+                "average_price": average_price,
+                "recommendation": recommendation,
+                "suggested_price": suggested_price,
+                "max_competition_threshold": max_competition,
+                "raw_data": competition,
+            }
+
+            logger.info(
+                f"Результат оценки для '{title}': "
+                f"proceed={should_proceed}, level={competition_level}, "
+                f"orders={total_orders}"
+            )
+
+            return result
+
+        except Exception as e:
+            logger.exception(f"Ошибка при оценке конкуренции для '{title}': {e}")
+            return {
+                "title": title,
+                "game": game,
+                "should_proceed": False,  # При ошибке лучше не рисковать
+                "competition_level": "unknown",
+                "total_orders": 0,
+                "total_amount": 0,
+                "best_price": 0.0,
+                "average_price": 0.0,
+                "recommendation": f"Ошибка при оценке: {e}. Рекомендуется повторить позже.",
+                "suggested_price": None,
+                "error": str(e),
+            }
+
+    async def filter_low_competition_items(
+        self,
+        game: str,
+        items: list[dict[str, Any]],
+        max_competition: int = 3,
+    ) -> list[dict[str, Any]]:
+        """Фильтрует список предметов, оставляя только с низкой конкуренцией.
+
+        Args:
+            game: Код игры
+            items: Список предметов для проверки (каждый должен иметь поле 'title')
+            max_competition: Максимально допустимое количество конкурирующих ордеров
+
+        Returns:
+            Список предметов с низкой конкуренцией (добавляется поле 'competition')
+
+        Example:
+            >>> items = [
+            ...     {"title": "AK-47 | Redline (Field-Tested)", "price": 8.50},
+            ...     {"title": "AWP | Asiimov (Field-Tested)", "price": 45.00},
+            ... ]
+            >>> filtered = await manager.filter_low_competition_items("csgo", items)
+            >>> for item in filtered:
+            ...     print(f"{item['title']}: конкуренция {item['competition']['competition_level']}")
+
+        """
+        logger.info(
+            f"Фильтрация {len(items)} предметов по конкуренции (макс: {max_competition})"
+        )
+
+        filtered_items = []
+
+        for item in items:
+            title = item.get("title")
+            if not title:
+                logger.warning(f"Пропущен предмет без названия: {item}")
+                continue
+
+            # Оцениваем конкуренцию для каждого предмета
+            competition = await self.assess_competition(
+                game=game,
+                title=title,
+                max_competition=max_competition,
+            )
+
+            if competition.get("should_proceed", False):
+                # Добавляем данные о конкуренции к предмету
+                item_with_competition = {**item, "competition": competition}
+                filtered_items.append(item_with_competition)
+                logger.debug(
+                    f"✓ Предмет '{title}' прошел фильтр: "
+                    f"{competition['total_orders']} ордеров"
+                )
+            else:
+                logger.debug(
+                    f"✗ Предмет '{title}' отфильтрован: "
+                    f"{competition['total_orders']} ордеров (> {max_competition})"
+                )
+
+            # Небольшая задержка для rate limiting
+            await asyncio.sleep(0.3)
+
+        logger.info(
+            f"Фильтрация завершена: {len(filtered_items)}/{len(items)} "
+            f"предметов с низкой конкуренцией"
+        )
+
+        return filtered_items
+
     def _validate_attributes(self, game: str, attrs: dict[str, Any]) -> None:
         """Валидация атрибутов таргета.
 

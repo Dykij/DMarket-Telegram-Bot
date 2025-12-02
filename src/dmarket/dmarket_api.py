@@ -2791,6 +2791,141 @@ class DMarketAPI:
 
         return await self._request("GET", path)
 
+    async def get_buy_orders_competition(
+        self,
+        game_id: str,
+        title: str,
+        price_threshold: float | None = None,
+    ) -> dict[str, Any]:
+        """Оценка конкуренции по buy orders для предмета.
+
+        Использует эндпоинт targets-by-title для получения агрегированных
+        данных о buy orders и оценки уровня конкуренции среди покупателей.
+
+        Args:
+            game_id: Идентификатор игры (csgo, dota2, tf2, rust)
+            title: Точное название предмета
+            price_threshold: Порог цены для фильтрации (в USD).
+                Если указан, учитываются только ордера с ценой >= порога.
+
+        Returns:
+            Dict[str, Any]: Данные о конкуренции
+
+        Response format:
+            {
+                "title": "AK-47 | Redline (Field-Tested)",
+                "game_id": "csgo",
+                "total_orders": 15,
+                "total_amount": 45,  # Общее количество заявок на покупку
+                "competition_level": "medium",  # "low", "medium", "high"
+                "best_price": 8.50,  # Лучшая цена buy order в USD
+                "average_price": 8.20,  # Средняя цена buy order
+                "filtered_orders": 10,  # Количество ордеров выше порога (если указан)
+                "orders": [...]  # Список всех ордеров
+            }
+
+        Example:
+            >>> competition = await api.get_buy_orders_competition(
+            ...     game_id="csgo",
+            ...     title="AK-47 | Redline (Field-Tested)",
+            ...     price_threshold=8.00
+            ... )
+            >>> if competition["competition_level"] == "low":
+            ...     print("Низкая конкуренция - можно создавать таргет")
+            >>> else:
+            ...     print(f"Высокая конкуренция: {competition['total_orders']} ордеров")
+
+        """
+        price_str = f"${price_threshold:.2f}" if price_threshold else "не указан"
+        logger.debug(
+            f"Оценка конкуренции buy orders для '{title}' (игра: {game_id}, "
+            f"порог цены: {price_str})"
+        )
+
+        try:
+            # Получаем существующие таргеты для предмета
+            targets_response = await self.get_targets_by_title(
+                game_id=game_id,
+                title=title,
+            )
+
+            orders = targets_response.get("orders", [])
+
+            # Базовые метрики
+            total_orders = len(orders)
+            total_amount = 0
+            prices = []
+            filtered_orders = 0
+            filtered_amount = 0
+
+            # Анализируем каждый ордер
+            for order in orders:
+                amount = order.get("amount", 0)
+                price_cents = float(order.get("price", 0))
+                price_usd = price_cents / 100
+
+                total_amount += amount
+                prices.append(price_usd)
+
+                # Фильтруем по порогу цены если указан
+                if price_threshold is None or price_usd >= price_threshold:
+                    filtered_orders += 1
+                    filtered_amount += amount
+
+            # Рассчитываем статистику цен
+            best_price = max(prices) if prices else 0.0
+            average_price = sum(prices) / len(prices) if prices else 0.0
+
+            # Определяем уровень конкуренции
+            # - low: <= 2 ордеров или общее количество <= 5
+            # - medium: 3-10 ордеров или общее количество 6-20
+            # - high: > 10 ордеров или общее количество > 20
+            if total_orders <= 2 or total_amount <= 5:
+                competition_level = "low"
+            elif total_orders <= 10 or total_amount <= 20:
+                competition_level = "medium"
+            else:
+                competition_level = "high"
+
+            result = {
+                "title": title,
+                "game_id": game_id,
+                "total_orders": total_orders,
+                "total_amount": total_amount,
+                "competition_level": competition_level,
+                "best_price": best_price,
+                "average_price": round(average_price, 2),
+                "filtered_orders": filtered_orders if price_threshold else total_orders,
+                "filtered_amount": filtered_amount if price_threshold else total_amount,
+                "price_threshold": price_threshold,
+                "orders": orders,
+            }
+
+            logger.info(
+                f"Конкуренция для '{title}': уровень={competition_level}, "
+                f"ордеров={total_orders}, количество={total_amount}, "
+                f"лучшая цена=${best_price:.2f}"
+            )
+
+            return result
+
+        except Exception as e:
+            logger.exception(f"Ошибка при оценке конкуренции для '{title}': {e}")
+            return {
+                "title": title,
+                "game_id": game_id,
+                "total_orders": 0,
+                "total_amount": 0,
+                "competition_level": "unknown",
+                "best_price": 0.0,
+                "average_price": 0.0,
+                "filtered_orders": 0,
+                "filtered_amount": 0,
+                "price_threshold": price_threshold,
+                "orders": [],
+                "error": str(e),
+            }
+
     async def get_closed_targets(
         self,
         limit: int = 50,
