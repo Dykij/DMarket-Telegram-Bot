@@ -1008,6 +1008,7 @@ class TargetManager:
         game: str,
         items: list[dict[str, Any]],
         max_competition: int = 3,
+        request_delay: float = 0.3,
     ) -> list[dict[str, Any]]:
         """Фильтрует список предметов, оставляя только с низкой конкуренцией.
 
@@ -1015,6 +1016,7 @@ class TargetManager:
             game: Код игры
             items: Список предметов для проверки (каждый должен иметь поле 'title')
             max_competition: Максимально допустимое количество конкурирующих ордеров
+            request_delay: Задержка между запросами в секундах для rate limiting
 
         Returns:
             Список предметов с низкой конкуренцией (добавляется поле 'competition')
@@ -1062,8 +1064,9 @@ class TargetManager:
                     f"{competition['total_orders']} ордеров (> {max_competition})"
                 )
 
-            # Небольшая задержка для rate limiting
-            await asyncio.sleep(0.3)
+            # Задержка для rate limiting
+            if request_delay > 0:
+                await asyncio.sleep(request_delay)
 
         logger.info(
             f"Фильтрация завершена: {len(filtered_items)}/{len(items)} "
