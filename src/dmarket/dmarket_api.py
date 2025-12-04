@@ -679,7 +679,7 @@ class DMarketAPI:
                 # Парсим JSON ответа
                 try:
                     result = response.json()
-                except (json.JSONDecodeError, TypeError):
+                except (json.JSONDecodeError, TypeError, Exception):
                     # Если не получается распарсить JSON, возвращаем текст
                     result = {
                         "text": response.text,
