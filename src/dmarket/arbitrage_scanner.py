@@ -117,6 +117,8 @@ class ArbitrageScanner:
         self,
         api_client: DMarketAPI | None = None,
         enable_liquidity_filter: bool = True,
+        enable_competition_filter: bool = True,
+        max_competition: int = 3,
     ) -> None:
         """Инициализирует сканер арбитража.
 
@@ -124,6 +126,8 @@ class ArbitrageScanner:
             api_client: Предварительно созданный клиент DMarketAPI или None
                         для создания нового при необходимости
             enable_liquidity_filter: Включить фильтрацию по ликвидности
+            enable_competition_filter: Включить фильтрацию по конкуренции buy orders
+            max_competition: Максимально допустимое количество конкурирующих ордеров
 
         """
         self.api_client = api_client
@@ -133,6 +137,10 @@ class ArbitrageScanner:
         # Инициализация анализатора ликвидности
         self.liquidity_analyzer = None
         self.enable_liquidity_filter = enable_liquidity_filter
+
+        # Параметры фильтрации по конкуренции
+        self.enable_competition_filter = enable_competition_filter
+        self.max_competition = max_competition  # Максимум конкурентных ордеров
 
         # Параметры фильтрации по ликвидности
         self.min_liquidity_score = 60  # Минимальный балл ликвидности
@@ -1303,6 +1311,43 @@ class ArbitrageScanner:
             # Добавляем данные ликвидности если они есть
             if liquidity_data:
                 result.update(liquidity_data)
+
+            # Проверяем конкуренцию buy orders если включен фильтр
+            if self.enable_competition_filter and self.api_client:
+                try:
+                    item_title = item.get("title", "")
+                    if item_title:
+                        game_id = GAME_IDS.get(game, game)
+                        competition = await self.api_client.get_buy_orders_competition(
+                            game_id=game_id,
+                            title=item_title,
+                        )
+
+                        competition_level = competition.get("competition_level", "unknown")
+                        total_orders = competition.get("total_orders", 0)
+                        total_amount = competition.get("total_amount", 0)
+
+                        # Фильтруем предметы с высокой конкуренцией
+                        if total_orders > self.max_competition:
+                            logger.debug(
+                                f"Предмет '{item_title}' отфильтрован: "
+                                f"высокая конкуренция ({total_orders} ордеров > "
+                                f"{self.max_competition} макс)"
+                            )
+                            return None
+
+                        # Добавляем данные о конкуренции в результат
+                        result["competition"] = {
+                            "level": competition_level,
+                            "total_orders": total_orders,
+                            "total_amount": total_amount,
+                            "best_price": competition.get("best_price", 0.0),
+                            "average_price": competition.get("average_price", 0.0),
+                        }
+
+                except Exception as e:
+                    logger.debug(f"Ошибка проверки конкуренции для '{item.get('title')}': {e}")
+                    # При ошибке продолжаем без данных о конкуренции
 
         except Exception as e:
             logger.debug(f"Ошибка анализа предмета: {e}")

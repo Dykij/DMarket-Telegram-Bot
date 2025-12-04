@@ -1066,3 +1066,288 @@ class TestTargetManagerEdgeCases:
         call_args = mock_api.create_targets.call_args
         targets_data = call_args.kwargs["targets"]
         assert targets_data[0]["Price"]["Amount"] == 1
+
+
+# ============================================================================
+# Tests: Competition Assessment
+# ============================================================================
+
+
+class TestAssessCompetition:
+    """Тесты оценки конкуренции buy orders."""
+
+    @pytest.fixture()
+    def mock_api_with_competition(self, mock_api):
+        """Мок API с поддержкой get_buy_orders_competition."""
+        mock_api.get_buy_orders_competition = AsyncMock()
+        return mock_api
+
+    @pytest.fixture()
+    def target_manager_with_competition(self, mock_api_with_competition):
+        """TargetManager с поддержкой оценки конкуренции."""
+        return TargetManager(mock_api_with_competition)
+
+    @pytest.mark.asyncio()
+    async def test_assess_competition_low_competition(
+        self, target_manager_with_competition, mock_api_with_competition
+    ):
+        """Тест оценки при низкой конкуренции."""
+        # Arrange
+        mock_api_with_competition.get_buy_orders_competition.return_value = {
+            "title": "AK-47 | Redline (Field-Tested)",
+            "game_id": "a8db",
+            "total_orders": 2,
+            "total_amount": 5,
+            "competition_level": "low",
+            "best_price": 8.50,
+            "average_price": 8.30,
+            "filtered_orders": 2,
+            "orders": [
+                {"price": "850", "amount": 3},
+                {"price": "810", "amount": 2},
+            ],
+        }
+
+        # Act
+        result = await target_manager_with_competition.assess_competition(
+            game="csgo",
+            title="AK-47 | Redline (Field-Tested)",
+            max_competition=3,
+        )
+
+        # Assert
+        assert result["should_proceed"] is True
+        assert result["competition_level"] == "low"
+        assert result["total_orders"] == 2
+        assert result["best_price"] == 8.50
+        assert "низкая конкуренция" in result["recommendation"].lower()
+
+    @pytest.mark.asyncio()
+    async def test_assess_competition_high_competition(
+        self, target_manager_with_competition, mock_api_with_competition
+    ):
+        """Тест оценки при высокой конкуренции."""
+        # Arrange
+        mock_api_with_competition.get_buy_orders_competition.return_value = {
+            "title": "AK-47 | Redline (Field-Tested)",
+            "game_id": "a8db",
+            "total_orders": 10,
+            "total_amount": 50,
+            "competition_level": "high",
+            "best_price": 9.00,
+            "average_price": 8.50,
+            "filtered_orders": 10,
+            "orders": [],
+        }
+
+        # Act
+        result = await target_manager_with_competition.assess_competition(
+            game="csgo",
+            title="AK-47 | Redline (Field-Tested)",
+            max_competition=3,
+        )
+
+        # Assert
+        assert result["should_proceed"] is False
+        assert result["competition_level"] == "high"
+        assert result["total_orders"] == 10
+        assert "пропустить" in result["recommendation"].lower()
+
+    @pytest.mark.asyncio()
+    async def test_assess_competition_no_competitors(
+        self, target_manager_with_competition, mock_api_with_competition
+    ):
+        """Тест оценки при отсутствии конкурентов."""
+        # Arrange
+        mock_api_with_competition.get_buy_orders_competition.return_value = {
+            "title": "Rare Item",
+            "game_id": "a8db",
+            "total_orders": 0,
+            "total_amount": 0,
+            "competition_level": "low",
+            "best_price": 0.0,
+            "average_price": 0.0,
+            "filtered_orders": 0,
+            "orders": [],
+        }
+
+        # Act
+        result = await target_manager_with_competition.assess_competition(
+            game="csgo",
+            title="Rare Item",
+            max_competition=3,
+        )
+
+        # Assert
+        assert result["should_proceed"] is True
+        assert result["total_orders"] == 0
+        assert "нет конкурентов" in result["recommendation"].lower()
+
+    @pytest.mark.asyncio()
+    async def test_assess_competition_suggested_price_calculation(
+        self, target_manager_with_competition, mock_api_with_competition
+    ):
+        """Тест расчета рекомендуемой цены."""
+        # Arrange
+        mock_api_with_competition.get_buy_orders_competition.return_value = {
+            "title": "Test Item",
+            "game_id": "a8db",
+            "total_orders": 2,
+            "total_amount": 3,
+            "competition_level": "low",
+            "best_price": 10.00,
+            "average_price": 9.50,
+            "filtered_orders": 2,
+            "orders": [],
+        }
+
+        # Act
+        result = await target_manager_with_competition.assess_competition(
+            game="csgo",
+            title="Test Item",
+            max_competition=5,
+        )
+
+        # Assert
+        assert result["should_proceed"] is True
+        # Рекомендуемая цена должна быть чуть выше лучшего ордера
+        assert result["suggested_price"] is not None
+        assert result["suggested_price"] >= 10.00
+
+    @pytest.mark.asyncio()
+    async def test_assess_competition_api_error(
+        self, target_manager_with_competition, mock_api_with_competition
+    ):
+        """Тест обработки ошибки API."""
+        # Arrange
+        mock_api_with_competition.get_buy_orders_competition.side_effect = Exception("API Error")
+
+        # Act
+        result = await target_manager_with_competition.assess_competition(
+            game="csgo",
+            title="Test Item",
+        )
+
+        # Assert
+        assert result["should_proceed"] is False  # При ошибке лучше не рисковать
+        assert "error" in result
+        assert "ошибка" in result["recommendation"].lower()
+
+
+class TestFilterLowCompetitionItems:
+    """Тесты фильтрации предметов по конкуренции."""
+
+    @pytest.fixture()
+    def mock_api_with_competition(self, mock_api):
+        """Мок API с поддержкой get_buy_orders_competition."""
+        mock_api.get_buy_orders_competition = AsyncMock()
+        return mock_api
+
+    @pytest.fixture()
+    def target_manager_with_competition(self, mock_api_with_competition):
+        """TargetManager с поддержкой оценки конкуренции."""
+        return TargetManager(mock_api_with_competition)
+
+    @pytest.mark.asyncio()
+    async def test_filter_items_returns_only_low_competition(
+        self, target_manager_with_competition, mock_api_with_competition
+    ):
+        """Тест фильтрации возвращает только предметы с низкой конкуренцией."""
+        # Arrange
+        async def mock_competition(game_id, title, price_threshold=None):
+            if "High" in title:
+                return {
+                    "total_orders": 10,
+                    "total_amount": 50,
+                    "competition_level": "high",
+                    "best_price": 10.0,
+                    "average_price": 9.5,
+                }
+            return {
+                "total_orders": 2,
+                "total_amount": 5,
+                "competition_level": "low",
+                "best_price": 8.0,
+                "average_price": 7.5,
+            }
+
+        mock_api_with_competition.get_buy_orders_competition = AsyncMock(
+            side_effect=mock_competition
+        )
+
+        items = [
+            {"title": "Low Competition Item", "price": 10.0},
+            {"title": "High Competition Item", "price": 15.0},
+            {"title": "Another Low Item", "price": 12.0},
+        ]
+
+        # Act
+        filtered = await target_manager_with_competition.filter_low_competition_items(
+            game="csgo",
+            items=items,
+            max_competition=3,
+        )
+
+        # Assert
+        assert len(filtered) == 2
+        assert filtered[0]["title"] == "Low Competition Item"
+        assert filtered[1]["title"] == "Another Low Item"
+
+    @pytest.mark.asyncio()
+    async def test_filter_items_adds_competition_data(
+        self, target_manager_with_competition, mock_api_with_competition
+    ):
+        """Тест что фильтрация добавляет данные о конкуренции к предметам."""
+        # Arrange
+        mock_api_with_competition.get_buy_orders_competition.return_value = {
+            "total_orders": 1,
+            "total_amount": 2,
+            "competition_level": "low",
+            "best_price": 5.0,
+            "average_price": 5.0,
+        }
+
+        items = [{"title": "Test Item", "price": 10.0}]
+
+        # Act
+        filtered = await target_manager_with_competition.filter_low_competition_items(
+            game="csgo",
+            items=items,
+            max_competition=5,
+        )
+
+        # Assert
+        assert len(filtered) == 1
+        assert "competition" in filtered[0]
+        assert filtered[0]["competition"]["competition_level"] == "low"
+
+    @pytest.mark.asyncio()
+    async def test_filter_items_skips_items_without_title(
+        self, target_manager_with_competition, mock_api_with_competition
+    ):
+        """Тест пропуска предметов без названия."""
+        # Arrange
+        mock_api_with_competition.get_buy_orders_competition.return_value = {
+            "total_orders": 1,
+            "total_amount": 1,
+            "competition_level": "low",
+            "best_price": 5.0,
+            "average_price": 5.0,
+        }
+
+        items = [
+            {"title": "Valid Item", "price": 10.0},
+            {"price": 15.0},  # No title
+            {"title": "", "price": 12.0},  # Empty title
+        ]
+
+        # Act
+        filtered = await target_manager_with_competition.filter_low_competition_items(
+            game="csgo",
+            items=items,
+            max_competition=5,
+        )
+
+        # Assert
+        assert len(filtered) == 1
+        assert filtered[0]["title"] == "Valid Item"
