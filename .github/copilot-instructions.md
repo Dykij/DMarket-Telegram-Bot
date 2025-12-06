@@ -47,15 +47,16 @@ pip install -r requirements.txt
 **Тип проекта**: Python Telegram bot для торговли и аналитики на площадке DMarket
 
 **Технологический стек**:
-- Python 3.11+
+- Python 3.11+ (рекомендуется 3.12+)
 - Асинхронное программирование (async/await)
-- python-telegram-bot 20.7+
-- httpx для HTTP-запросов
+- python-telegram-bot 21.0+
+- httpx 0.27+ для HTTP-запросов
 - PostgreSQL/SQLite + SQLAlchemy 2.0
 - Redis для кэширования
 - Docker для контейнеризации
-- Ruff + Black + MyPy для качества кода
-- pytest + pytest-asyncio для тестирования
+- Ruff 0.8+ для линтинга и форматирования
+- MyPy 1.13+ для проверки типов
+- pytest 8.0+ для тестирования
 
 **Основные возможности**:
 - 🎯 **Многоуровневый арбитраж** - 5 уровней торговли (от разгона баланса до профессионала)
@@ -65,7 +66,37 @@ pip install -r requirements.txt
 - 📈 **Анализ рынка** - история продаж, тренды, ликвидность
 - 🌐 **Локализация** - RU, EN, ES, DE
 - 🔒 **Безопасность** - шифрование API ключей, rate limiting
-- 🧪 **Высокое покрытие тестами** - 85%+
+- 🧪 **100% успешных тестов** - 302/302 тестов проходят
+
+---
+
+## 🆕 Новые возможности (Декабрь 2025)
+
+### Современные паттерны Python 3.12+
+
+#### Type параметры (PEP 695)
+```python
+# Новый синтаксис type alias
+type ItemPrice = dict[str, float | int]
+type AsyncGen[T] = collections.abc.AsyncGenerator[T, None]
+```
+
+#### Structured Pattern Matching
+```python
+match event:
+    case {"type": "price_update", "item": item, "price": price}:
+        await handle_price_update(item, price)
+    case {"type": "balance_change", "amount": amount}:
+        await handle_balance_change(amount)
+    case _:
+        logger.warning("unknown_event", event=event)
+```
+
+#### Async Context Managers
+```python
+async with api_client.session() as session:
+    result = await session.get(url)
+```
 
 ---
 

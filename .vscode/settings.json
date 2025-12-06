@@ -509,6 +509,39 @@
   "files.autoSaveDelay": 1000,
   "diffEditor.ignoreTrimWhitespace": false,
   "diffEditor.renderSideBySide": true,
+  "diffEditor.experimental.useTrueInlineView": true,
+  "diffEditor.diffAlgorithm": "advanced",
+  // ==================== VS Code Insiders / Experimental ====================
+  "editor.experimentalEditContextEnabled": true,
+  "editor.experimental.asyncTokenization": true,
+  "workbench.experimental.cloudChanges.autoStore": "onShutdown",
+  "workbench.experimental.cloudChanges.partialMatches.enabled": true,
+  "accessibility.voice.speechLanguage": "en-US",
+  "accessibility.voice.autoSynthesize": "auto",
+  "testing.automaticallyOpenPeekViewDuringAutoRun": true,
+  "testing.alwaysRevealTestOnStateChange": true,
+  "testing.countBadge": "passed",
+  "testing.coverageBarThresholds": {
+    "red": 0,
+    "yellow": 50,
+    "green": 80
+  },
+  "testing.showCoverageInExplorer": true,
+  "scm.experimental.showHistoryGraph": true,
+  "window.confirmSaveUntitledWorkspace": false,
+  "window.newWindowProfile": "Default",
+  "window.density.editorTabHeight": "default",
+  "extensions.experimental.affinity": {
+    "charliermarsh.ruff": 1,
+    "ms-python.python": 1,
+    "GitHub.copilot": 2,
+    "GitHub.copilot-chat": 2
+  },
+  "multiDiffEditor.experimental.enabled": true,
+  "editor.hover.sticky": true,
+  "editor.stickyScroll.enabled": true,
+  "editor.stickyScroll.maxLineCount": 5,
+  "editor.colorDecoratorsLimit": 500,
   // ==================== Docker Settings ====================
   "[dockerfile]": {
     "editor.formatOnSave": true,

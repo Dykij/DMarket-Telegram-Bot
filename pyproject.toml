@@ -7,7 +7,7 @@ name = "dmarket-bot"
 version = "0.1.0"
 description = "Бот для торговли игровыми предметами на площадке DMarket"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"  # Requires Python 3.11+ (3.12+ recommended)
 license = {text = "MIT"}
 authors = [
     {name = "DMarket Bot Team", email = "example@example.com"}
@@ -18,41 +18,41 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Framework :: AsyncIO",
     "Topic :: Communications :: Chat",
 ]
 
 dependencies = [
-    "python-telegram-bot>=20.0",
-    "python-dotenv>=1.0.0",
-    "requests>=2.30.0",
-    "httpx>=0.27.0",
-    "psutil>=7.0.0",
+    "python-telegram-bot>=22.0",    # Latest stable (June 2025)
+    "python-dotenv>=1.1.0",         # Latest stable
+    "requests>=2.32.0",             # Latest stable
+    "httpx>=0.28.0",                # Latest with HTTP/2 support
+    "psutil>=7.0.0",                # System monitoring
 ]
 
 [project.optional-dependencies]
 dev = [
-    "ruff>=0.8.0",
-    "mypy>=1.11.0",
-    "pytest>=7.4",
-    "pytest-asyncio>=0.23.0",
-    "pytest-cov>=4.1",
-    "pytest-xdist>=3.5",
-    "pytest-mock>=3.12.0",
+    "ruff>=0.14.0",                # Ruff: linting + formatting (replaces flake8, isort, black)
+    "mypy>=1.19.0",                # Latest MyPy strict type checking
+    "pytest>=8.4",                 # Latest pytest
+    "pytest-asyncio>=1.0.0",       # Latest async support
+    "pytest-cov>=7.0",             # Latest coverage plugin
+    "pytest-xdist>=3.8",           # Parallel tests
+    "pytest-mock>=3.15.0",         # Latest mocking
     "pytest-rerunfailures>=14.0",  # Retry для flaky async tests
-    "pytest-timeout>=2.2",         # Таймауты для зависших тестов
-    "pytest-randomly>=3.15",       # Рандомизация порядка тестов
-    "black>=24.0",
-    "sphinx>=7.0",
-    "sphinx-rtd-theme>=2.0",
-    "pre-commit>=3.0",
-    "bandit>=1.7.0",
-    "safety>=3.0",
-    "coverage[toml]>=7.4",         # Coverage с TOML support
-    "aiosqlite>=0.19.0",           # In-memory DB для тестов
+    "pytest-timeout>=2.3",         # Таймауты для зависших тестов
+    "pytest-randomly>=3.16",       # Рандомизация порядка тестов
+    "black>=25.0",                 # Latest Black formatter
+    "sphinx>=8.0",                 # Latest Sphinx
+    "sphinx-rtd-theme>=3.0",       # Latest RTD theme
+    "pre-commit>=4.0",             # Latest pre-commit
+    "bandit>=1.9.0",               # Latest security linter
+    "safety>=3.7",                 # Latest dependency checker
+    "coverage[toml]>=7.12",        # Coverage с TOML support
+    "aiosqlite>=0.21.0",           # In-memory DB для тестов
 ]
 
 [project.urls]
@@ -133,7 +133,7 @@ exclude_dirs = [
 
 [tool.black]
 line-length = 100
-target-version = ["py310", "py311", "py312"]  # Поддержка множественных версий
+target-version = ["py311", "py312", "py313"]  # Поддержка Python 3.11-3.13
 include = '\.pyi?$'  # Включая stub-файлы (.pyi)
 # Принудительно использовать одинарные кавычки для совместимости с Ruff
 skip-string-normalization = false
@@ -167,7 +167,7 @@ extend-exclude = '''
 
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py312"  # Python 3.12+ features
 
 # Директории для исключения
 extend-exclude = [
@@ -482,7 +482,7 @@ docstring-code-format = true
 docstring-code-line-length = 88
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"  # Target Python 3.12+
 
 # ============================================================================
 # СТРОГИЙ РЕЖИМ (ВКЛЮЧЕН для высокого качества кода)
@@ -774,4 +774,36 @@ filterwarnings = [
     "ignore::PendingDeprecationWarning",
     "ignore::ResourceWarning",
 ]
+
+# ============================================================================
+# HYPOTHESIS - PROPERTY-BASED TESTING
+# ============================================================================
+
+[tool.hypothesis]
+# Profile "default" для CI/обычного запуска
+# Profile "ci" для быстрых прогонов в CI
+profile = "default"
+
+[tool.hypothesis.profiles.default]
+# Умеренные настройки для локальной разработки
+max_examples = 100
+deadline = 1000  # 1 секунда на пример
+verbosity = "normal"
+phases = ["explicit", "reuse", "generate", "target"]
+database = ".hypothesis/examples"
+suppress_health_check = []
+
+[tool.hypothesis.profiles.ci]
+# Быстрые настройки для CI pipeline
+max_examples = 50
+deadline = 500  # 500ms на пример
+verbosity = "quiet"
+derandomize = true  # Детерминированные тесты в CI
+
+[tool.hypothesis.profiles.dev]
+# Расширенные настройки для глубокого тестирования
+max_examples = 500
+deadline = 5000  # 5 секунд на сложные тесты
+verbosity = "verbose"
+stateful_step_count = 50
 

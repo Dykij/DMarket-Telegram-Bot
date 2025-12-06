@@ -1,10 +1,10 @@
 # 🗺️ ROADMAP: DMarket Telegram Bot
 
 **Дата создания**: 23 ноября 2025 г.
-**Последнее обновление**: 4 декабря 2025 г. (обновление статуса тестов и MyPy)
+**Последнее обновление**: 6 декабря 2025 г. (масштабное обновление: +16 новых задач)
 **Статус проекта**: 🔄 **АКТИВНАЯ РАЗРАБОТКА** - Основной функционал работает
 
-**📊 Общий прогресс**: 8/23 задач завершены (35%)
+**📊 Общий прогресс**: 9/47 задач завершены (19%) - добавлены 16 новых задач для улучшения
 
 ---
 
@@ -19,25 +19,48 @@
 ### К выполнению 🎯
 
 #### Краткосрочные (1-2 недели)
+
 1. ✅ **P1-10** (КРИТИЧНО): Исправить 24 упавших теста - ЗАВЕРШЕНО 04.12.2025
 2. **P1-12** (ВАЖНО): Улучшить обработку ошибок (6-8 ч)
 3. **P1-13** (ВАЖНО): Усилить rate limiting и кэширование (4-6 ч)
 4. **P1-15** (ВАЖНО): Механизм оценки конкуренции Buy Orders (8-12 ч) ⭐ NEW
+5. **P1-18** (ВАЖНО): VCR.py интеграция для детерминированных API тестов (4-6 ч) ⭐ NEW
+6. **P1-20** (ВАЖНО): Property-based тестирование с Hypothesis (10-14 ч) ⭐ NEW
+7. **P1-21** (ВАЖНО): Контрактное тестирование API с Pact (8-10 ч) ⭐ NEW
 
 #### Среднесрочные (1-2 месяца)
-5. **P1-11** (ВАЖНО): MyPy baseline 885→200 ошибок (40-60 ч, итерациями)
-6. **P1-14** (ВАЖНО): Мониторинг и recovery (10-15 ч)
-7. **P1-16** (ВАЖНО): Расширенные фильтры покупки/продажи (100-200 строк, 10-15 ч) ⭐ NEW
-8. **P1-17** (ВАЖНО): Авто-продажа после покупки с динамическим ценообразованием (15-20 ч) ⭐ NEW
-9. **P2-9** (ДОЛГОСРОЧНО): Покрытие тестами 25%→80% (120-160 ч, 4 месяца)
+
+1. **P1-11** (ВАЖНО): MyPy baseline 885→200 ошибок (40-60 ч, итерациями)
+2. **P1-14** (ВАЖНО): Мониторинг и recovery (10-15 ч)
+3. **P1-16** (ВАЖНО): Расширенные фильтры покупки/продажи (100-200 строк, 10-15 ч) ⭐ NEW
+4. **P1-17** (ВАЖНО): Авто-продажа после покупки с динамическим ценообразованием (15-20 ч) ⭐ NEW
+5. **P1-19** (ВАЖНО): Тесты арбитража и интеграционные тесты (8-12 ч) ⭐ NEW
+6. **P1-22** (ВАЖНО): Backtesting система для торговых стратегий (15-20 ч) ⭐ NEW
+7. **P1-23** (ВАЖНО): Система портфолио-менеджмента (12-16 ч) ⭐ NEW
+8. **P2-9** (ДОЛГОСРОЧНО): Покрытие тестами 25%→80% (120-160 ч, 4 месяца)
 
 #### Долгосрочные (3-6 месяцев)
-10. **P2-10** (УЛУЧШЕНИЕ): Deployment и CI/CD оптимизация (20-30 ч)
-11. **P2-11** (УЛУЧШЕНИЕ): Усиление безопасности (15-20 ч)
-12. **P2-12** (УЛУЧШЕНИЕ): Оптимизация производительности (25-35 ч)
-13. **P2-13** (УЛУЧШЕНИЕ): Интеграция с Buff163/Skinport для кросс-платформенного арбитража (30-40 ч) ⭐ NEW
-14. **P2-14** (УЛУЧШЕНИЕ): Discord webhook интеграция для уведомлений (2-3 ч) ⭐ NEW
-15. **P2-15** (УЛУЧШЕНИЕ): High-frequency режим с баланс-стопом (10-15 ч) ⭐ NEW
+
+1. **P2-10** (УЛУЧШЕНИЕ): Deployment и CI/CD оптимизация (20-30 ч)
+2. **P2-11** (УЛУЧШЕНИЕ): Усиление безопасности (15-20 ч)
+3. **P2-12** (УЛУЧШЕНИЕ): Оптимизация производительности (25-35 ч)
+4. **P2-13** (УЛУЧШЕНИЕ): Интеграция с Buff163/Skinport для кросс-платформенного арбитража (30-40 ч) ⭐ NEW
+5. **P2-14** (УЛУЧШЕНИЕ): Discord webhook интеграция для уведомлений (2-3 ч) ⭐ NEW
+6. **P2-15** (УЛУЧШЕНИЕ): High-frequency режим с баланс-стопом (10-15 ч) ⭐ NEW
+7. **P2-16** (УЛУЧШЕНИЕ): Усиление CI/CD: Snyk, SonarQube, auto-merge (8-12 ч) ⭐ NEW
+8. **P2-17** (УЛУЧШЕНИЕ): Dependency Injection и архитектурные улучшения (15-20 ч) ⭐ NEW
+9. **P2-18** (УЛУЧШЕНИЕ): OpenAPI/Swagger документация для API (6-8 ч) ⭐ NEW
+10. **P2-19** (УЛУЧШЕНИЕ): CLI интерфейс для продвинутых пользователей (8-12 ч) ⭐ NEW
+11. **P2-20** (УЛУЧШЕНИЕ): Автоматизация CHANGELOG (4-6 ч) ⭐ NEW
+12. **P2-21** (УЛУЧШЕНИЕ): End-to-End тестирование (12-16 ч) ⭐ NEW
+13. **P2-22** (УЛУЧШЕНИЕ): Feature Flags система (6-8 ч) ⭐ NEW
+14. **P2-23** (УЛУЧШЕНИЕ): Observability (Prometheus + Grafana) (10-15 ч) ⭐ NEW
+15. **P2-24** (УЛУЧШЕНИЕ): Стратегия миграции базы данных (4-6 ч) ⭐ NEW
+16. **P2-26** (УЛУЧШЕНИЕ): Rate limiting для пользователей (4-6 ч) ⭐ NEW
+17. **P2-27** (УЛУЧШЕНИЕ): Система аудит-логов (6-8 ч) ⭐ NEW
+18. **P2-28** (УЛУЧШЕНИЕ): Web-дашборд для мониторинга (30-40 ч) ⭐ NEW
+19. **P2-29** (УЛУЧШЕНИЕ): Полная локализация (10-12 ч) ⭐ NEW
+20. **P3-1** (ИССЛЕДОВАНИЕ): ML модель для предсказания цен (40-60 ч) ⭐ NEW
 
 ---
 
@@ -55,7 +78,7 @@
 
 Успешно работают все модули:
 - ✅ test_arbitrage_scanner.py - полностью работает
-- ✅ test_arbitrage.py - полностью работает  
+- ✅ test_arbitrage.py - полностью работает
 - ✅ test_dmarket_api.py - все тесты проходят (включая TestRequestMethod)
 - ✅ test_targets.py - полностью работает
 - ✅ test_game_filters.py - полностью работает
@@ -369,10 +392,10 @@ import signal
 async def shutdown(signal, loop, app):
     logger.info(f"Received exit signal {signal.name}...")
     tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
-    
+
     for task in tasks:
         task.cancel()
-    
+
     await asyncio.gather(*tasks, return_exceptions=True)
     await app.stop()
     loop.stop()
@@ -434,7 +457,7 @@ def setup_signal_handlers(loop, app):
     - "Sticker"
     - "Graffiti"
     - "Music Kit"
-  
+
   good_categories:  # Приоритетные
     - "Rifle"
     - "Pistol"
@@ -615,7 +638,7 @@ def verify_admin_2fa(user_id: int, token: str) -> bool:
     """Verify 2FA token for admin user."""
     if user_id not in ADMIN_USER_IDS:
         return False
-    
+
     secret = get_user_totp_secret(user_id)
     totp = pyotp.TOTP(secret)
     return totp.verify(token)
@@ -660,12 +683,12 @@ def verify_admin_2fa(user_id: int, token: str) -> bool:
 
 **Метрики производительности**:
 
-| Метрика | Текущее | Цель |
-|---------|---------|------|
-| API response time (p95) | ~500ms | <200ms |
-| WebSocket latency | ~100ms | <50ms |
-| Memory usage | ~300MB | <200MB |
-| DB query time (avg) | ~50ms | <20ms |
+| Метрика                 | Текущее | Цель   |
+| ----------------------- | ------- | ------ |
+| API response time (p95) | ~500ms  | <200ms |
+| WebSocket latency       | ~100ms  | <50ms  |
+| Memory usage            | ~300MB  | <200MB |
+| DB query time (avg)     | ~50ms   | <20ms  |
 
 **Критерий завершения**: 48h dry-run успешен, все метрики в пределах целей
 
@@ -748,7 +771,7 @@ def verify_admin_2fa(user_id: int, token: str) -> bool:
 - [ ] Создать `src/utils/discord_notifier.py`:
   ```python
   import httpx
-  
+
   async def send_discord_notification(
       title: str,
       description: str,
@@ -857,7 +880,1533 @@ def verify_admin_2fa(user_id: int, token: str) -> bool:
 
 ---
 
-## 📊 Статистика проблем (ОБНОВЛЕНО 04.12.2025)
+### 🟠 **P1-18** - VCR.py интеграция для детерминированных API тестов (⏱️ 4-6 часов) ⭐ NEW
+
+**Статус**: 🟠 **ВАЖНО** - Улучшение качества тестов
+
+**Обоснование**: Анализ Grok AI выявил, что текущие тесты используют httpx-mock для мокирования API, что требует ручного обновления при изменении API. VCR.py позволяет записывать реальные ответы и переиграивать их.
+
+**Проблема**: Mock-ответы могут устаревать и не соответствовать реальному API DMarket.
+
+**Решение**: Интеграция VCR.py (vcrpy) для записи/воспроизведения HTTP взаимодействий.
+
+**Ожидаемый эффект**: Детерминированные тесты, которые точно отражают реальное поведение API.
+
+#### Компоненты реализации
+
+**Фаза 1: Установка и базовая конфигурация (1-2 часа)**
+
+- [ ] Добавить в `requirements.txt`:
+  ```
+  vcrpy>=5.1.0
+  pytest-recording>=0.13.0
+  ```
+
+- [ ] Создать конфигурацию в `pyproject.toml`:
+  ```toml
+  [tool.pytest.ini_options]
+  markers = [
+      "vcr: tests using VCR.py for HTTP recording",
+  ]
+  ```
+
+- [ ] Создать директорию `tests/cassettes/` для хранения записей
+
+**Фаза 2: Конфигурация VCR для DMarket API (1-2 часа)**
+
+- [ ] Создать `tests/conftest_vcr.py`:
+  ```python
+  import vcr
+
+  # Фильтрация секретов из записей
+  vcr_config = vcr.VCR(
+      cassette_library_dir='tests/cassettes',
+      record_mode='once',  # Записать один раз, затем воспроизводить
+      match_on=['method', 'scheme', 'host', 'port', 'path', 'query'],
+      filter_headers=['X-Api-Key', 'X-Sign-Date', 'X-Request-Sign'],
+      filter_post_data_parameters=['secret_key'],
+      decode_compressed_response=True
+  )
+
+  @pytest.fixture
+  def vcr_cassette(request):
+      """Фикстура для автоматического именования кассет."""
+      cassette_name = f"{request.module.__name__}/{request.function.__name__}.yaml"
+      with vcr_config.use_cassette(cassette_name):
+          yield
+  ```
+
+**Фаза 3: Миграция критических тестов (2-3 часа)**
+
+- [ ] Приоритетные тесты для миграции на VCR:
+  - `test_dmarket_api.py::test_get_balance`
+  - `test_dmarket_api.py::test_get_market_items`
+  - `test_arbitrage_scanner.py::test_scan_level`
+  - `test_targets.py::test_create_targets`
+
+- [ ] Пример миграции теста:
+  ```python
+  @pytest.mark.vcr
+  async def test_get_market_items_real_response():
+      """Тест с реальным записанным ответом DMarket API."""
+      api = DMarketAPI(public_key="test", secret_key="test")
+      result = await api.get_market_items(game="csgo", limit=10)
+
+      assert "objects" in result
+      assert len(result["objects"]) <= 10
+  ```
+
+**Фаза 4: Документация и CI интеграция (0.5-1 час)**
+
+- [ ] Обновить `docs/testing_guide.md` с инструкциями по VCR
+- [ ] Добавить GitHub Action для обновления кассет:
+  ```yaml
+  - name: Update VCR cassettes
+    if: github.event_name == 'workflow_dispatch'
+    run: pytest --vcr-record=all tests/
+  ```
+
+**Критерий завершения**: Критические API тесты используют VCR, кассеты записаны, CI проходит
+
+**Референс**: [VCR.py Documentation](https://vcrpy.readthedocs.io/)
+
+---
+
+### 🟠 **P1-19** - Тесты арбитража и интеграционные тесты (⏱️ 8-12 часов) ⭐ NEW
+
+**Статус**: 🟠 **ВАЖНО** - Улучшение покрытия критического модуля
+
+**Обоснование**: Анализ Grok AI выявил недостаточное покрытие модуля арбитража. `src/dmarket/arbitrage_scanner.py` - ключевой модуль, требующий 100% покрытия.
+
+**Проблема**: Текущие тесты арбитража покрывают базовые сценарии, но не edge cases.
+
+**Решение**: Полный набор тестов для ArbitrageScanner с параметризацией.
+
+**Ожидаемый эффект**: Покрытие arbitrage_scanner.py: 50% → 95%+
+
+#### Компоненты реализации
+
+**Фаза 1: Аудит текущего покрытия (1-2 часа)**
+
+- [ ] Запустить `pytest --cov=src/dmarket/arbitrage_scanner --cov-report=html`
+- [ ] Идентифицировать непокрытые строки и ветвления
+- [ ] Создать список edge cases для тестирования
+
+**Фаза 2: Unit тесты ArbitrageScanner (4-6 часов)**
+
+- [ ] Расширить `tests/dmarket/test_arbitrage_scanner.py`:
+
+  ```python
+  class TestArbitrageScannerEdgeCases:
+      """Edge cases для ArbitrageScanner."""
+
+      @pytest.mark.parametrize("level,expected_range", [
+          ("boost", (50, 300)),
+          ("standard", (300, 1000)),
+          ("medium", (1000, 3000)),
+          ("advanced", (3000, 10000)),
+          ("pro", (10000, 100000)),
+      ])
+      async def test_scan_level_price_ranges(self, scanner, level, expected_range):
+          """Тест корректных ценовых диапазонов для каждого уровня."""
+          ...
+
+      async def test_scan_with_empty_market(self, scanner, mock_api):
+          """Тест поведения при пустом рынке."""
+          mock_api.get_market_items.return_value = {"objects": []}
+          result = await scanner.scan_level("standard", "csgo")
+          assert result == []
+
+      async def test_scan_with_api_error(self, scanner, mock_api):
+          """Тест graceful handling API ошибок."""
+          mock_api.get_market_items.side_effect = APIError("Rate limit")
+          with pytest.raises(APIError):
+              await scanner.scan_level("standard", "csgo")
+
+      async def test_concurrent_scans(self, scanner):
+          """Тест параллельного сканирования нескольких игр."""
+          results = await asyncio.gather(
+              scanner.scan_level("standard", "csgo"),
+              scanner.scan_level("standard", "dota2"),
+              scanner.scan_level("standard", "tf2"),
+          )
+          assert len(results) == 3
+  ```
+
+**Фаза 3: Интеграционные тесты (2-3 часа)**
+
+- [ ] Создать `tests/integration/test_arbitrage_flow.py`:
+  ```python
+  @pytest.mark.integration
+  class TestArbitrageFlow:
+      """Интеграционные тесты полного флоу арбитража."""
+
+      async def test_scan_to_buy_flow(self, real_api, test_balance):
+          """Тест: сканирование → обнаружение → покупка."""
+          scanner = ArbitrageScanner(real_api)
+          opportunities = await scanner.scan_level("boost", "csgo")
+
+          if opportunities:
+              # Попытка купить первый item (в DRY_RUN режиме)
+              result = await real_api.buy_item(
+                  opportunities[0]["item_id"],
+                  opportunities[0]["buy_price"]
+              )
+              assert result["dry_run"] is True  # Проверка DRY_RUN
+  ```
+
+**Фаза 4: Тесты производительности (1-2 часа)**
+
+- [ ] Создать `tests/performance/test_scanner_performance.py`:
+  ```python
+  @pytest.mark.performance
+  async def test_scan_performance(scanner, benchmark):
+      """Benchmark производительности сканирования."""
+      result = await benchmark(scanner.scan_level, "standard", "csgo")
+      assert benchmark.stats["mean"] < 2.0  # Менее 2 секунд
+  ```
+
+**Критерий завершения**: Покрытие arbitrage_scanner.py ≥ 95%, все edge cases протестированы
+
+---
+
+### 🟢 **P2-16** - Усиление CI/CD: Snyk, SonarQube, auto-merge (⏱️ 8-12 часов) ⭐ NEW
+
+**Статус**: 🟢 **УЛУЧШЕНИЕ** - DevSecOps
+
+**Обоснование**: Анализ Grok AI рекомендует расширить CI/CD pipeline для раннего обнаружения уязвимостей и автоматизации.
+
+**Проблема**: Текущий CI не включает security scanning и quality gates.
+
+**Решение**: Интеграция Snyk (security), SonarQube (quality), auto-merge для Dependabot.
+
+**Ожидаемый эффект**: Раннее обнаружение уязвимостей, автоматизация рутинных PR.
+
+#### Компоненты реализации
+
+**Фаза 1: Snyk Security Scanning (3-4 часа)**
+
+- [ ] Создать `.github/workflows/security.yml`:
+  ```yaml
+  name: Security Scan
+
+  on:
+    push:
+      branches: [main, develop]
+    pull_request:
+    schedule:
+      - cron: '0 0 * * *'  # Ежедневно
+
+  jobs:
+    snyk:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+
+        - name: Run Snyk to check for vulnerabilities
+          uses: snyk/actions/python@master
+          env:
+            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          with:
+            args: --severity-threshold=high
+
+        - name: Upload Snyk report
+          uses: github/codeql-action/upload-sarif@v2
+          if: always()
+          with:
+            sarif_file: snyk.sarif
+  ```
+
+- [ ] Настроить Snyk организацию и получить SNYK_TOKEN
+- [ ] Добавить badge в README.md
+
+**Фаза 2: SonarQube Quality Gate (3-4 часа)**
+
+- [ ] Добавить SonarQube в CI:
+  ```yaml
+  sonarqube:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Для blame информации
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: Quality Gate
+        uses: SonarSource/sonarqube-quality-gate-action@master
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  ```
+
+- [ ] Создать `sonar-project.properties`:
+  ```properties
+  sonar.projectKey=dmarket-telegram-bot
+  sonar.sources=src
+  sonar.tests=tests
+  sonar.python.coverage.reportPaths=coverage.xml
+  sonar.python.version=3.11
+  ```
+
+**Фаза 3: Dependabot Auto-merge (1-2 часа)**
+
+- [ ] Создать `.github/workflows/dependabot-auto-merge.yml`:
+  ```yaml
+  name: Dependabot auto-merge
+
+  on: pull_request
+
+  permissions:
+    contents: write
+    pull-requests: write
+
+  jobs:
+    auto-merge:
+      runs-on: ubuntu-latest
+      if: github.actor == 'dependabot[bot]'
+      steps:
+        - name: Dependabot metadata
+          id: metadata
+          uses: dependabot/fetch-metadata@v1
+
+        - name: Auto-merge minor/patch updates
+          if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+          run: gh pr merge --auto --squash "$PR_URL"
+          env:
+            PR_URL: ${{ github.event.pull_request.html_url }}
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  ```
+
+**Фаза 4: Документация и мониторинг (1-2 часа)**
+
+- [ ] Обновить `docs/CI_CD_GUIDE.md` с новыми workflows
+- [ ] Настроить Slack/Discord уведомления о failed security scans
+- [ ] Создать dashboard для отслеживания security debt
+
+**Критерий завершения**: Snyk и SonarQube интегрированы, Dependabot auto-merge работает
+
+**Референс**: [Snyk GitHub Action](https://github.com/snyk/actions), [SonarQube GitHub Action](https://github.com/SonarSource/sonarqube-scan-action)
+
+---
+
+### 🟢 **P2-17** - Dependency Injection и архитектурные улучшения (⏱️ 15-20 часов) ⭐ NEW
+
+**Статус**: 🟢 **УЛУЧШЕНИЕ** - Архитектура
+
+**Обоснование**: Анализ Grok AI выявил тесную связанность компонентов (tight coupling). DI улучшит тестируемость и модульность.
+
+**Проблема**: Компоненты создают зависимости напрямую, что затрудняет тестирование и замену реализаций.
+
+**Решение**: Внедрение паттерна Dependency Injection с использованием `injector` или `dependency-injector`.
+
+**Ожидаемый эффект**: Улучшенная тестируемость, возможность замены компонентов, чистая архитектура.
+
+#### Компоненты реализации
+
+**Фаза 1: Выбор и настройка DI фреймворка (2-3 часа)**
+
+- [ ] Добавить в `requirements.txt`:
+  ```
+  dependency-injector>=4.41.0
+  ```
+
+- [ ] Создать `src/containers.py`:
+  ```python
+  from dependency_injector import containers, providers
+  from src.dmarket.dmarket_api import DMarketAPI
+  from src.dmarket.arbitrage_scanner import ArbitrageScanner
+  from src.dmarket.targets import TargetManager
+  from src.utils.database import DatabaseManager
+  from src.utils.cache import CacheManager
+
+  class Container(containers.DeclarativeContainer):
+      """DI контейнер приложения."""
+
+      config = providers.Configuration()
+
+      # Инфраструктура
+      database = providers.Singleton(
+          DatabaseManager,
+          url=config.database.url
+      )
+
+      cache = providers.Singleton(
+          CacheManager,
+          redis_url=config.redis.url
+      )
+
+      # DMarket API
+      dmarket_api = providers.Factory(
+          DMarketAPI,
+          public_key=config.dmarket.public_key,
+          secret_key=config.dmarket.secret_key,
+          cache=cache
+      )
+
+      # Business Logic
+      arbitrage_scanner = providers.Factory(
+          ArbitrageScanner,
+          api_client=dmarket_api,
+          cache=cache
+      )
+
+      target_manager = providers.Factory(
+          TargetManager,
+          api_client=dmarket_api
+      )
+  ```
+
+**Фаза 2: Рефакторинг DMarketAPI (4-6 часов)**
+
+- [ ] Извлечь интерфейс `IDMarketAPI` (Protocol):
+  ```python
+  from typing import Protocol
+
+  class IDMarketAPI(Protocol):
+      """Интерфейс DMarket API клиента."""
+
+      async def get_balance(self) -> dict: ...
+      async def get_market_items(self, game: str, **kwargs) -> dict: ...
+      async def buy_item(self, item_id: str, price: float) -> dict: ...
+      async def create_targets(self, targets: list) -> dict: ...
+  ```
+
+- [ ] Обновить ArbitrageScanner для использования интерфейса:
+  ```python
+  class ArbitrageScanner:
+      def __init__(self, api_client: IDMarketAPI, cache: ICacheManager):
+          self._api = api_client
+          self._cache = cache
+  ```
+
+**Фаза 3: Рефакторинг Telegram Bot (4-6 часов)**
+
+- [ ] Создать `src/telegram_bot/dependencies.py`:
+  ```python
+  from dependency_injector.wiring import Provide, inject
+  from src.containers import Container
+
+  @inject
+  async def arbitrage_command(
+      update: Update,
+      context: ContextTypes.DEFAULT_TYPE,
+      scanner: ArbitrageScanner = Provide[Container.arbitrage_scanner]
+  ):
+      """Команда /arbitrage с инжекцией зависимостей."""
+      results = await scanner.scan_level("standard", "csgo")
+      # ...
+  ```
+
+- [ ] Обновить `src/main.py` для инициализации контейнера:
+  ```python
+  from src.containers import Container
+
+  async def main():
+      container = Container()
+      container.config.from_yaml("config/config.yaml")
+      container.wire(modules=[
+          "src.telegram_bot.handlers",
+          "src.telegram_bot.commands"
+      ])
+
+      # Запуск бота...
+  ```
+
+**Фаза 4: Обновление тестов (3-4 часа)**
+
+- [ ] Создать `tests/conftest_di.py` с тестовым контейнером:
+  ```python
+  @pytest.fixture
+  def test_container():
+      """Тестовый DI контейнер с моками."""
+      container = Container()
+      container.dmarket_api.override(providers.Factory(MockDMarketAPI))
+      container.cache.override(providers.Singleton(MockCacheManager))
+      return container
+  ```
+
+- [ ] Обновить существующие тесты для использования DI
+
+**Фаза 5: Документация (1-2 часа)**
+
+- [ ] Создать `docs/DEPENDENCY_INJECTION.md`
+- [ ] Обновить `docs/ARCHITECTURE.md` с новой структурой
+- [ ] Добавить диаграмму зависимостей
+
+**Критерий завершения**: DI контейнер настроен, основные компоненты рефакторены, тесты обновлены
+
+**Референс**: [dependency-injector Documentation](https://python-dependency-injector.ets-labs.org/)
+
+---
+
+### 🟢 **P1-20** - Property-based тестирование с Hypothesis (⏱️ 10-14 часов) ⭐ NEW
+
+**Статус**: 🟢 **ВАЖНО** - Качество тестирования
+
+**Обоснование**: Property-based тесты автоматически генерируют множество тестовых случаев, находя edge cases, которые сложно придумать вручную.
+
+**Проблема**: Текущие тесты проверяют только заранее известные сценарии. Возможны необнаруженные баги на граничных значениях.
+
+**Решение**: Интеграция Hypothesis для автоматической генерации тестовых данных.
+
+**Ожидаемый эффект**: Обнаружение скрытых багов, более надежный код, лучшее покрытие edge cases.
+
+#### Компоненты реализации
+
+**Фаза 1: Настройка Hypothesis (2-3 часа)**
+
+- [ ] Добавить в `requirements.txt`:
+  ```
+  hypothesis>=6.100.0
+  ```
+
+- [ ] Создать `tests/hypothesis_strategies.py`:
+  ```python
+  from hypothesis import strategies as st
+
+  # Стратегия для цен (в центах, от 1 цента до $10000)
+  price_strategy = st.integers(min_value=1, max_value=1000000)
+
+  # Стратегия для названий предметов
+  item_title_strategy = st.text(
+      alphabet=st.characters(whitelist_categories=('L', 'N', 'P', 'S')),
+      min_size=5, max_size=100
+  )
+
+  # Стратегия для игр
+  game_strategy = st.sampled_from(['csgo', 'dota2', 'tf2', 'rust'])
+
+  # Стратегия для предметов рынка
+  market_item_strategy = st.fixed_dictionaries({
+      'itemId': st.text(min_size=10, max_size=50),
+      'title': item_title_strategy,
+      'price': st.fixed_dictionaries({'USD': st.integers(1, 1000000).map(str)}),
+      'suggestedPrice': st.fixed_dictionaries({'USD': st.integers(1, 1000000).map(str)})
+  })
+  ```
+
+**Фаза 2: Тесты для ArbitrageScanner (4-5 часов)**
+
+- [ ] Создать `tests/property_based/test_arbitrage_properties.py`:
+  ```python
+  from hypothesis import given, assume
+  import hypothesis.strategies as st
+
+  @given(buy_price=st.floats(0.01, 10000), sell_price=st.floats(0.01, 10000))
+  def test_profit_calculation_never_exceeds_sell_price(buy_price, sell_price):
+      """Прибыль никогда не может превышать цену продажи."""
+      assume(sell_price > buy_price)
+      profit = calculate_profit(buy_price, sell_price, commission=7.0)
+      assert profit < sell_price
+
+  @given(items=st.lists(market_item_strategy, min_size=0, max_size=100))
+  def test_filter_never_returns_more_than_input(items):
+      """Фильтрация не увеличивает количество предметов."""
+      filtered = filter_profitable_items(items, min_profit=5.0)
+      assert len(filtered) <= len(items)
+  ```
+
+**Фаза 3: Тесты для валидации данных (3-4 часов)**
+
+- [ ] Тесты для фильтров игр:
+  ```python
+  @given(filters=st.fixed_dictionaries({
+      'min_price': st.floats(0, 10000) | st.none(),
+      'max_price': st.floats(0, 10000) | st.none(),
+      'category': st.sampled_from(['Rifle', 'Knife', 'Pistol']) | st.none()
+  }))
+  def test_game_filters_handle_any_valid_input(filters):
+      """Фильтры корректно обрабатывают любые валидные входные данные."""
+      cs2_filter = FilterFactory.get_filter('csgo')
+      params = cs2_filter.build_api_params(filters)
+      assert isinstance(params, dict)
+  ```
+
+**Фаза 4: Интеграция с CI (1-2 часа)**
+
+- [ ] Добавить в `.github/workflows/test.yml`:
+  ```yaml
+  - name: Run property-based tests
+    run: pytest tests/property_based/ -v --hypothesis-show-statistics
+  ```
+
+**Критерий завершения**: Hypothesis настроен, минимум 10 property-based тестов написано, интеграция с CI
+
+**Референс**: [Hypothesis Documentation](https://hypothesis.readthedocs.io/)
+
+---
+
+### 🟢 **P1-21** - Контрактное тестирование API с Pact (⏱️ 8-10 часов) ⭐ NEW
+
+**Статус**: 🟢 **ВАЖНО** - Надежность интеграций
+
+**Обоснование**: Контрактные тесты гарантируют, что изменения в API DMarket не сломают бота неожиданно.
+
+**Проблема**: При изменении API DMarket бот может сломаться в production без предупреждения.
+
+**Решение**: Создание контрактов с использованием Pact для валидации взаимодействия с DMarket API.
+
+**Ожидаемый эффект**: Раннее обнаружение breaking changes, документированные ожидания от API.
+
+#### Компоненты реализации
+
+**Фаза 1: Настройка Pact (2-3 часа)**
+
+- [ ] Добавить в `requirements.txt`:
+  ```
+  pact-python>=2.2.0
+  ```
+
+- [ ] Создать `tests/contracts/conftest.py`:
+  ```python
+  import pytest
+  from pact import Consumer, Provider
+
+  @pytest.fixture
+  def pact():
+      pact = Consumer('DMarketBot').has_pact_with(
+          Provider('DMarketAPI'),
+          pact_dir='tests/contracts/pacts'
+      )
+      pact.start_service()
+      yield pact
+      pact.stop_service()
+  ```
+
+**Фаза 2: Контракты для основных эндпоинтов (4-5 часов)**
+
+- [ ] Контракт для `/account/v1/balance`:
+  ```python
+  def test_get_balance_contract(pact):
+      expected = {"usd": "10000", "dmc": "5000"}
+
+      (pact
+       .given('user has balance')
+       .upon_receiving('a request for balance')
+       .with_request('GET', '/account/v1/balance')
+       .will_respond_with(200, body=expected))
+
+      with pact:
+          result = api_client.get_balance()
+          assert 'usd' in result
+  ```
+
+- [ ] Контракты для `/exchange/v1/market/items`
+- [ ] Контракты для `/marketplace-api/v1/user-targets`
+
+**Фаза 3: Интеграция и документация (2-3 часа)**
+
+- [ ] Создать `docs/CONTRACT_TESTING.md`
+- [ ] Настроить публикацию pact файлов
+
+**Критерий завершения**: Контракты для 5+ основных эндпоинтов, документация готова
+
+**Референс**: [Pact Python](https://docs.pact.io/implementation_guides/python)
+
+---
+
+### 🟢 **P1-22** - Backtesting система для торговых стратегий (⏱️ 15-20 часов) ⭐ NEW
+
+**Статус**: 🟢 **ВАЖНО** - Бизнес-логика
+
+**Обоснование**: Тестирование стратегий на исторических данных позволяет оценить их эффективность без риска реальных потерь.
+
+**Проблема**: Невозможно оценить эффективность торговых стратегий без реальных сделок.
+
+**Решение**: Создание системы backtesting с использованием исторических данных о ценах.
+
+**Ожидаемый эффект**: Возможность тестирования стратегий, оптимизация параметров, снижение рисков.
+
+#### Компоненты реализации
+
+**Фаза 1: Сбор и хранение исторических данных (5-7 часов)**
+
+- [ ] Создать `src/analytics/historical_data.py`:
+  ```python
+  class HistoricalDataCollector:
+      """Сборщик исторических данных о ценах."""
+
+      async def collect_price_history(
+          self, game: str, title: str, days: int = 30
+      ) -> list[PricePoint]:
+          """Собрать историю цен для предмета."""
+          ...
+
+      async def save_to_database(self, data: list[PricePoint]) -> None:
+          """Сохранить данные в БД для backtesting."""
+          ...
+  ```
+
+- [ ] Создать таблицу `price_history` в БД:
+  ```sql
+  CREATE TABLE price_history (
+      id SERIAL PRIMARY KEY,
+      game VARCHAR(20) NOT NULL,
+      title VARCHAR(255) NOT NULL,
+      price DECIMAL(10,2) NOT NULL,
+      volume INT,
+      timestamp TIMESTAMP NOT NULL,
+      UNIQUE(game, title, timestamp)
+  );
+  ```
+
+**Фаза 2: Движок backtesting (6-8 часов)**
+
+- [ ] Создать `src/analytics/backtester.py`:
+  ```python
+  @dataclass
+  class BacktestResult:
+      total_trades: int
+      profitable_trades: int
+      total_profit: Decimal
+      max_drawdown: Decimal
+      sharpe_ratio: float
+      win_rate: float
+
+  class Backtester:
+      """Движок для backtesting торговых стратегий."""
+
+      async def run(
+          self,
+          strategy: TradingStrategy,
+          start_date: datetime,
+          end_date: datetime,
+          initial_balance: Decimal
+      ) -> BacktestResult:
+          """Запустить backtest стратегии."""
+          ...
+  ```
+
+**Фаза 3: Telegram команды и отчеты (3-4 часов)**
+
+- [ ] Команда `/backtest <strategy> <period>`
+- [ ] Генерация графиков результатов
+- [ ] Export в CSV/PDF
+
+**Фаза 4: Документация (1-2 часа)**
+
+- [ ] Создать `docs/BACKTESTING_GUIDE.md`
+
+**Критерий завершения**: Система работает на 30-дневных данных, генерирует отчеты
+
+**Референс**: [Backtrader](https://www.backtrader.com/), вдохновение для архитектуры
+
+---
+
+### 🟢 **P1-23** - Система портфолио-менеджмента (⏱️ 12-16 часов) ⭐ NEW
+
+**Статус**: 🟢 **ВАЖНО** - Бизнес-логика
+
+**Обоснование**: Управление портфелем предметов с отслеживанием P&L, диверсификацией и рекомендациями.
+
+**Проблема**: Пользователи не видят общую картину своих инвестиций и их эффективность.
+
+**Решение**: Создание модуля портфолио-менеджмента с аналитикой и рекомендациями.
+
+**Ожидаемый эффект**: Лучшее понимание инвестиций, оптимизация портфеля, снижение рисков.
+
+#### Компоненты реализации
+
+**Фаза 1: Модель портфеля (4-5 часов)**
+
+- [ ] Создать `src/portfolio/models.py`:
+  ```python
+  @dataclass
+  class PortfolioItem:
+      item_id: str
+      title: str
+      game: str
+      buy_price: Decimal
+      current_price: Decimal
+      quantity: int
+      purchased_at: datetime
+
+      @property
+      def pnl(self) -> Decimal:
+          return (self.current_price - self.buy_price) * self.quantity
+
+      @property
+      def pnl_percent(self) -> float:
+          return float((self.pnl / (self.buy_price * self.quantity)) * 100)
+
+  @dataclass
+  class Portfolio:
+      items: list[PortfolioItem]
+      total_invested: Decimal
+      current_value: Decimal
+      total_pnl: Decimal
+      diversification_score: float
+  ```
+
+**Фаза 2: Аналитика и рекомендации (5-7 часов)**
+
+- [ ] Создать `src/portfolio/analytics.py`:
+  ```python
+  class PortfolioAnalyzer:
+      def calculate_diversification(self, portfolio: Portfolio) -> float:
+          """Рассчитать score диверсификации (0-100)."""
+          ...
+
+      def get_risk_assessment(self, portfolio: Portfolio) -> RiskLevel:
+          """Оценить уровень риска портфеля."""
+          ...
+
+      def generate_recommendations(self, portfolio: Portfolio) -> list[Recommendation]:
+          """Сгенерировать рекомендации по оптимизации."""
+          ...
+  ```
+
+**Фаза 3: Telegram команды (2-3 часов)**
+
+- [ ] Команда `/portfolio` - обзор портфеля
+- [ ] Команда `/portfolio_pnl` - детальный P&L
+- [ ] Команда `/portfolio_recommendations` - рекомендации
+
+**Фаза 4: Документация (1-2 часа)**
+
+- [ ] Создать `docs/PORTFOLIO_MANAGEMENT.md`
+
+**Критерий завершения**: Система работает, показывает P&L и рекомендации
+
+---
+
+### 🟢 **P2-18** - OpenAPI/Swagger документация для API (⏱️ 6-8 часов) ⭐ NEW
+
+**Статус**: 🟢 **УЛУЧШЕНИЕ** - Документация
+
+**Обоснование**: Автоматическая генерация документации API упростит интеграцию и разработку.
+
+**Проблема**: Нет формальной спецификации внутреннего API бота.
+
+**Решение**: Создание OpenAPI спецификации с использованием FastAPI или Connexion.
+
+**Ожидаемый эффект**: Автодокументация, генерация клиентов, валидация запросов.
+
+#### Компоненты реализации
+
+**Фаза 1: Создание OpenAPI spec (3-4 часа)**
+
+- [ ] Создать `openapi/dmarket_bot_api.yaml`:
+  ```yaml
+  openapi: 3.0.3
+  info:
+    title: DMarket Bot Internal API
+    version: 1.0.0
+  paths:
+    /api/v1/arbitrage/scan:
+      post:
+        summary: Запустить сканирование арбитража
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanRequest'
+  ```
+
+**Фаза 2: Интеграция с FastAPI (2-3 часа)**
+
+- [ ] Добавить endpoint для Swagger UI
+- [ ] Настроить автогенерацию из docstrings
+
+**Фаза 3: Документация (1-2 часа)**
+
+- [ ] Обновить `docs/api_reference.md`
+
+**Критерий завершения**: Swagger UI доступен на `/docs`, спецификация актуальна
+
+---
+
+### 🟢 **P2-19** - CLI интерфейс для продвинутых пользователей (⏱️ 8-12 часов) ⭐ NEW
+
+**Статус**: 🟢 **УЛУЧШЕНИЕ** - UX
+
+**Обоснование**: CLI позволяет продвинутым пользователям автоматизировать задачи и интегрироваться с другими инструментами.
+
+**Проблема**: Весь функционал доступен только через Telegram бота.
+
+**Решение**: Создание CLI интерфейса с использованием Click или Typer.
+
+**Ожидаемый эффект**: Автоматизация, скриптинг, интеграция с cron/scheduler.
+
+#### Компоненты реализации
+
+**Фаза 1: Базовый CLI (3-4 часа)**
+
+- [ ] Создать `src/cli/main.py`:
+  ```python
+  import typer
+  app = typer.Typer(help="DMarket Bot CLI")
+
+  @app.command()
+  def scan(
+      game: str = typer.Option("csgo", help="Игра"),
+      level: str = typer.Option("standard", help="Уровень арбитража"),
+      output: str = typer.Option("json", help="Формат вывода")
+  ):
+      """Запустить сканирование арбитража."""
+      ...
+
+  @app.command()
+  def balance():
+      """Показать баланс."""
+      ...
+  ```
+
+**Фаза 2: Расширенные команды (3-4 часа)**
+
+- [ ] `dmarket-bot targets list/create/delete`
+- [ ] `dmarket-bot inventory`
+- [ ] `dmarket-bot config`
+
+**Фаза 3: Интеграция и документация (2-3 часа)**
+
+- [ ] Добавить entry point в `pyproject.toml`
+- [ ] Создать `docs/CLI_GUIDE.md`
+
+**Критерий завершения**: CLI установлен, основные команды работают
+
+**Референс**: [Typer](https://typer.tiangolo.com/)
+
+---
+
+### 🟢 **P2-20** - Автоматизация CHANGELOG (⏱️ 4-6 часов) ⭐ NEW
+
+**Статус**: 🟢 **УЛУЧШЕНИЕ** - Документация
+
+**Обоснование**: Автоматическая генерация CHANGELOG из conventional commits экономит время и улучшает документирование изменений.
+
+**Проблема**: CHANGELOG обновляется вручную, что занимает время и может быть неполным.
+
+**Решение**: Использование git-cliff или standard-version для автоматической генерации.
+
+**Ожидаемый эффект**: Актуальный CHANGELOG, следование semantic versioning.
+
+#### Компоненты реализации
+
+**Фаза 1: Настройка git-cliff (2-3 часа)**
+
+- [ ] Создать `cliff.toml`:
+  ```toml
+  [changelog]
+  header = "# Changelog\n\n"
+  body = """
+  {% for group, commits in commits | group_by(attribute="group") %}
+      ### {{ group | striptags | trim | upper_first }}
+      {% for commit in commits %}
+          - {{ commit.message | upper_first }}
+      {% endfor %}
+  {% endfor %}
+  """
+
+  [git]
+  conventional_commits = true
+  filter_unconventional = true
+  commit_parsers = [
+      { message = "^feat", group = "Features" },
+      { message = "^fix", group = "Bug Fixes" },
+      { message = "^doc", group = "Documentation" },
+      { message = "^perf", group = "Performance" },
+      { message = "^refactor", group = "Refactor" },
+      { message = "^test", group = "Testing" },
+  ]
+  ```
+
+**Фаза 2: Интеграция с CI (1-2 часа)**
+
+- [ ] Добавить в release workflow:
+  ```yaml
+  - name: Generate Changelog
+    run: git-cliff --output CHANGELOG.md
+  ```
+
+**Фаза 3: Документация (1 час)**
+
+- [ ] Обновить CONTRIBUTING.md с правилами коммитов
+
+**Критерий завершения**: CHANGELOG генерируется автоматически при релизе
+
+**Референс**: [git-cliff](https://git-cliff.org/)
+
+---
+
+### 🟢 **P2-21** - End-to-End тестирование (⏱️ 12-16 часов) ⭐ NEW
+
+**Статус**: 🟢 **УЛУЧШЕНИЕ** - Тестирование
+
+**Обоснование**: E2E тесты проверяют работу всей системы целиком, включая интеграции.
+
+**Проблема**: Нет тестов, проверяющих полный user flow от команды в Telegram до ответа.
+
+**Решение**: Создание E2E тестов с использованием Telethon для эмуляции Telegram клиента.
+
+**Ожидаемый эффект**: Уверенность в работоспособности всей системы, обнаружение интеграционных багов.
+
+#### Компоненты реализации
+
+**Фаза 1: Настройка тестового окружения (4-5 часов)**
+
+- [ ] Создать Docker Compose для E2E тестов:
+  ```yaml
+  services:
+    bot:
+      build: .
+      environment:
+        - DRY_RUN=true
+    test-client:
+      image: python:3.11
+      depends_on:
+        - bot
+  ```
+
+- [ ] Создать `tests/e2e/conftest.py`:
+  ```python
+  from telethon import TelegramClient
+
+  @pytest.fixture
+  async def telegram_client():
+      client = TelegramClient('test_session', api_id, api_hash)
+      await client.start()
+      yield client
+      await client.disconnect()
+  ```
+
+**Фаза 2: Написание E2E тестов (6-8 часов)**
+
+- [ ] Тест: `/start` → приветственное сообщение
+- [ ] Тест: `/balance` → показ баланса
+- [ ] Тест: `/arbitrage` → результаты сканирования
+- [ ] Тест: полный flow создания таргета
+
+**Фаза 3: Интеграция с CI (2-3 часа)**
+
+- [ ] Добавить E2E тесты в отдельный workflow
+- [ ] Настроить secrets для Telegram API
+
+**Критерий завершения**: Минимум 5 E2E тестов работают в CI
+
+---
+
+### 🟢 **P2-22** - Feature Flags система (⏱️ 6-8 часов) ⭐ NEW
+
+**Статус**: 🟢 **УЛУЧШЕНИЕ** - Инфраструктура
+
+**Обоснование**: Feature flags позволяют безопасно выкатывать новые функции и проводить A/B тестирование.
+
+**Проблема**: Новые функции выкатываются сразу для всех, без возможности постепенного rollout.
+
+**Решение**: Внедрение системы feature flags с использованием `flagsmith` или кастомного решения.
+
+**Ожидаемый эффект**: Безопасный релиз, A/B тестирование, возможность отката.
+
+#### Компоненты реализации
+
+**Фаза 1: Базовая система (3-4 часа)**
+
+- [ ] Создать `src/utils/feature_flags.py`:
+  ```python
+  from enum import Enum
+
+  class Feature(str, Enum):
+      NEW_ARBITRAGE_ALGO = "new_arbitrage_algo"
+      PORTFOLIO_MANAGEMENT = "portfolio_management"
+      ML_PREDICTIONS = "ml_predictions"
+
+  class FeatureFlagManager:
+      def __init__(self, config: dict):
+          self._flags = config.get('feature_flags', {})
+
+      def is_enabled(self, feature: Feature, user_id: int | None = None) -> bool:
+          """Проверить, включена ли фича для пользователя."""
+          flag_config = self._flags.get(feature.value, {})
+          if not flag_config.get('enabled', False):
+              return False
+          if user_id and flag_config.get('whitelist'):
+              return user_id in flag_config['whitelist']
+          return flag_config.get('rollout_percent', 100) >= random.randint(1, 100)
+  ```
+
+**Фаза 2: Интеграция (2-3 часа)**
+
+- [ ] Добавить в `config/config.yaml`:
+  ```yaml
+  feature_flags:
+    new_arbitrage_algo:
+      enabled: true
+      rollout_percent: 10
+    portfolio_management:
+      enabled: false
+  ```
+
+- [ ] Использовать в обработчиках:
+  ```python
+  if feature_flags.is_enabled(Feature.PORTFOLIO_MANAGEMENT, user_id):
+      # новый функционал
+  ```
+
+**Фаза 3: Документация (1 час)**
+
+- [ ] Создать `docs/FEATURE_FLAGS.md`
+
+**Критерий завершения**: Feature flags работают, минимум 2 функции под флагами
+
+---
+
+### 🟢 **P2-23** - Observability (Prometheus + Grafana) (⏱️ 10-15 часов) ⭐ NEW
+
+**Статус**: 🟢 **УЛУЧШЕНИЕ** - Мониторинг
+
+**Обоснование**: Prometheus + Grafana обеспечивают профессиональный мониторинг метрик в реальном времени.
+
+**Проблема**: Текущий мониторинг ограничен логами. Нет визуализации метрик и алертов.
+
+**Решение**: Интеграция Prometheus для сбора метрик и Grafana для визуализации.
+
+**Ожидаемый эффект**: Real-time мониторинг, красивые дашборды, настраиваемые алерты.
+
+#### Компоненты реализации
+
+**Фаза 1: Prometheus метрики (4-5 часов)**
+
+- [ ] Добавить в `requirements.txt`:
+  ```
+  prometheus-client>=0.19.0
+  ```
+
+- [ ] Создать `src/metrics/prometheus.py`:
+  ```python
+  from prometheus_client import Counter, Histogram, Gauge
+
+  # Счетчики
+  api_requests_total = Counter(
+      'dmarket_api_requests_total',
+      'Total DMarket API requests',
+      ['endpoint', 'method', 'status']
+  )
+
+  # Гистограммы
+  api_response_time = Histogram(
+      'dmarket_api_response_seconds',
+      'DMarket API response time',
+      ['endpoint']
+  )
+
+  # Gauges
+  active_targets = Gauge(
+      'dmarket_active_targets',
+      'Number of active targets',
+      ['game']
+  )
+
+  balance_usd = Gauge(
+      'dmarket_balance_usd',
+      'Current balance in USD'
+  )
+  ```
+
+**Фаза 2: Docker Compose для мониторинга (3-4 часов)**
+
+- [ ] Создать `docker-compose.monitoring.yml`:
+  ```yaml
+  services:
+    prometheus:
+      image: prom/prometheus:latest
+      volumes:
+        - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      ports:
+        - "9090:9090"
+
+    grafana:
+      image: grafana/grafana:latest
+      volumes:
+        - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+      ports:
+        - "3000:3000"
+  ```
+
+**Фаза 3: Grafana дашборды (2-4 часа)**
+
+- [ ] Создать дашборд "DMarket Bot Overview":
+  - API response times
+  - Request rates
+  - Error rates
+  - Active targets
+  - Balance over time
+
+**Фаза 4: Документация (1-2 часа)**
+
+- [ ] Создать `docs/MONITORING_GUIDE.md`
+
+**Критерий завершения**: Prometheus собирает метрики, Grafana дашборд настроен
+
+**Референс**: [prometheus-client](https://github.com/prometheus/client_python)
+
+---
+
+### 🟢 **P2-24** - Стратегия миграции базы данных (⏱️ 4-6 часов) ⭐ NEW
+
+**Статус**: 🟢 **УЛУЧШЕНИЕ** - Инфраструктура
+
+**Обоснование**: Четкая стратегия миграции и blue-green deployment для zero-downtime обновлений.
+
+**Проблема**: Миграции БД могут вызвать downtime при неправильном применении.
+
+**Решение**: Документирование процесса миграции, добавление backward-compatible миграций.
+
+**Ожидаемый эффект**: Zero-downtime deployments, безопасные миграции.
+
+#### Компоненты реализации
+
+**Фаза 1: Документация процесса (2-3 часа)**
+
+- [ ] Создать `docs/DATABASE_MIGRATION_STRATEGY.md`:
+  - Правила backward-compatible миграций
+  - Процесс rollback
+  - Blue-green deployment для БД
+
+**Фаза 2: Скрипты автоматизации (1-2 часа)**
+
+- [ ] Создать `scripts/safe_migrate.py`:
+  ```python
+  """Безопасная миграция с проверками."""
+  def safe_migrate():
+      # 1. Backup
+      # 2. Test migration on copy
+      # 3. Apply migration
+      # 4. Verify data integrity
+  ```
+
+**Фаза 3: CI интеграция (1-2 часа)**
+
+- [ ] Добавить проверку миграций в PR
+
+**Критерий завершения**: Документация готова, скрипт работает
+
+---
+
+### 🟢 **P2-26** - Rate limiting для пользователей (⏱️ 4-6 часов) ⭐ NEW
+
+**Статус**: 🟢 **УЛУЧШЕНИЕ** - Безопасность
+
+**Обоснование**: Защита от злоупотреблений и справедливое распределение ресурсов между пользователями.
+
+**Проблема**: Один пользователь может создать избыточную нагрузку на систему.
+
+**Решение**: Внедрение per-user rate limiting с настраиваемыми лимитами.
+
+**Ожидаемый эффект**: Стабильность системы, защита от abuse.
+
+#### Компоненты реализации
+
+**Фаза 1: Rate limiter для пользователей (2-3 часа)**
+
+- [ ] Расширить `src/utils/rate_limiter.py`:
+  ```python
+  class UserRateLimiter:
+      def __init__(self, redis_client: Redis):
+          self._redis = redis_client
+          self._limits = {
+              'scan': {'requests': 10, 'window': 60},  # 10 scans/min
+              'target_create': {'requests': 5, 'window': 60},
+              'default': {'requests': 30, 'window': 60}
+          }
+
+      async def check_limit(self, user_id: int, action: str) -> bool:
+          """Проверить лимит для пользователя."""
+          key = f"rate_limit:{user_id}:{action}"
+          current = await self._redis.incr(key)
+          if current == 1:
+              await self._redis.expire(key, self._limits[action]['window'])
+          return current <= self._limits[action]['requests']
+  ```
+
+**Фаза 2: Интеграция (1-2 часа)**
+
+- [ ] Добавить в обработчики команд
+- [ ] Информативные сообщения при превышении лимита
+
+**Фаза 3: Admin команды (1-2 часа)**
+
+- [ ] Команда для просмотра/изменения лимитов
+- [ ] Whitelist для премиум пользователей
+
+**Критерий завершения**: Rate limiting работает, лимиты настраиваются
+
+---
+
+### 🟢 **P2-27** - Система аудит-логов (⏱️ 6-8 часов) ⭐ NEW
+
+**Статус**: 🟢 **УЛУЧШЕНИЕ** - Безопасность
+
+**Обоснование**: Аудит-логи необходимы для отслеживания действий, расследования инцидентов и compliance.
+
+**Проблема**: Нет централизованного аудита действий пользователей и системы.
+
+**Решение**: Создание системы аудит-логов с хранением в БД и возможностью поиска.
+
+**Ожидаемый эффект**: Прозрачность, возможность расследования, compliance.
+
+#### Компоненты реализации
+
+**Фаза 1: Модель аудит-лога (2-3 часа)**
+
+- [ ] Создать `src/models/audit_log.py`:
+  ```python
+  class AuditLog(Base):
+      __tablename__ = 'audit_logs'
+
+      id = Column(Integer, primary_key=True)
+      timestamp = Column(DateTime, default=datetime.utcnow)
+      user_id = Column(Integer, nullable=True)
+      action = Column(String(100), nullable=False)
+      entity_type = Column(String(50))
+      entity_id = Column(String(100))
+      old_value = Column(JSON)
+      new_value = Column(JSON)
+      ip_address = Column(String(50))
+      user_agent = Column(String(500))
+  ```
+
+**Фаза 2: Сервис аудита (2-3 часа)**
+
+- [ ] Создать `src/utils/audit.py`:
+  ```python
+  class AuditService:
+      async def log(
+          self,
+          action: str,
+          user_id: int | None = None,
+          entity_type: str | None = None,
+          entity_id: str | None = None,
+          old_value: dict | None = None,
+          new_value: dict | None = None
+      ) -> None:
+          """Записать аудит-лог."""
+          ...
+
+      async def search(
+          self,
+          user_id: int | None = None,
+          action: str | None = None,
+          start_date: datetime | None = None,
+          end_date: datetime | None = None
+      ) -> list[AuditLog]:
+          """Поиск по аудит-логам."""
+          ...
+  ```
+
+**Фаза 3: Интеграция и команды (1-2 часа)**
+
+- [ ] Интегрировать во все критичные операции
+- [ ] Admin команда `/audit_logs`
+
+**Критерий завершения**: Аудит-логи записываются для всех критичных операций
+
+---
+
+### 🟢 **P2-28** - Web-дашборд для мониторинга (⏱️ 30-40 часов) ⭐ NEW
+
+**Статус**: 🟢 **УЛУЧШЕНИЕ** - UX
+
+**Обоснование**: Web-интерфейс обеспечивает удобный мониторинг и управление ботом.
+
+**Проблема**: Весь функционал только через Telegram, неудобно для сложного анализа.
+
+**Решение**: Создание web-дашборда с использованием FastAPI + React/Vue.
+
+**Ожидаемый эффект**: Удобный мониторинг, визуализация данных, управление настройками.
+
+#### Компоненты реализации
+
+**Фаза 1: Backend API (10-12 часов)**
+
+- [ ] Создать `src/web/api.py` с FastAPI:
+  ```python
+  from fastapi import FastAPI, Depends
+  from fastapi.middleware.cors import CORSMiddleware
+
+  app = FastAPI(title="DMarket Bot Dashboard API")
+
+  @app.get("/api/dashboard/overview")
+  async def get_overview():
+      return {
+          "balance": await get_balance(),
+          "active_targets": await count_active_targets(),
+          "today_profit": await calculate_today_profit(),
+          "total_trades": await count_total_trades()
+      }
+
+  @app.get("/api/trades")
+  async def get_trades(limit: int = 100, offset: int = 0):
+      ...
+
+  @app.get("/api/targets")
+  async def get_targets():
+      ...
+  ```
+
+**Фаза 2: Frontend (15-20 часов)**
+
+- [ ] Создать React/Vue приложение в `web/`
+- [ ] Компоненты:
+  - Dashboard overview
+  - Trades list
+  - Targets management
+  - Settings
+  - Charts (recharts/chart.js)
+
+**Фаза 3: Аутентификация (3-5 часов)**
+
+- [ ] JWT аутентификация
+- [ ] Интеграция с Telegram Login Widget
+
+**Фаза 4: Deployment (2-3 часа)**
+
+- [ ] Docker для frontend
+- [ ] Nginx конфигурация
+
+**Критерий завершения**: Дашборд работает, показывает основные метрики
+
+---
+
+### 🟢 **P2-29** - Полная локализация (⏱️ 10-12 часов) ⭐ NEW
+
+**Статус**: 🟢 **УЛУЧШЕНИЕ** - UX
+
+**Обоснование**: Поддержка нескольких языков расширяет аудиторию бота.
+
+**Проблема**: Бот поддерживает только ограниченную локализацию.
+
+**Решение**: Полная интернационализация с использованием gettext или fluent.
+
+**Ожидаемый эффект**: Поддержка RU, EN, ES, DE, расширенная аудитория.
+
+#### Компоненты реализации
+
+**Фаза 1: Инфраструктура i18n (3-4 часа)**
+
+- [ ] Создать `src/i18n/`:
+  ```
+  src/i18n/
+  ├── __init__.py
+  ├── locales/
+  │   ├── en/
+  │   │   └── messages.po
+  │   ├── ru/
+  │   │   └── messages.po
+  │   ├── es/
+  │   │   └── messages.po
+  │   └── de/
+  │       └── messages.po
+  └── babel.cfg
+  ```
+
+**Фаза 2: Миграция строк (4-5 часов)**
+
+- [ ] Заменить все hardcoded строки на gettext вызовы:
+  ```python
+  from src.i18n import gettext as _
+
+  await update.message.reply_text(
+      _("Found {count} arbitrage opportunities").format(count=len(results))
+  )
+  ```
+
+**Фаза 3: Переводы (2-3 часа)**
+
+- [ ] Перевести на EN, ES, DE
+- [ ] Команда `/language` для выбора языка
+
+**Критерий завершения**: Бот работает на 4 языках, пользователь может переключать
+
+---
+
+### 🔵 **P3-1** - ML модель для предсказания цен (⏱️ 40-60 часов) ⭐ NEW
+
+**Статус**: 🔵 **ИССЛЕДОВАНИЕ** - R&D
+
+**Обоснование**: ML модели могут улучшить точность предсказания цен и прибыльность торговли.
+
+**Проблема**: Текущие стратегии основаны на простых правилах без предсказательной аналитики.
+
+**Решение**: Исследование и разработка ML модели для предсказания цен на основе исторических данных.
+
+**Ожидаемый эффект**: Более точные предсказания, увеличение прибыли, конкурентное преимущество.
+
+#### Компоненты реализации
+
+**Фаза 1: Сбор и подготовка данных (10-15 часов)**
+
+- [ ] Создать pipeline сбора данных:
+  - Исторические цены (минимум 6 месяцев)
+  - Объемы торгов
+  - События (обновления игры, турниры)
+  - Сезонность
+
+- [ ] Feature engineering:
+  ```python
+  features = [
+      'price_ma_7d',      # Moving average 7 дней
+      'price_ma_30d',     # Moving average 30 дней
+      'volume_ma_7d',     # Volume moving average
+      'volatility_7d',    # Волатильность
+      'day_of_week',      # День недели
+      'is_weekend',       # Выходной
+      'days_since_update' # Дней с обновления игры
+  ]
+  ```
+
+**Фаза 2: Разработка модели (15-20 часов)**
+
+- [ ] Эксперименты с моделями:
+  - Linear Regression (baseline)
+  - XGBoost / LightGBM
+  - LSTM для временных рядов
+  - Prophet для сезонности
+
+- [ ] Создать `src/ml/price_predictor.py`:
+  ```python
+  class PricePredictor:
+      def __init__(self, model_path: str):
+          self._model = joblib.load(model_path)
+
+      def predict_price(
+          self, item_title: str, days_ahead: int = 7
+      ) -> PricePrediction:
+          """Предсказать цену на N дней вперед."""
+          features = self._extract_features(item_title)
+          prediction = self._model.predict(features)
+          confidence = self._calculate_confidence(prediction)
+          return PricePrediction(
+              predicted_price=prediction,
+              confidence=confidence,
+              prediction_date=datetime.now() + timedelta(days=days_ahead)
+          )
+  ```
+
+**Фаза 3: Валидация и A/B тестирование (10-15 часов)**
+
+- [ ] Backtesting на исторических данных
+- [ ] A/B тест: ML vs правила
+- [ ] Мониторинг точности предсказаний
+
+**Фаза 4: Интеграция (5-10 часов)**
+
+- [ ] Команда `/predict <item_name>`
+- [ ] Интеграция в ArbitrageScanner
+- [ ] Feature flag для включения/выключения
+
+**Критерий завершения**: Модель работает с точностью >70%, интегрирована в бота под feature flag
+
+**Референс**: [scikit-learn](https://scikit-learn.org/), [Prophet](https://facebook.github.io/prophet/)
+
+---
+
+## 📊 Статистика проблем (ОБНОВЛЕНО 06.12.2025)
 
 **ТЕКУЩЕЕ СОСТОЯНИЕ ТЕСТИРОВАНИЯ** (по результатам полного запуска 04.12.2025 17:56):
 
@@ -867,12 +2416,38 @@ def verify_admin_2fa(user_id: int, token: str) -> bool:
 - **Пропущено**: 0
 - **Качество кода**: ✅ Ruff: 0 ошибок | ⚠️ MyPy: 955 ошибок (увеличение с 885)
 
-| Приоритет | Проблем всего | Критичность          | Время               | Статус                                                          |
-| --------- | ------------- | -------------------- | ------------------- | --------------------------------------------------------------- |
-| **P0** 🔴  | 3             | Блокируют production | ~12 часов           | ✅ **100% (3/3 ЗАВЕРШЕНО)** - 24.11.2025                         |
-| **P1** 🟠  | 10            | Важные               | ~130-170 часов      | 🔄 **40% (4/10 завершено)** - P1-10 завершен 04.12.2025          |
-| **P2** 🟢  | 9             | Низкий               | ~270-350 часов      | 🔄 **22% (2/9 завершено)** - 6 новых долгосрочных задач          |
-| **ИТОГО** | **23**        | -                    | **412-532 часов**   | **39% (9/23 завершено)** - Активная разработка + новые улучшения |
+| Приоритет | Проблем всего | Критичность          | Время              | Статус                                                              |
+| --------- | ------------- | -------------------- | ------------------ | ------------------------------------------------------------------- |
+| **P0** 🔴  | 3             | Блокируют production | ~12 часов          | ✅ **100% (3/3 ЗАВЕРШЕНО)** - 24.11.2025                             |
+| **P1** 🟠  | 16            | Важные               | ~220-280 часов     | 🔄 **25% (4/16 завершено)** - добавлены P1-20 до P1-23               |
+| **P2** 🟢  | 23            | Улучшения            | ~600-800 часов     | 🔄 **9% (2/23 завершено)** - добавлены P2-18 до P2-29                |
+| **P3** 🔵  | 1             | Исследования         | ~40-50 часов       | 🆕 **0% (0/1)** - новый приоритет                                    |
+| **ИТОГО** | **47**        | -                    | **872-1142 часов** | **19% (9/47 завершено)** - Масштабное расширение roadmap 06.12.2025 |
+
+### Новые задачи из анализа Grok AI (06.12.2025)
+
+| ID    | Задача                  | Время   | Приоритет      | Зависимости          | Риск без реализации                 |
+| ----- | ----------------------- | ------- | -------------- | -------------------- | ----------------------------------- |
+| P1-18 | VCR.py интеграция       | 4-6 ч   | 🟠 Важно        | pytest, vcrpy        | Тесты не отражают реальное API      |
+| P1-19 | Тесты арбитража         | 8-12 ч  | 🟠 Важно        | P1-18 (опц.)         | Низкое покрытие критического модуля |
+| P1-20 | Property-based testing  | 10-15 ч | 🟠 Важно        | hypothesis           | Пропуск edge-case багов             |
+| P1-21 | Contract testing        | 8-12 ч  | 🟠 Важно        | pact-python          | Несовместимость API версий          |
+| P1-22 | Backtesting система     | 20-30 ч | 🟠 Важно        | pandas, numpy        | Торговля без валидации стратегий    |
+| P1-23 | Portfolio management    | 15-20 ч | 🟠 Важно        | P1-22                | Концентрация рисков                 |
+| P2-16 | Snyk + SonarQube        | 8-12 ч  | 🟢 Улучшение    | GitHub Actions       | Уязвимости не обнаруживаются        |
+| P2-17 | Dependency Injection    | 15-20 ч | 🟢 Улучшение    | Рефакторинг          | Сложность тестирования              |
+| P2-18 | Admin Dashboard         | 25-35 ч | 🟢 Улучшение    | FastAPI, React       | Ручное управление через CLI         |
+| P2-19 | Event Sourcing          | 30-40 ч | 🟢 Улучшение    | EventStore/Kafka     | Потеря аудита операций              |
+| P2-20 | Chaos Engineering       | 15-20 ч | 🟢 Улучшение    | Toxiproxy, Locust    | Неизвестные failure modes           |
+| P2-21 | Feature Flags           | 10-15 ч | 🟢 Улучшение    | LaunchDarkly/Unleash | Рискованные релизы                  |
+| P2-22 | API Versioning          | 12-18 ч | 🟢 Улучшение    | FastAPI              | Breaking changes для пользователей  |
+| P2-23 | Distributed Tracing     | 15-20 ч | 🟢 Улучшение    | Jaeger/Zipkin        | Сложность отладки                   |
+| P2-24 | Data Pipeline           | 20-30 ч | 🟢 Улучшение    | Airflow/Dagster      | Ручная аналитика                    |
+| P2-26 | GraphQL API             | 20-30 ч | 🟢 Улучшение    | Strawberry           | Неэффективные запросы               |
+| P2-27 | Multi-region deployment | 25-35 ч | 🟢 Улучшение    | Kubernetes           | Single point of failure             |
+| P2-28 | Self-healing система    | 20-25 ч | 🟢 Улучшение    | P1-14                | Ручное восстановление               |
+| P2-29 | Automated documentation | 10-15 ч | 🟢 Улучшение    | MkDocs               | Устаревшая документация             |
+| P3-1  | ML ценовые предсказания | 40-50 ч | 🔵 Исследование | scikit-learn         | Упущенные торговые возможности      |
 
 ---
 
@@ -1045,7 +2620,7 @@ def verify_admin_2fa(user_id: int, token: str) -> bool:
 
 **Решение**: Систематическая фиксация всех провальных тестов
 
-**Результат**: 
+**Результат**:
 - ✅ 299/302 тестов проходят успешно (99.0%)
 - ⚠️ 3 теста падают только в CI окружении без доступа к сети
 - ✅ Все критические модули работают на 100%
@@ -1190,19 +2765,19 @@ def verify_admin_2fa(user_id: int, token: str) -> bool:
 
 ### Сравнительная таблица
 
-| Аспект | Этот проект | timagr615/dmarket_bot | kalekdev/CSGO-Trader | TrickmanOff/DMarket-Bot |
-|--------|-------------|----------------------|----------------------|------------------------|
-| **Функционал** | Полный (аналитика + арбитраж + авто-трейдинг) | Базовый (авто-трейдинг) | Кросс-платформенный арбитраж | Авто-таргетинг |
-| **Архитектура** | Enterprise (async, SQLAlchemy, Docker) | Простая (sync, config.py) | Golang (fast, concurrent) | Устаревшая (abandoned) |
-| **Тестирование** | 1722 теста (85%+ покрытие цель) | Минимальное | Отсутствует | Отсутствует |
-| **Документация** | Обширная + ROADMAP | Базовая README | README с примерами | Устаревшая |
-| **UI** | Telegram-focused | CLI только | Discord webhooks | Нет |
-| **Расширенные фильтры** | Базовые (в плане P1-16) ⭐ | 15+ параметров ✅ | Нет | Фокус на "быстрые" скины |
-| **Авто-продажа** | В плане (P1-17) ⭐ | Полностью реализовано ✅ | Нет | Частично |
-| **Кросс-платформа** | В плане (P2-13) ⭐ | Только DMarket | Buff163 + Skinport ✅ | Только DMarket |
-| **High-frequency** | В плане (P2-15) ⭐ | Реализовано ✅ | Нет | Нет |
-| **Стабильность** | Health-checks, dry-run | Работает локально | Discord failover | Сломан (API changes) |
-| **Оценка конкуренции** | Реализовано ✅ (P1-15) | Нет | Нет | Нет |
+| Аспект                  | Этот проект                                   | timagr615/dmarket_bot     | kalekdev/CSGO-Trader         | TrickmanOff/DMarket-Bot  |
+| ----------------------- | --------------------------------------------- | ------------------------- | ---------------------------- | ------------------------ |
+| **Функционал**          | Полный (аналитика + арбитраж + авто-трейдинг) | Базовый (авто-трейдинг)   | Кросс-платформенный арбитраж | Авто-таргетинг           |
+| **Архитектура**         | Enterprise (async, SQLAlchemy, Docker)        | Простая (sync, config.py) | Golang (fast, concurrent)    | Устаревшая (abandoned)   |
+| **Тестирование**        | 1722 теста (85%+ покрытие цель)               | Минимальное               | Отсутствует                  | Отсутствует              |
+| **Документация**        | Обширная + ROADMAP                            | Базовая README            | README с примерами           | Устаревшая               |
+| **UI**                  | Telegram-focused                              | CLI только                | Discord webhooks             | Нет                      |
+| **Расширенные фильтры** | Базовые (в плане P1-16) ⭐                     | 15+ параметров ✅          | Нет                          | Фокус на "быстрые" скины |
+| **Авто-продажа**        | В плане (P1-17) ⭐                             | Полностью реализовано ✅   | Нет                          | Частично                 |
+| **Кросс-платформа**     | В плане (P2-13) ⭐                             | Только DMarket            | Buff163 + Skinport ✅         | Только DMarket           |
+| **High-frequency**      | В плане (P2-15) ⭐                             | Реализовано ✅             | Нет                          | Нет                      |
+| **Стабильность**        | Health-checks, dry-run                        | Работает локально         | Discord failover             | Сломан (API changes)     |
+| **Оценка конкуренции**  | Реализовано ✅ (P1-15)                         | Нет                       | Нет                          | Нет                      |
 
 > **Примечание**: Сравнение основано на анализе состояния репозиториев на декабрь 2025 г. Состояние проектов может измениться.
 
