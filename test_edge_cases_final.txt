@@ -1,0 +1,131 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-8.4.2, pluggy-1.6.0
+rootdir: D:\Dmarket\DMarket-Telegram-Bot\DMarket-Telegram-Bot
+configfile: pyproject.toml
+plugins: anyio-4.11.0, Faker-38.0.0, asyncio-1.3.0, cov-7.0.0, httpx-0.35.0, mock-3.15.1, xdist-3.8.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collected 14 items
+
+tests\integration\test_arbitrage_edge_cases.py ..............
+ERROR: Coverage failure: total of 5.67 is less than fail-under=85.00
+                                                                         [100%]
+
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.11.9-final-0 _______________
+
+Name                                                         Stmts   Miss Branch BrPart  Cover   Missing
+--------------------------------------------------------------------------------------------------------
+src\dmarket\arbitrage_sales_analysis.py                        332    332    142      0  0.00%   13-991
+src\dmarket\filters\__init__.py                                  1      1      0      0  0.00%   3
+src\dmarket\filters\game_filters.py                            133    133     90      0  0.00%   8-298
+src\dmarket\game_filters.py                                      2      2      0      0  0.00%   7-18
+src\dmarket\intramarket_arbitrage.py                           262    262    154      0  0.00%   10-726
+src\dmarket\liquidity_rules.py                                  27     27      8      0  0.00%   3-114
+src\dmarket\market_analysis.py                                 320    320    124      0  0.00%   7-982
+src\dmarket\models\__init__.py                                   1      1      0      0  0.00%   3
+src\dmarket\models\market_models.py                            257    257      6      0  0.00%   9-551
+src\dmarket\realtime_price_watcher.py                          273    273    106      0  0.00%   9-711
+src\dmarket\sales_history.py                                   256    256     82      0  0.00%   9-787
+src\dmarket\smart_market_finder.py                             297    297     96      0  0.00%   15-858
+src\dmarket\targets.py                                         298    298    112      0  0.00%   14-930
+src\main.py                                                    174    174     36      0  0.00%   7-424
+src\telegram_bot\__init__.py                                     1      1      0      0  0.00%   3
+src\telegram_bot\chart_generator.py                             77     77     12      0  0.00%   7-382
+src\telegram_bot\commands\__init__.py                            1      1      0      0  0.00%   3
+src\telegram_bot\commands\balance_command.py                   108    108     44      0  0.00%   3-347
+src\telegram_bot\commands\basic_commands.py                     21     21      4      0  0.00%   7-66
+src\telegram_bot\commands\daily_report_command.py               42     42     10      0  0.00%   8-117
+src\telegram_bot\commands\logs_command.py                       78     78     40      0  0.00%   7-149
+src\telegram_bot\commands\resume_command.py                     28     28     10      0  0.00%   7-84
+src\telegram_bot\commands\test_sentry_command.py                91     91     20      0  0.00%   9-281
+src\telegram_bot\config_data.py                                  1      1      0      0  0.00%   3
+src\telegram_bot\constants.py                                   10     10      0      0  0.00%   4-39
+src\telegram_bot\handlers\arbitrage_callback_impl.py            98     98     18      0  0.00%   10-436
+src\telegram_bot\handlers\callbacks.py                         180    180    102      0  0.00%   6-611
+src\telegram_bot\handlers\commands.py                           54     54     26      0  0.00%   7-224
+src\telegram_bot\handlers\dashboard_handler.py                 231    231     66      0  0.00%   7-718
+src\telegram_bot\handlers\dmarket_handlers.py                   58     58     24      0  0.00%   6-152
+src\telegram_bot\handlers\dmarket_status.py                     69     69     20      0  0.00%   1-142
+src\telegram_bot\handlers\error_handlers.py                     29     29     12      0  0.00%   7-83
+src\telegram_bot\handlers\game_filter_handlers.py              283    283    108      0  0.00%   10-1157
+src\telegram_bot\handlers\intramarket_arbitrage_handler.py     147    147     40      0  0.00%   3-483
+src\telegram_bot\handlers\liquidity_settings_handler.py        127    127     52      0  0.00%   3-459
+src\telegram_bot\handlers\market_alerts_handler.py             283    283    144      0  0.00%   7-862
+src\telegram_bot\handlers\market_analysis_handler.py           313    313    120      0  0.00%   3-1069
+src\telegram_bot\handlers\notification_digest_handler.py       289    289     58      0  0.00%   10-777
+src\telegram_bot\handlers\notification_filters_handler.py      233    233     58      0  0.00%   7-754
+src\telegram_bot\handlers\price_alerts_handler.py              131    131     18      0  0.00%   7-521
+src\telegram_bot\handlers\sales_analysis_handlers.py            98     98     12      0  0.00%   3-412
+src\telegram_bot\handlers\scanner_handler.py                   172    172     58      0  0.00%   3-562
+src\telegram_bot\handlers\settings_handlers.py                 169    169     54      0  0.00%   3-458
+src\telegram_bot\handlers\target_handler.py                     92     92     30      0  0.00%   3-311
+src\telegram_bot\initialization.py                             123    123     38      0  0.00%   7-353
+src\telegram_bot\keyboards.py                                  249    249     76      0  0.00%   8-1467
+src\telegram_bot\localization.py                                 1      1      0      0  0.00%   12
+src\telegram_bot\market_alerts.py                              299    299    118      0  0.00%   8-792
+src\telegram_bot\notification_queue.py                          99     99     18      0  0.00%   1-187
+src\telegram_bot\notifier.py                                   510    510    184      0  0.00%   10-1487
+src\telegram_bot\pagination.py                                 149    149     68      0  0.00%   3-463
+src\telegram_bot\profiles.py                                    25     25      4      0  0.00%   3-61
+src\telegram_bot\register_all_handlers.py                      103    103      2      0  0.00%   7-211
+src\telegram_bot\sales_analysis_callbacks.py                   212    212     62      0  0.00%   3-739
+src\telegram_bot\smart_notifier.py                             394    394    134      0  0.00%   11-1306
+src\telegram_bot\user_profiles.py                              209    209     74      0  0.00%   10-575
+src\telegram_bot\utils\api_client.py                            46     46      8      0  0.00%   7-135
+src\telegram_bot\utils\api_helper.py                            20     20      8      0  0.00%   1-56
+src\telegram_bot\utils\error_handler.py                        185    185     74      0  0.00%   8-506
+src\telegram_bot\utils\formatters.py                           311    311    110      0  0.00%   7-862
+src\utils\analytics.py                                         212    212     40      0  0.00%   7-577
+src\utils\api_error_handling.py                                 42     42     22      0  0.00%   8-126
+src\utils\batch_processor.py                                    98     98     26      0  0.00%   8-297
+src\utils\daily_report_scheduler.py                            103    103     30      0  0.00%   8-299
+src\utils\exceptions.py                                        214    214     60      0  0.00%   7-719
+src\utils\logging_utils.py                                     142    142     36      0  0.00%   8-644
+src\utils\market_analytics.py                                  224    224     80      0  0.00%   7-630
+src\utils\market_analyzer.py                                   296    296    144      0  0.00%   7-727
+src\utils\market_visualizer.py                                 347    347    118      0  0.00%   12-868
+src\utils\performance.py                                        96     96     22      0  0.00%   3-311
+src\utils\price_analyzer.py                                    188    188     72      0  0.00%   10-531
+src\utils\price_sanity_checker.py                               77     77     10      0  0.00%   15-351
+src\utils\prometheus_metrics.py                                 48     48      0      0  0.00%   10-293
+src\utils\reactive_websocket.py                                253    253     66      0  0.00%   7-567
+src\utils\state_manager.py                                     183    183     26      0  0.00%   8-542
+src\utils\trading_notifier.py                                   46     46     14      0  0.00%   8-228
+src\utils\websocket_client.py                                  176    176     54      0  0.00%   7-408
+src\dmarket\arbitrage.py                                       553    497    210      0  7.34%   81-91, 105-106, 129-162, 186-284, 307, 330, 353, 359-360, 365-366, 371-372, 397-487, 496-497, 531-564, 573-591, 595-600, 613-630, 634-653, 662-677, 700-807, 823-922, 941-963, 975-979, 995-1068, 1077, 1091-1097, 1110-1118, 1148-1178, 1197-1243, 1262-1297, 1322-1372, 1401-1583, 1605-1653, 1668-1677, 1691-1701, 1716-1728
+src\utils\sentry_breadcrumbs.py                                 85     70     42      1 12.60%   47-71, 102-121, 155-177, 208-231, 260-277, 302-307, 331-345, 363-368, 373-380
+src\dmarket\liquidity_analyzer.py                              162    135     46      0 12.98%   52-59, 82-136, 152-194, 212-262, 278-298, 314-320, 334-356, 370-399, 413-424, 457-486, 507-514, 527-535
+src\utils\database.py                                          210    169     48      0 15.89%   52-57, 62-100, 105-111, 115, 119-140, 144-159, 170-188, 192-220, 224-226, 238-320, 344-368, 382-410, 428-448, 471-504, 521-563, 583-614, 626-634, 649-659, 685-716, 725, 734-736, 747-784, 796-811, 820-836, 845-855
+src\dmarket\arbitrage_scanner.py                               516    399    190     12 19.69%   156, 161, 173-183, 203-221, 245-394, 415-454, 477-515, 524-680, 714-890, 909-938, 957-1000, 1019-1051, 1067, 1083-1087, 1115, 1117->1123, 1120, 1157-1165, 1176-1179, 1189-1191, 1195, 1225, 1234, 1246-1331, 1380-1406, 1415-1424, 1439-1491, 1506, 1517-1518, 1540-1541, 1560-1563, 1588-1589, 1612-1615, 1634-1635, 1660-1661
+src\utils\config.py                                            265    183     88      0 23.23%   146-161, 165-293, 301-406, 410-502
+src\utils\rate_limiter.py                                      169    118     66      6 25.11%   100-141, 151-237, 249-262, 272, 287->293, 324-366, 375-376, 390, 397, 401, 411-412, 427-432, 451-469, 487-505, 521-542
+src\utils\memory_cache.py                                      143     95     24      0 28.74%   63-76, 80-84, 97-115, 126-139, 155-159, 163-165, 169-179, 188-192, 234-247, 267-279, 284, 289, 294, 299, 304-308, 313-317, 327, 341-345
+src\dmarket\dmarket_api.py                                     808    539    234     25 31.09%   184-185, 220, 227-228, 237, 250-252, 275, 297-298, 301-304, 308-309, 314-316, 337-341, 360-374, 398, 421->426, 428-432, 461, 477-500, 513, 526-527, 544, 553-562, 611->618, 635->847, 655-663, 682-684, 696-705, 740-758, 773-796, 800-825, 856, 865-866, 876-885, 907-1350, 1372-1376, 1426, 1428->1431, 1446->1463, 1453-1454, 1465-1468, 1514, 1522, 1551-1665, 1690-1788, 1807-1812, 1834-1859, 1881, 1893, 1926-1932, 1952-1953, 1973-1974, 1993-1994, 2022-2023, 2055-2056, 2074-2075, 2099-2100, 2123-2128, 2168-2185, 2210-2216, 2247-2248, 2272-2280, 2383-2396, 2421-2430, 2453-2461, 2492-2499, 2524-2531, 2550-2554, 2577-2585, 2604-2608, 2633-2640, 2679-2681, 2712-2717, 2736-2738, 2785-2792, 2813-2824, 2842-3014
+src\models\base.py                                              23     11      8      0 38.71%   22-26, 34-38, 54
+src\utils\json_utils.py                                         28     14     10      1 39.47%   53-54, 76-82, 94-99, 113-116
+src\dmarket\api_validator.py                                    49     28      6      0 41.82%   38-74, 118-149, 174-187
+src\dmarket\__init__.py                                         11      4      0      0 63.64%   36-97
+src\dmarket\schemas.py                                         147     30     18      1 71.52%   34, 39-41, 45-47, 98-100, 120-122, 184-186, 207, 250, 254, 281-283, 287-289, 325, 329, 386-388
+src\models\target.py                                            49      3      0      0 93.88%   64, 126, 192
+src\models\alert.py                                             20      1      0      0 95.00%   41
+src\models\user.py                                              40      2      0      0 95.00%   46, 93
+src\models\market.py                                            28      1      0      0 96.43%   54
+--------------------------------------------------------------------------------------------------------
+TOTAL                                                        15175  14126   4904     46  5.67%
+
+7 files skipped due to complete coverage.
+Coverage HTML written to dir htmlcov
+Coverage XML written to file coverage.xml
+FAIL Required test coverage of 85% not reached. Total coverage: 5.67%
+============================ slowest 10 durations =============================
+3.27s call     tests/integration/test_arbitrage_edge_cases.py::TestArbitrageScannerEdgeCases::test_scan_all_levels_with_api_errors
+2.29s call     tests/integration/test_arbitrage_edge_cases.py::TestArbitrageScannerPerformance::test_scan_multiple_pages_performance
+0.76s call     tests/integration/test_arbitrage_edge_cases.py::TestArbitrageScannerEdgeCases::test_scan_with_no_profitable_items
+0.75s call     tests/integration/test_arbitrage_edge_cases.py::TestArbitrageScannerEdgeCases::test_scan_with_concurrent_level_scans
+0.31s call     tests/integration/test_arbitrage_edge_cases.py::TestArbitrageScannerEdgeCases::test_scan_with_partial_data
+0.30s call     tests/integration/test_arbitrage_edge_cases.py::TestArbitrageScannerPerformance::test_scan_large_dataset
+0.25s call     tests/integration/test_arbitrage_edge_cases.py::TestArbitrageScannerFiltering::test_filter_by_minimum_profit
+0.24s call     tests/integration/test_arbitrage_edge_cases.py::TestArbitrageScannerEdgeCases::test_scan_with_invalid_price_format
+0.24s call     tests/integration/test_arbitrage_edge_cases.py::TestArbitrageScannerEdgeCases::test_scan_with_very_high_profit
+0.24s call     tests/integration/test_arbitrage_edge_cases.py::TestArbitrageScannerEdgeCases::test_scan_with_missing_suggested_price
+============================= 14 passed in 16.52s =============================

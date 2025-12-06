@@ -1,0 +1,149 @@
+"""Logs command for viewing INTENT logs.
+
+This module provides command for viewing the latest BUY_INTENT and SELL_INTENT
+logs from the trading operations.
+"""
+
+import json
+import logging
+from pathlib import Path
+
+from telegram import Update
+from telegram.ext import ContextTypes
+
+
+logger = logging.getLogger(__name__)
+
+
+async def logs_command(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> None:
+    """Show last 20 INTENT logs (BUY_INTENT and SELL_INTENT).
+
+    Args:
+        update: Telegram update object
+        context: Telegram context object
+
+    """
+    if not update.message:
+        return
+
+    user_id = update.effective_user.id
+    logger.info(f"Logs command called by user {user_id}")
+
+    # Send initial message
+    await update.message.reply_text("🔍 Загрузка последних логов...")
+
+    # Find log files
+    log_dir = Path("logs")
+    if not log_dir.exists():
+        await update.message.reply_text("❌ Папка логов не найдена. Логи пока не записывались.")
+        return
+
+    # Get all log files sorted by modification time (newest first)
+    log_files = sorted(
+        log_dir.glob("*.log"),
+        key=lambda f: f.stat().st_mtime,
+        reverse=True,
+    )
+
+    if not log_files:
+        await update.message.reply_text("❌ Файлы логов не найдены.")
+        return
+
+    # Collect INTENT logs from recent log files
+    intent_logs = []
+    max_logs = 20
+
+    for log_file in log_files[:5]:  # Check up to 5 recent files
+        try:
+            with log_file.open("r", encoding="utf-8") as f:
+                for line in f:
+                    # Try to parse as JSON
+                    try:
+                        log_entry = json.loads(line.strip())
+                        # Check if it's an INTENT log
+                        if "intent_type" in log_entry and log_entry["intent_type"] in [
+                            "BUY_INTENT",
+                            "SELL_INTENT",
+                        ]:
+                            intent_logs.append(log_entry)
+                    except json.JSONDecodeError:
+                        # Not JSON format, try to find INTENT in plain text
+                        if "BUY_INTENT" in line or "SELL_INTENT" in line:
+                            intent_logs.append({"raw": line.strip()})
+
+            if len(intent_logs) >= max_logs:
+                break
+        except Exception as e:
+            logger.exception(f"Error reading log file {log_file}: {e}")
+
+    # Limit to last 20
+    intent_logs = intent_logs[:max_logs]
+
+    if not intent_logs:
+        await update.message.reply_text(
+            "ℹ️ INTENT логов пока нет.\n\nЛоги появятся после первой попытки покупки/продажи."
+        )
+        return
+
+    # Format logs for display
+    message_lines = ["📊 Последние INTENT логи:\n"]
+
+    for i, log_entry in enumerate(intent_logs, 1):
+        # Handle JSON logs
+        if "intent_type" in log_entry:
+            intent_type = log_entry["intent_type"]
+            emoji = "🔵" if intent_type == "BUY_INTENT" else "🟢"
+            mode = "[DRY-RUN]" if log_entry.get("dry_run") else "[LIVE]"
+
+            item = log_entry.get("item", "Unknown")
+            price = log_entry.get("price_usd", 0)
+            timestamp = log_entry.get("timestamp", "")
+
+            line = f"{i}. {emoji} {mode} {intent_type}\n"
+            line += f"   📦 {item}\n"
+            line += f"   💵 ${price:.2f}\n"
+
+            if intent_type == "BUY_INTENT":
+                if log_entry.get("sell_price_usd"):
+                    line += f"   💰 Sell: ${log_entry['sell_price_usd']:.2f}\n"
+                if log_entry.get("profit_percent"):
+                    line += f"   📈 +{log_entry['profit_percent']:.1f}%\n"
+            else:  # SELL_INTENT
+                if log_entry.get("buy_price_usd"):
+                    line += f"   💸 Bought: ${log_entry['buy_price_usd']:.2f}\n"
+                if log_entry.get("profit_usd"):
+                    line += f"   💰 Profit: ${log_entry['profit_usd']:.2f}\n"
+
+            line += f"   🕐 {timestamp[:19]}\n"
+        else:
+            # Handle raw text logs
+            line = f"{i}. {log_entry.get('raw', '')}\n"
+
+        message_lines.append(line)
+
+    message = "\n".join(message_lines)
+
+    # Split message if too long (Telegram limit is 4096 characters)
+    if len(message) > 4000:
+        # Send in chunks
+        chunks = []
+        current_chunk = message_lines[0]  # Header
+
+        for line in message_lines[1:]:
+            if len(current_chunk) + len(line) > 3800:
+                chunks.append(current_chunk)
+                current_chunk = line
+            else:
+                current_chunk += "\n" + line
+
+        chunks.append(current_chunk)
+
+        for chunk in chunks:
+            await update.message.reply_text(chunk)
+    else:
+        await update.message.reply_text(message)
+
+    logger.info(f"Sent {len(intent_logs)} INTENT logs to user {user_id}")

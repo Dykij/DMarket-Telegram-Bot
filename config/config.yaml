@@ -1,0 +1,47 @@
+# Configuration for development environment
+# Copy this to config/local.yaml for local development
+
+bot:
+  token: ${TELEGRAM_BOT_TOKEN}
+  username: ${BOT_USERNAME:dmarket_bot}
+  webhook:
+    url: ${WEBHOOK_URL:}
+    secret: ${WEBHOOK_SECRET:}
+  # Для локальной работы оставьте WEBHOOK_URL пустым
+
+dmarket:
+  api_url: ${DMARKET_API_URL:https://api.dmarket.com}
+  public_key: ${DMARKET_PUBLIC_KEY}
+  secret_key: ${DMARKET_SECRET_KEY}
+  rate_limit: ${API_RATE_LIMIT:30}  # requests per minute
+
+database:
+  url: ${DATABASE_URL:sqlite:///data/dmarket_bot.db}
+  echo: ${DEBUG:false}
+  pool_size: 5
+  max_overflow: 10
+
+redis:
+  url: ${REDIS_URL:redis://localhost:6379}
+
+logging:
+  level: ${LOG_LEVEL:INFO}
+  file: ${LOG_FILE:logs/dmarket_bot.log}
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  rotation: "1 week"
+  retention: "1 month"
+
+security:
+  allowed_users: ${ALLOWED_USERS:}  # comma-separated
+  admin_users: ${ADMIN_USERS:}      # comma-separated
+
+analytics:
+  enabled: ${ANALYTICS_ENABLED:true}
+
+monitoring:
+  sentry_dsn: ${SENTRY_DSN:}
+  prometheus_enabled: ${PROMETHEUS_ENABLED:false}
+
+cache:
+  ttl: ${CACHE_TTL:300}  # seconds
+  max_size: 1000
