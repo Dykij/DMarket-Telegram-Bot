@@ -6,6 +6,7 @@ including initialization, configuration loading, and graceful shutdown handling.
 
 import asyncio
 import logging
+import os
 import signal
 import sys
 
@@ -18,6 +19,7 @@ from src.utils.config import Config
 from src.utils.daily_report_scheduler import DailyReportScheduler
 from src.utils.database import DatabaseManager
 from src.utils.logging_utils import BotLogger, setup_logging
+from src.utils.sentry_integration import init_sentry
 from src.utils.state_manager import StateManager
 
 
@@ -62,6 +64,19 @@ class Application:
             logger.info("Configuration loaded successfully")
             logger.info(f"Debug mode: {self.config.debug}")
             logger.info(f"Testing mode: {self.config.testing}")
+
+            # Initialize Sentry for production error monitoring
+            if not self.config.testing:
+                environment = "production" if not self.config.debug else "development"
+                init_sentry(
+                    dsn=os.getenv("SENTRY_DSN"),
+                    environment=environment,
+                    release=os.getenv("SENTRY_RELEASE", "1.0.0"),
+                    traces_sample_rate=0.1,
+                    profiles_sample_rate=0.1,
+                    debug=self.config.debug,
+                )
+                logger.info(f"Sentry initialized for {environment} environment")
 
             # Initialize database
             if not self.config.testing:
