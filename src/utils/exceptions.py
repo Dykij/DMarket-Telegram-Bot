@@ -523,6 +523,39 @@ def handle_exceptions(
         if logger_instance is None:
             logger_instance = get_logger(f"{func.__module__}.{func.__qualname__}")
 
+        async def _send_error_to_user(args: tuple[Any, ...], error_message: str) -> None:
+            """Отправить сообщение об ошибке пользователю."""
+            # Проверяем как args[0] (для функций), так и args[1] (для методов класса)
+            update = None
+            if args:
+                # Для методов класса Update может быть во втором аргументе
+                if len(args) > 1 and hasattr(args[1], "message"):
+                    update = args[1]
+                # Для обычных функций Update в первом аргументе
+                elif hasattr(args[0], "message"):
+                    update = args[0]
+
+            if update:
+                # Проверка на callback query (должен быть не None)
+                if hasattr(update, "callback_query") and update.callback_query is not None:
+                    try:
+                        if hasattr(update.callback_query, "answer"):
+                            await update.callback_query.answer(
+                                text=f"❌ {error_message}",
+                                show_alert=True,
+                            )
+                    except Exception as answer_error:
+                        logger_instance.exception(f"Не удалось отправить answer: {answer_error!s}")
+                elif update.message and hasattr(update.message, "reply_text"):
+                    try:
+                        await update.message.reply_text(
+                            f"❌ {error_message}",
+                        )
+                    except Exception as reply_error:
+                        logger_instance.exception(
+                            f"Не удалось отправить сообщение об ошибке: {reply_error!s}"
+                        )
+
         @functools.wraps(func)
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
@@ -533,6 +566,11 @@ def handle_exceptions(
                     f"{default_error_message}: {e!s}",
                     extra={"context": e.to_dict()},
                 )
+
+                # Отправляем сообщение об ошибке пользователю
+                if not reraise:
+                    await _send_error_to_user(args, default_error_message)
+
                 if reraise:
                     raise
             except Exception as e:
@@ -545,6 +583,11 @@ def handle_exceptions(
                     f"Необработанное исключение в {func.__qualname__}: {e!s}",
                     extra={"context": error_details},
                 )
+
+                # Отправляем сообщение об ошибке пользователю
+                if not reraise:
+                    await _send_error_to_user(args, default_error_message)
+
                 if reraise:
                     raise
 

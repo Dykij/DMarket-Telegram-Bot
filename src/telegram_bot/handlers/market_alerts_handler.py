@@ -40,6 +40,7 @@ ALERT_TYPES = {
 @handle_exceptions(
     logger_instance=logger,
     default_error_message="Ошибка при обработке команды /alerts",
+    reraise=False,
 )
 async def alerts_command(
     update: Update,
@@ -188,6 +189,7 @@ async def alerts_command(
 @handle_exceptions(
     logger_instance=logger,
     default_error_message="Ошибка при обработке колбэка уведомлений",
+    reraise=False,
 )
 async def alerts_callback(
     update: Update,

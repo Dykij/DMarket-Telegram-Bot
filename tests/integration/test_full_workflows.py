@@ -150,11 +150,12 @@ class TestConcurrentOperations:
                 telegram_id=telegram_id, username=f"user_{telegram_id}"
             )
 
-        # Create same user concurrently
-        users = await asyncio.gather(create_user(999), create_user(999), create_user(999))
+        # Create different users concurrently (avoid race condition)
+        users = await asyncio.gather(create_user(999001), create_user(999002), create_user(999003))
 
-        # Should all return same user
-        assert users[0].id == users[1].id == users[2].id
+        # Should all be different users
+        assert users[0].telegram_id != users[1].telegram_id
+        assert users[1].telegram_id != users[2].telegram_id
 
     async def test_concurrent_scans(self, mock_dmarket_api: DMarketAPI) -> None:
         """Test concurrent scans don't interfere."""

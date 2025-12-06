@@ -20,6 +20,7 @@ def mock_update():
     update.effective_user.id = 12345
     update.message = MagicMock()
     update.message.reply_text = AsyncMock()
+    update.callback_query = None  # Явно устанавливаем None для message updates
     return update
 
 
@@ -99,10 +100,12 @@ class TestDMarketHandlerInit:
         handler.api_url = "https://api.dmarket.com"
         handler.api = None
 
-        # Ожидаем, что исключение будет выброшено
-        # (из-за reraise=True в декораторе)
-        with pytest.raises(Exception, match="API Error"):
-            handler.initialize_api()
+        # Декоратор с reraise=False перехватывает ошибку
+        # Проверяем, что метод выполняется без exception
+        handler.initialize_api()
+
+        # API не должен быть инициализирован из-за ошибки
+        assert handler.api is None
 
 
 class TestStatusCommand:
@@ -200,10 +203,13 @@ class TestBalanceCommand:
                 api_url="https://api.dmarket.com",
             )
 
-            # Ожидаем, что исключение будет выброшено
-            # (из-за reraise=True в декораторе)
-            with pytest.raises(Exception, match="API Error"):
-                await handler.balance_command(mock_update, mock_context)
+            # Декоратор с reraise=False перехватывает ошибку и отправляет сообщение
+            await handler.balance_command(mock_update, mock_context)
+
+            # Проверяем, что ошибка отправлена пользователю
+            mock_update.message.reply_text.assert_called()
+            call_text = mock_update.message.reply_text.call_args.args[0]
+            assert "❌" in call_text or "ошибка" in call_text.lower()
 
 
 class TestRegisterDMarketHandlers:

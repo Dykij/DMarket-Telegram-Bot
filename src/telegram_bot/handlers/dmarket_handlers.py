@@ -34,7 +34,7 @@ class DMarketHandler:
         if public_key and secret_key:
             self.initialize_api()
 
-    @handle_exceptions(logger, "Ошибка инициализации API")
+    @handle_exceptions(logger, "Ошибка инициализации API", reraise=False)
     def initialize_api(self) -> None:
         """Инициализирует API клиент."""
         self.api = DMarketAPI(
@@ -44,7 +44,7 @@ class DMarketHandler:
         )
         logger.info("DMarket API клиент инициализирован успешно")
 
-    @handle_exceptions(logger, "Ошибка при проверке статуса")
+    @handle_exceptions(logger, "Ошибка при проверке статуса", reraise=False)
     async def status_command(
         self,
         update: Update,
@@ -69,7 +69,7 @@ class DMarketHandler:
                     "API ключи DMarket не настроены.\nПожалуйста, добавьте их в .env файл.",
                 )
 
-    @handle_exceptions(logger, "Ошибка при получении баланса")
+    @handle_exceptions(logger, "Ошибка при получении баланса", reraise=False)
     async def balance_command(
         self,
         update: Update,

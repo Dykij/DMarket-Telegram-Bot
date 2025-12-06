@@ -148,10 +148,13 @@ async def test_handle_dmarket_arbitrage_rate_limit_error(mock_update, mock_conte
     ) as mock_boost:
         mock_boost.side_effect = APIError(message="Rate limit exceeded", status_code=429)
 
-        # Ожидаем, что исключение будет выброшено
-        # (из-за reraise=True в декораторе)
-        with pytest.raises(APIError, match="Rate limit exceeded"):
-            await handle_dmarket_arbitrage_impl(query, mock_context, "boost")
+        # Декоратор теперь отправляет ошибку пользователю вместо reraise
+        await handle_dmarket_arbitrage_impl(query, mock_context, "boost")
+
+        # Проверяем, что ошибка отправлена пользователю
+        query.message.reply_text.assert_called()
+        call_text = query.message.reply_text.call_args.args[0]
+        assert "❌" in call_text or "ошибка" in call_text.lower()
 
 
 @pytest.mark.asyncio()

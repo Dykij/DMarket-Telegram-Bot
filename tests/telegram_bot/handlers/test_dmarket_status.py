@@ -47,7 +47,7 @@ class TestDMarketStatusBasic:
             patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
             patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.dmarket.arbitrage_scanner.check_user_balance") as mock_balance,
+            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -75,9 +75,9 @@ class TestDMarketStatusBasic:
         with (
             patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
             patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
-            patch("src.telegram_bot.handlers.dmarket_status.getenv") as mock_getenv,
+            patch("os.getenv") as mock_getenv,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.dmarket.arbitrage_scanner.check_user_balance") as mock_balance,
+            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
         ):
             mock_profile.return_value = {}
             mock_text.return_value = "Checking..."
@@ -109,7 +109,7 @@ class TestDMarketStatusBasic:
         with (
             patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
             patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
-            patch("src.telegram_bot.handlers.dmarket_status.getenv") as mock_getenv,
+            patch("os.getenv") as mock_getenv,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
         ):
             mock_profile.return_value = {}
@@ -141,7 +141,7 @@ class TestDMarketStatusErrors:
             patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
             patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.dmarket.arbitrage_scanner.check_user_balance") as mock_balance,
+            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "wrong", "api_secret": "wrong"}
             mock_text.return_value = "Checking..."
@@ -171,7 +171,7 @@ class TestDMarketStatusErrors:
             patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
             patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.dmarket.arbitrage_scanner.check_user_balance") as mock_balance,
+            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -199,8 +199,8 @@ class TestDMarketStatusErrors:
         with (
             patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
             patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
-            patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.dmarket.arbitrage_scanner.check_user_balance") as mock_balance,
+            patch("src.telegram_bot.handlers.dmarket_status.DMarketAPI") as mock_api,
+            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -211,6 +211,9 @@ class TestDMarketStatusErrors:
 
             api_instance = MagicMock()
             api_instance._close_client = AsyncMock()
+            api_instance.__aenter__ = AsyncMock(return_value=api_instance)
+            # Don't suppress exception
+            api_instance.__aexit__ = AsyncMock(return_value=False)
             mock_api.return_value = api_instance
 
             mock_balance.side_effect = ValueError("Unexpected error")
@@ -218,7 +221,8 @@ class TestDMarketStatusErrors:
             await dmarket_status_impl(mock_update, mock_context)
 
             status_msg.edit_text.assert_called_once()
-            api_instance._close_client.assert_called_once()
+            # __aexit__ вызывается даже при exception
+            api_instance.__aexit__.assert_called_once()
 
 
 class TestDMarketStatusIntegration:
@@ -230,7 +234,7 @@ class TestDMarketStatusIntegration:
         with (
             patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.dmarket.arbitrage_scanner.check_user_balance") as mock_balance,
+            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
 
@@ -254,8 +258,8 @@ class TestDMarketStatusIntegration:
         with (
             patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
             patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
-            patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.dmarket.arbitrage_scanner.check_user_balance") as mock_balance,
+            patch("src.telegram_bot.handlers.dmarket_status.DMarketAPI") as mock_api,
+            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -266,10 +270,14 @@ class TestDMarketStatusIntegration:
 
             api_instance = MagicMock()
             api_instance._close_client = AsyncMock()
+            api_instance.__aenter__ = AsyncMock(return_value=api_instance)
+            # Don't suppress exception
+            api_instance.__aexit__ = AsyncMock(return_value=False)
             mock_api.return_value = api_instance
 
             mock_balance.side_effect = RuntimeError("Error")
 
             await dmarket_status_impl(mock_update, mock_context)
 
-            api_instance._close_client.assert_called_once()
+            # __aexit__ вызывается даже при exception
+            api_instance.__aexit__.assert_called_once()

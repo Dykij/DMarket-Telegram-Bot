@@ -9,7 +9,7 @@
 
 from telegram import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ChatAction, ParseMode
-from telegram.ext import CallbackContext
+from telegram.ext import ContextTypes
 
 from src.dmarket.arbitrage import GAMES
 from src.telegram_bot.keyboards import (
@@ -33,12 +33,11 @@ SELECTING_GAME, SELECTING_MODE, CONFIRMING_ACTION = range(3)
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка в обработчике арбитража",
+    logger_instance=logger, default_error_message="Ошибка в обработчике арбитража", reraise=False
 )
 async def arbitrage_callback_impl(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> int | None:
     """Реализация обработки кнопки арбитража.
 
@@ -78,12 +77,11 @@ async def arbitrage_callback_impl(
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка при поиске арбитража",
+    logger_instance=logger, default_error_message="Ошибка при поиске арбитража", reraise=False
 )
 async def handle_dmarket_arbitrage_impl(
     query: CallbackQuery,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
     mode: str,
 ) -> None:
     """Обрабатывает запрос на поиск арбитражных возможностей на DMarket.
@@ -245,10 +243,11 @@ async def handle_dmarket_arbitrage_impl(
 @handle_exceptions(
     logger_instance=logger,
     default_error_message="Ошибка при поиске лучших возможностей",
+    reraise=False,
 )
 async def handle_best_opportunities_impl(
     query: CallbackQuery,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает запрос на поиск лучших арбитражных возможностей.
 
@@ -336,12 +335,11 @@ async def handle_best_opportunities_impl(
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка при выборе игры",
+    logger_instance=logger, default_error_message="Ошибка при выборе игры", reraise=False
 )
 async def handle_game_selection_impl(
     query: CallbackQuery,
-    _: CallbackContext,
+    _: ContextTypes.DEFAULT_TYPE,
 ) -> int | None:
     """Обрабатывает выбор игры для арбитража.
 
@@ -376,12 +374,11 @@ async def handle_game_selection_impl(
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка при обработке выбора игры",
+    logger_instance=logger, default_error_message="Ошибка при обработке выбора игры", reraise=False
 )
 async def handle_game_selected_impl(
     query: CallbackQuery,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
     game: str,
 ) -> int | None:
     """Обрабатывает выбор конкретной игры.
@@ -422,12 +419,11 @@ async def handle_game_selected_impl(
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка при сравнении площадок",
+    logger_instance=logger, default_error_message="Ошибка при сравнении площадок", reraise=False
 )
 async def handle_market_comparison_impl(
     query: CallbackQuery,
-    _: CallbackContext,
+    _: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Показывает сравнение различных торговых площадок.
 

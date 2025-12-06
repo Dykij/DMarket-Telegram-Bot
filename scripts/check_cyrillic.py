@@ -178,6 +178,12 @@ def main() -> int:
     Returns:
         Exit code (0 - успех, 1 - найдена кириллица)
     """
+    # Включить UTF-8 для вывода в консоль (для Windows)
+    import io
+
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
+
     if len(sys.argv) < 2:
         print("Usage: python check_cyrillic.py <file1> <file2> ...")
         return 0
@@ -188,7 +194,7 @@ def main() -> int:
         file_path = Path(file_arg)
 
         if not file_path.exists():
-            print(f"⚠️  Файл не найден: {file_path}")
+            print(f"WARNING: File not found: {file_path}")
             continue
 
         if should_check_file(file_path):

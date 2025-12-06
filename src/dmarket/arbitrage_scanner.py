@@ -557,11 +557,31 @@ class ArbitrageScanner:
                 }
 
             # Проверяем на наличие ошибки в ответе
+            # ВАЖНО: balance_response может быть False (bool) при ошибке API
+            if not isinstance(balance_response, dict):
+                error_message = "Не удалось получить баланс (некорректный ответ API)"
+                logger.error(f"Ошибка при получении баланса: {error_message}")
+
+                diagnosis = "unknown_error"
+                display_message = "Ошибка при получении баланса"
+
+                return {
+                    "has_funds": False,
+                    "balance": 0.0,
+                    "available_balance": 0.0,
+                    "total_balance": 0.0,
+                    "min_required": min_required_balance,
+                    "error": True,
+                    "error_message": str(error_message),
+                    "display_message": display_message,
+                    "diagnosis": diagnosis,
+                }
+
+            # Теперь мы ЗНАЕМ что balance_response - это dict
             if "error" in balance_response or not balance_response.get("usd"):
-                error_message = balance_response.get("error", {}).get(
-                    "message",
-                    "Неизвестная ошибка",
-                )
+                # ВАЖНО: balance_response["error"] может быть bool, не dict!
+                # Поэтому берем "message" напрямую из balance_response
+                error_message = balance_response.get("message", "Неизвестная ошибка")
                 logger.error(f"Ошибка при получении баланса: {error_message}")
 
                 diagnosis = "unknown_error"

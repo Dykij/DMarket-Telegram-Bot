@@ -112,7 +112,9 @@ def format_scanner_item(result: dict[str, Any]) -> str:
     )
 
 
-@handle_exceptions(logger_instance=logger, default_error_message="Ошибка в меню сканера")
+@handle_exceptions(
+    logger_instance=logger, default_error_message="Ошибка в меню сканера", reraise=False
+)
 async def start_scanner_menu(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -211,8 +213,7 @@ async def start_scanner_menu(
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка при сканировании уровня",
+    logger_instance=logger, default_error_message="Ошибка при сканировании уровня", reraise=False
 )
 async def handle_level_scan(
     update: Update,
@@ -354,8 +355,7 @@ async def handle_level_scan(
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка при получении обзора рынка",
+    logger_instance=logger, default_error_message="Ошибка при получении обзора рынка", reraise=False
 )
 async def handle_market_overview(
     update: Update,
@@ -445,7 +445,9 @@ async def handle_market_overview(
     )
 
 
-@handle_exceptions(logger_instance=logger, default_error_message="Ошибка пагинации сканера")
+@handle_exceptions(
+    logger_instance=logger, default_error_message="Ошибка пагинации сканера", reraise=False
+)
 async def handle_scanner_pagination(
     update: Update,
     _: ContextTypes.DEFAULT_TYPE,
@@ -514,8 +516,7 @@ async def handle_scanner_pagination(
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка в обработчике сканера",
+    logger_instance=logger, default_error_message="Ошибка в обработчике сканера", reraise=False
 )
 async def handle_scanner_callback(
     update: Update,

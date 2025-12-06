@@ -1130,10 +1130,19 @@ class TestRequestMethod:
     async def test_request_json_parse_error(self, dmarket_api):
         """Тест невалидного JSON."""
         # Arrange
+        from src.utils import json_utils as json
+
         mock_response = MagicMock()
         mock_response.status_code = 200
-        mock_response.json.side_effect = Exception("Bad JSON")
+        # Используем callable для side_effect чтобы исключение
+        # выбрасывалось внутри json() вызова, а не снаружи
+
+        def raise_json_error():
+            raise json.JSONDecodeError("Bad JSON", "", 0)
+
+        mock_response.json = MagicMock(side_effect=raise_json_error)
         mock_response.text = "Text response"
+        mock_response.raise_for_status = MagicMock()
 
         # Act
         with patch.object(dmarket_api, "_get_client", new_callable=AsyncMock) as mock_get_client:
@@ -1145,6 +1154,7 @@ class TestRequestMethod:
 
             # Assert
             assert result["text"] == "Text response"
+            assert result["status_code"] == 200
 
     @pytest.mark.asyncio()
     async def test_request_delete_method(self, dmarket_api):

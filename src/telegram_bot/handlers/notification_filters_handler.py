@@ -165,8 +165,7 @@ def get_filters_manager() -> NotificationFilters:
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка при отображении фильтров",
+    logger_instance=logger, default_error_message="Ошибка при отображении фильтров", reraise=False
 )
 async def show_notification_filters(
     update: Update,
@@ -251,8 +250,7 @@ async def show_notification_filters(
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка при настройке игр",
+    logger_instance=logger, default_error_message="Ошибка при настройке игр", reraise=False
 )
 async def show_games_filter(
     update: Update,
@@ -312,8 +310,7 @@ async def show_games_filter(
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка при переключении игры",
+    logger_instance=logger, default_error_message="Ошибка при переключении игры", reraise=False
 )
 async def toggle_game_filter(
     update: Update,
@@ -354,8 +351,7 @@ async def toggle_game_filter(
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка при настройке прибыли",
+    logger_instance=logger, default_error_message="Ошибка при настройке прибыли", reraise=False
 )
 async def show_profit_filter(
     update: Update,
@@ -421,8 +417,7 @@ async def show_profit_filter(
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка при установке прибыли",
+    logger_instance=logger, default_error_message="Ошибка при установке прибыли", reraise=False
 )
 async def set_profit_filter(
     update: Update,
@@ -455,8 +450,7 @@ async def set_profit_filter(
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка при настройке уровней",
+    logger_instance=logger, default_error_message="Ошибка при настройке уровней", reraise=False
 )
 async def show_levels_filter(
     update: Update,
@@ -515,8 +509,7 @@ async def show_levels_filter(
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка при переключении уровня",
+    logger_instance=logger, default_error_message="Ошибка при переключении уровня", reraise=False
 )
 async def toggle_level_filter(
     update: Update,
@@ -557,8 +550,7 @@ async def toggle_level_filter(
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка при настройке типов",
+    logger_instance=logger, default_error_message="Ошибка при настройке типов", reraise=False
 )
 async def show_types_filter(
     update: Update,
@@ -617,8 +609,7 @@ async def show_types_filter(
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка при переключении типа",
+    logger_instance=logger, default_error_message="Ошибка при переключении типа", reraise=False
 )
 async def toggle_type_filter(
     update: Update,
@@ -659,8 +650,7 @@ async def toggle_type_filter(
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка при сбросе фильтров",
+    logger_instance=logger, default_error_message="Ошибка при сбросе фильтров", reraise=False
 )
 async def reset_filters(
     update: Update,

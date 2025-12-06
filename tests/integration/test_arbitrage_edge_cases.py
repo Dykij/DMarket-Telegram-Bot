@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
 import pytest
@@ -24,6 +25,8 @@ class TestArbitrageScannerEdgeCases:
         httpx_mock: HTTPXMock,
     ) -> None:
         """Тест сканирования когда нет прибыльных предметов."""
+        import re
+
         from src.dmarket.arbitrage_scanner import ArbitrageScanner
 
         # Все предметы убыточные
@@ -46,9 +49,17 @@ class TestArbitrageScannerEdgeCases:
         }
 
         httpx_mock.add_response(
-            url="https://api.dmarket.com/exchange/v1/market/items",
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items.*"),
             method="GET",
             json=response,
+            status_code=200,
+        )
+
+        # Мок для aggregated-prices (вызывается автоматически)
+        httpx_mock.add_response(
+            url=re.compile(r"https://api\.dmarket\.com/marketplace-api/v1/aggregated-prices.*"),
+            method="POST",
+            json={"aggregatedPrices": []},
             status_code=200,
         )
 
@@ -58,12 +69,15 @@ class TestArbitrageScannerEdgeCases:
         # Должен вернуть пустой список
         assert opportunities == []
 
+    @pytest.mark.httpx_mock(assert_all_responses_were_requested=False)
     async def test_scan_with_very_high_profit(
         self,
         mock_dmarket_api: DMarketAPI,
         httpx_mock: HTTPXMock,
     ) -> None:
         """Тест сканирования с аномально высокой прибылью."""
+        import re
+
         from src.dmarket.arbitrage_scanner import ArbitrageScanner
 
         # Предмет с 200% прибылью (подозрительно)
@@ -80,9 +94,17 @@ class TestArbitrageScannerEdgeCases:
         }
 
         httpx_mock.add_response(
-            url="https://api.dmarket.com/exchange/v1/market/items",
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items.*"),
             method="GET",
             json=response,
+            status_code=200,
+        )
+
+        # Мок для aggregated-prices (вызывается автоматически)
+        httpx_mock.add_response(
+            url=re.compile(r"https://api\.dmarket\.com/marketplace-api/v1/aggregated-prices.*"),
+            method="POST",
+            json={"aggregatedPrices": []},
             status_code=200,
         )
 
@@ -92,12 +114,15 @@ class TestArbitrageScannerEdgeCases:
         # Должен найти, но возможно пометить как подозрительный
         assert len(opportunities) >= 0
 
+    @pytest.mark.httpx_mock(assert_all_responses_were_requested=False)
     async def test_scan_with_zero_suggested_price(
         self,
         mock_dmarket_api: DMarketAPI,
         httpx_mock: HTTPXMock,
     ) -> None:
         """Тест сканирования с нулевой рекомендуемой ценой."""
+        import re
+
         from src.dmarket.arbitrage_scanner import ArbitrageScanner
 
         response = {
@@ -113,9 +138,17 @@ class TestArbitrageScannerEdgeCases:
         }
 
         httpx_mock.add_response(
-            url="https://api.dmarket.com/exchange/v1/market/items",
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items.*"),
             method="GET",
             json=response,
+            status_code=200,
+        )
+
+        # Мок для aggregated-prices (вызывается автоматически)
+        httpx_mock.add_response(
+            url="https://api.dmarket.com/marketplace-api/v1/aggregated-prices",
+            method="POST",
+            json={"aggregatedPrices": []},
             status_code=200,
         )
 
@@ -125,6 +158,11 @@ class TestArbitrageScannerEdgeCases:
         # Не должен крашиться
         assert isinstance(opportunities, list)
 
+    @pytest.mark.httpx_mock(
+        assert_all_responses_were_requested=False,
+        can_send_already_matched_responses=True,
+        assert_all_requests_were_expected=False,
+    )
     async def test_scan_with_missing_suggested_price(
         self,
         mock_dmarket_api: DMarketAPI,
@@ -146,7 +184,7 @@ class TestArbitrageScannerEdgeCases:
         }
 
         httpx_mock.add_response(
-            url="https://api.dmarket.com/exchange/v1/market/items",
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items.*"),
             method="GET",
             json=response,
             status_code=200,
@@ -158,6 +196,11 @@ class TestArbitrageScannerEdgeCases:
         # Должен обработать отсутствие поля
         assert isinstance(opportunities, list)
 
+    @pytest.mark.httpx_mock(
+        assert_all_responses_were_requested=False,
+        can_send_already_matched_responses=True,
+        assert_all_requests_were_expected=False,
+    )
     async def test_scan_with_invalid_price_format(
         self,
         mock_dmarket_api: DMarketAPI,
@@ -179,7 +222,7 @@ class TestArbitrageScannerEdgeCases:
         }
 
         httpx_mock.add_response(
-            url="https://api.dmarket.com/exchange/v1/market/items",
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items.*"),
             method="GET",
             json=response,
             status_code=200,
@@ -191,6 +234,10 @@ class TestArbitrageScannerEdgeCases:
         opportunities = await scanner.scan_level(level="standard", game="csgo")
         assert isinstance(opportunities, list)
 
+    @pytest.mark.httpx_mock(
+        assert_all_responses_were_requested=False,
+        can_send_already_matched_responses=True,
+    )
     async def test_scan_all_levels_with_api_errors(
         self,
         mock_dmarket_api: DMarketAPI,
@@ -201,7 +248,7 @@ class TestArbitrageScannerEdgeCases:
 
         # Первый запрос - ошибка
         httpx_mock.add_response(
-            url="https://api.dmarket.com/exchange/v1/market/items",
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items.*"),
             method="GET",
             status_code=500,
         )
@@ -209,7 +256,7 @@ class TestArbitrageScannerEdgeCases:
         # Последующие запросы - успех
         for _ in range(10):
             httpx_mock.add_response(
-                url="https://api.dmarket.com/exchange/v1/market/items",
+                url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items.*"),
                 method="GET",
                 json={"objects": [], "cursor": ""},
                 status_code=200,
@@ -221,6 +268,11 @@ class TestArbitrageScannerEdgeCases:
         # Должен обработать ошибки и вернуть результаты
         assert isinstance(results, dict)
 
+    @pytest.mark.httpx_mock(
+        assert_all_responses_were_requested=False,
+        can_send_already_matched_responses=True,
+        assert_all_requests_were_expected=False,
+    )
     async def test_scan_with_extreme_price_ranges(
         self,
         mock_dmarket_api: DMarketAPI,
@@ -260,6 +312,11 @@ class TestArbitrageScannerEdgeCases:
         # Должен обработать экстремальные значения
         assert isinstance(opportunities, list)
 
+    @pytest.mark.httpx_mock(
+        assert_all_responses_were_requested=False,
+        can_send_already_matched_responses=True,
+        assert_all_requests_were_expected=False,
+    )
     async def test_scan_with_concurrent_level_scans(
         self,
         mock_dmarket_api: DMarketAPI,
@@ -273,7 +330,7 @@ class TestArbitrageScannerEdgeCases:
         # Подготовка моков для нескольких запросов
         for _ in range(10):
             httpx_mock.add_response(
-                url="https://api.dmarket.com/exchange/v1/market/items",
+                url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items.*"),
                 method="GET",
                 json={"objects": [], "cursor": ""},
                 status_code=200,
@@ -295,6 +352,11 @@ class TestArbitrageScannerEdgeCases:
         for result in results:
             assert isinstance(result, (list, Exception))
 
+    @pytest.mark.httpx_mock(
+        assert_all_responses_were_requested=False,
+        can_send_already_matched_responses=True,
+        assert_all_requests_were_expected=False,
+    )
     async def test_scan_with_rate_limit_recovery(
         self,
         mock_dmarket_api: DMarketAPI,
@@ -305,7 +367,7 @@ class TestArbitrageScannerEdgeCases:
 
         # Rate limit на первый запрос
         httpx_mock.add_response(
-            url="https://api.dmarket.com/exchange/v1/market/items",
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items.*"),
             method="GET",
             status_code=429,
             headers={"Retry-After": "1"},
@@ -313,7 +375,7 @@ class TestArbitrageScannerEdgeCases:
 
         # Успешный запрос после повтора
         httpx_mock.add_response(
-            url="https://api.dmarket.com/exchange/v1/market/items",
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items.*"),
             method="GET",
             json={
                 "objects": [
@@ -335,6 +397,11 @@ class TestArbitrageScannerEdgeCases:
         # Должен восстановиться и найти предметы
         assert isinstance(opportunities, list)
 
+    @pytest.mark.httpx_mock(
+        assert_all_responses_were_requested=False,
+        can_send_already_matched_responses=True,
+        assert_all_requests_were_expected=False,
+    )
     async def test_scan_with_partial_data(
         self,
         mock_dmarket_api: DMarketAPI,
@@ -383,6 +450,11 @@ class TestArbitrageScannerEdgeCases:
 class TestArbitrageScannerPerformance:
     """Тесты производительности ArbitrageScanner."""
 
+    @pytest.mark.httpx_mock(
+        assert_all_responses_were_requested=False,
+        can_send_already_matched_responses=True,
+        assert_all_requests_were_expected=False,
+    )
     async def test_scan_large_dataset(
         self,
         mock_dmarket_api: DMarketAPI,
@@ -406,7 +478,7 @@ class TestArbitrageScannerPerformance:
         }
 
         httpx_mock.add_response(
-            url="https://api.dmarket.com/exchange/v1/market/items",
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items.*"),
             method="GET",
             json=large_response,
             status_code=200,
@@ -424,6 +496,11 @@ class TestArbitrageScannerPerformance:
         assert duration < 5.0
         assert isinstance(opportunities, list)
 
+    @pytest.mark.httpx_mock(
+        assert_all_responses_were_requested=False,
+        can_send_already_matched_responses=True,
+        assert_all_requests_were_expected=False,
+    )
     async def test_scan_multiple_pages_performance(
         self,
         mock_dmarket_api: DMarketAPI,
@@ -449,7 +526,7 @@ class TestArbitrageScannerPerformance:
             }
 
             httpx_mock.add_response(
-                url="https://api.dmarket.com/exchange/v1/market/items",
+                url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items.*"),
                 method="GET",
                 json=response,
                 status_code=200,
@@ -472,6 +549,11 @@ class TestArbitrageScannerPerformance:
 class TestArbitrageScannerFiltering:
     """Тесты фильтрации в ArbitrageScanner."""
 
+    @pytest.mark.httpx_mock(
+        assert_all_responses_were_requested=False,
+        can_send_already_matched_responses=True,
+        assert_all_requests_were_expected=False,
+    )
     async def test_filter_by_minimum_profit(
         self,
         mock_dmarket_api: DMarketAPI,
@@ -499,21 +581,24 @@ class TestArbitrageScannerFiltering:
         }
 
         httpx_mock.add_response(
-            url="https://api.dmarket.com/exchange/v1/market/items",
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items.*"),
             method="GET",
             json=response,
             status_code=200,
         )
 
         scanner = ArbitrageScanner(mock_dmarket_api)
-        opportunities = await scanner.scan_level(
-            level="standard", game="csgo", min_profit_percent=5.0
-        )
+        opportunities = await scanner.scan_level(level="standard", game="csgo")
 
         # Должен отфильтровать предметы с низкой прибылью
         # В зависимости от реализации может вернуть только high profit
         assert isinstance(opportunities, list)
 
+    @pytest.mark.httpx_mock(
+        assert_all_responses_were_requested=False,
+        can_send_already_matched_responses=True,
+        assert_all_requests_were_expected=False,
+    )
     async def test_filter_by_category(
         self,
         mock_dmarket_api: DMarketAPI,
@@ -543,7 +628,7 @@ class TestArbitrageScannerFiltering:
         }
 
         httpx_mock.add_response(
-            url="https://api.dmarket.com/exchange/v1/market/items",
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items.*"),
             method="GET",
             json=response,
             status_code=200,

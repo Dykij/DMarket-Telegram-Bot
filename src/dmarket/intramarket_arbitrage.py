@@ -66,11 +66,9 @@ async def find_price_anomalies(
     # Check if we need to create a new API client
     close_api = False
     if dmarket_api is None:
-        from telegram.ext import CallbackContext
-
         from src.telegram_bot.utils.api_helper import create_dmarket_api_client
 
-        dmarket_api = create_dmarket_api_client(CallbackContext())
+        dmarket_api = create_dmarket_api_client(None)
         close_api = True
 
     try:
@@ -234,11 +232,9 @@ async def find_trending_items(
     # Check if we need to create API client
     close_api = False
     if dmarket_api is None:
-        from telegram.ext import CallbackContext
-
         from src.telegram_bot.utils.api_helper import create_dmarket_api_client
 
-        dmarket_api = create_dmarket_api_client(CallbackContext())
+        dmarket_api = create_dmarket_api_client(None)
         close_api = True
 
     try:
@@ -422,11 +418,9 @@ async def find_mispriced_rare_items(
     # Check if we need to create API client
     close_api = False
     if dmarket_api is None:
-        from telegram.ext import CallbackContext
-
         from src.telegram_bot.utils.api_helper import create_dmarket_api_client
 
-        dmarket_api = create_dmarket_api_client(CallbackContext())
+        dmarket_api = create_dmarket_api_client(None)
         close_api = True
 
     try:
@@ -626,11 +620,9 @@ async def scan_for_intramarket_opportunities(
     # Check if we need to create API client
     close_api = False
     if dmarket_api is None:
-        from telegram.ext import CallbackContext
-
         from src.telegram_bot.utils.api_helper import create_dmarket_api_client
 
-        dmarket_api = create_dmarket_api_client(CallbackContext())
+        dmarket_api = create_dmarket_api_client(None)
         close_api = True
 
     try:

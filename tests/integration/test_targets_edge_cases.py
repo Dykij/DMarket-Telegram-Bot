@@ -47,7 +47,7 @@ class TestTargetsEdgeCases:
             }
         ]
 
-        result = await mock_dmarket_api.create_targets(game="csgo", targets=targets)
+        result = await mock_dmarket_api.create_targets(game_id="a8db", targets=targets)
 
         assert result is not None
         assert "Result" in result
@@ -81,7 +81,7 @@ class TestTargetsEdgeCases:
             }
         ]
 
-        result = await mock_dmarket_api.create_targets(game="csgo", targets=targets)
+        result = await mock_dmarket_api.create_targets(game_id="a8db", targets=targets)
 
         assert result is not None
 
@@ -119,7 +119,7 @@ class TestTargetsEdgeCases:
             }
         ]
 
-        result = await mock_dmarket_api.create_targets(game="csgo", targets=targets)
+        result = await mock_dmarket_api.create_targets(game_id="a8db", targets=targets)
 
         assert result is not None
 
@@ -150,7 +150,7 @@ class TestTargetsEdgeCases:
             for i in range(10)
         ]
 
-        result = await mock_dmarket_api.create_targets(game="csgo", targets=targets)
+        result = await mock_dmarket_api.create_targets(game_id="a8db", targets=targets)
 
         assert result is not None
         assert len(result.get("Result", [])) == 10
@@ -179,7 +179,7 @@ class TestTargetsEdgeCases:
             }
         ]
 
-        result = await mock_dmarket_api.create_targets(game="csgo", targets=targets)
+        result = await mock_dmarket_api.create_targets(game_id="a8db", targets=targets)
 
         # API должен обработать ошибку
         assert result is not None
@@ -208,7 +208,7 @@ class TestTargetsEdgeCases:
             }
         ]
 
-        result = await mock_dmarket_api.create_targets(game="csgo", targets=targets)
+        result = await mock_dmarket_api.create_targets(game_id="a8db", targets=targets)
 
         assert result is not None
 
@@ -349,7 +349,7 @@ class TestTargetsEdgeCases:
             }
         ]
 
-        result = await mock_dmarket_api.create_targets(game="csgo", targets=targets)
+        result = await mock_dmarket_api.create_targets(game_id="a8db", targets=targets)
 
         assert result is not None
 
@@ -414,7 +414,7 @@ class TestTargetsValidation:
             }
         ]
 
-        result = await mock_dmarket_api.create_targets(game="csgo", targets=targets)
+        result = await mock_dmarket_api.create_targets(game_id="a8db", targets=targets)
 
         assert result is not None
 
@@ -442,7 +442,7 @@ class TestTargetsValidation:
             }
         ]
 
-        result = await mock_dmarket_api.create_targets(game="csgo", targets=targets)
+        result = await mock_dmarket_api.create_targets(game_id="a8db", targets=targets)
 
         assert result is not None
 
@@ -470,7 +470,7 @@ class TestTargetsValidation:
             }
         ]
 
-        result = await mock_dmarket_api.create_targets(game="csgo", targets=targets)
+        result = await mock_dmarket_api.create_targets(game_id="a8db", targets=targets)
 
         assert result is not None
 
@@ -498,7 +498,7 @@ class TestTargetsValidation:
             }
         ]
 
-        result = await mock_dmarket_api.create_targets(game="csgo", targets=targets)
+        result = await mock_dmarket_api.create_targets(game_id="a8db", targets=targets)
 
         assert result is not None
 
@@ -526,7 +526,7 @@ class TestTargetsValidation:
             }
         ]
 
-        result = await mock_dmarket_api.create_targets(game="csgo", targets=targets)
+        result = await mock_dmarket_api.create_targets(game_id="a8db", targets=targets)
 
         assert result is not None
 
@@ -554,6 +554,6 @@ class TestTargetsValidation:
             }
         ]
 
-        result = await mock_dmarket_api.create_targets(game="csgo", targets=targets)
+        result = await mock_dmarket_api.create_targets(game_id="a8db", targets=targets)
 
         assert result is not None

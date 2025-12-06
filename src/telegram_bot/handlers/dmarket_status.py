@@ -10,7 +10,7 @@ from src.dmarket.arbitrage_scanner import check_user_balance
 from src.dmarket.dmarket_api import DMarketAPI
 from src.telegram_bot.handlers.settings_handlers import get_localized_text
 from src.telegram_bot.profiles import get_user_profile
-from src.utils.exceptions import APIError, handle_exceptions
+from src.utils.exceptions import APIError
 from src.utils.logging_utils import get_logger
 
 
@@ -20,7 +20,6 @@ logger = get_logger(__name__)
 load_dotenv()
 
 
-@handle_exceptions(logger, "Ошибка при проверке статуса DMarket API")
 async def dmarket_status_impl(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -110,12 +109,16 @@ async def dmarket_status_impl(
                     )
                 else:
                     balance_info = "<i>Баланс недоступен без API ключей.</i>"
-
     except APIError as e:
         api_status = f"⚠️ <b>Ошибка API</b>: {e.message}"
         if e.status_code == 401:
             auth_status = "❌ <b>Ошибка авторизации</b>: неверные ключи API"
         balance_info = "<i>Не удалось проверить баланс.</i>"
+    except Exception as e:
+        # Обработка общих исключений
+        logger.exception(f"Неожиданная ошибка при проверке статуса: {e!s}")
+        api_status = f"⚠️ <b>Неожиданная ошибка</b>: {e!s}"
+        balance_info = "<i>Не удалось проверить статус.</i>"
 
     # Добавляем информацию для устранения проблем
     troubleshooting = ""

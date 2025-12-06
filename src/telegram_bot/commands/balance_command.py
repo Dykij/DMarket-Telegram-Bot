@@ -6,7 +6,7 @@ import traceback
 
 from telegram import CallbackQuery, Message, Update
 from telegram.constants import ParseMode
-from telegram.ext import CallbackContext
+from telegram.ext import ContextTypes
 
 from src.telegram_bot.config_data import ARBITRAGE_MODES
 from src.telegram_bot.keyboards import get_back_to_arbitrage_keyboard
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 async def check_balance_command(
     message: CallbackQuery | Update | Message,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Check DMarket balance and API connection, show account stats.
 

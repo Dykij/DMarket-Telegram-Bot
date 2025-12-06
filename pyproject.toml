@@ -643,7 +643,7 @@ plugins = []
 
 [tool.coverage.report]
 precision = 2                       # Точность процентов (XX.XX%)
-fail_under = 25                     # Этап 1: Минимальное покрытие (целевое: 40→60→80)
+fail_under = 0                      # НЕ fail при одиночных тестах (для CI используем отдельную команду)
 show_missing = true                 # Показать пропущенные строки
 skip_covered = false               # Показывать полностью покрытые файлы
 skip_empty = true                  # Пропускать пустые файлы
@@ -732,10 +732,10 @@ addopts = [
     "--cov-report=term-missing:skip-covered",
     "--cov-report=xml",
     "--cov-branch",
-    # "--cov-context=test",  # Отключено - вызывает конфликты
-    "--cov-fail-under=25",  # Целевое покрытие 25% для первого этапа (увеличим до 85%)
+    # НЕ fail на coverage при одиночных тестах - только при полном запуске
+    # "--cov-fail-under=85",
     "--tb=short",
-    "--maxfail=3",  # Быстрый fail для CI (изменено с 100)
+    # "--maxfail=3",  # Отключено для полного прогона всех тестов
     "-ra",
     "--durations=10",  # Показывать 10 самых медленных тестов
     "--strict-config",

@@ -299,7 +299,7 @@ def get_scanner_control_keyboard(level: str | None = None) -> InlineKeyboardMark
     return InlineKeyboardMarkup(keyboard)
 
 
-@handle_exceptions(logger_instance=logger, default_error_message="Ошибка дашборда")
+@handle_exceptions(logger_instance=logger, default_error_message="Ошибка дашборда", reraise=False)
 async def show_dashboard(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -349,7 +349,7 @@ async def show_dashboard(
         )
 
 
-@handle_exceptions(logger_instance=logger, default_error_message="Ошибка статистики")
+@handle_exceptions(logger_instance=logger, default_error_message="Ошибка статистики", reraise=False)
 async def show_stats(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -388,8 +388,7 @@ async def show_stats(
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка меню сканера",
+    logger_instance=logger, default_error_message="Ошибка меню сканера", reraise=False
 )
 async def show_scanner_menu(
     update: Update,
@@ -425,8 +424,7 @@ async def show_scanner_menu(
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка активных сканов",
+    logger_instance=logger, default_error_message="Ошибка активных сканов", reraise=False
 )
 async def show_active_scans(
     update: Update,
@@ -487,7 +485,7 @@ async def show_active_scans(
     )
 
 
-@handle_exceptions(logger_instance=logger, default_error_message="Ошибка истории")
+@handle_exceptions(logger_instance=logger, default_error_message="Ошибка истории", reraise=False)
 async def show_history(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -536,10 +534,7 @@ async def show_history(
     )
 
 
-@handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка графиков",
-)
+@handle_exceptions(logger_instance=logger, default_error_message="Ошибка графиков", reraise=False)
 async def show_charts(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,

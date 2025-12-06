@@ -12,7 +12,7 @@ from typing import Any
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
-from telegram.ext import CallbackContext
+from telegram.ext import ContextTypes
 
 # Import filters from DMarket
 from src.dmarket.game_filters import FilterFactory
@@ -207,7 +207,7 @@ DEFAULT_FILTERS = {
 # Функции для работы с фильтрами
 
 
-def get_current_filters(context: CallbackContext, game: str) -> dict[str, Any]:
+def get_current_filters(context: ContextTypes.DEFAULT_TYPE, game: str) -> dict[str, Any]:
     """Получает текущие фильтры для игры из контекста пользователя.
 
     Args:
@@ -235,7 +235,7 @@ def get_current_filters(context: CallbackContext, game: str) -> dict[str, Any]:
 
 
 def update_filters(
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
     game: str,
     new_filters: dict[str, Any],
 ) -> None:
@@ -456,7 +456,7 @@ def build_api_params_for_game(game: str, filters: dict[str, Any]) -> dict[str, A
 # Обработчики для Telegram
 
 
-async def handle_game_filters(update: Update, context: CallbackContext) -> None:
+async def handle_game_filters(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик команды /filters - показывает выбор игры для фильтрации.
 
     Args:
@@ -487,7 +487,7 @@ async def handle_game_filters(update: Update, context: CallbackContext) -> None:
 
 async def handle_select_game_filter_callback(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обработчик выбора игры для фильтрации.
 
@@ -536,7 +536,7 @@ async def handle_select_game_filter_callback(
     )
 
 
-async def handle_price_range_callback(update: Update, context: CallbackContext) -> None:
+async def handle_price_range_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик выбора диапазона цен.
 
     Args:
@@ -600,7 +600,7 @@ async def handle_price_range_callback(update: Update, context: CallbackContext) 
     )
 
 
-async def handle_float_range_callback(update: Update, context: CallbackContext) -> None:
+async def handle_float_range_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик выбора диапазона Float (для CS2).
 
     Args:
@@ -674,7 +674,7 @@ async def handle_float_range_callback(update: Update, context: CallbackContext) 
 
 async def handle_set_category_callback(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обработчик выбора категории (для CS2).
 
@@ -741,7 +741,7 @@ async def handle_set_category_callback(
     )
 
 
-async def handle_set_rarity_callback(update: Update, context: CallbackContext) -> None:
+async def handle_set_rarity_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик выбора редкости.
 
     Args:
@@ -806,7 +806,7 @@ async def handle_set_rarity_callback(update: Update, context: CallbackContext) -
 
 async def handle_set_exterior_callback(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обработчик выбора внешнего вида (для CS2).
 
@@ -869,7 +869,7 @@ async def handle_set_exterior_callback(
     )
 
 
-async def handle_set_hero_callback(update: Update, context: CallbackContext) -> None:
+async def handle_set_hero_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик выбора героя (для Dota 2).
 
     Args:
@@ -927,7 +927,7 @@ async def handle_set_hero_callback(update: Update, context: CallbackContext) -> 
     )
 
 
-async def handle_set_class_callback(update: Update, context: CallbackContext) -> None:
+async def handle_set_class_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик выбора класса (для TF2).
 
     Args:
@@ -984,7 +984,7 @@ async def handle_set_class_callback(update: Update, context: CallbackContext) ->
     )
 
 
-async def handle_filter_callback(update: Update, context: CallbackContext) -> None:
+async def handle_filter_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик для всех фильтров.
 
     Args:
@@ -1117,7 +1117,7 @@ async def handle_filter_callback(update: Update, context: CallbackContext) -> No
 
 async def handle_back_to_filters_callback(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обработчик кнопки "Назад" в фильтрах.
 

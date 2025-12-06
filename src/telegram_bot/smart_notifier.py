@@ -18,7 +18,7 @@ from typing import Any
 
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
-from telegram.ext import CallbackContext
+from telegram.ext import ContextTypes
 
 from src.dmarket.dmarket_api import DMarketAPI
 from src.telegram_bot.notification_queue import NotificationQueue, Priority
@@ -869,13 +869,13 @@ async def send_market_opportunity_notification(
 
 async def handle_notification_callback(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Handle callback queries from notification buttons.
 
     Args:
         update: Update object
-        context: CallbackContext object
+        context: ContextTypes.DEFAULT_TYPE object
 
     """
     query = update.callback_query

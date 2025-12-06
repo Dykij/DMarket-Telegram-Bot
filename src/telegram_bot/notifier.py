@@ -17,7 +17,7 @@ import time
 from typing import Any
 
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import CallbackContext
+from telegram.ext import ContextTypes
 
 # Импортируем константы игр
 from src.dmarket.arbitrage import GAMES
@@ -1042,13 +1042,13 @@ async def run_alerts_checker(
 
 async def handle_buy_cancel_callback(
     update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает callback-запросы для отмены покупки.
 
     Args:
         update: Объект Update от Telegram
-        context: Контекст CallbackContext
+        context: Контекст ContextTypes.DEFAULT_TYPE
 
     """
     query = update.callback_query
@@ -1076,13 +1076,13 @@ async def handle_buy_cancel_callback(
 
 async def handle_alert_callback(
     update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает callback-запросы для оповещений.
 
     Args:
         update: Объект Update от Telegram
-        context: Контекст CallbackContext
+        context: Контекст ContextTypes.DEFAULT_TYPE
 
     """
     query = update.callback_query
@@ -1141,14 +1141,14 @@ def format_alert_message(alert: dict[str, Any]) -> str:
 
 async def create_alert_command(
     update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
     api: DMarketAPI,
 ) -> None:
     """Обрабатывает команду /alert для создания оповещения.
 
     Args:
         update: Объект Update от Telegram
-        context: Контекст CallbackContext
+        context: Контекст ContextTypes.DEFAULT_TYPE
         api: Экземпляр DMarketAPI
 
     """
@@ -1246,13 +1246,13 @@ async def create_alert_command(
 
 async def list_alerts_command(
     update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает команду /alerts для просмотра списка оповещений.
 
     Args:
         update: Объект Update от Telegram
-        context: Контекст CallbackContext
+        context: Контекст ContextTypes.DEFAULT_TYPE
 
     """
     user_id = update.effective_user.id
@@ -1292,13 +1292,13 @@ async def list_alerts_command(
 
 async def remove_alert_command(
     update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает команду /removealert для удаления оповещения.
 
     Args:
         update: Объект Update от Telegram
-        context: Контекст CallbackContext
+        context: Контекст ContextTypes.DEFAULT_TYPE
 
     """
     user_id = update.effective_user.id
@@ -1350,13 +1350,13 @@ async def remove_alert_command(
 
 async def settings_command(
     update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает команду /alertsettings для настройки параметров оповещений.
 
     Args:
         update: Объект Update от Telegram
-        context: Контекст CallbackContext
+        context: Контекст ContextTypes.DEFAULT_TYPE
 
     """
     user_id = update.effective_user.id

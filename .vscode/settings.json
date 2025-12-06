@@ -116,6 +116,10 @@
   "editor.unicodeHighlight.nonBasicASCII": true,
   "editor.unicodeHighlight.includeComments": true,
   "editor.unicodeHighlight.includeStrings": true,
+  "editor.unicodeHighlight.allowedCharacters": {},
+  "editor.unicodeHighlight.allowedLocales": {
+    "en": true
+  },
   // ==================== Gremlins Tracker Settings ====================
   "gremlins.color_info": "#00ff00",
   "gremlins.color_warning": "#ffff00",
@@ -194,6 +198,30 @@
       "description": "CYRILLIC CAPITAL LETTERS (А-Я)",
       "level": "error",
       "overviewRulerColor": "rgba(255,0,0,1)"
+    },
+    "0401": {
+      "zeroWidth": false,
+      "description": "CYRILLIC CAPITAL LETTER IO (Ё)",
+      "level": "error",
+      "overviewRulerColor": "rgba(255,0,0,1)"
+    },
+    "0451": {
+      "zeroWidth": false,
+      "description": "CYRILLIC SMALL LETTER IO (ё)",
+      "level": "error",
+      "overviewRulerColor": "rgba(255,0,0,1)"
+    },
+    "0406": {
+      "zeroWidth": false,
+      "description": "CYRILLIC CAPITAL LETTER BYELORUSSIAN-UKRAINIAN I (І)",
+      "level": "error",
+      "overviewRulerColor": "rgba(255,0,0,1)"
+    },
+    "0456": {
+      "zeroWidth": false,
+      "description": "CYRILLIC SMALL LETTER BYELORUSSIAN-UKRAINIAN I (і)",
+      "level": "error",
+      "overviewRulerColor": "rgba(255,0,0,1)"
     }
   },
   "editor.formatOnSave": true,
@@ -216,6 +244,12 @@
   "editor.suggestSelection": "first",
   "editor.snippetSuggestions": "top",
   "editor.wordBasedSuggestions": "matchingDocuments",
+  "editor.pasteAs.enabled": true,
+  "editor.pasteAs.showPasteSelector": "always",
+  "editor.suggest.filterGraceful": true,
+  "editor.suggest.localityBonus": true,
+  "editor.suggest.preview": true,
+  "editor.suggest.shareSuggestSelections": true,
   // ==================== Git Settings ====================
   "git.enableSmartCommit": true,
   "git.confirmSync": false,
@@ -244,6 +278,11 @@
     }
   },
   "terminal.integrated.scrollback": 10000,
+  "terminal.integrated.copyOnSelection": false,
+  "terminal.integrated.rightClickBehavior": "copyPaste",
+  "terminal.integrated.unicodeVersion": "11",
+  "terminal.integrated.detectLocale": "off",
+  "terminal.explorerKind": "external",
   // ==================== Spell Checker ====================
   "cSpell.words": [
     "aiofiles",
@@ -320,6 +359,7 @@
   ],
   "github.copilot.chat.experimental.codeGeneration": true,
   "github.copilot.chat.terminal.autoRun": false,
+  "github.copilot.chat.terminal.copyAllowed": false,
   "github.copilot.chat.agent.terminal.allowList": {
     "pytest": true,
     "ruff": true,
@@ -338,7 +378,7 @@
   "github.copilot.chat.confirmation": "auto",
   "github.copilot.chat.history.enabled": true,
   "github.copilot.chat.experimental.context": true,
-  "github.copilot.chat.localeOverride": "auto",
+  "github.copilot.chat.localeOverride": "en",
   "github.copilot.chat.useProjectTemplates": true,
   "github.copilot.chat.scopeSelection": true,
   "github.copilot.chat.terminalChatLocation": "chatView",

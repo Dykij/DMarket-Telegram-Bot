@@ -119,7 +119,9 @@ def save_user_profiles() -> None:
     logger.info("Сохранено %d пользовательских профилей", len(USER_PROFILES))
 
 
-@handle_exceptions(logger_instance=logger, default_error_message="Ошибка в команде настроек")
+@handle_exceptions(
+    logger_instance=logger, default_error_message="Ошибка в команде настроек", reraise=False
+)
 async def settings_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик команды /settings."""
     if not update.effective_user or not update.message:
@@ -139,8 +141,7 @@ async def settings_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 
 @handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка в обработчике настроек",
+    logger_instance=logger, default_error_message="Ошибка в обработчике настроек", reraise=False
 )
 async def settings_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик callback-запросов для настроек."""
@@ -371,7 +372,9 @@ async def settings_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         )
 
 
-@handle_exceptions(logger_instance=logger, default_error_message="Ошибка в команде настройки")
+@handle_exceptions(
+    logger_instance=logger, default_error_message="Ошибка в команде настройки", reraise=False
+)
 async def setup_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик команды /setup для настройки API ключей.
     Запускает диалог настройки API ключей.

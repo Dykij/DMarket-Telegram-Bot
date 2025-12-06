@@ -8,9 +8,9 @@ import asyncio
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
-    CallbackContext,
     CallbackQueryHandler,
     CommandHandler,
+    ContextTypes,
     ConversationHandler,
     MessageHandler,
     filters,
@@ -77,7 +77,7 @@ class PriceAlertsHandler:
     async def handle_price_alerts_command(
         self,
         update: Update,
-        context: CallbackContext,
+        context: ContextTypes.DEFAULT_TYPE,
     ) -> None:
         """Обработчик команды /price_alerts.
 
@@ -115,7 +115,7 @@ class PriceAlertsHandler:
     async def handle_alert_list_callback(
         self,
         update: Update,
-        context: CallbackContext,
+        context: ContextTypes.DEFAULT_TYPE,
     ) -> None:
         """Обработчик колбэка для отображения списка оповещений.
 
@@ -195,7 +195,7 @@ class PriceAlertsHandler:
     async def handle_add_alert_callback(
         self,
         update: Update,
-        context: CallbackContext,
+        context: ContextTypes.DEFAULT_TYPE,
     ) -> int:
         """Обработчик колбэка для добавления нового оповещения (шаг 1).
 
@@ -226,7 +226,7 @@ class PriceAlertsHandler:
     async def handle_item_name_input(
         self,
         update: Update,
-        context: CallbackContext,
+        context: ContextTypes.DEFAULT_TYPE,
     ) -> int:
         """Обработчик ввода названия предмета для оповещения (шаг 2).
 
@@ -259,7 +259,7 @@ class PriceAlertsHandler:
     async def handle_alert_price_input(
         self,
         update: Update,
-        context: CallbackContext,
+        context: ContextTypes.DEFAULT_TYPE,
     ) -> int:
         """Обработчик ввода целевой цены для оповещения (шаг 3).
 
@@ -320,7 +320,7 @@ class PriceAlertsHandler:
     async def handle_alert_condition_callback(
         self,
         update: Update,
-        context: CallbackContext,
+        context: ContextTypes.DEFAULT_TYPE,
     ) -> int:
         """Обработчик выбора условия срабатывания оповещения (шаг 4).
 
@@ -388,7 +388,7 @@ class PriceAlertsHandler:
     async def handle_remove_alert_callback(
         self,
         update: Update,
-        context: CallbackContext,
+        context: ContextTypes.DEFAULT_TYPE,
     ) -> None:
         """Обработчик колбэка для удаления оповещения.
 
@@ -424,7 +424,7 @@ class PriceAlertsHandler:
         # Возвращаемся к списку оповещений
         await self.handle_alert_list_callback(update, context)
 
-    async def handle_cancel(self, update: Update, context: CallbackContext) -> int:
+    async def handle_cancel(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Обработчик команды /cancel для отмены создания оповещения.
 
         Args:
@@ -451,7 +451,7 @@ class PriceAlertsHandler:
         self,
         alert: PriceAlert,
         current_price: float,
-        context: CallbackContext,
+        context: ContextTypes.DEFAULT_TYPE,
     ) -> None:
         """Отправляет уведомление о сработавшем оповещении.
 

@@ -89,12 +89,23 @@ Send, {Alt down}{Shift down}{Shift up}{Alt up}
   "editor.fontSize": 14,
   "terminal.integrated.fontSize": 14,
 
+  // 🔴 КРИТИЧЕСКИ ВАЖНО: Принудительная английская локаль для GitHub Copilot
+  "github.copilot.chat.localeOverride": "en",
+  "github.copilot.chat.terminal.autoRun": false,
+  "github.copilot.chat.terminal.copyAllowed": false,
+
   // Отображение скрытых символов
   "editor.renderWhitespace": "all",
   "editor.renderControlCharacters": true,
   "editor.unicodeHighlight.nonBasicASCII": true,
   "editor.unicodeHighlight.invisibleCharacters": true,
   "editor.unicodeHighlight.ambiguousCharacters": true,
+  "editor.unicodeHighlight.includeComments": true,
+  "editor.unicodeHighlight.includeStrings": true,
+  "editor.unicodeHighlight.allowedCharacters": {},
+  "editor.unicodeHighlight.allowedLocales": {
+    "en": true
+  },
 
   // Подсветка проблем
   "errorLens.enabledDiagnosticLevels": ["error", "warning", "info"],
@@ -106,6 +117,8 @@ Send, {Alt down}{Shift down}{Shift up}{Alt up}
 
   // Интеграция с терминалом
   "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.detectLocale": "off",
+  "terminal.integrated.copyOnSelection": false,
   "terminal.integrated.profiles.windows": {
     "PowerShell": {
       "source": "PowerShell",

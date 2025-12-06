@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Any
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
-from telegram.ext import CallbackContext, CallbackQueryHandler, CommandHandler
+from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
 
 from src.utils.exceptions import handle_exceptions
 from src.utils.logging_utils import get_logger
@@ -401,8 +401,8 @@ def get_digest_manager() -> NotificationDigestManager:
 # === Handler Functions ===
 
 
-@handle_exceptions(logger_instance=logger_instance)
-async def show_digest_menu(update: Update, context: CallbackContext) -> None:
+@handle_exceptions(logger_instance=logger_instance, reraise=False)
+async def show_digest_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Показать главное меню настроек дайджестов.
 
     Args:
@@ -480,8 +480,8 @@ async def show_digest_menu(update: Update, context: CallbackContext) -> None:
         )
 
 
-@handle_exceptions(logger_instance=logger_instance)
-async def toggle_digest(update: Update, context: CallbackContext) -> None:
+@handle_exceptions(logger_instance=logger_instance, reraise=False)
+async def toggle_digest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Включить/отключить дайджесты.
 
     Args:
@@ -503,8 +503,8 @@ async def toggle_digest(update: Update, context: CallbackContext) -> None:
     await show_digest_menu(update, context)
 
 
-@handle_exceptions(logger_instance=logger_instance)
-async def show_frequency_menu(update: Update, context: CallbackContext) -> None:
+@handle_exceptions(logger_instance=logger_instance, reraise=False)
+async def show_frequency_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Показать меню выбора частоты отправки.
 
     Args:
@@ -552,8 +552,8 @@ async def show_frequency_menu(update: Update, context: CallbackContext) -> None:
     await query.edit_message_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
 
 
-@handle_exceptions(logger_instance=logger_instance)
-async def set_frequency(update: Update, context: CallbackContext) -> None:
+@handle_exceptions(logger_instance=logger_instance, reraise=False)
+async def set_frequency(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Установить частоту отправки дайджестов.
 
     Args:
@@ -578,8 +578,8 @@ async def set_frequency(update: Update, context: CallbackContext) -> None:
     await show_digest_menu(update, context)
 
 
-@handle_exceptions(logger_instance=logger_instance)
-async def show_grouping_menu(update: Update, context: CallbackContext) -> None:
+@handle_exceptions(logger_instance=logger_instance, reraise=False)
+async def show_grouping_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Показать меню выбора режима группировки.
 
     Args:
@@ -623,8 +623,8 @@ async def show_grouping_menu(update: Update, context: CallbackContext) -> None:
     await query.edit_message_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
 
 
-@handle_exceptions(logger_instance=logger_instance)
-async def set_grouping_mode(update: Update, context: CallbackContext) -> None:
+@handle_exceptions(logger_instance=logger_instance, reraise=False)
+async def set_grouping_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Установить режим группировки.
 
     Args:
@@ -649,8 +649,8 @@ async def set_grouping_mode(update: Update, context: CallbackContext) -> None:
     await show_digest_menu(update, context)
 
 
-@handle_exceptions(logger_instance=logger_instance)
-async def show_min_items_menu(update: Update, context: CallbackContext) -> None:
+@handle_exceptions(logger_instance=logger_instance, reraise=False)
+async def show_min_items_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Показать меню выбора минимального количества уведомлений.
 
     Args:
@@ -686,8 +686,8 @@ async def show_min_items_menu(update: Update, context: CallbackContext) -> None:
     await query.edit_message_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
 
 
-@handle_exceptions(logger_instance=logger_instance)
-async def set_min_items(update: Update, context: CallbackContext) -> None:
+@handle_exceptions(logger_instance=logger_instance, reraise=False)
+async def set_min_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Установить минимальное количество уведомлений.
 
     Args:
@@ -711,8 +711,8 @@ async def set_min_items(update: Update, context: CallbackContext) -> None:
     await show_digest_menu(update, context)
 
 
-@handle_exceptions(logger_instance=logger_instance)
-async def reset_digest_settings(update: Update, context: CallbackContext) -> None:
+@handle_exceptions(logger_instance=logger_instance, reraise=False)
+async def reset_digest_settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Сбросить настройки дайджеста к значениям по умолчанию.
 
     Args:
@@ -733,8 +733,8 @@ async def reset_digest_settings(update: Update, context: CallbackContext) -> Non
     await show_digest_menu(update, context)
 
 
-@handle_exceptions(logger_instance=logger_instance)
-async def digest_command(update: Update, context: CallbackContext) -> None:
+@handle_exceptions(logger_instance=logger_instance, reraise=False)
+async def digest_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Команда /digest - открыть меню настроек дайджестов.
 
     Args:

@@ -4,7 +4,7 @@ import logging
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
-from telegram.ext import CallbackContext
+from telegram.ext import ContextTypes
 
 from src.dmarket.arbitrage_sales_analysis import (
     analyze_item_liquidity,
@@ -66,7 +66,7 @@ def get_liquidity_emoji(liquidity_score: float) -> str:
     return "❄️"  # Очень низкая ликвидность
 
 
-async def handle_sales_analysis(update: Update, context: CallbackContext) -> None:
+async def handle_sales_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обрабатывает команду /sales_analysis для анализа истории продаж предмета.
 
     Пример использования:
@@ -157,7 +157,7 @@ async def handle_sales_analysis(update: Update, context: CallbackContext) -> Non
         )
 
 
-async def handle_arbitrage_with_sales(update: Update, context: CallbackContext) -> None:
+async def handle_arbitrage_with_sales(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обрабатывает команду /arbitrage_sales для поиска арбитражных возможностей
     с учетом истории продаж.
 
@@ -245,7 +245,7 @@ async def handle_arbitrage_with_sales(update: Update, context: CallbackContext) 
         )
 
 
-async def handle_liquidity_analysis(update: Update, context: CallbackContext) -> None:
+async def handle_liquidity_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обрабатывает команду /liquidity для анализа ликвидности предмета.
 
     Пример использования:
@@ -338,7 +338,7 @@ async def handle_liquidity_analysis(update: Update, context: CallbackContext) ->
         )
 
 
-async def handle_sales_volume_stats(update: Update, context: CallbackContext) -> None:
+async def handle_sales_volume_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обрабатывает команду /sales_volume для просмотра статистики объема продаж.
 
     Args:

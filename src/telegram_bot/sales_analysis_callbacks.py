@@ -3,7 +3,7 @@
 import logging
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import CallbackContext
+from telegram.ext import ContextTypes
 
 from src.dmarket.arbitrage_sales_analysis import (
     analyze_item_liquidity,
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 async def handle_sales_history_callback(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает запрос на просмотр истории продаж."""
     query = update.callback_query
@@ -139,7 +139,7 @@ async def handle_sales_history_callback(
         )
 
 
-async def handle_liquidity_callback(update: Update, context: CallbackContext) -> None:
+async def handle_liquidity_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обрабатывает запрос на анализ ликвидности предмета."""
     query = update.callback_query
     await query.answer()
@@ -260,7 +260,7 @@ async def handle_liquidity_callback(update: Update, context: CallbackContext) ->
 
 async def handle_refresh_sales_callback(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает запрос на обновление анализа продаж."""
     query = update.callback_query
@@ -362,7 +362,7 @@ async def handle_refresh_sales_callback(
 
 async def handle_refresh_liquidity_callback(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает запрос на обновление анализа ликвидности."""
     # Просто перенаправляем на основной обработчик анализа ликвидности
@@ -376,7 +376,7 @@ async def handle_refresh_liquidity_callback(
 
 async def handle_all_arbitrage_sales_callback(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает запрос на просмотр всех арбитражных возможностей с учетом продаж."""
     query = update.callback_query
@@ -484,7 +484,7 @@ async def handle_all_arbitrage_sales_callback(
 
 async def handle_refresh_arbitrage_sales_callback(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает запрос на обновление арбитражных возможностей с учетом продаж."""
     query = update.callback_query
@@ -513,7 +513,7 @@ async def handle_refresh_arbitrage_sales_callback(
 
 async def handle_setup_sales_filters_callback(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает запрос на настройку фильтров арбитража с учетом продаж."""
     query = update.callback_query
@@ -593,7 +593,7 @@ async def handle_setup_sales_filters_callback(
 
 async def handle_all_volume_stats_callback(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает запрос на просмотр всей статистики объема продаж."""
     query = update.callback_query
@@ -698,7 +698,7 @@ async def handle_all_volume_stats_callback(
 
 async def handle_refresh_volume_stats_callback(
     update: Update,
-    context: CallbackContext,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает запрос на обновление статистики объема продаж."""
     query = update.callback_query

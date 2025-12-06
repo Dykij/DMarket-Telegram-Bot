@@ -26,6 +26,8 @@
         "streetsidesoftware.code-spell-checker", // Spell checker
         "streetsidesoftware.code-spell-checker-russian", // Russian dictionary
         "usernamehw.errorlens", // Error lens (inline errors)
+        "nhoizey.gremlins", // Gremlins tracker - highlights non-ASCII chars (ЗАЩИТА ОТ КИРИЛЛИЦЫ!)
+        "wmaurer.vscode-jumpy", // Quick navigation
         // ========== Productivity (RECOMMENDED) ==========
         "oderwat.indent-rainbow", // Rainbow indentation
         "PKief.material-icon-theme", // Material icon theme
