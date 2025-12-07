@@ -132,6 +132,7 @@ class DMarketAPI:
     ENDPOINT_INVENTORY_SYNC = (
         "/marketplace-api/v1/user-inventory/sync"  # Синхронизация инвентаря (v1.1.0)
     )
+    ENDPOINT_GAMES_LIST = "/game/v1/games"  # Список всех поддерживаемых игр (v1.1.0)
 
     # Известные коды ошибок DMarket API и рекомендации по их обработке
     ERROR_CODES = {
@@ -2963,6 +2964,92 @@ class DMarketAPI:
         )
 
     # ==================== КОНЕЦ МЕТОДОВ ТАРГЕТОВ ====================
+
+    # ==================== МЕТОДЫ ДЛЯ ПОЛУЧЕНИЯ МЕТАДАННЫХ ====================
+
+    async def get_supported_games(self) -> list[dict[str, Any]]:
+        """Получить список всех поддерживаемых игр на DMarket.
+
+        Этот метод запрашивает актуальный список игр, доступных для торговли
+        на платформе DMarket. Полезно для динамического обновления списка игр
+        без хардкода.
+
+        Returns:
+            List[Dict[str, Any]]: Список игр с их метаданными
+
+        Response format:
+            [
+                {
+                    "gameId": "a8db",
+                    "title": "CS:GO",
+                    "appId": 730,
+                    "enabled": true,
+                    "categories": [...],
+                    "filters": {...}
+                },
+                {
+                    "gameId": "9a92",
+                    "title": "Dota 2",
+                    "appId": 570,
+                    "enabled": true,
+                    ...
+                }
+            ]
+
+        Example:
+            >>> games = await api.get_supported_games()
+            >>> enabled_games = [g for g in games if g.get("enabled")]
+            >>> for game in enabled_games:
+            ...     print(f"{game['title']} (ID: {game['gameId']})")
+
+        Raises:
+            httpx.HTTPError: При ошибке сети или API
+            ValueError: При невалидном ответе
+
+        Note:
+            Рекомендуется кешировать результат на длительное время (24+ часа),
+            так как список игр обновляется редко.
+        """
+        logger.debug("Запрос списка поддерживаемых игр с DMarket API")
+
+        try:
+            response = await self._request(
+                "GET",
+                self.ENDPOINT_GAMES_LIST,
+            )
+
+            if not isinstance(response, list):
+                logger.warning(
+                    f"Неожиданный формат ответа от /game/v1/games: {type(response)}"
+                )
+                return []
+
+            logger.info(f"Получено {len(response)} игр от DMarket API")
+
+            # Логируем для отладки
+            enabled_count = sum(1 for g in response if g.get("enabled", False))
+            logger.debug(
+                f"Активных игр: {enabled_count}/{len(response)}"
+            )
+
+            return response
+
+        except httpx.HTTPError as e:
+            logger.error(
+                f"Ошибка при запросе списка игр: {e}",
+                exc_info=True,
+            )
+            raise
+
+        except Exception as e:
+            logger.error(
+                f"Неожиданная ошибка при получении списка игр: {e}",
+                exc_info=True,
+            )
+            # Возвращаем пустой список вместо падения
+            return []
+
+    # ==================== КОНЕЦ МЕТОДОВ МЕТАДАННЫХ ====================
 
     async def direct_balance_request(self) -> dict[str, Any]:
         """Выполняет прямой запрос баланса через REST API используя Ed25519.

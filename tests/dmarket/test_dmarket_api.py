@@ -1809,3 +1809,157 @@ class TestAdditionalMarketplaceMethods:
 # - get_market_meta: GET с gameId (csgo по умолчанию)
 # Покрытие до: 49.90%
 # Ожидаемое покрытие после новых тестов: 50.5-51%
+
+
+# ==================== ТЕСТЫ ДЛЯ ПОЛУЧЕНИЯ МЕТАДАННЫХ ====================
+
+
+@pytest.mark.asyncio
+async def test_get_supported_games_success(dmarket_api):
+    """Тест успешного получения списка поддерживаемых игр."""
+    # Arrange
+    expected_games = [
+        {
+            "gameId": "a8db",
+            "title": "CS:GO",
+            "appId": 730,
+            "enabled": True,
+            "categories": ["weapon", "knife"],
+        },
+        {
+            "gameId": "9a92",
+            "title": "Dota 2",
+            "appId": 570,
+            "enabled": True,
+            "categories": ["hero", "courier"],
+        },
+        {
+            "gameId": "tf2",
+            "title": "Team Fortress 2",
+            "appId": 440,
+            "enabled": True,
+            "categories": ["weapon", "hat"],
+        },
+        {
+            "gameId": "rust",
+            "title": "Rust",
+            "appId": 252490,
+            "enabled": False,
+            "categories": [],
+        },
+    ]
+
+    with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = expected_games
+
+        # Act
+        result = await dmarket_api.get_supported_games()
+
+        # Assert
+        assert isinstance(result, list)
+        assert len(result) == 4
+
+        # Проверяем, что вызов был с правильными параметрами
+        mock_request.assert_called_once_with(
+            "GET",
+            "/game/v1/games",
+        )
+
+        # Проверяем структуру первой игры
+        cs_go = result[0]
+        assert cs_go["gameId"] == "a8db"
+        assert cs_go["title"] == "CS:GO"
+        assert cs_go["appId"] == 730
+        assert cs_go["enabled"] is True
+        assert "categories" in cs_go
+
+        # Проверяем фильтрацию по enabled
+        enabled_games = [g for g in result if g.get("enabled")]
+        assert len(enabled_games) == 3
+
+
+@pytest.mark.asyncio
+async def test_get_supported_games_empty_response(dmarket_api):
+    """Тест обработки пустого ответа от API."""
+    # Arrange
+    with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = []
+
+        # Act
+        result = await dmarket_api.get_supported_games()
+
+        # Assert
+        assert isinstance(result, list)
+        assert len(result) == 0
+
+
+@pytest.mark.asyncio
+async def test_get_supported_games_invalid_format(dmarket_api):
+    """Тест обработки невалидного формата ответа."""
+    # Arrange
+    with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        # API вернул словарь вместо списка
+        mock_request.return_value = {"error": "Invalid response"}
+
+        # Act
+        result = await dmarket_api.get_supported_games()
+
+        # Assert
+        assert isinstance(result, list)
+        assert len(result) == 0  # Должен вернуть пустой список при ошибке
+
+
+@pytest.mark.asyncio
+async def test_get_supported_games_http_error(dmarket_api):
+    """Тест обработки HTTP ошибки при запросе игр."""
+    # Arrange
+    with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        mock_request.side_effect = httpx.HTTPStatusError(
+            "500 Server Error",
+            request=MagicMock(),
+            response=MagicMock(status_code=500),
+        )
+
+        # Act & Assert
+        with pytest.raises(httpx.HTTPStatusError):
+            await dmarket_api.get_supported_games()
+
+
+@pytest.mark.asyncio
+async def test_get_supported_games_generic_exception(dmarket_api):
+    """Тест обработки общих исключений при запросе игр."""
+    # Arrange
+    with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        mock_request.side_effect = ValueError("Unexpected error")
+
+        # Act
+        result = await dmarket_api.get_supported_games()
+
+        # Assert
+        # При неожиданной ошибке возвращаем пустой список
+        assert isinstance(result, list)
+        assert len(result) == 0
+
+
+@pytest.mark.asyncio
+async def test_get_supported_games_filters_enabled_games(dmarket_api):
+    """Тест фильтрации только активных игр."""
+    # Arrange
+    games = [
+        {"gameId": "a8db", "title": "CS:GO", "enabled": True},
+        {"gameId": "9a92", "title": "Dota 2", "enabled": True},
+        {"gameId": "disabled", "title": "Disabled Game", "enabled": False},
+        {"gameId": "no_status", "title": "No Status"},  # нет поля enabled
+    ]
+
+    with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = games
+
+        # Act
+        result = await dmarket_api.get_supported_games()
+        enabled_only = [g for g in result if g.get("enabled", False)]
+
+        # Assert
+        assert len(result) == 4
+        assert len(enabled_only) == 2
+        assert all(g["enabled"] for g in enabled_only)
