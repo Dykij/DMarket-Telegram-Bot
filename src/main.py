@@ -148,6 +148,12 @@ class Application:
             # Initialize application
             await self.bot.initialize()
 
+            # Setup bot commands for UI autocomplete
+            from src.telegram_bot.initialization import setup_bot_commands
+
+            await setup_bot_commands(self.bot.bot)
+            logger.info("Bot commands registered for autocomplete UI")
+
             logger.info("Telegram Bot initialized successfully")
 
             # Initialize Daily Report Scheduler

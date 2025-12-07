@@ -11,6 +11,7 @@ import os
 import signal
 import sys
 
+from telegram import Bot, BotCommand
 from telegram.ext import (
     Application,
     ApplicationBuilder,
@@ -140,6 +141,61 @@ async def initialize_bot(token: str, setup_persistence: bool = True) -> Applicat
     logger.info(f"Бот инициализирован, ID администраторов: {admin_ids}")
 
     return application
+
+
+async def setup_bot_commands(bot: Bot) -> None:
+    """Настраивает команды бота для автозаполнения в UI Telegram.
+
+    Регистрирует список команд бота через Bot API для отображения
+    в интерфейсе Telegram при вводе '/' в чате с ботом.
+
+    Args:
+        bot: Экземпляр бота Telegram
+
+    """
+    # Английские команды
+    en_commands = [
+        BotCommand("start", "🚀 Start the bot and see main menu"),
+        BotCommand("balance", "💰 Check your DMarket balance"),
+        BotCommand("arbitrage", "📊 Find profitable arbitrage opportunities"),
+        BotCommand("market", "🔍 Browse market items by game"),
+        BotCommand("alerts", "🔔 Manage your price alerts"),
+        BotCommand("portfolio", "💼 View your trading portfolio"),
+        BotCommand("settings", "⚙️ Configure bot settings"),
+        BotCommand("help", "❓ Help and documentation"),
+        BotCommand("stats", "📈 View market statistics"),
+        BotCommand("cancel", "❌ Cancel current operation"),
+    ]
+
+    # Русские команды
+    ru_commands = [
+        BotCommand("start", "🚀 Запустить бота и открыть главное меню"),
+        BotCommand("balance", "💰 Проверить баланс DMarket"),
+        BotCommand("arbitrage", "📊 Найти арбитражные возможности"),
+        BotCommand("market", "🔍 Просмотр предметов на рынке"),
+        BotCommand("alerts", "🔔 Управление уведомлениями о ценах"),
+        BotCommand("portfolio", "💼 Посмотреть портфель сделок"),
+        BotCommand("settings", "⚙️ Настройки бота"),
+        BotCommand("help", "❓ Справка и документация"),
+        BotCommand("stats", "📈 Статистика рынка"),
+        BotCommand("cancel", "❌ Отменить текущую операцию"),
+    ]
+
+    try:
+        # Устанавливаем команды для английского языка
+        await bot.set_my_commands(en_commands, language_code="en")
+        logger.info("Команды бота зарегистрированы для английского языка")
+
+        # Устанавливаем команды для русского языка
+        await bot.set_my_commands(ru_commands, language_code="ru")
+        logger.info("Команды бота зарегистрированы для русского языка")
+
+        # Устанавливаем команды по умолчанию (без языка)
+        await bot.set_my_commands(en_commands)
+        logger.info("Команды бота зарегистрированы по умолчанию")
+
+    except Exception as e:
+        logger.error(f"Ошибка при регистрации команд бота: {e}", exc_info=True)
 
 
 # Alias for compatibility
