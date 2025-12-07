@@ -722,6 +722,7 @@ graph TB
 - **[DMarket API Specification](docs/DMARKET_API_FULL_SPEC.md)** - Full DMarket API docs
 - **[API Coverage Matrix](docs/API_COVERAGE_MATRIX.md)** - 80% coverage, 46 endpoints mapped
 - **[Data Structures Guide](docs/DATA_STRUCTURES_GUIDE.md)** - Algorithm complexity & performance
+- **[Telegram Bot API Improvements](docs/TELEGRAM_BOT_API_IMPROVEMENTS.md)** - Bot feature analysis & roadmap
 
 ### 🎯 Trading & Performance
 - **[Multi-Level Arbitrage](docs/MULTI_LEVEL_ARBITRAGE_GUIDE.md)** - Trading strategies
