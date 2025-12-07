@@ -712,13 +712,23 @@ graph TB
 
 **Comprehensive guides available in `/docs`:**
 
+### 🚀 Getting Started
 - **[Quick Start Guide](docs/QUICK_START.md)** - Get up and running in 5 minutes
 - **[Architecture Overview](docs/ARCHITECTURE.md)** - System design and components
+- **[Deployment Guide](docs/deployment.md)** - Production deployment
+
+### 📖 API & Technical Reference
 - **[API Reference](docs/api_reference.md)** - Complete API documentation
 - **[DMarket API Specification](docs/DMARKET_API_FULL_SPEC.md)** - Full DMarket API docs
+- **[API Coverage Matrix](docs/API_COVERAGE_MATRIX.md)** - 80% coverage, 46 endpoints mapped
+- **[Data Structures Guide](docs/DATA_STRUCTURES_GUIDE.md)** - Algorithm complexity & performance
+
+### 🎯 Trading & Performance
 - **[Multi-Level Arbitrage](docs/MULTI_LEVEL_ARBITRAGE_GUIDE.md)** - Trading strategies
+- **[Optimization Roadmap](docs/OPTIMIZATION_ROADMAP.md)** - 10-100x speedup opportunities
+
+### 🧪 Development
 - **[Testing Guide](docs/testing_guide.md)** - How to run and write tests
-- **[Deployment Guide](docs/deployment.md)** - Production deployment
 - **[Security Best Practices](docs/SECURITY.md)** - Secure your bot
 - **[VS Code Setup](docs/vscode_setup.md)** - IDE configuration
 - **[GitHub Copilot Guide](docs/github_copilot_guide.md)** - AI-assisted development with Copilot CLI
