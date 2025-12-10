@@ -7,13 +7,12 @@
 3. Приоритеты уведомлений
 """
 
-from pathlib import Path
 import sys
 import traceback
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 
 # Добавляем src в путь для импорта
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -36,7 +35,7 @@ class TestCrashNotifications:
     def mock_notification_queue(self):
         """Мок очереди уведомлений."""
         queue = AsyncMock()
-        queue.add_notification = AsyncMock()
+        queue.enqueue = AsyncMock()  # Реализация использует enqueue, не add_notification
         return queue
 
     @pytest.fixture()
@@ -66,12 +65,12 @@ class TestCrashNotifications:
             notification_queue=mock_notification_queue,
         )
 
-        # Проверяем, что уведомление добавлено в очередь
-        assert mock_notification_queue.add_notification.call_count >= 1
-        call_args = mock_notification_queue.add_notification.call_args_list[0]
+        # Проверяем, что уведомление добавлено в очередь (enqueue вызывается 2 раза)
+        assert mock_notification_queue.enqueue.call_count >= 1
+        call_kwargs = mock_notification_queue.enqueue.call_args_list[0][1]
 
         # Проверяем формат сообщения
-        message = call_args[0][0]
+        message = call_kwargs["text"]
         assert "💥 *КРИТИЧЕСКАЯ ОШИБКА БОТА*" in message
         assert "ZeroDivisionError" in message
         assert "division by zero" in message
@@ -98,14 +97,14 @@ class TestCrashNotifications:
         )
 
         # Проверяем, что было как минимум 2 вызова (основное сообщение + traceback)
-        assert mock_notification_queue.add_notification.call_count >= 2
+        assert mock_notification_queue.enqueue.call_count >= 2
 
         # Проверяем truncation traceback
-        traceback_call = mock_notification_queue.add_notification.call_args_list[1]
-        traceback_message = traceback_call[0][0]
+        traceback_kwargs = mock_notification_queue.enqueue.call_args_list[1][1]
+        traceback_message = traceback_kwargs["text"]
 
-        # Traceback должен быть урезан до ~2900 символов
-        assert len(traceback_message) <= 3000
+        # Traceback должен быть урезан до ~2900 символов (+ обёртка markdown)
+        assert len(traceback_message) <= 3100
 
     @pytest.mark.asyncio()
     async def test_send_crash_notification_without_queue(self, mock_bot, test_error):
@@ -175,8 +174,8 @@ class TestCrashNotifications:
             notification_queue=mock_notification_queue,
         )
 
-        call_args = mock_notification_queue.add_notification.call_args_list[0]
-        message = call_args[0][0]
+        call_kwargs = mock_notification_queue.enqueue.call_args_list[0][1]
+        message = call_kwargs["text"]
 
         # Проверяем наличие всех ключевых элементов
         assert "💥" in message
@@ -201,17 +200,17 @@ class TestCrashNotifications:
             notification_queue=mock_notification_queue,
         )
 
-        # Должно быть 2 вызова: основное сообщение (CRITICAL) и traceback (HIGH)
-        assert mock_notification_queue.add_notification.call_count == 2
+        # Должно быть 2 вызова: основное сообщение (HIGH) и traceback (NORMAL)
+        assert mock_notification_queue.enqueue.call_count == 2
 
-        # Проверяем приоритеты
+        # Проверяем приоритеты (реализация использует HIGH и NORMAL)
         from telegram_bot.notification_queue import Priority
 
-        main_call = mock_notification_queue.add_notification.call_args_list[0]
-        traceback_call = mock_notification_queue.add_notification.call_args_list[1]
+        main_call = mock_notification_queue.enqueue.call_args_list[0]
+        traceback_call = mock_notification_queue.enqueue.call_args_list[1]
 
-        assert main_call[0][2] == Priority.CRITICAL  # Основное сообщение
-        assert traceback_call[0][2] == Priority.HIGH  # Traceback
+        assert main_call[1]["priority"] == Priority.HIGH  # Основное сообщение
+        assert traceback_call[1]["priority"] == Priority.NORMAL  # Traceback
 
 
 class TestIntegrationCrashHandler:

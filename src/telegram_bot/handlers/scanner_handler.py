@@ -14,7 +14,6 @@ from src.utils.exceptions import handle_exceptions
 from src.utils.logging_utils import get_logger
 from src.utils.sentry_breadcrumbs import add_command_breadcrumb, add_trading_breadcrumb
 
-
 logger = get_logger(__name__)
 
 # Константы для callback данных
@@ -215,6 +214,11 @@ async def start_scanner_menu(
 @handle_exceptions(
     logger_instance=logger, default_error_message="Ошибка при сканировании уровня", reraise=False
 )
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка при сканировании уровня",
+    reraise=False,
+)
 async def handle_level_scan(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -291,67 +295,81 @@ async def handle_level_scan(
         user_id=user_id,
     )
 
-    # Сканируем уровень
-    results = await scanner.scan_level(level=level, game=game, max_results=50)
+    try:
+        # Сканируем уровень
+        results = await scanner.scan_level(level=level, game=game, max_results=50)
 
-    # Добавить breadcrumb для завершения сканирования
-    add_trading_breadcrumb(
-        action="arbitrage_scan_completed",
-        game=game,
-        level=level,
-        user_id=user_id,
-        opportunities_found=len(results),
-    )
+        # Добавить breadcrumb для завершения сканирования
+        add_trading_breadcrumb(
+            action="arbitrage_scan_completed",
+            game=game,
+            level=level,
+            user_id=user_id,
+            opportunities_found=len(results),
+        )
 
-    if not results:
+        if not results:
+            await query.edit_message_text(
+                f"ℹ️ *{level_name}*\n\n"
+                f"Возможности не найдены на текущий момент.\n\n"
+                f"💡 Попробуйте:\n"
+                f"• Другой уровень арбитража\n"
+                f"• Другую игру\n"
+                f"• Подождать обновления рынка",
+                parse_mode="Markdown",
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("⬅️ Назад", callback_data=SCANNER_ACTION)]],
+                ),
+            )
+            return
+
+        # Сохраняем в пагинацию
+        pagination_manager.add_items_for_user(user_id, results, f"scanner_{level}")
+
+        # Получаем первую страницу
+        items, current_page, total_pages = pagination_manager.get_page(user_id)
+
+        # Форматируем текст
+        formatted_text = format_scanner_results(
+            items,
+            current_page,
+            pagination_manager.get_items_per_page(user_id),
+        )
+
+        # Создаем клавиатуру с пагинацией
+        keyboard = create_pagination_keyboard(
+            current_page=current_page,
+            total_pages=total_pages,
+            prefix=f"scanner_paginate:{level}_{game}_",
+            with_nums=True,
+            back_button=True,
+            back_text="⬅️ Назад к сканеру",
+            back_callback=SCANNER_ACTION,
+        )
+
+        # Отправляем результаты
+        header = (
+            f"*{level_name}*\n"
+            f"🎮 {GAMES.get(game, game)}\n"
+            f"📊 Найдено: {len(results)} возможностей\n\n"
+        )
+
         await query.edit_message_text(
-            f"ℹ️ *{level_name}*\n\n"
-            f"Возможности не найдены на текущий момент.\n\n"
-            f"💡 Попробуйте:\n"
-            f"• Другой уровень арбитража\n"
-            f"• Другую игру\n"
-            f"• Подождать обновления рынка",
+            header + formatted_text,
+            parse_mode="Markdown",
+            reply_markup=keyboard,
+        )
+
+    except Exception as e:
+        logger.error(f"Ошибка при сканировании уровня {level}: {e}")
+        await query.edit_message_text(
+            "❌ Произошла ошибка при сканировании.\n\nПожалуйста, попробуйте позже.",
             parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(
                 [[InlineKeyboardButton("⬅️ Назад", callback_data=SCANNER_ACTION)]],
             ),
         )
-        return
-
-    # Сохраняем в пагинацию
-    pagination_manager.add_items_for_user(user_id, results, f"scanner_{level}")
-
-    # Получаем первую страницу
-    items, current_page, total_pages = pagination_manager.get_page(user_id)
-
-    # Форматируем текст
-    formatted_text = format_scanner_results(
-        items,
-        current_page,
-        pagination_manager.get_items_per_page(user_id),
-    )
-
-    # Создаем клавиатуру с пагинацией
-    keyboard = create_pagination_keyboard(
-        current_page=current_page,
-        total_pages=total_pages,
-        prefix=f"scanner_paginate:{level}_{game}_",
-        with_nums=True,
-        back_button=True,
-        back_text="⬅️ Назад к сканеру",
-        back_callback=SCANNER_ACTION,
-    )
-
-    # Отправляем результаты
-    header = (
-        f"*{level_name}*\n🎮 {GAMES.get(game, game)}\n📊 Найдено: {len(results)} возможностей\n\n"
-    )
-
-    await query.edit_message_text(
-        header + formatted_text,
-        parse_mode="Markdown",
-        reply_markup=keyboard,
-    )
+        raise  # Пробрасываем для декоратора handle_exceptions
 
 
 @handle_exceptions(
@@ -394,55 +412,67 @@ async def handle_market_overview(
     scanner = ArbitrageScanner(api_client=api_client)
     scanner.cache_ttl = 300
 
-    # Получаем обзор рынка
-    overview = await scanner.get_market_overview(game=game)
-
-    # Форматируем результаты
-    best_level = overview["best_level"]
-    best_level_name = ARBITRAGE_LEVELS[best_level]["name"] if best_level else "N/A"
-
-    text_lines = [
-        f"📊 *Обзор рынка {GAMES.get(game, game)}*\n",
-        f"🎯 Всего возможностей: {overview['total_opportunities']}",
-        f"💰 Лучшая прибыль: {overview['best_profit_percent']:.1f}%",
-        f"🏆 Лучший уровень: {best_level_name}\n",
-        "📈 *По уровням:*",
-    ]
-
-    for level_key, count in overview["results_by_level"].items():
-        level_name = ARBITRAGE_LEVELS[level_key]["name"]
-        text_lines.append(f"  {level_name}: {count} шт.")
-
-    text = "\n".join(text_lines)
-
-    # Добавляем информацию о глубине рынка (API v1.1.0)
     try:
-        from src.dmarket.market_analysis import analyze_market_depth
+        # Получаем обзор рынка
+        overview = await scanner.get_market_overview(game=game)
 
-        # Получаем данные о глубине рынка
-        depth_data = await analyze_market_depth(game=game, dmarket_api=api_client)
-        if depth_data and depth_data.get("summary"):
-            summary = depth_data["summary"]
-            health = summary.get("market_health", "unknown")
-            avg_liquidity = summary.get("average_liquidity_score", 0)
+        # Форматируем результаты
+        best_level = overview["best_level"]
+        best_level_name = ARBITRAGE_LEVELS[best_level]["name"] if best_level else "N/A"
 
-            text += f"\n\n🏥 *Здоровье рынка*: {health}\n"
-            text += f"💧 Средняя ликвидность: {avg_liquidity:.1f}/100"
-    except (ImportError, ValueError, RuntimeError) as depth_error:
-        logger.debug(
-            "Не удалось получить данные о глубине рынка: %s",
-            depth_error,
+        text_lines = [
+            f"📊 *Обзор рынка {GAMES.get(game, game)}*\n",
+            f"🎯 Всего возможностей: {overview['total_opportunities']}",
+            f"💰 Лучшая прибыль: {overview['best_profit_percent']:.1f}%",
+            f"🏆 Лучший уровень: {best_level_name}\n",
+            "📈 *По уровням:*",
+        ]
+
+        for level_key, count in overview["results_by_level"].items():
+            level_name = ARBITRAGE_LEVELS[level_key]["name"]
+            text_lines.append(f"  {level_name}: {count} шт.")
+
+        text = "\n".join(text_lines)
+
+        # Добавляем информацию о глубине рынка (API v1.1.0)
+        try:
+            from src.dmarket.market_analysis import analyze_market_depth
+
+            # Получаем данные о глубине рынка
+            depth_data = await analyze_market_depth(game=game, dmarket_api=api_client)
+            if depth_data and depth_data.get("summary"):
+                summary = depth_data["summary"]
+                health = summary.get("market_health", "unknown")
+                avg_liquidity = summary.get("average_liquidity_score", 0)
+
+                text += f"\n\n🏥 *Здоровье рынка*: {health}\n"
+                text += f"💧 Средняя ликвидность: {avg_liquidity:.1f}/100"
+        except (ImportError, ValueError, RuntimeError) as depth_error:
+            logger.debug(
+                "Не удалось получить данные о глубине рынка: %s",
+                depth_error,
+            )
+        except Exception as e:  # noqa: BLE001
+            logger.debug("Непредвиденная ошибка при анализе рынка: %s", e)
+
+        await query.edit_message_text(
+            text,
+            parse_mode="Markdown",
+            reply_markup=InlineKeyboardMarkup(
+                [[InlineKeyboardButton("⬅️ Назад", callback_data=SCANNER_ACTION)]],
+            ),
         )
-    except Exception as e:  # noqa: BLE001
-        logger.debug("Непредвиденная ошибка при анализе рынка: %s", e)
 
-    await query.edit_message_text(
-        text,
-        parse_mode="Markdown",
-        reply_markup=InlineKeyboardMarkup(
-            [[InlineKeyboardButton("⬅️ Назад", callback_data=SCANNER_ACTION)]],
-        ),
-    )
+    except Exception as e:
+        logger.exception("Ошибка при получении обзора рынка: %s", e)
+        await query.edit_message_text(
+            "❌ Ошибка при анализе рынка.\n\nПожалуйста, попробуйте позже.",
+            parse_mode="Markdown",
+            reply_markup=InlineKeyboardMarkup(
+                [[InlineKeyboardButton("⬅️ Назад", callback_data=SCANNER_ACTION)]],
+            ),
+        )
+        raise  # Пробрасываем для декоратора handle_exceptions
 
 
 @handle_exceptions(

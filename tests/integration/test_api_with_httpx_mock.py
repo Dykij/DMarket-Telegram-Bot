@@ -13,7 +13,6 @@ import pytest
 import pytest_asyncio
 from pytest_httpx import HTTPXMock
 
-
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
 
@@ -406,7 +405,12 @@ class TestDMarketAPIWithHTTPXMock:
         mock_dmarket_api: DMarketAPI,
         httpx_mock: HTTPXMock,
     ) -> None:
-        """Тест обработки некорректного JSON."""
+        """Тест обработки некорректного JSON.
+
+        Этот тест проверяет, что API корректно обрабатывает невалидный JSON
+        и возвращает fallback-результат. Не все fallback endpoints могут
+        быть вызваны - это зависит от внутренней логики обработки ошибок.
+        """
         # Первый запрос вернет невалидный JSON (direct_balance_request)
         httpx_mock.add_response(
             url="https://api.dmarket.com/account/v1/balance",
@@ -415,7 +419,7 @@ class TestDMarketAPIWithHTTPXMock:
             content=b"Invalid JSON{{{",
         )
 
-        # Fallback #1: /account/v1/balance (повторный запрос того же URL)
+        # Fallback: /account/v1/balance (повторный запрос через get_balance loop)
         # Также возвращает невалидный JSON
         httpx_mock.add_response(
             url="https://api.dmarket.com/account/v1/balance",
@@ -423,32 +427,6 @@ class TestDMarketAPIWithHTTPXMock:
             status_code=200,
             content=b"Invalid JSON{{{",
         )
-
-        # Fallback #2: /api/v1/account/wallet/balance
-        httpx_mock.add_response(
-            url="https://api.dmarket.com/api/v1/account/wallet/balance",
-            method="GET",
-            status_code=200,
-            content=b"Invalid JSON{{{",
-        )
-
-        # Fallback #3: /exchange/v1/user/balance
-        httpx_mock.add_response(
-            url="https://api.dmarket.com/exchange/v1/user/balance",
-            method="GET",
-            status_code=200,
-            content=b"Invalid JSON{{{",
-        )
-
-        # Fallback #4: /api/v1/account/balance
-        httpx_mock.add_response(
-            url="https://api.dmarket.com/api/v1/account/balance",
-            method="GET",
-            status_code=200,
-            content=b"Invalid JSON{{{",
-        )
-
-        # После всех fallback попыток get_balance() возвращает fallback результат с $0
 
         # API должен обработать ошибку парсинга
         # и вернуть fallback с нулевым балансом

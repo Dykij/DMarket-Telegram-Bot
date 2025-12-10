@@ -5,9 +5,9 @@ JSON utilities с использованием orjson для ускорения 
 orjson в 2-3 раза быстрее стандартного json и поддерживает datetime, UUID, и другие типы.
 """
 
+import json as stdlib_json
 import logging
 from typing import Any
-
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ try:
     ORJSON_AVAILABLE = True
     logger.info("Using orjson for JSON serialization (faster)")
 except ImportError:
-    import json
+    orjson = None  # type: ignore[assignment]
 
     ORJSON_AVAILABLE = False
     logger.warning(
@@ -51,7 +51,7 @@ def dumps(obj: Any, **kwargs: Any) -> str:
     # Fallback на стандартный json
     # Удаляем ensure_ascii из kwargs если есть
     kwargs.pop("ensure_ascii", None)
-    return json.dumps(obj, ensure_ascii=False, **kwargs)
+    return stdlib_json.dumps(obj, ensure_ascii=False, **kwargs)
 
 
 def loads(s: str | bytes, **kwargs: Any) -> Any:
@@ -79,7 +79,7 @@ def loads(s: str | bytes, **kwargs: Any) -> Any:
     # Fallback на стандартный json
     if isinstance(s, bytes):
         s = s.decode("utf-8")
-    return json.loads(s, **kwargs)
+    return stdlib_json.loads(s, **kwargs)
 
 
 def dump(obj: Any, fp: Any, **kwargs: Any) -> None:
@@ -96,7 +96,7 @@ def dump(obj: Any, fp: Any, **kwargs: Any) -> None:
         fp.write(orjson.dumps(obj))
     else:
         kwargs.pop("ensure_ascii", None)
-        json.dump(obj, fp, ensure_ascii=False, **kwargs)
+        stdlib_json.dump(obj, fp, ensure_ascii=False, **kwargs)
 
 
 def load(fp: Any, **kwargs: Any) -> Any:
@@ -113,8 +113,8 @@ def load(fp: Any, **kwargs: Any) -> Any:
     if ORJSON_AVAILABLE:
         # orjson не имеет load(), используем read + loads
         return orjson.loads(fp.read())
-    return json.load(fp, **kwargs)
+    return stdlib_json.load(fp, **kwargs)
 
 
 # Алиасы для совместимости
-JSONDecodeError = orjson.JSONDecodeError if ORJSON_AVAILABLE else json.JSONDecodeError
+JSONDecodeError = orjson.JSONDecodeError if ORJSON_AVAILABLE else stdlib_json.JSONDecodeError

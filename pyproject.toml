@@ -751,6 +751,7 @@ markers = [
     "database: Tests requiring database",
     "redis: Tests requiring Redis",
     "api: Tests calling external APIs",
+    "vcr: Tests using VCR.py for HTTP recording/playback",
 ]
 asyncio_mode = "auto"  # Auto-detect async tests
 asyncio_default_fixture_loop_scope = "function"

@@ -4,9 +4,9 @@ This module provides database connection management, model definitions,
 and common database operations.
 """
 
-from datetime import UTC, datetime, timedelta
 import json
 import logging
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -19,13 +19,10 @@ from sqlalchemy.ext.asyncio import (
 )
 
 # Import all models to ensure they're registered with Base.metadata
-from src.models import (
-    MarketData,  # noqa: F401
-    User,
-)
+from src.models import MarketData  # noqa: F401
+from src.models import User
 from src.models.base import Base
 from src.utils.memory_cache import _user_cache, cached, get_all_cache_stats
-
 
 logger = logging.getLogger(__name__)
 
@@ -128,10 +125,10 @@ class DatabaseManager:
                 # depending on the driver. But usually it wraps a sync pool
                 pool = self._async_engine.sync_engine.pool
                 status["async_engine"] = {
-                    "size": pool.size(),
-                    "checkedin": pool.checkedin(),
-                    "checkedout": pool.checkedout(),
-                    "overflow": pool.overflow(),
+                    "size": pool.size(),  # type: ignore[attr-defined]
+                    "checkedin": pool.checkedin(),  # type: ignore[attr-defined]
+                    "checkedout": pool.checkedout(),  # type: ignore[attr-defined]
+                    "overflow": pool.overflow(),  # type: ignore[attr-defined]
                 }
             except AttributeError:
                 # Some async engines don't expose sync_engine
@@ -158,7 +155,7 @@ class DatabaseManager:
             logger.exception(f"Failed to initialize database: {e}")
             raise
 
-    async def _optimize_sqlite(self, conn) -> None:
+    async def _optimize_sqlite(self, conn: Any) -> None:
         """Optimize SQLite database settings for performance.
 
         Enables Write-Ahead Logging (WAL) mode and other optimizations
@@ -187,7 +184,7 @@ class DatabaseManager:
         except Exception as e:
             logger.warning(f"Failed to apply SQLite optimizations: {e}")
 
-    async def _create_indexes(self, conn) -> None:
+    async def _create_indexes(self, conn: Any) -> None:
         """Create database indexes for performance optimization."""
         indexes = [
             # Users table indexes
@@ -806,7 +803,8 @@ class DatabaseManager:
                 {"cutoff_date": cutoff_date},
             )
             await session.commit()
-            deleted_count = result.rowcount or 0
+            # Result.rowcount exists but MyPy doesn't see it
+            deleted_count: int = result.rowcount or 0  # type: ignore[attr-defined]
             logger.info(f"Cleaned up {deleted_count} old market data records")
             return deleted_count
 
@@ -830,7 +828,8 @@ class DatabaseManager:
                 {"now": now},
             )
             await session.commit()
-            deleted_count = result.rowcount or 0
+            # Result.rowcount exists but MyPy doesn't see it
+            deleted_count: int = result.rowcount or 0  # type: ignore[attr-defined]
             if deleted_count > 0:
                 logger.info(f"Cleaned up {deleted_count} expired cache records")
             return deleted_count

@@ -4,6 +4,11 @@
 компонентов арбитража, таргетов и API клиента.
 """
 
+import pytest
+
+# Skip if hypothesis is not installed
+pytest.importorskip("hypothesis")
+
 from hypothesis import strategies as st
 
 # ============================================================================

@@ -22,7 +22,6 @@ from src.utils.sentry_breadcrumbs import (
     set_user_context,
 )
 
-
 logger = logging.getLogger(__name__)
 bot_logger = BotLogger(__name__)
 
@@ -155,7 +154,8 @@ async def _test_breadcrumbs(update: Update, user_id: int) -> None:
         scan_duration_ms=1250,
     )
 
-    await update.message.reply_text("✅ Breadcrumbs тест выполнен")
+    if update.message:
+        await update.message.reply_text("✅ Breadcrumbs тест выполнен")
 
 
 async def _test_simple_error(update: Update) -> None:
@@ -179,7 +179,8 @@ async def _test_simple_error(update: Update) -> None:
         sentry_sdk.capture_exception(e)
         logger.exception("Test error captured: %s", e)
 
-    await update.message.reply_text("✅ Simple error тест выполнен")
+    if update.message:
+        await update.message.reply_text("✅ Simple error тест выполнен")
 
 
 async def _test_api_error(update: Update, user_id: int) -> None:
@@ -220,7 +221,8 @@ async def _test_api_error(update: Update, user_id: int) -> None:
         sentry_sdk.capture_exception(e)
         logger.exception("API error captured: %s", e)
 
-    await update.message.reply_text("✅ API error тест выполнен")
+    if update.message:
+        await update.message.reply_text("✅ API error тест выполнен")
 
 
 async def _test_division_error(update: Update) -> None:
@@ -242,7 +244,8 @@ async def _test_division_error(update: Update) -> None:
         sentry_sdk.capture_exception(e)
         logger.exception("Division error captured: %s", e)
 
-    await update.message.reply_text("✅ Division error тест выполнен")
+    if update.message:
+        await update.message.reply_text("✅ Division error тест выполнен")
 
 
 async def test_sentry_info(

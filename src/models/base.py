@@ -33,9 +33,7 @@ class SQLiteUUID(TypeDecorator[UUID]):
         """Convert string back to UUID when retrieving."""
         if value is None:
             return None
-        if isinstance(value, str):
-            return UUID(value)
-        return value
+        return UUID(value)
 
 
 # Use SQLiteUUID for all UUID columns

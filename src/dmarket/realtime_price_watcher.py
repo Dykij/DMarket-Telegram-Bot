@@ -7,16 +7,15 @@
 """
 
 import asyncio
-from collections import defaultdict
-from collections.abc import Callable
 import contextlib
 import logging
 import time
+from collections import defaultdict
+from collections.abc import Callable, Coroutine
 from typing import Any
 
 from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.websocket_client import DMarketWebSocketClient
-
 
 logger = logging.getLogger(__name__)
 
@@ -618,7 +617,7 @@ class RealtimePriceWatcher:
 
     def register_alert_handler(
         self,
-        handler: Callable[[PriceAlert, float], None],
+        handler: Callable[[PriceAlert, float], None | Coroutine[Any, Any, None]],
     ) -> None:
         """Регистрация обработчика срабатывания оповещения.
 

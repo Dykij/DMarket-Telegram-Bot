@@ -60,6 +60,9 @@ hypothesis>=6.130.0                # Property-based testing
 coverage>=7.12.0                   # Latest coverage
 codecov>=2.1.0                     # Codecov integration
 factory-boy>=3.3.3                 # Latest factory boy
+vcrpy>=7.0.0                       # HTTP interaction recording for tests (P1-18)
+pytest-recording>=0.13.2           # pytest VCR.py integration (P1-18)
+pact-python>=2.2.0                 # Contract testing with Pact (P1-21)
 
 # Documentation
 sphinx>=8.0.0                      # Latest Sphinx

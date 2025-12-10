@@ -312,20 +312,17 @@ def test_save_user_profiles(mock_json_dump, mock_file_open, mock_dirname):
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
 @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
 @patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
 async def test_settings_command(
     mock_get_settings_keyboard,
     mock_get_localized_text,
-    mock_get_user_profile,
     mock_update,
     mock_context,
 ):
     """Тестирует обработку команды /settings."""
     # Настройка моков
-    mock_profile = {"auto_trading_enabled": False}
-    mock_get_user_profile.return_value = mock_profile
+    # Примечание: get_user_profile больше не вызывается в settings_command
     mock_get_localized_text.return_value = "Настройки бота"
     mock_keyboard = MagicMock(spec=InlineKeyboardMarkup)
     mock_get_settings_keyboard.return_value = mock_keyboard
@@ -334,12 +331,12 @@ async def test_settings_command(
     await settings_command(mock_update, mock_context)
 
     # Проверяем, что были вызваны правильные функции
-    mock_get_user_profile.assert_called_once_with(mock_update.effective_user.id)
     mock_get_localized_text.assert_called_once_with(
         mock_update.effective_user.id,
         "settings",
     )
-    mock_get_settings_keyboard.assert_called_once_with(auto_trading_enabled=False)
+    # get_settings_keyboard вызывается без параметров
+    mock_get_settings_keyboard.assert_called_once_with()
 
     # Проверяем, что был вызван reply_text с правильными аргументами
     mock_update.message.reply_text.assert_called_once_with(
@@ -349,20 +346,17 @@ async def test_settings_command(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
 @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
 @patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
 async def test_settings_callback_main_menu(
     mock_get_settings_keyboard,
     mock_get_localized_text,
-    mock_get_user_profile,
     mock_update,
     mock_context,
 ):
     """Тестирует обработку callback с основным меню настроек."""
     # Настройка моков
-    mock_profile = {"auto_trading_enabled": False}
-    mock_get_user_profile.return_value = mock_profile
+    # Примечание: get_user_profile больше не вызывается для data == "settings"
     mock_get_localized_text.return_value = "Настройки бота"
     mock_keyboard = MagicMock(spec=InlineKeyboardMarkup)
     mock_get_settings_keyboard.return_value = mock_keyboard
@@ -377,14 +371,12 @@ async def test_settings_callback_main_menu(
     mock_update.callback_query.answer.assert_called_once()
 
     # Проверяем, что были вызваны правильные функции
-    mock_get_user_profile.assert_called_once_with(
-        mock_update.callback_query.from_user.id,
-    )
     mock_get_localized_text.assert_called_once_with(
         mock_update.callback_query.from_user.id,
         "settings",
     )
-    mock_get_settings_keyboard.assert_called_once_with(auto_trading_enabled=False)
+    # get_settings_keyboard вызывается без параметров
+    mock_get_settings_keyboard.assert_called_once_with()
 
     # Проверяем, что был вызван edit_message_text с правильными аргументами
     mock_update.callback_query.edit_message_text.assert_called_once_with(
@@ -523,8 +515,8 @@ async def test_settings_callback_toggle_trading(
     # Проверяем, что профили были сохранены
     mock_save_profiles.assert_called_once()
 
-    # Проверяем, что get_settings_keyboard был вызван с правильными аргументами
-    mock_get_settings_keyboard.assert_called_once_with(auto_trading_enabled=True)
+    # Проверяем, что get_settings_keyboard был вызван (без аргументов - функция их не принимает)
+    mock_get_settings_keyboard.assert_called_once_with()
 
     # Проверяем, что был вызван edit_message_text с правильными аргументами
     mock_update.callback_query.edit_message_text.assert_called_once()
@@ -718,7 +710,7 @@ async def test_settings_callback_risk_low(
     mock_get_back_keyboard.return_value = mock_keyboard
 
     # Настройка данных callback
-    mock_update.callback_query.data = "risk:low"
+    mock_update.callback_query.data = "risk_profile:low"
 
     # Вызываем тестируемую функцию
     await settings_callback(mock_update, mock_context)
@@ -768,7 +760,7 @@ async def test_settings_callback_risk_medium(
     mock_get_back_keyboard.return_value = mock_keyboard
 
     # Настройка данных callback
-    mock_update.callback_query.data = "risk:medium"
+    mock_update.callback_query.data = "risk_profile:medium"
 
     # Вызываем тестируемую функцию
     await settings_callback(mock_update, mock_context)
@@ -799,7 +791,7 @@ async def test_settings_callback_risk_high(
     mock_get_back_keyboard.return_value = mock_keyboard
 
     # Настройка данных callback
-    mock_update.callback_query.data = "risk:high"
+    mock_update.callback_query.data = "risk_profile:high"
 
     # Вызываем тестируемую функцию
     await settings_callback(mock_update, mock_context)

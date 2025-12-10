@@ -11,7 +11,6 @@ from pathlib import Path
 from telegram import Update
 from telegram.ext import ContextTypes
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -26,11 +25,11 @@ async def logs_command(
         context: Telegram context object
 
     """
-    if not update.message:
+    if not update.message or not update.effective_user:
         return
 
     user_id = update.effective_user.id
-    logger.info(f"Logs command called by user {user_id}")
+    logger.info("Logs command called by user %s", user_id)
 
     # Send initial message
     await update.message.reply_text("🔍 Загрузка последних логов...")

@@ -6,13 +6,12 @@ In-Memory Cache с TTL для оптимизации частых запросо
 """
 
 import asyncio
-from collections import OrderedDict
-from collections.abc import Callable
-from functools import wraps
 import logging
 import time
-from typing import Any, ParamSpec, TypeVar
-
+from collections import OrderedDict
+from collections.abc import Awaitable, Callable
+from functools import wraps
+from typing import Any, ParamSpec, TypeVar, cast
 
 logger = logging.getLogger(__name__)
 
@@ -51,9 +50,9 @@ class TTLCache:
         self._evictions = 0
 
         # Фоновая задача очистки
-        self._cleanup_task: asyncio.Task | None = None
+        self._cleanup_task: asyncio.Task[None] | None = None
 
-    async def start_cleanup(self, interval: int = 60):
+    async def start_cleanup(self, interval: int = 60) -> None:
         """
         Запустить фоновую задачу очистки устаревших записей.
 
@@ -63,7 +62,7 @@ class TTLCache:
         if self._cleanup_task and not self._cleanup_task.done():
             return
 
-        async def cleanup_loop():
+        async def cleanup_loop() -> None:
             while True:
                 try:
                     await asyncio.sleep(interval)
@@ -75,7 +74,7 @@ class TTLCache:
 
         self._cleanup_task = asyncio.create_task(cleanup_loop())
 
-    async def stop_cleanup(self):
+    async def stop_cleanup(self) -> None:
         """Остановить фоновую задачу очистки."""
         if self._cleanup_task and not self._cleanup_task.done():
             self._cleanup_task.cancel()
@@ -158,13 +157,13 @@ class TTLCache:
                 return True
             return False
 
-    async def clear(self):
+    async def clear(self) -> None:
         """Очистить весь кэш."""
         async with self._lock:
             self._cache.clear()
             logger.info("Cache cleared")
 
-    async def _cleanup_expired(self):
+    async def _cleanup_expired(self) -> None:
         """Очистить устаревшие записи."""
         async with self._lock:
             current_time = time.time()
@@ -211,7 +210,7 @@ def cached(
     cache: TTLCache | None = None,
     ttl: int | None = None,
     key_prefix: str = "",
-) -> Callable[[Callable[P, T]], Callable[P, T]]:
+) -> Callable[[Callable[P, Awaitable[T]]], Callable[P, Awaitable[T]]]:
     """
     Декоратор для кэширования результатов асинхронных функций.
 
@@ -227,7 +226,7 @@ def cached(
     """
     cache_instance = cache or _market_data_cache
 
-    def decorator(func: Callable[P, T]) -> Callable[P, T]:
+    def decorator(func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
         @wraps(func)
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             # Создать ключ кэша из имени функции и аргументов
@@ -237,7 +236,7 @@ def cached(
             cached_value = await cache_instance.get(cache_key)
             if cached_value is not None:
                 logger.debug("Cache HIT: %s", cache_key)
-                return cached_value
+                return cast("T", cached_value)
 
             # Вызвать функцию и сохранить результат
             logger.debug("Cache MISS: %s", cache_key)
@@ -251,7 +250,7 @@ def cached(
     return decorator
 
 
-def _make_cache_key(prefix: str, args: tuple, kwargs: dict) -> str:
+def _make_cache_key(prefix: str, args: tuple[Any, ...], kwargs: dict[str, Any]) -> str:
     """
     Создать ключ кэша из префикса и аргументов.
 
@@ -299,7 +298,7 @@ async def get_user_cache() -> TTLCache:
     return _user_cache
 
 
-async def start_all_cleanup_tasks():
+async def start_all_cleanup_tasks() -> None:
     """Запустить фоновую очистку для всех кэшей."""
     await _price_cache.start_cleanup(interval=30)
     await _market_data_cache.start_cleanup(interval=60)
@@ -308,7 +307,7 @@ async def start_all_cleanup_tasks():
     logger.info("All cache cleanup tasks started")
 
 
-async def stop_all_cleanup_tasks():
+async def stop_all_cleanup_tasks() -> None:
     """Остановить фоновую очистку для всех кэшей."""
     await _price_cache.stop_cleanup()
     await _market_data_cache.stop_cleanup()

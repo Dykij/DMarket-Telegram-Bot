@@ -6,6 +6,11 @@
 - Расчёте комиссий
 """
 
+import pytest
+
+# Skip all tests if hypothesis is not installed
+pytest.importorskip("hypothesis")
+
 from hypothesis import HealthCheck, assume, given, settings
 from hypothesis import strategies as st
 

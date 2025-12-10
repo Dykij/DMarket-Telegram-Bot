@@ -17,7 +17,7 @@ from src.telegram_bot.notifier import (
 )
 from src.utils.exceptions import handle_exceptions
 from src.utils.logging_utils import get_logger
-
+from src.utils.telegram_error_handlers import telegram_error_boundary
 
 # Настройка логирования
 logger = get_logger(__name__)
@@ -37,10 +37,8 @@ ALERT_TYPES = {
 }
 
 
-@handle_exceptions(
-    logger_instance=logger,
-    default_error_message="Ошибка при обработке команды /alerts",
-    reraise=False,
+@telegram_error_boundary(
+    user_friendly_message="❌ Произошла ошибка при обработке команды /alerts",
 )
 async def alerts_command(
     update: Update,

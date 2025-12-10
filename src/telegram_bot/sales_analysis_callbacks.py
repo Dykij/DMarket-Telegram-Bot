@@ -1,5 +1,7 @@
 """Обработчики Callback-запросов для модуля анализа продаж."""
 
+from __future__ import annotations
+
 import logging
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
@@ -11,14 +13,13 @@ from src.dmarket.arbitrage_sales_analysis import (
     get_sales_volume_stats,
 )
 from src.dmarket.sales_history import analyze_sales_history, get_sales_history
-from src.telegram_bot.sales_analysis_handlers import (
+from src.telegram_bot.sales_analysis_handlers import (  # type: ignore[import-untyped]
     get_liquidity_emoji,
     get_trend_emoji,
     handle_arbitrage_with_sales,
     handle_sales_volume_stats,
 )
 from src.utils.exceptions import APIError
-
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
@@ -30,6 +31,8 @@ async def handle_sales_history_callback(
 ) -> None:
     """Обрабатывает запрос на просмотр истории продаж."""
     query = update.callback_query
+    if not query or not query.data:
+        return
     await query.answer()
 
     # Извлекаем название предмета из callback_data
@@ -142,6 +145,8 @@ async def handle_sales_history_callback(
 async def handle_liquidity_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обрабатывает запрос на анализ ликвидности предмета."""
     query = update.callback_query
+    if not query or not query.data:
+        return
     await query.answer()
 
     # Извлекаем название предмета из callback_data
@@ -158,8 +163,10 @@ async def handle_liquidity_callback(update: Update, context: ContextTypes.DEFAUL
     game = "csgo"  # По умолчанию
 
     # Получаем игру из контекста, если доступна
-    if hasattr(context, "user_data") and "current_game" in context.user_data:
-        game = context.user_data["current_game"]
+    user_data = getattr(context, "user_data", None)
+    if user_data is not None and "current_game" in user_data:
+        game = user_data["current_game"]
+    _ = game  # Suppress unused variable warning
 
     # Отправляем сообщение о начале анализа
     await query.edit_message_text(
@@ -264,6 +271,8 @@ async def handle_refresh_sales_callback(
 ) -> None:
     """Обрабатывает запрос на обновление анализа продаж."""
     query = update.callback_query
+    if not query or not query.data:
+        return
     await query.answer()
 
     # Извлекаем название предмета из callback_data
@@ -367,7 +376,10 @@ async def handle_refresh_liquidity_callback(
     """Обрабатывает запрос на обновление анализа ликвидности."""
     # Просто перенаправляем на основной обработчик анализа ликвидности
     # Так как логика полностью совпадает
-    update.callback_query.data = update.callback_query.data.replace(
+    query = update.callback_query
+    if not query or not query.data:
+        return
+    query.data = query.data.replace(
         "refresh_liquidity:",
         "liquidity:",
     )
@@ -378,8 +390,10 @@ async def handle_all_arbitrage_sales_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
-    """Обрабатывает запрос на просмотр всех арбитражных возможностей с учетом продаж."""
+    """Обработчик просмотра всех арбитражных возможностей с учетом продаж."""
     query = update.callback_query
+    if not query or not query.data:
+        return
     await query.answer()
 
     # Извлекаем игру из callback_data
@@ -486,8 +500,10 @@ async def handle_refresh_arbitrage_sales_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
-    """Обрабатывает запрос на обновление арбитражных возможностей с учетом продаж."""
+    """Обработчик обновления арбитражных возможностей с учетом продаж."""
     query = update.callback_query
+    if not query or not query.data:
+        return
     await query.answer()
 
     # Извлекаем игру из callback_data
@@ -503,11 +519,12 @@ async def handle_refresh_arbitrage_sales_callback(
     game = callback_data[1]
 
     # Обновляем текущую игру в контексте пользователя
-    if hasattr(context, "user_data"):
-        context.user_data["current_game"] = game
+    user_data = getattr(context, "user_data", None)
+    if user_data is not None:
+        user_data["current_game"] = game
 
     # Имитируем сообщение для обработчика команды
-    update.message = query.message
+    update.message = query.message  # type: ignore[assignment]
     await handle_arbitrage_with_sales(update, context)
 
 
@@ -517,23 +534,26 @@ async def handle_setup_sales_filters_callback(
 ) -> None:
     """Обрабатывает запрос на настройку фильтров арбитража с учетом продаж."""
     query = update.callback_query
+    if not query:
+        return
     await query.answer()
 
     # Извлекаем игру из callback_data
     # Формат: "setup_sales_filters:game"
-    callback_data = query.data.split(":", 1)
+    callback_data = query.data.split(":", 1) if query.data else []
     if len(callback_data) < 2:
         game = "csgo"  # По умолчанию
     else:
         game = callback_data[1]
 
     # Обновляем текущую игру в контексте пользователя
-    if hasattr(context, "user_data"):
-        context.user_data["current_game"] = game
+    user_data = getattr(context, "user_data", None)
+    if user_data is not None:
+        user_data["current_game"] = game
 
-    # Получаем текущие настройки фильтров из контекста пользователя или используем значения по умолчанию
-    user_data = getattr(context, "user_data", {})
-    filters = user_data.get("sales_filters", {})
+    # Получаем текущие настройки фильтров из контекста
+    # или используем значения по умолчанию
+    filters = (user_data or {}).get("sales_filters", {})
 
     min_profit = filters.get("min_profit", 1.0)
     min_profit_percent = filters.get("min_profit_percent", 5.0)
@@ -597,6 +617,8 @@ async def handle_all_volume_stats_callback(
 ) -> None:
     """Обрабатывает запрос на просмотр всей статистики объема продаж."""
     query = update.callback_query
+    if not query or not query.data:
+        return
     await query.answer()
 
     # Извлекаем игру из callback_data
@@ -702,6 +724,8 @@ async def handle_refresh_volume_stats_callback(
 ) -> None:
     """Обрабатывает запрос на обновление статистики объема продаж."""
     query = update.callback_query
+    if not query or not query.data:
+        return
     await query.answer()
 
     # Извлекаем игру из callback_data
@@ -717,11 +741,12 @@ async def handle_refresh_volume_stats_callback(
     game = callback_data[1]
 
     # Обновляем текущую игру в контексте пользователя
-    if hasattr(context, "user_data"):
-        context.user_data["current_game"] = game
+    user_data = getattr(context, "user_data", None)
+    if user_data is not None:
+        user_data["current_game"] = game
 
     # Имитируем сообщение для обработчика команды
-    update.message = query.message
+    update.message = query.message  # type: ignore[assignment]
     await handle_sales_volume_stats(update, context)
 
 

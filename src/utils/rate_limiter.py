@@ -5,9 +5,8 @@ import logging
 import time
 from typing import TYPE_CHECKING
 
-
 if TYPE_CHECKING:
-    from src.utils.notifier import Notifier
+    from src.utils.notifier import Notifier  # type: ignore[import-untyped]
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
@@ -42,7 +41,7 @@ class RateLimiter:
     - Реализовывать экспоненциальную задержку для обработки ошибок 429
     """
 
-    def __init__(
+    def __init__(  # type: ignore[no-any-unimported]
         self,
         is_authorized: bool = True,
         notifier: "Notifier | None" = None,
@@ -199,7 +198,7 @@ class RateLimiter:
 
                         # Отправляем уведомление в Telegram
                         if self.notifier:
-                            asyncio.create_task(
+                            _ = asyncio.create_task(
                                 self._send_rate_limit_warning(
                                     endpoint_type,
                                     usage_percent,

@@ -42,7 +42,7 @@ def telegram_error_boundary(
         >>>     user_friendly_message="❌ Не удалось выполнить команду"
         >>> )
         >>> async def balance_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        >>>     # Handler logic
+        >>> # Handler logic
         >>>     pass
     """
 
@@ -83,7 +83,7 @@ def telegram_error_boundary(
                             "user_id": user_id,
                             "username": username,
                             "command": command,
-                            "message": message_text,
+                            "message_text": message_text,
                         },
                     )
 
@@ -233,7 +233,7 @@ def telegram_error_boundary(
                     extra={
                         "user_id": user_id,
                         "command": command,
-                        "message": message_text,
+                        "message_text": message_text,
                     },
                 )
 

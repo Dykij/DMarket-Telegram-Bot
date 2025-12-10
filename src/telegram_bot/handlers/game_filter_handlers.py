@@ -17,7 +17,6 @@ from telegram.ext import ContextTypes
 # Import filters from DMarket
 from src.dmarket.game_filters import FilterFactory
 
-
 # Logger
 logger = logging.getLogger(__name__)
 
@@ -221,17 +220,20 @@ def get_current_filters(context: ContextTypes.DEFAULT_TYPE, game: str) -> dict[s
     # Получаем user_data из контекста
     user_data = context.user_data
     if not user_data:
-        return DEFAULT_FILTERS.get(game, {}).copy()
+        default: dict[str, Any] = DEFAULT_FILTERS.get(game, {})
+        return default.copy()
 
     # Получаем фильтры из user_data
     filters = user_data.get("filters", {})
-    game_filters = filters.get(game, {})
+    game_filters: dict[str, Any] = filters.get(game, {})
 
     # Если фильтры для данной игры не определены, используем значения по умолчанию
     if not game_filters:
-        return DEFAULT_FILTERS.get(game, {}).copy()
+        default = DEFAULT_FILTERS.get(game, {})
+        return dict(default)
 
-    return game_filters.copy()
+    result: dict[str, Any] = dict(game_filters)
+    return result
 
 
 def update_filters(
@@ -464,6 +466,9 @@ async def handle_game_filters(update: Update, context: ContextTypes.DEFAULT_TYPE
         context: Контекст обратного вызова
 
     """
+    if not update.message:
+        return
+
     # Создаем клавиатуру для выбора игры
     keyboard = [
         [
@@ -497,6 +502,9 @@ async def handle_select_game_filter_callback(
 
     """
     query = update.callback_query
+    if not query or not query.data:
+        return
+
     await query.answer()
 
     # Получаем код игры из callback_data
@@ -545,6 +553,9 @@ async def handle_price_range_callback(update: Update, context: ContextTypes.DEFA
 
     """
     query = update.callback_query
+    if not query or not query.data:
+        return
+
     await query.answer()
 
     # Получаем код игры из callback_data
@@ -609,6 +620,9 @@ async def handle_float_range_callback(update: Update, context: ContextTypes.DEFA
 
     """
     query = update.callback_query
+    if not query or not query.data:
+        return
+
     await query.answer()
 
     # Получаем код игры из callback_data
@@ -684,6 +698,9 @@ async def handle_set_category_callback(
 
     """
     query = update.callback_query
+    if not query or not query.data:
+        return
+
     await query.answer()
 
     # Получаем код игры из callback_data
@@ -750,6 +767,9 @@ async def handle_set_rarity_callback(update: Update, context: ContextTypes.DEFAU
 
     """
     query = update.callback_query
+    if not query or not query.data:
+        return
+
     await query.answer()
 
     # Получаем код игры из callback_data
@@ -816,6 +836,9 @@ async def handle_set_exterior_callback(
 
     """
     query = update.callback_query
+    if not query or not query.data:
+        return
+
     await query.answer()
 
     # Получаем код игры из callback_data
@@ -878,6 +901,9 @@ async def handle_set_hero_callback(update: Update, context: ContextTypes.DEFAULT
 
     """
     query = update.callback_query
+    if not query or not query.data:
+        return
+
     await query.answer()
 
     # Получаем код игры из callback_data
@@ -936,6 +962,9 @@ async def handle_set_class_callback(update: Update, context: ContextTypes.DEFAUL
 
     """
     query = update.callback_query
+    if not query or not query.data:
+        return
+
     await query.answer()
 
     # Получаем код игры из callback_data
@@ -993,6 +1022,9 @@ async def handle_filter_callback(update: Update, context: ContextTypes.DEFAULT_T
 
     """
     query = update.callback_query
+    if not query or not query.data:
+        return
+
     await query.answer()
 
     # Получаем данные из callback_data
@@ -1127,6 +1159,9 @@ async def handle_back_to_filters_callback(
 
     """
     query = update.callback_query
+    if not query or not query.data:
+        return
+
     await query.answer()
 
     # Получаем данные из callback_data

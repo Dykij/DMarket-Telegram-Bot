@@ -2,13 +2,14 @@
 # Установка: pip install pre-commit && pre-commit install
 # Запуск вручную: pre-commit run --all-files
 # Обновление хуков: pre-commit autoupdate
+# Последнее обновление: Декабрь 2025
 
 default_language_version:
   python: python3.11
 
 repos:
   # ============================================================================
-  # RUFF - Современный быстрый линтер и форматтер
+  # RUFF - Современный быстрый линтер и форматтер (v0.8.4 - Декабрь 2025)
   # ============================================================================
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.8.4
@@ -22,10 +23,10 @@ repos:
         types_or: [python, pyi]
 
   # ============================================================================
-  # MYPY - Проверка типов
+  # MYPY - Проверка типов (v1.14.0 - Декабрь 2025)
   # ============================================================================
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
+    rev: v1.14.0
     hooks:
       - id: mypy
         args:
@@ -42,6 +43,7 @@ repos:
           - types-PyYAML
           - types-psutil
           - sqlalchemy[mypy]  # SQLAlchemy plugin для MyPy
+          - pydantic  # Для поддержки Pydantic моделей
         files: ^src/
         exclude: ^(tests/|scripts/)
 

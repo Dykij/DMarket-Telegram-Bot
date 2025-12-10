@@ -121,12 +121,7 @@ class TestDatabaseManager:
     @pytest.mark.asyncio()
     async def test_database_connection_management(self, db_manager: DatabaseManager):
         """Test database connection management."""
-        # Test synchronous session
-        session = db_manager.get_session()
-        assert session is not None
-        session.close()
-
-        # Test asynchronous session
+        # Test asynchronous session (DatabaseManager is now async-only)
         async_session = db_manager.get_async_session()
         assert async_session is not None
         await async_session.close()
@@ -212,14 +207,8 @@ class TestDatabaseEngines:
         """Test lazy engine initialization."""
         db_manager = DatabaseManager("sqlite:///:memory:")
 
-        # Engines should not be created until accessed
-        assert db_manager._engine is None
+        # Async engine should not be created until accessed
         assert db_manager._async_engine is None
-
-        # Access engine property
-        engine = db_manager.engine
-        assert engine is not None
-        assert db_manager._engine is not None
 
         # Access async engine property
         async_engine = db_manager.async_engine
@@ -231,14 +220,8 @@ class TestDatabaseEngines:
         """Test lazy session maker initialization."""
         db_manager = DatabaseManager("sqlite:///:memory:")
 
-        # Session makers should not be created until accessed
-        assert db_manager._session_maker is None
+        # Session maker should not be created until accessed
         assert db_manager._async_session_maker is None
-
-        # Access session maker property
-        session_maker = db_manager.session_maker
-        assert session_maker is not None
-        assert db_manager._session_maker is not None
 
         # Access async session maker property
         async_session_maker = db_manager.async_session_maker

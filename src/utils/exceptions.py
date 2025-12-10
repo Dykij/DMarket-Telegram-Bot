@@ -5,15 +5,14 @@
 """
 
 import asyncio
-from collections.abc import Callable
-from enum import Enum
 import functools
 import logging
 import traceback
-from typing import Any, TypeVar, cast
+from collections.abc import Callable
+from enum import Enum
+from typing import Any, TypeVar, cast, overload
 
 from src.utils.logging_utils import get_logger
-
 
 # Определение универсального типа для декораторов
 F = TypeVar("F", bound=Callable[..., Any])
@@ -499,29 +498,80 @@ def format_error_for_user(
     return f"❌ {base_message}. Please try again later or contact the administrator."
 
 
+@overload
 def handle_exceptions(
-    logger_instance: logging.Logger | None = None,
+    func_or_logger: F,
+    default_error_message: str = ...,
+    reraise: bool = ...,
+    *,
+    logger_instance: logging.Logger | None = ...,
+) -> F: ...
+
+
+@overload
+def handle_exceptions(
+    func_or_logger: logging.Logger | None = ...,
+    default_error_message: str = ...,
+    reraise: bool = ...,
+    *,
+    logger_instance: logging.Logger | None = ...,
+) -> Callable[[F], F]: ...
+
+
+def handle_exceptions(
+    func_or_logger: Callable[..., Any] | logging.Logger | None = None,
     default_error_message: str = "Произошла ошибка",
     reraise: bool = True,
-) -> Callable[[F], F]:
+    *,
+    logger_instance: logging.Logger | None = None,
+) -> Callable[[F], F] | F:
     """Декоратор для обработки исключений с логированием.
 
     Поддерживает как синхронные, так и асинхронные функции.
+    Может быть использован со скобками @handle_exceptions() или без @handle_exceptions.
 
     Args:
-        logger_instance: Логгер для записи ошибок.
+        func_or_logger: Функция (если без скобок) или логгер (если со скобками).
         default_error_message: Сообщение по умолчанию при ошибке.
         reraise: Если True, исключение будет выброшено повторно.
 
     Returns:
         Декорированная функция.
+
+    Examples:
+        # Использование без скобок
+        @handle_exceptions
+        async def my_handler(update, context):
+            pass
+
+        # Использование со скобками
+        @handle_exceptions(default_error_message="Ошибка обработки")
+        async def my_handler(update, context):
+            pass
     """
+    # Определяем, был ли декоратор вызван без скобок (func передан напрямую)
+    is_called_without_parens = callable(func_or_logger) and not isinstance(
+        func_or_logger, logging.Logger
+    )
+
+    # Получаем логгер: сначала из logger_instance, потом из func_or_logger
+    effective_logger: logging.Logger | None = (
+        logger_instance  # Явно переданный через logger_instance=
+        if logger_instance is not None
+        else (
+            None
+            if is_called_without_parens
+            else func_or_logger
+            if isinstance(func_or_logger, logging.Logger)
+            else None
+        )
+    )
 
     def decorator(func: F) -> F:
         # Создаем логгер на основе имени функции, если не передан
-        nonlocal logger_instance
-        if logger_instance is None:
-            logger_instance = get_logger(f"{func.__module__}.{func.__qualname__}")
+        nonlocal effective_logger
+        if effective_logger is None:
+            effective_logger = get_logger(f"{func.__module__}.{func.__qualname__}")
 
         async def _send_error_to_user(args: tuple[Any, ...], error_message: str) -> None:
             """Отправить сообщение об ошибке пользователю."""
@@ -545,15 +595,15 @@ def handle_exceptions(
                                 show_alert=True,
                             )
                     except Exception as answer_error:
-                        logger_instance.exception(f"Не удалось отправить answer: {answer_error!s}")
+                        effective_logger.exception(f"Не удалось отправить answer: {answer_error!s}")
                 elif update.message and hasattr(update.message, "reply_text"):
                     try:
                         await update.message.reply_text(
                             f"❌ {error_message}",
                         )
                     except Exception as reply_error:
-                        logger_instance.exception(
-                            f"Не удалось отправить сообщение об ошибке: {reply_error!s}"
+                        effective_logger.exception(
+                            f"Не удалось отправить сообщение: {reply_error!s}"
                         )
 
         @functools.wraps(func)
@@ -562,7 +612,7 @@ def handle_exceptions(
                 return await func(*args, **kwargs)
             except BaseAppException as e:
                 # Логируем исключение приложения
-                logger_instance.exception(
+                effective_logger.exception(
                     f"{default_error_message}: {e!s}",
                     extra={"context": e.to_dict()},
                 )
@@ -579,7 +629,7 @@ def handle_exceptions(
                     "exception_type": e.__class__.__name__,
                     "traceback": traceback.format_exc().split("\n"),
                 }
-                logger_instance.exception(
+                effective_logger.exception(
                     f"Необработанное исключение в {func.__qualname__}: {e!s}",
                     extra={"context": error_details},
                 )
@@ -597,7 +647,7 @@ def handle_exceptions(
                 return func(*args, **kwargs)
             except BaseAppException as e:
                 # Логируем исключение приложения
-                logger_instance.exception(
+                effective_logger.exception(
                     f"{default_error_message}: {e!s}",
                     extra={"context": e.to_dict()},
                 )
@@ -609,7 +659,7 @@ def handle_exceptions(
                     "exception_type": e.__class__.__name__,
                     "traceback": traceback.format_exc().split("\n"),
                 }
-                logger_instance.exception(
+                effective_logger.exception(
                     f"Необработанное исключение в {func.__qualname__}: {e!s}",
                     extra={"context": error_details},
                 )
@@ -620,6 +670,9 @@ def handle_exceptions(
             return cast("F", async_wrapper)
         return cast("F", sync_wrapper)
 
+    # Если вызван без скобок - применяем decorator к функции напрямую
+    if is_called_without_parens:
+        return decorator(cast("F", func_or_logger))
     return decorator
 
 

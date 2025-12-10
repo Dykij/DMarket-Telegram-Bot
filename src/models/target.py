@@ -1,10 +1,10 @@
 """Модель базы данных для таргетов (buy orders)."""
 
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import JSON, BigInteger, Column, DateTime, Float, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
-
 
 Base = declarative_base()
 
@@ -51,7 +51,7 @@ class Target(Base):
             f"status='{self.status}')>"
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Преобразовать модель в словарь.
 
         Returns:
@@ -113,7 +113,7 @@ class TradeHistory(Base):
             f"price=${self.price:.2f}, status='{self.status}')>"
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Преобразовать модель в словарь.
 
         Returns:
@@ -175,7 +175,7 @@ class TradingSettings(Base):
             f"strategy='{self.strategy}')>"
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Преобразовать модель в словарь.
 
         Returns:

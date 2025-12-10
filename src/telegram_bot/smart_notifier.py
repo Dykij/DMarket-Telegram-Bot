@@ -9,16 +9,16 @@ This module provides sophisticated, context-aware notifications for:
 """
 
 import asyncio
-from datetime import datetime
 import json
 import logging
-from pathlib import Path
 import time
+from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
-from telegram.ext import ContextTypes
+from telegram.ext import Application, ContextTypes
 
 from src.dmarket.dmarket_api import DMarketAPI
 from src.telegram_bot.notification_queue import NotificationQueue, Priority
@@ -29,7 +29,6 @@ from src.telegram_bot.utils.formatters import (
 )
 from src.utils.exceptions import APIError, NetworkError
 from src.utils.market_analyzer import MarketAnalyzer, analyze_market_opportunity
-
 
 # Logger
 logger = logging.getLogger(__name__)
@@ -50,9 +49,9 @@ DATA_DIR = Path("data") / "notifications"
 SMART_ALERTS_FILE = DATA_DIR / "smart_alerts.json"
 
 # In-memory storage
-_user_preferences = {}
-_active_alerts = {}
-_notification_history = {}
+_user_preferences: dict[str, dict[str, Any]] = {}
+_active_alerts: dict[str, list[dict[str, Any]]] = {}
+_notification_history: dict[str, list[float]] = {}
 
 # Alert cooldown periods (seconds)
 DEFAULT_COOLDOWN = {
@@ -332,7 +331,7 @@ async def check_price_alerts(
 
         try:
             # Group alerts by game to minimize API calls
-            game_alerts = {}
+            game_alerts: dict[str, list[dict[str, Any]]] = {}
             for alert in active_alerts:
                 game = alert.get("game", "csgo")
                 if game not in game_alerts:
@@ -440,9 +439,10 @@ async def check_market_opportunities(
             items_to_analyze = market_items[:50]  # Limit to top 50 items for efficiency
 
             # Get price history for these items
+            item_ids_list: list[str] = [item.get("itemId", "") for item in items_to_analyze]
             price_histories = await get_price_history_for_items(
                 api,
-                [item.get("itemId") for item in items_to_analyze],
+                item_ids_list,
                 game,
             )
 
@@ -498,7 +498,7 @@ async def check_market_opportunities(
                 for opportunity in top_opportunities:
                     # Check cooldown
                     if await should_throttle_notification(
-                        user_id,
+                        int(user_id),
                         "market_opportunity",
                         opportunity["item_id"],
                     ):
@@ -545,13 +545,12 @@ async def should_throttle_notification(
 
     # Get cooldown period based on frequency
     base_cooldown = DEFAULT_COOLDOWN.get(notification_type, 3600)
+    cooldown: float = float(base_cooldown)
 
     if frequency == "low":
-        cooldown = base_cooldown * 2
+        cooldown = cooldown * 2
     elif frequency == "high":
-        cooldown = base_cooldown / 2
-    else:  # normal
-        cooldown = base_cooldown
+        cooldown = cooldown / 2
 
     # Check quiet hours
     now = datetime.now()
@@ -562,7 +561,7 @@ async def should_throttle_notification(
 
     # Check last notification time
     last_notifications = prefs.get("last_notification", {})
-    last_time = last_notifications.get(history_key, 0)
+    last_time = float(last_notifications.get(history_key, 0))
 
     return time.time() - last_time < cooldown  # Throttle notification
 
@@ -841,7 +840,7 @@ async def send_market_opportunity_notification(
                     parse_mode=ParseMode.HTML,
                     reply_markup=reply_markup_part,
                     disable_web_page_preview=True,
-                    priority=Priority.MEDIUM,
+                    priority=Priority.NORMAL,
                 )
             else:
                 await bot.send_message(
@@ -879,7 +878,15 @@ async def handle_notification_callback(
 
     """
     query = update.callback_query
+    if not query or not query.data:
+        return
+
     await query.answer()
+
+    # Safely get message text
+    msg_text = ""
+    if query.message and hasattr(query.message, "text"):
+        msg_text = str(query.message.text) if query.message.text else ""
 
     if query.data.startswith("disable_alert:"):
         alert_id = query.data.split(":", 1)[1]
@@ -887,7 +894,7 @@ async def handle_notification_callback(
 
         if success:
             await query.edit_message_text(
-                text=f"{query.message.text}\n\n✅ Alert has been disabled.",
+                text=f"{msg_text}\n\n✅ Alert has been disabled.",
                 reply_markup=None,
                 parse_mode=ParseMode.MARKDOWN,
             )
@@ -904,7 +911,7 @@ async def handle_notification_callback(
 
         if not api:
             await query.edit_message_text(
-                text=f"{query.message.text}\n\n❌ Could not create alert: API not available.",
+                text=f"{msg_text}\n\n❌ Could not create alert: API not available.",
                 reply_markup=None,
                 parse_mode=ParseMode.MARKDOWN,
             )
@@ -916,7 +923,7 @@ async def handle_notification_callback(
 
             if not item_data:
                 await query.edit_message_text(
-                    text=f"{query.message.text}\n\n❌ Could not create alert: Item not found.",
+                    text=f"{msg_text}\n\n❌ Could not create alert: Item not found.",
                     reply_markup=None,
                     parse_mode=ParseMode.MARKDOWN,
                 )
@@ -966,22 +973,27 @@ async def handle_notification_callback(
             reply_markup = InlineKeyboardMarkup(keyboard)
 
             await query.edit_message_text(
-                text=f"{query.message.text}\n\n✅ Alerts created for price changes on this item.",
+                text=f"{msg_text}\n\n✅ Alerts created for price changes.",
                 reply_markup=reply_markup,
                 parse_mode=ParseMode.MARKDOWN,
             )
 
             logger.info(
-                f"Created price alerts for user {query.from_user.id} on item {item_name}",
+                "Created price alerts for user %s on item %s",
+                query.from_user.id,
+                item_name,
             )
 
         except Exception as e:  # noqa: BLE001
             logger.exception(
-                f"Error creating alert for user {query.from_user.id} on item {item_id}: {e}",
+                "Error creating alert for user %s on item %s: %s",
+                query.from_user.id,
+                item_id,
+                e,
             )
 
             await query.edit_message_text(
-                text=f"{query.message.text}\n\n❌ Error creating alert: {e!s}",
+                text=f"{msg_text}\n\n❌ Error creating alert: {e!s}",
                 reply_markup=None,
                 parse_mode=ParseMode.MARKDOWN,
             )
@@ -1079,7 +1091,8 @@ async def get_item_by_id(
         items = response.get("items", [])
 
         if items:
-            return items[0]
+            item: dict[str, Any] = items[0]
+            return item
 
     except (APIError, NetworkError) as e:
         logger.exception(f"Error getting item {item_id}: {e}")
@@ -1118,7 +1131,8 @@ async def get_market_items_for_game(
             },
         )
 
-        return response.get("items", [])
+        items: list[dict[str, Any]] = response.get("items", [])
+        return items
 
     except (APIError, NetworkError) as e:
         logger.exception(f"Error getting market items for game {game}: {e}")
@@ -1274,7 +1288,9 @@ async def start_notification_checker(
         await asyncio.sleep(interval)
 
 
-def register_notification_handlers(application) -> None:
+def register_notification_handlers(
+    application: Application,  # type: ignore[type-arg]
+) -> None:
     """Register notification handlers with the application.
 
     Args:
@@ -1296,12 +1312,12 @@ def register_notification_handlers(application) -> None:
     notification_queue = application.bot_data.get("notification_queue")
 
     if api:
-        asyncio.create_task(
+        _checker_task = asyncio.create_task(
             start_notification_checker(
                 api, application.bot, interval=300, notification_queue=notification_queue
             ),
         )
-        logger.info("Started notification checker")
+        logger.info("Started notification checker (task: %s)", _checker_task.get_name())
     else:
         logger.error(
             "Could not start notification checker: DMarketAPI not found in bot_data",

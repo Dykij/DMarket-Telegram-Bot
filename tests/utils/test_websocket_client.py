@@ -5,8 +5,8 @@ import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import aiohttp
-from aiohttp import WSMessage, WSMsgType
 import pytest
+from aiohttp import WSMessage, WSMsgType
 
 from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.websocket_client import DMarketWebSocketClient
@@ -583,7 +583,11 @@ async def test_unsubscribe_all_empty_subscriptions(websocket_client):
 
 @pytest.mark.asyncio()
 async def test_handle_message_with_handler_exception(websocket_client):
-    """Тест обработки исключения в handler."""
+    """Тест обработки исключения в handler.
+
+    ValueError не входит в список перехватываемых исключений
+    (TypeError, RuntimeError, asyncio.CancelledError), поэтому пробрасывается.
+    """
 
     # Регистрируем handler, который выбрасывает исключение
     async def failing_handler(message):
@@ -593,17 +597,23 @@ async def test_handle_message_with_handler_exception(websocket_client):
 
     message_data = json.dumps({"type": "test:event", "data": "test"})
 
-    # Не должно прерывать обработку
-    await websocket_client._handle_message(message_data)
+    # ValueError не перехватывается - пробрасывается наружу
+    with pytest.raises(ValueError, match="Handler error"):
+        await websocket_client._handle_message(message_data)
 
 
 @pytest.mark.asyncio()
 async def test_handle_message_generic_exception(websocket_client):
-    """Тест обработки общего исключения при обработке сообщения."""
+    """Тест обработки общего исключения при обработке сообщения.
+
+    Generic Exception не входит в список перехватываемых исключений
+    (JSONDecodeError, TypeError, KeyError, AttributeError), поэтому пробрасывается.
+    """
     # Создаём некорректные данные, которые вызовут исключение
     with patch("json.loads", side_effect=Exception("Generic error")):
-        # Не должно прерывать работу
-        await websocket_client._handle_message('{"type": "test"}')
+        # Exception не перехватывается - пробрасывается наружу
+        with pytest.raises(Exception, match="Generic error"):
+            await websocket_client._handle_message('{"type": "test"}')
 
 
 @pytest.mark.asyncio()

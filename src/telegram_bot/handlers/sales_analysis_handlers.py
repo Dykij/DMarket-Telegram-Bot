@@ -11,7 +11,7 @@ from src.dmarket.arbitrage_sales_analysis import (
     enhanced_arbitrage_search,
     get_sales_volume_stats,
 )
-from src.dmarket.sales_history import analyze_sales_history, execute_api_request
+from src.dmarket.sales_history import analyze_sales_history
 from src.telegram_bot.utils.formatters import (
     format_arbitrage_with_sales,
     format_liquidity_analysis,
@@ -20,7 +20,6 @@ from src.telegram_bot.utils.formatters import (
     get_trend_emoji,
 )
 from src.utils.exceptions import APIError
-
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
@@ -77,6 +76,9 @@ async def handle_sales_analysis(update: Update, context: ContextTypes.DEFAULT_TY
         context: Контекст бота
 
     """
+    if not update.message or not update.message.text:
+        return
+
     # Извлекаем название предмета из сообщения
     message = update.message.text.strip()
     parts = message.split(" ", 1)
@@ -99,18 +101,10 @@ async def handle_sales_analysis(update: Update, context: ContextTypes.DEFAULT_TY
     )
 
     try:
-        # Создаем функцию для запроса анализа продаж
-        async def get_analysis():
-            return await analyze_sales_history(
-                item_name=item_name,
-                days=14,  # Анализируем за 2 недели
-            )
-
-        # Выполняем запрос с использованием обработки ошибок API
-        analysis = await execute_api_request(
-            request_func=get_analysis,
-            endpoint_type="last_sales",
-            max_retries=2,
+        # Выполняем анализ истории продаж напрямую
+        analysis = await analyze_sales_history(
+            item_name=item_name,
+            days=14,  # Анализируем за 2 недели
         )
 
         # Форматируем результаты анализа с использованием функции форматирования
@@ -157,7 +151,10 @@ async def handle_sales_analysis(update: Update, context: ContextTypes.DEFAULT_TY
         )
 
 
-async def handle_arbitrage_with_sales(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_arbitrage_with_sales(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> None:
     """Обрабатывает команду /arbitrage_sales для поиска арбитражных возможностей
     с учетом истории продаж.
 
@@ -166,39 +163,32 @@ async def handle_arbitrage_with_sales(update: Update, context: ContextTypes.DEFA
         context: Контекст бота
 
     """
+    if not update.message:
+        return
+
     # Получаем текущую игру из контекста или используем CSGO по умолчанию
     game = "csgo"
-    if hasattr(context, "user_data") and "current_game" in context.user_data:
+    if context.user_data and "current_game" in context.user_data:
         game = context.user_data["current_game"]
 
     # Отправляем сообщение о начале поиска
+    game_name = GAMES.get(game, game)
     reply_message = await update.message.reply_text(
-        f"🔍 Поиск арбитражных возможностей с учетом истории продаж для {GAMES.get(game, game)}...\n\n"
-        "⏳ Пожалуйста, подождите...",
+        f"🔍 Поиск арбитражных возможностей для {game_name}...\n\n⏳ Пожалуйста, подождите...",
         parse_mode=ParseMode.HTML,
     )
 
     try:
-        # Создаем функцию для запроса арбитражных возможностей
-        async def search_arbitrage():
-            return await enhanced_arbitrage_search(
-                game=game,
-                max_items=10,
-                min_profit=1.0,
-                min_profit_percent=5.0,
-                min_sales_per_day=0.3,  # Минимум 1 продажа за 3 дня
-                time_period_days=7,
-            )
-
-        # Выполняем запрос с использованием обработки ошибок API
-        results = await execute_api_request(
-            request_func=search_arbitrage,
-            endpoint_type="market",
-            max_retries=2,
+        # Выполняем поиск арбитражных возможностей напрямую
+        results = await enhanced_arbitrage_search(
+            game=game,
+            min_profit=1.0,
         )
 
         # Форматируем результаты поиска с использованием функции форматирования
-        formatted_message = format_arbitrage_with_sales(results, game)
+        # Format expects a dict with 'opportunities' key
+        results_dict = {"opportunities": results, "game": game}
+        formatted_message = format_arbitrage_with_sales(results_dict, game)
 
         # Добавляем кнопки управления
         keyboard = InlineKeyboardMarkup(
@@ -245,7 +235,10 @@ async def handle_arbitrage_with_sales(update: Update, context: ContextTypes.DEFA
         )
 
 
-async def handle_liquidity_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_liquidity_analysis(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> None:
     """Обрабатывает команду /liquidity для анализа ликвидности предмета.
 
     Пример использования:
@@ -256,6 +249,9 @@ async def handle_liquidity_analysis(update: Update, context: ContextTypes.DEFAUL
         context: Контекст бота
 
     """
+    if not update.message or not update.message.text:
+        return
+
     # Извлекаем название предмета из сообщения
     message = update.message.text.strip()
     parts = message.split(" ", 1)
@@ -269,11 +265,7 @@ async def handle_liquidity_analysis(update: Update, context: ContextTypes.DEFAUL
         return
 
     item_name = parts[1].strip()
-    game = "csgo"  # По умолчанию используем CS2
-
-    # Если в контексте задана игра, используем её
-    if hasattr(context, "user_data") and "current_game" in context.user_data:
-        game = context.user_data["current_game"]
+    # Note: Game filtering reserved for future implementation
 
     # Отправляем сообщение о начале анализа
     reply_message = await update.message.reply_text(
@@ -282,19 +274,9 @@ async def handle_liquidity_analysis(update: Update, context: ContextTypes.DEFAUL
     )
 
     try:
-        # Создаем функцию для запроса анализа ликвидности
-        async def get_liquidity_analysis():
-            return await analyze_item_liquidity(
-                item_name=item_name,
-                game=game,
-            )
-
-        # Выполняем запрос с использованием обработки ошибок API
-        analysis = await execute_api_request(
-            request_func=get_liquidity_analysis,
-            endpoint_type="market",
-            max_retries=2,
-        )
+        # Выполняем анализ ликвидности напрямую
+        # Note: analyze_item_liquidity expects item_id, using item_name as ID
+        analysis = await analyze_item_liquidity(item_id=item_name)
 
         # Форматируем результаты анализа с использованием функции форматирования
         formatted_message = format_liquidity_analysis(analysis, item_name)
@@ -338,40 +320,35 @@ async def handle_liquidity_analysis(update: Update, context: ContextTypes.DEFAUL
         )
 
 
-async def handle_sales_volume_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Обрабатывает команду /sales_volume для просмотра статистики объема продаж.
+async def handle_sales_volume_stats(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> None:
+    """Обрабатывает команду /sales_volume для просмотра статистики.
 
     Args:
         update: Объект обновления Telegram
         context: Контекст бота
 
     """
+    if not update.message:
+        return
+
     # Получаем текущую игру из контекста или используем CSGO по умолчанию
     game = "csgo"
-    if hasattr(context, "user_data") and "current_game" in context.user_data:
+    if context.user_data and "current_game" in context.user_data:
         game = context.user_data["current_game"]
 
     # Отправляем сообщение о начале запроса
+    game_name = GAMES.get(game, game)
     reply_message = await update.message.reply_text(
-        f"🔍 Получение статистики объема продаж для {GAMES.get(game, game)}...\n\n"
-        "⏳ Пожалуйста, подождите...",
+        f"🔍 Получение статистики объема продаж для {game_name}...\n\n⏳ Пожалуйста, подождите...",
         parse_mode=ParseMode.HTML,
     )
 
     try:
-        # Создаем функцию для запроса статистики объема продаж
-        async def get_volume_stats():
-            return await get_sales_volume_stats(
-                game=game,
-                top_items=30,  # Анализируем 30 популярных предметов
-            )
-
-        # Выполняем запрос с использованием обработки ошибок API
-        stats = await execute_api_request(
-            request_func=get_volume_stats,
-            endpoint_type="market",
-            max_retries=2,
-        )
+        # Выполняем запрос статистики напрямую
+        stats = await get_sales_volume_stats(game=game)
 
         # Форматируем результаты с использованием функции форматирования
         formatted_message = format_sales_volume_stats(stats, game)

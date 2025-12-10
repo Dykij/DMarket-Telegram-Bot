@@ -6,11 +6,11 @@ after crashes or restarts without losing progress.
 """
 
 import asyncio
-from datetime import UTC, datetime, timedelta
 import json
-from pathlib import Path
 import signal
 import sys
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any, Callable
 from uuid import UUID
 
@@ -18,13 +18,17 @@ from pydantic import BaseModel, Field
 from sqlalchemy import Column, DateTime, Integer, String, Text, select
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.types import JSON
 
-from src.models.user import Base
 from src.utils.logging_utils import get_logger
 
-
 logger = get_logger(__name__)
+
+
+# Local Base class for state management models
+class StateManagerBase(DeclarativeBase):
+    """Base class for state management models."""
 
 
 class CheckpointData(BaseModel):
@@ -39,7 +43,7 @@ class CheckpointData(BaseModel):
     status: str = "in_progress"  # in_progress, completed, failed
 
 
-class ScanCheckpoint(Base):
+class ScanCheckpoint(StateManagerBase):
     """Database model for scan checkpoints."""
 
     __tablename__ = "scan_checkpoints"
@@ -86,7 +90,7 @@ class StateManager:
         self._shutdown_handlers_registered = False
         self._consecutive_errors = 0
         self._is_paused = False
-        self._shutdown_callback: Callable[[], None] | None = None
+        self._shutdown_callback: Callable[[str], Any] | None = None
 
     async def create_checkpoint(
         self,
@@ -114,7 +118,7 @@ class StateManager:
             cursor=kwargs.get("cursor"),
             processed_items=kwargs.get("processed_items", 0),
             total_items=kwargs.get("total_items"),
-            metadata=kwargs.get("metadata", {}),
+            extra_data=kwargs.get("extra_data", {}),
             status="in_progress",
         )
 
@@ -122,10 +126,10 @@ class StateManager:
         await self.session.commit()
 
         logger.info(
-            "Checkpoint created",
-            scan_id=str(scan_id),
-            user_id=user_id,
-            operation_type=operation_type,
+            "Checkpoint created: scan_id=%s, user_id=%s, operation_type=%s",
+            scan_id,
+            user_id,
+            operation_type,
         )
 
         return CheckpointData(
@@ -133,7 +137,7 @@ class StateManager:
             cursor=kwargs.get("cursor"),
             processed_items=kwargs.get("processed_items", 0),
             total_items=kwargs.get("total_items"),
-            metadata=kwargs.get("metadata", {}),
+            extra_data=kwargs.get("extra_data", {}),
         )
 
     async def save_checkpoint(
@@ -142,7 +146,7 @@ class StateManager:
         cursor: str | None = None,
         processed_items: int = 0,
         total_items: int | None = None,
-        metadata: dict[str, Any] | None = None,
+        extra_data: dict[str, Any] | None = None,
         status: str = "in_progress",
     ) -> None:
         """Save or update checkpoint.
@@ -152,7 +156,7 @@ class StateManager:
             cursor: Current cursor position
             processed_items: Number of processed items
             total_items: Total number of items (if known)
-            metadata: Additional metadata
+            extra_data: Additional metadata
             status: Checkpoint status
 
         """
@@ -161,29 +165,29 @@ class StateManager:
         checkpoint = result.scalar_one_or_none()
 
         if checkpoint:
-            checkpoint.cursor = cursor
-            checkpoint.processed_items = processed_items
-            checkpoint.total_items = total_items
-            checkpoint.status = status
-            checkpoint.timestamp = datetime.now(UTC)
+            checkpoint.cursor = cursor  # type: ignore[assignment]
+            checkpoint.processed_items = processed_items  # type: ignore[assignment]
+            checkpoint.total_items = total_items  # type: ignore[assignment]
+            checkpoint.status = status  # type: ignore[assignment]
+            checkpoint.timestamp = datetime.now(UTC)  # type: ignore[assignment]
 
-            if metadata:
-                checkpoint.extra_data.update(metadata)
+            if extra_data:
+                checkpoint.extra_data.update(extra_data)
         else:
             logger.warning(
-                "Checkpoint not found for save operation",
-                scan_id=str(scan_id),
+                "Checkpoint not found for save operation: scan_id=%s",
+                scan_id,
             )
             return
 
         await self.session.commit()
 
         logger.debug(
-            "Checkpoint saved",
-            scan_id=str(scan_id),
-            processed=processed_items,
-            total=total_items,
-            status=status,
+            "Checkpoint saved: scan_id=%s, processed=%d, total=%s, status=%s",
+            scan_id,
+            processed_items,
+            total_items,
+            status,
         )
 
     async def load_checkpoint(self, scan_id: UUID) -> CheckpointData | None:
@@ -203,14 +207,15 @@ class StateManager:
         if not checkpoint:
             return None
 
+        # SQLAlchemy Column types need cast at runtime
         return CheckpointData(
-            scan_id=checkpoint.scan_id,
-            cursor=checkpoint.cursor,
-            processed_items=checkpoint.processed_items,
-            total_items=checkpoint.total_items,
-            timestamp=checkpoint.timestamp,
-            extra_data=checkpoint.extra_data,
-            status=checkpoint.status,
+            scan_id=checkpoint.scan_id,  # type: ignore[arg-type]
+            cursor=checkpoint.cursor,  # type: ignore[arg-type]
+            processed_items=checkpoint.processed_items,  # type: ignore[arg-type]
+            total_items=checkpoint.total_items,  # type: ignore[arg-type]
+            timestamp=checkpoint.timestamp,  # type: ignore[arg-type]
+            extra_data=checkpoint.extra_data or {},  # type: ignore[arg-type]
+            status=checkpoint.status,  # type: ignore[arg-type]
         )
 
     async def get_active_checkpoints(
@@ -239,15 +244,16 @@ class StateManager:
         result = await self.session.execute(stmt)
         checkpoints = result.scalars().all()
 
+        # SQLAlchemy Column types need cast at runtime
         return [
             CheckpointData(
-                scan_id=cp.scan_id,
-                cursor=cp.cursor,
-                processed_items=cp.processed_items,
-                total_items=cp.total_items,
-                timestamp=cp.timestamp,
-                extra_data=cp.extra_data,
-                status=cp.status,
+                scan_id=cp.scan_id,  # type: ignore[arg-type]
+                cursor=cp.cursor,  # type: ignore[arg-type]
+                processed_items=cp.processed_items,  # type: ignore[arg-type]
+                total_items=cp.total_items,  # type: ignore[arg-type]
+                timestamp=cp.timestamp,  # type: ignore[arg-type]
+                extra_data=cp.extra_data or {},  # type: ignore[arg-type]
+                status=cp.status,  # type: ignore[arg-type]
             )
             for cp in checkpoints
         ]
@@ -310,14 +316,14 @@ class StateManager:
             error_message: Error message
 
         """
-        metadata = {}
+        extra: dict[str, Any] = {}
         if error_message:
-            metadata["error"] = error_message
+            extra["error"] = error_message
 
         await self.save_checkpoint(
             scan_id=scan_id,
             status="failed",
-            metadata=metadata,
+            extra_data=extra,
         )
 
     def register_shutdown_handlers(
@@ -335,19 +341,19 @@ class StateManager:
         if self._shutdown_handlers_registered:
             return
 
-        def signal_handler(signum, frame):
+        def signal_handler(signum: int, frame: Any) -> None:
             """Handle shutdown signals."""
             logger.warning(
                 "Received signal %s, saving checkpoint and shutting down...",
                 signum,
             )
 
-            # Save final checkpoint
-            asyncio.create_task(
+            # Save final checkpoint (fire and forget in signal handler)
+            _ = asyncio.create_task(
                 self.save_checkpoint(
                     scan_id=scan_id,
                     status="interrupted",
-                    metadata={"signal": signum},
+                    extra_data={"signal": signum},
                 )
             )
 
@@ -417,7 +423,10 @@ class StateManager:
         """Get current consecutive error count."""
         return self._consecutive_errors
 
-    def set_shutdown_callback(self, callback: callable) -> None:
+    def set_shutdown_callback(
+        self,
+        callback: Callable[[str], Any] | None,
+    ) -> None:
         """Set callback to be called on critical shutdown.
 
         Args:
@@ -439,9 +448,12 @@ class StateManager:
 
         if self._shutdown_callback:
             try:
-                await self._shutdown_callback(reason)
+                result = self._shutdown_callback(reason)
+                # Handle both sync and async callbacks
+                if asyncio.iscoroutine(result):
+                    await result
             except Exception as e:
-                logger.exception(f"Error in shutdown callback: {e}")
+                logger.exception("Error in shutdown callback: %s", e)
 
 
 class LocalStateManager:
@@ -467,7 +479,7 @@ class LocalStateManager:
         cursor: str | None = None,
         processed_items: int = 0,
         total_items: int | None = None,
-        metadata: dict[str, Any] | None = None,
+        extra_data: dict[str, Any] | None = None,
         status: str = "in_progress",
     ) -> None:
         """Save checkpoint to file."""
@@ -479,7 +491,7 @@ class LocalStateManager:
             "processed_items": processed_items,
             "total_items": total_items,
             "timestamp": datetime.now(UTC).isoformat(),
-            "metadata": metadata or {},
+            "extra_data": extra_data or {},
             "status": status,
         }
 
@@ -489,9 +501,9 @@ class LocalStateManager:
         )
 
         logger.debug(
-            "Checkpoint saved to file",
-            scan_id=str(scan_id),
-            file=str(checkpoint_file),
+            "Checkpoint saved to file: scan_id=%s, file=%s",
+            scan_id,
+            checkpoint_file,
         )
 
     async def load_checkpoint(self, scan_id: UUID) -> CheckpointData | None:
@@ -510,14 +522,14 @@ class LocalStateManager:
                 processed_items=data.get("processed_items", 0),
                 total_items=data.get("total_items"),
                 timestamp=datetime.fromisoformat(data["timestamp"]),
-                metadata=data.get("metadata", {}),
+                extra_data=data.get("extra_data", {}),
                 status=data.get("status", "in_progress"),
             )
         except (json.JSONDecodeError, KeyError, ValueError) as e:
             logger.exception(
-                "Failed to load checkpoint",
-                scan_id=str(scan_id),
-                error=str(e),
+                "Failed to load checkpoint: scan_id=%s, error=%s",
+                scan_id,
+                e,
             )
             return None
 
@@ -532,7 +544,9 @@ class LocalStateManager:
                 timestamp = datetime.fromisoformat(data["timestamp"])
                 status = data.get("status", "in_progress")
 
-                if timestamp < cutoff_time and status in ["completed", "failed"]:
+                is_old = timestamp < cutoff_time
+                is_done = status in ["completed", "failed"]
+                if is_old and is_done:
                     checkpoint_file.unlink()
                     count += 1
             except (json.JSONDecodeError, KeyError, ValueError, OSError):

@@ -4,13 +4,13 @@ This module provides a Redis-backed cache implementation for distributed
 caching across multiple bot instances, with TTL support and async operations.
 """
 
-import asyncio
 import logging
 import pickle
-from typing import Any
+from typing import Any, cast
 
 try:
     import redis.asyncio as aioredis
+
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
@@ -49,7 +49,7 @@ class RedisCache:
         """
         self.redis_url = redis_url
         self.default_ttl = default_ttl
-        self._redis: aioredis.Redis | None = None
+        self._redis: aioredis.Redis[bytes] | None = None
         self._connected = False
 
         # Fallback to in-memory cache
@@ -73,9 +73,7 @@ class RedisCache:
             True if connected successfully, False otherwise
         """
         if not REDIS_AVAILABLE:
-            logger.warning(
-                "Redis library not available. Install with: pip install redis[hiredis]"
-            )
+            logger.warning("Redis library not available. Install with: pip install redis[hiredis]")
             if self._fallback_enabled:
                 logger.info("Falling back to in-memory cache")
                 return False
@@ -302,7 +300,7 @@ class RedisCache:
                 pipeline.incrby(key, amount)
                 pipeline.expire(key, ttl)
                 results = await pipeline.execute()
-                return results[0]
+                return cast("int", results[0])
             except Exception as e:
                 logger.error(f"Redis increment error for key {key}: {e}")
                 self._errors += 1
@@ -316,7 +314,7 @@ class RedisCache:
 
         return amount
 
-    def get_stats(self) -> dict[str, Any]:
+    async def get_stats(self) -> dict[str, Any]:
         """Get cache statistics.
 
         Returns:
@@ -325,7 +323,7 @@ class RedisCache:
         total_requests = self._hits + self._misses
         hit_rate = self._hits / total_requests if total_requests > 0 else 0
 
-        stats = {
+        stats: dict[str, Any] = {
             "connected": self._connected,
             "hits": self._hits,
             "misses": self._misses,
@@ -337,8 +335,7 @@ class RedisCache:
 
         # Add memory cache stats if available
         if self._memory_cache:
-            memory_stats = self._memory_cache.get_stats()
-            stats["memory_cache"] = memory_stats
+            stats["memory_cache"] = await self._memory_cache.get_stats()
 
         return stats
 
@@ -348,7 +345,7 @@ class RedisCache:
         Returns:
             Health check results
         """
-        health = {
+        health: dict[str, Any] = {
             "redis_connected": False,
             "redis_ping": False,
             "memory_cache_available": self._memory_cache is not None,
@@ -380,9 +377,7 @@ def get_cache() -> RedisCache:
         RuntimeError: If cache not initialized
     """
     if _global_cache is None:
-        raise RuntimeError(
-            "Cache not initialized. Call init_cache() first in main.py"
-        )
+        raise RuntimeError("Cache not initialized. Call init_cache() first in main.py")
     return _global_cache
 
 

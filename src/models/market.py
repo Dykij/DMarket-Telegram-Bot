@@ -1,6 +1,7 @@
 """Market data models."""
 
 from datetime import datetime
+from typing import Any
 from uuid import uuid4
 
 from sqlalchemy import JSON, Column, DateTime, Float, Integer, String, Text
@@ -49,7 +50,7 @@ class MarketDataCache(Base):
             f"game='{self.game}', type='{self.data_type}')>"
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Convert model to dictionary."""
         return {
             "id": str(self.id),

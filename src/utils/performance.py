@@ -1,12 +1,11 @@
 """Утилиты для оптимизации производительности проекта."""
 
 import asyncio
-from collections.abc import Callable
 import functools
 import logging
 import time
+from collections.abc import Callable
 from typing import Any, TypeVar
-
 
 logger = logging.getLogger(__name__)
 
@@ -156,9 +155,9 @@ global_cache = AdvancedCache()
 
 def cached(
     cache_name: str,
-    key_function: Callable | None = None,
+    key_function: Callable[..., CacheKey] | None = None,
     ttl: int | None = None,
-):
+) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Декоратор для кеширования результатов функций.
 
     Args:
@@ -171,11 +170,11 @@ def cached(
 
     """
 
-    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+    def decorator(func: Callable[..., T]) -> Callable[..., T]:
         if asyncio.iscoroutinefunction(func):
 
             @functools.wraps(func)
-            async def async_wrapper(*args, **kwargs):
+            async def async_wrapper(*args: Any, **kwargs: Any) -> T:
                 # Генерируем ключ кеша
                 if key_function is not None:
                     cache_key = key_function(*args, **kwargs)
@@ -191,17 +190,17 @@ def cached(
                 cached_result = global_cache.get(cache_name, cache_key)
                 if cached_result is not None:
                     logger.debug("Возвращен результат из кеша для %s", func.__name__)
-                    return cached_result
+                    return cached_result  # type: ignore[no-any-return]
 
                 # Выполняем функцию и кешируем результат
                 result = await func(*args, **kwargs)
                 global_cache.set(cache_name, cache_key, result)
-                return result
+                return result  # type: ignore[no-any-return]
 
-            return async_wrapper
+            return async_wrapper  # type: ignore[return-value]
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> T:
             # Генерируем ключ кеша
             if key_function is not None:
                 cache_key = key_function(*args, **kwargs)
@@ -217,7 +216,7 @@ def cached(
             cached_result = global_cache.get(cache_name, cache_key)
             if cached_result is not None:
                 logger.debug(f"Возвращен результат из кеша для {func.__name__}")
-                return cached_result
+                return cached_result  # type: ignore[no-any-return]
 
             # Выполняем функцию и кешируем результат
             result = func(*args, **kwargs)
@@ -229,7 +228,7 @@ def cached(
     return decorator
 
 
-def profile_performance(func: Callable) -> Callable:
+def profile_performance(func: Callable[..., T]) -> Callable[..., T]:
     """Декоратор для профилирования производительности функций.
 
     Args:
@@ -242,20 +241,20 @@ def profile_performance(func: Callable) -> Callable:
     if asyncio.iscoroutinefunction(func):
 
         @functools.wraps(func)
-        async def async_wrapper(*args, **kwargs):
+        async def async_wrapper(*args: Any, **kwargs: Any) -> T:
             start_time = time.time()
             try:
-                return await func(*args, **kwargs)
+                return await func(*args, **kwargs)  # type: ignore[no-any-return]
             finally:
                 execution_time = time.time() - start_time
                 logger.info(
                     f"Время выполнения {func.__name__}: {execution_time:.4f} сек",
                 )
 
-        return async_wrapper
+        return async_wrapper  # type: ignore[return-value]
 
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> T:
         start_time = time.time()
         try:
             return func(*args, **kwargs)
@@ -289,7 +288,7 @@ class AsyncBatch:
         self.delay = delay_between_batches
         self._semaphore = asyncio.Semaphore(max_concurrent)
 
-    async def execute(self, tasks: list) -> list:
+    async def execute(self, tasks: list[Any]) -> list[Any]:
         """Выполняет список асинхронных задач с ограничением по параллельности.
 
         Args:
@@ -300,7 +299,7 @@ class AsyncBatch:
 
         """
 
-        async def _wrapped_task(task):
+        async def _wrapped_task(task: Any) -> Any:
             async with self._semaphore:
                 return await task
 

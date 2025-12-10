@@ -15,7 +15,9 @@
     "**/build",
     "**/dist",
     "**/*.egg-info",
-    "tests"
+    "tests",
+    "**/cassettes",
+    "**/pacts"
   ],
   "pythonVersion": "3.11",
   "pythonPlatform": "Windows",
@@ -39,9 +41,14 @@
   "reportConstantRedefinition": "error",
   "reportIncompatibleMethodOverride": "error",
   "reportIncompatibleVariableOverride": "error",
+  "reportGeneralTypeIssues": "warning",
+  "reportPropertyTypeMismatch": "warning",
+  "reportFunctionMemberAccess": "warning",
   "stubPath": "./typings",
   "autoSearchPaths": true,
-  "extraPaths": [],
+  "extraPaths": [
+    "src"
+  ],
   "executionEnvironments": [
     {
       "root": "src",
@@ -49,6 +56,15 @@
       "pythonPlatform": "Windows",
       "extraPaths": [
         "src"
+      ]
+    },
+    {
+      "root": "tests",
+      "pythonVersion": "3.11",
+      "pythonPlatform": "Windows",
+      "extraPaths": [
+        "src",
+        "tests"
       ]
     }
   ]

@@ -24,7 +24,6 @@ from src.dmarket.liquidity_analyzer import LiquidityAnalyzer
 from src.utils.rate_limiter import RateLimiter
 from src.utils.sentry_breadcrumbs import add_trading_breadcrumb
 
-
 # Настройка логирования
 logger = logging.getLogger(__name__)
 
@@ -131,11 +130,13 @@ class ArbitrageScanner:
 
         """
         self.api_client = api_client
-        self._cache = {}  # Кеш для результатов сканирования
+        self._cache: dict[
+            str | tuple[Any, ...], tuple[Any, float]
+        ] = {}  # Кеш для результатов сканирования
         self._cache_ttl = 300  # Время жизни кеша в секундах (5 минут)
 
         # Инициализация анализатора ликвидности
-        self.liquidity_analyzer = None
+        self.liquidity_analyzer: LiquidityAnalyzer | None = None
         self.enable_liquidity_filter = enable_liquidity_filter
 
         # Параметры фильтрации по конкуренции
@@ -168,7 +169,7 @@ class ArbitrageScanner:
         """Установить время жизни кеша."""
         self._cache_ttl = value
 
-    def _get_cached_results(self, cache_key: tuple) -> list[dict[str, Any]] | None:
+    def _get_cached_results(self, cache_key: tuple[Any, ...]) -> list[dict[str, Any]] | None:
         """Получает результаты из кеша, если они не устарели.
 
         Args:
@@ -188,9 +189,9 @@ class ArbitrageScanner:
         if current_time - timestamp > self._cache_ttl:
             return None
 
-        return items
+        return list(items) if isinstance(items, list) else None
 
-    def _save_to_cache(self, cache_key: tuple, items: list[dict[str, Any]]) -> None:
+    def _save_to_cache(self, cache_key: str | tuple[Any, ...], items: list[dict[str, Any]]) -> None:
         """Сохраняет результаты в кеш.
 
         Args:
@@ -284,6 +285,9 @@ class ArbitrageScanner:
             # Пробуем два метода поиска арбитражных возможностей:
             # 1. Встроенные функции для быстрого поиска
             # 2. ArbitrageTrader для более детального поиска
+
+            # Инициализируем items перед использованием
+            items: list[Any] = []
 
             # Метод 1: Используем встроенные функции
             if price_from is None and price_to is None:
@@ -403,7 +407,7 @@ class ArbitrageScanner:
 
     def _standardize_items(
         self,
-        items: list,
+        items: list[Any],
         game: str,
         min_profit: float,
         max_profit: float,
@@ -485,7 +489,7 @@ class ArbitrageScanner:
         if games is None:
             games = list(GAMES.keys())
 
-        results = {}
+        results: dict[str, list[dict[str, Any]]] = {}
 
         # Создаем задачи для параллельного сканирования игр
         tasks = []
@@ -1092,7 +1096,7 @@ class ArbitrageScanner:
         if time.time() - timestamp > self._cache_ttl:
             return None
 
-        return data
+        return list(data) if isinstance(data, list) else None
 
     async def scan_level(
         self,
@@ -1459,7 +1463,11 @@ class ArbitrageScanner:
         """
         stats = {}
         for level, config in ARBITRAGE_LEVELS.items():
-            _min_price, max_price = config["price_range"]
+            price_range = config["price_range"]
+            if isinstance(price_range, tuple) and len(price_range) == 2:
+                _min_price, max_price = price_range
+            else:
+                max_price = 0.0
             stats[level] = {
                 "name": config["name"],
                 "min_profit": config["min_profit_percent"],
@@ -1512,11 +1520,13 @@ class ArbitrageScanner:
 
                     # Распределяем по уровням
                     for level, cfg in ARBITRAGE_LEVELS.items():
-                        price_from, price_to = cfg["price_range"]
-                        if price_from <= price_usd <= price_to:
-                            if level not in results_by_level:
-                                results_by_level[level] = 0
-                            results_by_level[level] += 1
+                        price_range = cfg["price_range"]
+                        if isinstance(price_range, tuple) and len(price_range) == 2:
+                            price_from, price_to = price_range
+                            if price_from <= price_usd <= price_to:
+                                if level not in results_by_level:
+                                    results_by_level[level] = 0
+                                results_by_level[level] += 1
 
             avg_price = sum(prices) / len(prices) if prices else 0.0
 

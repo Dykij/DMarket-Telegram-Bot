@@ -4,10 +4,10 @@ __version__ = "0.1.0"
 
 # Импортируем основные компоненты для удобства использования
 import logging
+from typing import Any
 
 from src.dmarket.arbitrage import GAMES
 from src.dmarket.dmarket_api import DMarketAPI
-
 
 __all__ = ["GAMES", "DMarketAPI"]
 
@@ -18,7 +18,7 @@ logging.getLogger(__name__).info("DMarketAPI с улучшенным балан�
 def find_arbitrage_opportunities(
     min_profit_percentage: float = 10.0,
     max_results: int = 5,
-):
+) -> list[dict[str, Any]]:
     """Находит арбитражные возможности с минимальной прибылью и максимальным количеством результатов.
 
     Args:
@@ -33,7 +33,7 @@ def find_arbitrage_opportunities(
     # Для демонстрации создаем тестовые данные
 
     # Тестовые данные
-    test_data = [
+    test_data: list[dict[str, Any]] = [
         {
             "item_title": "AK-47 | Redline (Field-Tested)",
             "market_from": "Steam Market",

@@ -11,7 +11,6 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-
 # ============================================================================
 # Базовые модели
 # ============================================================================
@@ -94,7 +93,10 @@ class MarketItemsResponse(BaseModel):
     @field_validator("total", mode="before")
     @classmethod
     def validate_total(cls, v: Any) -> int:
-        """Валидация total - может быть строкой или числом."""
+        """Валидация total - может быть строкой, числом или dict {'items': N, 'offers': M}."""
+        if isinstance(v, dict):
+            # DMarket API может вернуть {'items': 0, 'offers': 0}
+            return int(v.get("items", 0)) + int(v.get("offers", 0))
         if isinstance(v, str):
             return int(v) if v.isdigit() else 0
         return int(v) if v is not None else 0

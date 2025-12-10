@@ -38,9 +38,9 @@ def mock_context():
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.handlers.sales_analysis_handlers.execute_api_request")
+@patch("src.telegram_bot.handlers.sales_analysis_handlers.analyze_sales_history")
 async def test_handle_sales_analysis_success(
-    mock_execute_api,
+    mock_analyze_sales_history,
     mock_update,
     mock_context,
 ):
@@ -50,7 +50,7 @@ async def test_handle_sales_analysis_success(
     reply_message.edit_text = AsyncMock()
     mock_update.message.reply_text.return_value = reply_message
 
-    # Настройка мока для execute_api_request
+    # Настройка мока для analyze_sales_history
     mock_analysis_data = {
         "has_data": True,
         "avg_price": 100.0,
@@ -65,7 +65,7 @@ async def test_handle_sales_analysis_success(
             {"date": "2023-01-02", "price": 98.0, "currency": "USD"},
         ],
     }
-    mock_execute_api.return_value = mock_analysis_data
+    mock_analyze_sales_history.return_value = mock_analysis_data
 
     # Вызываем тестируемую функцию
     await handle_sales_analysis(mock_update, mock_context)
@@ -100,9 +100,9 @@ async def test_handle_sales_analysis_success(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.handlers.sales_analysis_handlers.execute_api_request")
+@patch("src.telegram_bot.handlers.sales_analysis_handlers.analyze_sales_history")
 async def test_handle_sales_analysis_no_data(
-    mock_execute_api,
+    mock_analyze_sales_history,
     mock_update,
     mock_context,
 ):
@@ -112,11 +112,11 @@ async def test_handle_sales_analysis_no_data(
     reply_message.edit_text = AsyncMock()
     mock_update.message.reply_text.return_value = reply_message
 
-    # Настройка мока для execute_api_request
+    # Настройка мока для analyze_sales_history
     mock_analysis_data = {
         "has_data": False,
     }
-    mock_execute_api.return_value = mock_analysis_data
+    mock_analyze_sales_history.return_value = mock_analysis_data
 
     # Вызываем тестируемую функцию
     await handle_sales_analysis(mock_update, mock_context)
@@ -139,9 +139,9 @@ async def test_handle_sales_analysis_no_data(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.handlers.sales_analysis_handlers.execute_api_request")
+@patch("src.telegram_bot.handlers.sales_analysis_handlers.analyze_sales_history")
 async def test_handle_sales_analysis_api_error(
-    mock_execute_api,
+    mock_analyze_sales_history,
     mock_update,
     mock_context,
 ):
@@ -151,10 +151,10 @@ async def test_handle_sales_analysis_api_error(
     reply_message.edit_text = AsyncMock()
     mock_update.message.reply_text.return_value = reply_message
 
-    # Настройка мока для execute_api_request
+    # Настройка мока для analyze_sales_history
     from src.utils.api_error_handling import APIError
 
-    mock_execute_api.side_effect = APIError("Ошибка API", status_code=500)
+    mock_analyze_sales_history.side_effect = APIError("Ошибка API", status_code=500)
 
     # Вызываем тестируемую функцию
     await handle_sales_analysis(mock_update, mock_context)
@@ -172,9 +172,9 @@ async def test_handle_sales_analysis_api_error(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.handlers.sales_analysis_handlers.execute_api_request")
+@patch("src.telegram_bot.handlers.sales_analysis_handlers.analyze_sales_history")
 async def test_handle_sales_analysis_missing_item_name(
-    mock_execute_api,
+    mock_analyze_sales_history,
     mock_update,
     mock_context,
 ):
@@ -192,45 +192,44 @@ async def test_handle_sales_analysis_missing_item_name(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.handlers.sales_analysis_handlers.execute_api_request")
-async def test_handle_arbitrage_with_sales(mock_execute_api, mock_update, mock_context):
+@patch("src.telegram_bot.handlers.sales_analysis_handlers.enhanced_arbitrage_search")
+async def test_handle_arbitrage_with_sales(
+    mock_enhanced_arbitrage_search, mock_update, mock_context
+):
     """Тестирует обработку запроса на поиск арбитражных возможностей с учетом продаж."""
     # Настройка мока для reply_text
     reply_message = MagicMock()
     reply_message.edit_text = AsyncMock()
     mock_update.message.reply_text.return_value = reply_message
 
-    # Настройка мока для execute_api_request
-    mock_results = {
-        "opportunities": [
-            {
-                "market_hash_name": "AWP | Asiimov (Field-Tested)",
-                "profit": 5.0,
-                "profit_percent": 10.0,
-                "buy_price": 50.0,
-                "sell_price": 55.0,
-                "sales_analysis": {
-                    "price_trend": "up",
-                    "sales_per_day": 5.0,
-                },
+    # Настройка мока для enhanced_arbitrage_search
+    # Хендлер ожидает, что enhanced_arbitrage_search возвращает список opportunities,
+    # затем сам оборачивает в {"opportunities": results, "game": game}
+    mock_results = [
+        {
+            "market_hash_name": "AWP | Asiimov (Field-Tested)",
+            "profit": 5.0,
+            "profit_percent": 10.0,
+            "buy_price": 50.0,
+            "sell_price": 55.0,
+            "sales_analysis": {
+                "price_trend": "up",
+                "sales_per_day": 5.0,
             },
-            {
-                "market_hash_name": "AK-47 | Redline (Field-Tested)",
-                "profit": 3.0,
-                "profit_percent": 15.0,
-                "buy_price": 20.0,
-                "sell_price": 23.0,
-                "sales_analysis": {
-                    "price_trend": "stable",
-                    "sales_per_day": 8.0,
-                },
-            },
-        ],
-        "filters": {
-            "time_period_days": 7,
         },
-    }
-    mock_execute_api.return_value = mock_results
+        {
+            "market_hash_name": "AK-47 | Redline (Field-Tested)",
+            "profit": 3.0,
+            "profit_percent": 15.0,
+            "buy_price": 20.0,
+            "sell_price": 23.0,
+            "sales_analysis": {
+                "price_trend": "stable",
+                "sales_per_day": 8.0,
+            },
+        },
+    ]
+    mock_enhanced_arbitrage_search.return_value = mock_results
 
     # Вызываем тестируемую функцию
     await handle_arbitrage_with_sales(mock_update, mock_context)
@@ -267,9 +266,9 @@ async def test_handle_arbitrage_with_sales(mock_execute_api, mock_update, mock_c
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.handlers.sales_analysis_handlers.execute_api_request")
+@patch("src.telegram_bot.handlers.sales_analysis_handlers.enhanced_arbitrage_search")
 async def test_handle_arbitrage_with_sales_no_opportunities(
-    mock_execute_api,
+    mock_enhanced_arbitrage_search,
     mock_update,
     mock_context,
 ):
@@ -279,14 +278,8 @@ async def test_handle_arbitrage_with_sales_no_opportunities(
     reply_message.edit_text = AsyncMock()
     mock_update.message.reply_text.return_value = reply_message
 
-    # Настройка мока для execute_api_request
-    mock_results = {
-        "opportunities": [],
-        "filters": {
-            "time_period_days": 7,
-        },
-    }
-    mock_execute_api.return_value = mock_results
+    # Настройка мока для enhanced_arbitrage_search - возвращаем пустой список
+    mock_enhanced_arbitrage_search.return_value = []
 
     # Вызываем тестируемую функцию
     await handle_arbitrage_with_sales(mock_update, mock_context)
@@ -309,8 +302,8 @@ async def test_handle_arbitrage_with_sales_no_opportunities(
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.handlers.sales_analysis_handlers.execute_api_request")
-async def test_handle_liquidity_analysis(mock_execute_api, mock_update, mock_context):
+@patch("src.telegram_bot.handlers.sales_analysis_handlers.analyze_item_liquidity")
+async def test_handle_liquidity_analysis(mock_analyze_item_liquidity, mock_update, mock_context):
     """Тестирует обработку запроса на анализ ликвидности предмета."""
     # Настройка текста команды
     mock_update.message.text = "/liquidity AWP | Asiimov (Field-Tested)"
@@ -320,7 +313,7 @@ async def test_handle_liquidity_analysis(mock_execute_api, mock_update, mock_con
     reply_message.edit_text = AsyncMock()
     mock_update.message.reply_text.return_value = reply_message
 
-    # Настройка мока для execute_api_request
+    # Настройка мока для analyze_item_liquidity
     mock_analysis_data = {
         "liquidity_category": "Высокая",
         "liquidity_score": 6,
@@ -337,7 +330,7 @@ async def test_handle_liquidity_analysis(mock_execute_api, mock_update, mock_con
             "highest_price": 120.0,
         },
     }
-    mock_execute_api.return_value = mock_analysis_data
+    mock_analyze_item_liquidity.return_value = mock_analysis_data
 
     # Вызываем тестируемую функцию
     await handle_liquidity_analysis(mock_update, mock_context)
@@ -366,15 +359,15 @@ async def test_handle_liquidity_analysis(mock_execute_api, mock_update, mock_con
 
 
 @pytest.mark.asyncio()
-@patch("src.telegram_bot.handlers.sales_analysis_handlers.execute_api_request")
-async def test_handle_sales_volume_stats(mock_execute_api, mock_update, mock_context):
+@patch("src.telegram_bot.handlers.sales_analysis_handlers.get_sales_volume_stats")
+async def test_handle_sales_volume_stats(mock_get_sales_volume_stats, mock_update, mock_context):
     """Тестирует обработку запроса на статистику объемов продаж."""
     # Настройка мока для reply_text
     reply_message = MagicMock()
     reply_message.edit_text = AsyncMock()
     mock_update.message.reply_text.return_value = reply_message
 
-    # Настройка мока для execute_api_request
+    # Настройка мока для get_sales_volume_stats
     mock_stats = {
         "items": [
             {
@@ -397,7 +390,7 @@ async def test_handle_sales_volume_stats(mock_execute_api, mock_update, mock_con
             "stable_trend_count": 1,
         },
     }
-    mock_execute_api.return_value = mock_stats
+    mock_get_sales_volume_stats.return_value = mock_stats
 
     # Вызываем тестируемую функцию
     await handle_sales_volume_stats(mock_update, mock_context)

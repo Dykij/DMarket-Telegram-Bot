@@ -1,6 +1,7 @@
 """Alert models."""
 
 from datetime import datetime
+from typing import Any
 from uuid import uuid4
 
 from sqlalchemy import Boolean, Column, DateTime, Float, String
@@ -36,7 +37,7 @@ class PriceAlert(Base):
             f"item='{self.market_hash_name}', price={self.target_price})>"
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Convert model to dictionary."""
         return {
             "id": str(self.id),

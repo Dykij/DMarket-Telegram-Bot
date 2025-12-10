@@ -4,10 +4,10 @@ Provides statistical analysis, trend detection, and price prediction algorithms
 for DMarket trading. Implements RSI, MACD, and fair price calculation.
 """
 
+import statistics
 from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-import statistics
 from typing import Any
 
 import numpy as np
@@ -15,8 +15,7 @@ from numpy.typing import NDArray
 
 from src.utils.logging_utils import get_logger
 
-
-logger = get_logger(__name__, {"component": "market_analytics"})
+logger = get_logger(__name__)
 
 
 class TrendDirection(str, Enum):
@@ -77,7 +76,11 @@ class TechnicalIndicators:
 
         """
         if len(prices) < period + 1:
-            logger.warning("Insufficient data for RSI", required=period + 1, got=len(prices))
+            logger.warning(
+                "Insufficient data for RSI: required=%d, got=%d",
+                period + 1,
+                len(prices),
+            )
             return None
 
         # Calculate price changes
@@ -98,7 +101,7 @@ class TechnicalIndicators:
         rs = avg_gain / avg_loss
         rsi_value = 100 - (100 / (1 + rs))
 
-        logger.debug("RSI calculated", value=rsi_value, period=period)
+        logger.debug("RSI calculated: value=%.2f, period=%d", rsi_value, period)
         return float(rsi_value)
 
     @staticmethod
@@ -126,9 +129,9 @@ class TechnicalIndicators:
         """
         if len(prices) < slow_period + signal_period:
             logger.warning(
-                "Insufficient data for MACD",
-                required=slow_period + signal_period,
-                got=len(prices),
+                "Insufficient data for MACD: required=%d, got=%d",
+                slow_period + signal_period,
+                len(prices),
             )
             return None
 
@@ -153,7 +156,12 @@ class TechnicalIndicators:
             "histogram": float(histogram[-1]),
         }
 
-        logger.debug("MACD calculated", **result)
+        logger.debug(
+            "MACD calculated: macd=%.4f, signal=%.4f, histogram=%.4f",
+            result["macd"],
+            result["signal"],
+            result["histogram"],
+        )
         return result
 
     @staticmethod
@@ -200,7 +208,9 @@ class TechnicalIndicators:
         """
         if len(prices) < period:
             logger.warning(
-                "Insufficient data for Bollinger Bands", required=period, got=len(prices)
+                "Insufficient data for Bollinger Bands: required=%d, got=%d",
+                period,
+                len(prices),
             )
             return None
 
@@ -217,7 +227,12 @@ class TechnicalIndicators:
             "lower": lower_band,
         }
 
-        logger.debug("Bollinger Bands calculated", **result)
+        logger.debug(
+            "Bollinger Bands calculated: upper=%.4f, middle=%.4f, lower=%.4f",
+            upper_band,
+            middle_band,
+            lower_band,
+        )
         return result
 
 
@@ -251,9 +266,9 @@ class MarketAnalyzer:
         """
         if len(price_history) < self.min_data_points:
             logger.warning(
-                "Insufficient data for fair price",
-                required=self.min_data_points,
-                got=len(price_history),
+                "Insufficient data for fair price: required=%d, got=%d",
+                self.min_data_points,
+                len(price_history),
             )
             return None
 
@@ -274,10 +289,14 @@ class MarketAnalyzer:
             else:
                 fair_price = total_value / total_volume
         else:
-            logger.error("Unknown fair price method", method=method)
+            logger.error("Unknown fair price method: %s", method)
             return None
 
-        logger.info("Fair price calculated", price=fair_price, method=method)
+        logger.info(
+            "Fair price calculated: price=%.2f, method=%s",
+            fair_price,
+            method,
+        )
         return fair_price
 
     def detect_trend(
@@ -298,7 +317,10 @@ class MarketAnalyzer:
 
         """
         if len(price_history) < long_period:
-            logger.warning("Insufficient data for trend detection", got=len(price_history))
+            logger.warning(
+                "Insufficient data for trend detection: got=%d",
+                len(price_history),
+            )
             return TrendDirection.NEUTRAL
 
         prices = [p.price for p in price_history]
@@ -316,10 +338,10 @@ class MarketAnalyzer:
             trend = TrendDirection.NEUTRAL
 
         logger.info(
-            "Trend detected",
-            trend=trend,
-            short_ma=short_ma,
-            long_ma=long_ma,
+            "Trend detected: trend=%s, short_ma=%.4f, long_ma=%.4f",
+            trend.value,
+            short_ma,
+            long_ma,
         )
         return trend
 
@@ -349,7 +371,7 @@ class MarketAnalyzer:
             }
 
         prices = [p.price for p in price_history]
-        signals = {}
+        signals: dict[str, dict[str, Any]] = {}
 
         # 1. RSI Analysis
         rsi = self.indicators.rsi(prices)
@@ -419,7 +441,11 @@ class MarketAnalyzer:
             ),
         }
 
-        logger.info("Price drop prediction", **{k: v for k, v in result.items() if k != "signals"})
+        logger.info(
+            "Price drop prediction: probability=%.2f, recommendation=%s",
+            result["probability"],
+            result["recommendation"],
+        )
         return result
 
     def calculate_support_resistance(
@@ -462,9 +488,9 @@ class MarketAnalyzer:
         resistance_levels = sorted(set(resistance_levels), reverse=True)
 
         logger.debug(
-            "Support/Resistance calculated",
-            support_count=len(support_levels),
-            resistance_count=len(resistance_levels),
+            "Support/Resistance calculated: support=%d levels, resistance=%d",
+            len(support_levels),
+            len(resistance_levels),
         )
 
         return {
@@ -533,7 +559,12 @@ class MarketAnalyzer:
             "volume_consistency": 1 - min(cv, 1),
         }
 
-        logger.info("Liquidity analyzed", **result)
+        logger.info(
+            "Liquidity analyzed: score=%.2f, volume_trend=%s, avg_volume=%.2f",
+            liquidity_score,
+            volume_trend,
+            avg_volume,
+        )
         return result
 
     def generate_trading_insights(
@@ -551,7 +582,7 @@ class MarketAnalyzer:
             Trading insights and recommendations
 
         """
-        insights = {}
+        insights: dict[str, Any] = {}
 
         # 1. Fair price
         fair_price = self.calculate_fair_price(price_history)
@@ -622,9 +653,9 @@ class MarketAnalyzer:
         }
 
         logger.info(
-            "Trading insights generated",
-            recommendation=overall_recommendation,
-            score=recommendation_score,
+            "Trading insights generated: recommendation=%s, score=%.2f",
+            overall_recommendation,
+            recommendation_score,
         )
 
         return insights

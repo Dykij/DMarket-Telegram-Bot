@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 import pytest
 from pytest_httpx import HTTPXMock
 
-
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
 
@@ -239,8 +238,10 @@ class TestTargetsEdgeCases:
         httpx_mock: HTTPXMock,
     ) -> None:
         """Тест получения таргетов с фильтрами."""
+        import re
+
         httpx_mock.add_response(
-            url="https://api.dmarket.com/marketplace-api/v1/user-targets",
+            url=re.compile(r"https://api\.dmarket\.com/marketplace-api/v1/user-targets\?.*"),
             method="GET",
             json={
                 "Items": [
@@ -258,9 +259,9 @@ class TestTargetsEdgeCases:
             status_code=200,
         )
 
-        # Запрос с фильтрами
+        # Запрос с фильтрами (game_id вместо game)
         result = await mock_dmarket_api.get_user_targets(
-            game="csgo", status="TargetStatusActive", price_from=1000, price_to=2000
+            game_id="a8db", status="TargetStatusActive"
         )
 
         assert result is not None
@@ -272,9 +273,11 @@ class TestTargetsEdgeCases:
         httpx_mock: HTTPXMock,
     ) -> None:
         """Тест пагинации при получении таргетов."""
+        import re
+
         # Первая страница
         httpx_mock.add_response(
-            url="https://api.dmarket.com/marketplace-api/v1/user-targets",
+            url=re.compile(r"https://api\.dmarket\.com/marketplace-api/v1/user-targets\?.*"),
             method="GET",
             json={
                 "Items": [
@@ -295,7 +298,7 @@ class TestTargetsEdgeCases:
 
         # Вторая страница
         httpx_mock.add_response(
-            url="https://api.dmarket.com/marketplace-api/v1/user-targets",
+            url=re.compile(r"https://api\.dmarket\.com/marketplace-api/v1/user-targets\?.*"),
             method="GET",
             json={
                 "Items": [
@@ -314,10 +317,10 @@ class TestTargetsEdgeCases:
             status_code=200,
         )
 
-        result1 = await mock_dmarket_api.get_user_targets(game="csgo")
+        result1 = await mock_dmarket_api.get_user_targets(game_id="a8db")
         assert len(result1.get("Items", [])) == 50
 
-        result2 = await mock_dmarket_api.get_user_targets(game="csgo", cursor="cursor_1")
+        result2 = await mock_dmarket_api.get_user_targets(game_id="a8db", offset=50)
         assert len(result2.get("Items", [])) == 50
 
     async def test_target_with_unicode_title(
@@ -359,8 +362,10 @@ class TestTargetsEdgeCases:
         httpx_mock: HTTPXMock,
     ) -> None:
         """Тест получения истории закрытых таргетов."""
+        import re
+
         httpx_mock.add_response(
-            url="https://api.dmarket.com/marketplace-api/v1/user-targets/closed",
+            url=re.compile(r"https://api\.dmarket\.com/marketplace-api/v1/user-targets/closed\?.*"),
             method="GET",
             json={
                 "Trades": [
@@ -379,9 +384,8 @@ class TestTargetsEdgeCases:
             status_code=200,
         )
 
-        result = await mock_dmarket_api.get_closed_targets(
-            game="csgo", status="successful", limit=50
-        )
+        # get_closed_targets doesn't take game parameter
+        result = await mock_dmarket_api.get_closed_targets(status="successful", limit=50)
 
         assert result is not None
         assert "Trades" in result

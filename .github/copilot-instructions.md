@@ -1,5 +1,17 @@
 # Инструкции для GitHub Copilot
 
+## 📊 Статус проекта (Декабрь 2025)
+
+| Метрика | Значение |
+|---------|----------|
+| **Версия** | 1.0.0 |
+| **Готовность** | 40% (20/50 задач) |
+| **Тесты** | 2688/2688 ✅ |
+| **Покрытие** | 85%+ (цель) |
+| **Python** | 3.11+ (3.12 рекомендуется) |
+
+---
+
 ## ⚠️ КРИТИЧЕСКИ ВАЖНО: Язык команд
 
 ### 🔴 ВСЕГДА используйте АНГЛИЙСКУЮ раскладку для команд
@@ -49,14 +61,20 @@ pip install -r requirements.txt
 **Технологический стек**:
 - Python 3.11+ (рекомендуется 3.12+)
 - Асинхронное программирование (async/await)
-- python-telegram-bot 21.0+
-- httpx 0.27+ для HTTP-запросов
+- python-telegram-bot 22.0+
+- httpx 0.28+ для HTTP-запросов
 - PostgreSQL/SQLite + SQLAlchemy 2.0
 - Redis для кэширования
 - Docker для контейнеризации
 - Ruff 0.8+ для линтинга и форматирования
-- MyPy 1.13+ для проверки типов
-- pytest 8.0+ для тестирования
+- MyPy 1.14+ для проверки типов (strict mode)
+- pytest 8.4+ для тестирования
+
+**Расширенное тестирование**:
+- **VCR.py** - запись/воспроизведение HTTP взаимодействий
+- **Hypothesis** - property-based тестирование
+- **Pact** - контрактное тестирование (43 теста)
+- **pytest-asyncio** - асинхронные тесты
 
 **Основные возможности**:
 - 🎯 **Многоуровневый арбитраж** - 5 уровней торговли (от разгона баланса до профессионала)
@@ -66,7 +84,9 @@ pip install -r requirements.txt
 - 📈 **Анализ рынка** - история продаж, тренды, ликвидность
 - 🌐 **Локализация** - RU, EN, ES, DE
 - 🔒 **Безопасность** - шифрование API ключей, rate limiting
-- 🧪 **100% успешных тестов** - 302/302 тестов проходят
+- 🛡️ **Circuit Breaker** - защита от каскадных сбоев API
+- 📡 **Sentry интеграция** - мониторинг ошибок в production
+- 🧪 **2688 тестов** - 100% проходят
 
 ---
 
@@ -913,48 +933,63 @@ def encrypt_api_key(key: str, encryption_key: bytes) -> bytes:
 ## 🏗️ Структура проекта
 
 ```
-BotDmarket-master/
+DMarket-Telegram-Bot/
 ├── src/
 │   ├── dmarket/              # DMarket API клиент
 │   │   ├── dmarket_api.py   # Основной API клиент с HMAC auth
 │   │   ├── arbitrage_scanner.py  # Многоуровневый сканер (5 уровней)
 │   │   ├── targets.py       # Управление таргетами (Buy Orders)
 │   │   ├── arbitrage.py     # Логика арбитража
-│   │   └── game_filters.py  # Фильтры для CS:GO, Dota 2, TF2, Rust
+│   │   ├── game_filters.py  # Фильтры для CS:GO, Dota 2, TF2, Rust
+│   │   ├── liquidity_analyzer.py  # Анализ ликвидности рынка
+│   │   ├── market_analysis.py     # Технический анализ цен
+│   │   ├── sales_history.py       # История продаж
+│   │   ├── schemas.py       # Pydantic модели валидации
+│   │   └── filters/         # Фильтры по играм
 │   ├── telegram_bot/         # Telegram бот
 │   │   ├── commands/        # Обработчики команд
 │   │   ├── handlers/        # Message/callback handlers
-│   │   │   ├── scanner_handler.py    # Многоуровневое сканирование
-│   │   │   ├── target_handler.py     # Управление таргетами
-│   │   │   └── arbitrage_handler.py  # Арбитраж
 │   │   ├── keyboards.py     # Inline клавиатуры
 │   │   ├── localization.py  # i18n (RU, EN, ES, DE)
-│   │   └── notifier.py      # Push-уведомления
+│   │   ├── notifier.py      # Push-уведомления
+│   │   ├── smart_notifier.py    # Умные уведомления
+│   │   ├── notification_queue.py # Очередь уведомлений
+│   │   └── pagination.py    # Пагинация результатов
 │   ├── utils/                # Вспомогательные утилиты
 │   │   ├── database.py      # SQLAlchemy session management
-│   │   ├── cache.py         # Redis caching
+│   │   ├── memory_cache.py  # In-memory кэш (TTLCache)
+│   │   ├── redis_cache.py   # Redis кэширование
 │   │   ├── rate_limiter.py  # API rate limiting (aiolimiter)
 │   │   ├── logging_utils.py # Structured logging (structlog)
-│   │   └── websocket_client.py  # WebSocket для real-time цен
+│   │   ├── api_circuit_breaker.py  # Circuit Breaker паттерн
+│   │   ├── sentry_integration.py   # Мониторинг Sentry
+│   │   ├── batch_processor.py      # Пакетная обработка
+│   │   ├── reactive_websocket.py   # Реактивный WebSocket
+│   │   ├── state_manager.py        # Управление состоянием
+│   │   └── config.py        # Pydantic Settings
 │   ├── models/               # Модели данных (SQLAlchemy 2.0)
-│   │   ├── user.py          # Пользователи
-│   │   ├── target.py        # Таргеты (Buy Orders)
-│   │   └── trade_history.py # История сделок
+│   │   └── ...
 │   └── main.py               # Точка входа
-├── tests/                    # Тесты (pytest + pytest-asyncio)
-│   ├── test_arbitrage_scanner.py
-│   ├── test_targets.py
-│   ├── conftest.py          # Фикстуры
-│   └── ...
+├── tests/                    # Тесты (2688 тестов)
+│   ├── unit/                # Юнит-тесты
+│   ├── integration/         # Интеграционные тесты
+│   ├── contracts/           # Pact контрактные тесты (43 теста)
+│   ├── property_based/      # Hypothesis property-based тесты
+│   ├── cassettes/           # VCR.py записи HTTP
+│   ├── conftest.py          # Основные фикстуры
+│   └── conftest_vcr.py      # VCR.py фикстуры
 ├── docs/                     # Документация
 │   ├── README.md            # Индекс документации
 │   ├── ARCHITECTURE.md      # Архитектура проекта
+│   ├── ARBITRAGE.md         # Руководство по арбитражу
 │   ├── SECURITY.md          # Руководство по безопасности
 │   ├── QUICK_START.md       # Быстрый старт
-│   ├── MULTI_LEVEL_ARBITRAGE_GUIDE.md
+│   ├── CONTRACT_TESTING.md  # Контрактное тестирование
 │   └── ...
 ├── config/                   # Конфигурация
 │   └── config.yaml
+├── alembic/                  # Миграции базы данных
+│   └── versions/
 ├── docker-compose.yml        # Docker окружение (bot, postgres, redis)
 ├── Dockerfile               # Multi-stage build
 ├── pyproject.toml           # Конфигурация инструментов (Ruff, Black, MyPy)
@@ -1195,11 +1230,11 @@ async def balance_command(
 - **[docs/project_structure.md](../docs/project_structure.md)** - Структура файлов
 
 ### Функциональность
-- **[docs/MULTI_LEVEL_ARBITRAGE_GUIDE.md](../docs/MULTI_LEVEL_ARBITRAGE_GUIDE.md)** - Многоуровневый арбитраж
-- **[docs/auto_arbitrage_guide.md](../docs/auto_arbitrage_guide.md)** - Автоматическая торговля
+- **[docs/ARBITRAGE.md](../docs/ARBITRAGE.md)** - Полное руководство по арбитражу
 - **[docs/game_filters_guide.md](../docs/game_filters_guide.md)** - Фильтры игр
-- **[docs/sales_analysis_guide.md](../docs/sales_analysis_guide.md)** - Анализ продаж
-- **[docs/realtime_price_monitoring.md](../docs/realtime_price_monitoring.md)** - WebSocket мониторинг
+- **[docs/MARKET_ANALYTICS_GUIDE.md](../docs/MARKET_ANALYTICS_GUIDE.md)** - Анализ рынка
+- **[docs/REACTIVE_WEBSOCKET_GUIDE.md](../docs/REACTIVE_WEBSOCKET_GUIDE.md)** - WebSocket мониторинг
+- **[docs/batch_processing_guide.md](../docs/batch_processing_guide.md)** - Пакетная обработка
 
 ### Разработка
 - **[docs/code_quality_tools_guide.md](../docs/code_quality_tools_guide.md)** - Ruff, Black, MyPy
@@ -1223,7 +1258,7 @@ async def balance_command(
 2. Добавь новый уровень в `LEVELS` dict
 3. Обнови `src/telegram_bot/handlers/scanner_handler.py`
 4. Добавь тесты в `tests/test_arbitrage_scanner.py`
-5. Обнови документацию в `docs/MULTI_LEVEL_ARBITRAGE_GUIDE.md`
+5. Обнови документацию в `docs/ARBITRAGE.md`
 
 ### Добавление новой игры
 1. Добавь игру в `SupportedGame` enum (`src/dmarket/game_filters.py`)
@@ -1243,7 +1278,7 @@ async def balance_command(
 2. Применяй `asyncio.gather()` для параллельных запросов
 3. Проверь rate limiting настройки
 4. Используй connection pooling для БД
-5. См. `docs/PERFORMANCE_IMPROVEMENTS.md`
+5. Используй Circuit Breaker через `src/utils/api_circuit_breaker.py`
 
 ---
 

@@ -1,14 +1,13 @@
 """Модуль для управления пагинацией результатов в Telegram-боте."""
 
-from collections.abc import Callable
 import logging
+from collections.abc import Callable
 from typing import Any
 
 from telegram import InlineKeyboardMarkup
 
 from src.telegram_bot.keyboards import create_pagination_keyboard
 from src.telegram_bot.utils.formatters import format_opportunities
-
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +53,18 @@ class PaginationManager:
 
     # Алиас для совместимости с вызовами add_items
     def add_items(self, user_id: int, items: list[Any], mode: str = "default") -> None:
+        """Алиас для add_items_for_user
+
+        Args:
+            user_id: Идентификатор пользователя
+            items: Список элементов для пагинации
+            mode: Режим пагинации (для разных типов содержимого)
+
+        """
+        return self.add_items_for_user(user_id, items, mode)
+
+    # Алиас для совместимости с вызовами set_items
+    def set_items(self, user_id: int, items: list[Any], mode: str = "default") -> None:
         """Алиас для add_items_for_user
 
         Args:

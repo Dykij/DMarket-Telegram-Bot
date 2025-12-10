@@ -3,8 +3,8 @@
 import logging
 from typing import Any
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
+from telegram import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 
 from src.dmarket.arbitrage import GAMES
 from src.dmarket.market_analysis import (
@@ -21,7 +21,6 @@ from src.telegram_bot.utils.formatters import format_market_items
 # Импортируем новые функции из улучшенного анализатора цен
 from src.utils.price_analyzer import find_undervalued_items, get_investment_recommendations
 
-
 # Настройка логирования
 logger = logging.getLogger(__name__)
 
@@ -34,6 +33,9 @@ async def market_analysis_command(update: Update, context: ContextTypes.DEFAULT_
         context: Контекст бота
 
     """
+    if not update.message:
+        return
+
     # Создаем клавиатуру с опциями анализа
     keyboard = [
         [
@@ -111,6 +113,11 @@ async def market_analysis_callback(update: Update, context: ContextTypes.DEFAULT
 
     """
     query = update.callback_query
+    if not query or not query.data:
+        return
+
+    await query.answer()
+
     user_id = query.from_user.id
 
     # Разбираем данные колбэка
@@ -123,6 +130,8 @@ async def market_analysis_callback(update: Update, context: ContextTypes.DEFAULT
     game = parts[2] if len(parts) > 2 else "csgo"
 
     # Инициализируем данные пользователя, если их нет
+    if context.user_data is None:
+        return
     if not context.user_data.get("market_analysis"):
         context.user_data["market_analysis"] = {
             "current_game": "csgo",
@@ -341,11 +350,12 @@ async def market_analysis_callback(update: Update, context: ContextTypes.DEFAULT
         )
     finally:
         # Закрываем клиент API
-        if "api_client" in locals() and hasattr(api_client, "_close_client"):
-            try:
-                await api_client._close_client()
-            except Exception as e:
-                logger.warning(f"Ошибка при закрытии клиента API: {e}")
+        try:
+            api_client_var = locals().get("api_client")
+            if api_client_var is not None and hasattr(api_client_var, "_close_client"):
+                await api_client_var._close_client()
+        except Exception as e:
+            logger.warning(f"Ошибка при закрытии клиента API: {e}")
 
 
 async def handle_pagination_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -357,6 +367,11 @@ async def handle_pagination_analysis(update: Update, context: ContextTypes.DEFAU
 
     """
     query = update.callback_query
+    if not query or not query.data:
+        return
+
+    await query.answer()
+
     user_id = query.from_user.id
     data = query.data
 
@@ -388,7 +403,11 @@ async def handle_pagination_analysis(update: Update, context: ContextTypes.DEFAU
         await show_investment_recommendations_results(query, context, game)
 
 
-async def show_price_changes_results(query, context, game: str) -> None:
+async def show_price_changes_results(
+    query: CallbackQuery,
+    context: ContextTypes.DEFAULT_TYPE,
+    game: str,
+) -> None:
     """Отображает результаты анализа изменений цен с пагинацией.
 
     Args:
@@ -446,14 +465,14 @@ async def show_price_changes_results(query, context, game: str) -> None:
 
     # Добавляем кнопки периодов и возврата к анализу рынка
     keyboard = list(pagination_keyboard.inline_keyboard)
-    keyboard.append(period_buttons)
+    keyboard.append(tuple(period_buttons))
     keyboard.append(
-        [
+        (
             InlineKeyboardButton(
                 "⬅️ Назад к анализу рынка",
                 callback_data=f"analysis:select_game:{game}",
             ),
-        ],
+        ),
     )
 
     # Отображаем результаты
@@ -464,7 +483,11 @@ async def show_price_changes_results(query, context, game: str) -> None:
     )
 
 
-async def show_trending_items_results(query, context, game: str) -> None:
+async def show_trending_items_results(
+    query: CallbackQuery,
+    context: ContextTypes.DEFAULT_TYPE,
+    game: str,
+) -> None:
     """Отображает результаты анализа трендовых предметов с пагинацией.
 
     Args:
@@ -513,7 +536,7 @@ async def show_trending_items_results(query, context, game: str) -> None:
     # Добавляем фильтры цены и возврат к анализу рынка
     keyboard = list(pagination_keyboard.inline_keyboard)
     keyboard.append(
-        [
+        (
             InlineKeyboardButton(
                 "🔽 Цена $1-50",
                 callback_data=f"price_filter:1:50:{game}",
@@ -522,15 +545,15 @@ async def show_trending_items_results(query, context, game: str) -> None:
                 "🔼 Цена $50+",
                 callback_data=f"price_filter:50:500:{game}",
             ),
-        ],
+        ),
     )
     keyboard.append(
-        [
+        (
             InlineKeyboardButton(
                 "⬅️ Назад к анализу рынка",
                 callback_data=f"analysis:select_game:{game}",
             ),
-        ],
+        ),
     )
 
     # Отображаем результаты
@@ -541,7 +564,11 @@ async def show_trending_items_results(query, context, game: str) -> None:
     )
 
 
-async def show_volatility_results(query, context, game: str) -> None:
+async def show_volatility_results(
+    query: CallbackQuery,
+    context: ContextTypes.DEFAULT_TYPE,
+    game: str,
+) -> None:
     """Отображает результаты анализа волатильности рынка.
 
     Args:
@@ -640,7 +667,11 @@ async def show_volatility_results(query, context, game: str) -> None:
     )
 
 
-async def show_market_report(query, context, report: dict[str, Any]) -> None:
+async def show_market_report(
+    query: CallbackQuery,
+    context: ContextTypes.DEFAULT_TYPE,
+    report: dict[str, Any],
+) -> None:
     """Отображает полный отчет о состоянии рынка.
 
     Args:
@@ -756,6 +787,10 @@ async def handle_period_change(update: Update, context: ContextTypes.DEFAULT_TYP
 
     """
     query = update.callback_query
+    if not query or not query.data:
+        return
+
+    await query.answer()
 
     # Разбираем данные колбэка
     parts = query.data.split(":")
@@ -767,6 +802,8 @@ async def handle_period_change(update: Update, context: ContextTypes.DEFAULT_TYP
     game = parts[2] if len(parts) > 2 else "csgo"
 
     # Обновляем период в настройках пользователя
+    if context.user_data is None:
+        return
     if not context.user_data.get("market_analysis"):
         context.user_data["market_analysis"] = {}
 
@@ -802,7 +839,9 @@ def get_back_to_market_analysis_keyboard(game: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(keyboard)
 
 
-def register_market_analysis_handlers(dispatcher) -> None:
+def register_market_analysis_handlers(
+    dispatcher: Application,  # type: ignore[type-arg]
+) -> None:
     """Регистрирует обработчики для анализа рынка.
 
     Args:
@@ -825,7 +864,11 @@ def register_market_analysis_handlers(dispatcher) -> None:
     )
 
 
-async def show_undervalued_items_results(query, context, game: str) -> None:
+async def show_undervalued_items_results(
+    query: CallbackQuery,
+    context: ContextTypes.DEFAULT_TYPE,
+    game: str,
+) -> None:
     """Отображает результаты поиска недооцененных предметов.
 
     Args:
@@ -922,7 +965,11 @@ async def show_undervalued_items_results(query, context, game: str) -> None:
     )
 
 
-async def show_investment_recommendations_results(query, context, game: str) -> None:
+async def show_investment_recommendations_results(
+    query: CallbackQuery,
+    context: ContextTypes.DEFAULT_TYPE,
+    game: str,
+) -> None:
     """Отображает результаты инвестиционных рекомендаций.
 
     Args:
@@ -1045,6 +1092,9 @@ async def handle_risk_level_change(
 
     """
     query = update.callback_query
+    if not query or not query.data:
+        return
+    await query.answer()
 
     # Разбираем данные колбэка
     parts = query.data.split(":")
@@ -1056,6 +1106,8 @@ async def handle_risk_level_change(
     game = parts[2]
 
     # Обновляем уровень риска в настройках пользователя
+    if context.user_data is None:
+        return
     if not context.user_data.get("market_analysis"):
         context.user_data["market_analysis"] = {}
 

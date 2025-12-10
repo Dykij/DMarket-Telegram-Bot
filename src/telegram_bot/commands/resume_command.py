@@ -9,8 +9,7 @@ from telegram.ext import ContextTypes
 
 from src.utils.logging_utils import get_logger
 
-
-logger = get_logger(__name__, {"component": "resume_command"})
+logger = get_logger(__name__)
 
 
 async def resume_command(
@@ -36,10 +35,7 @@ async def resume_command(
         await update.message.reply_text(
             "❌ Система управления состоянием недоступна",
         )
-        logger.error(
-            "state_manager not found in bot_data",
-            user_id=user_id,
-        )
+        logger.error("state_manager not found in bot_data, user_id=%s", user_id)
         return
 
     # Проверить что бот на паузе
@@ -50,9 +46,9 @@ async def resume_command(
             f"{state_manager.consecutive_errors}",
         )
         logger.info(
-            "Resume attempt when bot not paused",
-            user_id=user_id,
-            consecutive_errors=state_manager.consecutive_errors,
+            "Resume attempt when bot not paused, user_id=%s, errors=%d",
+            user_id,
+            state_manager.consecutive_errors,
         )
         return
 
@@ -64,10 +60,7 @@ async def resume_command(
             await update.message.reply_text(
                 "⛔ Только администраторы могут возобновлять работу бота",
             )
-            logger.warning(
-                "Unauthorized resume attempt",
-                user_id=user_id,
-            )
+            logger.warning("Unauthorized resume attempt, user_id=%s", user_id)
             return
 
     # Возобновить операции
@@ -82,7 +75,7 @@ async def resume_command(
     )
 
     logger.info(
-        "Bot operations resumed by admin",
-        user_id=user_id,
-        reset_errors=old_errors,
+        "Bot operations resumed by admin, user_id=%s, reset_errors=%d",
+        user_id,
+        old_errors,
     )

@@ -5,12 +5,12 @@
 """
 
 import logging
+from typing import Any
 
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
 from src.utils.sentry_breadcrumbs import add_command_breadcrumb
-
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,10 @@ logger = logging.getLogger(__name__)
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Отправляет приветственное сообщение при команде /start."""
     user = update.effective_user
-    logger.info(f"Пользователь {user.id} использовал команду /start")
+    if not user:
+        return
+
+    logger.info("Пользователь %s использовал команду /start", user.id)
 
     # Добавляем breadcrumb о команде
     add_command_breadcrumb(
@@ -37,7 +40,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Отправляет список доступных команд при команде /help."""
     user = update.effective_user
-    logger.info(f"Пользователь {user.id} использовал команду /help")
+    if not user:
+        return
+
+    logger.info("Пользователь %s использовал команду /help", user.id)
 
     # Добавляем breadcrumb о команде
     add_command_breadcrumb(
@@ -58,7 +64,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         )
 
 
-def register_basic_commands(app: Application) -> None:
+def register_basic_commands(app: Application[Any, Any, Any, Any, Any, Any]) -> None:
     """Регистрирует базовые команды в приложении Telegram."""
     logger.info("Регистрация базовых команд")
 

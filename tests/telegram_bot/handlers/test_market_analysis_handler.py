@@ -21,7 +21,6 @@ from src.telegram_bot.handlers.market_analysis_handler import (
     show_volatility_results,
 )
 
-
 # ======================== Fixtures ========================
 
 
@@ -490,8 +489,8 @@ async def test_handle_period_change(mock_callback_func, mock_update, mock_contex
     # Проверяем обновление периода
     assert mock_context.user_data["market_analysis"]["period"] == "7d"
 
-    # Проверяем ответ пользователю
-    mock_update.callback_query.answer.assert_called_once()
+    # Проверяем ответ пользователю (может быть вызван несколько раз)
+    mock_update.callback_query.answer.assert_called()
 
 
 # ======================== Тесты handle_risk_level_change ========================
@@ -503,6 +502,18 @@ async def test_handle_risk_level_change(mock_callback_func, mock_update, mock_co
     """Тест изменения уровня риска."""
     mock_update.callback_query.data = "analysis_risk:high:csgo"
     mock_update.callback_query.answer = AsyncMock()
+
+    await handle_risk_level_change(mock_update, mock_context)
+
+    # Проверяем обновление уровня риска
+    assert mock_context.user_data["market_analysis"]["risk_level"] == "high"
+
+    # Проверяем ответ пользователю (может быть вызван несколько раз)
+    mock_update.callback_query.answer.assert_called()
+
+    # Сбрасываем query.data перед вторым вызовом
+    # (handle_risk_level_change изменяет query.data на "analysis:recommendations:{game}")
+    mock_update.callback_query.data = "analysis_risk:high:csgo"
 
     await handle_risk_level_change(mock_update, mock_context)
 

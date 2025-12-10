@@ -407,7 +407,8 @@ class TestTradingSettingsModel:
         assert settings.daily_limit == 500.0
         assert settings.min_profit_percent == 5.0
         assert settings.strategy == "balanced"
-        assert settings.auto_trading_enabled is False
+        # SQLite stores boolean as integer (0/1)
+        assert not settings.auto_trading_enabled
         assert settings.notifications_enabled == 1
 
     def test_create_settings_with_custom_values(self, session):
@@ -429,9 +430,10 @@ class TestTradingSettingsModel:
         assert settings.daily_limit == 1000.0
         assert settings.min_profit_percent == 10.0
         assert settings.strategy == "aggressive"
-        assert settings.auto_trading_enabled is True
+        # SQLite stores boolean as integer (0/1)
+        assert settings.auto_trading_enabled
         assert len(settings.games_enabled) == 3
-        assert settings.notifications_enabled is False
+        assert not settings.notifications_enabled
 
     def test_user_id_unique_constraint(self, session):
         """Тест уникальности user_id."""

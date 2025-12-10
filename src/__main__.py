@@ -3,9 +3,8 @@
 import asyncio
 import logging
 import os
-from pathlib import Path
 import sys
-
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(
@@ -43,9 +42,9 @@ async def run_bot() -> None:
 def main() -> None:
     """Main entry point function"""
     # Run the bot using asyncio
+    lock_file = Path("bot.lock")  # Initialize early
     try:
         # Check for lock file
-        lock_file = Path("bot.lock")
         if lock_file.exists():
             try:
                 # Read PID from lock file

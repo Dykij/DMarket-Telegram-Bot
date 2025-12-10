@@ -58,6 +58,44 @@ class BaseGameFilter:
 
         return True
 
+    def get_filter_description(self, filters: dict[str, Any]) -> str:
+        """Get human-readable description of the filters.
+
+        Args:
+            filters: Dictionary of filters to describe
+
+        Returns:
+            String description of the filters
+
+        """
+        descriptions: list[str] = []
+
+        if "min_price" in filters:
+            descriptions.append(f"Min price: ${filters['min_price'] / 100:.2f}")
+        if "max_price" in filters:
+            descriptions.append(f"Max price: ${filters['max_price'] / 100:.2f}")
+
+        return ", ".join(descriptions) if descriptions else "No filters applied"
+
+    def build_api_params(self, filters: dict[str, Any]) -> dict[str, Any]:
+        """Build API parameters from filters.
+
+        Args:
+            filters: Dictionary of filters
+
+        Returns:
+            Dictionary of API parameters
+
+        """
+        params: dict[str, Any] = {}
+
+        if "min_price" in filters:
+            params["priceFrom"] = filters["min_price"]
+        if "max_price" in filters:
+            params["priceTo"] = filters["max_price"]
+
+        return params
+
 
 class CS2Filter(BaseGameFilter):
     """Filter for CS2/CSGO items."""

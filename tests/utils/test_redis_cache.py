@@ -1,7 +1,7 @@
 """Tests for redis_cache module."""
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -11,7 +11,7 @@ from src.utils.redis_cache import RedisCache
 class TestRedisCache:
     """Tests for RedisCache class."""
 
-    @pytest.fixture
+    @pytest.fixture()
     async def redis_cache(self):
         """Create Redis cache instance with fallback."""
         cache = RedisCache(
@@ -112,7 +112,7 @@ class TestRedisCache:
         await redis_cache.get("nonexistent")  # Miss
 
         # Act
-        stats = redis_cache.get_stats()
+        stats = await redis_cache.get_stats()
 
         # Assert
         assert stats["hits"] >= 1
@@ -175,7 +175,7 @@ class TestRedisCache:
 class TestRedisCacheWithMockedRedis:
     """Tests for RedisCache with mocked Redis connection."""
 
-    @pytest.fixture
+    @pytest.fixture()
     async def mock_redis(self):
         """Create mocked Redis connection."""
         with patch("src.utils.redis_cache.aioredis") as mock:

@@ -7,9 +7,9 @@
 from datetime import datetime, timedelta
 from typing import Any
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Message, Update
 from telegram.constants import ParseMode
-from telegram.ext import CallbackQueryHandler, ContextTypes
+from telegram.ext import Application, CallbackQueryHandler, ContextTypes
 
 from src.dmarket.arbitrage_scanner import ARBITRAGE_LEVELS
 from src.telegram_bot.chart_generator import (
@@ -19,7 +19,6 @@ from src.telegram_bot.chart_generator import (
 )
 from src.utils.exceptions import handle_exceptions
 from src.utils.logging_utils import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -37,7 +36,7 @@ DASHBOARD_CHARTS = "dashboard_charts"
 class ScannerDashboard:
     """Менеджер дашборда для интерактивного управления."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Инициализация дашборда."""
         self.active_scans: dict[int, dict[str, Any]] = {}
         self.scan_history: list[dict[str, Any]] = []
@@ -315,6 +314,8 @@ async def show_dashboard(
     if query:
         await query.answer()
 
+    if not update.effective_user:
+        return
     user_id = update.effective_user.id
     stats = dashboard.get_user_stats(user_id)
     active_scan = dashboard.get_active_scan(user_id)
@@ -341,7 +342,7 @@ async def show_dashboard(
             reply_markup=keyboard,
             parse_mode=ParseMode.MARKDOWN,
         )
-    else:
+    elif update.message:
         await update.message.reply_text(
             message,
             reply_markup=keyboard,
@@ -362,9 +363,12 @@ async def show_stats(
 
     """
     query = update.callback_query
-    if query:
-        await query.answer()
+    if not query:
+        return
+    await query.answer()
 
+    if not update.effective_user:
+        return
     user_id = update.effective_user.id
     stats = dashboard.get_user_stats(user_id)
 
@@ -402,8 +406,9 @@ async def show_scanner_menu(
 
     """
     query = update.callback_query
-    if query:
-        await query.answer()
+    if not query:
+        return
+    await query.answer()
 
     message = "🔍 *Управление сканером*\n\nВыберите уровень арбитража для сканирования:\n\n"
 
@@ -438,9 +443,12 @@ async def show_active_scans(
 
     """
     query = update.callback_query
-    if query:
-        await query.answer()
+    if not query:
+        return
+    await query.answer()
 
+    if not update.effective_user:
+        return
     user_id = update.effective_user.id
     active_scan = dashboard.get_active_scan(user_id)
 
@@ -498,9 +506,12 @@ async def show_history(
 
     """
     query = update.callback_query
-    if query:
-        await query.answer()
+    if not query:
+        return
+    await query.answer()
 
+    if not update.effective_user:
+        return
     user_id = update.effective_user.id
     user_scans = [s for s in dashboard.scan_history if s["user_id"] == user_id]
 
@@ -547,13 +558,19 @@ async def show_charts(
 
     """
     query = update.callback_query
-    if query:
-        await query.answer("Генерирую графики...")
+    if not query:
+        return
+    await query.answer("Генерирую графики...")
 
+    if not update.effective_user:
+        return
     user_id = update.effective_user.id
 
+    if not query.message or not isinstance(query.message, Message):
+        return
+    message = query.message
     # Отправляем сообщение о загрузке
-    loading_msg = await query.message.reply_text(
+    loading_msg = await message.reply_text(
         "⏳ Генерирую графики, пожалуйста подождите...",
     )
 
@@ -582,7 +599,7 @@ async def show_charts(
         history_chart_url = await generate_scan_history_chart(history_data)
 
         # Распределение по уровням
-        level_counts = {}
+        level_counts: dict[str, int] = {}
         for scan in user_scans:
             level = scan["data"].get("level", "unknown")
             level_counts[level] = level_counts.get(level, 0) + 1
@@ -592,7 +609,7 @@ async def show_charts(
         )
 
         # Сравнение прибыли по уровням
-        level_profits = {}
+        level_profits: dict[str, list[float]] = {}
         for scan in user_scans:
             level = scan["data"].get("level", "unknown")
             opps = scan["data"].get("opportunities", [])
@@ -603,7 +620,7 @@ async def show_charts(
 
         levels = list(level_profits.keys())
         avg_profits = [
-            sum(level_profits[level]) / len(level_profits[level]) if level_profits[level] else 0
+            (sum(level_profits[level]) / len(level_profits[level]) if level_profits[level] else 0)
             for level in levels
         ]
         max_profits = [max(level_profits[level]) if level_profits[level] else 0 for level in levels]
@@ -621,20 +638,20 @@ async def show_charts(
         caption = "📊 *Графики статистики*\n\n"
 
         if history_chart_url:
-            await query.message.reply_photo(
+            await message.reply_photo(
                 photo=history_chart_url,
                 caption=caption + "История сканирований за последние дни",
                 parse_mode=ParseMode.MARKDOWN,
             )
 
         if distribution_chart_url:
-            await query.message.reply_photo(
+            await message.reply_photo(
                 photo=distribution_chart_url,
                 caption="Распределение сканирований по уровням",
             )
 
         if comparison_chart_url:
-            await query.message.reply_photo(
+            await message.reply_photo(
                 photo=comparison_chart_url,
                 caption="Сравнение прибыли по уровням",
             )
@@ -648,7 +665,7 @@ async def show_charts(
                 ),
             ],
         ]
-        await query.message.reply_text(
+        await message.reply_text(
             "Графики сгенерированы ✅",
             reply_markup=InlineKeyboardMarkup(keyboard),
         )
@@ -660,7 +677,7 @@ async def show_charts(
         )
 
 
-def register_dashboard_handlers(application) -> None:
+def register_dashboard_handlers(application: Application) -> None:  # type: ignore[type-arg]
     """Зарегистрировать обработчики дашборда.
 
     Args:

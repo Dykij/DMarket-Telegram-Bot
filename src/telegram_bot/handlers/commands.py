@@ -18,11 +18,12 @@ from src.telegram_bot.keyboards import (
     get_webapp_button,
 )
 from src.utils.logging_utils import get_logger
-
+from src.utils.telegram_error_handlers import telegram_error_boundary
 
 logger = get_logger(__name__)
 
 
+@telegram_error_boundary(user_friendly_message="❌ Ошибка при запуске бота")
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обрабатывает команду /start.
 
@@ -57,6 +58,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         context.user_data["keyboard_enabled"] = True
 
 
+@telegram_error_boundary(user_friendly_message="❌ Ошибка при отображении справки")
 async def help_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -82,6 +84,7 @@ async def help_command(
     )
 
 
+@telegram_error_boundary(user_friendly_message="❌ Ошибка при открытии WebApp")
 async def webapp_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -103,6 +106,7 @@ async def webapp_command(
     )
 
 
+@telegram_error_boundary(user_friendly_message="❌ Ошибка при загрузке дашборда")
 async def dashboard_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -117,6 +121,7 @@ async def dashboard_command(
     await show_dashboard(update, context)
 
 
+@telegram_error_boundary(user_friendly_message="❌ Ошибка при загрузке рынков")
 async def markets_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -138,6 +143,7 @@ async def markets_command(
     )
 
 
+@telegram_error_boundary(user_friendly_message="❌ Ошибка при получении статуса")
 async def dmarket_status_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -152,6 +158,7 @@ async def dmarket_status_command(
     await dmarket_status_impl(update, context, status_message=update.message)
 
 
+@telegram_error_boundary(user_friendly_message="❌ Ошибка в меню арбитража")
 async def arbitrage_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -177,6 +184,7 @@ async def arbitrage_command(
     )
 
 
+@telegram_error_boundary(user_friendly_message="❌ Ошибка обработки команды")
 async def handle_text_buttons(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,

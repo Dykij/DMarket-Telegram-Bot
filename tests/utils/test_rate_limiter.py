@@ -5,11 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.utils.rate_limiter import (
-    BASE_RETRY_DELAY,
-    DMARKET_API_RATE_LIMITS,
-    RateLimiter,
-)
+from src.utils.rate_limiter import BASE_RETRY_DELAY, DMARKET_API_RATE_LIMITS, RateLimiter
 
 
 class TestRateLimiterInit:
@@ -272,15 +268,15 @@ class TestHandle429:
 
     @pytest.mark.asyncio()
     async def test_handle_429_max_wait_time(self):
-        """Тест максимального времени ожидания (30 сек)."""
+        """Тест максимального времени ожидания (60 сек)."""
         limiter = RateLimiter()
         # Симулируем много попыток
         limiter.retry_attempts["user"] = 10
 
         wait_time, attempts = await limiter.handle_429("user")
 
-        # Максимум 30 секунд
-        assert wait_time <= 30.0
+        # Максимум 60 секунд (MAX_BACKOFF_TIME)
+        assert wait_time <= 60.0
         assert attempts == 11
 
 

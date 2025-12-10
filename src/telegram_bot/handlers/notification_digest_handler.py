@@ -9,24 +9,20 @@
 
 from __future__ import annotations
 
+import asyncio
+import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
-from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
+from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 
 from src.utils.exceptions import handle_exceptions
 from src.utils.logging_utils import get_logger
-
-
-if TYPE_CHECKING:
-    import asyncio
-
 
 # Logger instance
 logger_instance = get_logger(__name__)
@@ -94,7 +90,7 @@ class DigestSettings:
 class NotificationDigestManager:
     """Менеджер для управления дайджестами уведомлений."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Инициализация менеджера дайджестов."""
         # Хранилище накопленных уведомлений {user_id: [NotificationItem]}
         self._pending_notifications: dict[int, list[NotificationItem]] = defaultdict(list)
@@ -103,7 +99,7 @@ class NotificationDigestManager:
         self._user_settings: dict[int, DigestSettings] = {}
 
         # Таск для периодической отправки
-        self._scheduler_task: asyncio.Task | None = None
+        self._scheduler_task: asyncio.Task[None] | None = None
 
     def get_user_settings(self, user_id: int) -> DigestSettings:
         """Получить настройки дайджеста пользователя.
@@ -403,17 +399,13 @@ def get_digest_manager() -> NotificationDigestManager:
 
 @handle_exceptions(logger_instance=logger_instance, reraise=False)
 async def show_digest_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Показать главное меню настроек дайджестов.
-
-    Args:
-        update: Telegram update
-        context: Callback context
-
-    """
+    """Показать главное меню настроек дайджестов."""
     query = update.callback_query
     if query:
         await query.answer()
 
+    if not update.effective_user:
+        return
     user_id = update.effective_user.id
     manager = get_digest_manager()
     settings = manager.get_user_settings(user_id)
@@ -474,7 +466,7 @@ async def show_digest_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await query.edit_message_text(
             text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN
         )
-    else:
+    elif update.message:
         await update.message.reply_text(
             text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN
         )
@@ -482,14 +474,10 @@ async def show_digest_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 @handle_exceptions(logger_instance=logger_instance, reraise=False)
 async def toggle_digest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Включить/отключить дайджесты.
-
-    Args:
-        update: Telegram update
-        context: Callback context
-
-    """
+    """Включить/отключить дайджесты."""
     query = update.callback_query
+    if not query or not update.effective_user:
+        return
     await query.answer()
 
     user_id = update.effective_user.id
@@ -505,14 +493,10 @@ async def toggle_digest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 @handle_exceptions(logger_instance=logger_instance, reraise=False)
 async def show_frequency_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Показать меню выбора частоты отправки.
-
-    Args:
-        update: Telegram update
-        context: Callback context
-
-    """
+    """Показать меню выбора частоты отправки."""
     query = update.callback_query
+    if not query or not update.effective_user:
+        return
     await query.answer()
 
     user_id = update.effective_user.id
@@ -554,14 +538,10 @@ async def show_frequency_menu(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 @handle_exceptions(logger_instance=logger_instance, reraise=False)
 async def set_frequency(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Установить частоту отправки дайджестов.
-
-    Args:
-        update: Telegram update
-        context: Callback context
-
-    """
+    """Установить частоту отправки дайджестов."""
     query = update.callback_query
+    if not query or not query.data or not update.effective_user:
+        return
     await query.answer()
 
     user_id = update.effective_user.id
@@ -580,14 +560,10 @@ async def set_frequency(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 @handle_exceptions(logger_instance=logger_instance, reraise=False)
 async def show_grouping_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Показать меню выбора режима группировки.
-
-    Args:
-        update: Telegram update
-        context: Callback context
-
-    """
+    """Показать меню выбора режима группировки."""
     query = update.callback_query
+    if not query or not update.effective_user:
+        return
     await query.answer()
 
     user_id = update.effective_user.id
@@ -625,14 +601,10 @@ async def show_grouping_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 @handle_exceptions(logger_instance=logger_instance, reraise=False)
 async def set_grouping_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Установить режим группировки.
-
-    Args:
-        update: Telegram update
-        context: Callback context
-
-    """
+    """Установить режим группировки."""
     query = update.callback_query
+    if not query or not query.data or not update.effective_user:
+        return
     await query.answer()
 
     user_id = update.effective_user.id
@@ -651,14 +623,10 @@ async def set_grouping_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 @handle_exceptions(logger_instance=logger_instance, reraise=False)
 async def show_min_items_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Показать меню выбора минимального количества уведомлений.
-
-    Args:
-        update: Telegram update
-        context: Callback context
-
-    """
+    """Показать меню выбора минимального количества уведомлений."""
     query = update.callback_query
+    if not query or not update.effective_user:
+        return
     await query.answer()
 
     user_id = update.effective_user.id
@@ -696,6 +664,9 @@ async def set_min_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     """
     query = update.callback_query
+    if not query or not query.data or not update.effective_user:
+        return
+
     await query.answer()
 
     user_id = update.effective_user.id
@@ -721,6 +692,9 @@ async def reset_digest_settings(update: Update, context: ContextTypes.DEFAULT_TY
 
     """
     query = update.callback_query
+    if not query or not update.effective_user:
+        return
+
     await query.answer("Настройки сброшены к значениям по умолчанию")
 
     user_id = update.effective_user.id
@@ -742,10 +716,13 @@ async def digest_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         context: Callback context
 
     """
+    if not update.effective_user:
+        return
+
     await show_digest_menu(update, context)
 
 
-def register_notification_digest_handlers(application) -> None:
+def register_notification_digest_handlers(application: Application) -> None:  # type: ignore[type-arg]
     """Зарегистрировать обработчики дайджестов уведомлений.
 
     Args:

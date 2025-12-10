@@ -26,12 +26,16 @@ from src.telegram_bot.keyboards import (
 )
 from src.telegram_bot.utils.api_client import setup_api_client
 from src.telegram_bot.utils.formatters import format_opportunities
-
+from src.utils.telegram_error_handlers import telegram_error_boundary
 
 logger = logging.getLogger(__name__)
 
 
-async def arbitrage_callback_impl(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+@telegram_error_boundary(user_friendly_message="❌ Ошибка меню арбитража")
+async def arbitrage_callback_impl(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> None:
     """Обрабатывает callback 'arbitrage'.
 
     Args:
@@ -287,6 +291,7 @@ async def handle_market_comparison_impl(update: Update, context: ContextTypes.DE
     )
 
 
+@telegram_error_boundary(user_friendly_message="❌ Ошибка обработки кнопки")
 async def button_callback_handler(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,

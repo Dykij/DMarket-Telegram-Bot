@@ -5,6 +5,7 @@
 """
 
 import asyncio
+from typing import Any
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
@@ -19,7 +20,6 @@ from telegram.ext import (
 from src.dmarket.dmarket_api import DMarketAPI
 from src.dmarket.realtime_price_watcher import PriceAlert, RealtimePriceWatcher
 from src.telegram_bot.constants import PRICE_ALERT_STORAGE_KEY
-
 
 # Состояния для ConversationHandler
 ITEM_NAME, ALERT_PRICE, ALERT_CONDITION = range(3)
@@ -45,7 +45,9 @@ class PriceAlertsHandler:
         """
         self.api_client = api_client
         self.price_watcher = RealtimePriceWatcher(api_client)
-        self._user_temp_data = {}  # Временные данные для диалогов
+        self._user_temp_data: dict[
+            str, dict[str, str | float]
+        ] = {}  # Временные данные для диалогов
         self._is_watcher_started = False
 
         # Регистрируем обработчик оповещений
@@ -86,6 +88,9 @@ class PriceAlertsHandler:
             context: Контекст вызова
 
         """
+        if not update.message:
+            return
+
         await self.ensure_watcher_started()
 
         keyboard = [
@@ -125,9 +130,15 @@ class PriceAlertsHandler:
 
         """
         query = update.callback_query
+        if not query:
+            return
         await query.answer()
 
-        str(update.effective_user.id)
+        if not update.effective_user:
+            return
+
+        if context.user_data is None:
+            return
 
         # Получаем оповещения пользователя из user_data
         alerts_data = context.user_data.get(PRICE_ALERT_STORAGE_KEY, {})
@@ -208,7 +219,12 @@ class PriceAlertsHandler:
 
         """
         query = update.callback_query
+        if not query:
+            return ConversationHandler.END
         await query.answer()
+
+        if not update.effective_user:
+            return ConversationHandler.END
 
         user_id = str(update.effective_user.id)
         self._user_temp_data[user_id] = {}
@@ -238,6 +254,9 @@ class PriceAlertsHandler:
             int: Следующее состояние разговора
 
         """
+        if not update.effective_user or not update.message or not update.message.text:
+            return ConversationHandler.END
+
         user_id = str(update.effective_user.id)
         item_name = update.message.text.strip()
 
@@ -271,6 +290,9 @@ class PriceAlertsHandler:
             int: Следующее состояние разговора
 
         """
+        if not update.effective_user or not update.message or not update.message.text:
+            return ConversationHandler.END
+
         user_id = str(update.effective_user.id)
         price_text = update.message.text.strip()
 
@@ -333,7 +355,15 @@ class PriceAlertsHandler:
 
         """
         query = update.callback_query
+        if not query or not query.data:
+            return ConversationHandler.END
         await query.answer()
+
+        if not update.effective_user:
+            return ConversationHandler.END
+
+        if context.user_data is None:
+            return ConversationHandler.END
 
         user_id = str(update.effective_user.id)
         callback_data = query.data
@@ -398,9 +428,16 @@ class PriceAlertsHandler:
 
         """
         query = update.callback_query
+        if not query or not query.data:
+            return
         await query.answer()
 
-        str(update.effective_user.id)
+        if not update.effective_user:
+            return
+
+        if context.user_data is None:
+            return
+
         callback_data = query.data
 
         # Извлекаем ID оповещения из callback_data
@@ -409,7 +446,9 @@ class PriceAlertsHandler:
         # Проверяем, существует ли оповещение
         alerts_data = context.user_data.get(PRICE_ALERT_STORAGE_KEY, {})
         if alert_id not in alerts_data:
-            await query.edit_message_text("❌ Оповещение не найдено или уже удалено.")
+            await query.edit_message_text(
+                "❌ Оповещение не найдено или уже удалено.",
+            )
             return
 
         # Получаем информацию об оповещении для отображения
@@ -424,7 +463,11 @@ class PriceAlertsHandler:
         # Возвращаемся к списку оповещений
         await self.handle_alert_list_callback(update, context)
 
-    async def handle_cancel(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    async def handle_cancel(
+        self,
+        update: Update,
+        context: ContextTypes.DEFAULT_TYPE,
+    ) -> int:
         """Обработчик команды /cancel для отмены создания оповещения.
 
         Args:
@@ -435,6 +478,11 @@ class PriceAlertsHandler:
             int: Состояние окончания разговора (ConversationHandler.END)
 
         """
+        if not update.effective_user:
+            return ConversationHandler.END
+        if not update.message:
+            return ConversationHandler.END
+
         user_id = str(update.effective_user.id)
 
         # Очищаем временные данные
@@ -463,7 +511,7 @@ class PriceAlertsHandler:
         """
         # TODO: Реализовать отправку уведомления пользователю
 
-    def get_handlers(self) -> list:
+    def get_handlers(self) -> list[Any]:
         """Возвращает список обработчиков для регистрации в диспетчере.
 
         Returns:

@@ -8,10 +8,10 @@
         "ms-python.mypy-type-checker", // Official MyPy type checker
         // ========== Testing (REQUIRED) ==========
         "littlefoxteam.vscode-python-test-adapter", // Python test explorer
+        "hbenl.vscode-test-explorer", // Test Explorer UI
         // ========== Docker & Containers (RECOMMENDED) ==========
         "ms-azuretools.vscode-docker", // Docker support
         "ms-vscode-remote.remote-containers", // Dev Containers
-        "ms-azuretools.vscode-containers", // Container Tools
         // ========== Git & GitHub (REQUIRED) ==========
         "eamodio.gitlens", // Git supercharged
         "donjayamanne.githistory", // Git history viewer
@@ -19,25 +19,30 @@
         // ========== Database (OPTIONAL - for PostgreSQL/SQLite) ==========
         "mtxr.sqltools", // SQL Tools
         "mtxr.sqltools-driver-pg", // PostgreSQL driver
+        "mtxr.sqltools-driver-sqlite", // SQLite driver
         // ========== Markdown & Documentation (RECOMMENDED) ==========
         "yzhang.markdown-all-in-one", // Markdown all-in-one
         "davidanson.vscode-markdownlint", // Markdown linter
+        "bierner.markdown-mermaid", // Mermaid diagrams in markdown
         // ========== Code Quality (REQUIRED) ==========
         "streetsidesoftware.code-spell-checker", // Spell checker
         "streetsidesoftware.code-spell-checker-russian", // Russian dictionary
         "usernamehw.errorlens", // Error lens (inline errors)
         "nhoizey.gremlins", // Gremlins tracker - highlights non-ASCII chars (ЗАЩИТА ОТ КИРИЛЛИЦЫ!)
-        "wmaurer.vscode-jumpy", // Quick navigation
         // ========== Productivity (RECOMMENDED) ==========
         "oderwat.indent-rainbow", // Rainbow indentation
         "PKief.material-icon-theme", // Material icon theme
-        // ========== YAML/JSON (REQUIRED) ==========
+        "gruntfuggly.todo-tree", // TODO tree
+        // ========== YAML/JSON/TOML (REQUIRED) ==========
         "redhat.vscode-yaml", // YAML support
+        "tamasfe.even-better-toml", // TOML support
         // ========== GitHub Copilot (REQUIRED) ==========
         "github.copilot", // GitHub Copilot
         "github.copilot-chat", // GitHub Copilot Chat
         // ========== REST API Testing (OPTIONAL) ==========
-        "humao.rest-client" // REST client for API testing
+        "humao.rest-client", // REST client for API testing
+        // ========== Jupyter (OPTIONAL) ==========
+        "ms-toolsai.jupyter" // Jupyter notebooks
     ],
     "unwantedRecommendations": [
         // Old tools replaced by Ruff
