@@ -888,6 +888,166 @@ class DMarketAPI:
         )
 
     # Оставляем для обратной совместимости
+    def _create_error_response(
+        self,
+        error_message: str,
+        status_code: int = 500,
+        error_code: str = "ERROR",
+    ) -> dict[str, Any]:
+        """Create standardized error response for balance requests.
+        
+        Args:
+            error_message: Human-readable error message
+            status_code: HTTP status code
+            error_code: Machine-readable error code
+            
+        Returns:
+            Standardized error response dict
+        """
+        return {
+            "usd": {"amount": 0},
+            "has_funds": False,
+            "balance": 0.0,
+            "available_balance": 0.0,
+            "total_balance": 0.0,
+            "error": True,
+            "error_message": error_message,
+            "status_code": status_code,
+            "code": error_code,
+        }
+
+    def _create_balance_response(
+        self,
+        usd_amount: float,
+        usd_available: float,
+        usd_total: float,
+        min_required: float = 100.0,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Create standardized success response for balance requests.
+        
+        Args:
+            usd_amount: Total balance in cents
+            usd_available: Available balance in cents
+            usd_total: Total balance including locked funds in cents
+            min_required: Minimum required balance in cents (default 100 = $1.00)
+            **kwargs: Additional fields to include in response
+            
+        Returns:
+            Standardized success response dict
+        """
+        has_funds = usd_amount >= min_required
+        
+        result = {
+            "usd": {"amount": usd_amount},
+            "has_funds": has_funds,
+            "balance": usd_amount / 100,
+            "available_balance": usd_available / 100,
+            "total_balance": usd_total / 100,
+            "error": False,
+        }
+        result.update(kwargs)
+        return result
+
+    def _parse_balance_from_response(self, response: dict[str, Any]) -> tuple[float, float, float]:
+        """Parse balance data from various DMarket API response formats.
+        
+        Args:
+            response: API response dict
+            
+        Returns:
+            Tuple of (usd_amount, usd_available, usd_total) in cents
+        """
+        usd_amount = 0.0
+        usd_available = 0.0
+        usd_total = 0.0
+
+        try:
+            # Format 0: Official DMarket API format (2024)
+            # {"usd": "2550", "usdAvailableToWithdraw": "2550", "dmc": "0", ...}
+            if "usd" in response and "usdAvailableToWithdraw" in response:
+                usd_str = response.get("usd", "0")
+                usd_available_str = response.get("usdAvailableToWithdraw", usd_str)
+                
+                usd_amount = float(usd_str) if usd_str else 0
+                usd_available = float(usd_available_str) if usd_available_str else usd_amount
+                usd_total = usd_amount
+                logger.info(f"Parsed balance from official format: ${usd_amount / 100:.2f} USD")
+
+            # Format 1: Alternative format with funds.usdWallet
+            elif "funds" in response:
+                funds = response["funds"]
+                if isinstance(funds, dict) and "usdWallet" in funds:
+                    wallet = funds["usdWallet"]
+                    usd_amount = float(wallet.get("balance", 0)) * 100
+                    usd_available = float(wallet.get("availableBalance", usd_amount / 100)) * 100
+                    usd_total = float(wallet.get("totalBalance", usd_amount / 100)) * 100
+                    logger.info(f"Parsed balance from funds.usdWallet: ${usd_amount / 100:.2f} USD")
+
+            # Format 2: Simple balance/available/total format
+            elif "balance" in response and isinstance(response["balance"], (int, float, str)):
+                usd_amount = float(response["balance"]) * 100
+                usd_available = float(response.get("available", usd_amount / 100)) * 100
+                usd_total = float(response.get("total", usd_amount / 100)) * 100
+                logger.info(f"Parsed balance from simple format: ${usd_amount / 100:.2f} USD")
+
+            # Format 3: Legacy usdAvailableToWithdraw only
+            elif "usdAvailableToWithdraw" in response:
+                usd_value = response["usdAvailableToWithdraw"]
+                if isinstance(usd_value, str):
+                    usd_available = float(usd_value.replace("$", "").strip()) * 100
+                else:
+                    usd_available = float(usd_value) * 100
+                usd_amount = usd_available
+                usd_total = usd_available
+                logger.info(f"Parsed balance from legacy format: ${usd_amount / 100:.2f} USD")
+
+        except (ValueError, TypeError, KeyError) as e:
+            logger.warning(f"Error parsing balance from response: {e}")
+            logger.debug(f"Raw response: {response}")
+
+        # Normalize values
+        if usd_available == 0 and usd_amount > 0:
+            usd_available = usd_amount
+        if usd_total == 0:
+            usd_total = max(usd_amount, usd_available)
+
+        return usd_amount, usd_available, usd_total
+
+    async def _try_endpoints_for_balance(
+        self,
+        endpoints: list[str],
+    ) -> tuple[dict[str, Any] | None, str | None, Exception | None]:
+        """Try multiple endpoints to get balance data.
+        
+        Args:
+            endpoints: List of endpoint URLs to try
+            
+        Returns:
+            Tuple of (response_dict, successful_endpoint, last_error)
+        """
+        response = None
+        last_error = None
+        successful_endpoint = None
+
+        for endpoint in endpoints:
+            try:
+                logger.info(f"Trying to get balance from endpoint {endpoint}")
+                resp = await self._request("GET", endpoint)
+
+                if resp and not ("error" in resp or "code" in resp):
+                    logger.info(f"Successfully got balance from {endpoint}")
+                    response = resp
+                    successful_endpoint = endpoint
+                    break
+
+            except Exception as e:
+                last_error = e
+                logger.warning(f"Error querying {endpoint}: {e!s}")
+                continue
+
+        return response, successful_endpoint, last_error
+
     async def get_balance(self) -> dict[str, Any]:
         """Улучшенная версия метода получения баланса пользователя DMarket.
         Комбинирует все доступные методы для максимальной совместимости.
@@ -910,455 +1070,152 @@ class DMarketAPI:
         # Проверяем наличие API ключей
         if not self.public_key or not self.secret_key:
             logger.error("Ошибка: API ключи не настроены (пустые значения)")
-            return {
-                "usd": {"amount": 0},
-                "has_funds": False,
-                "balance": 0.0,
-                "available_balance": 0.0,
-                "total_balance": 0.0,
-                "error": True,
-                "error_message": "API ключи не настроены",
-                "status_code": 401,
-                "code": "MISSING_API_KEYS",
-            }
+            return self._create_error_response(
+                "API ключи не настроены",
+                status_code=401,
+                error_code="MISSING_API_KEYS",
+            )
 
         try:
-            # 2024 обновление: сначала пробуем прямой REST API запрос через requests
-            # Этот подход может быть более надежен для некоторых эндпоинтов
+            # 2024 update: Try direct REST API request first
             try:
-                logger.debug("🔍 Пытаемся получить баланс через прямой REST API запрос...")
+                logger.debug("🔍 Trying to get balance via direct REST API request...")
                 direct_response = await self.direct_balance_request()
-                logger.debug(f"🔍 Прямой ответ API: {direct_response}")
+                logger.debug(f"🔍 Direct API response: {direct_response}")
 
                 if direct_response and direct_response.get("success", False):
-                    logger.info("✅ Успешно получили баланс через прямой REST API запрос")
-
-                    # Извлекаем данные из успешного ответа
+                    logger.info("✅ Successfully got balance via direct REST API request")
                     balance_data = direct_response.get("data", {})
-                    logger.debug(f"📊 Данные баланса: {balance_data}")
+                    logger.debug(f"📊 Balance data: {balance_data}")
 
-                    usd_amount = balance_data.get("balance", 0) * 100  # конвертируем в центы
-                    usd_available = (
-                        balance_data.get("available", balance_data.get("balance", 0)) * 100
-                    )
+                    usd_amount = balance_data.get("balance", 0) * 100
+                    usd_available = balance_data.get("available", balance_data.get("balance", 0)) * 100
                     usd_total = balance_data.get("total", balance_data.get("balance", 0)) * 100
                     usd_locked = balance_data.get("locked", 0) * 100
                     usd_trade_protected = balance_data.get("trade_protected", 0) * 100
 
-                    # Определяем результат
-                    min_required_balance = 1.0  # Минимальный требуемый баланс
-                    # has_funds проверяем по ОБЩЕМУ балансу, а не только доступному
-                    has_funds = usd_amount >= min_required_balance * 100
-
-                    result = {
-                        "usd": {"amount": usd_amount},
-                        "has_funds": has_funds,
-                        "balance": usd_amount / 100,
-                        "available_balance": usd_available / 100,
-                        "total_balance": usd_total / 100,
-                        "locked_balance": usd_locked / 100,
-                        "trade_protected_balance": usd_trade_protected / 100,
-                        "error": False,
-                        "additional_info": {
+                    result = self._create_balance_response(
+                        usd_amount=usd_amount,
+                        usd_available=usd_available,
+                        usd_total=usd_total,
+                        locked_balance=usd_locked / 100,
+                        trade_protected_balance=usd_trade_protected / 100,
+                        additional_info={
                             "method": "direct_request",
                             "raw_response": balance_data,
                         },
-                    }
+                    )
 
                     logger.info(
-                        f"💰 Итоговый баланс (прямой запрос): ${result['balance']:.2f} USD "
-                        f"(доступно: ${result['available_balance']:.2f}, заблокировано: ${result['locked_balance']:.2f})"
+                        f"💰 Final balance (direct request): ${result['balance']:.2f} USD "
+                        f"(available: ${result['available_balance']:.2f}, locked: ${result.get('locked_balance', 0):.2f})"
                     )
                     return result
 
-                # Если прямой запрос не сработал, логируем ошибку и продолжаем с другими методами
-                error_message = direct_response.get("error", "Неизвестная ошибка")
-                logger.warning(f"⚠️ Прямой REST API запрос не удался: {error_message}")
-                logger.debug(f"🔍 Полный ответ с ошибкой: {direct_response}")
+                # If direct request failed, log error and continue with other methods
+                error_message = direct_response.get("error", "Unknown error")
+                logger.warning(f"⚠️ Direct REST API request failed: {error_message}")
+                logger.debug(f"🔍 Full error response: {direct_response}")
             except Exception as e:
-                logger.warning(f"⚠️ Ошибка при прямом REST API запросе: {e!s}")
-                logger.exception(f"📋 Детали исключения: {e}")
+                logger.warning(f"⚠️ Error during direct REST API request: {e!s}")
+                logger.exception(f"📋 Exception details: {e}")
 
-            # Если прямой запрос не удался, пробуем через внутренний API клиент
-            # Пробуем все известные эндпоинты для получения баланса
+            # If direct request failed, try internal API client
+            # Try all known endpoints for getting balance
             endpoints = [
-                self.ENDPOINT_BALANCE,  # Актуальный эндпоинт согласно документации
-                "/api/v1/account/wallet/balance",  # Альтернативный возможный эндпоинт
-                "/exchange/v1/user/balance",  # Возможный эндпоинт биржи
-                self.ENDPOINT_BALANCE_LEGACY,  # Старый эндпоинт (для обратной совместимости)
+                self.ENDPOINT_BALANCE,  # Current endpoint according to documentation
+                "/api/v1/account/wallet/balance",  # Alternative possible endpoint
+                "/exchange/v1/user/balance",  # Possible exchange endpoint
+                self.ENDPOINT_BALANCE_LEGACY,  # Legacy endpoint (for backward compatibility)
             ]
 
-            response = None
-            last_error = None
-            successful_endpoint = None
+            response, successful_endpoint, last_error = await self._try_endpoints_for_balance(endpoints)
 
-            # Перебираем все эндпоинты, пока не получим корректный ответ
-            for endpoint in endpoints:
-                try:
-                    logger.info(f"Пробуем получить баланс через эндпоинт {endpoint}")
-                    response = await self._request(
-                        "GET",
-                        endpoint,
-                    )
-
-                    if response and not ("error" in response or "code" in response):
-                        logger.info(f"Успешно получили баланс через {endpoint}")
-                        successful_endpoint = endpoint
-                        break
-
-                except Exception as e:
-                    last_error = e
-                    logger.warning(f"Ошибка при запросе {endpoint}: {e!s}")
-                    continue
-
-            # Если не получили ответ ни от одного эндпоинта
+            # If we didn't get a response from any endpoint
             if not response:
                 error_message = (
                     str(last_error)
                     if last_error
-                    else "Не удалось получить баланс ни с одного эндпоинта"
+                    else "Failed to get balance from any endpoint"
                 )
-                logger.error(f"Критическая ошибка при запросе баланса: {error_message}")
+                logger.error(f"Critical error getting balance: {error_message}")
 
-                # Определяем код ошибки из сообщения
+                # Determine error code from message
                 status_code = 500
                 error_code = "REQUEST_FAILED"
-                if "404" in error_message or "not found" in error_message.lower():
+                error_lower = error_message.lower()
+                if "404" in error_message or "not found" in error_lower:
                     status_code = 404
                     error_code = "NOT_FOUND"
-                elif "401" in error_message or "unauthorized" in error_message.lower():
+                elif "401" in error_message or "unauthorized" in error_lower:
                     status_code = 401
                     error_code = "UNAUTHORIZED"
 
-                return {
-                    "usd": {"amount": 0},
-                    "has_funds": False,
-                    "balance": 0.0,
-                    "available_balance": 0.0,
-                    "total_balance": 0.0,
-                    "error": True,
-                    "error_message": error_message,
-                    "status_code": status_code,
-                    "code": error_code,
-                }
+                return self._create_error_response(error_message, status_code, error_code)
 
-            # Проверяем на ошибки API
+            # Check for API errors
             if response and ("error" in response or "code" in response):
                 error_code = response.get("code", "unknown")
-                error_message = response.get(
-                    "message",
-                    response.get("error", "Неизвестная ошибка"),
-                )
+                error_message = response.get("message", response.get("error", "Unknown error"))
                 status_code = response.get("status", response.get("status_code", 500))
 
                 logger.error(
-                    f"Ошибка DMarket API при получении баланса: {error_code} - {error_message} (HTTP {status_code})",
+                    f"DMarket API error getting balance: {error_code} - {error_message} (HTTP {status_code})"
                 )
 
-                # Если ошибка авторизации (401 Unauthorized)
+                # If authorization error (401 Unauthorized)
                 if error_code == "Unauthorized" or status_code == 401:
                     logger.error(
-                        "Проблема с API ключами. Пожалуйста, проверьте правильность и актуальность ключей DMarket API",
+                        "Problem with API keys. Please check correctness and validity of DMarket API keys"
                     )
-                    return {
-                        "usd": {"amount": 0},
-                        "has_funds": False,
-                        "balance": 0.0,
-                        "available_balance": 0.0,
-                        "total_balance": 0.0,
-                        "error": True,
-                        "error_message": "Ошибка авторизации: неверные ключи API",
-                        "status_code": 401,
-                        "code": "UNAUTHORIZED",
-                    }
-
-                return {
-                    "usd": {"amount": 0},
-                    "has_funds": False,
-                    "balance": 0.0,
-                    "available_balance": 0.0,
-                    "total_balance": 0.0,
-                    "error": True,
-                    "error_message": error_message,
-                    "status_code": status_code,
-                    "code": error_code,
-                }
-
-            # Обработка успешного ответа
-            usd_amount = 0  # общий баланс в центах
-            usd_available = 0  # доступный баланс в центах
-            usd_total = 0  # полный баланс в центах
-            additional_info: dict[str, Any] = {
-                "endpoint": successful_endpoint,
-            }  # дополнительная информация о балансе
-
-            if response:
-                logger.info(
-                    f"🔍 RAW ОТВЕТ API БАЛАНСА (get_balance): {response}",
-                )
-                logger.info(
-                    f"Анализ ответа баланса от {successful_endpoint}: {response}",
-                )
-
-                # Формат 0: Официальный формат согласно документации DMarket API (2024)
-                # API возвращает: {"usd": "2550", "usdAvailableToWithdraw": "2550", "dmc": "0", "dmcAvailableToWithdraw": "0"}
-                # Это ОСНОВНОЙ формат и должен проверяться ПЕРВЫМ
-                if "usd" in response and "usdAvailableToWithdraw" in response:
-                    try:
-                        # Значения приходят как строки в центах
-                        usd_str = response.get("usd", "0")
-                        usd_available_str = response.get("usdAvailableToWithdraw", usd_str)
-
-                        # Проверяем, что это строки (согласно документации)
-                        if isinstance(usd_str, str) and isinstance(usd_available_str, str):
-                            # Конвертируем из центов в доллары
-                            usd_amount = float(usd_str)  # в центах
-                            usd_available = float(usd_available_str)  # в центах
-                            usd_total = usd_amount  # Обычно равны
-
-                            logger.info(
-                                f"Баланс из официального формата API (usd + usdAvailableToWithdraw): ${usd_amount / 100:.2f} USD",
-                            )
-                        else:
-                            # Если не строки, пробуем как числа
-                            usd_amount = float(usd_str) if usd_str else 0
-                            usd_available = (
-                                float(usd_available_str) if usd_available_str else usd_amount
-                            )
-                            usd_total = usd_amount
-
-                            logger.info(
-                                f"Баланс из формата API (числа): ${usd_amount / 100:.2f} USD",
-                            )
-                    except (ValueError, TypeError) as e:
-                        logger.exception(
-                            f"Ошибка при обработке официального формата API: {e}",
-                        )
-                        # Продолжаем проверку других форматов ниже
-                        usd_amount = 0
-                        usd_available = 0
-                        usd_total = 0
-
-                # Формат 1: Альтернативный формат (2024) с usdWallet в funds
-                elif "funds" in response:
-                    try:
-                        funds = response["funds"]
-                        if isinstance(funds, dict) and "usdWallet" in funds:
-                            wallet = funds["usdWallet"]
-                            if "balance" in wallet:
-                                usd_amount = (
-                                    float(wallet["balance"]) * 100
-                                )  # обычно в долларах, конвертируем в центы
-                            if "availableBalance" in wallet:
-                                usd_available = float(wallet["availableBalance"]) * 100
-                            if "totalBalance" in wallet:
-                                usd_total = float(wallet["totalBalance"]) * 100
-
-                            logger.info(
-                                f"Баланс из funds.usdWallet: {usd_amount / 100:.2f} USD",
-                            )
-                    except (ValueError, TypeError) as e:
-                        logger.exception(
-                            f"Ошибка при обработке поля funds.usdWallet: {e}",
-                        )
-
-                # Новый формат по документации: balance/available/usd/dmc
-                elif "balance" in response and isinstance(
-                    response["balance"],
-                    int | float | str,
-                ):
-                    try:
-                        usd_amount = (
-                            float(response["balance"]) * 100
-                        )  # в долларах, конвертируем в центы
-                        # Если есть поле available, используем его для доступного баланса
-                        if "available" in response:
-                            usd_available = float(response["available"]) * 100
-                        else:
-                            usd_available = usd_amount
-
-                        # Если есть поле total, используем его для общего баланса
-                        if "total" in response:
-                            usd_total = float(response["total"]) * 100
-                        else:
-                            usd_total = usd_amount
-
-                        logger.info(
-                            f"Баланс из нового формата: {usd_amount / 100:.2f} USD",
-                        )
-                    except (ValueError, TypeError) as e:
-                        logger.exception(
-                            f"Ошибка при обработке баланса нового формата: {e}",
-                        )
-
-                # Формат 1: DMarket API 2023+ с usdAvailableToWithdraw и usd
-                elif "usdAvailableToWithdraw" in response:
-                    try:
-                        usd_value = response["usdAvailableToWithdraw"]
-                        if isinstance(usd_value, str):
-                            # Строка может быть в формате "5.00" или "$5.00"
-                            usd_available = float(usd_value.replace("$", "").strip()) * 100
-                        else:
-                            usd_available = float(usd_value) * 100
-
-                        # Также проверяем общий баланс (если есть)
-                        if "usd" in response:
-                            usd_value = response["usd"]
-                            if isinstance(usd_value, str):
-                                usd_total = float(usd_value.replace("$", "").strip()) * 100
-                            else:
-                                usd_total = float(usd_value) * 100
-                        else:
-                            usd_total = usd_available
-
-                        # Используем доступный баланс как основной
-                        usd_amount = usd_available
-                        logger.info(
-                            f"Баланс из usdAvailableToWithdraw: {usd_amount / 100:.2f} USD",
-                        )
-
-                    except (ValueError, TypeError) as e:
-                        logger.exception(
-                            f"Ошибка при обработке поля usdAvailableToWithdraw: {e}",
-                        )
-                        # Продолжаем проверку других форматов
-
-                # Формат 2: Старый формат DMarket API с полем usd.amount в центах
-                elif "usd" in response:
-                    try:
-                        if isinstance(response["usd"], dict) and "amount" in response["usd"]:
-                            # Формат {"usd": {"amount": 1234}}
-                            usd_amount = float(response["usd"]["amount"])
-                            usd_available = usd_amount
-                            usd_total = usd_amount
-                            logger.info(
-                                f"Баланс из usd.amount: {usd_amount / 100:.2f} USD",
-                            )
-                        elif isinstance(response["usd"], int | float):
-                            # Формат {"usd": 1234}
-                            usd_amount = float(response["usd"])
-                            usd_available = usd_amount
-                            usd_total = usd_amount
-                            logger.info(
-                                f"Баланс из usd (прямое значение): {usd_amount / 100:.2f} USD",
-                            )
-                        elif isinstance(response["usd"], str):
-                            # Формат {"usd": "$12.34"}
-                            usd_amount = float(response["usd"].replace("$", "").strip()) * 100
-                            usd_available = usd_amount
-                            usd_total = usd_amount
-                            logger.info(
-                                f"Баланс из usd (строковое значение): {usd_amount / 100:.2f} USD",
-                            )
-                    except (ValueError, TypeError) as e:
-                        logger.exception(f"Ошибка при обработке поля usd: {e}")
-
-                # Формат 3: Формат с totalBalance как списком валют
-                elif "totalBalance" in response and isinstance(
-                    response["totalBalance"],
-                    list,
-                ):
-                    for currency in response["totalBalance"]:
-                        if isinstance(currency, dict) and currency.get("currency") == "USD":
-                            usd_amount = float(currency.get("amount", 0))
-                            usd_total = usd_amount
-                            # Если есть доступный баланс
-                            if "availableAmount" in currency:
-                                usd_available = float(
-                                    currency.get("availableAmount", 0),
-                                )
-                            else:
-                                usd_available = usd_amount
-
-                            logger.info(
-                                f"Баланс из totalBalance: {usd_amount / 100:.2f} USD",
-                            )
-                            break
-
-                # Формат 4: Формат с balance как объектом с валютами
-                elif "balance" in response and isinstance(response["balance"], dict):
-                    if "usd" in response["balance"]:
-                        usd_value = response["balance"]["usd"]
-                        if isinstance(usd_value, int | float):
-                            usd_amount = float(usd_value)
-                        elif isinstance(usd_value, str):
-                            usd_amount = float(usd_value.replace("$", "").strip()) * 100
-                        elif isinstance(usd_value, dict) and "amount" in usd_value:
-                            usd_amount = float(usd_value["amount"])
-
-                        usd_available = usd_amount
-                        usd_total = usd_amount
-                        logger.info(f"Баланс из balance.usd: {usd_amount / 100:.2f} USD")
-
-                # Собираем дополнительную информацию для анализа
-                for field in ["dmc", "dmcAvailableToWithdraw", "userData"]:
-                    if field in response:
-                        additional_info[field] = response[field]
-
-                # Если не смогли найти баланс в известных форматах
-                if usd_amount == 0 and usd_available == 0 and usd_total == 0:
-                    logger.warning(
-                        f"Не удалось разобрать данные о балансе из известных форматов: {response}",
+                    return self._create_error_response(
+                        "Authorization error: invalid API keys",
+                        status_code=401,
+                        error_code="UNAUTHORIZED",
                     )
-                    # В качестве отладки сохраняем весь ответ API
-                    additional_info["raw_response"] = response
 
-            # Определяем результат
-            min_required_balance = 1.0  # Минимальный требуемый баланс
-            has_funds = (
-                usd_available >= min_required_balance * 100
-            )  # Проверяем, достаточно ли доступных средств
+                return self._create_error_response(error_message, status_code, error_code)
 
-            # Если доступный баланс не определен, но есть общий баланс
-            if usd_available == 0 and usd_amount > 0:
-                usd_available = usd_amount
+            # Process successful response
+            logger.info(f"🔍 RAW BALANCE API RESPONSE (get_balance): {response}")
+            logger.info(f"Analyzing balance response from {successful_endpoint}: {response}")
 
-            # Если полный баланс не определен, используем максимум из доступного и общего
-            if usd_total == 0:
-                usd_total = max(usd_amount, usd_available)
+            usd_amount, usd_available, usd_total = self._parse_balance_from_response(response)
 
-            # Формируем результат
-            result = {
-                "usd": {"amount": usd_amount},
-                "has_funds": has_funds,
-                "balance": usd_amount / 100,  # Общий баланс в долларах
-                "available_balance": usd_available / 100,  # Доступный баланс в долларах
-                "total_balance": usd_total / 100,  # Полный баланс в долларах
-                "error": False,
-                "additional_info": additional_info,  # Сохраняем дополнительную информацию для отладки
-            }
+            if usd_amount == 0 and usd_available == 0 and usd_total == 0:
+                logger.warning(f"Could not parse balance data from known formats: {response}")
+
+            # Create result
+            result = self._create_balance_response(
+                usd_amount=usd_amount,
+                usd_available=usd_available,
+                usd_total=usd_total,
+                additional_info={"endpoint": successful_endpoint},
+            )
 
             logger.info(
-                f"Итоговый баланс: ${result['balance']:.2f} USD (доступно: ${result['available_balance']:.2f}, всего: ${result['total_balance']:.2f})",
+                f"Final balance: ${result['balance']:.2f} USD "
+                f"(available: ${result['available_balance']:.2f}, total: ${result['total_balance']:.2f})"
             )
             return result
 
         except Exception as e:
-            logger.exception(f"Неожиданная ошибка при получении баланса: {e!s}")
-            logger.exception(f"Стек вызовов: {traceback.format_exc()}")
+            logger.exception(f"Unexpected error getting balance: {e!s}")
+            logger.exception(f"Stack trace: {traceback.format_exc()}")
 
-            # Определяем код ошибки из сообщения исключения
+            # Determine error code from exception message
             error_str = str(e)
             status_code = 500
             error_code = "EXCEPTION"
-            if "404" in error_str or "not found" in error_str.lower():
+            error_lower = error_str.lower()
+            if "404" in error_str or "not found" in error_lower:
                 status_code = 404
                 error_code = "NOT_FOUND"
-            elif "401" in error_str or "unauthorized" in error_str.lower():
+            elif "401" in error_str or "unauthorized" in error_lower:
                 status_code = 401
                 error_code = "UNAUTHORIZED"
 
-            return {
-                "usd": {"amount": 0},
-                "has_funds": False,
-                "balance": 0.0,
-                "available_balance": 0.0,
-                "total_balance": 0.0,
-                "error": True,
-                "error_message": error_str,
-                "status_code": status_code,
-                "code": error_code,
-            }
+            return self._create_error_response(error_str, status_code, error_code)
 
     async def get_user_balance(self) -> dict[str, Any]:
         """Получение баланса пользователя (устаревший метод).
