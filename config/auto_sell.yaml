@@ -1,0 +1,124 @@
+# Auto-Sell Configuration for DMarket Bot
+# Last updated: December 2025
+
+# ============================================================================
+# GENERAL SETTINGS
+# ============================================================================
+
+# Enable/disable auto-sell feature
+enabled: true
+
+# Delay in seconds before listing item after purchase
+auto_list_delay_seconds: 5
+
+# ============================================================================
+# MARGIN SETTINGS
+# ============================================================================
+
+# Minimum profit margin percentage (won't sell below this)
+min_margin_percent: 4.0
+
+# Maximum profit margin percentage (cap for initial pricing)
+max_margin_percent: 12.0
+
+# Default profit margin if not specified
+default_margin_percent: 8.0
+
+# ============================================================================
+# COMPETITIVE PRICING (UNDERCUT STRATEGY)
+# ============================================================================
+
+# Amount to undercut top offer (in cents, $0.01 = 1)
+undercut_cents: 1
+
+# Minimum price ratio compared to buy price
+# Example: 1.04 means never sell below buy_price * 1.04
+min_undercut_price_ratio: 1.04
+
+# How often to check and adjust prices (in minutes)
+price_adjustment_interval_minutes: 30
+
+# Maximum number of price adjustments before stopping
+max_price_adjustments: 10
+
+# ============================================================================
+# STOP-LOSS SETTINGS
+# ============================================================================
+
+# Hours before triggering stop-loss sale
+stop_loss_hours: 48
+
+# Maximum loss percentage for stop-loss
+# Example: 5.0 means sell at buy_price * 0.95
+stop_loss_percent: 5.0
+
+# ============================================================================
+# FEES AND CALCULATIONS
+# ============================================================================
+
+# DMarket marketplace fee percentage
+dmarket_fee_percent: 7.0
+
+# ============================================================================
+# NOTIFICATIONS
+# ============================================================================
+
+notifications:
+  # Send notification when item is listed
+  on_listed: true
+
+  # Send notification when item is sold
+  on_sold: true
+
+  # Send notification when price is adjusted
+  on_price_adjusted: false
+
+  # Send notification on stop-loss
+  on_stop_loss: true
+
+# ============================================================================
+# GAME-SPECIFIC SETTINGS (override defaults)
+# ============================================================================
+
+game_settings:
+  csgo:
+    min_margin_percent: 5.0
+    max_margin_percent: 15.0
+    stop_loss_hours: 72
+
+  dota2:
+    min_margin_percent: 4.0
+    max_margin_percent: 10.0
+    stop_loss_hours: 48
+
+  rust:
+    min_margin_percent: 4.0
+    max_margin_percent: 12.0
+    stop_loss_hours: 48
+
+  tf2:
+    min_margin_percent: 3.0
+    max_margin_percent: 8.0
+    stop_loss_hours: 36
+
+# ============================================================================
+# ADVANCED SETTINGS
+# ============================================================================
+
+advanced:
+  # Maximum concurrent sales
+  max_concurrent_sales: 50
+
+  # Retry failed listings
+  retry_failed_listings: true
+  max_retries: 3
+  retry_delay_seconds: 30
+
+  # Cache top offer prices (seconds)
+  price_cache_ttl_seconds: 60
+
+  # Minimum item value for auto-sell (USD)
+  min_item_value: 0.50
+
+  # Maximum item value for auto-sell (USD, 0 = no limit)
+  max_item_value: 0
