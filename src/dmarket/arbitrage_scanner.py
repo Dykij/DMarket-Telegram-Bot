@@ -3,6 +3,8 @@
 Используется для автоматического поиска предметов, которые можно купить
 на одной площадке и продать на другой с прибылью.
 
+Supports Dependency Injection via IDMarketAPI Protocol interface.
+
 Документация DMarket API: https://docs.dmarket.com/v1/swagger.html
 """
 
@@ -10,7 +12,7 @@ import asyncio
 import logging
 import os
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from src.dmarket.arbitrage import (
     GAMES,
@@ -19,10 +21,13 @@ from src.dmarket.arbitrage import (
     arbitrage_mid,
     arbitrage_pro,
 )
-from src.dmarket.dmarket_api import DMarketAPI
+from src.dmarket.dmarket_api import DMarketAPI  # Нужен для создания нового клиента
 from src.dmarket.liquidity_analyzer import LiquidityAnalyzer
 from src.utils.rate_limiter import RateLimiter
 from src.utils.sentry_breadcrumbs import add_trading_breadcrumb
+
+if TYPE_CHECKING:
+    from src.interfaces import IDMarketAPI
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
@@ -107,6 +112,8 @@ class ArbitrageScanner:
     - Автоматическая торговля найденными предметами
     - Настройка ограничений для управления рисками
 
+    Supports Dependency Injection via IDMarketAPI Protocol interface.
+
     Пример использования:
         scanner = ArbitrageScanner()
         opportunities = await scanner.scan_game("csgo", "medium", 10)
@@ -114,7 +121,7 @@ class ArbitrageScanner:
 
     def __init__(
         self,
-        api_client: DMarketAPI | None = None,
+        api_client: "IDMarketAPI | None" = None,
         enable_liquidity_filter: bool = True,
         enable_competition_filter: bool = True,
         max_competition: int = 3,
@@ -122,8 +129,8 @@ class ArbitrageScanner:
         """Инициализирует сканер арбитража.
 
         Args:
-            api_client: Предварительно созданный клиент DMarketAPI или None
-                        для создания нового при необходимости
+            api_client: DMarket API клиент (implements IDMarketAPI Protocol)
+                        или None для создания нового при необходимости
             enable_liquidity_filter: Включить фильтрацию по ликвидности
             enable_competition_filter: Включить фильтрацию по конкуренции buy orders
             max_competition: Максимально допустимое количество конкурирующих ордеров

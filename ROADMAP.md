@@ -1462,9 +1462,14 @@ def verify_admin_2fa(user_id: int, token: str) -> bool:
    - `docs/DEPENDENCY_INJECTION.md` - руководство по использованию
    - `docs/DEPENDENCY_INJECTION_PLAN.md` - план реализации
 
+6. **Рефакторинг классов для Protocol** (11.12.2025):
+   - `src/dmarket/arbitrage_scanner.py` - использует IDMarketAPI Protocol
+   - `src/dmarket/targets.py` - использует IDMarketAPI Protocol
+   - Полная обратная совместимость сохранена
+
 **Зависимости**: dependency-injector>=4.41.0
 
-**Критерий завершения**: ✅ Все 41 тест проходят, документация готова
+**Критерий завершения**: ✅ Все 41 тест проходят, документация готова, классы рефакторены
 
 ---
 
