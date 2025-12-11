@@ -385,9 +385,17 @@ class WebhookFailover:
                         self._consecutive_failures = 0
                 # In polling mode, periodically try to switch back to webhook
                 # Only if webhook URL is configured
-                elif self.webhook_url and await self._try_webhook_mode():
-                    logger.info("Webhook recovered, switching from polling")
-                    await self._switch_to_webhook()
+                elif self.webhook_url:
+                    # First stop polling, then try webhook
+                    if self.bot_app.updater and self.bot_app.updater.running:
+                        await self.bot_app.updater.stop()
+
+                    if await self._try_webhook_mode():
+                        logger.info("Webhook recovered, switching from polling")
+                        self._mode = "webhook"
+                    else:
+                        # Restore polling if webhook failed
+                        await self._start_polling_mode()
 
             except asyncio.CancelledError:
                 break
@@ -406,11 +414,11 @@ class WebhookFailover:
         logger.info("Switched to polling mode")
 
     async def _switch_to_webhook(self) -> None:
-        """Switch from polling to webhook mode."""
-        if self.bot_app.updater and self.bot_app.updater.running:
-            await self.bot_app.updater.stop()
+        """Switch from polling to webhook mode.
 
-        # Webhook handler already started in _try_webhook_mode
+        Note: This assumes polling has already been stopped and
+        webhook handler has been started via _try_webhook_mode().
+        """
         self._mode = "webhook"
         logger.info("Switched to webhook mode")
 
