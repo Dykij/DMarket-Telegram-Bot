@@ -208,6 +208,79 @@ Output:
 
 ---
 
+## 🔄 Webhook Failover
+
+The bot supports automatic switching between polling and webhook modes for improved reliability.
+
+### Quick Start
+
+```python
+from src.telegram_bot.webhook_handler import WebhookHandler, WebhookFailover
+
+# Create webhook handler
+webhook = WebhookHandler(
+    bot_app=application,
+    host="0.0.0.0",
+    port=8443,
+    webhook_path="/webhook",
+    health_path="/health",
+)
+
+# Create failover manager
+failover = WebhookFailover(
+    bot_app=application,
+    webhook_url="https://your-domain.com",
+    webhook_handler=webhook,
+    health_check_interval=30,
+    failure_threshold=3,
+)
+
+# Start with automatic failover
+await failover.start_with_failover()
+```
+
+### How it Works
+
+1. **Primary Mode**: Bot tries webhook first (if URL configured)
+2. **Fallback**: Switches to polling if webhook fails
+3. **Recovery**: Periodically attempts to restore webhook mode
+4. **Monitoring**: Continuous health checks during operation
+
+### Configuration Options
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `host` | "0.0.0.0" | Host to bind webhook server |
+| `port` | 8443 | Port for webhook server |
+| `webhook_path` | "/webhook" | Path for Telegram updates |
+| `health_path` | "/health" | Path for health endpoint |
+| `health_check_interval` | 30 | Seconds between health checks |
+| `failure_threshold` | 3 | Failures before switching modes |
+
+### Webhook Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/webhook` | POST | Telegram update endpoint |
+| `/health` | GET | Health check (JSON response) |
+| `/metrics` | GET | Prometheus-compatible metrics |
+| `/` | GET | Server info |
+
+### Health Response Example
+
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-12-11T23:00:00+00:00",
+  "uptime_seconds": 3600,
+  "request_count": 150,
+  "error_count": 2,
+  "last_request": "2025-12-11T22:59:55+00:00"
+}
+```
+
+---
+
 ## 🚀 Graceful Shutdown
 
 The bot handles shutdown signals properly:
@@ -278,10 +351,34 @@ class DatabaseBackup:
     def list_backups() -> list[dict]
 ```
 
+### WebhookHandler
+
+```python
+class WebhookHandler:
+    async def setup() -> web.Application
+    async def start() -> None
+    async def stop() -> None
+    @property
+    def is_running() -> bool
+    @property
+    def stats() -> dict[str, Any]
+```
+
+### WebhookFailover
+
+```python
+class WebhookFailover:
+    async def start_with_failover() -> None
+    async def stop() -> None
+    @property
+    def current_mode() -> str  # "polling" or "webhook"
+    @property
+    def is_running() -> bool
+```
+
 ---
 
 ## 🔗 Related Documentation
 
 - [PROJECT_ROADMAP.md](../PROJECT_ROADMAP.md) - Task P1-14 details
-- [PROJECT_ROADMAP.md](./PROJECT_ROADMAP.md) - Implementation plan
 - [deployment.md](./deployment.md) - Deployment guide
