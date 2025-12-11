@@ -1,0 +1,160 @@
+# Item Filters Configuration for DMarket Arbitrage
+# Last updated: December 2025
+
+# ============================================================================
+# PRICE AND VOLUME FILTERS
+# ============================================================================
+
+arbitrage_filters:
+  # Minimum average price from last 20 sales (USD)
+  min_avg_price: 0.50
+
+  # Minimum percentage of profitable transactions (profit > 10%)
+  good_points_percent: 80
+
+  # Maximum price multiplier compared to average (exclude if current > 150% of avg)
+  boost_percent: 150
+
+  # Minimum sales volume in last 7 days
+  min_sales_volume: 10
+
+  # Maximum price deviation from median (for outlier detection)
+  max_price_deviation_percent: 50
+
+  # Minimum liquidity score (0-100)
+  min_liquidity_score: 30
+
+# ============================================================================
+# ITEM BLACKLIST - Items to always exclude from arbitrage
+# ============================================================================
+
+bad_items:
+  # Low value items with unpredictable prices
+  - "Sticker"
+  - "Graffiti"
+  - "Music Kit"
+  - "Patch"
+  - "Pin"
+  - "Collectible"
+
+  # Souvenir items (often manipulated prices)
+  - "Souvenir"
+
+  # Cases (high volatility, low margins)
+  - "Case"
+  - "Capsule"
+
+  # Agent items (game-specific cosmetics)
+  - "Agent"
+
+# ============================================================================
+# BAD ITEM PATTERNS - Regular expressions for items to exclude
+# ============================================================================
+
+bad_item_patterns:
+  # StatTrak versions often have different pricing dynamics
+  - "^StatTrak™"
+
+  # Specific low-value items
+  - ".*\\| Battle-Scarred$"  # Battle-Scarred items often have poor liquidity
+
+  # Tournament items
+  - ".*\\(Holo/Foil\\).*"
+
+# ============================================================================
+# GOOD CATEGORIES - Prioritized item categories for arbitrage
+# ============================================================================
+
+good_categories:
+  # High-demand weapon categories
+  - "Rifle"
+  - "Pistol"
+  - "SMG"
+  - "Shotgun"
+  - "Machine Gun"
+  - "Sniper Rifle"
+
+  # High-value items
+  - "Knife"
+  - "Gloves"
+
+# ============================================================================
+# GAME-SPECIFIC SETTINGS
+# ============================================================================
+
+game_settings:
+  csgo:
+    enabled: true
+    min_price: 0.10
+    max_price: 1000.00
+    priority_categories:
+      - "AK-47"
+      - "M4A4"
+      - "M4A1-S"
+      - "AWP"
+      - "Desert Eagle"
+      - "USP-S"
+      - "Glock-18"
+
+  dota2:
+    enabled: true
+    min_price: 0.05
+    max_price: 500.00
+    priority_categories:
+      - "Arcana"
+      - "Immortal"
+      - "Mythical"
+
+  rust:
+    enabled: true
+    min_price: 0.10
+    max_price: 200.00
+    priority_categories:
+      - "AK-47"
+      - "MP5"
+      - "LR-300"
+
+  tf2:
+    enabled: true
+    min_price: 0.05
+    max_price: 100.00
+    priority_categories:
+      - "Unusual"
+      - "Strange"
+
+# ============================================================================
+# LIQUIDITY THRESHOLDS
+# ============================================================================
+
+liquidity:
+  # Sales per day thresholds for volume categories
+  very_high_volume: 3.0  # >= 3 sales/day
+  high_volume: 1.5       # >= 1.5 sales/day
+  medium_volume: 0.5     # >= 0.5 sales/day
+  # low_volume: < 0.5 sales/day
+
+  # Minimum days of sales history required
+  min_history_days: 7
+
+  # Minimum number of sales for reliable analysis
+  min_sales_count: 10
+
+# ============================================================================
+# RISK MANAGEMENT
+# ============================================================================
+
+risk_management:
+  # Maximum position size as percentage of balance
+  max_position_percent: 10
+
+  # Maximum number of same items to hold
+  max_same_items: 5
+
+  # Maximum total items in inventory
+  max_inventory_items: 50
+
+  # Stop trading if daily loss exceeds this percentage
+  daily_loss_limit_percent: 5
+
+  # Minimum profit margin to consider trade (percentage)
+  min_profit_margin: 3.0
