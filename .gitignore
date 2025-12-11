@@ -138,6 +138,7 @@ bot_token.txt
 # Backup files
 *.bak
 *.backup
+backups/
 *.orig
 
 # Package files
