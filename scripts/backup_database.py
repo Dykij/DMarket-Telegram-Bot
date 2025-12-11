@@ -92,8 +92,13 @@ class DatabaseBackup:
         raise ValueError(msg)
 
     def _get_backup_filename(self) -> str:
-        """Generate backup filename with timestamp and microseconds for uniqueness."""
-        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S_%f")
+        """Generate backup filename with timestamp.
+
+        Uses format: YYYYMMDD_HHMMSS_mmm (milliseconds for uniqueness)
+        """
+        now = datetime.now(UTC)
+        # Include milliseconds for uniqueness (not full microseconds)
+        timestamp = now.strftime("%Y%m%d_%H%M%S") + f"_{now.microsecond // 1000:03d}"
         if self.db_type == "sqlite":
             ext = ".db.gz" if self.compress else ".db"
         else:
@@ -154,7 +159,9 @@ class DatabaseBackup:
                 backup_raw = (
                     str(backup_path).replace(".gz", "") if self.compress else str(backup_path)
                 )
-                conn.execute(f"VACUUM INTO '{backup_raw}'")
+                # Use parameterized path escaping to prevent issues with special characters
+                escaped_path = backup_raw.replace("'", "''")
+                conn.execute(f"VACUUM INTO '{escaped_path}'")
                 conn.close()
 
                 if self.compress:

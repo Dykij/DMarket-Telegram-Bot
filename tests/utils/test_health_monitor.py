@@ -456,8 +456,9 @@ class TestHealthMonitor:
 
         results = monitor.last_results
 
-        # Should be a copy
-        results["new_key"] = HealthCheckResult("new", ServiceStatus.HEALTHY, 0.0)  # type: ignore[assignment]
+        # Should be a copy - modifying it shouldn't affect original
+        new_result = HealthCheckResult("new", ServiceStatus.HEALTHY, 0.0)
+        results["new_key"] = new_result
         assert "new_key" not in monitor._last_results
 
 

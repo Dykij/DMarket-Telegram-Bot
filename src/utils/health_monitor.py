@@ -210,14 +210,15 @@ class HealthMonitor:
                     message="Redis connection OK",
                     details=health,
                 )
-            # Fallback to memory cache is OK
-            return HealthCheckResult(
-                service="redis",
-                status=ServiceStatus.DEGRADED,
-                response_time_ms=response_time,
-                message="Redis unavailable, using memory cache",
-                details=health,
-            )
+            else:
+                # Redis unavailable but memory cache fallback is OK
+                return HealthCheckResult(
+                    service="redis",
+                    status=ServiceStatus.DEGRADED,
+                    response_time_ms=response_time,
+                    message="Redis unavailable, using memory cache",
+                    details=health,
+                )
         except Exception as e:
             response_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
             logger.error("Redis health check failed: %s", e)
@@ -475,7 +476,8 @@ class HealthMonitor:
         """Get summary of all service statuses.
 
         Returns:
-            Dictionary with overall status and individual service statuses
+            Dictionary with overall status, individual service statuses,
+            and both failure and success counts (all as copies to prevent mutation).
         """
         return {
             "overall_status": self.get_overall_status().value,
@@ -490,6 +492,7 @@ class HealthMonitor:
                 for name, result in self._last_results.items()
             },
             "failure_counts": self._failure_counts.copy(),
+            "success_counts": self._success_counts.copy(),
         }
 
     @property
@@ -499,5 +502,5 @@ class HealthMonitor:
 
     @property
     def last_results(self) -> dict[str, HealthCheckResult]:
-        """Get last health check results."""
+        """Get last health check results (copy to prevent mutation)."""
         return self._last_results.copy()
