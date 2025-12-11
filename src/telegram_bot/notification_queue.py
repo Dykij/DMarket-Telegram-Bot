@@ -41,11 +41,11 @@ class NotificationQueue:
         bot: Bot,
         global_rate_limit: float = 1.0 / 30.0,  # 30 msgs/sec
         chat_rate_limit: float = 1.0,  # 1 msg/sec per chat
-    ):
+    ) -> None:
         self.bot = bot
-        self.queue: asyncio.PriorityQueue = asyncio.PriorityQueue()
+        self.queue: asyncio.PriorityQueue[tuple[int, float, int, NotificationMessage]] = asyncio.PriorityQueue()
         self.is_running = False
-        self.worker_task: asyncio.Task | None = None
+        self.worker_task: asyncio.Task[None] | None = None
 
         # Rate limiting
         self.last_global_send_time = 0.0
@@ -54,7 +54,7 @@ class NotificationQueue:
         self.chat_rate_limit = chat_rate_limit
         self._counter = itertools.count()
 
-    async def start(self):
+    async def start(self) -> None:
         """Start the notification worker."""
         if self.is_running:
             return
@@ -63,7 +63,7 @@ class NotificationQueue:
         self.worker_task = asyncio.create_task(self._worker())
         logger.info("Notification queue worker started")
 
-    async def stop(self):
+    async def stop(self) -> None:
         """Stop the notification worker."""
         self.is_running = False
         if self.worker_task:
@@ -82,7 +82,7 @@ class NotificationQueue:
         reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | None = None,
         disable_web_page_preview: bool = False,
         priority: int = 1,
-    ):
+    ) -> None:
         """Add a message to the queue."""
         message = NotificationMessage(
             chat_id=chat_id,
@@ -98,7 +98,7 @@ class NotificationQueue:
         count = next(self._counter)
         await self.queue.put((priority, time.time(), count, message))
 
-    async def _worker(self):
+    async def _worker(self) -> None:
         """Process messages from the queue."""
         while self.is_running:
             try:
@@ -120,7 +120,7 @@ class NotificationQueue:
                 logger.exception("Error in notification worker")
                 await asyncio.sleep(1)
 
-    async def _wait_for_rate_limits(self, chat_id: int):
+    async def _wait_for_rate_limits(self, chat_id: int) -> None:
         """Wait if necessary to respect rate limits."""
         now = time.time()
 
@@ -136,7 +136,7 @@ class NotificationQueue:
         if time_since_chat < self.chat_rate_limit:
             await asyncio.sleep(self.chat_rate_limit - time_since_chat)
 
-    async def _send_message(self, message: NotificationMessage):
+    async def _send_message(self, message: NotificationMessage) -> None:
         """Send the message using the bot instance."""
         try:
             await self.bot.send_message(
@@ -161,7 +161,8 @@ class NotificationQueue:
                 f"Rate limit exceeded. Retry after {e.retry_after} seconds.",
             )
             # Put back in queue with high priority
-            await asyncio.sleep(e.retry_after)
+            retry_after = e.retry_after if isinstance(e.retry_after, float) else float(e.retry_after)
+            await asyncio.sleep(retry_after)
             count = next(self._counter)
             await self.queue.put((0, time.time(), count, message))
 
@@ -175,7 +176,7 @@ class NotificationQueue:
             logger.exception(f"Failed to send message to {message.chat_id}")
             # Don't retry for other errors (e.g. user blocked bot)
 
-    def _cleanup_timestamps(self):
+    def _cleanup_timestamps(self) -> None:
         """Remove old timestamps to prevent memory leak."""
         now = time.time()
         to_remove = []

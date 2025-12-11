@@ -485,6 +485,20 @@ filters: dict[str, str] = {}
 filters["game"] = "csgo"
 ```
 
+#### Фаза 2: var-annotated ошибки (~10 часов) ✅ ЗАВЕРШЕНО 11.12.2025
+
+**Цель**: Снизить до 150 ошибок в handlers
+**Результат**: Снижено до **160 ошибок** (-30% от Фазы 1)
+
+- [x] Добавлены `-> None` return type annotations
+- [x] Добавлены type parameters для generic типов
+- [x] Исправлены файлы:
+  - `notification_queue.py` - полные type annotations
+  - `user_profiles.py` - singleton и декораторы
+  - `pagination.py` - class attributes
+  - `notifier.py` - handler functions
+  - `notification_filters_handler.py` - dict types
+
 #### Фаза 3: arg-type и assignment ошибки (~15 часов)
 
 **Цель**: Снизить до 100 ошибок в handlers
@@ -496,7 +510,7 @@ filters["game"] = "csgo"
 **Текущий прогресс**:
 
 - После Фазы 1: **227 ошибок** в handlers (прогресс: **62%**) ✅
-- После Фазы 2: ~150 ошибок (цель)
+- После Фазы 2: **160 ошибок** в handlers (прогресс: **73%**) ✅
 - После Фазы 3: ~100 ошибок (цель)
 
 **Финальная цель**: < 100 ошибок в handlers

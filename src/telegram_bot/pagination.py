@@ -1,13 +1,14 @@
 """Модуль для управления пагинацией результатов в Telegram-боте."""
 
-import logging
 from collections.abc import Callable
+import logging
 from typing import Any
 
 from telegram import InlineKeyboardMarkup
 
 from src.telegram_bot.keyboards import create_pagination_keyboard
 from src.telegram_bot.utils.formatters import format_opportunities
+
 
 logger = logging.getLogger(__name__)
 
@@ -22,12 +23,12 @@ class PaginationManager:
             default_items_per_page: Количество элементов на странице по умолчанию
 
         """
-        self.items_by_user = {}  # Dict[int, List[Any]]
-        self.current_page_by_user = {}  # Dict[int, int]
-        self.mode_by_user = {}  # Dict[int, str]
+        self.items_by_user: dict[int, list[Any]] = {}
+        self.current_page_by_user: dict[int, int] = {}
+        self.mode_by_user: dict[int, str] = {}
         self.default_items_per_page = default_items_per_page
-        self.user_settings = {}  # Dict[int, Dict[str, Any]]
-        self.page_cache = {}  # Dict[int, Dict[int, Tuple[List[Any], int, int]]]
+        self.user_settings: dict[int, dict[str, Any]] = {}
+        self.page_cache: dict[int, dict[int, tuple[list[Any], int, int]]] = {}
 
     def add_items_for_user(
         self,
@@ -325,9 +326,9 @@ class PaginationManager:
     def format_current_page(
         self,
         user_id: int,
-        formatter: Callable | None = None,
+        formatter: Callable[..., str] | None = None,
         content_type: str = "opportunities",
-        **kwargs,
+        **kwargs: Any,
     ) -> str:
         """Форматирует текущую страницу результатов.
 

@@ -7,12 +7,13 @@
 - Кэширование данных пользователя для снижения нагрузки на API
 """
 
+from collections.abc import Awaitable, Callable
 import json
 import logging
 import os
 from pathlib import Path
 import time
-from typing import Any
+from typing import Any, TypeVar
 
 from cryptography.fernet import Fernet
 from telegram import Update
@@ -56,9 +57,9 @@ class UserProfileManager:
     включая загрузку, сохранение и шифрование конфиденциальных данных.
     """
 
-    _instance = None
+    _instance: "UserProfileManager | None" = None
 
-    def __new__(cls):
+    def __new__(cls) -> "UserProfileManager":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
@@ -68,12 +69,12 @@ class UserProfileManager:
         if self._initialized:
             return
 
-        self._profiles = {}  # Dict[int, Dict[str, Any]]
-        self._encryption_key = None
-        self._fernet = None
-        self._admin_ids = set()  # Set[int]
-        self._last_save_time = 0
-        self._initialized = True
+        self._profiles: dict[int, dict[str, Any]] = {}
+        self._encryption_key: bytes | None = None
+        self._fernet: Fernet | None = None
+        self._admin_ids: set[int] = set()
+        self._last_save_time: float = 0
+        self._initialized: bool = True
 
         # Создаем каталог данных, если он не существует
         DATA_DIR.mkdir(exist_ok=True)
@@ -109,7 +110,8 @@ class UserProfileManager:
                 logger.warning(f"Не удалось установить разрешения для файла ключа: {e}")
 
         # Создаем объект для шифрования/дешифрования
-        self._fernet = Fernet(self._encryption_key)
+        if self._encryption_key is not None:
+            self._fernet = Fernet(self._encryption_key)
 
     def _encrypt(self, data: str) -> str:
         """Шифрует строку данных.
@@ -126,6 +128,9 @@ class UserProfileManager:
 
         if self._fernet is None:
             self._init_encryption()
+
+        if self._fernet is None:
+            return ""
 
         return self._fernet.encrypt(data.encode()).decode()
 
@@ -144,6 +149,9 @@ class UserProfileManager:
 
         if self._fernet is None:
             self._init_encryption()
+
+        if self._fernet is None:
+            return ""
 
         try:
             return self._fernet.decrypt(encrypted_data.encode()).decode()
@@ -533,8 +541,12 @@ async def update_user_settings(user_id: int, settings: dict[str, Any]) -> None:
     profile_manager.update_profile(user_id, {"settings": profile["settings"]})
 
 
+# Type variable for decorator
+F = TypeVar("F", bound=Callable[..., Awaitable[None]])
+
+
 # Декоратор для проверки прав доступа
-def require_access_level(feature: str):
+def require_access_level(feature: str) -> Callable[[F], F]:
     """Декоратор для проверки прав доступа к функции бота.
 
     Args:
@@ -545,31 +557,33 @@ def require_access_level(feature: str):
 
     """
 
-    def decorator(func):
+    def decorator(func: F) -> F:
         async def wrapper(
             update: Update,
             context: ContextTypes.DEFAULT_TYPE,
-            *args,
-            **kwargs,
+            *args: Any,
+            **kwargs: Any,
         ) -> None:
             if not update.effective_user:
-                await update.message.reply_text(
-                    "⚠️ Ошибка: Не удалось определить пользователя.",
-                )
+                if update.message:
+                    await update.message.reply_text(
+                        "⚠️ Ошибка: Не удалось определить пользователя.",
+                    )
                 return
 
             user_id = update.effective_user.id
 
             if not profile_manager.has_access(user_id, feature):
-                await update.message.reply_text(
-                    f"⛔ У вас нет доступа к этой функции ({feature}).\n"
-                    "Для получения доступа обратитесь к администратору.",
-                )
+                if update.message:
+                    await update.message.reply_text(
+                        f"⛔ У вас нет доступа к этой функции ({feature}).\n"
+                        "Для получения доступа обратитесь к администратору.",
+                    )
                 return
 
             # Если доступ есть, выполняем исходную функцию
             await func(update, context, *args, **kwargs)
 
-        return wrapper
+        return wrapper  # type: ignore[return-value]
 
     return decorator
