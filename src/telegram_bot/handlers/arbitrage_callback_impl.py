@@ -235,7 +235,8 @@ async def handle_dmarket_arbitrage_impl(
         )
     else:
         # Если результатов нет, показываем соответствующее сообщение
-        formatted_text = format_dmarket_results(results or {}, mode)
+        # Передаем пустой словарь как валидный результат для форматирования
+        formatted_text = format_dmarket_results(results if results else {}, mode)
         keyboard = get_arbitrage_keyboard()
 
         await query.edit_message_text(
@@ -403,8 +404,9 @@ async def handle_game_selected_impl(
     await query.answer()
 
     # Сохраняем выбранную игру
-    if context.user_data is not None:
-        context.user_data["current_game"] = game
+    if context.user_data is None:
+        context.user_data = {}
+    context.user_data["current_game"] = game
 
     # Показываем индикатор, что бот печатает
     if query.message and query.message.chat:
