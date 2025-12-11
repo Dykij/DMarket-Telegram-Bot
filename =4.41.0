@@ -1,3 +1,0 @@
-Defaulting to user installation because normal site-packages is not writeable
-Requirement already satisfied: dependency-injector in /home/runner/.local/lib/python3.12/site-packages (4.48.3)
-Requirement already satisfied: typing-extensions in /home/runner/.local/lib/python3.12/site-packages (from dependency-injector) (4.15.0)
