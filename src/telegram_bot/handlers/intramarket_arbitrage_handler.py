@@ -220,8 +220,12 @@ async def handle_intramarket_pagination(
         return
     await query.answer()
 
+    if not update.effective_user:
+        return
     user_id = update.effective_user.id
     callback_data = query.data
+    if not callback_data:
+        return
 
     # Парсим данные callback
     # Формат: intra_paginate:direction:action_type:game

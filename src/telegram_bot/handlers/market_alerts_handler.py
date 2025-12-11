@@ -4,7 +4,9 @@
 о значимых изменениях на рынке, трендах и арбитражных возможностях.
 """
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from typing import Any
+
+from telegram import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 
 from src.telegram_bot.market_alerts import get_alerts_manager
@@ -18,6 +20,7 @@ from src.telegram_bot.notifier import (
 from src.utils.exceptions import handle_exceptions
 from src.utils.logging_utils import get_logger
 from src.utils.telegram_error_handlers import telegram_error_boundary
+
 
 # Настройка логирования
 logger = get_logger(__name__)
@@ -407,7 +410,9 @@ async def alerts_callback(
         await update_alerts_keyboard(query, alerts_manager, user_id)
 
 
-async def update_alerts_keyboard(query, alerts_manager, user_id: int) -> None:
+async def update_alerts_keyboard(
+    query: CallbackQuery, alerts_manager: Any, user_id: int
+) -> None:
     """Обновляет клавиатуру управления уведомлениями.
 
     Args:
@@ -546,7 +551,7 @@ async def update_alerts_keyboard(query, alerts_manager, user_id: int) -> None:
     )
 
 
-async def show_user_alerts_list(query, user_id: int) -> None:
+async def show_user_alerts_list(query: CallbackQuery, user_id: int) -> None:
     """Показывает список оповещений пользователя из нового модуля notifier.
 
     Args:
@@ -655,12 +660,12 @@ async def show_user_alerts_list(query, user_id: int) -> None:
     )
 
 
-async def show_create_alert_form(query, _user_id: int) -> None:
+async def show_create_alert_form(query: CallbackQuery, _user_id: int) -> None:
     """Показывает форму создания оповещения.
 
     Args:
         query: Объект запроса колбэка
-        user_id: ID пользователя
+        _user_id: ID пользователя
 
     """
     # Форматируем инструкцию
@@ -704,7 +709,9 @@ async def show_create_alert_form(query, _user_id: int) -> None:
     )
 
 
-async def show_alerts_settings(query, alerts_manager, user_id: int) -> None:
+async def show_alerts_settings(
+    query: CallbackQuery, alerts_manager: Any, user_id: int
+) -> None:
     """Показывает настройки уведомлений.
 
     Args:

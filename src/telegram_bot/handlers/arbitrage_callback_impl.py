@@ -50,10 +50,13 @@ async def arbitrage_callback_impl(
 
     """
     query = update.callback_query
+    if not query:
+        return None
     await query.answer()
 
     # Показываем индикатор, что бот печатает
-    await update.effective_chat.send_action(ChatAction.TYPING)
+    if update.effective_chat:
+        await update.effective_chat.send_action(ChatAction.TYPING)
 
     # Проверяем, использует ли пользователь современный UI
     user_data = context.user_data or {}
@@ -107,7 +110,8 @@ async def handle_dmarket_arbitrage_impl(
     }
 
     # Показываем, что запрос обрабатывается
-    await query.message.chat.send_action(ChatAction.TYPING)
+    if query.message and query.message.chat:
+        await query.message.chat.send_action(ChatAction.TYPING)
 
     # Редактируем сообщение, показывая процесс поиска
     await query.edit_message_text(
@@ -122,7 +126,8 @@ async def handle_dmarket_arbitrage_impl(
     )
 
     # Показываем индикатор загрузки
-    await query.message.chat.send_action(ChatAction.TYPING)
+    if query.message and query.message.chat:
+        await query.message.chat.send_action(ChatAction.TYPING)
 
     # Определяем функцию для получения данных арбитража
     async def get_arbitrage_data():
@@ -230,7 +235,7 @@ async def handle_dmarket_arbitrage_impl(
         )
     else:
         # Если результатов нет, показываем соответствующее сообщение
-        formatted_text = format_dmarket_results(results, mode, game)
+        formatted_text = format_dmarket_results(results or {}, mode)
         keyboard = get_arbitrage_keyboard()
 
         await query.edit_message_text(
@@ -261,7 +266,8 @@ async def handle_best_opportunities_impl(
     game = user_data.get("current_game", "csgo")
 
     # Показываем, что запрос обрабатывается
-    await query.message.chat.send_action(ChatAction.TYPING)
+    if query.message and query.message.chat:
+        await query.message.chat.send_action(ChatAction.TYPING)
 
     # Редактируем сообщение, показывая процесс поиска
     await query.edit_message_text(
@@ -275,7 +281,8 @@ async def handle_best_opportunities_impl(
     )
 
     # Показываем индикатор загрузки
-    await query.message.chat.send_action(ChatAction.TYPING)
+    if query.message and query.message.chat:
+        await query.message.chat.send_action(ChatAction.TYPING)
 
     # Получаем арбитражные возможности
     from src.dmarket.arbitrage_scanner import find_arbitrage_opportunities_async
@@ -354,7 +361,8 @@ async def handle_game_selection_impl(
     await query.answer()
 
     # Показываем индикатор, что бот печатает
-    await query.message.chat.send_action(ChatAction.TYPING)
+    if query.message and query.message.chat:
+        await query.message.chat.send_action(ChatAction.TYPING)
 
     # Получаем клавиатуру выбора игры
     keyboard = get_game_selection_keyboard()
@@ -395,13 +403,12 @@ async def handle_game_selected_impl(
     await query.answer()
 
     # Сохраняем выбранную игру
-    if not hasattr(context, "user_data"):
-        context.user_data = {}
-
-    context.user_data["current_game"] = game
+    if context.user_data is not None:
+        context.user_data["current_game"] = game
 
     # Показываем индикатор, что бот печатает
-    await query.message.chat.send_action(ChatAction.TYPING)
+    if query.message and query.message.chat:
+        await query.message.chat.send_action(ChatAction.TYPING)
 
     # Получаем клавиатуру арбитража
     keyboard = get_arbitrage_keyboard()
@@ -435,7 +442,8 @@ async def handle_market_comparison_impl(
     await query.answer()
 
     # Показываем индикатор, что бот печатает
-    await query.message.chat.send_action(ChatAction.TYPING)
+    if query.message and query.message.chat:
+        await query.message.chat.send_action(ChatAction.TYPING)
 
     # Получаем клавиатуру сравнения маркетплейсов
     keyboard = get_marketplace_comparison_keyboard()

@@ -53,11 +53,11 @@ NOTIFICATION_TYPES = {
 class NotificationFilters:
     """Менеджер фильтров уведомлений для пользователей."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Инициализация менеджера фильтров."""
-        self._filters = {}
+        self._filters: dict[int, dict[str, object]] = {}
 
-    def get_user_filters(self, user_id: int) -> dict:
+    def get_user_filters(self, user_id: int) -> dict[str, object]:
         """Получить фильтры пользователя.
 
         Args:
@@ -71,7 +71,7 @@ class NotificationFilters:
             self._filters[user_id] = self._get_default_filters()
         return self._filters[user_id].copy()
 
-    def update_user_filters(self, user_id: int, filters: dict) -> None:
+    def update_user_filters(self, user_id: int, filters: dict[str, object]) -> None:
         """Обновить фильтры пользователя.
 
         Args:
@@ -93,7 +93,7 @@ class NotificationFilters:
         self._filters[user_id] = self._get_default_filters()
 
     @staticmethod
-    def _get_default_filters() -> dict:
+    def _get_default_filters() -> dict[str, object]:
         """Получить фильтры по умолчанию.
 
         Returns:
@@ -324,7 +324,7 @@ async def toggle_game_filter(
 
     """
     query = update.callback_query
-    if not query or not update.effective_user:
+    if not query or not update.effective_user or not query.data:
         return
 
     await query.answer()
@@ -431,7 +431,7 @@ async def set_profit_filter(
 
     """
     query = update.callback_query
-    if not query or not update.effective_user:
+    if not query or not update.effective_user or not query.data:
         return
 
     await query.answer()
@@ -523,7 +523,7 @@ async def toggle_level_filter(
 
     """
     query = update.callback_query
-    if not query or not update.effective_user:
+    if not query or not update.effective_user or not query.data:
         return
 
     await query.answer()
@@ -623,7 +623,7 @@ async def toggle_type_filter(
 
     """
     query = update.callback_query
-    if not query or not update.effective_user:
+    if not query or not update.effective_user or not query.data:
         return
 
     await query.answer()

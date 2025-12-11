@@ -28,6 +28,7 @@ from src.telegram_bot.utils.api_client import setup_api_client
 from src.telegram_bot.utils.formatters import format_opportunities
 from src.utils.telegram_error_handlers import telegram_error_boundary
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -324,7 +325,7 @@ async def button_callback_handler(
         elif callback_data == "search":
             await query.edit_message_text(
                 "🔍 <b>Поиск предметов на DMarket</b>\n\nВыберите игру для поиска предметов:",
-                reply_markup=get_game_selection_keyboard("search"),
+                reply_markup=get_game_selection_keyboard(),
                 parse_mode=ParseMode.HTML,
             )
 
@@ -408,7 +409,7 @@ async def button_callback_handler(
             # Обработка для анализа рынка
             await query.edit_message_text(
                 "📊 <b>Анализ рынка</b>\n\nВыберите игру для анализа рыночных тенденций и цен:",
-                reply_markup=get_game_selection_keyboard("analysis"),
+                reply_markup=get_game_selection_keyboard(),
                 parse_mode=ParseMode.HTML,
             )
 
@@ -416,7 +417,7 @@ async def button_callback_handler(
             # Обработка фильтров
             await query.edit_message_text(
                 "⚙️ <b>Настройка фильтров</b>\n\nВыберите игру для настройки фильтров:",
-                reply_markup=get_game_selection_keyboard("filters"),
+                reply_markup=get_game_selection_keyboard(),
                 parse_mode=ParseMode.HTML,
             )
 
@@ -535,7 +536,7 @@ async def button_callback_handler(
         elif callback_data == "settings_filters":
             await query.edit_message_text(
                 "⚙️ <b>Настройка фильтров</b>\n\nВыберите игру для настройки фильтров:",
-                reply_markup=get_game_selection_keyboard("filters"),
+                reply_markup=get_game_selection_keyboard(),
                 parse_mode=ParseMode.HTML,
             )
 
