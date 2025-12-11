@@ -40,6 +40,28 @@ def get_utc_timestamp() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def get_readable_timestamp() -> str:
+    """Get current UTC timestamp in human-readable format for Telegram messages."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+
+
+def format_error_json(error: str) -> str:
+    """Format error response as JSON string.
+
+    Args:
+        error: Error message
+
+    Returns:
+        JSON formatted error response
+
+    """
+    return json.dumps({
+        "timestamp": get_utc_timestamp(),
+        "all_healthy": False,
+        "error": error,
+    }, indent=2)
+
+
 def get_status_emoji(status: str) -> str:
     """Get emoji for health check status.
 
@@ -300,7 +322,7 @@ async def send_health_notification(
         emoji = "🚨"
         status = "HEALTH CHECK FAILED"
 
-    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    timestamp = get_readable_timestamp()
     message = f"{emoji} <b>DMarket Bot Health Check</b>\n"
     message += f"<code>{timestamp}</code>\n\n"
     message += f"<b>Status:</b> {status}\n\n"
@@ -414,11 +436,7 @@ async def main() -> int:
             print(str(e))
 
         if args.json:
-            print(json.dumps({
-                "timestamp": get_utc_timestamp(),
-                "all_healthy": False,
-                "error": str(e),
-            }))
+            print(format_error_json(str(e)))
         return 1
 
     except Exception as e:
@@ -429,11 +447,7 @@ async def main() -> int:
             traceback.print_exc()
 
         if args.json:
-            print(json.dumps({
-                "timestamp": get_utc_timestamp(),
-                "all_healthy": False,
-                "error": str(e),
-            }))
+            print(format_error_json(str(e)))
         return 1
 
 

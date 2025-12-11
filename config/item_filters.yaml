@@ -53,13 +53,13 @@ bad_items:
 
 bad_item_patterns:
   # StatTrak versions often have different pricing dynamics
-  - "^StatTrak™"
+  - '^StatTrak™'
 
   # Specific low-value items
-  - ".*\\| Battle-Scarred$"  # Battle-Scarred items often have poor liquidity
+  - '.*\| Battle-Scarred$'  # Battle-Scarred items often have poor liquidity
 
   # Tournament items
-  - ".*\\(Holo/Foil\\).*"
+  - '.*\(Holo/Foil\).*'
 
 # ============================================================================
 # GOOD CATEGORIES - Prioritized item categories for arbitrage
