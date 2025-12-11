@@ -11,7 +11,7 @@
 
 1. **Откройте Pull Request** на GitHub:
    - Перейдите по ссылке: https://github.com/Dykij/DMarket-Telegram-Bot/pulls
-   - Найдите PR "Update ROADMAP.md with current project status - P1-10 completed, all tests passing (100%)"
+   - Найдите PR "Update PROJECT_ROADMAP.md with current project status - P1-10 completed, all tests passing (100%)"
 
 2. **Проверьте статус**:
    - ✅ Убедитесь, что все проверки CI/CD прошли успешно
@@ -123,7 +123,7 @@ git branch -a
 После выполнения мерджа в `main` попадут следующие изменения:
 
 ### Файлы изменены:
-1. **ROADMAP.md**
+1. **PROJECT_ROADMAP.md**
    - ✅ P1-10 отмечен как завершенный
    - ✅ Статистика тестов обновлена: 302/302 (100%)
    - ✅ Общий прогресс: 39% (9/23 задач)
@@ -134,7 +134,7 @@ git branch -a
 
 ### Коммиты (3 шт.):
 1. `0564065` - Initial plan
-2. `c8fbd20` - Update ROADMAP.md - P1-10 completed, tests 99% passing
+2. `c8fbd20` - Update PROJECT_ROADMAP.md - P1-10 completed, tests 99% passing
 3. `b62db3e` - Fix 3 failing CI tests + improve JSON parse error handling
 
 ---

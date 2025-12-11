@@ -38,7 +38,7 @@ This document summarizes the comprehensive analysis and improvements made to the
 - Testing strategy and validation approach
 - Maintenance schedule
 
-#### 3. [OPTIMIZATION_ROADMAP.md](OPTIMIZATION_ROADMAP.md)
+#### 3. [OPTIMIZATION_PROJECT_ROADMAP.md](OPTIMIZATION_PROJECT_ROADMAP.md)
 **Size**: 14KB | **Lines**: 505
 
 **Content**:
@@ -248,7 +248,7 @@ for game in enabled_games:
 
 1. [DATA_STRUCTURES_GUIDE.md](DATA_STRUCTURES_GUIDE.md)
 2. [API_COVERAGE_MATRIX.md](API_COVERAGE_MATRIX.md)
-3. [OPTIMIZATION_ROADMAP.md](OPTIMIZATION_ROADMAP.md)
+3. [OPTIMIZATION_PROJECT_ROADMAP.md](OPTIMIZATION_PROJECT_ROADMAP.md)
 
 ### Related Existing Docs
 

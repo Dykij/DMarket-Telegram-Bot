@@ -298,7 +298,7 @@ result = await checker.check_price_sanity(
 ## 📚 См. также
 
 - [SECURITY.md](SECURITY.md) - Общие вопросы безопасности
-- [ROADMAP.md](../ROADMAP.md) - План развития проекта
+- [PROJECT_ROADMAP.md](../PROJECT_ROADMAP.md) - План развития проекта
 - [QUICK_START.md](QUICK_START.md) - Быстрый старт
 
 ---

@@ -304,7 +304,7 @@ scrape_configs:
 
 ### Modified Files
 
-- `ROADMAP.md`: Обновлена статистика (69.6% выполнено)
+- `PROJECT_ROADMAP.md`: Обновлена статистика (69.6% выполнено)
 - `RELEASE_NOTES_23_11_2025.md`: Этот документ
 
 ### Documentation Status
@@ -369,7 +369,7 @@ pm2 start ecosystem.config.js --env production
 
 ### Minor Issues
 
-1. **Markdown linting warning** в ROADMAP.md (line 140) - не критично
+1. **Markdown linting warning** в PROJECT_ROADMAP.md (line 140) - не критично
 2. **MyPy warnings** в `performance.py`, `base.py` - не влияют на работу
 
 ### Workarounds

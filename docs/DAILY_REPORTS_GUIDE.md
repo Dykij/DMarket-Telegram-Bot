@@ -411,7 +411,7 @@ DAILY_REPORT_ENABLED=false
 - [QUICK_START.md](QUICK_START.md) - Быстрый старт проекта
 - [ARCHITECTURE.md](ARCHITECTURE.md) - Архитектура проекта
 - [logging_and_error_handling.md](logging_and_error_handling.md) - Логирование
-- [ROADMAP.md](../ROADMAP.md) - План развития
+- [PROJECT_ROADMAP.md](../PROJECT_ROADMAP.md) - План развития
 
 ---
 

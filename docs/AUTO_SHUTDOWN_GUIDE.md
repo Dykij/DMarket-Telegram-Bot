@@ -274,7 +274,7 @@ async def scan_market(state_manager: StateManager):
 
 - [SECURITY.md](SECURITY.md) - Безопасность
 - [QUICK_START.md](QUICK_START.md) - Быстрый старт
-- [ROADMAP.md](../ROADMAP.md) - План развития
+- [PROJECT_ROADMAP.md](../PROJECT_ROADMAP.md) - План развития
 
 ---
 
