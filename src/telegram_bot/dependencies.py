@@ -24,7 +24,13 @@ from src.interfaces import IDMarketAPI
 logger = logging.getLogger(__name__)
 
 
-def get_from_context[T](
+from typing import TypeVar
+
+
+T = TypeVar("T")
+
+
+def get_from_context(  # noqa: UP047 - Using TypeVar for Python 3.11 compatibility
     context: ContextTypes.DEFAULT_TYPE,
     key: str,
     default: T | None = None,
@@ -100,6 +106,7 @@ def get_arbitrage_scanner(
         return container.arbitrage_scanner()
     except (RuntimeError, ImportError):
         # Fallback: создать scanner с API из bot_data
+        # DMarketAPI implements IDMarketAPI protocol, type mismatch is safe
         api = get_dmarket_api(context)
         if api is not None:
             from src.dmarket.arbitrage_scanner import ArbitrageScanner
@@ -129,6 +136,7 @@ def get_target_manager(
         return container.target_manager()
     except (RuntimeError, ImportError):
         # Fallback: создать manager с API из bot_data
+        # DMarketAPI implements IDMarketAPI protocol, type mismatch is safe
         api = get_dmarket_api(context)
         if api is not None:
             from src.dmarket.targets import TargetManager
