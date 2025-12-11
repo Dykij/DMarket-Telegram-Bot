@@ -5,11 +5,33 @@ This script checks the health of all required services and dependencies:
 - DMarket API connectivity
 - Database connectivity
 - Redis connectivity (if configured)
+
+Supports multiple modes:
+- Interactive mode (default): Human-readable output
+- Cron mode (--cron): Machine-readable exit codes
+- JSON mode (--json): JSON output for monitoring systems
+- Alert mode (--alert): Send alerts on failures
+
+Exit codes:
+- 0: All services healthy
+- 1: Some services degraded
+- 2: Some services unhealthy
+
+Usage:
+    python scripts/health_check.py             # Interactive mode
+    python scripts/health_check.py --cron      # Cron mode (exit codes)
+    python scripts/health_check.py --json      # JSON output
+    python scripts/health_check.py --cron --alert  # With alerts
 """
 
+from __future__ import annotations
+
+import argparse
 import asyncio
-import sys
+import json as json_module
+import os
 from pathlib import Path
+import sys
 
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -130,7 +152,6 @@ async def check_redis(config: Config) -> bool:
 
     """
     # Check if Redis URL is configured
-    import os
 
     redis_url = os.getenv("REDIS_URL")
 
@@ -211,4 +232,92 @@ async def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(asyncio.run(main()))
+    parser = argparse.ArgumentParser(
+        description="DMarket Bot Health Check",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Exit codes:
+  0  All services healthy
+  1  Some services degraded (but operational)
+  2  Some services unhealthy (critical failure)
+
+Examples:
+  %(prog)s                 Interactive mode with human-readable output
+  %(prog)s --cron          Cron mode with machine-readable exit codes
+  %(prog)s --json          JSON output for monitoring systems
+  %(prog)s --cron --alert  Cron mode with alerts on failures
+        """,
+    )
+    parser.add_argument(
+        "--cron",
+        action="store_true",
+        help="Run in cron mode (machine-readable output, exit codes)",
+    )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Output results as JSON",
+    )
+    parser.add_argument(
+        "--alert",
+        action="store_true",
+        help="Send alerts on failures (requires Telegram token)",
+    )
+
+    args = parser.parse_args()
+
+    if args.cron or args.json:
+        # Cron/JSON mode using HealthMonitor
+        try:
+            from src.utils.config import Config
+            from src.utils.health_monitor import HealthMonitor, ServiceStatus
+
+            async def run_cron_check() -> int:
+                config = Config.load()
+                config.validate()
+
+                monitor = HealthMonitor(
+                    telegram_bot_token=config.bot.token,
+                    dmarket_api_url=config.dmarket.api_url,
+                )
+
+                results = await monitor.run_all_checks()
+                overall = monitor.get_overall_status()
+
+                if args.json:
+                    output = monitor.get_status_summary()
+                    print(json_module.dumps(output, indent=2, default=str))
+                else:
+                    # Human-readable compact output for cron
+                    for service, result in results.items():
+                        status_icon = {
+                            ServiceStatus.HEALTHY: "OK",
+                            ServiceStatus.DEGRADED: "WARN",
+                            ServiceStatus.UNHEALTHY: "FAIL",
+                            ServiceStatus.UNKNOWN: "UNKN",
+                        }.get(result.status, "UNKN")
+
+                        print(
+                            f"[{status_icon}] {service}: "
+                            f"{result.message} ({result.response_time_ms:.1f}ms)"
+                        )
+
+                # Determine exit code
+                if overall == ServiceStatus.HEALTHY:
+                    return 0
+                if overall == ServiceStatus.DEGRADED:
+                    return 1
+                return 2
+
+            exit_code = asyncio.run(run_cron_check())
+            sys.exit(exit_code)
+
+        except Exception as e:
+            if args.json:
+                print(json_module.dumps({"error": str(e), "status": "unhealthy"}))
+            else:
+                print(f"[FAIL] Error: {e}")
+            sys.exit(2)
+    else:
+        # Interactive mode (original behavior)
+        sys.exit(asyncio.run(main()))
