@@ -45,3 +45,16 @@ monitoring:
 cache:
   ttl: ${CACHE_TTL:300}  # seconds
   max_size: 1000
+
+# Advanced arbitrage filters (P1-16)
+# See config/item_filters.yaml for category lists
+arbitrage_filters:
+  enabled: ${ARBITRAGE_FILTERS_ENABLED:true}
+  min_avg_price: ${MIN_AVG_PRICE:0.50}
+  good_points_percent: ${GOOD_POINTS_PERCENT:80}
+  boost_percent: ${BOOST_PERCENT:150}
+  min_sales_volume: ${MIN_SALES_VOLUME:10}
+  min_profit_margin: ${MIN_PROFIT_MARGIN:5.0}
+  outlier_threshold: ${OUTLIER_THRESHOLD:2.0}
+  min_liquidity_score: ${MIN_LIQUIDITY_SCORE:60}
+  max_time_to_sell_days: ${MAX_TIME_TO_SELL_DAYS:7}
