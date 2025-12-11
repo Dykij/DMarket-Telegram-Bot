@@ -83,3 +83,6 @@ rich>=14.0.0                       # Latest Rich
 typer>=0.20.0                      # Latest Typer
 pydantic-settings>=2.12.0          # Latest settings
 schedule>=1.2.2                    # Latest scheduler
+
+# Dependency Injection (P2-17)
+dependency-injector>=4.41.0        # DI framework for Python
