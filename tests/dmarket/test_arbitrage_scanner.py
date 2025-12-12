@@ -803,9 +803,10 @@ async def test_full_arbitrage_workflow(scanner):
             return_value=[
                 {
                     "itemId": "int_001",
-                    "title": "Integration Test Item",
+                    "title": "AK-47 | Rifle Test Item",  # Include "Rifle" for category filter
                     "price": {"USD": "2000"},
                     "suggestedPrice": {"USD": "2500"},
+                    "offersCount": 50,  # Required for liquidity filter
                 }
             ],
         ),
