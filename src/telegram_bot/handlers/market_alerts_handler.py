@@ -189,6 +189,209 @@ async def alerts_command(
     default_error_message="Ошибка при обработке колбэка уведомлений",
     reraise=False,
 )
+# ==================== Alert Action Handlers ====================
+
+async def _handle_toggle_alert(
+    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str], 
+    user_id: int, alerts_manager
+) -> None:
+    """Handle toggle alert subscription action."""
+    if len(parts) < 3:
+        await query.answer("Неверный формат данных")
+        return
+
+    alert_type = parts[2]
+    user_subscriptions = alerts_manager.get_user_subscriptions(user_id)
+
+    if alert_type in user_subscriptions:
+        # Unsubscribe
+        success = alerts_manager.unsubscribe(user_id, alert_type)
+        if success:
+            alert_name = ALERT_TYPES.get(alert_type, alert_type)
+            await query.answer(f"Вы отписались от уведомлений: {alert_name}")
+        else:
+            await query.answer("Не удалось отписаться от уведомлений")
+    else:
+        # Subscribe
+        success = alerts_manager.subscribe(user_id, alert_type)
+        if success:
+            alert_name = ALERT_TYPES.get(alert_type, alert_type)
+            await query.answer(f"Вы подписались на уведомления: {alert_name}")
+        else:
+            await query.answer("Не удалось подписаться на уведомления")
+
+    await update_alerts_keyboard(query, alerts_manager, user_id)
+
+
+async def _handle_subscribe_all(
+    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str],
+    user_id: int, alerts_manager
+) -> None:
+    """Handle subscribe all action."""
+    count = 0
+    for alert_type in ALERT_TYPES:
+        if alerts_manager.subscribe(user_id, alert_type):
+            count += 1
+
+    await query.answer(f"Подписано на {count} типов уведомлений")
+    await update_alerts_keyboard(query, alerts_manager, user_id)
+
+
+async def _handle_unsubscribe_all(
+    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str],
+    user_id: int, alerts_manager
+) -> None:
+    """Handle unsubscribe all action."""
+    if hasattr(alerts_manager, "unsubscribe_all"):
+        success = alerts_manager.unsubscribe_all(user_id)
+    else:
+        # Fallback to loop
+        user_subscriptions = alerts_manager.get_user_subscriptions(user_id)
+        success = True
+        for alert_type in user_subscriptions:
+            if not alerts_manager.unsubscribe(user_id, alert_type):
+                success = False
+
+    if success:
+        await query.answer("Вы отписались от всех уведомлений")
+    else:
+        await query.answer("Возникли ошибки при отписке от уведомлений")
+
+    await update_alerts_keyboard(query, alerts_manager, user_id)
+
+
+async def _handle_settings_action(
+    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str],
+    user_id: int, alerts_manager
+) -> None:
+    """Handle settings action."""
+    await show_alerts_settings(query, alerts_manager, user_id)
+
+
+async def _handle_my_alerts_action(
+    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str],
+    user_id: int, alerts_manager
+) -> None:
+    """Handle my alerts action."""
+    await show_user_alerts_list(query, user_id)
+
+
+async def _handle_create_alert_action(
+    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str],
+    user_id: int, alerts_manager
+) -> None:
+    """Handle create alert action."""
+    await show_create_alert_form(query, user_id)
+
+
+async def _handle_remove_alert(
+    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str],
+    user_id: int, alerts_manager
+) -> None:
+    """Handle remove alert action."""
+    if len(parts) < 3:
+        await query.answer("Неверный формат данных")
+        return
+
+    alert_id = parts[2]
+    success = await remove_price_alert(user_id, alert_id)
+
+    if success:
+        await query.answer("Оповещение удалено")
+        await show_user_alerts_list(query, user_id)
+    else:
+        await query.answer("Ошибка при удалении оповещения")
+
+
+async def _handle_threshold_action(
+    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str],
+    user_id: int, alerts_manager
+) -> None:
+    """Handle threshold change action."""
+    if len(parts) < 4:
+        await query.answer("Неверный формат данных")
+        return
+
+    alert_type = parts[2]
+    direction = parts[3]
+
+    threshold_key = f"{alert_type}_threshold"
+    current_threshold = alerts_manager.alert_thresholds.get(threshold_key, 0)
+
+    if direction == "up":
+        new_threshold = current_threshold * 1.5
+    elif direction == "down":
+        new_threshold = max(current_threshold * 0.7, 1.0)
+    else:
+        new_threshold = current_threshold
+
+    success = alerts_manager.update_alert_threshold(alert_type, new_threshold)
+
+    if success:
+        await query.answer(f"Порог уведомлений изменен: {new_threshold:.1f}")
+    else:
+        await query.answer("Не удалось изменить порог уведомлений")
+
+    await show_alerts_settings(query, alerts_manager, user_id)
+
+
+async def _handle_interval_action(
+    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str],
+    user_id: int, alerts_manager
+) -> None:
+    """Handle interval change action."""
+    if len(parts) < 4:
+        await query.answer("Неверный формат данных")
+        return
+
+    alert_type = parts[2]
+    direction = parts[3]
+
+    current_interval = alerts_manager.check_intervals.get(alert_type, 3600)
+
+    if direction == "up":
+        new_interval = min(current_interval * 2, 86400)  # Max 24 hours
+    elif direction == "down":
+        new_interval = max(current_interval // 2, 300)  # Min 5 minutes
+    else:
+        new_interval = current_interval
+
+    success = alerts_manager.update_check_interval(alert_type, new_interval)
+
+    if success:
+        interval_display = f"{new_interval // 60} мин"
+        if new_interval >= 3600:
+            interval_display = f"{new_interval // 3600} ч"
+        await query.answer(f"Интервал проверки изменен: {interval_display}")
+    else:
+        await query.answer("Не удалось изменить интервал проверки")
+
+    await show_alerts_settings(query, alerts_manager, user_id)
+
+
+async def _handle_back_to_alerts_action(
+    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str],
+    user_id: int, alerts_manager
+) -> None:
+    """Handle back to alerts action."""
+    await update_alerts_keyboard(query, alerts_manager, user_id)
+
+
+# Alert action dispatcher mapping
+_ALERT_ACTION_HANDLERS = {
+    "toggle": _handle_toggle_alert,
+    "subscribe_all": _handle_subscribe_all,
+    "unsubscribe_all": _handle_unsubscribe_all,
+    "settings": _handle_settings_action,
+    "my_alerts": _handle_my_alerts_action,
+    "create_alert": _handle_create_alert_action,
+    "remove_alert": _handle_remove_alert,
+    "threshold": _handle_threshold_action,
+    "interval": _handle_interval_action,
+    "back_to_alerts": _handle_back_to_alerts_action,
+}
+
+
 async def alerts_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -216,195 +419,12 @@ async def alerts_callback(
 
     alerts_manager = get_alerts_manager(bot=context.bot)
 
-    # Обрабатываем различные действия
-    if action == "toggle":
-        # Переключение подписки на конкретный тип уведомлений
-        if len(parts) < 3:
-            await query.answer("Неверный формат данных")
-            return
-
-        alert_type = parts[2]
-
-        # Проверяем, подписан ли пользователь
-        user_subscriptions = alerts_manager.get_user_subscriptions(user_id)
-
-        if alert_type in user_subscriptions:
-            # Отписываем
-            success = alerts_manager.unsubscribe(user_id, alert_type)
-            if success:
-                alert_name = ALERT_TYPES.get(alert_type, alert_type)
-                await query.answer(
-                    f"Вы отписались от уведомлений: {alert_name}",
-                )
-            else:
-                await query.answer(
-                    "Не удалось отписаться от уведомлений",
-                )
-        else:
-            # Подписываем
-            success = alerts_manager.subscribe(user_id, alert_type)
-            if success:
-                alert_name = ALERT_TYPES.get(alert_type, alert_type)
-                await query.answer(
-                    f"Вы подписались на уведомления: {alert_name}",
-                )
-            else:
-                await query.answer(
-                    "Не удалось подписаться на уведомления",
-                )
-
-        # Обновляем клавиатуру
-        await update_alerts_keyboard(query, alerts_manager, user_id)
-
-    elif action == "subscribe_all":
-        count = 0
-        for alert_type in ALERT_TYPES:
-            if alerts_manager.subscribe(user_id, alert_type):
-                count += 1
-
-        await query.answer(f"Подписано на {count} типов уведомлений")
-        await update_alerts_keyboard(query, alerts_manager, user_id)
-
-    elif action == "unsubscribe_all":
-        # Отписка от всех уведомлений
-        # Используем метод unsubscribe_all если он есть, иначе цикл
-        if hasattr(alerts_manager, "unsubscribe_all"):
-            success = alerts_manager.unsubscribe_all(user_id)
-        else:
-            # Fallback to loop
-            user_subscriptions = alerts_manager.get_user_subscriptions(user_id)
-            success = True
-            for alert_type in user_subscriptions:
-                if not alerts_manager.unsubscribe(user_id, alert_type):
-                    success = False
-
-        if success:
-            await query.answer("Вы отписались от всех уведомлений")
-        else:
-            await query.answer("Возникли ошибки при отписке от уведомлений")
-
-        # Обновляем клавиатуру
-        await update_alerts_keyboard(query, alerts_manager, user_id)
-
-    elif action == "settings":
-        # Показываем настройки уведомлений
-        await show_alerts_settings(query, alerts_manager, user_id)
-
-    elif action == "my_alerts":
-        # Показываем список оповещений пользователя
-        await show_user_alerts_list(query, user_id)
-
-    elif action == "create_alert":
-        # Показываем форму создания оповещения
-        await show_create_alert_form(query, user_id)
-
-    elif action == "remove_alert":
-        # Удаление оповещения
-        if len(parts) < 3:
-            await query.answer("Неверный формат данных")
-            return
-
-        alert_id = parts[2]
-        success = await remove_price_alert(user_id, alert_id)
-
-        if success:
-            await query.answer("Оповещение удалено")
-            # Обновляем список оповещений
-            await show_user_alerts_list(query, user_id)
-        else:
-            await query.answer("Ошибка при удалении оповещения")
-
-    elif action == "threshold":
-        # Изменение порога срабатывания
-        # Format: alerts:threshold:<alert_type>:<direction>
-        if len(parts) < 4:
-            await query.answer("Неверный формат данных")
-            return
-
-        alert_type = parts[2]
-        direction = parts[3]
-
-        threshold_key = f"{alert_type}_threshold"
-        current_threshold = alerts_manager.alert_thresholds.get(
-            threshold_key,
-            0,
-        )
-
-        if direction == "up":
-            new_threshold = current_threshold * 1.5
-        elif direction == "down":
-            new_threshold = max(
-                current_threshold * 0.7,
-                1.0,
-            )  # Не меньше 1%
-        else:
-            new_threshold = current_threshold
-
-        success = alerts_manager.update_alert_threshold(
-            alert_type,
-            new_threshold,
-        )
-
-        if success:
-            await query.answer(
-                f"Порог уведомлений изменен: {new_threshold:.1f}",
-            )
-        else:
-            await query.answer("Не удалось изменить порог уведомлений")
-
-        # Обновляем клавиатуру настроек
-        await show_alerts_settings(query, alerts_manager, user_id)
-
-    elif action == "interval":
-        # Изменение интервала проверки
-        # Format: alerts:interval:<alert_type>:<direction>
-        if len(parts) < 4:
-            await query.answer("Неверный формат данных")
-            return
-
-        alert_type = parts[2]
-        direction = parts[3]
-
-        current_interval = alerts_manager.check_intervals.get(
-            alert_type,
-            3600,
-        )
-
-        if direction == "up":
-            new_interval = min(
-                current_interval * 2,
-                86400,
-            )  # Максимум 24 часа
-        elif direction == "down":
-            new_interval = max(
-                current_interval // 2,
-                300,
-            )  # Минимум 5 минут
-        else:
-            new_interval = current_interval
-
-        success = alerts_manager.update_check_interval(
-            alert_type,
-            new_interval,
-        )
-
-        if success:
-            interval_display = f"{new_interval // 60} мин"
-            if new_interval >= 3600:
-                interval_display = f"{new_interval // 3600} ч"
-
-            await query.answer(
-                f"Интервал проверки изменен: {interval_display}",
-            )
-        else:
-            await query.answer("Не удалось изменить интервал проверки")
-
-        # Обновляем клавиатуру настроек
-        await show_alerts_settings(query, alerts_manager, user_id)
-
-    elif action == "back_to_alerts":
-        # Возврат к главному меню уведомлений
-        await update_alerts_keyboard(query, alerts_manager, user_id)
+    # Dispatch to appropriate handler
+    handler = _ALERT_ACTION_HANDLERS.get(action)
+    if handler:
+        await handler(query, update, context, parts, user_id, alerts_manager)
+    else:
+        await query.answer("Неизвестное действие")
 
 
 async def update_alerts_keyboard(query, alerts_manager, user_id: int) -> None:
