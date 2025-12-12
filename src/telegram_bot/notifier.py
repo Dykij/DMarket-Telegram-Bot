@@ -16,8 +16,8 @@ from pathlib import Path  # Добавляем импорт для работы 
 import time
 from typing import Any
 
-from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ContextTypes
+from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import Application, ContextTypes
 
 # Импортируем константы игр
 from src.dmarket.arbitrage import GAMES
@@ -77,13 +77,13 @@ NOTIFICATION_TYPES = {
 #         "last_day": "2023-06-01"
 #     }
 # }
-_user_alerts = {}
+_user_alerts: dict[str, dict[str, Any]] = {}
 # Используем pathlib для более надежной работы с путями
 _alerts_file = str(Path(__file__).parents[2] / "data" / "user_alerts.json")
 
 # Кэш для текущих цен предметов для уменьшения количества запросов к API
 # {item_id: {"price": price, "timestamp": timestamp}}
-_current_prices_cache = {}
+_current_prices_cache: dict[str, dict[str, float]] = {}
 _PRICE_CACHE_TTL = 300  # Время жизни кэша цен (5 минут)
 
 
@@ -1041,7 +1041,7 @@ async def run_alerts_checker(
 
 
 async def handle_buy_cancel_callback(
-    update,
+    update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает callback-запросы для отмены покупки.
@@ -1052,6 +1052,8 @@ async def handle_buy_cancel_callback(
 
     """
     query = update.callback_query
+    if not query or not query.from_user or not query.data or not query.message:
+        return
     user_id = query.from_user.id
     callback_data = query.data
 
@@ -1066,8 +1068,9 @@ async def handle_buy_cancel_callback(
         )
 
         await query.answer("Покупка отменена")
+        message_text = query.message.text or ""
         await query.edit_message_text(
-            text=query.message.text + "\n\n❌ *ОТМЕНЕНО ПОЛЬЗОВАТЕЛЕМ*",
+            text=message_text + "\n\n❌ *ОТМЕНЕНО ПОЛЬЗОВАТЕЛЕМ*",
             parse_mode="Markdown",
         )
     else:
@@ -1075,7 +1078,7 @@ async def handle_buy_cancel_callback(
 
 
 async def handle_alert_callback(
-    update,
+    update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает callback-запросы для оповещений.
@@ -1086,6 +1089,8 @@ async def handle_alert_callback(
 
     """
     query = update.callback_query
+    if not query or not query.from_user or not query.data:
+        return
     user_id = query.from_user.id
     callback_data = query.data
 
@@ -1140,7 +1145,7 @@ def format_alert_message(alert: dict[str, Any]) -> str:
 
 
 async def create_alert_command(
-    update,
+    update: Update,
     context: ContextTypes.DEFAULT_TYPE,
     api: DMarketAPI,
 ) -> None:
@@ -1152,6 +1157,8 @@ async def create_alert_command(
         api: Экземпляр DMarketAPI
 
     """
+    if not update.message or not update.effective_user:
+        return
     # Проверяем, переданы ли все необходимые аргументы
     if not context.args or len(context.args) < 3:
         await update.message.reply_text(
@@ -1245,7 +1252,7 @@ async def create_alert_command(
 
 
 async def list_alerts_command(
-    update,
+    update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает команду /alerts для просмотра списка оповещений.
@@ -1255,6 +1262,8 @@ async def list_alerts_command(
         context: Контекст ContextTypes.DEFAULT_TYPE
 
     """
+    if not update.effective_user or not update.message:
+        return
     user_id = update.effective_user.id
 
     # Получаем список оповещений пользователя
@@ -1291,7 +1300,7 @@ async def list_alerts_command(
 
 
 async def remove_alert_command(
-    update,
+    update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает команду /removealert для удаления оповещения.
@@ -1301,6 +1310,8 @@ async def remove_alert_command(
         context: Контекст ContextTypes.DEFAULT_TYPE
 
     """
+    if not update.effective_user or not update.message:
+        return
     user_id = update.effective_user.id
 
     # Проверяем, передан ли номер оповещения
@@ -1349,7 +1360,7 @@ async def remove_alert_command(
 
 
 async def settings_command(
-    update,
+    update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает команду /alertsettings для настройки параметров оповещений.
@@ -1359,6 +1370,8 @@ async def settings_command(
         context: Контекст ContextTypes.DEFAULT_TYPE
 
     """
+    if not update.effective_user or not update.message:
+        return
     user_id = update.effective_user.id
     user_id_str = str(user_id)
 
@@ -1437,7 +1450,7 @@ async def settings_command(
 
 
 # Функция для регистрации обработчиков
-def register_notification_handlers(application) -> None:
+def register_notification_handlers(application: Application[Any, Any, Any, Any, Any, Any]) -> None:  # type: ignore[type-arg]
     """Регистрирует обработчики команд для оповещений.
 
     Args:
@@ -1477,7 +1490,7 @@ def register_notification_handlers(application) -> None:
     notification_queue = application.bot_data.get("notification_queue")
 
     if api:
-        asyncio.create_task(
+        _ = asyncio.create_task(
             run_alerts_checker(
                 api, application.bot, interval=300, notification_queue=notification_queue
             )

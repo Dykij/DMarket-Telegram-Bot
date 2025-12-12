@@ -4,6 +4,8 @@
 фильтров уведомлений по играм, уровням прибыли и типам алертов.
 """
 
+from typing import Any
+
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
@@ -53,11 +55,11 @@ NOTIFICATION_TYPES = {
 class NotificationFilters:
     """Менеджер фильтров уведомлений для пользователей."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Инициализация менеджера фильтров."""
-        self._filters = {}
+        self._filters: dict[int, dict[str, Any]] = {}
 
-    def get_user_filters(self, user_id: int) -> dict:
+    def get_user_filters(self, user_id: int) -> dict[str, Any]:
         """Получить фильтры пользователя.
 
         Args:
@@ -71,7 +73,7 @@ class NotificationFilters:
             self._filters[user_id] = self._get_default_filters()
         return self._filters[user_id].copy()
 
-    def update_user_filters(self, user_id: int, filters: dict) -> None:
+    def update_user_filters(self, user_id: int, filters: dict[str, Any]) -> None:
         """Обновить фильтры пользователя.
 
         Args:
@@ -93,7 +95,7 @@ class NotificationFilters:
         self._filters[user_id] = self._get_default_filters()
 
     @staticmethod
-    def _get_default_filters() -> dict:
+    def _get_default_filters() -> dict[str, Any]:
         """Получить фильтры по умолчанию.
 
         Returns:
@@ -135,19 +137,23 @@ class NotificationFilters:
             return False
 
         # Проверка игры
-        if game not in filters.get("games", []):
+        games = filters.get("games", [])
+        if not isinstance(games, list) or game not in games:
             return False
 
         # Проверка прибыли
-        if profit_percent < filters.get("min_profit_percent", 0):
+        min_profit = filters.get("min_profit_percent", 0)
+        if isinstance(min_profit, (int, float)) and profit_percent < min_profit:
             return False
 
         # Проверка уровня
-        if level not in filters.get("levels", []):
+        levels = filters.get("levels", [])
+        if not isinstance(levels, list) or level not in levels:
             return False
 
         # Проверка типа уведомления
-        return notification_type in filters.get("notification_types", [])
+        notification_types = filters.get("notification_types", [])
+        return isinstance(notification_types, list) and notification_type in notification_types
 
 
 # Глобальный экземпляр менеджера
@@ -187,10 +193,13 @@ async def show_notification_filters(
 
     # Формируем сообщение
     enabled_status = "✅ Включены" if user_filters.get("enabled") else "❌ Выключены"
-    games_count = len(user_filters.get("games", []))
+    games_list = user_filters.get("games", [])
+    games_count = len(games_list) if isinstance(games_list, list) else 0
     min_profit = user_filters.get("min_profit_percent", 5.0)
-    levels_count = len(user_filters.get("levels", []))
-    types_count = len(user_filters.get("notification_types", []))
+    levels_list = user_filters.get("levels", [])
+    levels_count = len(levels_list) if isinstance(levels_list, list) else 0
+    types_list = user_filters.get("notification_types", [])
+    types_count = len(types_list) if isinstance(types_list, list) else 0
 
     message = (
         "🔔 *Фильтры уведомлений*\n\n"
@@ -271,7 +280,8 @@ async def show_games_filter(
     user_id = update.effective_user.id
     filters_manager = get_filters_manager()
     user_filters = filters_manager.get_user_filters(user_id)
-    enabled_games = user_filters.get("games", [])
+    enabled_games_raw = user_filters.get("games", [])
+    enabled_games: list[str] = enabled_games_raw if isinstance(enabled_games_raw, list) else []
 
     message = "🎮 *Фильтр по играм*\n\nВыберите игры для уведомлений:"
 
@@ -324,7 +334,7 @@ async def toggle_game_filter(
 
     """
     query = update.callback_query
-    if not query or not update.effective_user:
+    if not query or not update.effective_user or not query.data:
         return
 
     await query.answer()
@@ -338,7 +348,8 @@ async def toggle_game_filter(
 
     filters_manager = get_filters_manager()
     user_filters = filters_manager.get_user_filters(user_id)
-    enabled_games = user_filters.get("games", [])
+    enabled_games_raw = user_filters.get("games", [])
+    enabled_games: list[str] = enabled_games_raw if isinstance(enabled_games_raw, list) else []
 
     # Переключаем игру
     if game_code in enabled_games:
@@ -434,7 +445,7 @@ async def set_profit_filter(
 
     """
     query = update.callback_query
-    if not query or not update.effective_user:
+    if not query or not update.effective_user or not query.data:
         return
 
     await query.answer()
@@ -477,7 +488,8 @@ async def show_levels_filter(
     user_id = update.effective_user.id
     filters_manager = get_filters_manager()
     user_filters = filters_manager.get_user_filters(user_id)
-    enabled_levels = user_filters.get("levels", [])
+    enabled_levels_raw = user_filters.get("levels", [])
+    enabled_levels: list[str] = enabled_levels_raw if isinstance(enabled_levels_raw, list) else []
 
     message = "📊 *Фильтр по уровням*\n\nВыберите уровни для уведомлений:"
 
@@ -529,7 +541,7 @@ async def toggle_level_filter(
 
     """
     query = update.callback_query
-    if not query or not update.effective_user:
+    if not query or not update.effective_user or not query.data:
         return
 
     await query.answer()
@@ -543,7 +555,8 @@ async def toggle_level_filter(
 
     filters_manager = get_filters_manager()
     user_filters = filters_manager.get_user_filters(user_id)
-    enabled_levels = user_filters.get("levels", [])
+    enabled_levels_raw = user_filters.get("levels", [])
+    enabled_levels: list[str] = enabled_levels_raw if isinstance(enabled_levels_raw, list) else []
 
     # Переключаем уровень
     if level_code in enabled_levels:
@@ -580,7 +593,8 @@ async def show_types_filter(
     user_id = update.effective_user.id
     filters_manager = get_filters_manager()
     user_filters = filters_manager.get_user_filters(user_id)
-    enabled_types = user_filters.get("notification_types", [])
+    enabled_types_raw = user_filters.get("notification_types", [])
+    enabled_types: list[str] = enabled_types_raw if isinstance(enabled_types_raw, list) else []
 
     message = "📢 *Фильтр по типам*\n\nВыберите типы уведомлений:"
 
@@ -632,7 +646,7 @@ async def toggle_type_filter(
 
     """
     query = update.callback_query
-    if not query or not update.effective_user:
+    if not query or not update.effective_user or not query.data:
         return
 
     await query.answer()
@@ -646,7 +660,8 @@ async def toggle_type_filter(
 
     filters_manager = get_filters_manager()
     user_filters = filters_manager.get_user_filters(user_id)
-    enabled_types = user_filters.get("notification_types", [])
+    enabled_types_raw = user_filters.get("notification_types", [])
+    enabled_types: list[str] = enabled_types_raw if isinstance(enabled_types_raw, list) else []
 
     # Переключаем тип
     if type_code in enabled_types:
@@ -689,7 +704,7 @@ async def reset_filters(
     await show_notification_filters(update, context)
 
 
-def register_notification_filter_handlers(application: Application) -> None:
+def register_notification_filter_handlers(application: Application[Any, Any, Any, Any, Any, Any]) -> None:  # type: ignore[type-arg]
     """Зарегистрировать обработчики фильтров уведомлений.
 
     Args:

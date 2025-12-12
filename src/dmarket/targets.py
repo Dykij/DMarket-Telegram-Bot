@@ -9,16 +9,20 @@
 - Управление активными таргетами
 - Автоматическое создание умных таргетов
 - Мониторинг исполненных таргетов
+
+Supports Dependency Injection via IDMarketAPI Protocol interface.
 """
 
 import asyncio
 import logging
 import re
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from src.dmarket.dmarket_api import DMarketAPI
 from src.dmarket.liquidity_analyzer import LiquidityAnalyzer
+
+if TYPE_CHECKING:
+    from src.interfaces import IDMarketAPI
 
 
 logger = logging.getLogger(__name__)
@@ -30,20 +34,22 @@ class TargetManager:
     Таргеты позволяют создавать заявки на покупку предметов по заданной цене.
     При появлении подходящего предмета происходит автоматическая покупка.
 
+    Supports Dependency Injection via IDMarketAPI Protocol interface.
+
     Attributes:
-        api: Экземпляр DMarket API клиента
+        api: Экземпляр DMarket API клиента (implements IDMarketAPI Protocol)
 
     """
 
     def __init__(
         self,
-        api_client: DMarketAPI,
+        api_client: "IDMarketAPI",
         enable_liquidity_filter: bool = True,
     ) -> None:
         """Инициализация менеджера таргетов.
 
         Args:
-            api_client: Настроенный клиент DMarket API
+            api_client: DMarket API клиент (implements IDMarketAPI Protocol)
             enable_liquidity_filter: Включить фильтрацию по ликвидности
 
         """

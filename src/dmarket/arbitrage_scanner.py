@@ -3,10 +3,10 @@
 Используется для автоматического поиска предметов, которые можно купить
 на одной площадке и продать на другой с прибылью.
 
+Supports Dependency Injection via IDMarketAPI Protocol interface.
+
 Документация DMarket API: https://docs.dmarket.com/v1/swagger.html
 """
-
-from __future__ import annotations
 
 import asyncio
 import logging
@@ -21,13 +21,13 @@ from src.dmarket.arbitrage import (
     arbitrage_mid,
     arbitrage_pro,
 )
-from src.dmarket.dmarket_api import DMarketAPI
+from src.dmarket.dmarket_api import DMarketAPI  # Нужен для создания нового клиента
 from src.dmarket.liquidity_analyzer import LiquidityAnalyzer
 from src.utils.rate_limiter import RateLimiter
 from src.utils.sentry_breadcrumbs import add_trading_breadcrumb
 
 if TYPE_CHECKING:
-    from src.dmarket.item_filters import ItemFilters
+    from src.interfaces import IDMarketAPI
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
@@ -112,6 +112,8 @@ class ArbitrageScanner:
     - Автоматическая торговля найденными предметами
     - Настройка ограничений для управления рисками
 
+    Supports Dependency Injection via IDMarketAPI Protocol interface.
+
     Пример использования:
         scanner = ArbitrageScanner()
         opportunities = await scanner.scan_game("csgo", "medium", 10)
@@ -119,20 +121,18 @@ class ArbitrageScanner:
 
     def __init__(
         self,
-        api_client: DMarketAPI | None = None,
+        api_client: "IDMarketAPI | None" = None,
         enable_liquidity_filter: bool = True,
         enable_competition_filter: bool = True,
-        enable_item_filter: bool = True,
         max_competition: int = 3,
     ) -> None:
         """Инициализирует сканер арбитража.
 
         Args:
-            api_client: Предварительно созданный клиент DMarketAPI или None
-                        для создания нового при необходимости
+            api_client: DMarket API клиент (implements IDMarketAPI Protocol)
+                        или None для создания нового при необходимости
             enable_liquidity_filter: Включить фильтрацию по ликвидности
             enable_competition_filter: Включить фильтрацию по конкуренции buy orders
-            enable_item_filter: Включить фильтрацию по blacklist/whitelist из config
             max_competition: Максимально допустимое количество конкурирующих ордеров
 
         """
@@ -150,10 +150,6 @@ class ArbitrageScanner:
         self.enable_competition_filter = enable_competition_filter
         self.max_competition = max_competition  # Максимум конкурентных ордеров
 
-        # Параметры фильтрации по blacklist/whitelist
-        self.enable_item_filter = enable_item_filter
-        self._item_filters: ItemFilters | None = None  # Lazy loaded
-
         # Параметры фильтрации по ликвидности
         self.min_liquidity_score = 60  # Минимальный балл ликвидности
         self.min_sales_per_week = 5  # Минимум продаж в неделю
@@ -169,18 +165,6 @@ class ArbitrageScanner:
         self.total_items_found = 0
         self.successful_trades = 0
         self.total_profit = 0.0
-
-    @property
-    def item_filters(self) -> ItemFilters | None:
-        """Get item filters instance (lazy loaded)."""
-        if self._item_filters is None and self.enable_item_filter:
-            try:
-                from src.dmarket.item_filters import get_item_filters
-                self._item_filters = get_item_filters()
-            except ImportError:
-                logger.warning("Item filters module not available")
-                self._item_filters = None
-        return self._item_filters
 
     @property
     def cache_ttl(self) -> int:
@@ -224,41 +208,6 @@ class ArbitrageScanner:
         """
         self._cache[cache_key] = (items, time.time())
         logger.debug(f"Кэшировано {len(items)} предметов для {cache_key}")
-
-    def apply_item_filters(
-        self,
-        items: list[dict[str, Any]],
-        game: str | None = None,
-    ) -> list[dict[str, Any]]:
-        """Apply item blacklist/whitelist filters to items.
-
-        Args:
-            items: List of item dictionaries
-            game: Game code for game-specific filtering
-
-        Returns:
-            Filtered list of items
-
-        """
-        if not self.enable_item_filter or self.item_filters is None:
-            return items
-
-        return self.item_filters.filter_items(items, game)
-
-    def is_item_allowed(self, item_name: str) -> bool:
-        """Check if item passes blacklist/whitelist filters.
-
-        Args:
-            item_name: Item name to check
-
-        Returns:
-            True if item is allowed for arbitrage
-
-        """
-        if not self.enable_item_filter or self.item_filters is None:
-            return True
-
-        return self.item_filters.is_item_allowed(item_name)
 
     async def get_api_client(self) -> DMarketAPI:
         """Получает экземпляр DMarketAPI клиента.
