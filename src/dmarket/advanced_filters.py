@@ -32,6 +32,8 @@ import logging
 import math
 from typing import TYPE_CHECKING, Any
 
+import yaml
+
 
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
@@ -553,8 +555,6 @@ def load_filter_config_from_yaml(config_path: str) -> FilterConfig:
         FilterConfig instance
     """
     try:
-        import yaml
-
         with open(config_path, encoding="utf-8") as f:
             data = yaml.safe_load(f)
 
@@ -594,8 +594,6 @@ def load_category_filters_from_yaml(
         Tuple of (bad_categories, good_categories)
     """
     try:
-        import yaml
-
         with open(config_path, encoding="utf-8") as f:
             data = yaml.safe_load(f)
 
