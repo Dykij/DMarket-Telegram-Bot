@@ -58,3 +58,19 @@ arbitrage_filters:
   outlier_threshold: ${OUTLIER_THRESHOLD:2.0}
   min_liquidity_score: ${MIN_LIQUIDITY_SCORE:60}
   max_time_to_sell_days: ${MAX_TIME_TO_SELL_DAYS:7}
+
+# Auto-sell configuration (P1-17)
+# Automatic selling after purchase with dynamic pricing
+auto_sell:
+  enabled: ${AUTO_SELL_ENABLED:true}
+  min_margin_percent: ${AUTO_SELL_MIN_MARGIN:4.0}      # Minimum acceptable margin
+  max_margin_percent: ${AUTO_SELL_MAX_MARGIN:12.0}     # Maximum target margin
+  target_margin_percent: ${AUTO_SELL_TARGET_MARGIN:8.0} # Default target margin
+  undercut_cents: ${AUTO_SELL_UNDERCUT:1}              # Undercut top offer by X cents
+  price_check_interval_minutes: ${AUTO_SELL_CHECK_INTERVAL:30}  # Price check frequency
+  stop_loss_hours: ${AUTO_SELL_STOP_LOSS_HOURS:48}     # Hours before stop-loss trigger
+  stop_loss_percent: ${AUTO_SELL_STOP_LOSS_PERCENT:5.0} # Max loss from buy price
+  max_active_sales: ${AUTO_SELL_MAX_ACTIVE:50}         # Max concurrent sales
+  delay_before_list_seconds: ${AUTO_SELL_DELAY:5}      # Delay before listing
+  pricing_strategy: ${AUTO_SELL_STRATEGY:undercut}     # undercut, match, fixed_margin, dynamic
+  dmarket_fee_percent: ${DMARKET_FEE:7.0}              # DMarket commission
