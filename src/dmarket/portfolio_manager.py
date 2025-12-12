@@ -203,17 +203,23 @@ class PortfolioConfig:
         max_single_item_percent: Maximum % in single item (default 20%)
         max_single_game_percent: Maximum % in single game (default 50%)
         max_stale_days: Days before item is considered stale (default 30)
+        max_target_days: Days before target is considered stale (default 7)
         min_liquidity_score: Minimum liquidity score (default 0.3)
         target_cash_percent: Target cash allocation (default 20%)
         rebalance_threshold: Threshold % for rebalancing (default 5%)
+        default_game_id: Default game ID for inventory queries (default "a8db" = CS:GO)
+        inventory_limit: Maximum items to fetch per query (default 100)
     """
 
     max_single_item_percent: float = 20.0
     max_single_game_percent: float = 50.0
     max_stale_days: int = 30
+    max_target_days: int = 7
     min_liquidity_score: float = 0.3
     target_cash_percent: float = 20.0
     rebalance_threshold: float = 5.0
+    default_game_id: str = "a8db"  # CS:GO
+    inventory_limit: int = 100
 
 
 class PortfolioManager:
@@ -277,14 +283,17 @@ class PortfolioManager:
                 balance_data = await self._api.get_balance()
                 cash_balance = float(balance_data.get("usd", 0)) / 100  # cents to USD
 
-                # Get inventory
+                # Get inventory (use configurable game_id and limit)
                 inventory_data = await self._api.get_user_inventory(
-                    game_id="a8db", limit=100  # CS:GO game ID
+                    game_id=self._config.default_game_id,
+                    limit=self._config.inventory_limit,
                 )
                 inventory_items = inventory_data.get("objects", [])
 
                 # Get listed items (on market)
-                offers_data = await self._api.get_user_offers(limit=100)
+                offers_data = await self._api.get_user_offers(
+                    limit=self._config.inventory_limit
+                )
                 listed_items = offers_data.get("objects", [])
 
                 # Get active targets
@@ -483,15 +492,16 @@ class PortfolioManager:
         title_lower = title.lower()
 
         # Define category patterns
+        # Note: Order matters - more specific categories should come first
         categories = {
             "Knife": ["knife", "karambit", "bayonet", "gut", "flip", "falchion", "bowie"],
             "Gloves": ["gloves"],
-            "Rifle": ["ak-47", "m4a4", "m4a1-s", "awp", "famas", "galil", "sg 553", "aug"],
+            "Sniper": ["awp", "ssg 08", "g3sg1", "scar-20"],  # AWP moved here
+            "Rifle": ["ak-47", "m4a4", "m4a1-s", "famas", "galil", "sg 553", "aug"],
             "Pistol": ["glock", "usp-s", "p2000", "desert eagle", "five-seven", "tec-9"],
             "SMG": ["mp9", "mac-10", "mp7", "ump-45", "p90", "pp-bizon", "mp5-sd"],
             "Shotgun": ["nova", "xm1014", "sawed-off", "mag-7"],
             "Machine Gun": ["m249", "negev"],
-            "Sniper": ["ssg 08", "g3sg1", "scar-20"],
             "Sticker": ["sticker"],
             "Case": ["case"],
             "Key": ["key"],
@@ -782,7 +792,7 @@ class PortfolioManager:
         for asset in snapshot.assets:
             if asset.asset_type == AssetType.TARGET:
                 # If target has been active too long, recommend cancellation
-                if asset.days_held > 7:  # Target active for more than 7 days
+                if asset.days_held > self._config.max_target_days:
                     recommendations.append(
                         RebalanceRecommendation(
                             action=RebalanceAction.CANCEL_TARGET,
@@ -792,7 +802,7 @@ class PortfolioManager:
                             target_value=0,
                             quantity=asset.quantity,
                             priority=2,
-                            reason=f"Stale target: {asset.days_held} days without fill",
+                            reason=f"Stale target: {asset.days_held} days without fill (>{self._config.max_target_days})",
                             expected_impact=f"Free up ${asset.total_value:.2f} in locked funds",
                         )
                     )

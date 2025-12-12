@@ -37,8 +37,8 @@ def mock_api():
     """Create mock DMarket API client."""
     api = AsyncMock()
 
-    # Mock balance
-    api.get_balance.return_value = {"usd": "100000"}  # $1000.00 in cents
+    # Mock balance - 100000 cents = $1000.00
+    api.get_balance.return_value = {"usd": "100000"}
 
     # Mock inventory
     api.get_user_inventory.return_value = {
