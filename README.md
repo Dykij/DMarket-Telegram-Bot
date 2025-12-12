@@ -1,6 +1,6 @@
 # 🤖 DMarket Telegram Bot
 
-![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)
+![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)
 [![CI](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/ci.yml/badge.svg)](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/ci.yml)
 [![Code Quality](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/quality.yml/badge.svg)](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/quality.yml)
 [![Coverage](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/coverage.yml/badge.svg)](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/coverage.yml)
@@ -10,6 +10,7 @@
 ![Type Checked](https://img.shields.io/badge/type%20checked-mypy-blue)
 ![Docker](https://img.shields.io/badge/docker-ready-blue)
 [![Release](https://img.shields.io/github/v/release/Dykij/DMarket-Telegram-Bot)](https://github.com/Dykij/DMarket-Telegram-Bot/releases)
+![Tests](https://img.shields.io/badge/tests-2688%2F2688%20passing-brightgreen)
 
 A comprehensive Telegram bot for DMarket platform operations, market analytics, and automated trading opportunities. Built with modern Python, async/await, and enterprise-grade architecture.
 
@@ -60,7 +61,7 @@ A comprehensive Telegram bot for DMarket platform operations, market analytics, 
 
 ### Prerequisites
 
-- Python 3.10 or higher (3.11+ recommended)
+- Python 3.11 or higher (3.12+ recommended)
 - Telegram Bot Token ([create one with @BotFather](https://t.me/BotFather))
 - DMarket API Keys ([get them here](https://dmarket.com/profile/api))
 - PostgreSQL (recommended) or SQLite for development
@@ -1110,16 +1111,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📊 Статистика проекта
 
-- **Языки**: Python 3.10+ (3.11+ рекомендуется)
+- **Языки**: Python 3.11+ (3.12+ рекомендуется)
 - **Версия проекта**: 1.0.0
-- **Фреймворк**: python-telegram-bot 20.7+
+- **Фреймворк**: python-telegram-bot 22.0+
 - **База данных**: PostgreSQL (production), SQLite (dev)
 - **Async**: Full async/await с asyncio
-- **Тестирование**: pytest 7.4+, 85%+ покрытие (цель)
-- **Качество кода**: Ruff 0.8+, Black 24+, MyPy 1.11+ (strict mode)
+- **Тестирование**: pytest 8.4+, 2688 тестов (100% passing)
+- **Покрытие**: 85%+ (цель)
+- **Качество кода**: Ruff 0.14+, MyPy 1.19+ (strict mode)
 - **ORM**: SQLAlchemy 2.0+
-- **HTTP**: httpx 0.27+ (async)
-- **CI/CD**: GitHub Actions (4 workflow)
+- **HTTP**: httpx 0.28+ (async)
+- **CI/CD**: GitHub Actions (15 workflows)
 - **Лицензия**: MIT
 
 ---

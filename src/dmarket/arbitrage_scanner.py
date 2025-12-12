@@ -26,9 +26,8 @@ from src.dmarket.liquidity_analyzer import LiquidityAnalyzer
 from src.utils.rate_limiter import RateLimiter
 from src.utils.sentry_breadcrumbs import add_trading_breadcrumb
 
-
 if TYPE_CHECKING:
-    from src.dmarket.advanced_filters import AdvancedArbitrageFilter
+    from src.dmarket.item_filters import ItemFilters
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
@@ -112,7 +111,6 @@ class ArbitrageScanner:
     - Кеширование результатов для оптимизации запросов к API
     - Автоматическая торговля найденными предметами
     - Настройка ограничений для управления рисками
-    - Расширенные фильтры (история продаж, ликвидность, категории)
 
     Пример использования:
         scanner = ArbitrageScanner()
@@ -124,8 +122,8 @@ class ArbitrageScanner:
         api_client: DMarketAPI | None = None,
         enable_liquidity_filter: bool = True,
         enable_competition_filter: bool = True,
+        enable_item_filter: bool = True,
         max_competition: int = 3,
-        enable_advanced_filters: bool = True,
     ) -> None:
         """Инициализирует сканер арбитража.
 
@@ -134,8 +132,8 @@ class ArbitrageScanner:
                         для создания нового при необходимости
             enable_liquidity_filter: Включить фильтрацию по ликвидности
             enable_competition_filter: Включить фильтрацию по конкуренции buy orders
+            enable_item_filter: Включить фильтрацию по blacklist/whitelist из config
             max_competition: Максимально допустимое количество конкурирующих ордеров
-            enable_advanced_filters: Включить расширенные фильтры (P1-16)
 
         """
         self.api_client = api_client
@@ -151,6 +149,10 @@ class ArbitrageScanner:
         # Параметры фильтрации по конкуренции
         self.enable_competition_filter = enable_competition_filter
         self.max_competition = max_competition  # Максимум конкурентных ордеров
+
+        # Параметры фильтрации по blacklist/whitelist
+        self.enable_item_filter = enable_item_filter
+        self._item_filters: ItemFilters | None = None  # Lazy loaded
 
         # Параметры фильтрации по ликвидности
         self.min_liquidity_score = 60  # Минимальный балл ликвидности
@@ -168,40 +170,17 @@ class ArbitrageScanner:
         self.successful_trades = 0
         self.total_profit = 0.0
 
-        # Расширенные фильтры (P1-16)
-        self.enable_advanced_filters = enable_advanced_filters
-        self._advanced_filter: AdvancedArbitrageFilter | None = None
-
-    def _init_advanced_filter(self) -> AdvancedArbitrageFilter:
-        """Initialize advanced filter if not already initialized.
-
-        Returns:
-            AdvancedArbitrageFilter instance
-        """
-        if self._advanced_filter is None:
-            from src.dmarket.advanced_filters import AdvancedArbitrageFilter
-
-            # Try to load config from file
+    @property
+    def item_filters(self) -> ItemFilters | None:
+        """Get item filters instance (lazy loaded)."""
+        if self._item_filters is None and self.enable_item_filter:
             try:
-                from src.dmarket.advanced_filters import (
-                    load_category_filters_from_yaml,
-                    load_filter_config_from_yaml,
-                )
-
-                config = load_filter_config_from_yaml("config/item_filters.yaml")
-                bad_cats, good_cats = load_category_filters_from_yaml(
-                    "config/item_filters.yaml"
-                )
-                self._advanced_filter = AdvancedArbitrageFilter(
-                    config=config,
-                    bad_categories=bad_cats,
-                    good_categories=good_cats,
-                )
-            except Exception as e:
-                logger.warning("Failed to load filter config: %s, using defaults", e)
-                self._advanced_filter = AdvancedArbitrageFilter()
-
-        return self._advanced_filter
+                from src.dmarket.item_filters import get_item_filters
+                self._item_filters = get_item_filters()
+            except ImportError:
+                logger.warning("Item filters module not available")
+                self._item_filters = None
+        return self._item_filters
 
     @property
     def cache_ttl(self) -> int:
@@ -245,6 +224,41 @@ class ArbitrageScanner:
         """
         self._cache[cache_key] = (items, time.time())
         logger.debug(f"Кэшировано {len(items)} предметов для {cache_key}")
+
+    def apply_item_filters(
+        self,
+        items: list[dict[str, Any]],
+        game: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """Apply item blacklist/whitelist filters to items.
+
+        Args:
+            items: List of item dictionaries
+            game: Game code for game-specific filtering
+
+        Returns:
+            Filtered list of items
+
+        """
+        if not self.enable_item_filter or self.item_filters is None:
+            return items
+
+        return self.item_filters.filter_items(items, game)
+
+    def is_item_allowed(self, item_name: str) -> bool:
+        """Check if item passes blacklist/whitelist filters.
+
+        Args:
+            item_name: Item name to check
+
+        Returns:
+            True if item is allowed for arbitrage
+
+        """
+        if not self.enable_item_filter or self.item_filters is None:
+            return True
+
+        return self.item_filters.is_item_allowed(item_name)
 
     async def get_api_client(self) -> DMarketAPI:
         """Получает экземпляр DMarketAPI клиента.
@@ -419,10 +433,6 @@ class ArbitrageScanner:
                 # Если фильтр выключен, просто берем топ по прибыли
                 results = items
 
-            # Применяем расширенные фильтры (P1-16)
-            if self.enable_advanced_filters:
-                results = await self._apply_advanced_filters(results, game)
-
             # Ограничиваем количество предметов в результате
             results = results[:max_items]
 
@@ -433,7 +443,6 @@ class ArbitrageScanner:
                 level=mode,
                 items_found=len(results),
                 liquidity_filter=self.enable_liquidity_filter,
-                advanced_filters=self.enable_advanced_filters,
             )
 
             # Сохраняем в кэш
@@ -513,80 +522,6 @@ class ArbitrageScanner:
                 )
 
         return standardized_items
-
-    async def _apply_advanced_filters(
-        self,
-        items: list[dict[str, Any]],
-        game: str,
-    ) -> list[dict[str, Any]]:
-        """Apply advanced filters to items (P1-16).
-
-        Filters items based on:
-        - Category blacklist/whitelist
-        - Sales history analysis
-        - Liquidity metrics
-        - Outlier detection
-
-        Args:
-            items: List of items to filter
-            game: Game ID (csgo, dota2, etc.)
-
-        Returns:
-            Filtered list of items
-        """
-        if not items:
-            return items
-
-        try:
-            advanced_filter = self._init_advanced_filter()
-            api_client = await self.get_api_client() if self.api_client else None
-
-            filtered_items = []
-            for item in items:
-                passed, reasons = await advanced_filter.evaluate_item(
-                    item=item,
-                    api_client=api_client,
-                    game=game,
-                )
-
-                if passed:
-                    # Mark good category items
-                    title = item.get("title", "")
-                    if advanced_filter.is_in_good_category(title):
-                        item["priority_category"] = True
-                    filtered_items.append(item)
-                else:
-                    logger.debug(
-                        "Item filtered out: %s - %s",
-                        item.get("title", "Unknown"),
-                        ", ".join(reasons),
-                    )
-
-            # Log filter statistics
-            stats = advanced_filter.get_statistics()
-            logger.info(
-                "Advanced filter stats for %s: %d/%d passed (%.1f%%)",
-                game,
-                stats["passed"],
-                stats["total_evaluated"],
-                stats["pass_rate"],
-            )
-
-            return filtered_items
-
-        except Exception as e:
-            logger.warning("Advanced filter error, returning unfiltered: %s", e)
-            return items
-
-    def get_filter_statistics(self) -> dict[str, Any]:
-        """Get advanced filter statistics.
-
-        Returns:
-            Dictionary with filter statistics or empty dict if not initialized
-        """
-        if self._advanced_filter:
-            return self._advanced_filter.get_statistics()
-        return {}
 
     async def scan_multiple_games(
         self,
@@ -1248,10 +1183,6 @@ class ArbitrageScanner:
         # Проверка поддерживаемых игр
         if game not in GAME_IDS:
             raise ValueError(f"Игра '{game}' не поддерживается")
-
-        # Проверка наличия API клиента
-        if self.api_client is None:
-            raise RuntimeError("API client is not initialized")
 
         if use_cache:
             cached = self._get_from_cache(cache_key)

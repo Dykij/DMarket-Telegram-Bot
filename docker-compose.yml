@@ -1,4 +1,6 @@
-version: '3.8'
+# Docker Compose for DMarket Telegram Bot
+# Compose file format version: 3.8+ (Docker Compose v2)
+# Last updated: December 2025
 
 services:
   bot:
@@ -18,12 +20,20 @@ services:
     networks:
       - bot-network
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "from src.utils.config import load_config; load_config()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # PostgreSQL database for analytics and user data
   postgres:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
     container_name: dmarket-postgres
     restart: unless-stopped
     environment:
@@ -37,19 +47,31 @@ services:
       - "5432:5432"
     networks:
       - bot-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dmarket_user -d dmarket_bot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   # Redis for caching and session storage
   redis:
-    image: redis:7-alpine
+    image: redis:7.4-alpine
     container_name: dmarket-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
     ports:
       - "6379:6379"
     networks:
       - bot-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   # Optional: Monitoring with Prometheus (uncomment if needed)
   # prometheus:

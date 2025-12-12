@@ -331,7 +331,10 @@ async def toggle_game_filter(
     user_id = update.effective_user.id
 
     # Получаем код игры из callback_data
-    game_code = query.data.split("_")[-1]
+    callback_data = query.data
+    if callback_data is None:
+        return
+    game_code = callback_data.split("_")[-1]
 
     filters_manager = get_filters_manager()
     user_filters = filters_manager.get_user_filters(user_id)
@@ -438,7 +441,10 @@ async def set_profit_filter(
     user_id = update.effective_user.id
 
     # Получаем значение прибыли из callback_data
-    profit_value = float(query.data.split("_")[-1])
+    callback_data = query.data
+    if callback_data is None:
+        return
+    profit_value = float(callback_data.split("_")[-1])
 
     filters_manager = get_filters_manager()
     user_filters = filters_manager.get_user_filters(user_id)
@@ -530,7 +536,10 @@ async def toggle_level_filter(
     user_id = update.effective_user.id
 
     # Получаем код уровня из callback_data
-    level_code = query.data.split("_")[-1]
+    callback_data = query.data
+    if callback_data is None:
+        return
+    level_code = callback_data.split("_")[-1]
 
     filters_manager = get_filters_manager()
     user_filters = filters_manager.get_user_filters(user_id)
@@ -630,7 +639,10 @@ async def toggle_type_filter(
     user_id = update.effective_user.id
 
     # Получаем код типа из callback_data
-    type_code = query.data.split("_")[-1]
+    callback_data = query.data
+    if callback_data is None:
+        return
+    type_code = callback_data.split("_")[-1]
 
     filters_manager = get_filters_manager()
     user_filters = filters_manager.get_user_filters(user_id)

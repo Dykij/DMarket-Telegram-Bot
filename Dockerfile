@@ -1,12 +1,13 @@
 # ============================================================================
 # Multi-stage Production-grade Dockerfile for DMarket Telegram Bot
 # Size reduction: ~70% vs single-stage | Security: non-root user | Health checks included
+# Last updated: December 2025
 # ============================================================================
 
 # ============================================================================
 # STAGE 1: Builder - Install dependencies and create wheels
 # ============================================================================
-FROM python:3.11-slim AS builder
+FROM python:3.12-slim AS builder
 
 WORKDIR /build
 
@@ -26,11 +27,12 @@ RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 # ============================================================================
 # STAGE 2: Runtime - Minimal production image
 # ============================================================================
-FROM python:3.11-slim AS runtime
+FROM python:3.12-slim AS runtime
 
 LABEL maintainer="DMarket Bot Team <example@example.com>"
 LABEL description="Production-ready DMarket Telegram Bot"
 LABEL version="1.0.0"
+LABEL python.version="3.12"
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
