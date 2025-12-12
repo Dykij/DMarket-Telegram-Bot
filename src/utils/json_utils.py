@@ -18,7 +18,7 @@ try:
     ORJSON_AVAILABLE = True
     logger.info("Using orjson for JSON serialization (faster)")
 except ImportError:
-    orjson = None  # type: ignore[assignment]
+    orjson = None  # type: ignore[assignment,unused-ignore]
 
     ORJSON_AVAILABLE = False
     logger.warning(

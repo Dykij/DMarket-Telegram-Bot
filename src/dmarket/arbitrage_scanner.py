@@ -1249,6 +1249,10 @@ class ArbitrageScanner:
         if game not in GAME_IDS:
             raise ValueError(f"Игра '{game}' не поддерживается")
 
+        # Проверка наличия API клиента
+        if self.api_client is None:
+            raise RuntimeError("API client is not initialized")
+
         if use_cache:
             cached = self._get_from_cache(cache_key)
             if cached is not None:

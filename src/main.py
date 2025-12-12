@@ -122,11 +122,11 @@ class Application:
             # Initialize Telegram Bot
             logger.info("Initializing Telegram Bot...")
 
-            if not self.config.telegram.bot_token:
+            if not self.config.bot.token:
                 raise ValueError("Telegram bot token is not configured")
 
             builder = ApplicationBuilder().token(
-                self.config.telegram.bot_token,
+                self.config.bot.token,
             )
             self.bot = builder.build()
 
@@ -161,17 +161,22 @@ class Application:
                 logger.info("Initializing Daily Report Scheduler...")
                 from datetime import time
 
-                admin_users = (
+                admin_users_raw = (
                     self.config.security.admin_users
                     if hasattr(self.config.security, "admin_users")
                     else []
                 )
 
-                if not admin_users and hasattr(
+                if not admin_users_raw and hasattr(
                     self.config.security,
                     "allowed_users",
                 ):
-                    admin_users = self.config.security.allowed_users
+                    admin_users_raw = self.config.security.allowed_users
+
+                # Convert to list[int] for DailyReportScheduler
+                admin_users: list[int] = [
+                    int(uid) for uid in admin_users_raw if str(uid).isdigit()
+                ]
 
                 report_time = time(
                     hour=self.config.daily_report.report_time_hour,

@@ -6,7 +6,7 @@ import time
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.utils.notifier import Notifier  # type: ignore[import-untyped]
+    from src.utils.notifier import Notifier
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
