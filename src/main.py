@@ -216,7 +216,8 @@ class Application:
             # Start the bot
             if self.bot:
                 await self.bot.start()
-                await self.bot.updater.start_polling()
+                if self.bot.updater is not None:
+                    await self.bot.updater.start_polling()
                 logger.info("Bot polling started")
 
             # Wait for shutdown signal
@@ -262,7 +263,7 @@ class Application:
             # Stop the bot
             if self.bot:
                 logger.info("Stopping Telegram Bot...")
-                if self.bot.updater.running:
+                if self.bot.updater is not None and self.bot.updater.running:
                     await self.bot.updater.stop()
                 if self.bot.running:
                     await self.bot.stop()

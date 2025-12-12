@@ -57,20 +57,20 @@ async def check_balance_command(
     is_message = isinstance(message, Message)
     is_update = isinstance(message, Update) and (not is_callback and not is_message)
 
-    if is_callback:
+    if is_callback and isinstance(message, CallbackQuery):
         # For callback, send temporary checking message
         await message.edit_message_text(
             text="🔄 <b>Проверка подключения к DMarket API...</b>",
             parse_mode=ParseMode.HTML,
         )
         processing_message = None
-    elif is_message:
+    elif is_message and isinstance(message, Message):
         # For normal message, send temporary checking message
         processing_message = await message.reply_text(
             text="🔄 <b>Проверка подключения к DMarket API...</b>",
             parse_mode=ParseMode.HTML,
         )
-    elif is_update and hasattr(message, "message") and message.message:
+    elif is_update and isinstance(message, Update) and message.message is not None:
         # For Update object
         processing_message = await message.message.reply_text(
             text="🔄 <b>Проверка подключения к DMarket API...</b>",
@@ -94,13 +94,13 @@ async def check_balance_command(
                 "Проверьте, что ключи API настроены правильно."
             )
 
-            if is_callback:
+            if is_callback and isinstance(message, CallbackQuery):
                 await message.edit_message_text(
                     text=error_text,
                     reply_markup=get_back_to_arbitrage_keyboard(),
                     parse_mode=ParseMode.HTML,
                 )
-            elif processing_message:
+            elif processing_message is not None:
                 await processing_message.edit_text(
                     text=error_text,
                     parse_mode=ParseMode.HTML,
@@ -109,12 +109,12 @@ async def check_balance_command(
 
         # Update status
         status_text = "🔄 <b>Проверка баланса DMarket...</b>"
-        if is_callback:
+        if is_callback and isinstance(message, CallbackQuery):
             await message.edit_message_text(
                 text=status_text,
                 parse_mode=ParseMode.HTML,
             )
-        elif processing_message:
+        elif processing_message is not None:
             await processing_message.edit_text(
                 text=status_text,
                 parse_mode=ParseMode.HTML,
@@ -181,17 +181,18 @@ async def check_balance_command(
                         f"Проверьте настройки API ключей и попробуйте снова."
                     )
 
-                if is_callback:
+                if is_callback and isinstance(message, CallbackQuery):
                     await message.edit_message_text(
                         text=error_text,
                         reply_markup=get_back_to_arbitrage_keyboard(),
                         parse_mode=ParseMode.HTML,
                     )
                 else:
-                    await processing_message.edit_text(
-                        text=error_text,
-                        parse_mode=ParseMode.HTML,
-                    )
+                    if processing_message is not None:
+                        await processing_message.edit_text(
+                            text=error_text,
+                            parse_mode=ParseMode.HTML,
+                        )
                 return
 
             # Extract balance data
@@ -253,18 +254,18 @@ async def check_balance_command(
             )
 
             # Send result
-            if is_callback:
+            if is_callback and isinstance(message, CallbackQuery):
                 reply_markup = get_back_to_arbitrage_keyboard()
             else:
                 reply_markup = None
 
-            if is_callback:
+            if is_callback and isinstance(message, CallbackQuery):
                 await message.edit_message_text(
                     text=response_text,
                     reply_markup=reply_markup,
                     parse_mode=ParseMode.HTML,
                 )
-            else:
+            elif processing_message is not None:
                 await processing_message.edit_text(
                     text=response_text,
                     parse_mode=ParseMode.HTML,
@@ -278,13 +279,13 @@ async def check_balance_command(
                 f"Проверьте настройки API ключей и повторите попытку."
             )
 
-            if is_callback:
+            if is_callback and isinstance(message, CallbackQuery):
                 await message.edit_message_text(
                     text=error_text,
                     reply_markup=get_back_to_arbitrage_keyboard(),
                     parse_mode=ParseMode.HTML,
                 )
-            else:
+            elif processing_message is not None:
                 await processing_message.edit_text(
                     text=error_text,
                     parse_mode=ParseMode.HTML,
@@ -337,13 +338,13 @@ async def check_balance_command(
                 f"администратору."
             )
 
-        if is_callback:
+        if is_callback and isinstance(message, CallbackQuery):
             await message.edit_message_text(
                 text=error_text,
                 reply_markup=get_back_to_arbitrage_keyboard(),
                 parse_mode=ParseMode.HTML,
             )
-        else:
+        elif processing_message is not None:
             await processing_message.edit_text(
                 text=error_text,
                 parse_mode=ParseMode.HTML,
