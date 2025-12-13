@@ -24,13 +24,17 @@ def mock_api_client():
     client.get_all_market_items = AsyncMock()
     client.get_market_items = AsyncMock()
     client.get_price_info = AsyncMock()
+    # Support async context manager (async with self.api:)
+    client.__aenter__ = AsyncMock(return_value=client)
+    client.__aexit__ = AsyncMock(return_value=None)
     return client
 
 
 @pytest.fixture()
 def trader(mock_api_client):
-    # Patch DMarketAPI to return our mock
-    with patch("src.dmarket.arbitrage.DMarketAPI", return_value=mock_api_client):
+    # Patch DMarketAPI at the actual source location where it's imported
+    # ArbitrageTrader.__init__ imports DMarketAPI from src.dmarket.dmarket_api
+    with patch("src.dmarket.dmarket_api.DMarketAPI", return_value=mock_api_client):
         trader = ArbitrageTrader(public_key="test_pub", secret_key="test_sec")
         # Ensure the trader uses our mock client
         trader.api = mock_api_client
@@ -183,23 +187,23 @@ class TestFindArbitrageOpportunitiesAdvanced:
 @pytest.mark.asyncio()
 class TestArbitrageTraderFindProfitableItems:
     async def test_find_profitable_items_success(self, trader, mock_api_client):
-        # Arrange
-        mock_items = {
-            "objects": [
-                {
-                    "title": "Item 1",
-                    "price": {"amount": 1000, "currency": "USD"},  # $10
-                    "extra": {"popularity": 0.8},
-                    "itemId": "id1",
-                }
-            ]
-        }
-        mock_api_client.get_market_items.return_value = mock_items
-
-        # Mock get_price_info to return a good recommended price
-        mock_api_client.get_price_info.return_value = {
-            "recommendedPrice": 1500  # $15
-        }
+        # Arrange - Need at least 2 items with same title and different prices
+        # The algorithm finds arbitrage between items with same name
+        mock_items = [
+            {
+                "title": "Item 1",
+                "price": {"USD": 1000},  # $10 - buy price
+                "extra": {"popularity": 0.8, "category": "Rifle", "rarity": "Classified"},
+                "itemId": "id1",
+            },
+            {
+                "title": "Item 1",
+                "price": {"USD": 1500},  # $15 - sell price
+                "extra": {"popularity": 0.8, "category": "Rifle", "rarity": "Classified"},
+                "itemId": "id2",
+            },
+        ]
+        mock_api_client.get_all_market_items.return_value = mock_items
 
         # Act
         items = await trader.find_profitable_items(game="csgo", min_profit_percentage=10.0)
@@ -213,20 +217,22 @@ class TestArbitrageTraderFindProfitableItems:
         assert item["profit_percentage"] > 10.0
 
     async def test_find_profitable_items_no_suggested_price(self, trader, mock_api_client):
-        # Arrange
-        mock_items = {
-            "objects": [
-                {
-                    "title": "Item 1",
-                    "price": {"amount": 1000, "currency": "USD"},  # $10
-                    "extra": {"popularity": 0.5},
-                    "itemId": "id1",
-                }
-            ]
-        }
-        mock_api_client.get_market_items.return_value = mock_items
-        # No recommended price
-        mock_api_client.get_price_info.return_value = {}
+        # Arrange - Test case with low profit margin
+        mock_items = [
+            {
+                "title": "Item 1",
+                "price": {"USD": 1000},  # $10 - buy price
+                "extra": {"popularity": 0.5, "category": "Knife", "rarity": "Covert"},
+                "itemId": "id1",
+            },
+            {
+                "title": "Item 1",
+                "price": {"USD": 1200},  # $12 - sell price
+                "extra": {"popularity": 0.5, "category": "Knife", "rarity": "Covert"},
+                "itemId": "id2",
+            },
+        ]
+        mock_api_client.get_all_market_items.return_value = mock_items
 
         # Act
         items = await trader.find_profitable_items(game="csgo", min_profit_percentage=5.0)
@@ -234,14 +240,15 @@ class TestArbitrageTraderFindProfitableItems:
         # Assert
         assert len(items) == 1
         item = items[0]
-        # Should use 1.15 markup
-        assert item["sell_price"] == 11.5
-        # Profit: 11.5 * (1 - 0.07) - 10 = 10.695 - 10 = 0.695
-        # Profit %: 6.95% > 5.0%
+        # Profit: 12 * (1 - commission%) - 10
+        assert item["buy_price"] == 10.0
+        assert item["sell_price"] == 12.0
+        # With ~7% commission: 12 * 0.93 - 10 = 11.16 - 10 = 1.16 (11.6%)
+        assert item["profit_percentage"] > 5.0
 
     async def test_find_profitable_items_no_items_found(self, trader, mock_api_client):
-        # Arrange
-        mock_api_client.get_market_items.return_value = {"objects": []}
+        # Arrange - get_all_market_items returns a list directly
+        mock_api_client.get_all_market_items.return_value = []
 
         # Act
         items = await trader.find_profitable_items(game="csgo")
@@ -250,8 +257,8 @@ class TestArbitrageTraderFindProfitableItems:
         assert len(items) == 0
 
     async def test_find_profitable_items_api_error(self, trader, mock_api_client):
-        # Arrange
-        mock_api_client.get_market_items.side_effect = Exception("API Error")
+        # Arrange - get_all_market_items should raise exception
+        mock_api_client.get_all_market_items.side_effect = Exception("API Error")
 
         # Act
         items = await trader.find_profitable_items(game="csgo")
@@ -260,21 +267,24 @@ class TestArbitrageTraderFindProfitableItems:
         assert len(items) == 0
 
     async def test_find_profitable_items_item_processing_error(self, trader, mock_api_client):
-        # Arrange
-        mock_items = {
-            "objects": [
-                {
-                    "title": "Bad Item",
-                    # This will cause float conversion error
-                    "price": "invalid_price",
-                    "itemId": "id1",
-                }
-            ]
-        }
-        mock_api_client.get_market_items.return_value = mock_items
+        # Arrange - Items with invalid price format
+        mock_items = [
+            {
+                "title": "Bad Item",
+                # This will cause float conversion error
+                "price": "invalid_price",
+                "itemId": "id1",
+            },
+            {
+                "title": "Bad Item",
+                "price": {"USD": "not_a_number"},
+                "itemId": "id2",
+            },
+        ]
+        mock_api_client.get_all_market_items.return_value = mock_items
 
         # Act
         items = await trader.find_profitable_items(game="csgo")
 
-        # Assert
+        # Assert - should return empty list without crashing
         assert len(items) == 0

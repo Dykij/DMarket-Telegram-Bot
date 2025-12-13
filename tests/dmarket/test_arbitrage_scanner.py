@@ -13,7 +13,6 @@ import pytest
 from src.dmarket.arbitrage_scanner import ARBITRAGE_LEVELS, GAME_IDS, ArbitrageScanner
 from src.dmarket.dmarket_api import DMarketAPI
 
-
 # ============================================================================
 # Fixtures
 # ============================================================================
@@ -70,8 +69,8 @@ def scanner_no_client():
 def test_arbitrage_scanner_initialization(scanner):
     """Тест инициализации ArbitrageScanner."""
     assert scanner.api_client is not None
-    assert scanner._cache == {}
-    assert scanner._cache_ttl == 300
+    assert scanner._scanner_cache is not None
+    assert scanner._scanner_cache.ttl == 300
     assert scanner.min_profit == 0.5
     assert scanner.max_price == 50.0
     assert scanner.max_trades == 5
@@ -84,7 +83,7 @@ def test_arbitrage_scanner_initialization(scanner):
 def test_arbitrage_scanner_without_client(scanner_no_client):
     """Тест инициализации без API клиента."""
     assert scanner_no_client.api_client is None
-    assert scanner_no_client._cache == {}
+    assert scanner_no_client._scanner_cache is not None
 
 
 def test_cache_ttl_property(scanner):
@@ -92,7 +91,7 @@ def test_cache_ttl_property(scanner):
     assert scanner.cache_ttl == 300
     scanner.cache_ttl = 600
     assert scanner.cache_ttl == 600
-    assert scanner._cache_ttl == 600
+    assert scanner._scanner_cache.ttl == 600
 
 
 # ============================================================================
@@ -114,8 +113,10 @@ def test_save_to_cache(scanner):
 
     scanner._save_to_cache(cache_key, items)
 
-    assert cache_key in scanner._cache
-    cached_items, timestamp = scanner._cache[cache_key]
+    # Используем строковый ключ для доступа к внутреннему кешу
+    str_key = scanner._scanner_cache._make_key(cache_key)
+    assert str_key in scanner._scanner_cache._cache
+    cached_items, timestamp = scanner._scanner_cache._cache[str_key]
     assert cached_items == items
     assert isinstance(timestamp, float)
 
@@ -139,8 +140,9 @@ def test_get_cached_results_expired_cache(scanner):
     # Сохраняем в кеш
     scanner._save_to_cache(cache_key, items)
 
-    # Устанавливаем timestamp в прошлое
-    scanner._cache[cache_key] = (items, time.time() - 400)  # 400 секунд назад
+    # Устанавливаем timestamp в прошлое (напрямую в _scanner_cache)
+    str_key = scanner._scanner_cache._make_key(cache_key)
+    scanner._scanner_cache._cache[str_key] = (items, time.time() - 400)
 
     result = scanner._get_cached_results(cache_key)
     assert result is None
@@ -183,7 +185,10 @@ async def test_get_api_client_create_new(scanner_no_client):
 async def test_scan_game_with_cache(scanner):
     """Тест scan_game с использованием кеша."""
     # Подготовка кеша
-    cache_key = ("csgo", "medium", 0.0, float("inf"))
+    # Ключ должен совпадать с тем, что создает scan_game():
+    # cache_key = (game, mode, price_from or 0, price_to or float("inf"))
+    # Где price_from=None -> 0 (int), price_to=None -> float("inf")
+    cache_key = ("csgo", "medium", 0, float("inf"))  # 0 (int), не 0.0 (float)!
     cached_items = [{"item": "cached1"}, {"item": "cached2"}]
     scanner._save_to_cache(cache_key, cached_items)
 
@@ -503,7 +508,7 @@ async def test_scan_level_with_cache(scanner):
     """Тест scan_level с кешем."""
     cache_key = "scan_level_csgo_boost"  # Правильный формат ключа
     cached_data = [{"item": "cached"}]
-    scanner._cache[cache_key] = (cached_data, time.time())
+    scanner._scanner_cache._cache[cache_key] = (cached_data, time.time())
 
     result = await scanner.scan_level("boost", "csgo")
 

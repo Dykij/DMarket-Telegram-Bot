@@ -298,16 +298,20 @@ async def test_scan_multiple_games_function():
 
 def test_clear_cache(scanner):
     """Тест очистки кэша."""
-    # Добавляем данные в кэш
-    scanner._cache["key1"] = ([{"item": "1"}], time.time())
-    scanner._cache["key2"] = ([{"item": "2"}], time.time())
+    # Добавляем данные в кэш через публичный API ScannerCache
+    scanner._scanner_cache.set("key1", [{"item": "1"}])
+    scanner._scanner_cache.set("key2", [{"item": "2"}])
 
-    assert len(scanner._cache) == 2
+    # Проверяем что данные в кэше
+    assert scanner._scanner_cache.get("key1") is not None
+    assert scanner._scanner_cache.get("key2") is not None
 
     # Очищаем кэш
     scanner.clear_cache()
 
-    assert len(scanner._cache) == 0
+    # После очистки кэш должен быть пуст
+    assert scanner._scanner_cache.get("key1") is None
+    assert scanner._scanner_cache.get("key2") is None
 
 
 def test_cache_key_generation(scanner):
@@ -318,23 +322,31 @@ def test_cache_key_generation(scanner):
     scanner._save_to_cache(key1, [{"item": "1"}])
     scanner._save_to_cache(key2, [{"item": "2"}])
 
-    assert key1 in scanner._cache
-    assert key2 in scanner._cache
-    assert scanner._cache[key1][0] != scanner._cache[key2][0]
+    # Проверяем что данные сохранены с разными ключами
+    cached1 = scanner._scanner_cache.get(key1)
+    cached2 = scanner._scanner_cache.get(key2)
+
+    assert cached1 is not None
+    assert cached2 is not None
+    assert cached1 != cached2
 
 
 def test_cache_internal_structure(scanner):
-    """Тест внутренней структуры кэша."""
-    scanner._cache["key1"] = ([{"item": "1"}], time.time())
-    scanner._cache["key2"] = ([{"item": "2"}, {"item": "3"}], time.time() - 1000)  # Устаревший
+    """Тест внутренней структуры кэша через публичный API."""
+    # Используем публичный API для добавления данных
+    scanner._scanner_cache.set("key1", [{"item": "1"}])
+    scanner._scanner_cache.set("key2", [{"item": "2"}, {"item": "3"}])
 
-    # Проверяем структуру кэша напрямую (метод get_cache_stats не существует)
-    assert len(scanner._cache) == 2
-    assert "key1" in scanner._cache
-    assert "key2" in scanner._cache
-    # Проверяем формат записи: (data, timestamp)
-    assert len(scanner._cache["key1"]) == 2
-    assert isinstance(scanner._cache["key1"][0], list)
+    # Проверяем через get
+    data1 = scanner._scanner_cache.get("key1")
+    data2 = scanner._scanner_cache.get("key2")
+
+    assert data1 is not None
+    assert data2 is not None
+    assert isinstance(data1, list)
+    assert isinstance(data2, list)
+    assert len(data1) == 1
+    assert len(data2) == 2
 
 
 # ============================================================================

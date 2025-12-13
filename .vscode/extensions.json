@@ -39,6 +39,7 @@
         // ========== GitHub Copilot (REQUIRED) ==========
         "github.copilot", // GitHub Copilot
         "github.copilot-chat", // GitHub Copilot Chat
+        "github.copilot-labs", // Copilot Labs - experimental features
         // ========== REST API Testing (OPTIONAL) ==========
         "humao.rest-client", // REST client for API testing
         // ========== Jupyter (OPTIONAL) ==========

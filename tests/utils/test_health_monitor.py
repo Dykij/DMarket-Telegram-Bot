@@ -148,7 +148,7 @@ class TestHealthMonitor:
         assert result.service == "database"
         assert result.status == ServiceStatus.HEALTHY
         assert result.message == "Database connection OK"
-        assert result.response_time_ms > 0
+        assert result.response_time_ms >= 0  # Can be 0 if instant
         mock_database.get_db_status.assert_called_once()
 
     @pytest.mark.asyncio()
@@ -176,9 +176,7 @@ class TestHealthMonitor:
         assert "not configured" in result.message
 
     @pytest.mark.asyncio()
-    async def test_check_redis_healthy(
-        self, monitor: HealthMonitor, mock_redis: MagicMock
-    ) -> None:
+    async def test_check_redis_healthy(self, monitor: HealthMonitor, mock_redis: MagicMock) -> None:
         """Test Redis health check when healthy."""
         result = await monitor.check_redis()
 

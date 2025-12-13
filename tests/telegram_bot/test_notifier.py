@@ -18,7 +18,6 @@ from src.telegram_bot.notifier import (
     update_user_settings,
 )
 
-
 # ============================================================================
 # FIXTURES
 # ============================================================================
@@ -27,13 +26,16 @@ from src.telegram_bot.notifier import (
 @pytest.fixture(autouse=True)
 def reset_user_alerts():
     """Сбрасывает глобальный словарь alerts перед каждым тестом."""
-    import src.telegram_bot.notifier as notifier_module
+    from src.telegram_bot.notifications.storage import get_storage
 
-    notifier_module._user_alerts = {}
-    notifier_module._current_prices_cache = {}
+    # Получаем синглтон и очищаем его данные
+    storage = get_storage()
+    storage.user_alerts.clear()
+    storage.prices_cache.clear()
     yield
-    notifier_module._user_alerts = {}
-    notifier_module._current_prices_cache = {}
+    # Очищаем после теста тоже
+    storage.user_alerts.clear()
+    storage.prices_cache.clear()
 
 
 @pytest.fixture()
@@ -87,7 +89,7 @@ def test_load_user_alerts_file_exists():
 
     with (
         patch("pathlib.Path.exists", return_value=True),
-        patch("builtins.open", mock_open(read_data=mock_file_content)),
+        patch("pathlib.Path.open", mock_open(read_data=mock_file_content)),
     ):
         load_user_alerts()
 
@@ -98,28 +100,39 @@ def test_load_user_alerts_file_exists():
 
 
 def test_load_user_alerts_file_not_exists():
-    """Тест загрузки алертов когда файл не существует."""
-    with (
-        patch("pathlib.Path.exists", return_value=False),
-        patch("pathlib.Path.mkdir") as mock_mkdir,
-    ):
+    """Тест загрузки алертов когда файл не существует.
+
+    Note:
+        mkdir НЕ вызывается при загрузке - директория создается
+        только при сохранении в save_user_alerts().
+    """
+    with patch("pathlib.Path.exists", return_value=False):
         load_user_alerts()
 
         import src.telegram_bot.notifier as notifier_module
 
+        # Должен быть пустой словарь
         assert notifier_module._user_alerts == {}
-        mock_mkdir.assert_called_once()
 
 
 def test_save_user_alerts():
-    """Тест сохранения алертов в файл."""
+    """Тест сохранения алертов в файл.
+
+    Note:
+        Патчим pathlib.Path.open и pathlib.Path.parent.mkdir
+        так как код использует self._alerts_file.open().
+    """
     import src.telegram_bot.notifier as notifier_module
 
-    notifier_module._user_alerts = {"12345": {"alerts": [], "settings": {}}}
+    notifier_module._user_alerts.clear()
+    notifier_module._user_alerts["12345"] = {"alerts": [], "settings": {}}
 
     mock_file = mock_open()
 
-    with patch("builtins.open", mock_file):
+    with (
+        patch("pathlib.Path.open", mock_file),
+        patch("pathlib.Path.mkdir"),
+    ):
         save_user_alerts()
 
         mock_file.assert_called_once()
@@ -402,18 +415,19 @@ def test_format_alert_message_price_rise():
 @pytest.mark.asyncio()
 async def test_get_current_price_from_cache():
     """Тест получения цены из кэша."""
-    import src.telegram_bot.notifier as notifier_module
+    from src.telegram_bot.notifications.storage import get_storage
 
-    # Добавляем цену в кэш
-    current_time = time.time()
-    notifier_module._current_prices_cache["item_123"] = {
+    storage = get_storage()
+    # Добавляем цену в кэш с ключом "game:item_id" в формате dict
+    cache_key = "csgo:item_123"
+    storage._current_prices_cache[cache_key] = {
         "price": 25.5,
-        "timestamp": current_time,
+        "timestamp": time.time(),  # Свежая запись
     }
 
     mock_api = AsyncMock()
 
-    price = await get_current_price(mock_api, "item_123")
+    price = await get_current_price(mock_api, "item_123", "csgo")
 
     assert price == 25.5
     # API не должен вызываться
@@ -423,47 +437,50 @@ async def test_get_current_price_from_cache():
 @pytest.mark.asyncio()
 async def test_get_current_price_from_api():
     """Тест получения цены через API."""
-    import src.telegram_bot.notifier as notifier_module
+    from src.telegram_bot.notifications.storage import get_storage
 
-    # Кэш пустой
-    notifier_module._current_prices_cache = {}
+    # Очищаем кэш
+    storage = get_storage()
+    storage._current_prices_cache.clear()
 
     mock_api = AsyncMock()
-    mock_api._request = AsyncMock(
+    mock_api.get_market_items = AsyncMock(
         return_value={
-            "price": {"amount": 3050},  # Цена в центах
+            "objects": [{"price": {"USD": "3050"}}],  # Цена в центах
         }
     )
 
-    price = await get_current_price(mock_api, "item_123")
+    price = await get_current_price(mock_api, "item_123", "csgo")
 
     assert price == 30.5  # Преобразовано из центов в доллары
-    mock_api._request.assert_called_once()
+    mock_api.get_market_items.assert_called_once()
 
 
 @pytest.mark.asyncio()
 async def test_get_current_price_cache_expired():
     """Тест обновления цены при истечении кэша."""
-    import src.telegram_bot.notifier as notifier_module
+    from src.telegram_bot.notifications.storage import get_storage
 
-    # Добавляем устаревшую цену в кэш
-    old_time = time.time() - 400  # 400 секунд назад (кэш истек)
-    notifier_module._current_prices_cache["item_123"] = {
+    storage = get_storage()
+    # Добавляем устаревшую цену в кэш (400 секунд назад - кэш истек)
+    cache_key = "csgo:item_123"
+    old_time = time.time() - 400
+    storage._current_prices_cache[cache_key] = {
         "price": 10.0,
         "timestamp": old_time,
     }
 
     mock_api = AsyncMock()
-    mock_api._request = AsyncMock(
+    mock_api.get_market_items = AsyncMock(
         return_value={
-            "price": {"amount": 2000},  # Новая цена
+            "objects": [{"price": {"USD": "2000"}}],  # Новая цена
         }
     )
 
-    price = await get_current_price(mock_api, "item_123", force_update=True)
+    price = await get_current_price(mock_api, "item_123", "csgo")
 
     assert price == 20.0  # Новая цена
-    mock_api._request.assert_called_once()
+    mock_api.get_market_items.assert_called_once()
 
 
 @pytest.mark.asyncio()
@@ -542,10 +559,14 @@ async def test_get_user_alerts_empty():
 
 
 def test_load_user_alerts_json_error():
-    """Тест обработки ошибки при парсинге JSON."""
+    """Тест обработки ошибки при парсинге JSON.
+
+    Note:
+        Патчим pathlib.Path.open так как код использует self._alerts_file.open().
+    """
     with (
         patch("pathlib.Path.exists", return_value=True),
-        patch("builtins.open", mock_open(read_data="invalid json")),
+        patch("pathlib.Path.open", mock_open(read_data="invalid json")),
     ):
         load_user_alerts()
 
@@ -556,15 +577,23 @@ def test_load_user_alerts_json_error():
 
 
 def test_save_user_alerts_io_error():
-    """Тест обработки ошибки при сохранении."""
+    """Тест обработки ошибки при сохранении.
+
+    Note:
+        Патчим pathlib.Path.open так как код использует self._alerts_file.open().
+    """
     import src.telegram_bot.notifier as notifier_module
 
-    notifier_module._user_alerts = {"12345": {"alerts": []}}
+    notifier_module._user_alerts.clear()
+    notifier_module._user_alerts["12345"] = {"alerts": []}
 
     mock_file = mock_open()
     mock_file.side_effect = OSError("Write error")
 
-    with patch("builtins.open", mock_file):
+    with (
+        patch("pathlib.Path.open", mock_file),
+        patch("pathlib.Path.mkdir"),
+    ):
         # Не должно вызывать исключение
         save_user_alerts()
 

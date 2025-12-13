@@ -390,10 +390,41 @@
   "github.copilot.chat.virtualTools.threshold": 128,
   "github.copilot.chat.editor.temporalContext.enabled": true,
   "github.copilot.chat.reviewSelection.enabled": true,
-  "github.copilot.chat.reviewSelection.instructions": [],
+  "github.copilot.chat.reviewSelection.instructions": [
+    "Проверяй async/await для ВСЕХ I/O операций (HTTP, БД, Redis, WebSocket)",
+    "Убедись что ВСЕ функции имеют type hints (MyPy strict mode)",
+    "Проверяй обработку ошибок - НЕ используй голый except:",
+    "Валидируй входные данные через Pydantic models",
+    "Проверяй rate limiting для DMarket API (30 req/min)",
+    "Убедись что логирование использует structlog с контекстом",
+    "Проверяй что секреты НЕ хардкодятся (используй .env)"
+  ],
   "github.copilot.chat.codeGeneration.useInstructionFiles": true,
-  "github.copilot.chat.commitMessageGeneration.instructions": [],
-  "github.copilot.chat.pullRequestDescriptionGeneration.instructions": [],
+  "github.copilot.chat.codeGeneration.instructions": [
+    "ВСЕГДА используй async/await для I/O операций",
+    "ВСЕГДА добавляй type hints для всех функций и переменных",
+    "Используй современный синтаксис Python 3.11+ (list[str] вместо List[str])",
+    "Для HTTP используй httpx.AsyncClient с timeout",
+    "Для логирования используй structlog с контекстом",
+    "Обрабатывай ошибки конкретными типами исключений",
+    "Следуй паттерну AAA в тестах (Arrange-Act-Assert)",
+    "DMarket API цены в ЦЕНТАХ (не долларах!)",
+    "Используй Pydantic для валидации данных"
+  ],
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    "Следуй Conventional Commits: type(scope): message",
+    "Типы: feat, fix, docs, style, refactor, test, chore",
+    "Scope: dmarket, telegram, utils, tests, config",
+    "Примеры: feat(arbitrage): add ultra level support",
+    "fix(api): handle rate limit errors correctly"
+  ],
+  "github.copilot.chat.pullRequestDescriptionGeneration.instructions": [
+    "Описание на русском языке",
+    "Включи секцию '## Изменения' с bullet points",
+    "Включи секцию '## Тестирование' с описанием тестов",
+    "Укажи затронутые модули: dmarket, telegram_bot, utils",
+    "Добавь checklist: [ ] Тесты пройдены, [ ] MyPy без ошибок, [ ] Документация обновлена"
+  ],
   "github.copilot.chat.startDebugging.enabled": true,
   "github.copilot.chat.copilotDebugCommand.enabled": true,
   "github.copilot.chat.generateTests.codeLens": true,

@@ -8,7 +8,6 @@ from unittest.mock import patch
 import httpx
 import pytest
 
-
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
 
@@ -136,8 +135,16 @@ class TestDMarketAPIIntegration:
         mock_aggregated_prices_response: dict[str, Any],
     ) -> None:
         """Test aggregated prices retrieval."""
-        # Skip этот тест так как метод имеет другую сигнатуру
-        pytest.skip("get_aggregated_prices method signature differs from expected")
+        titles = ["AK-47 | Redline (Field-Tested)"]
+        with patch.object(
+            mock_dmarket_api,
+            "_request",
+            return_value=mock_aggregated_prices_response,
+        ):
+            result = await mock_dmarket_api.get_aggregated_prices(titles=titles, game_id="a8db")
+            assert "aggregatedPrices" in result
+            assert len(result["aggregatedPrices"]) == 1
+            assert result["aggregatedPrices"][0]["title"] == titles[0]
 
     async def test_concurrent_api_requests(
         self,

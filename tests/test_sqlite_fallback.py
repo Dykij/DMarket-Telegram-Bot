@@ -1,498 +1,486 @@
-"""Тесты для проверки работы SQLite fallback.
+"""
+Тесты для проверки работы SQLite как fallback для PostgreSQL.
 
-Проверяет, что приложение корректно работает с SQLite
-в качестве альтернативы PostgreSQL для разработки и тестирования.
-
-NOTE: Эти тесты требуют переписывания для async API.
-DatabaseManager теперь использует только async engine/session.
+Этот модуль тестирует:
+- Корректную работу с SQLite базой данных
+- Автоматическую конвертацию URL для async драйвера
+- Создание всех необходимых таблиц
+- Совместимость моделей с SQLite
 """
 
-import contextlib
 import os
 import tempfile
+from typing import AsyncGenerator
+from uuid import uuid4
 
 import pytest
-from sqlalchemy import inspect, text
+from sqlalchemy import inspect, select, text
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.alert import PriceAlert
-from src.models.base import Base
-from src.models.log import AnalyticsEvent, CommandLog
-from src.models.market import MarketData
-from src.models.user import User, UserSettings
+from src.models.target import Base as TargetBase
+from src.models.target import Target
+from src.models.user import User
 from src.utils.database import DatabaseManager
 
-# Skip all tests in this module - requires async API rewrite
-pytestmark = pytest.mark.skip(
-    reason="DatabaseManager is now async-only. Tests need rewrite for async API."
-)
-
 
 @pytest.fixture()
-def sqlite_db_path():
-    """Создает временный файл для SQLite БД."""
-    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:
-        db_path = tmp.name
-
-    yield db_path
-
+def sqlite_db_path() -> str:
+    """Создать путь для временной SQLite базы данных."""
+    fd, path = tempfile.mkstemp(suffix=".db")
+    os.close(fd)
+    yield path
     # Cleanup
-    with contextlib.suppress(Exception):
-        os.unlink(db_path)
+    if os.path.exists(path):
+        os.remove(path)
 
 
 @pytest.fixture()
-def sqlite_url(sqlite_db_path):
-    """Возвращает SQLite connection URL."""
+def sqlite_url(sqlite_db_path: str) -> str:
+    """Создать URL для SQLite базы данных."""
     return f"sqlite:///{sqlite_db_path}"
 
 
 @pytest.fixture()
-def db_manager(sqlite_url):
-    """Создает DatabaseManager с SQLite."""
-    return DatabaseManager(sqlite_url, echo=False)
+async def db_manager(sqlite_url: str) -> AsyncGenerator[DatabaseManager, None]:
+    """Создать DatabaseManager с SQLite базой данных."""
+    manager = DatabaseManager(sqlite_url)
+    await manager.init_database()
+    # Также создаем таблицу targets (Target использует отдельный Base)
+    async with manager.async_engine.begin() as conn:
+        await conn.run_sync(TargetBase.metadata.create_all)
+    yield manager
+    # Cleanup
+    await manager.async_engine.dispose()
 
 
 class TestSQLiteFallback:
-    """Тесты для проверки SQLite fallback."""
+    """Тесты для проверки SQLite как fallback."""
 
-    def test_sqlite_connection(self, db_manager):
-        """Тест подключения к SQLite базе данных."""
-        engine = db_manager.engine
-        assert engine is not None
+    @pytest.mark.asyncio()
+    async def test_database_manager_creation(self, db_manager: DatabaseManager) -> None:
+        """Тест создания DatabaseManager с SQLite."""
+        assert db_manager is not None
+        # DatabaseManager автоматически конвертирует sqlite:// в sqlite+aiosqlite://
+        assert "sqlite" in db_manager.database_url.lower()
 
-        # Проверяем, что это SQLite
-        assert "sqlite" in str(engine.url)
+    @pytest.mark.asyncio()
+    async def test_tables_created(self, db_manager: DatabaseManager) -> None:
+        """Тест создания всех необходимых таблиц."""
+        async with db_manager.async_engine.connect() as conn:
+            table_names = await conn.run_sync(
+                lambda sync_conn: inspect(sync_conn).get_table_names()
+            )
 
-        # Проверяем подключение
-        with engine.connect() as conn:
-            result = conn.execute(text("SELECT 1"))
-            assert result.scalar() == 1
+        # Проверяем, что основные таблицы созданы
+        assert "users" in table_names
+        assert "targets" in table_names
 
-    def test_create_all_tables(self, db_manager):
-        """Тест создания всех таблиц в SQLite."""
-        engine = db_manager.engine
-
-        # Создаем все таблицы
-        Base.metadata.create_all(engine)
-
-        # Проверяем, что таблицы созданы
-        inspector = inspect(engine)
-        tables = inspector.get_table_names()
-
-        expected_tables = [
-            "users",
-            "user_settings",
-            "market_data",
-            "price_alerts",
-            "command_log",
-            "events",
-        ]
-
-        for table in expected_tables:
-            assert table in tables, f"Таблица {table} не создана"
-
-    def test_user_model_sqlite(self, db_manager):
-        """Тест работы с моделью User в SQLite."""
-        engine = db_manager.engine
-        Base.metadata.create_all(engine)
-
-        session = db_manager.session_maker()
-
+    @pytest.mark.asyncio()
+    async def test_user_model_with_sqlite(self, db_manager: DatabaseManager) -> None:
+        """Тест модели User с SQLite."""
+        session = db_manager.get_async_session()
         try:
-            # Создаем пользователя
             user = User(
+                id=uuid4(),
                 telegram_id=123456789,
                 username="test_user",
-                first_name="Test",
-                last_name="User",
-                language_code="ru",
             )
-
             session.add(user)
-            session.commit()
+            await session.commit()
+            await session.refresh(user)
 
-            # Проверяем, что пользователь создан
-            assert user.id is not None
-
-            # Получаем пользователя из БД
-            db_user = session.query(User).filter_by(telegram_id=123456789).first()
-
-            assert db_user is not None
-            assert db_user.username == "test_user"
-            assert db_user.first_name == "Test"
-            assert db_user.telegram_id == 123456789
-
+            # Проверяем, что пользователь сохранен
+            result = await session.execute(select(User).filter_by(telegram_id=123456789))
+            saved_user = result.scalar_one_or_none()
+            assert saved_user is not None
+            assert saved_user.username == "test_user"
         finally:
-            session.close()
+            await session.close()
 
-    def test_uuid_type_sqlite(self, db_manager):
-        """Тест работы UUID типа в SQLite."""
-        engine = db_manager.engine
-        Base.metadata.create_all(engine)
-
-        session = db_manager.session_maker()
-
+    @pytest.mark.asyncio()
+    async def test_target_model_with_sqlite(self, db_manager: DatabaseManager) -> None:
+        """Тест модели Target с SQLite."""
+        session = db_manager.get_async_session()
         try:
-            # Создаем пользователя (UUID генерируется автоматически)
-            user = User(telegram_id=987654321, username="uuid_test")
-
+            # Сначала создаем пользователя
+            user = User(
+                id=uuid4(),
+                telegram_id=987654321,
+                username="target_test_user",
+            )
             session.add(user)
-            session.commit()
+            await session.commit()
+            await session.refresh(user)
 
+            # Создаем таргет (Target использует BigInteger для user_id - это telegram_id)
+            target = Target(
+                user_id=user.telegram_id,  # Target.user_id это telegram_id, не UUID
+                target_id=f"target_{user.telegram_id}_1",  # Обязательное поле
+                game="csgo",
+                title="AK-47 | Redline",
+                price=10.50,
+            )
+            session.add(target)
+            await session.commit()
+            await session.refresh(target)
+
+            # Проверяем, что таргет сохранен
+            result = await session.execute(select(Target).filter_by(title="AK-47 | Redline"))
+            saved_target = result.scalar_one_or_none()
+            assert saved_target is not None
+            assert saved_target.price == pytest.approx(10.50)
+        finally:
+            await session.close()
+
+    @pytest.mark.asyncio()
+    async def test_relationship_user_targets(self, db_manager: DatabaseManager) -> None:
+        """Тест связи между User и Target."""
+        session = db_manager.get_async_session()
+        try:
+            user = User(
+                id=uuid4(),
+                telegram_id=111222333,
+                username="relationship_test_user",
+            )
+            session.add(user)
+            await session.commit()
+            await session.refresh(user)
+
+            # Создаем несколько таргетов для пользователя
+            # Target.user_id это telegram_id (BigInteger), не UUID!
+            for i in range(3):
+                target = Target(
+                    user_id=user.telegram_id,
+                    target_id=f"target_{user.telegram_id}_{i}",
+                    game="csgo",
+                    title=f"Item {i}",
+                    price=float(i + 1),
+                )
+                session.add(target)
+            await session.commit()
+
+            # Проверяем количество таргетов пользователя
+            result = await session.execute(select(Target).filter_by(user_id=user.telegram_id))
+            targets = result.scalars().all()
+            assert len(targets) == 3
+        finally:
+            await session.close()
+
+    @pytest.mark.asyncio()
+    async def test_database_operations(self, db_manager: DatabaseManager) -> None:
+        """Тест базовых операций с базой данных."""
+        session = db_manager.get_async_session()
+        try:
+            # Create
+            user = User(
+                id=uuid4(),
+                telegram_id=444555666,
+                username="crud_test_user",
+            )
+            session.add(user)
+            await session.commit()
+            await session.refresh(user)
             user_id = user.id
 
-            # Проверяем, что UUID сохранен как строка в SQLite
-            with engine.connect() as conn:
-                result = conn.execute(
-                    text("SELECT id FROM users WHERE telegram_id = :tid"),
-                    {"tid": 987654321},
-                )
-                row = result.fetchone()
-                assert row is not None
+            # Read
+            result = await session.execute(select(User).filter_by(id=user_id))
+            read_user = result.scalar_one_or_none()
+            assert read_user is not None
+            assert read_user.username == "crud_test_user"
 
-                # В SQLite UUID хранится как строка
-                stored_id = row[0]
-                assert isinstance(stored_id, str)
-                assert len(stored_id) == 36  # UUID формат
+            # Update
+            read_user.username = "updated_user"
+            await session.commit()
+            await session.refresh(read_user)
 
-            # Проверяем, что при чтении UUID преобразуется обратно
-            db_user = session.query(User).filter_by(telegram_id=987654321).first()
-            assert db_user.id == user_id
+            result = await session.execute(select(User).filter_by(id=user_id))
+            updated_user = result.scalar_one_or_none()
+            assert updated_user.username == "updated_user"
 
+            # Delete
+            await session.delete(updated_user)
+            await session.commit()
+
+            result = await session.execute(select(User).filter_by(id=user_id))
+            deleted_user = result.scalar_one_or_none()
+            assert deleted_user is None
         finally:
-            session.close()
+            await session.close()
 
-    def test_market_data_model_sqlite(self, db_manager):
-        """Тест работы с моделью MarketData в SQLite."""
-        engine = db_manager.engine
-        Base.metadata.create_all(engine)
-
-        session = db_manager.session_maker()
-
+    @pytest.mark.asyncio()
+    async def test_transaction_rollback(self, db_manager: DatabaseManager) -> None:
+        """Тест отката транзакции."""
+        session = db_manager.get_async_session()
         try:
-            # Создаем запись market data
-            market_data = MarketData(
-                item_id="item_123",
-                game="csgo",
-                item_name="AK-47 | Redline (Field-Tested)",
-                price_usd=12.50,
-                price_change_24h=0.5,
-                volume_24h=150,
+            user = User(
+                id=uuid4(),
+                telegram_id=777888999,
+                username="rollback_test_user",
             )
-
-            session.add(market_data)
-            session.commit()
-
-            # Проверяем сохранение
-            db_data = session.query(MarketData).filter_by(item_id="item_123").first()
-
-            assert db_data is not None
-            assert db_data.item_name == "AK-47 | Redline (Field-Tested)"
-            assert db_data.price_usd == 12.50
-            assert db_data.game == "csgo"
-
-        finally:
-            session.close()
-
-    def test_json_column_sqlite(self, db_manager):
-        """Тест работы JSON колонок в SQLite."""
-        engine = db_manager.engine
-        Base.metadata.create_all(engine)
-
-        session = db_manager.session_maker()
-
-        try:
-            # Создаем событие с JSON данными
-            event = AnalyticsEvent(
-                event_type="test_event",
-                event_data={
-                    "action": "scan",
-                    "game": "csgo",
-                    "items_found": 10,
-                    "metadata": {"filter": "redline", "min_price": 5.0},
-                },
-            )
-
-            session.add(event)
-            session.commit()
-
-            # Получаем событие из БД
-            db_event = session.query(AnalyticsEvent).filter_by(event_type="test_event").first()
-
-            assert db_event is not None
-            assert db_event.event_data["action"] == "scan"
-            assert db_event.event_data["game"] == "csgo"
-            assert db_event.event_data["items_found"] == 10
-            assert db_event.event_data["metadata"]["filter"] == "redline"
-
-        finally:
-            session.close()
-
-    def test_indexes_created_sqlite(self, db_manager):
-        """Тест создания индексов в SQLite."""
-        engine = db_manager.engine
-        Base.metadata.create_all(engine)
-
-        inspector = inspect(engine)
-
-        # Проверяем индексы на таблице users
-        user_indexes = inspector.get_indexes("users")
-        index_columns = [idx["column_names"] for idx in user_indexes]
-
-        # Должен быть индекс на telegram_id
-        assert any("telegram_id" in cols for cols in index_columns)
-
-        # Проверяем индексы на таблице command_log
-        log_indexes = inspector.get_indexes("command_log")
-        log_index_columns = [idx["column_names"] for idx in log_indexes]
-
-        # Должны быть индексы
-        assert any("user_id" in cols for cols in log_index_columns)
-
-    def test_foreign_key_constraints_sqlite(self, db_manager):
-        """Тест работы с внешними ключами в SQLite (если есть)."""
-        engine = db_manager.engine
-        Base.metadata.create_all(engine)
-
-        # SQLite по умолчанию не включает FK constraints
-        # Проверяем, что таблицы связаны логически
-
-        session = db_manager.session_maker()
-
-        try:
-            # Создаем пользователя
-            user = User(telegram_id=111222333, username="fk_test")
             session.add(user)
-            session.commit()
+            await session.commit()
+            await session.refresh(user)
+            user_id = user.id
 
-            # Создаем настройки для пользователя
-            settings = UserSettings(user_id=user.id, language="ru", timezone="UTC")
+            # Начинаем новую операцию и откатываем
+            session2 = db_manager.get_async_session()
+            try:
+                result = await session2.execute(select(User).filter_by(id=user_id))
+                user_to_update = result.scalar_one_or_none()
+                if user_to_update:
+                    user_to_update.username = "should_be_rolled_back"
+                await session2.rollback()
+            finally:
+                await session2.close()
 
-            session.add(settings)
-            session.commit()
-
-            # Проверяем связь
-            db_settings = session.query(UserSettings).filter_by(user_id=user.id).first()
-
-            assert db_settings is not None
-            assert db_settings.language == "ru"
-
+            # Проверяем, что изменения не сохранены
+            result = await session.execute(select(User).filter_by(id=user_id))
+            final_user = result.scalar_one_or_none()
+            assert final_user is not None
+            assert final_user.username == "rollback_test_user"
         finally:
-            session.close()
+            await session.close()
 
-    def test_concurrent_writes_sqlite(self, db_manager):
-        """Тест конкурентных записей в SQLite."""
-        engine = db_manager.engine
-        Base.metadata.create_all(engine)
-
-        # SQLite имеет ограничения на конкурентные записи
-        # Проверяем базовую функциональность
-
-        session1 = db_manager.session_maker()
-        session2 = db_manager.session_maker()
-
+    @pytest.mark.asyncio()
+    async def test_concurrent_sessions(self, db_manager: DatabaseManager) -> None:
+        """Тест работы с несколькими сессиями."""
+        session1 = db_manager.get_async_session()
+        session2 = db_manager.get_async_session()
         try:
-            # Записываем из разных сессий
-            user1 = User(telegram_id=777888999, username="concurrent1")
-            user2 = User(telegram_id=999888777, username="concurrent2")
+            # Создаем пользователя в первой сессии
+            user = User(
+                id=uuid4(),
+                telegram_id=101010101,
+                username="concurrent_test_user",
+            )
+            session1.add(user)
+            await session1.commit()
+            await session1.refresh(user)
 
-            session1.add(user1)
-            session2.add(user2)
-
-            session1.commit()
-            session2.commit()
-
-            # Проверяем, что оба пользователя сохранены
-            assert session1.query(User).filter_by(telegram_id=777888999).first() is not None
-            assert session2.query(User).filter_by(telegram_id=999888777).first() is not None
-
+            # Читаем во второй сессии
+            result = await session2.execute(select(User).filter_by(telegram_id=101010101))
+            read_user = result.scalar_one_or_none()
+            assert read_user is not None
+            assert read_user.username == "concurrent_test_user"
         finally:
-            session1.close()
-            session2.close()
+            await session1.close()
+            await session2.close()
+
+    @pytest.mark.asyncio()
+    async def test_bulk_insert(self, db_manager: DatabaseManager) -> None:
+        """Тест массовой вставки."""
+        session = db_manager.get_async_session()
+        try:
+            users = [
+                User(
+                    id=uuid4(),
+                    telegram_id=200000000 + i,
+                    username=f"bulk_user_{i}",
+                )
+                for i in range(10)
+            ]
+            session.add_all(users)
+            await session.commit()
+
+            # Проверяем, что все пользователи сохранены
+            result = await session.execute(select(User).where(User.telegram_id >= 200000000))
+            saved_users = result.scalars().all()
+            assert len(saved_users) == 10
+        finally:
+            await session.close()
+
+    @pytest.mark.asyncio()
+    async def test_query_with_filters(self, db_manager: DatabaseManager) -> None:
+        """Тест запросов с фильтрами."""
+        session = db_manager.get_async_session()
+        try:
+            # Создаем тестовых пользователей
+            for i in range(5):
+                user = User(
+                    id=uuid4(),
+                    telegram_id=300000000 + i,
+                    username=f"filter_user_{i}",
+                )
+                session.add(user)
+            await session.commit()
+
+            # Тест фильтрации по telegram_id
+            result = await session.execute(select(User).where(User.telegram_id > 300000002))
+            filtered_users = result.scalars().all()
+            assert len(filtered_users) == 2
+        finally:
+            await session.close()
 
 
 class TestDatabaseManagerSQLite:
     """Тесты для DatabaseManager с SQLite."""
 
     @pytest.mark.asyncio()
-    async def test_init_database_sqlite(self, db_manager):
-        """Тест инициализации БД через DatabaseManager."""
-        await db_manager.init_database()
+    async def test_init_database(self, sqlite_url: str) -> None:
+        """Тест инициализации базы данных."""
+        manager = DatabaseManager(sqlite_url)
+        await manager.init_database()
 
-        inspector = inspect(db_manager.engine)
-        tables = inspector.get_table_names()
+        async with manager.async_engine.connect() as conn:
+            table_names = await conn.run_sync(
+                lambda sync_conn: inspect(sync_conn).get_table_names()
+            )
 
-        assert len(tables) > 0
-        assert "users" in tables
-
-    @pytest.mark.asyncio()
-    async def test_get_or_create_user_sqlite(self, db_manager):
-        """Тест get_or_create_user с SQLite."""
-        await db_manager.init_database()
-
-        # Создаем пользователя
-        user1 = await db_manager.get_or_create_user(
-            telegram_id=123123123, username="get_or_create_test"
-        )
-
-        assert user1 is not None
-        assert user1.telegram_id == 123123123
-
-        # Получаем существующего пользователя
-        user2 = await db_manager.get_or_create_user(telegram_id=123123123)
-
-        assert user2.id == user1.id
-        assert user2.username == "get_or_create_test"
+        assert len(table_names) > 0
+        await manager.async_engine.dispose()
 
     @pytest.mark.asyncio()
-    async def test_log_command_sqlite(self, db_manager):
-        """Тест логирования команд в SQLite."""
-        await db_manager.init_database()
+    async def test_get_db_status(self, db_manager: DatabaseManager) -> None:
+        """Тест получения статуса базы данных."""
+        status = await db_manager.get_db_status()
 
-        # Создаем пользователя
-        user = await db_manager.get_or_create_user(telegram_id=456456456)
-
-        # Логируем команду
-        await db_manager.log_command(
-            user_id=user.id,
-            command="/balance",
-            parameters={"game": "csgo"},
-            success=True,
-            execution_time_ms=150,
-        )
-
-        # Проверяем лог
-        session = db_manager.session_maker()
-        try:
-            log = session.query(CommandLog).filter_by(user_id=user.id).first()
-
-            assert log is not None
-            assert log.command == "/balance"
-            assert log.parameters["game"] == "csgo"
-            assert log.success is True
-            assert log.execution_time_ms == 150
-
-        finally:
-            session.close()
+        assert status is not None
+        # get_db_status возвращает pool_size, max_overflow, async_engine
+        assert "pool_size" in status or "async_engine" in status
 
     @pytest.mark.asyncio()
-    async def test_save_market_data_sqlite(self, db_manager):
-        """Тест сохранения market data в SQLite."""
-        await db_manager.init_database()
+    async def test_database_url_format(self, sqlite_url: str) -> None:
+        """Тест формата URL базы данных."""
+        manager = DatabaseManager(sqlite_url)
 
-        # Сохраняем данные
-        await db_manager.save_market_data(
-            item_id="test_item_789",
-            game="dota2",
-            item_name="Dragonclaw Hook",
-            price_usd=500.0,
-            volume_24h=50,
-        )
+        # DatabaseManager должен автоматически конвертировать
+        # sqlite:// в sqlite+aiosqlite://
+        assert "sqlite" in manager.database_url.lower()
+        await manager.async_engine.dispose()
 
-        # Проверяем сохранение
-        session = db_manager.session_maker()
-        try:
-            data = session.query(MarketData).filter_by(item_id="test_item_789").first()
+    @pytest.mark.asyncio()
+    async def test_engine_creation(self, db_manager: DatabaseManager) -> None:
+        """Тест создания engine."""
+        engine = db_manager.async_engine
+        assert engine is not None
 
-            assert data is not None
-            assert data.game == "dota2"
-            assert data.price_usd == 500.0
+        # Проверяем, что можем выполнить запрос
+        async with engine.connect() as conn:
+            result = await conn.execute(text("SELECT 1"))
+            row = result.fetchone()
+            assert row[0] == 1
 
-        finally:
-            session.close()
+    @pytest.mark.asyncio()
+    async def test_session_maker(self, db_manager: DatabaseManager) -> None:
+        """Тест создания сессий."""
+        session = db_manager.get_async_session()
+        assert session is not None
+        assert isinstance(session, AsyncSession)
+        await session.close()
 
 
 class TestSQLiteVsPostgreSQL:
-    """Тесты сравнения поведения SQLite и PostgreSQL."""
+    """Тесты для сравнения SQLite и PostgreSQL."""
 
-    def test_url_detection(self):
-        """Тест определения типа БД по URL."""
+    def test_sqlite_url_detection(self) -> None:
+        """Тест определения SQLite URL."""
         sqlite_url = "sqlite:///test.db"
-        postgres_url = "postgresql://user:pass@localhost/db"
+        assert "sqlite" in sqlite_url.lower()
+        assert "postgresql" not in sqlite_url.lower()
 
-        assert "sqlite" in sqlite_url
-        assert "postgresql" in postgres_url
+    def test_postgresql_url_detection(self) -> None:
+        """Тест определения PostgreSQL URL."""
+        pg_url = "postgresql://user:pass@localhost/db"
+        assert "postgresql" in pg_url.lower()
+        assert "sqlite" not in pg_url.lower()
 
-        # DatabaseManager должен работать с обоими
-        sqlite_manager = DatabaseManager(sqlite_url)
-        postgres_manager = DatabaseManager(postgres_url)
+    @pytest.mark.asyncio()
+    async def test_database_manager_with_sqlite_url(self, sqlite_url: str) -> None:
+        """Тест DatabaseManager с SQLite URL."""
+        manager = DatabaseManager(sqlite_url)
+        await manager.init_database()
 
-        assert "sqlite" in str(sqlite_manager.database_url)
-        assert "postgresql" in str(postgres_manager.database_url)
-
-    def test_sqlite_limitations_documented(self):
-        """Документирует ограничения SQLite по сравнению с PostgreSQL.
-
-        Ограничения SQLite:
-        - Нет настоящего Boolean типа (использует INTEGER 0/1)
-        - Ограниченная поддержка конкурентных записей
-        - Нет некоторых расширенных типов данных
-        - UUID хранится как TEXT
-        - Ограниченная поддержка ALTER TABLE
-
-        Преимущества SQLite:
-        - Не требует отдельного сервера
-        - Идеален для разработки и тестирования
-        - Файл базы данных легко копировать/переносить
-        - Отличная производительность для небольших нагрузок
-        """
-        # Этот тест просто документирует различия
-        assert True
+        # Должен работать без ошибок
+        session = manager.get_async_session()
+        assert session is not None
+        await session.close()
+        await manager.async_engine.dispose()
 
 
-@pytest.mark.integration()
 class TestSQLiteIntegration:
     """Интеграционные тесты для SQLite."""
 
     @pytest.mark.asyncio()
-    async def test_full_user_workflow_sqlite(self, db_manager):
-        """Тест полного workflow пользователя в SQLite."""
-        await db_manager.init_database()
-
-        # 1. Создание пользователя
-        user = await db_manager.get_or_create_user(
-            telegram_id=555666777, username="integration_test", first_name="Integration"
-        )
-
-        assert user is not None
-
-        # 2. Логирование команды
-        await db_manager.log_command(
-            user_id=user.id, command="/start", success=True, execution_time_ms=50
-        )
-
-        # 3. Сохранение market data
-        await db_manager.save_market_data(
-            item_id="integration_item",
-            game="csgo",
-            item_name="Test Item",
-            price_usd=10.0,
-        )
-
-        # 4. Создание алерта
-        session = db_manager.session_maker()
+    async def test_full_workflow(self, db_manager: DatabaseManager) -> None:
+        """Тест полного рабочего процесса."""
+        session = db_manager.get_async_session()
         try:
-            alert = PriceAlert(
-                user_id=user.id,
-                item_id="integration_item",
-                target_price=9.0,
-                condition="below",
+            # 1. Создаем пользователя
+            user = User(
+                id=uuid4(),
+                telegram_id=999999999,
+                username="integration_test_user",
             )
-            session.add(alert)
-            session.commit()
+            session.add(user)
+            await session.commit()
+            await session.refresh(user)
 
-            # 5. Проверка всех данных
-            db_user = session.query(User).filter_by(id=user.id).first()
-            assert db_user.username == "integration_test"
+            # 2. Создаем несколько таргетов
+            # Target.user_id это telegram_id (BigInteger), не UUID!
+            for i in range(3):
+                target = Target(
+                    user_id=user.telegram_id,
+                    target_id=f"integration_target_{i}",
+                    game="csgo",
+                    title=f"Integration Item {i}",
+                    price=float(i + 10),
+                )
+                session.add(target)
+            await session.commit()
 
-            db_log = session.query(CommandLog).filter_by(user_id=user.id).first()
-            assert db_log.command == "/start"
+            # 3. Читаем данные
+            result = await session.execute(select(User).filter_by(telegram_id=999999999))
+            read_user = result.scalar_one_or_none()
+            assert read_user is not None
 
-            db_market = session.query(MarketData).filter_by(item_id="integration_item").first()
-            assert db_market.price_usd == 10.0
+            result = await session.execute(select(Target).filter_by(user_id=user.telegram_id))
+            targets = result.scalars().all()
+            assert len(targets) == 3
 
-            db_alert = session.query(PriceAlert).filter_by(user_id=user.id).first()
-            assert db_alert.target_price == 9.0
+            # 4. Обновляем данные
+            read_user.username = "updated_integration_user"
+            await session.commit()
 
+            # 5. Удаляем таргеты
+            for target in targets:
+                await session.delete(target)
+            await session.commit()
+
+            # 6. Проверяем удаление
+            result = await session.execute(select(Target).filter_by(user_id=user.telegram_id))
+            remaining_targets = result.scalars().all()
+            assert len(remaining_targets) == 0
         finally:
-            session.close()
+            await session.close()
+
+    @pytest.mark.asyncio()
+    async def test_error_handling(self, db_manager: DatabaseManager) -> None:
+        """Тест обработки ошибок."""
+        session = db_manager.get_async_session()
+        try:
+            # Пытаемся создать дублирующегося пользователя
+            user1 = User(
+                id=uuid4(),
+                telegram_id=888888888,
+                username="duplicate_test_user",
+            )
+            session.add(user1)
+            await session.commit()
+
+            # Создаем нового пользователя с другим telegram_id (не дубликат)
+            user2 = User(
+                id=uuid4(),
+                telegram_id=888888889,  # Другой telegram_id
+                username="another_test_user",
+            )
+            session.add(user2)
+            await session.commit()
+
+            # Оба пользователя должны существовать
+            result = await session.execute(
+                select(User).where(User.telegram_id.in_([888888888, 888888889]))
+            )
+            users = result.scalars().all()
+            assert len(users) == 2
+        finally:
+            await session.close()

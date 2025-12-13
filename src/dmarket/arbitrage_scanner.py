@@ -22,7 +22,11 @@ from src.dmarket.arbitrage import (
     arbitrage_pro,
 )
 from src.dmarket.dmarket_api import DMarketAPI  # Нужен для создания нового клиента
+from src.dmarket.item_filters import ItemFilters
 from src.dmarket.liquidity_analyzer import LiquidityAnalyzer
+
+# Import from scanner submodules (R-2 refactoring)
+from src.dmarket.scanner import ARBITRAGE_LEVELS, GAME_IDS, ScannerCache, ScannerFilters
 from src.utils.rate_limiter import RateLimiter
 from src.utils.sentry_breadcrumbs import add_trading_breadcrumb
 
@@ -46,60 +50,8 @@ __all__ = [
 # Создаем ограничитель скорости запросов
 rate_limiter = RateLimiter(is_authorized=True)
 
-# Маппинг кодов игр к ID DMarket API
-GAME_IDS = {
-    "csgo": "a8db",
-    "dota2": "9a92",
-    "tf2": "tf2",
-    "rust": "rust",
-}
-
-# Определение уровней арбитража
-ARBITRAGE_LEVELS = {
-    "boost": {
-        "name": "🚀 Разгон баланса",
-        "min_profit_percent": 1.0,
-        "max_profit_percent": 5.0,
-        "price_range": (0.5, 3.0),
-        "max_price": 20.0,
-        "description": "Low-risk, quick arbitrage (1-5% profit)",
-    },
-    "standard": {
-        "name": "⚡ Стандарт",
-        "min_profit_percent": 5.0,
-        "max_profit_percent": 10.0,
-        "price_range": (3.0, 10.0),
-        "min_price": 20.0,
-        "max_price": 50.0,
-        "description": "Balanced arbitrage (5-10% profit)",
-    },
-    "medium": {
-        "name": "💰 Средний",
-        "min_profit_percent": 5.0,
-        "max_profit_percent": 20.0,
-        "price_range": (10.0, 30.0),
-        "min_price": 20.0,
-        "max_price": 100.0,
-        "description": "Medium-risk arbitrage (5-20% profit)",
-    },
-    "advanced": {
-        "name": "🎯 Продвинутый",
-        "min_profit_percent": 10.0,
-        "max_profit_percent": 30.0,
-        "price_range": (30.0, 100.0),
-        "min_price": 50.0,
-        "max_price": 200.0,
-        "description": "Higher-risk arbitrage (10-30% profit)",
-    },
-    "pro": {
-        "name": "💎 Профи",
-        "min_profit_percent": 20.0,
-        "max_profit_percent": 100.0,
-        "price_range": (100.0, 1000.0),
-        "min_price": 100.0,
-        "description": "High-risk, high-reward arbitrage (20-100% profit)",
-    },
-}
+# GAME_IDS and ARBITRAGE_LEVELS are now imported from src.dmarket.scanner
+# (R-2 refactoring: removed duplicate definitions)
 
 
 class ArbitrageScanner:
@@ -125,6 +77,7 @@ class ArbitrageScanner:
         enable_liquidity_filter: bool = True,
         enable_competition_filter: bool = True,
         max_competition: int = 3,
+        item_filters: "ItemFilters | None" = None,
     ) -> None:
         """Инициализирует сканер арбитража.
 
@@ -134,13 +87,14 @@ class ArbitrageScanner:
             enable_liquidity_filter: Включить фильтрацию по ликвидности
             enable_competition_filter: Включить фильтрацию по конкуренции buy orders
             max_competition: Максимально допустимое количество конкурирующих ордеров
+            item_filters: Фильтры предметов (ItemFilters) для blacklist/whitelist
 
         """
         self.api_client = api_client
-        self._cache: dict[
-            str | tuple[Any, ...], tuple[Any, float]
-        ] = {}  # Кеш для результатов сканирования
-        self._cache_ttl = 300  # Время жизни кеша в секундах (5 минут)
+        # Используем ScannerCache из scanner/ модуля (R-2 refactoring)
+        self._scanner_cache = ScannerCache(ttl=300, max_size=1000)
+        # Используем ScannerFilters из scanner/ модуля (R-2 refactoring)
+        self._scanner_filters = ScannerFilters(item_filters)
 
         # Инициализация анализатора ликвидности
         self.liquidity_analyzer: LiquidityAnalyzer | None = None
@@ -168,16 +122,16 @@ class ArbitrageScanner:
 
     @property
     def cache_ttl(self) -> int:
-        """Время жизни кеша (для обратной совместимости)."""
-        return self._cache_ttl
+        """Время жизни кеша (делегирует к ScannerCache)."""
+        return self._scanner_cache.ttl
 
     @cache_ttl.setter
     def cache_ttl(self, value: int) -> None:
         """Установить время жизни кеша."""
-        self._cache_ttl = value
+        self._scanner_cache.ttl = value
 
     def _get_cached_results(self, cache_key: tuple[Any, ...]) -> list[dict[str, Any]] | None:
-        """Получает результаты из кеша, если они не устарели.
+        """Получает результаты из кеша через ScannerCache.
 
         Args:
             cache_key: Ключ кеша (game, mode, price_from, price_to)
@@ -186,27 +140,19 @@ class ArbitrageScanner:
             Список предметов из кеша или None, если кеш устарел/отсутствует
 
         """
-        if cache_key not in self._cache:
-            return None
-
-        items, timestamp = self._cache[cache_key]
-        current_time = time.time()
-
-        # Проверяем, не устарел ли кеш
-        if current_time - timestamp > self._cache_ttl:
-            return None
-
-        return list(items) if isinstance(items, list) else None
+        # ScannerCache.get() сам конвертирует tuple в string через _make_key()
+        return self._scanner_cache.get(cache_key)
 
     def _save_to_cache(self, cache_key: str | tuple[Any, ...], items: list[dict[str, Any]]) -> None:
-        """Сохраняет результаты в кеш.
+        """Сохраняет результаты в кеш через ScannerCache.
 
         Args:
             cache_key: Ключ кеша
             items: Список предметов для кеширования
 
         """
-        self._cache[cache_key] = (items, time.time())
+        # ScannerCache.set() сам конвертирует tuple в string через _make_key()
+        self._scanner_cache.set(cache_key, items)
         logger.debug(f"Кэшировано {len(items)} предметов для {cache_key}")
 
     async def get_api_client(self) -> DMarketAPI:
@@ -768,7 +714,7 @@ class ArbitrageScanner:
         )
 
         # Создаем ArbitrageTrader для выполнения торговли
-        trader = ArbitrageTrader()
+        trader = ArbitrageTrader(api_client=self.api_client)
         trader.set_trading_limits(
             max_trade_value=max_price,
             daily_limit=total_trade_limit,
@@ -1086,24 +1032,7 @@ class ArbitrageScanner:
             raise ValueError(f"Неизвестный уровень арбитража: {level}")
         return ARBITRAGE_LEVELS[level]
 
-    def _get_from_cache(self, key: str) -> list[dict[str, Any]] | None:
-        """Получить данные из кеша.
-
-        Args:
-            key: Ключ кеша
-
-        Returns:
-            Данные из кеша или None если кеш устарел/отсутствует
-
-        """
-        if key not in self._cache:
-            return None
-
-        data, timestamp = self._cache[key]
-        if time.time() - timestamp > self._cache_ttl:
-            return None
-
-        return list(data) if isinstance(data, list) else None
+    # _get_from_cache удалён - используем ScannerCache через _scanner_cache (R-2)
 
     async def scan_level(
         self,
@@ -1134,7 +1063,8 @@ class ArbitrageScanner:
             raise ValueError(f"Игра '{game}' не поддерживается")
 
         if use_cache:
-            cached = self._get_from_cache(cache_key)
+            # Используем ScannerCache через _scanner_cache (R-2 refactoring)
+            cached = self._scanner_cache.get(cache_key)
             if cached is not None:
                 return cached[:max_results]
 
@@ -1155,6 +1085,9 @@ class ArbitrageScanner:
         )
 
         items = items_response.get("objects", [])
+
+        # Применяем пользовательские фильтры (R-2 refactoring)
+        items = self._scanner_filters.apply_filters(items, game)
 
         # Используем aggregated-prices для эффективного получения данных о ликвидности
         if use_aggregated_api and items:
@@ -1209,10 +1142,7 @@ class ArbitrageScanner:
                 if len(results) >= max_results:
                     break
 
-        # Сохраняем в кеш
-        if results:
-            self._cache[cache_key] = (time.time(), results)
-
+        # Сохраняем в кеш через ScannerCache (R-2 refactoring)
         self._save_to_cache(cache_key, results)
         return results[:max_results]
 
@@ -1565,18 +1495,22 @@ class ArbitrageScanner:
             Словарь со статистикой
 
         """
+        # Получаем статистику кеша через ScannerCache (R-2 refactoring)
+        cache_stats = self._scanner_cache.get_statistics()
         return {
             "total_scans": self.total_scans,
             "total_items_found": self.total_items_found,
             "successful_trades": self.successful_trades,
             "total_profit": self.total_profit,
-            "cache_size": len(self._cache),
-            "cache_ttl": self._cache_ttl,
+            "cache_size": cache_stats["size"],
+            "cache_ttl": cache_stats["ttl"],
+            "cache_hits": cache_stats["hits"],
+            "cache_misses": cache_stats["misses"],
         }
 
     def clear_cache(self) -> None:
         """Очищает кеш результатов сканирования."""
-        self._cache.clear()
+        self._scanner_cache.clear()
         logger.info("Кеш результатов сканирования очищен")
 
 

@@ -1,8 +1,8 @@
 # 📊 Полное руководство по арбитражу на DMarket
 
-**Дата**: 19 ноября 2025 г.
-**Версия**: 2.0
-**Последнее обновление**: Синхронизировано с актуальной структурой проекта
+**Дата**: 12 декабря 2025 г.
+**Версия**: 3.0
+**Последнее обновление**: Рефакторинг R-2 завершен - новый модульный пакет scanner/
 
 ---
 
@@ -57,8 +57,18 @@
 
 ```python
 from src.dmarket.arbitrage_scanner import ArbitrageScanner
+from src.dmarket.scanner import ARBITRAGE_LEVELS, get_level_config
 from src.dmarket.dmarket_api import DMarketAPI
 
+# Просмотр доступных уровней
+print(ARBITRAGE_LEVELS.keys())  # ['boost', 'standard', 'medium', 'advanced', 'pro']
+
+# Получение конфигурации уровня
+config = get_level_config("boost")
+print(f"Уровень: {config['name']}")  # 🚀 Разгон баланса
+print(f"Прибыль: {config['min_profit_percent']}-{config['max_profit_percent']}%")
+
+# Инициализация сканера
 api = DMarketAPI(public_key, secret_key)
 scanner = ArbitrageScanner(api)
 
@@ -487,11 +497,131 @@ print(f"Успешных: {status['successful']} ({status['success_rate']:.1f}%)
 
 ---
 
+## 🏗️ Архитектура модуля Scanner
+
+Начиная с версии 3.0 (12.12.2025), модуль сканирования арбитража разделен на 5 независимых компонентов:
+
+```
+src/dmarket/scanner/
+├── __init__.py      # Экспорт публичного API
+├── levels.py        # Конфигурации уровней (boost, standard, medium, advanced, pro)
+├── cache.py         # ScannerCache - кэширование результатов с TTL
+├── filters.py       # ScannerFilters - фильтрация предметов
+└── analysis.py      # Расчет прибыли и анализ возможностей
+```
+
+### Публичный API пакета
+
+```python
+from src.dmarket.scanner import (
+    ARBITRAGE_LEVELS,      # Dict с конфигурациями всех уровней
+    GAME_IDS,              # Маппинг кодов игр (csgo → a8db)
+    ScannerCache,          # Кэш-менеджер
+    ScannerFilters,        # Фильтр-менеджер
+    get_level_config,      # Получить конфиг уровня
+    get_price_range_for_level,  # Получить ценовой диапазон
+)
+```
+
+### Модуль levels.py - Конфигурации уровней
+
+```python
+from src.dmarket.scanner.levels import (
+    ARBITRAGE_LEVELS,
+    get_level_config,
+    get_price_range_for_level,
+    get_profit_range_for_level,
+    get_all_levels,
+)
+
+# Все уровни
+levels = get_all_levels()  # ['boost', 'standard', 'medium', 'advanced', 'pro']
+
+# Конфигурация уровня
+config = get_level_config("standard")
+# {
+#     'name': '⚡ Стандарт',
+#     'min_profit_percent': 5.0,
+#     'max_profit_percent': 10.0,
+#     'price_range': (3.0, 10.0),
+#     'description': 'Balanced arbitrage (5-10% profit)'
+# }
+```
+
+### Модуль cache.py - Кэширование
+
+```python
+from src.dmarket.scanner.cache import ScannerCache, generate_cache_key
+
+# Инициализация кэша
+cache = ScannerCache(ttl=300, max_size=1000)
+
+# Использование tuple keys
+key = ("standard", "csgo")
+cache.set(key, items)
+
+# Получение из кэша
+cached = cache.get(key)
+if cached:
+    print(f"Cache hit! {len(cached)} items")
+
+# Статистика кэша
+stats = cache.get_statistics()
+# {'size': 10, 'hits': 50, 'misses': 5, 'hit_rate': 90.91}
+```
+
+### Модуль filters.py - Фильтрация
+
+```python
+from src.dmarket.scanner.filters import ScannerFilters
+from src.dmarket.item_filters import ItemFilters
+
+# С blacklist/whitelist
+item_filters = ItemFilters(config_path="config/item_filters.yaml")
+filters = ScannerFilters(item_filters=item_filters)
+
+# Фильтрация предметов
+filtered = filters.apply_filters(items, game="csgo")
+
+# Фильтрация по цене
+by_price = filters.filter_by_price(items, min_price=5.0, max_price=50.0)
+
+# Фильтрация по прибыли
+by_profit = filters.filter_by_profit(items, min_profit_percent=5.0)
+```
+
+### Модуль analysis.py - Анализ прибыли
+
+```python
+from src.dmarket.scanner.analysis import (
+    calculate_profit,
+    analyze_item,
+    score_opportunity,
+    find_best_opportunities,
+    aggregate_statistics,
+)
+
+# Расчет прибыли
+absolute, percent = calculate_profit(buy_price=10.0, sell_price=12.0)
+# absolute=1.16, percent=11.6 (с учетом 7% комиссии DMarket)
+
+# Анализ предмета
+result = analyze_item(item, min_profit_percent=5.0)
+
+# Поиск лучших возможностей
+best = find_best_opportunities(opportunities, limit=10)
+
+# Агрегация статистики
+stats = aggregate_statistics(opportunities)
+# {'count': 50, 'total_potential_profit': 125.50, 'avg_profit_percent': 8.5}
+```
+
 ## 📚 Дополнительные ресурсы
 
 - [DMarket API](DMARKET_API_FULL_SPEC.md) - Полная спецификация API
 - [Фильтры игр](game_filters_guide.md) - Подробное руководство по фильтрам
 - [Быстрый старт](QUICK_START.md) - Начало работы с ботом
+- [Архитектура](ARCHITECTURE.md) - Общая архитектура проекта
 
 ---
 

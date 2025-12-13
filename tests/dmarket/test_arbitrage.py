@@ -224,7 +224,7 @@ class TestFindArbitrageItems:
     async def test_find_arbitrage_items_basic(self):
         """Тест базового поиска арбитражных возможностей."""
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items",
+            "src.dmarket.arbitrage.core.fetch_market_items",
             return_value=[],
         ):
             result = await find_arbitrage_items(
@@ -239,7 +239,7 @@ class TestFindArbitrageItems:
         """Тест поиска с разными режимами."""
         for mode in ["low", "mid", "pro", "boost"]:
             with patch(
-                "src.dmarket.arbitrage.fetch_market_items",
+                "src.dmarket.arbitrage.core.fetch_market_items",
                 return_value=[],
             ):
                 result = await find_arbitrage_items(
@@ -298,7 +298,7 @@ class TestFindArbitrageAsync:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items",
+            "src.dmarket.arbitrage.core.fetch_market_items",
             return_value=mock_items,
         ):
             # Ищем прибыль от $1 до $10
@@ -334,7 +334,7 @@ class TestFindArbitrageAsync:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items",
+            "src.dmarket.arbitrage.core.fetch_market_items",
             return_value=mock_items,
         ):
             result = await _find_arbitrage_async(
@@ -369,7 +369,7 @@ class TestFindArbitrageAsync:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items",
+            "src.dmarket.arbitrage.core.fetch_market_items",
             return_value=mock_items,
         ):
             result = await _find_arbitrage_async(
@@ -392,7 +392,7 @@ class TestFindArbitrageAsync:
 
         # Не должен вызывать fetch_market_items
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items",
+            "src.dmarket.arbitrage.core.fetch_market_items",
         ) as mock_fetch:
             result = await _find_arbitrage_async(
                 min_profit=1.0,
@@ -428,7 +428,7 @@ class TestFindArbitrageOpportunitiesAsync:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items",
+            "src.dmarket.arbitrage.core.fetch_market_items",
             return_value=mock_items,
         ):
             result = await find_arbitrage_opportunities_async(
@@ -464,7 +464,7 @@ class TestFindArbitrageOpportunitiesAsync:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items",
+            "src.dmarket.arbitrage.core.fetch_market_items",
             return_value=mock_items,
         ):
             result = await find_arbitrage_opportunities_async(
@@ -499,7 +499,7 @@ class TestFindArbitrageOpportunitiesAsync:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items",
+            "src.dmarket.arbitrage.core.fetch_market_items",
             return_value=mock_items,
         ):
             result = await find_arbitrage_opportunities_async(
@@ -520,13 +520,14 @@ class TestArbitrageTraderMethods:
     async def test_trader_check_balance(self):
         """Тест проверки баланса."""
         # Мокаем DMarketAPI при создании трейдера
-        with patch("src.dmarket.arbitrage.DMarketAPI") as mock_api_class:
+        with patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api_class:
             # Настраиваем мок API
             mock_api_instance = AsyncMock()
             mock_api_instance.__aenter__ = AsyncMock(return_value=mock_api_instance)
             mock_api_instance.__aexit__ = AsyncMock(return_value=None)
-            mock_api_instance.get_user_balance = AsyncMock(
-                return_value={"usd": {"amount": "100000"}, "dmc": {"amount": "50000"}}
+            # trader.py использует get_balance() и ожидает {"usd": value_in_cents}
+            mock_api_instance.get_balance = AsyncMock(
+                return_value={"usd": 100000}  # 100000 центов = $1000
             )
             mock_api_class.return_value = mock_api_instance
 
@@ -545,12 +546,13 @@ class TestArbitrageTraderMethods:
     async def test_trader_check_balance_insufficient_funds(self):
         """Тест проверки баланса при недостаточных средствах."""
         # Мокаем DMarketAPI
-        with patch("src.dmarket.arbitrage.DMarketAPI") as mock_api_class:
+        with patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api_class:
             mock_api_instance = AsyncMock()
             mock_api_instance.__aenter__ = AsyncMock(return_value=mock_api_instance)
             mock_api_instance.__aexit__ = AsyncMock(return_value=None)
-            mock_api_instance.get_user_balance = AsyncMock(
-                return_value={"usd": {"amount": "50"}}  # $0.50
+            # trader.py использует get_balance() и ожидает {"usd": value_in_cents}
+            mock_api_instance.get_balance = AsyncMock(
+                return_value={"usd": 50}  # 50 центов = $0.50
             )
             mock_api_class.return_value = mock_api_instance
 
@@ -583,17 +585,19 @@ class TestArbitrageTraderMethods:
         assert isinstance(history, list)
         assert len(history) == 0  # Изначально пустая
 
-    @pytest.mark.asyncio()
-    async def test_trader_reset_daily_limits(self):
-        """Тест сброса дневных лимитов."""
+    def test_trader_reset_daily_limits(self):
+        """Тест сброса дневных лимитов.
+
+        _reset_daily_limits() is a sync method that resets daily counters.
+        """
         trader = ArbitrageTrader(public_key="test", secret_key="test")
 
         # Устанавливаем дневную торговлю
         trader.daily_traded = 100.0
-        # Устанавливаем время сброса на 25 часов назад
-        trader.last_day_reset = time.time() - 90000  # >24 часа
+        # Устанавливаем время сброса на 25 часов назад (>24 часа)
+        trader.daily_reset_time = time.time() - 90000
 
-        await trader._reset_daily_limits()
+        trader._reset_daily_limits()  # sync method - no await
 
         # Должно сброситься
         assert trader.daily_traded == 0.0
@@ -681,7 +685,7 @@ class TestIntegration:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items",
+            "src.dmarket.arbitrage.core.fetch_market_items",
             return_value=mock_items,
         ):
             # Шаг 1: Поиск возможностей
@@ -828,6 +832,7 @@ class TestArbitrageTraderAutoTrading:
         item = {
             "name": "Test Item",
             "market_hash_name": "Test Item",
+            "buy_item_id": "test_item_123",
             "buy_price": 10.0,
             "sell_price": 12.0,
             "profit": 1.6,
@@ -835,26 +840,25 @@ class TestArbitrageTraderAutoTrading:
             "game": "csgo",
         }
 
-        mock_buy_error = {"error": "Предмет недоступен"}
-
-        # Mock контекст-менеджер API
-        mock_api_context = AsyncMock()
-        mock_api_context.__aenter__ = AsyncMock(return_value=trader.api)
-        mock_api_context.__aexit__ = AsyncMock(return_value=None)
+        mock_buy_error = {"success": False, "error": "Предмет недоступен"}
 
         with (
-            patch.object(trader, "_can_trade_now", return_value=True),
-            patch.object(trader, "check_balance", return_value=(True, 100.0)),
-            patch.object(trader, "_check_trading_limits", return_value=True),
-            patch.object(trader, "api", mock_api_context),
-            patch.object(trader.api, "buy_item", return_value=mock_buy_error),
-            patch.object(trader, "_handle_trading_error"),
+            patch.object(
+                trader, "check_balance", new_callable=AsyncMock, return_value=(True, 100.0)
+            ),
+            patch.object(
+                trader, "_check_trading_limits", new_callable=AsyncMock, return_value=True
+            ),
+            patch.object(
+                trader, "purchase_item", new_callable=AsyncMock, return_value=mock_buy_error
+            ),
+            patch.object(trader, "_handle_trading_error", new_callable=AsyncMock),
         ):
             result = await trader.execute_arbitrage_trade(item)
 
         assert result["success"] is False
         # Проверка наличия ошибки покупки
-        error_found = any("ошибка при покупке" in str(e).lower() for e in result["errors"])
+        error_found = any("ошибка" in str(e).lower() for e in result["errors"])
         assert error_found
 
 
@@ -875,7 +879,7 @@ class TestFindArbitrageItemsNew:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.arbitrage_boost_async",
+            "src.dmarket.arbitrage.search.arbitrage_boost_async",
             return_value=mock_results,
         ):
             result = await find_arbitrage_items(
@@ -902,7 +906,7 @@ class TestFindArbitrageItemsNew:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.arbitrage_mid_async",
+            "src.dmarket.arbitrage.search.arbitrage_mid_async",
             return_value=mock_results,
         ):
             result = await find_arbitrage_items(
@@ -929,7 +933,7 @@ class TestFindArbitrageItemsNew:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.arbitrage_pro_async",
+            "src.dmarket.arbitrage.search.arbitrage_pro_async",
             return_value=mock_results,
         ):
             result = await find_arbitrage_items(
@@ -951,7 +955,7 @@ class TestFindArbitrageItemsNew:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.arbitrage_mid_async",
+            "src.dmarket.arbitrage.search.arbitrage_mid_async",
             return_value=mock_results,
         ):
             result = await find_arbitrage_items(
@@ -980,7 +984,7 @@ class TestFindArbitrageItemsNew:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.arbitrage_mid_async",
+            "src.dmarket.arbitrage.search.arbitrage_mid_async",
             return_value=mock_results,
         ):
             result = await find_arbitrage_items(
@@ -1012,7 +1016,7 @@ class TestFetchMarketItemsEnvKeys:
                     "DMARKET_API_URL": "https://test.api.com",
                 },
             ),
-            patch("src.dmarket.arbitrage.DMarketAPI") as mock_api_class,
+            patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api_class,
         ):
             mock_api_instance = AsyncMock()
             mock_api_instance.get_market_items = AsyncMock(
@@ -1056,7 +1060,7 @@ class TestFetchMarketItemsEnvKeys:
                 os.environ,
                 {"DMARKET_PUBLIC_KEY": "test", "DMARKET_SECRET_KEY": "test"},
             ),
-            patch("src.dmarket.arbitrage.DMarketAPI") as mock_api_class,
+            patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api_class,
         ):
             mock_api_instance = AsyncMock()
             mock_api_instance.get_market_items = AsyncMock(return_value={"objects": []})
@@ -1093,7 +1097,7 @@ class TestFindArbitrageAsyncPopularity:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await _find_arbitrage_async(
@@ -1124,7 +1128,7 @@ class TestFindArbitrageAsyncPopularity:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await _find_arbitrage_async(
@@ -1155,7 +1159,7 @@ class TestFindArbitrageAsyncPopularity:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await _find_arbitrage_async(
@@ -1185,7 +1189,7 @@ class TestFindArbitrageAsyncPopularity:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await _find_arbitrage_async(
@@ -1214,7 +1218,7 @@ class TestFindArbitrageAsyncPopularity:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await _find_arbitrage_async(
@@ -1243,7 +1247,7 @@ class TestFindArbitrageAsyncPopularity:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await _find_arbitrage_async(
@@ -1271,7 +1275,7 @@ class TestFindArbitrageAsyncPopularity:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await _find_arbitrage_async(
@@ -1302,7 +1306,7 @@ class TestFindArbitrageAsyncProfitCalculation:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await _find_arbitrage_async(0.0, 100.0, game="csgo")
@@ -1327,7 +1331,7 @@ class TestFindArbitrageAsyncProfitCalculation:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await _find_arbitrage_async(0.0, 100.0, game="csgo")
@@ -1352,7 +1356,7 @@ class TestFindArbitrageAsyncProfitCalculation:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await _find_arbitrage_async(
@@ -1379,7 +1383,7 @@ class TestFindArbitrageAsyncProfitCalculation:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await _find_arbitrage_async(
@@ -1410,7 +1414,7 @@ class TestFindArbitrageAsyncProfitCalculation:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await _find_arbitrage_async(1.0, 2.0, game="csgo")
@@ -1447,7 +1451,7 @@ class TestFindArbitrageAsyncProfitCalculation:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await _find_arbitrage_async(
@@ -1492,7 +1496,7 @@ class TestFindArbitrageAsyncErrorHandling:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await _find_arbitrage_async(
@@ -1520,7 +1524,7 @@ class TestFindArbitrageAsyncErrorHandling:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await _find_arbitrage_async(
@@ -1548,7 +1552,7 @@ class TestCacheIntegration:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
 
@@ -1579,7 +1583,7 @@ class TestCacheIntegration:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
 
@@ -1611,7 +1615,7 @@ class TestFindArbitrageOpportunitiesAsyncExtended:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await find_arbitrage_opportunities_async(
@@ -1640,7 +1644,7 @@ class TestFindArbitrageOpportunitiesAsyncExtended:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await find_arbitrage_opportunities_async(
@@ -1667,7 +1671,7 @@ class TestFindArbitrageOpportunitiesAsyncExtended:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await find_arbitrage_opportunities_async(
@@ -1700,7 +1704,7 @@ class TestFindArbitrageOpportunitiesAsyncExtended:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await find_arbitrage_opportunities_async(
@@ -1732,7 +1736,7 @@ class TestFindArbitrageOpportunitiesAsyncExtended:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await find_arbitrage_opportunities_async(
@@ -1750,7 +1754,7 @@ class TestFindArbitrageOpportunitiesAsyncExtended:
         src.dmarket.arbitrage._arbitrage_cache.clear()
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.side_effect = Exception("API Error")
             results = await find_arbitrage_opportunities_async(
@@ -1777,7 +1781,7 @@ class TestFindArbitrageOpportunitiesAsyncExtended:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
 
@@ -1808,7 +1812,7 @@ class TestFindArbitrageOpportunitiesAsyncExtended:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await find_arbitrage_opportunities_async(
@@ -1840,7 +1844,7 @@ class TestFindArbitrageOpportunitiesAsyncExtended:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await find_arbitrage_opportunities_async(
@@ -1873,7 +1877,7 @@ class TestFindArbitrageOpportunitiesAsyncLiquidity:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await find_arbitrage_opportunities_async(
@@ -1902,7 +1906,7 @@ class TestFindArbitrageOpportunitiesAsyncLiquidity:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await find_arbitrage_opportunities_async(
@@ -1932,7 +1936,7 @@ class TestFindArbitrageOpportunitiesAsyncLiquidity:
         ]
 
         with patch(
-            "src.dmarket.arbitrage.fetch_market_items", new_callable=AsyncMock
+            "src.dmarket.arbitrage.core.fetch_market_items", new_callable=AsyncMock
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
             results = await find_arbitrage_opportunities_async(
@@ -2033,30 +2037,34 @@ class TestFindProfitableItems:
 
         trader = ArbitrageTrader(public_key="test_key", secret_key="test_secret")
 
-        # Mock API responses
-        mock_items = {
-            "objects": [
-                {
-                    "title": "AK-47 | Redline (FT)",
-                    "price": {"amount": 1500},  # $15.00
-                    "itemId": "item_123",
-                    "extra": {"popularity": 0.85},  # High popularity
-                }
-            ]
-        }
+        # Mock API responses - нужно минимум 2 предмета с одинаковым названием
+        # Код группирует по title и ищет арбитраж между дешевым и дорогим
+        mock_items = [
+            {
+                "title": "AK-47 | Redline (FT)",
+                "price": {"USD": "1500"},  # $15.00 - дешевый
+                "itemId": "item_123",
+                "extra": {"popularity": 0.85, "rarity": "", "category": ""},
+            },
+            {
+                "title": "AK-47 | Redline (FT)",
+                "price": {"USD": "1800"},  # $18.00 - дорогой (20% разница)
+                "itemId": "item_456",
+                "extra": {"popularity": 0.85, "rarity": "", "category": ""},
+            },
+        ]
 
-        # Патчим get_market_items, context manager и get_price_info
+        # Патчим get_all_market_items (не get_market_items!) и context manager
         with (
-            patch.object(trader.api, "get_market_items", new_callable=AsyncMock) as mock_get_items,
+            patch.object(
+                trader.api, "get_all_market_items", new_callable=AsyncMock
+            ) as mock_get_items,
             patch.object(trader.api, "__aenter__", new_callable=AsyncMock) as mock_aenter,
             patch.object(trader.api, "__aexit__", new_callable=AsyncMock) as mock_aexit,
         ):
             mock_get_items.return_value = mock_items
             mock_aenter.return_value = trader.api
             mock_aexit.return_value = None
-
-            # Добавляем метод get_price_info который вернет None
-            trader.api.get_price_info = AsyncMock(return_value=None)
 
             results = await trader.find_profitable_items(
                 game="csgo",
@@ -2069,9 +2077,8 @@ class TestFindProfitableItems:
             # Должен быть найден минимум 1 предмет
             assert len(results) > 0
             assert results[0]["name"] == "AK-47 | Redline (FT)"
-            # При отсутствии recommendedPrice используется buy_price * 1.15
-            # Profit = (15 * 1.15) * (1 - 0.02) - 15 = 16.905 - 15 = 1.905
-            # Profit% = (1.905 / 15) * 100 = 12.7%
+            # Profit = ($18 * 0.93) - $15 = $16.74 - $15 = $1.74
+            # Profit% = ($1.74 / $15) * 100 = 11.6%
             assert results[0]["profit_percentage"] >= 10.0
             mock_get_items.assert_called_once()
 

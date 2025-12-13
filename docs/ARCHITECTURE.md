@@ -1,8 +1,8 @@
 # 🏗️ Архитектура проекта DMarket Telegram Bot
 
-**Дата**: 19 ноября 2025 г.
-**Версия**: 2.0
-**Последнее обновление**: Синхронизировано с текущей структурой проекта и Python 3.10+
+**Дата**: 12 декабря 2025 г.
+**Версия**: 3.0
+**Последнее обновление**: Рефакторинг R-1 (api/) и R-2 (scanner/) завершен
 
 ---
 
@@ -70,13 +70,26 @@ class ArbitrageScanner:
 ## 📦 Структура проекта
 
 ```
-BotDmarket-master/
+DMarket-Telegram-Bot/
 ├── src/                          # Исходный код
 │   ├── dmarket/                  # Модуль DMarket API
+│   │   ├── api/                 # 📦 Модульный API клиент (R-1)
+│   │   │   ├── __init__.py
+│   │   │   ├── endpoints.py     # API эндпоинты
+│   │   │   ├── auth.py          # Ed25519/HMAC подписи
+│   │   │   ├── cache.py         # Кэширование запросов
+│   │   │   └── client.py        # HTTP клиент
+│   │   ├── scanner/             # 📦 Модульный сканер (R-2)
+│   │   │   ├── __init__.py      # Публичный API
+│   │   │   ├── levels.py        # Конфигурации уровней
+│   │   │   ├── cache.py         # ScannerCache с TTL
+│   │   │   ├── filters.py       # ScannerFilters
+│   │   │   └── analysis.py      # Расчет прибыли
 │   │   ├── dmarket_api.py       # Основной API клиент
 │   │   ├── arbitrage_scanner.py # Сканер арбитража
 │   │   ├── targets.py           # Управление таргетами
 │   │   ├── arbitrage.py         # Логика арбитража
+│   │   ├── item_filters.py      # Blacklist/whitelist
 │   │   └── game_filters.py      # Фильтры игр
 │   │
 │   ├── telegram_bot/             # Telegram бот

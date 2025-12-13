@@ -21,7 +21,6 @@ from src.utils.exceptions import handle_exceptions
 from src.utils.logging_utils import get_logger
 from src.utils.telegram_error_handlers import telegram_error_boundary
 
-
 # Настройка логирования
 logger = get_logger(__name__)
 
@@ -195,8 +194,12 @@ async def alerts_command(
 # ==================== Alert Action Handlers ====================
 
 async def _handle_toggle_alert(
-    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str], 
-    user_id: int, alerts_manager
+    query,
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    parts: list[str],
+    user_id: int,
+    alerts_manager,
 ) -> None:
     """Handle toggle alert subscription action."""
     if len(parts) < 3:
@@ -227,8 +230,12 @@ async def _handle_toggle_alert(
 
 
 async def _handle_subscribe_all(
-    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str],
-    user_id: int, alerts_manager
+    query,
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    parts: list[str],
+    user_id: int,
+    alerts_manager,
 ) -> None:
     """Handle subscribe all action."""
     count = 0
@@ -241,8 +248,12 @@ async def _handle_subscribe_all(
 
 
 async def _handle_unsubscribe_all(
-    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str],
-    user_id: int, alerts_manager
+    query,
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    parts: list[str],
+    user_id: int,
+    alerts_manager,
 ) -> None:
     """Handle unsubscribe all action."""
     if hasattr(alerts_manager, "unsubscribe_all"):
@@ -264,32 +275,48 @@ async def _handle_unsubscribe_all(
 
 
 async def _handle_settings_action(
-    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str],
-    user_id: int, alerts_manager
+    query,
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    parts: list[str],
+    user_id: int,
+    alerts_manager,
 ) -> None:
     """Handle settings action."""
     await show_alerts_settings(query, alerts_manager, user_id)
 
 
 async def _handle_my_alerts_action(
-    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str],
-    user_id: int, alerts_manager
+    query,
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    parts: list[str],
+    user_id: int,
+    alerts_manager,
 ) -> None:
     """Handle my alerts action."""
     await show_user_alerts_list(query, user_id)
 
 
 async def _handle_create_alert_action(
-    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str],
-    user_id: int, alerts_manager
+    query,
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    parts: list[str],
+    user_id: int,
+    alerts_manager,
 ) -> None:
     """Handle create alert action."""
     await show_create_alert_form(query, user_id)
 
 
 async def _handle_remove_alert(
-    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str],
-    user_id: int, alerts_manager
+    query,
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    parts: list[str],
+    user_id: int,
+    alerts_manager,
 ) -> None:
     """Handle remove alert action."""
     if len(parts) < 3:
@@ -307,8 +334,12 @@ async def _handle_remove_alert(
 
 
 async def _handle_threshold_action(
-    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str],
-    user_id: int, alerts_manager
+    query,
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    parts: list[str],
+    user_id: int,
+    alerts_manager,
 ) -> None:
     """Handle threshold change action."""
     if len(parts) < 4:
@@ -339,8 +370,12 @@ async def _handle_threshold_action(
 
 
 async def _handle_interval_action(
-    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str],
-    user_id: int, alerts_manager
+    query,
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    parts: list[str],
+    user_id: int,
+    alerts_manager,
 ) -> None:
     """Handle interval change action."""
     if len(parts) < 4:
@@ -373,8 +408,12 @@ async def _handle_interval_action(
 
 
 async def _handle_back_to_alerts_action(
-    query, update: Update, context: ContextTypes.DEFAULT_TYPE, parts: list[str],
-    user_id: int, alerts_manager
+    query,
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    parts: list[str],
+    user_id: int,
+    alerts_manager,
 ) -> None:
     """Handle back to alerts action."""
     await update_alerts_keyboard(query, alerts_manager, user_id)
@@ -420,7 +459,11 @@ async def alerts_callback(
 
     action = parts[1]
 
-    alerts_manager = get_alerts_manager(bot=context.bot)
+    try:
+        alerts_manager = get_alerts_manager(bot=context.bot)
+    except Exception:
+        await query.answer("Ошибка инициализации менеджера уведомлений")
+        return
 
     # Dispatch to appropriate handler
     handler = _ALERT_ACTION_HANDLERS.get(action)
@@ -430,9 +473,7 @@ async def alerts_callback(
         await query.answer("Неизвестное действие")
 
 
-async def update_alerts_keyboard(
-    query: CallbackQuery, alerts_manager: Any, user_id: int
-) -> None:
+async def update_alerts_keyboard(query: CallbackQuery, alerts_manager: Any, user_id: int) -> None:
     """Обновляет клавиатуру управления уведомлениями.
 
     Args:
@@ -729,9 +770,7 @@ async def show_create_alert_form(query: CallbackQuery, _user_id: int) -> None:
     )
 
 
-async def show_alerts_settings(
-    query: CallbackQuery, alerts_manager: Any, user_id: int
-) -> None:
+async def show_alerts_settings(query: CallbackQuery, alerts_manager: Any, user_id: int) -> None:
     """Показывает настройки уведомлений.
 
     Args:

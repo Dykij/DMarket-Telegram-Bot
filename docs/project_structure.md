@@ -1,7 +1,7 @@
 # Структура проекта DMarket Bot
 
-**Версия**: 2.0
-**Последнее обновление**: 19 ноября 2025 г.
+**Версия**: 3.0
+**Последнее обновление**: 12 декабря 2025 г.
 
 ---
 
@@ -87,12 +87,24 @@ pytest --cov=src --cov-report=html
 ### src/ - Исходный код
 
 #### src/dmarket/
-- **api/client.py** - Клиент для работы с DMarket API, включая генерацию подписей
-- **models/market_models.py** - Модели данных для работы с API DMarket
-- **filters/game_filters.py** - Фильтры для различных игр (CS:GO, Dota 2, Rust и т.д.)
+- **api/** - Модульный API клиент (результат R-1 рефакторинга)
+  - `endpoints.py` - API эндпоинты (~75 строк)
+  - `auth.py` - Ed25519/HMAC подписи (~160 строк)
+  - `cache.py` - кэширование запросов (~160 строк)
+  - `client.py` - базовый HTTP клиент (~450 строк)
+- **scanner/** - Модульный сканер арбитража (результат R-2 рефакторинга)
+  - `__init__.py` - Публичный API пакета
+  - `levels.py` - Конфигурации уровней (boost, standard, medium, advanced, pro)
+  - `cache.py` - ScannerCache с TTL и статистикой
+  - `filters.py` - ScannerFilters с blacklist/whitelist
+  - `analysis.py` - Расчет прибыли и анализ возможностей
+- **filters/** - Фильтры для различных игр (CS:GO, Dota 2, TF2, Rust)
 - **arbitrage.py** - Логика для поиска арбитражных ситуаций
+- **arbitrage_scanner.py** - Основной сканер (использует scanner/ пакет)
 - **sales_history.py** - Работа с историей продаж
 - **market_analysis.py** - Анализ рынка и выявление тенденций
+- **targets.py** - Управление Buy Orders
+- **item_filters.py** - Blacklist/whitelist фильтрация
 
 #### src/telegram_bot/
 - **commands/basic_commands.py** - Базовые команды для Telegram-бота
