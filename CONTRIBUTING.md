@@ -149,17 +149,17 @@ async def fetch_market_data(
 ) -> dict[str, Any]:
     """
     Fetch market data for a specific item.
-    
+
     Args:
         item_id: The item identifier
         game: Game name (default: csgo)
-        
+
     Returns:
         Dictionary containing market data
-        
+
     Raises:
         APIError: If the API request fails
-        
+
     Example:
         >>> data = await fetch_market_data("ak47-redline")
         >>> print(data["price"])
@@ -211,10 +211,10 @@ async def test_scan_level_returns_opportunities():
     """Test that scan_level returns arbitrage opportunities."""
     # Arrange
     scanner = ArbitrageScanner(api_client=mock_api)
-    
+
     # Act
     results = await scanner.scan_level("standard", "csgo")
-    
+
     # Assert
     assert len(results) > 0
     assert results[0]["profit"] > 0
