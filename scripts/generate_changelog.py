@@ -14,7 +14,6 @@ import subprocess
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import DefaultDict
 
 
 class ChangelogGenerator:
@@ -36,9 +35,7 @@ class ChangelogGenerator:
     }
 
     # Паттерн для парсинга Conventional Commits
-    COMMIT_PATTERN = re.compile(
-        r"^(?P<type>\w+)(?:\((?P<scope>[\w-]+)\))?: (?P<message>.+)$"
-    )
+    COMMIT_PATTERN = re.compile(r"^(?P<type>\w+)(?:\((?P<scope>[\w-]+)\))?: (?P<message>.+)$")
 
     def __init__(self, since: str | None = None, output: Path | None = None):
         """
@@ -50,7 +47,7 @@ class ChangelogGenerator:
         """
         self.since = since
         self.output = output or Path("CHANGELOG.md")
-        self.changes: DefaultDict[str, list[dict]] = defaultdict(list)
+        self.changes: defaultdict[str, list[dict]] = defaultdict(list)
 
     def get_commits(self) -> list[str]:
         """
@@ -204,10 +201,7 @@ class ChangelogGenerator:
                 match = re.search(r"\n## \[", existing)
                 if match:
                     # Вставляем новую версию перед старыми
-                    new_content = (
-                        content.split("## [Unreleased]")[0]
-                        + existing[match.start() :]
-                    )
+                    new_content = content.split("## [Unreleased]")[0] + existing[match.start() :]
                     content = new_content
 
         self.output.write_text(content, encoding="utf-8")
@@ -216,9 +210,7 @@ class ChangelogGenerator:
 
 def main():
     """Точка входа скрипта."""
-    parser = argparse.ArgumentParser(
-        description="Generate CHANGELOG from git commits"
-    )
+    parser = argparse.ArgumentParser(description="Generate CHANGELOG from git commits")
     parser.add_argument(
         "--since",
         help="Git ref to start from (tag, commit hash)",

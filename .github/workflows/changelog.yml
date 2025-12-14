@@ -15,7 +15,7 @@ jobs:
   update-changelog:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event.pull_request.draft == false
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
       - name: Generate CHANGELOG
         run: |
           python scripts/generate_changelog.py --since $(git describe --tags --abbrev=0 2>/dev/null || echo "")
-        
+
       - name: Check for changes
         id: check_changes
         run: |
@@ -67,7 +67,7 @@ jobs:
             const fs = require('fs');
             const changelog = fs.readFileSync('CHANGELOG.md', 'utf8');
             const unreleasedSection = changelog.split('## [Unreleased]')[1]?.split('## [')[0] || 'No changes';
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
