@@ -166,26 +166,26 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold mb-6">DMarket Bot Dashboard</h1>
-      
+
       <div className="grid grid-cols-4 gap-4 mb-8">
-        <StatsCard 
-          title="Active Users" 
-          value={analytics?.active_today} 
+        <StatsCard
+          title="Active Users"
+          value={analytics?.active_today}
           icon="👥"
         />
-        <StatsCard 
-          title="Commands Today" 
-          value={analytics?.commands_today} 
+        <StatsCard
+          title="Commands Today"
+          value={analytics?.commands_today}
           icon="⚡"
         />
-        <StatsCard 
-          title="Scans Today" 
-          value={analytics?.arbitrage_scans_today} 
+        <StatsCard
+          title="Scans Today"
+          value={analytics?.arbitrage_scans_today}
           icon="🔍"
         />
-        <StatsCard 
-          title="Profit Today" 
-          value={`$${analytics?.profit_today_usd}`} 
+        <StatsCard
+          title="Profit Today"
+          value={`$${analytics?.profit_today_usd}`}
           icon="💰"
         />
       </div>

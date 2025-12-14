@@ -4,9 +4,9 @@ Prometheus metrics для мониторинга бота.
 Экспортирует метрики для Prometheus/Grafana.
 """
 
-from prometheus_client import Counter, Gauge, Histogram, Info, generate_latest
-from typing import Any
 import time
+
+from prometheus_client import Counter, Gauge, Histogram, Info, generate_latest
 
 # Информация о версии
 bot_info = Info("dmarket_bot", "DMarket Telegram Bot информация")
@@ -135,7 +135,7 @@ class MetricsCollector:
             method=method,
             status=str(status),
         ).inc()
-        
+
         api_request_duration_seconds.labels(endpoint=endpoint).observe(duration)
 
     @staticmethod
@@ -200,11 +200,12 @@ class MetricsCollector:
 def measure_time(metric: Histogram, labels: dict[str, str] | None = None):
     """
     Декоратор для измерения времени выполнения.
-    
+
     Args:
         metric: Histogram метрика
         labels: Лейблы для метрики
     """
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
             start = time.time()
@@ -217,5 +218,7 @@ def measure_time(metric: Histogram, labels: dict[str, str] | None = None):
                     metric.labels(**labels).observe(duration)
                 else:
                     metric.observe(duration)
+
         return wrapper
+
     return decorator

@@ -1,8 +1,8 @@
 """Тесты для Prometheus экспорта метрик."""
 
 import pytest
+
 from src.utils.prometheus_exporter import MetricsCollector
-from prometheus_client import REGISTRY
 
 
 class TestMetricsCollector:
@@ -17,10 +17,7 @@ class TestMetricsCollector:
     def test_record_api_request(self):
         """Тест записи API запроса."""
         MetricsCollector.record_api_request(
-            endpoint="/market/items",
-            method="GET",
-            status=200,
-            duration=0.5
+            endpoint="/market/items", method="GET", status=200, duration=0.5
         )
 
     def test_record_error(self):
@@ -30,10 +27,7 @@ class TestMetricsCollector:
     def test_record_arbitrage_scan(self):
         """Тест записи сканирования арбитража."""
         MetricsCollector.record_arbitrage_scan(
-            level="standard",
-            game="csgo",
-            duration=2.5,
-            found=15
+            level="standard", game="csgo", duration=2.5, found=15
         )
 
     def test_record_target_created(self):
@@ -59,11 +53,11 @@ class TestMetricsCollector:
         assert b"dmarket_bot" in metrics
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_prometheus_server_creation():
     """Тест создания Prometheus сервера."""
     from src.utils.prometheus_server import PrometheusServer
-    
+
     server = PrometheusServer(port=8001)
     assert server.port == 8001
     assert server.app is not None

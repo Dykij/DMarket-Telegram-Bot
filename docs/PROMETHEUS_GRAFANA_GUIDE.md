@@ -15,7 +15,7 @@ Bot → Prometheus Exporter (port 8000) → Prometheus → Grafana
 ### Counters (счетчики)
 
 - `dmarket_bot_commands_total` - Всего команд
-- `dmarket_bot_api_requests_total` - Всего API запросов  
+- `dmarket_bot_api_requests_total` - Всего API запросов
 - `dmarket_bot_errors_total` - Всего ошибок
 - `dmarket_bot_arbitrage_scans_total` - Сканирований арбитража
 - `dmarket_bot_targets_created_total` - Создано таргетов
@@ -135,7 +135,7 @@ import asyncio
 async def main():
     # Запустить Prometheus сервер
     asyncio.create_task(run_prometheus_server(port=8000))
-    
+
     # Запустить бота
     await bot.start()
 ```
@@ -205,14 +205,14 @@ groups:
           severity: critical
         annotations:
           summary: "High error rate detected"
-          
+
       - alert: SlowAPIRequests
         expr: histogram_quantile(0.95, dmarket_bot_api_request_duration_seconds) > 5
         labels:
           severity: warning
         annotations:
           summary: "API requests are slow"
-          
+
       - alert: LowActiveUsers
         expr: dmarket_bot_active_users < 100
         for: 1h

@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussion Forum
+    url: https://github.com/Dykij/DMarket-Telegram-Bot/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 📚 Documentation
+    url: https://github.com/Dykij/DMarket-Telegram-Bot/tree/main/docs
+    about: Read the documentation
+  - name: 🔒 Security Vulnerability
+    url: https://github.com/Dykij/DMarket-Telegram-Bot/security/advisories/new
+    about: Report a security vulnerability privately
