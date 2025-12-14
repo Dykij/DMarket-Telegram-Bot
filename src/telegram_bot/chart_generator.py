@@ -265,13 +265,6 @@ class ChartGenerator:
             config_json = json.dumps(chart_config)
 
             # Создаем URL с параметрами
-            params = {
-                "c": config_json,
-                "width": self.width,
-                "height": self.height,
-                "format": "png",
-                "backgroundColor": "white",
-            }
 
             # Формируем полный URL
             async with httpx.AsyncClient(timeout=30.0) as client:

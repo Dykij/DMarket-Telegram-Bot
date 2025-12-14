@@ -19,7 +19,6 @@ import httpx
 
 from src.dmarket.api.auth import generate_signature_ed25519
 from src.dmarket.api.cache import (
-    CACHE_TTL,
     clear_cache,
     clear_cache_for_endpoint,
     get_cache_key,

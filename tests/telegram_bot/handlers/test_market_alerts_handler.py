@@ -242,11 +242,14 @@ class TestRegisterAlertsHandlers:
         mock_application = MagicMock()
         mock_application.bot = MagicMock()
 
-        with patch("src.telegram_bot.notifier.asyncio.create_task") as mock_create_task:
-            register_alerts_handlers(mock_application)
+        with patch("src.telegram_bot.handlers.market_alerts_handler.load_user_alerts"):
+            with patch(
+                "src.telegram_bot.handlers.market_alerts_handler.register_notification_handlers"
+            ):
+                register_alerts_handlers(mock_application)
 
-            # Должны были зарегистрировать обработчики команд и callback
-            assert mock_application.add_handler.call_count >= 2
+                # Должны были зарегистрировать обработчики команд и callback
+                assert mock_application.add_handler.call_count >= 2
 
 
 class TestInitializeAlertsManager:

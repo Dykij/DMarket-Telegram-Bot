@@ -11,7 +11,6 @@ from typing import Any, TypeVar
 
 from tenacity import (
     AsyncRetrying,
-    RetryError,
     retry,
     retry_if_exception_type,
     stop_after_attempt,

@@ -1,115 +1,212 @@
-# AGENTS.md — DMarket Telegram Bot
+# AGENTS.md — Testing Module
 
-> 📖 Этот файл предоставляет инструкции для AI-агентов (Cursor, Devin, Windsurf, Aider, Codex и др.)
-> Полная документация: `.github/copilot-instructions.md`
+> Специфичные инструкции для написания и запуска тестов.
+> Общие правила: см. корневой `/AGENTS.md`
 
-## 🎯 Обзор проекта
+## 🧪 Типы тестов
 
-**DMarket Telegram Bot** — enterprise-grade асинхронное Python-приложение для автоматизации торговли игровыми предметами на платформе DMarket.
+| Тип         | Директория              | Количество | Назначение                  |
+| ----------- | ----------------------- | ---------- | --------------------------- |
+| Unit        | `tests/unit/`           | ~2500      | Изолированные тесты функций |
+| Integration | `tests/integration/`    | ~40        | Взаимодействие модулей      |
+| Contract    | `tests/contracts/`      | 43         | Pact Consumer-Driven        |
+| Property    | `tests/property_based/` | ~20        | Hypothesis генеративные     |
 
-| Параметр     | Значение                   |
-| ------------ | -------------------------- |
-| **Python**   | 3.11+ (3.12 рекомендуется) |
-| **Async**    | Везде для I/O операций     |
-| **Тесты**    | 2348/2348 ✅                |
-| **Покрытие** | 85%+ (цель)                |
+## ✅ AAA Паттерн (Arrange-Act-Assert)
 
-## ⚠️ Критические правила
-
-### 1. Английская раскладка в терминале
-```bash
-# ✅ Правильно
-pytest tests/
-ruff check src/
-
-# ❌ НЕПРАВИЛЬНО (кириллица!)
-руtеst tests/   # р, у, е - русские буквы
-```
-
-### 2. Async/await обязательно
 ```python
-# ✅ Правильно
-async def fetch_data() -> dict:
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        return response.json()
+@pytest.mark.asyncio
+async def test_get_balance_returns_valid_data():
+    """Тест: get_balance возвращает корректные данные."""
 
-# ❌ Неправильно - синхронный код для I/O
-def fetch_data():
-    return requests.get(url).json()
+    # Arrange - подготовка
+    api_client = DMarketAPI(public_key="test", secret_key="test")
+    mock_response = {"usd": "10000", "dmc": "5000"}
+
+    # Act - действие
+    with patch.object(api_client, '_request', return_value=mock_response):
+        balance = await api_client.get_balance()
+
+    # Assert - проверка
+    assert balance["usd"] == "10000"
+    assert balance["dmc"] == "5000"
 ```
 
-### 3. Type hints везде
+## 📋 Именование тестов
+
 ```python
-# ✅ Правильно
-async def get_balance(user_id: int) -> dict[str, float]:
-    ...
+# Формат: test_<функция>_<условие>_<результат>
 
-# ❌ Неправильно
-async def get_balance(user_id):
-    ...
+# ✅ Хорошие имена
+def test_calculate_profit_with_zero_price_returns_zero(): ...
+def test_create_target_with_invalid_price_raises_validation_error(): ...
+def test_scan_arbitrage_when_no_items_returns_empty_list(): ...
+
+# ❌ Плохие имена
+def test_profit(): ...
+def test_target(): ...
+def test_1(): ...
 ```
 
-### 4. Тесты для каждого изменения
-- AAA паттерн (Arrange-Act-Assert)
-- `@pytest.mark.asyncio` для async тестов
-- Покрытие 80%+ для новых файлов
+## 🔧 Полезные фикстуры
 
-## 🛠️ Основные команды
+```python
+# conftest.py
+import pytest
+from unittest.mock import AsyncMock
+
+@pytest.fixture
+def mock_dmarket_api():
+    """Мок DMarket API клиента."""
+    api = AsyncMock(spec=DMarketAPI)
+    api.get_balance = AsyncMock(return_value={"usd": "10000", "dmc": "5000"})
+    api.get_market_items = AsyncMock(return_value={"objects": []})
+    return api
+
+@pytest.fixture
+async def test_database():
+    """Тестовая БД в памяти."""
+    db = DatabaseManager("sqlite:///:memory:")
+    await db.init_database()
+    yield db
+    await db.close()
+```
+
+## 📼 VCR.py — HTTP записи
+
+```python
+import pytest
+
+@pytest.mark.vcr()
+@pytest.mark.asyncio
+async def test_get_market_items():
+    """Тест с записью HTTP (cassette: test_get_market_items.yaml)."""
+    api = DMarketAPI(public_key="test", secret_key="test")
+    items = await api.get_market_items(game="csgo", limit=10)
+
+    assert "objects" in items
+    assert len(items["objects"]) <= 10
+```
+
+### Режимы записи
+```bash
+# Первый запуск - запись
+pytest tests/dmarket/test_api.py
+
+# Перезаписать все кассеты
+pytest --vcr-record=all tests/
+
+# Только воспроизведение (CI)
+pytest --vcr-record=none tests/
+```
+
+## 🤝 Pact — Contract тесты
+
+```python
+# tests/contracts/test_account_contracts.py
+import pytest
+from pact import Consumer, Provider
+
+@pytest.fixture
+def pact():
+    return Consumer('DMarketBot').has_pact_with(Provider('DMarketAPI'))
+
+def test_get_balance_contract(pact):
+    """Контракт: GET /account/v1/balance."""
+    pact.given("user has balance").upon_receiving(
+        "a request for balance"
+    ).with_request(
+        method="GET",
+        path="/account/v1/balance"
+    ).will_respond_with(
+        status=200,
+        body={"usd": "10000", "dmc": "5000"}
+    )
+
+    with pact:
+        result = api.get_balance()
+        assert result["usd"] == "10000"
+```
+
+## 🎲 Hypothesis — Property-based
+
+```python
+from hypothesis import given, strategies as st
+
+@given(
+    buy_price=st.floats(min_value=0.01, max_value=10000),
+    sell_price=st.floats(min_value=0.01, max_value=10000),
+    commission=st.floats(min_value=0, max_value=100)
+)
+def test_profit_never_exceeds_price_difference(buy_price, sell_price, commission):
+    """Прибыль не может превышать разницу цен."""
+    profit = calculate_profit(buy_price, sell_price, commission)
+
+    max_possible = sell_price - buy_price
+    assert profit <= max_possible
+```
+
+## 🏃 Команды запуска
 
 ```bash
-# Линтинг и форматирование
-ruff check src/ tests/ --fix
-ruff format src/ tests/
-
-# Проверка типов
-mypy src/
-
-# Тесты
+# Все тесты
 pytest tests/ -v
+
+# С покрытием
+pytest --cov=src --cov-report=html --cov-report=term
+
+# Конкретный модуль
+pytest tests/dmarket/test_arbitrage_scanner.py -v
+
+# По маркеру
+pytest -m "asyncio" tests/
+pytest -m "not slow" tests/
+
+# Параллельно
+pytest -n auto tests/
+
+# Остановка на первой ошибке
+pytest -x tests/
+```
+
+## 📊 Покрытие
+
+```bash
+# Генерация отчета
 pytest --cov=src --cov-report=html
 
-# Запуск бота
-python -m src.main
+# Открыть отчет
+start htmlcov/index.html  # Windows
+open htmlcov/index.html   # macOS
 ```
 
-## 📁 Модульные инструкции
+### Цели покрытия
+| Модуль              | Цель | Приоритет |
+| ------------------- | ---- | --------- |
+| `src/dmarket/`      | 85%+ | Высокий   |
+| `src/telegram_bot/` | 80%+ | Средний   |
+| `src/utils/`        | 90%+ | Высокий   |
 
-Для специфики отдельных модулей см. вложенные AGENTS.md:
+## ⚠️ Типичные ошибки
 
-### Core модули
+1. **Забыл `@pytest.mark.asyncio`** — тест не выполняется как async
+2. **Моки не сбрасываются** — использовать `with patch()` или фикстуры
+3. **Тесты зависят друг от друга** — каждый тест должен быть независим
+4. **Тестирование реального API** — использовать VCR.py или моки
 
-| Модуль       | Файл                         | Описание                                                |
-| ------------ | ---------------------------- | ------------------------------------------------------- |
-| DMarket API  | `src/dmarket/AGENTS.md`      | API клиент, **цены в ЦЕНТАХ**, rate limiting 30 req/min |
-| Telegram Bot | `src/telegram_bot/AGENTS.md` | Handlers, клавиатуры, локализация (RU/EN/ES/DE)         |
-| Утилиты      | `src/utils/AGENTS.md`        | Cache, rate limiter, circuit breaker, logging           |
-| Модели       | `src/models/AGENTS.md`       | SQLAlchemy 2.0 async, Alembic миграции                  |
+## 🔍 Отладка тестов
 
-### Infrastructure
+```bash
+# Подробный вывод
+pytest -v -s tests/test_file.py
 
-| Модуль       | Файл                | Описание                                        |
-| ------------ | ------------------- | ----------------------------------------------- |
-| Тесты        | `tests/AGENTS.md`   | AAA паттерн, VCR.py, Pact contracts, Hypothesis |
-| Конфигурация | `config/AGENTS.md`  | YAML config, env substitution `${VAR:default}`  |
-| Миграции     | `alembic/AGENTS.md` | Async миграции, версионирование схемы           |
-| Скрипты      | `scripts/AGENTS.md` | CLI утилиты, health checks, deployment          |
+# Остановка в отладчике
+pytest --pdb tests/test_file.py
 
-## 📚 Документация
-
-- **Полные инструкции**: `.github/copilot-instructions.md` (1000+ строк)
-- **Архитектура**: `docs/ARCHITECTURE.md`
-- **API DMarket**: `docs/DMARKET_API_FULL_SPEC.md`
-- **Арбитраж**: `docs/ARBITRAGE.md`
-- **Тестирование**: `docs/testing_guide.md`
-
-## 🔗 Ссылки
-
-- [DMarket API Docs](https://docs.dmarket.com/)
-- [python-telegram-bot](https://docs.python-telegram-bot.org/)
-- [Ruff](https://docs.astral.sh/ruff/)
-- [MyPy](https://mypy.readthedocs.io/)
+# Показать локальные переменные при ошибке
+pytest -l tests/test_file.py
+```
 
 ---
 
-*Файл соответствует стандарту [AGENTS.md](https://agents.md) для совместимости с AI-агентами.*
+*См. также: `docs/testing_guide.md`, `docs/CONTRACT_TESTING.md`*

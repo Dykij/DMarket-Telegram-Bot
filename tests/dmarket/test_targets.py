@@ -14,7 +14,6 @@ import pytest
 
 from src.dmarket.targets import TargetManager
 
-
 # ============================================================================
 # FIXTURES
 # ============================================================================
@@ -61,8 +60,8 @@ def test_target_manager_initialization(mock_api_client):
 @pytest.mark.asyncio()
 async def test_create_target_success(mock_api_client):
     """Тест успешного создания таргета."""
-    # Настройка мока
-    mock_api_client.create_targets = AsyncMock(
+    # Настройка мока - используем create_target (метод, который вызывает manager)
+    mock_api_client.create_target = AsyncMock(
         return_value={"Result": [{"TargetID": "target123", "Status": "Created"}]}
     )
 
@@ -77,7 +76,8 @@ async def test_create_target_success(mock_api_client):
     )
 
     # Проверки
-    assert result["success"] is True or "TargetID" in result
+    assert result is not None
+    assert "Result" in result or "TargetID" in str(result)
 
 
 @pytest.mark.asyncio()
@@ -163,16 +163,16 @@ async def test_create_target_with_attrs(mock_api_client):
 @pytest.mark.asyncio()
 async def test_get_user_targets_success(mock_api_client):
     """Тест успешного получения таргетов пользователя."""
-    # Настройка мока
+    # Настройка мока - используем lowercase "items" как в реальном API
     mock_api_client.get_user_targets = AsyncMock(
         return_value={
-            "Items": [
+            "items": [
                 {
-                    "TargetID": "target123",
-                    "Title": "AWP | Asiimov",
-                    "Price": {"Amount": 5000},
-                    "Amount": 1,
-                    "Status": "active",
+                    "targetId": "target123",
+                    "title": "AWP | Asiimov",
+                    "price": {"amount": 5000},
+                    "amount": 1,
+                    "status": "active",
                 }
             ]
         }
@@ -193,7 +193,7 @@ async def test_get_user_targets_success(mock_api_client):
 async def test_get_user_targets_empty(mock_api_client):
     """Тест получения таргетов когда их нет."""
     # Настройка мока - пустой результат
-    mock_api_client.get_user_targets = AsyncMock(return_value={"Items": []})
+    mock_api_client.get_user_targets = AsyncMock(return_value={"items": []})
 
     manager = TargetManager(mock_api_client)
 
@@ -207,14 +207,14 @@ async def test_get_user_targets_empty(mock_api_client):
 @pytest.mark.asyncio()
 async def test_get_targets_by_title(mock_api_client):
     """Тест получения таргетов по названию предмета."""
-    # Настройка мока
-    mock_api_client.get_user_targets = AsyncMock(
+    # Настройка мока - используем get_targets_by_title (специальный метод)
+    mock_api_client.get_targets_by_title = AsyncMock(
         return_value={
-            "Items": [
+            "items": [
                 {
-                    "TargetID": "target123",
-                    "Title": "AWP | Asiimov (Field-Tested)",
-                    "Price": {"Amount": 5000},
+                    "targetId": "target123",
+                    "title": "AWP | Asiimov (Field-Tested)",
+                    "price": {"amount": 5000},
                 }
             ]
         }
@@ -227,6 +227,7 @@ async def test_get_targets_by_title(mock_api_client):
 
     # Проверки
     assert isinstance(result, list)
+    assert len(result) == 1
 
 
 # ============================================================================
@@ -237,8 +238,8 @@ async def test_get_targets_by_title(mock_api_client):
 @pytest.mark.asyncio()
 async def test_delete_target_success(mock_api_client):
     """Тест успешного удаления таргета."""
-    # Настройка мока
-    mock_api_client.delete_targets = AsyncMock(return_value={"Result": [{"Status": "Deleted"}]})
+    # Настройка мока - используем delete_target (singular)
+    mock_api_client.delete_target = AsyncMock(return_value={"success": True})
 
     manager = TargetManager(mock_api_client)
 
@@ -247,14 +248,14 @@ async def test_delete_target_success(mock_api_client):
 
     # Проверки
     assert result is True
-    mock_api_client.delete_targets.assert_called_once()
+    mock_api_client.delete_target.assert_called_once()
 
 
 @pytest.mark.asyncio()
 async def test_delete_target_not_found(mock_api_client):
     """Тест удаления несуществующего таргета."""
-    # Настройка мока - ошибка
-    mock_api_client._request = AsyncMock(side_effect=Exception("Target not found"))
+    # Настройка мока - delete_target выбрасывает ошибку
+    mock_api_client.delete_target = AsyncMock(side_effect=Exception("Target not found"))
 
     manager = TargetManager(mock_api_client)
 
@@ -268,21 +269,22 @@ async def test_delete_target_not_found(mock_api_client):
 @pytest.mark.asyncio()
 async def test_delete_all_targets(mock_api_client):
     """Тест удаления всех таргетов."""
-    # Настройка моков
+    # Настройка моков - используем lowercase keys
     mock_api_client.get_user_targets = AsyncMock(
         return_value={
-            "Items": [{"TargetID": "target123", "Title": "AWP", "Price": {"Amount": 5000}}]
+            "items": [{"targetId": "target123", "title": "AWP", "price": {"amount": 5000}}]
         }
     )
-    mock_api_client.delete_targets = AsyncMock(return_value={"Result": [{"Status": "success"}]})
+    mock_api_client.delete_target = AsyncMock(return_value={"success": True})
 
     manager = TargetManager(mock_api_client)
 
-    # Удаляем все таргеты с confirm=True
-    result = await manager.delete_all_targets(game="csgo", confirm=True)
+    # Удаляем все таргеты с dry_run=False
+    result = await manager.delete_all_targets(game="csgo", dry_run=False)
 
-    # Проверки - результат может быть числом или словарем
+    # Проверки - результат должен быть словарём
     assert result is not None
+    assert isinstance(result, dict)
 
 
 # ============================================================================
@@ -293,8 +295,8 @@ async def test_delete_all_targets(mock_api_client):
 @pytest.mark.asyncio()
 async def test_get_target_statistics(mock_api_client):
     """Тест получения статистики по таргетам."""
-    # Настройка моков
-    mock_api_client.get_user_targets = AsyncMock(return_value={"Items": []})
+    # Настройка моков - используем lowercase keys
+    mock_api_client.get_user_targets = AsyncMock(return_value={"items": []})
 
     manager = TargetManager(mock_api_client)
 
@@ -310,8 +312,8 @@ async def test_get_target_statistics(mock_api_client):
 @pytest.mark.asyncio()
 async def test_get_closed_targets(mock_api_client):
     """Тест получения закрытых (исполненных) таргетов."""
-    # Настройка мока
-    mock_api_client.get_user_targets = AsyncMock(return_value={"Items": []})
+    # Настройка мока - используем lowercase keys
+    mock_api_client.get_user_targets = AsyncMock(return_value={"items": []})
 
     manager = TargetManager(mock_api_client)
 

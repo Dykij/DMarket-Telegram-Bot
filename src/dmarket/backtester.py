@@ -954,7 +954,7 @@ class Backtester:
         winning_trades = [t for t in closed_trades if (t.profit or 0) > 0]
         losing_trades = [t for t in closed_trades if (t.profit or 0) < 0]
 
-        total_profit = sum(t.profit or 0 for t in closed_trades)
+        sum(t.profit or 0 for t in closed_trades)
         total_roi = ((self.current_balance - self.initial_balance) / self.initial_balance) * 100
 
         # Calculate win rate

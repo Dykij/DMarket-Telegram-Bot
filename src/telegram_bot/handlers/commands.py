@@ -15,7 +15,6 @@ from src.telegram_bot.keyboards import (
     get_marketplace_comparison_keyboard,
     get_modern_arbitrage_keyboard,
     get_permanent_reply_keyboard,
-    get_webapp_button,
 )
 from src.utils.logging_utils import get_logger
 from src.utils.telegram_error_handlers import telegram_error_boundary
@@ -99,11 +98,20 @@ async def webapp_command(
     if not update.message:
         return
 
-    await update.message.reply_text(
-        "🌐 <b>DMarket WebApp</b>\n\nНажмите кнопку ниже, чтобы открыть DMarket прямо в Telegram:",
-        reply_markup=get_webapp_button(),
-        parse_mode=ParseMode.HTML,
-    )
+    try:
+        from src.telegram_bot.keyboards.webapp import get_dmarket_webapp_keyboard
+
+        await update.message.reply_text(
+            "🌐 <b>DMarket WebApp</b>\n\nНажмите кнопку ниже, чтобы открыть DMarket прямо в Telegram:",
+            reply_markup=get_dmarket_webapp_keyboard(),
+            parse_mode=ParseMode.HTML,
+        )
+    except Exception as e:
+        logger.exception(f"Error in webapp_command: {e}")
+        await update.message.reply_text(
+            "❌ Ошибка при открытии WebApp",
+            parse_mode=ParseMode.HTML,
+        )
 
 
 @telegram_error_boundary(user_friendly_message="❌ Ошибка при загрузке дашборда")
