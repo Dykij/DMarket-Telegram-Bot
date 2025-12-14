@@ -6,7 +6,7 @@
 |---------|----------|
 | **Версия** | 1.0.0 |
 | **Готовность** | 40% (20/50 задач) |
-| **Тесты** | 2688/2688 ✅ |
+| **Тесты** | 2348/2348 ✅ |
 | **Покрытие** | 85%+ (цель) |
 | **Python** | 3.11+ (3.12 рекомендуется) |
 
@@ -86,7 +86,7 @@ pip install -r requirements.txt
 - 🔒 **Безопасность** - шифрование API ключей, rate limiting
 - 🛡️ **Circuit Breaker** - защита от каскадных сбоев API
 - 📡 **Sentry интеграция** - мониторинг ошибок в production
-- 🧪 **2688 тестов** - 100% проходят
+- 🧪 **2348 тестов** - 100% проходят
 
 ---
 
@@ -970,7 +970,7 @@ DMarket-Telegram-Bot/
 │   ├── models/               # Модели данных (SQLAlchemy 2.0)
 │   │   └── ...
 │   └── main.py               # Точка входа
-├── tests/                    # Тесты (2688 тестов)
+├── tests/                    # Тесты (2348 тестов)
 │   ├── unit/                # Юнит-тесты
 │   ├── integration/         # Интеграционные тесты
 │   ├── contracts/           # Pact контрактные тесты (43 теста)
@@ -1214,40 +1214,110 @@ async def balance_command(
 
 ---
 
-## 📚 Документация проекта
+## 📚 Документация проекта (50 файлов)
 
-Вся документация находится в папке `docs/` и хорошо структурирована:
+Вся документация находится в папке `docs/` и организована по категориям:
 
-### Начало работы
-- **[docs/README.md](../docs/README.md)** - Индекс всей документации
-- **[docs/QUICK_START.md](../docs/QUICK_START.md)** - Запуск бота за 5 минут
-- **[docs/deployment.md](../docs/deployment.md)** - Развертывание (dev, prod, cloud)
+### 🚀 Начало работы (4 файла)
+| Файл | Описание |
+|------|----------|
+| [README.md](../docs/README.md) | **Главный индекс** - навигация по всей документации |
+| [QUICK_START.md](../docs/QUICK_START.md) | Запуск бота за 5 минут, чеклисты |
+| [deployment.md](../docs/deployment.md) | Развертывание: Docker, Heroku, AWS, GCP |
+| [TODO_CHEATSHEET.md](../docs/TODO_CHEATSHEET.md) | Шпаргалка по TODO-спискам |
 
-### Архитектура и API
-- **[docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md)** - Полная архитектура проекта
-- **[docs/api_reference.md](../docs/api_reference.md)** - Справочник методов API
-- **[docs/DMARKET_API_FULL_SPEC.md](../docs/DMARKET_API_FULL_SPEC.md)** - Спецификация DMarket API
-- **[docs/project_structure.md](../docs/project_structure.md)** - Структура файлов
+### 🏗️ Архитектура (4 файла)
+| Файл | Описание |
+|------|----------|
+| [ARCHITECTURE.md](../docs/ARCHITECTURE.md) | Полная архитектура, UML диаграммы |
+| [project_structure.md](../docs/project_structure.md) | Структура папок и модулей |
+| [DATA_STRUCTURES_GUIDE.md](../docs/DATA_STRUCTURES_GUIDE.md) | Структуры данных проекта |
+| [DEPENDENCY_INJECTION.md](../docs/DEPENDENCY_INJECTION.md) | DI паттерны (dependency-injector) |
 
-### Функциональность
-- **[docs/ARBITRAGE.md](../docs/ARBITRAGE.md)** - Полное руководство по арбитражу
-- **[docs/game_filters_guide.md](../docs/game_filters_guide.md)** - Фильтры игр
-- **[docs/MARKET_ANALYTICS_GUIDE.md](../docs/MARKET_ANALYTICS_GUIDE.md)** - Анализ рынка
-- **[docs/REACTIVE_WEBSOCKET_GUIDE.md](../docs/REACTIVE_WEBSOCKET_GUIDE.md)** - WebSocket мониторинг
-- **[docs/batch_processing_guide.md](../docs/batch_processing_guide.md)** - Пакетная обработка
+### 📡 API (4 файла)
+| Файл | Описание |
+|------|----------|
+| [api_reference.md](../docs/api_reference.md) | Справочник методов бота |
+| [DMARKET_API_FULL_SPEC.md](../docs/DMARKET_API_FULL_SPEC.md) | **DMarket API v1.1.0** - цены в центах! |
+| [TELEGRAM_BOT_API.md](../docs/TELEGRAM_BOT_API.md) | Telegram Bot API 9.2 справочник |
+| [API_COVERAGE_MATRIX.md](../docs/API_COVERAGE_MATRIX.md) | Матрица покрытия API методов |
 
-### Разработка
-- **[docs/code_quality_tools_guide.md](../docs/code_quality_tools_guide.md)** - Ruff, Black, MyPy
-- **[docs/testing_guide.md](../docs/testing_guide.md)** - Тестирование
-- **[docs/SECURITY.md](../docs/SECURITY.md)** - Безопасность
-- **[docs/CONTRIBUTING.md](../docs/CONTRIBUTING.md)** - Как помочь проекту
-- **[docs/logging_and_error_handling.md](../docs/logging_and_error_handling.md)** - Логирование
+### 💰 Торговля и арбитраж (6 файлов)
+| Файл | Описание |
+|------|----------|
+| [ARBITRAGE.md](../docs/ARBITRAGE.md) | **Полное руководство** - 5 уровней, таргеты, стратегии |
+| [game_filters_guide.md](../docs/game_filters_guide.md) | Фильтры: CS:GO, Dota 2, TF2, Rust |
+| [MARKET_ANALYTICS_GUIDE.md](../docs/MARKET_ANALYTICS_GUIDE.md) | RSI, MACD, Bollinger, тренды |
+| [ADVANCED_FILTERS_GUIDE.md](../docs/ADVANCED_FILTERS_GUIDE.md) | Продвинутая фильтрация |
+| [PRICE_SANITY_CHECK_GUIDE.md](../docs/PRICE_SANITY_CHECK_GUIDE.md) | Валидация цен |
+| [TRADING_NOTIFICATIONS_GUIDE.md](../docs/TRADING_NOTIFICATIONS_GUIDE.md) | Торговые уведомления |
 
-### Перед созданием нового функционала
+### 🔔 Уведомления (4 файла)
+| Файл | Описание |
+|------|----------|
+| [NOTIFICATION_FILTERS_GUIDE.md](../docs/NOTIFICATION_FILTERS_GUIDE.md) | Фильтрация уведомлений |
+| [NOTIFICATION_DIGESTS_GUIDE.md](../docs/NOTIFICATION_DIGESTS_GUIDE.md) | Дайджесты уведомлений |
+| [DAILY_REPORTS_GUIDE.md](../docs/DAILY_REPORTS_GUIDE.md) | Ежедневные отчеты |
+| [DASHBOARD_GUIDE.md](../docs/DASHBOARD_GUIDE.md) | Интерактивный дашборд |
+
+### 🛠️ Разработка (8 файлов)
+| Файл | Описание |
+|------|----------|
+| [CONTRIBUTING.md](../docs/CONTRIBUTING.md) | Как помочь проекту |
+| [code_quality_tools_guide.md](../docs/code_quality_tools_guide.md) | **Ruff 0.8+, MyPy strict** |
+| [testing_guide.md](../docs/testing_guide.md) | pytest, VCR.py, Hypothesis |
+| [CONTRACT_TESTING.md](../docs/CONTRACT_TESTING.md) | Pact контрактное тестирование |
+| [INTEGRATION_TESTING_GUIDE.md](../docs/INTEGRATION_TESTING_GUIDE.md) | Интеграционные тесты |
+| [DEBUG_WORKFLOW.md](../docs/DEBUG_WORKFLOW.md) | Отладка и troubleshooting |
+| [schema_validation_guide.md](../docs/schema_validation_guide.md) | Валидация Pydantic схем |
+| [AI_TOOLS_GUIDE.md](../docs/AI_TOOLS_GUIDE.md) | Интеграция с AI инструментами |
+
+### ⚡ Производительность (5 файлов)
+| Файл | Описание |
+|------|----------|
+| [CACHING_GUIDE.md](../docs/CACHING_GUIDE.md) | TTLCache, Redis, Query Cache |
+| [batch_processing_guide.md](../docs/batch_processing_guide.md) | Пакетная обработка |
+| [REACTIVE_WEBSOCKET_GUIDE.md](../docs/REACTIVE_WEBSOCKET_GUIDE.md) | WebSocket Observable паттерн |
+| [state_management_guide.md](../docs/state_management_guide.md) | Управление состоянием |
+| [AUTO_SHUTDOWN_GUIDE.md](../docs/AUTO_SHUTDOWN_GUIDE.md) | Автоматическое завершение |
+
+### 🔒 Безопасность и ошибки (4 файла)
+| Файл | Описание |
+|------|----------|
+| [SECURITY.md](../docs/SECURITY.md) | **DRY_RUN режим**, шифрование ключей |
+| [ERROR_HANDLING_GUIDE.md](../docs/ERROR_HANDLING_GUIDE.md) | Обработка ошибок |
+| [logging_and_error_handling.md](../docs/logging_and_error_handling.md) | Structlog, уровни логов |
+| [BREADCRUMBS_GUIDE.md](../docs/BREADCRUMBS_GUIDE.md) | Хлебные крошки для отладки |
+
+### 📊 Мониторинг (3 файла)
+| Файл | Описание |
+|------|----------|
+| [SENTRY_GUIDE.md](../docs/SENTRY_GUIDE.md) | **Sentry** - настройка, алерты, очистка |
+| [MONITORING_GUIDE.md](../docs/MONITORING_GUIDE.md) | Общий мониторинг системы |
+| [PRODUCTION_IMPROVEMENTS.md](../docs/PRODUCTION_IMPROVEMENTS.md) | Улучшения для production |
+
+### 🚀 CI/CD и DevOps (4 файла)
+| Файл | Описание |
+|------|----------|
+| [CI_CD_GUIDE.md](../docs/CI_CD_GUIDE.md) | GitHub Actions полный гайд |
+| [CI_CD_QUICKSTART.md](../docs/CI_CD_QUICKSTART.md) | Быстрый старт CI/CD |
+| [DATABASE_MIGRATIONS.md](../docs/DATABASE_MIGRATIONS.md) | Alembic async миграции |
+| [TELEGRAM_BOT_API_IMPROVEMENTS.md](../docs/TELEGRAM_BOT_API_IMPROVEMENTS.md) | Улучшения Telegram API |
+
+### 📘 Дополнительно (4 файла)
+| Файл | Описание |
+|------|----------|
+| [TODO_WORKFLOW_EXAMPLE.md](../docs/TODO_WORKFLOW_EXAMPLE.md) | Примеры TODO workflow |
+| [WORKFLOWS_OVERVIEW.md](../docs/WORKFLOWS_OVERVIEW.md) | Обзор рабочих процессов |
+| [vs_code_cyrillic_protection.md](../docs/vs_code_cyrillic_protection.md) | Защита от кириллицы в VS Code |
+| [TOOLS_AND_EXTENSIONS_GUIDE.md](../docs/TOOLS_AND_EXTENSIONS_GUIDE.md) | Инструменты и расширения |
+
+### ⚡ Перед созданием нового функционала
 1. Изучи **ARCHITECTURE.md** для понимания структуры
 2. Проверь **api_reference.md** на наличие похожих методов
 3. Следуй **code_quality_tools_guide.md** для стиля кода
 4. Обнови **CHANGELOG.md** при значимых изменениях
+5. Прочитай **SECURITY.md** если работаешь с API ключами
 
 ---
 

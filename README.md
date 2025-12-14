@@ -10,7 +10,7 @@
 ![Type Checked](https://img.shields.io/badge/type%20checked-mypy-blue)
 ![Docker](https://img.shields.io/badge/docker-ready-blue)
 [![Release](https://img.shields.io/github/v/release/Dykij/DMarket-Telegram-Bot)](https://github.com/Dykij/DMarket-Telegram-Bot/releases)
-![Tests](https://img.shields.io/badge/tests-2688%2F2688%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-2348%2F2348%20passing-brightgreen)
 
 A comprehensive Telegram bot for DMarket platform operations, market analytics, and automated trading opportunities. Built with modern Python, async/await, and enterprise-grade architecture.
 
@@ -1116,7 +1116,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Фреймворк**: python-telegram-bot 22.0+
 - **База данных**: PostgreSQL (production), SQLite (dev)
 - **Async**: Full async/await с asyncio
-- **Тестирование**: pytest 8.4+, 2688 тестов (100% passing)
+- **Тестирование**: pytest 8.4+, 2348 тестов (100% passing)
 - **Покрытие**: 85%+ (цель)
 - **Качество кода**: Ruff 0.14+, MyPy 1.19+ (strict mode)
 - **ORM**: SQLAlchemy 2.0+
