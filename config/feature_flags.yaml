@@ -1,0 +1,100 @@
+# Feature Flags Configuration
+
+# Формат:
+# feature_name:
+#   enabled: true/false         # Глобально включен
+#   rollout_percent: 0-100      # Процент пользователей
+#   whitelist: [user_ids]       # Всегда включено для этих пользователей
+#   blacklist: [user_ids]       # Всегда выключено для этих пользователей
+#   conditions:                 # Условия включения
+#     key: value
+
+features:
+  # Trading features
+  portfolio_management:
+    enabled: true
+    rollout_percent: 100
+    whitelist: []
+    blacklist: []
+
+  auto_sell:
+    enabled: true
+    rollout_percent: 100
+    whitelist: []
+    blacklist: []
+
+  hft_mode:
+    enabled: false  # Экспериментальная фича
+    rollout_percent: 10
+    whitelist: []  # Добавить ID админов/тестеров
+    blacklist: []
+
+  backtesting:
+    enabled: true
+    rollout_percent: 100
+    whitelist: []
+    blacklist: []
+
+  # Arbitrage features
+  cross_game_arbitrage:
+    enabled: true
+    rollout_percent: 100
+    whitelist: []
+    blacklist: []
+
+  intramarket_arbitrage:
+    enabled: true
+    rollout_percent: 100
+    whitelist: []
+    blacklist: []
+
+  # Analytics features
+  market_analytics:
+    enabled: true
+    rollout_percent: 100
+    whitelist: []
+    blacklist: []
+
+  price_prediction:
+    enabled: false  # В разработке
+    rollout_percent: 5
+    whitelist: []
+    blacklist: []
+
+  competition_analysis:
+    enabled: true
+    rollout_percent: 100
+    whitelist: []
+    blacklist: []
+
+  # Notification features
+  smart_notifications:
+    enabled: true
+    rollout_percent: 100
+    whitelist: []
+    blacklist: []
+
+  discord_notifications:
+    enabled: true
+    rollout_percent: 100
+    whitelist: []
+    blacklist: []
+
+  daily_reports:
+    enabled: true
+    rollout_percent: 100
+    whitelist: []
+    blacklist: []
+
+  # Experimental features
+  experimental_ui:
+    enabled: false
+    rollout_percent: 0
+    whitelist: []  # Только для бета-тестеров
+    blacklist: []
+
+  beta_features:
+    enabled: false
+    rollout_percent: 0
+    whitelist: []  # Только для бета-тестеров
+    blacklist: []
