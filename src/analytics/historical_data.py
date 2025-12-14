@@ -83,7 +83,7 @@ class PriceHistory:
         """Calculate average price across all points."""
         if not self.points:
             return Decimal(0)
-        return sum(p.price for p in self.points) / len(self.points)
+        return Decimal(sum(p.price for p in self.points)) / Decimal(len(self.points))
 
     @property
     def min_price(self) -> Decimal:
@@ -117,7 +117,7 @@ class PriceHistory:
 
         variance = sum((p - mean) ** 2 for p in prices) / len(prices)
         std_dev = variance**0.5
-        return std_dev / mean
+        return float(std_dev / mean)
 
 
 class HistoricalDataCollector:

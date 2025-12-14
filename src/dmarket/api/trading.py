@@ -12,6 +12,7 @@ from typing import Any
 
 from src.utils.sentry_breadcrumbs import add_trading_breadcrumb
 
+
 logger = logging.getLogger(__name__)
 
 

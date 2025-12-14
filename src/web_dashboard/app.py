@@ -1,5 +1,7 @@
 """FastAPI backend для веб-дашборда."""
 from fastapi import FastAPI
+
+
 app = FastAPI(title="DMarket Bot Dashboard API", version="1.0.0")
 
 @app.get("/")

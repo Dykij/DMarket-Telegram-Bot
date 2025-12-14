@@ -4,9 +4,9 @@ This module provides database connection management, model definitions,
 and common database operations.
 """
 
+from datetime import UTC, datetime, timedelta
 import json
 import logging
-from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -19,10 +19,13 @@ from sqlalchemy.ext.asyncio import (
 )
 
 # Import all models to ensure they're registered with Base.metadata
-from src.models import MarketData  # noqa: F401
-from src.models import User
+from src.models import (
+    MarketData,  # noqa: F401
+    User,
+)
 from src.models.base import Base
 from src.utils.memory_cache import _user_cache, cached, get_all_cache_stats
+
 
 logger = logging.getLogger(__name__)
 

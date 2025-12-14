@@ -21,6 +21,7 @@ from src.telegram_bot.sales_analysis_handlers import (  # type: ignore[import-un
 )
 from src.utils.exceptions import APIError
 
+
 # Настройка логирования
 logger = logging.getLogger(__name__)
 

@@ -9,6 +9,7 @@
 
 from typing import Any
 
+
 # CS2/CSGO константы
 CS2_CATEGORIES = [
     "Pistol",

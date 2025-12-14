@@ -1,7 +1,7 @@
 """Notification sending functions for smart notifications."""
 
-import logging
 from datetime import datetime
+import logging
 from typing import Any
 
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
@@ -15,6 +15,7 @@ from src.telegram_bot.utils.formatters import (
     format_opportunities,
     split_long_message,
 )
+
 
 logger = logging.getLogger(__name__)
 

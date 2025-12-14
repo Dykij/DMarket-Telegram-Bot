@@ -9,6 +9,7 @@ Provides:
 from .backtester import Backtester, BacktestResult, SimpleArbitrageStrategy, TradingStrategy
 from .historical_data import HistoricalDataCollector, PricePoint
 
+
 __all__ = [
     "BacktestResult",
     "Backtester",

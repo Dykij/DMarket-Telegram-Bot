@@ -25,13 +25,13 @@ from src.dmarket.backtester import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def backtester():
     """Create backtester instance."""
     return Backtester(initial_balance=1000.0, fee_percent=7.0)
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_price_points():
     """Create sample price points for testing."""
     base_time = datetime.now(UTC) - timedelta(days=30)
@@ -518,7 +518,7 @@ class TestBacktester:
         assert "item_001" in backtester.data
         assert len(backtester.data["item_001"].prices) == 7 * 24
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_run_backtest_no_data(self, backtester):
         """Test running backtest with no data."""
         strategy = SimpleArbitrageStrategy()
@@ -526,7 +526,7 @@ class TestBacktester:
         with pytest.raises(ValueError, match="No historical data"):
             await backtester.run(strategy)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_run_backtest_with_sample_data(self, backtester):
         """Test running backtest with sample data."""
         backtester.generate_sample_data(
@@ -551,7 +551,7 @@ class TestBacktester:
         assert results.final_balance >= 0
         assert len(results.equity_curve) > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_run_backtest_multiple_positions(self, backtester):
         """Test backtest with multiple positions."""
         backtester.generate_sample_data(
@@ -680,7 +680,7 @@ class TestBacktesterMetrics:
 class TestStrategyComparison:
     """Tests for comparing multiple strategies."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_compare_strategies(self, backtester):
         """Test comparing multiple strategies."""
         backtester.generate_sample_data(

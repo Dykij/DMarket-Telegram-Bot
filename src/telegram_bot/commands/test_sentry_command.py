@@ -22,6 +22,7 @@ from src.utils.sentry_breadcrumbs import (
     set_user_context,
 )
 
+
 logger = logging.getLogger(__name__)
 bot_logger = BotLogger(__name__)
 

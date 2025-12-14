@@ -66,13 +66,13 @@ targets_hit_total = Counter(
 trades_total = Counter(
     "dmarket_bot_trades_total",
     "Общее количество сделок",
-    ["type", "game"],  # type: buy/sell
+    ["type", "game"],  # trade type: buy/sell
 )
 
 trade_volume_usd = Counter(
     "dmarket_bot_trade_volume_usd",
     "Объем торговли в USD",
-    ["type", "game"],
+    ["type", "game"],  # trade type and game
 )
 
 # Гистограммы производительности

@@ -9,9 +9,6 @@
 
 import json
 import logging
-from unittest.mock import MagicMock, patch
-
-import pytest
 
 from src.utils.logging_utils import ColoredFormatter, JSONFormatter
 
@@ -31,10 +28,10 @@ class TestJSONFormatter:
             args=(),
             exc_info=None,
         )
-        
+
         result = formatter.format(record)
         log_data = json.loads(result)
-        
+
         assert log_data["message"] == "Test message"
         assert log_data["level"] == "INFO"
         assert log_data["logger"] == "test_logger"
@@ -53,23 +50,23 @@ class TestJSONFormatter:
         )
         record.user_id = 12345
         record.request_id = "abc-123"
-        
+
         result = formatter.format(record)
         log_data = json.loads(result)
-        
+
         assert log_data["user_id"] == 12345
         assert log_data["request_id"] == "abc-123"
 
     def test_json_formatter_with_exception(self):
         """Тест форматирования с исключением."""
         formatter = JSONFormatter()
-        
+
         try:
             raise ValueError("Test error")
         except ValueError:
             import sys
             exc_info = sys.exc_info()
-            
+
         record = logging.LogRecord(
             name="test_logger",
             level=logging.ERROR,
@@ -79,10 +76,10 @@ class TestJSONFormatter:
             args=(),
             exc_info=exc_info,
         )
-        
+
         result = formatter.format(record)
         log_data = json.loads(result)
-        
+
         assert "exception" in log_data
         assert "ValueError" in log_data["exception"]
 
@@ -98,10 +95,10 @@ class TestJSONFormatter:
             args=(),
             exc_info=None,
         )
-        
+
         result = formatter.format(record)
         log_data = json.loads(result)
-        
+
         assert "timestamp" in log_data
         assert "module" in log_data
         assert "function" in log_data
@@ -123,9 +120,9 @@ class TestColoredFormatter:
             args=(),
             exc_info=None,
         )
-        
+
         result = formatter.format(record)
-        
+
         # Проверяем что результат содержит сообщение
         assert "Debug message" in result
 
@@ -141,9 +138,9 @@ class TestColoredFormatter:
             args=(),
             exc_info=None,
         )
-        
+
         result = formatter.format(record)
-        
+
         assert "Info message" in result
 
     def test_colored_formatter_warning_level(self):
@@ -158,9 +155,9 @@ class TestColoredFormatter:
             args=(),
             exc_info=None,
         )
-        
+
         result = formatter.format(record)
-        
+
         assert "Warning message" in result
 
     def test_colored_formatter_error_level(self):
@@ -175,9 +172,9 @@ class TestColoredFormatter:
             args=(),
             exc_info=None,
         )
-        
+
         result = formatter.format(record)
-        
+
         assert "Error message" in result
 
     def test_colored_formatter_critical_level(self):
@@ -192,9 +189,9 @@ class TestColoredFormatter:
             args=(),
             exc_info=None,
         )
-        
+
         result = formatter.format(record)
-        
+
         assert "Critical message" in result
 
 
@@ -205,7 +202,7 @@ class TestLoggingUtilsIntegration:
         """Тест совместной работы форматеров."""
         json_formatter = JSONFormatter()
         colored_formatter = ColoredFormatter("%(levelname)s - %(message)s")
-        
+
         record = logging.LogRecord(
             name="test_logger",
             level=logging.INFO,
@@ -215,13 +212,13 @@ class TestLoggingUtilsIntegration:
             args=(),
             exc_info=None,
         )
-        
+
         json_result = json_formatter.format(record)
         colored_result = colored_formatter.format(record)
-        
+
         # Оба форматера должны работать
         assert json_result is not None
         assert colored_result is not None
-        
+
         # JSON должен быть валидным
         json.loads(json_result)

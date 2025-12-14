@@ -20,6 +20,7 @@ import nacl.signing
 
 from src.utils.api_circuit_breaker import call_with_circuit_breaker
 
+
 logger = logging.getLogger(__name__)
 
 

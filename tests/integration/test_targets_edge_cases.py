@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 import pytest
 from pytest_httpx import HTTPXMock
 
+
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
 

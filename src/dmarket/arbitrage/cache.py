@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 # Глобальный кэш
 # =============================================================================
 
-_arbitrage_cache: dict[tuple, tuple[list[dict[str, Any]], float]] = {}
+_arbitrage_cache: dict[str, tuple[list[dict[str, Any]], float]] = {}
 """Глобальный кэш результатов арбитража.
 
 Формат: {cache_key: (items, timestamp)}
@@ -77,7 +77,7 @@ def save_to_cache(cache_key: str, items: list[dict[str, Any]]) -> None:
     logger.debug(f"Сохранено {len(items)} элементов в кэш: {cache_key[:50]}...")
 
 
-def get_arbitrage_cache(cache_key: tuple) -> list[dict[str, Any]] | None:
+def get_arbitrage_cache(cache_key: tuple[Any, ...]) -> list[dict[str, Any]] | None:
     """Получает кэшированные результаты арбитража по tuple-ключу.
 
     Args:
@@ -101,7 +101,7 @@ def get_arbitrage_cache(cache_key: tuple) -> list[dict[str, Any]] | None:
     return items
 
 
-def save_arbitrage_cache(cache_key: tuple, items: list[dict[str, Any]]) -> None:
+def save_arbitrage_cache(cache_key: tuple[Any, ...], items: list[dict[str, Any]]) -> None:
     """Сохраняет результаты арбитража в кэш.
 
     Args:

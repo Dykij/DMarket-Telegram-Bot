@@ -8,6 +8,7 @@ from telegram.ext import ContextTypes
 
 from src.utils.user_rate_limiter import RateLimitConfig, UserRateLimiter
 
+
 logger = structlog.get_logger(__name__)
 
 # ID администраторов (должно быть в конфиге)

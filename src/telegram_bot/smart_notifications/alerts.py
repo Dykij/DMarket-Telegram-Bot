@@ -1,9 +1,9 @@
 """Alert management for smart notifications."""
 
-import logging
-import uuid
 from datetime import datetime
+import logging
 from typing import Any
+import uuid
 
 from src.telegram_bot.smart_notifications.preferences import (
     get_active_alerts,
@@ -11,6 +11,7 @@ from src.telegram_bot.smart_notifications.preferences import (
     register_user,
     save_user_preferences,
 )
+
 
 logger = logging.getLogger(__name__)
 

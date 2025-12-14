@@ -460,7 +460,7 @@ async def show_price_changes_results(
         current_page=current_page,
         total_pages=total_pages,
         prefix=f"paginate:price_changes:{game}_",
-        with_nums=True,
+        show_first_last=True,
     )
 
     # Добавляем кнопки периодов и возврата к анализу рынка

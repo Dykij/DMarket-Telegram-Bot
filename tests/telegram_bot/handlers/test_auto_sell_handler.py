@@ -6,7 +6,7 @@ Tests Telegram commands and callbacks for auto-sell management.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -15,8 +15,6 @@ from src.dmarket.auto_seller import (
     AutoSellerStats,
     PricingStrategy,
     SaleConfig,
-    SaleStatus,
-    ScheduledSale,
 )
 from src.telegram_bot.handlers.auto_sell_handler import (
     AutoSellHandler,
@@ -24,7 +22,7 @@ from src.telegram_bot.handlers.auto_sell_handler import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_auto_seller():
     """Create mock AutoSeller instance."""
     seller = MagicMock(spec=AutoSeller)
@@ -42,14 +40,14 @@ def mock_auto_seller():
     return seller
 
 
-@pytest.fixture
+@pytest.fixture()
 def handler(mock_auto_seller):
     """Create AutoSellHandler with mocked AutoSeller."""
     handler = AutoSellHandler(auto_seller=mock_auto_seller)
     return handler
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_update():
     """Create mock Telegram Update."""
     update = MagicMock()
@@ -59,7 +57,7 @@ def mock_update():
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context():
     """Create mock callback context."""
     context = MagicMock()
@@ -67,7 +65,7 @@ def mock_context():
     return context
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_query():
     """Create mock callback query."""
     query = MagicMock()
@@ -100,7 +98,7 @@ class TestAutoSellHandlerInit:
 class TestAutoSellCommand:
     """Tests for /auto_sell command."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_auto_sell_command_enabled(
         self, handler, mock_update, mock_context, mock_auto_seller
     ):
@@ -113,7 +111,7 @@ class TestAutoSellCommand:
         call_kwargs = mock_update.message.reply_text.call_args.kwargs
         assert "✅ Enabled" in call_kwargs.get("text", mock_update.message.reply_text.call_args[0][0])
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_auto_sell_command_disabled(
         self, handler, mock_update, mock_context, mock_auto_seller
     ):
@@ -127,7 +125,7 @@ class TestAutoSellCommand:
         text = call_args.kwargs.get("text", call_args[0][0] if call_args[0] else "")
         assert "❌ Disabled" in text
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_auto_sell_command_no_message(
         self, handler, mock_context, mock_auto_seller
     ):
@@ -142,7 +140,7 @@ class TestAutoSellCommand:
 class TestStatusCallback:
     """Tests for status callback."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_show_status(self, handler, mock_query, mock_context, mock_auto_seller):
         """Test status display."""
         mock_auto_seller.get_statistics.return_value = {
@@ -171,7 +169,7 @@ class TestStatusCallback:
         assert "Active Sales" in text
         assert "$25.50" in text
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_show_status_no_auto_seller(self, mock_query, mock_context):
         """Test status with no auto_seller configured."""
         handler = AutoSellHandler()
@@ -190,7 +188,7 @@ class TestStatusCallback:
 class TestConfigCallback:
     """Tests for config callback."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_show_config(self, handler, mock_query, mock_context, mock_auto_seller):
         """Test config display."""
         update = MagicMock()
@@ -211,7 +209,7 @@ class TestConfigCallback:
 class TestToggleCallback:
     """Tests for toggle callback."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_toggle_enabled_to_disabled(
         self, handler, mock_query, mock_context, mock_auto_seller
     ):
@@ -226,7 +224,7 @@ class TestToggleCallback:
 
         assert mock_auto_seller.config.enabled is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_toggle_disabled_to_enabled(
         self, handler, mock_query, mock_context, mock_auto_seller
     ):
@@ -245,7 +243,7 @@ class TestToggleCallback:
 class TestActiveSalesCallback:
     """Tests for active sales callback."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_show_active_sales_empty(
         self, handler, mock_query, mock_context, mock_auto_seller
     ):
@@ -263,7 +261,7 @@ class TestActiveSalesCallback:
         )
         assert "No active sales" in text
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_show_active_sales_with_items(
         self, handler, mock_query, mock_context, mock_auto_seller
     ):
@@ -297,7 +295,7 @@ class TestActiveSalesCallback:
 class TestCancelSaleCallback:
     """Tests for cancel sale callback."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_cancel_sale_success(
         self, handler, mock_query, mock_context, mock_auto_seller
     ):
@@ -314,7 +312,7 @@ class TestCancelSaleCallback:
         text = mock_query.edit_message_text.call_args[0][0]
         assert "cancelled" in text
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_cancel_sale_failure(
         self, handler, mock_query, mock_context, mock_auto_seller
     ):
@@ -334,7 +332,7 @@ class TestCancelSaleCallback:
 class TestCancelMenu:
     """Tests for cancel menu callback."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_show_cancel_menu_empty(
         self, handler, mock_query, mock_context, mock_auto_seller
     ):
@@ -352,7 +350,7 @@ class TestCancelMenu:
         )
         assert "No active sales to cancel" in text
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_show_cancel_menu_with_items(
         self, handler, mock_query, mock_context, mock_auto_seller
     ):
@@ -385,7 +383,7 @@ class TestCancelMenu:
 class TestBackCallback:
     """Tests for back callback."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_back_to_main_menu(
         self, handler, mock_query, mock_context, mock_auto_seller
     ):
@@ -499,7 +497,7 @@ class TestFormatNotification:
 class TestCallbackQueryNone:
     """Tests for edge cases with None values."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_callback_no_query(self, handler, mock_context):
         """Test callback with no query."""
         update = MagicMock()
@@ -508,7 +506,7 @@ class TestCallbackQueryNone:
         result = await handler.handle_callback(update, mock_context)
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_callback_no_data(self, handler, mock_query, mock_context):
         """Test callback with no data."""
         update = MagicMock()

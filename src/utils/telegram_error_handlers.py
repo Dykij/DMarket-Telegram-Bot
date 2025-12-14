@@ -4,9 +4,9 @@ This module provides decorators and base handlers with comprehensive
 error handling for Telegram bot commands and callbacks.
 """
 
+from collections.abc import Callable
 import functools
 import logging
-from collections.abc import Callable
 from typing import Any
 
 from telegram import Update
@@ -14,6 +14,7 @@ from telegram.ext import ContextTypes
 
 from src.utils.exceptions import APIError, AuthenticationError, RateLimitError, ValidationError
 from src.utils.sentry_integration import add_breadcrumb, capture_exception, set_user_context
+
 
 logger = logging.getLogger(__name__)
 

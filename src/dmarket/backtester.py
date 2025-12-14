@@ -35,14 +35,15 @@ Usage:
 
 from __future__ import annotations
 
-import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import Enum
+import logging
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
+
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -1037,8 +1038,7 @@ class Backtester:
         max_drawdown = 0.0
 
         for equity in equities:
-            if equity > peak:
-                peak = equity
+            peak = max(peak, equity)
             drawdown = ((peak - equity) / peak) * 100
             max_drawdown = max(max_drawdown, drawdown)
 

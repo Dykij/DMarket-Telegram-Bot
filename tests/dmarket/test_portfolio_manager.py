@@ -7,8 +7,8 @@ Comprehensive tests for portfolio management system:
 - Performance metrics
 """
 
-from datetime import UTC, datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -32,7 +32,7 @@ from src.dmarket.portfolio_manager import (
 # ============================================================================
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_api():
     """Create mock DMarket API client."""
     api = AsyncMock()
@@ -88,13 +88,13 @@ def mock_api():
     return api
 
 
-@pytest.fixture
+@pytest.fixture()
 def portfolio_manager(mock_api):
     """Create PortfolioManager with mock API."""
     return PortfolioManager(api_client=mock_api)
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_snapshot():
     """Create sample portfolio snapshot for testing."""
     assets = [
@@ -277,7 +277,7 @@ class TestPortfolioManager:
         pm = PortfolioManager()
         assert pm._api is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_portfolio_snapshot(self, portfolio_manager):
         """Test getting portfolio snapshot."""
         snapshot = await portfolio_manager.get_portfolio_snapshot()
@@ -286,7 +286,7 @@ class TestPortfolioManager:
         assert snapshot.total_value_usd > 0
         assert snapshot.asset_count > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_portfolio_snapshot_caching(self, portfolio_manager):
         """Test that snapshot is cached."""
         # First call
@@ -298,7 +298,7 @@ class TestPortfolioManager:
         # Should be same object (cached)
         assert snapshot1 is snapshot2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_portfolio_snapshot_force_refresh(self, portfolio_manager):
         """Test forcing snapshot refresh."""
         # First call
@@ -309,7 +309,7 @@ class TestPortfolioManager:
 
         assert snapshot is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_portfolio_snapshot_api_error(self, mock_api):
         """Test handling API errors."""
         mock_api.get_balance.side_effect = Exception("API Error")
@@ -321,25 +321,25 @@ class TestPortfolioManager:
         assert snapshot is not None
         assert snapshot.total_value_usd == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_extract_category_rifle(self, portfolio_manager):
         """Test category extraction for rifle."""
         category = portfolio_manager._extract_category("AK-47 | Redline (Field-Tested)")
         assert category == "Rifle"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_extract_category_knife(self, portfolio_manager):
         """Test category extraction for knife."""
         category = portfolio_manager._extract_category("★ Karambit | Doppler (Factory New)")
         assert category == "Knife"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_extract_category_sticker(self, portfolio_manager):
         """Test category extraction for sticker."""
         category = portfolio_manager._extract_category("Sticker | Cloud9 | Boston 2018")
         assert category == "Sticker"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_extract_category_unknown(self, portfolio_manager):
         """Test category extraction for unknown item."""
         category = portfolio_manager._extract_category("Some Unknown Item Type")
@@ -354,7 +354,7 @@ class TestPortfolioManager:
 class TestRiskAnalysis:
     """Tests for risk analysis functionality."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_risk_basic(self, portfolio_manager):
         """Test basic risk analysis."""
         risk = await portfolio_manager.analyze_risk()
@@ -364,7 +364,7 @@ class TestRiskAnalysis:
         assert 0 <= risk.concentration_score <= 100
         assert 0 <= risk.diversification_score <= 100
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_risk_empty_portfolio(self):
         """Test risk analysis with empty portfolio."""
         pm = PortfolioManager()  # No API
@@ -374,7 +374,7 @@ class TestRiskAnalysis:
         assert risk.concentration_score == 0
         assert "Empty portfolio" in risk.risk_factors
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_risk_with_snapshot(self, portfolio_manager, sample_snapshot):
         """Test risk analysis with provided snapshot."""
         risk = await portfolio_manager.analyze_risk(snapshot=sample_snapshot)
@@ -382,7 +382,7 @@ class TestRiskAnalysis:
         assert risk is not None
         assert isinstance(risk, RiskAnalysis)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_high_concentration_risk(self, portfolio_manager):
         """Test detection of high concentration risk."""
         # Create snapshot with high concentration
@@ -417,7 +417,7 @@ class TestRiskAnalysis:
         assert len(risk.risk_factors) > 0
         assert any("concentration" in f.lower() for f in risk.risk_factors)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_low_cash_risk(self, portfolio_manager):
         """Test detection of low cash reserve risk."""
         low_cash_snapshot = PortfolioSnapshot(
@@ -458,7 +458,7 @@ class TestRiskAnalysis:
 class TestRebalancing:
     """Tests for rebalancing recommendations."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_rebalancing_recommendations(self, portfolio_manager):
         """Test getting rebalancing recommendations."""
         recommendations = await portfolio_manager.get_rebalancing_recommendations()
@@ -470,7 +470,7 @@ class TestRebalancing:
             assert isinstance(rec.action, RebalanceAction)
             assert rec.priority >= 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_recommend_sell_overconcentrated(self, portfolio_manager):
         """Test recommendation to sell overconcentrated items."""
         # Create overconcentrated snapshot
@@ -516,7 +516,7 @@ class TestRebalancing:
         sell_recs = [r for r in recommendations if r.action == RebalanceAction.SELL]
         assert any(r.item_name == "Big Item" for r in sell_recs)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_recommend_reduce_price_stale(self, portfolio_manager):
         """Test recommendation to reduce price on stale listings."""
         snapshot = PortfolioSnapshot(
@@ -553,7 +553,7 @@ class TestRebalancing:
         price_recs = [r for r in recommendations if r.action == RebalanceAction.REDUCE_PRICE]
         assert len(price_recs) > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_recommend_cancel_stale_target(self, portfolio_manager):
         """Test recommendation to cancel stale targets."""
         snapshot = PortfolioSnapshot(
@@ -589,7 +589,7 @@ class TestRebalancing:
         cancel_recs = [r for r in recommendations if r.action == RebalanceAction.CANCEL_TARGET]
         assert len(cancel_recs) > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_max_recommendations_limit(self, portfolio_manager):
         """Test that recommendations respect max limit."""
         recommendations = await portfolio_manager.get_rebalancing_recommendations(
@@ -598,7 +598,7 @@ class TestRebalancing:
 
         assert len(recommendations) <= 5
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_recommendations_sorted_by_priority(self, portfolio_manager):
         """Test that recommendations are sorted by priority."""
         recommendations = await portfolio_manager.get_rebalancing_recommendations()
@@ -616,7 +616,7 @@ class TestRebalancing:
 class TestPerformanceMetrics:
     """Tests for performance metrics."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_performance_metrics(self, portfolio_manager):
         """Test getting performance metrics."""
         metrics = await portfolio_manager.get_performance_metrics()
@@ -627,14 +627,14 @@ class TestPerformanceMetrics:
         assert "unrealized_pnl" in metrics
         assert "win_rate" in metrics
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_performance_metrics_period(self, portfolio_manager):
         """Test performance metrics with custom period."""
         metrics = await portfolio_manager.get_performance_metrics(period_days=7)
 
         assert metrics["period_days"] == 7
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_performance_metrics_distribution(self, portfolio_manager):
         """Test game and category distribution in metrics."""
         metrics = await portfolio_manager.get_performance_metrics()
@@ -698,7 +698,7 @@ class TestReportFormatting:
 class TestConvenienceFunctions:
     """Tests for convenience functions."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_portfolio_summary(self, mock_api):
         """Test get_portfolio_summary function."""
         summary = await get_portfolio_summary(mock_api)
@@ -709,7 +709,7 @@ class TestConvenienceFunctions:
         assert "risk_level" in summary
         assert "diversification" in summary
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_rebalancing_actions(self, mock_api):
         """Test get_rebalancing_actions function."""
         actions = await get_rebalancing_actions(mock_api)
@@ -730,7 +730,7 @@ class TestConvenienceFunctions:
 class TestEdgeCases:
     """Tests for edge cases and error handling."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_empty_inventory(self, mock_api):
         """Test handling empty inventory."""
         mock_api.get_user_inventory.return_value = {"objects": []}
@@ -744,7 +744,7 @@ class TestEdgeCases:
         assert snapshot.listed_value == 0
         assert snapshot.targets_value == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_malformed_item_data(self, mock_api):
         """Test handling malformed item data."""
         mock_api.get_user_inventory.return_value = {
@@ -764,7 +764,7 @@ class TestEdgeCases:
         # Should handle gracefully, parsing valid items
         assert snapshot is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_zero_total_value(self):
         """Test handling zero total value portfolio."""
         pm = PortfolioManager()
@@ -787,7 +787,7 @@ class TestEdgeCases:
         assert risk.overall_risk == RiskLevel.LOW
         assert len(recommendations) == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_negative_profit_loss(self, mock_api):
         """Test handling items with negative profit/loss."""
         mock_api.get_user_inventory.return_value = {
@@ -844,7 +844,7 @@ class TestPortfolioConfig:
         assert config.max_stale_days == 14
         assert config.target_cash_percent == 15.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_config_affects_risk_analysis(self, mock_api):
         """Test that config affects risk analysis."""
         # Strict config

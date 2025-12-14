@@ -2,10 +2,11 @@
 
 import asyncio
 
-import structlog
 from aiohttp import web
+import structlog
 
 from src.utils.prometheus_exporter import MetricsCollector
+
 
 logger = structlog.get_logger(__name__)
 

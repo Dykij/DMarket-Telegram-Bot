@@ -314,7 +314,7 @@ class AutoSellHandler:
         lines = ["📋 *Active Sales*\n"]
         for sale in sales[:10]:
             profit_str = (
-                f"+${sale['profit']:.2f}" if sale['profit'] >= 0
+                f"+${sale['profit']:.2f}" if sale["profit"] >= 0
                 else f"-${abs(sale['profit']):.2f}"
             )
             lines.append(
@@ -355,7 +355,7 @@ class AutoSellHandler:
         # Create button for each sale (max 5)
         keyboard = []
         for sale in sales[:5]:
-            short_name = sale['item_name'][:20] + "..." if len(sale['item_name']) > 20 else sale['item_name']
+            short_name = sale["item_name"][:20] + "..." if len(sale["item_name"]) > 20 else sale["item_name"]
             keyboard.append([
                 InlineKeyboardButton(
                     f"❌ {short_name}",

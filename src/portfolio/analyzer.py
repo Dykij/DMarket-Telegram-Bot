@@ -143,21 +143,28 @@ class PortfolioAnalyzer:
         if total_value == 0:
             return DiversificationReport()
 
+        # Ensure total_value is Decimal for type safety
+        total_value_decimal = (
+            Decimal(total_value) if not isinstance(total_value, Decimal) else total_value
+        )
+
         # Calculate distributions
-        by_game = self._calculate_distribution(portfolio.items, lambda x: x.game, total_value)
+        by_game = self._calculate_distribution(
+            portfolio.items, lambda x: x.game, total_value_decimal
+        )
         by_category = self._calculate_distribution(
-            portfolio.items, lambda x: x.category.value, total_value
+            portfolio.items, lambda x: x.category.value, total_value_decimal
         )
         by_rarity = self._calculate_distribution(
-            portfolio.items, lambda x: x.rarity.value, total_value
+            portfolio.items, lambda x: x.rarity.value, total_value_decimal
         )
 
         # Find concentration risks
-        concentration_risks = self._find_concentration_risks(portfolio.items, total_value)
+        concentration_risks = self._find_concentration_risks(portfolio.items, total_value_decimal)
 
         # Calculate diversification score
         diversification_score = self._calculate_diversification_score(
-            by_game, by_category, portfolio.items, total_value
+            by_game, by_category, portfolio.items, total_value_decimal
         )
 
         # Generate recommendations
@@ -193,10 +200,17 @@ class PortfolioAnalyzer:
         if total_value == 0:
             return RiskReport()
 
+        # Ensure total_value is Decimal for type safety
+        total_value_decimal = (
+            Decimal(total_value) if not isinstance(total_value, Decimal) else total_value
+        )
+
         # Calculate risk scores
         volatility_score = self._calculate_volatility_score(portfolio)
         liquidity_score = self._calculate_liquidity_score(portfolio)
-        concentration_score = self._calculate_concentration_score(portfolio.items, total_value)
+        concentration_score = self._calculate_concentration_score(
+            portfolio.items, total_value_decimal
+        )
 
         # Overall risk
         overall_risk_score = (
@@ -214,7 +228,7 @@ class PortfolioAnalyzer:
             risk_level = "critical"
 
         # Find high risk items
-        high_risk_items = self._find_high_risk_items(portfolio.items, total_value)
+        high_risk_items = self._find_high_risk_items(portfolio.items, total_value_decimal)
 
         # Generate recommendations
         recommendations = self._generate_risk_recommendations(
@@ -276,7 +290,7 @@ class PortfolioAnalyzer:
     def _calculate_distribution(
         self,
         items: list[PortfolioItem],
-        key_func,
+        key_func: Any,
         total_value: Decimal,
     ) -> dict[str, float]:
         """Calculate value distribution by key."""

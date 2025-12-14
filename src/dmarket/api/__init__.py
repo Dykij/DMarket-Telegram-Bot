@@ -33,6 +33,7 @@ from src.dmarket.api.targets_api import TargetsOperationsMixin
 from src.dmarket.api.trading import TradingOperationsMixin
 from src.dmarket.api.wallet import WalletOperationsMixin
 
+
 __all__ = [
     "DMarketAPIClient",
     "Endpoints",

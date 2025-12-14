@@ -937,7 +937,7 @@ class DMarketAPI:
             Standardized success response dict
         """
         has_funds = usd_amount >= min_required
-        
+
         result = {
             "usd": {"amount": usd_amount},
             "has_funds": has_funds,
@@ -968,7 +968,7 @@ class DMarketAPI:
             if "usd" in response and "usdAvailableToWithdraw" in response:
                 usd_str = response.get("usd", "0")
                 usd_available_str = response.get("usdAvailableToWithdraw", usd_str)
-                
+
                 usd_amount = float(usd_str) if usd_str else 0
                 usd_available = float(usd_available_str) if usd_available_str else usd_amount
                 usd_total = usd_amount

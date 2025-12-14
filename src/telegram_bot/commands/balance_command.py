@@ -187,12 +187,11 @@ async def check_balance_command(
                         reply_markup=get_back_to_arbitrage_keyboard(),
                         parse_mode=ParseMode.HTML,
                     )
-                else:
-                    if processing_message is not None:
-                        await processing_message.edit_text(
-                            text=error_text,
-                            parse_mode=ParseMode.HTML,
-                        )
+                elif processing_message is not None:
+                    await processing_message.edit_text(
+                        text=error_text,
+                        parse_mode=ParseMode.HTML,
+                    )
                 return
 
             # Extract balance data

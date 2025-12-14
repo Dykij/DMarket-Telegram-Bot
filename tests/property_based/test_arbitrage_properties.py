@@ -8,11 +8,11 @@
 
 import pytest
 
+
 # Skip all tests if hypothesis is not installed
 pytest.importorskip("hypothesis")
 
-from hypothesis import HealthCheck, assume, given, settings
-from hypothesis import strategies as st
+from hypothesis import HealthCheck, assume, given, settings, strategies as st
 
 # Импортируем стратегии из нашего модуля
 from tests.property_based.hypothesis_strategies import (
@@ -22,6 +22,7 @@ from tests.property_based.hypothesis_strategies import (
     price_usd,
     supported_games,
 )
+
 
 # ============================================================================
 # ТЕСТЫ РАСЧЁТА ПРИБЫЛИ

@@ -9,9 +9,10 @@ import enum
 import random
 from typing import Any
 
+from redis.asyncio import Redis
 import structlog
 import yaml
-from redis.asyncio import Redis
+
 
 logger = structlog.get_logger(__name__)
 
@@ -146,12 +147,10 @@ class FeatureFlagsManager:
         flag_config = self.flags.get(feature_name, {})
 
         # Проверить глобальное включение
-        if not flag_config.get("enabled", False) and (
-            not user_id or user_id not in flag_config.get("whitelist", [])
-        ):
-            result = False
-        # Проверить blacklist
-        elif user_id and user_id in flag_config.get("blacklist", []):
+        if (
+            not flag_config.get("enabled", False)
+            and (not user_id or user_id not in flag_config.get("whitelist", []))
+        ) or (user_id and user_id in flag_config.get("blacklist", [])):
             result = False
         # Проверить whitelist (переопределяет выключенное состояние)
         elif user_id and flag_config.get("whitelist") and user_id in flag_config["whitelist"]:

@@ -4,15 +4,16 @@
 Записывает все важные операции для безопасности, комплаенса и отладки.
 """
 
-import enum
 from datetime import datetime
+import enum
 from typing import Any
 
-import structlog
 from sqlalchemy import JSON, BigInteger, Column, DateTime, Integer, String, Text
 from sqlalchemy.ext.asyncio import AsyncSession
+import structlog
 
 from src.models.base import Base
+
 
 logger = structlog.get_logger(__name__)
 

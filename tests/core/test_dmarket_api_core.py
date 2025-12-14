@@ -9,11 +9,8 @@
 - Кэширование
 """
 
-import hashlib
-import hmac
 import json
-import time
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import httpx
 import pytest
@@ -30,7 +27,7 @@ class TestDMarketAPIInitialization:
             public_key="test_public_key",
             secret_key="test_secret_key",
         )
-        
+
         assert api.public_key == "test_public_key"
         assert api._secret_key == "test_secret_key"
         assert api.api_url == "https://api.dmarket.com"
@@ -47,7 +44,7 @@ class TestDMarketAPIInitialization:
             connection_timeout=60.0,
             enable_cache=False,
         )
-        
+
         assert api.public_key == "custom_public"
         assert api.api_url == "https://custom.api.com"
         assert api.max_retries == 5
@@ -60,7 +57,7 @@ class TestDMarketAPIInitialization:
             public_key="test_key",
             secret_key="test_secret",
         )
-        
+
         assert 429 in api.retry_codes  # Rate limit
         assert 500 in api.retry_codes  # Server error
         assert 502 in api.retry_codes  # Bad gateway
@@ -75,7 +72,7 @@ class TestDMarketAPIInitialization:
             secret_key="test_secret",
             retry_codes=custom_codes,
         )
-        
+
         assert api.retry_codes == custom_codes
 
     def test_secret_key_as_bytes(self):
@@ -85,7 +82,7 @@ class TestDMarketAPIInitialization:
             public_key="test_key",
             secret_key=secret_bytes,
         )
-        
+
         assert api.secret_key == secret_bytes
 
 
@@ -98,13 +95,13 @@ class TestDMarketAPIAuthentication:
             public_key="test_public_key",
             secret_key="test_secret_key",
         )
-        
+
         headers = api._generate_signature(
             method="GET",
             path="/account/v1/balance",
             body="",
         )
-        
+
         assert "X-Api-Key" in headers
         assert "X-Sign-Date" in headers
         assert "X-Request-Sign" in headers
@@ -116,14 +113,14 @@ class TestDMarketAPIAuthentication:
             public_key="test_public_key",
             secret_key="test_secret_key",
         )
-        
+
         body = json.dumps({"test": "data"})
         headers = api._generate_signature(
             method="POST",
             path="/exchange/v1/market/items/buy",
             body=body,
         )
-        
+
         assert "X-Api-Key" in headers
         assert "X-Sign-Date" in headers
         assert "X-Request-Sign" in headers
@@ -134,13 +131,13 @@ class TestDMarketAPIAuthentication:
             public_key="",
             secret_key="",
         )
-        
+
         headers = api._generate_signature(
             method="GET",
             path="/exchange/v1/market/items",
             body="",
         )
-        
+
         assert "Content-Type" in headers
         assert "X-Api-Key" not in headers
         assert "X-Request-Sign" not in headers
@@ -151,7 +148,7 @@ class TestDMarketAPIAuthentication:
             public_key="test_key",
             secret_key="test_secret",
         )
-        
+
         for method in ["GET", "POST", "PUT", "DELETE"]:
             headers = api._generate_signature(
                 method=method,
@@ -165,51 +162,51 @@ class TestDMarketAPIAuthentication:
 class TestDMarketAPIClientManagement:
     """Тесты управления HTTP клиентом."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_client_creates_new(self):
         """Тест создания нового HTTP клиента."""
         api = DMarketAPI(
             public_key="test_key",
             secret_key="test_secret",
         )
-        
+
         assert api._client is None
         client = await api._get_client()
         assert client is not None
         assert isinstance(client, httpx.AsyncClient)
-        
+
         await api._close_client()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_client_reuses_existing(self):
         """Тест переиспользования существующего клиента."""
         api = DMarketAPI(
             public_key="test_key",
             secret_key="test_secret",
         )
-        
+
         client1 = await api._get_client()
         client2 = await api._get_client()
-        
+
         assert client1 is client2
-        
+
         await api._close_client()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_close_client(self):
         """Тест закрытия HTTP клиента."""
         api = DMarketAPI(
             public_key="test_key",
             secret_key="test_secret",
         )
-        
+
         await api._get_client()
         assert api._client is not None
-        
+
         await api._close_client()
         assert api._client is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_context_manager_usage(self):
         """Тест использования API клиента как контекстного менеджера."""
         async with DMarketAPI(
@@ -217,7 +214,7 @@ class TestDMarketAPIClientManagement:
             secret_key="test_secret",
         ) as api:
             assert api._client is not None
-        
+
         # После выхода из контекста клиент должен быть закрыт
         assert api._client is None
 
@@ -225,36 +222,36 @@ class TestDMarketAPIClientManagement:
 class TestDMarketAPIBasicOperations:
     """Тесты базовых операций API."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_balance_success(self):
         """Тест успешного получения баланса."""
         api = DMarketAPI(
             public_key="test_key",
             secret_key="test_secret",
         )
-        
+
         mock_response = {
             "usd": {"amount": 10000},
             "balance": 100.0,
         }
-        
+
         with patch.object(api, "_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = mock_response
-            
+
             balance = await api.get_balance()
-            
+
             assert balance is not None
             assert "balance" in balance or "usd" in balance
             mock_request.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_market_items_basic(self):
         """Тест получения предметов рынка."""
         api = DMarketAPI(
             public_key="test_key",
             secret_key="test_secret",
         )
-        
+
         mock_response = {
             "objects": [
                 {
@@ -269,45 +266,45 @@ class TestDMarketAPIBasicOperations:
                 },
             ],
         }
-        
+
         with patch.object(api, "_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = mock_response
-            
+
             items = await api.get_market_items(game="csgo")
-            
+
             assert items is not None
             mock_request.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_market_items_with_params(self):
         """Тест получения предметов с дополнительными параметрами."""
         api = DMarketAPI(
             public_key="test_key",
             secret_key="test_secret",
         )
-        
+
         with patch.object(api, "_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = {"objects": []}
-            
+
             await api.get_market_items(
                 game="csgo",
                 limit=50,
                 offset=0,
                 currency="USD",
             )
-            
+
             # Проверяем, что параметры были переданы
             call_args = mock_request.call_args
             assert call_args is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_user_inventory(self):
         """Тест получения инвентаря пользователя."""
         api = DMarketAPI(
             public_key="test_key",
             secret_key="test_secret",
         )
-        
+
         mock_response = {
             "objects": [
                 {
@@ -316,12 +313,12 @@ class TestDMarketAPIBasicOperations:
                 },
             ],
         }
-        
+
         with patch.object(api, "_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = mock_response
-            
+
             inventory = await api.get_user_inventory()
-            
+
             assert inventory is not None
             mock_request.assert_called_once()
 
@@ -334,7 +331,7 @@ class TestDMarketAPIErrorHandling:
         assert 429 in DMarketAPI.ERROR_CODES  # Rate limit
         assert 401 in DMarketAPI.ERROR_CODES  # Authentication
         assert 500 in DMarketAPI.ERROR_CODES  # Server error
-        
+
     def test_api_initialization_with_retry_logic(self):
         """Тест инициализации API с настройками retry."""
         api = DMarketAPI(
@@ -342,9 +339,9 @@ class TestDMarketAPIErrorHandling:
             secret_key="test_secret",
             max_retries=5,
         )
-        
+
         assert api.max_retries == 5
-        
+
     def test_api_retry_codes_configuration(self):
         """Тест конфигурации кодов для повторных попыток."""
         custom_codes = [429, 500, 502]
@@ -353,7 +350,7 @@ class TestDMarketAPIErrorHandling:
             secret_key="test_secret",
             retry_codes=custom_codes,
         )
-        
+
         assert api.retry_codes == custom_codes
 
 

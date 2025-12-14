@@ -6,8 +6,8 @@
 
 from __future__ import annotations
 
-import time
 from datetime import datetime
+import time
 from typing import TYPE_CHECKING, Any
 
 import structlog
@@ -16,6 +16,7 @@ from .cache import get_arbitrage_cache, save_arbitrage_cache
 from .calculations import calculate_commission
 from .constants import GAMES, MIN_PROFIT_PERCENT, PRICE_RANGES
 from .core import arbitrage_boost_async, arbitrage_mid_async, arbitrage_pro_async
+
 
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI

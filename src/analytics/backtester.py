@@ -407,7 +407,7 @@ class Backtester:
         for position in positions.values():
             # Estimate value at last known price
             history = price_histories.get(position.item_title)
-            if history and history.points:
+            if history is not None and history.points:
                 last_price = history.points[-1].price
                 final_balance += last_price * position.quantity
 
@@ -608,7 +608,7 @@ class Backtester:
         # Sharpe ratio (annualized)
         sharpe = (excess_return * (365**0.5)) / (std_dev * (365**0.5))
 
-        return round(sharpe, 2)
+        return float(round(sharpe, 2))
 
 
 __all__ = [

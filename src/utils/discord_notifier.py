@@ -9,12 +9,13 @@ Features:
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass, field
 from enum import Enum
+import logging
 from typing import Any
 
 import httpx
+
 
 logger = logging.getLogger(__name__)
 

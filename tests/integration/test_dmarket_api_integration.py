@@ -8,6 +8,7 @@ from unittest.mock import patch
 import httpx
 import pytest
 
+
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
 

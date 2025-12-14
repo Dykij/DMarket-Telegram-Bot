@@ -10,13 +10,14 @@ Example:
     ...     assert scanner.api_client is mock_dmarket_api
 """
 
-import pytest
 from unittest.mock import AsyncMock
 
-from src.containers import Container, init_container, reset_container
+import pytest
+
+from src.containers import init_container, reset_container
 
 
-@pytest.fixture
+@pytest.fixture()
 def di_config():
     """Конфигурация для тестового DI контейнера."""
     return {
@@ -41,7 +42,7 @@ def di_config():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def test_container(di_config):
     """Создать тестовый DI контейнер.
 
@@ -52,7 +53,7 @@ def test_container(di_config):
     reset_container()
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_dmarket_api():
     """Mock DMarket API для тестов.
 
@@ -118,7 +119,7 @@ def mock_dmarket_api():
     return mock
 
 
-@pytest.fixture
+@pytest.fixture()
 def container_with_mock_api(test_container, mock_dmarket_api):
     """Тестовый контейнер с мокированным API.
 
@@ -134,7 +135,7 @@ def container_with_mock_api(test_container, mock_dmarket_api):
     test_container.dmarket_api.reset_override()
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_scanner(mock_dmarket_api):
     """Mock ArbitrageScanner для тестов.
 
@@ -146,7 +147,7 @@ def mock_scanner(mock_dmarket_api):
     return scanner
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_target_manager(mock_dmarket_api):
     """Mock TargetManager для тестов.
 
@@ -158,7 +159,7 @@ def mock_target_manager(mock_dmarket_api):
     return manager
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_telegram_context(mock_dmarket_api):
     """Mock Telegram контекст с зависимостями.
 
@@ -181,11 +182,11 @@ def mock_telegram_context(mock_dmarket_api):
 
 
 __all__ = [
-    "di_config",
-    "test_container",
-    "mock_dmarket_api",
     "container_with_mock_api",
+    "di_config",
+    "mock_dmarket_api",
     "mock_scanner",
     "mock_target_manager",
     "mock_telegram_context",
+    "test_container",
 ]

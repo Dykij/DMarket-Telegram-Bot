@@ -23,6 +23,7 @@ from src.dmarket.scanner.levels import (
     get_price_range_for_level,
 )
 
+
 # Note: ArbitrageScanner is imported from the original module
 # for backwards compatibility. In future refactoring phases,
 # it will be moved to scanner.py

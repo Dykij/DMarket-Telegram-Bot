@@ -1,6 +1,6 @@
 """Тесты для настройки команд Telegram бота."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 from telegram import Bot, BotCommand
@@ -8,7 +8,7 @@ from telegram import Bot, BotCommand
 from src.telegram_bot.initialization import setup_bot_commands
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_setup_bot_commands_success():
     """Тест успешной регистрации команд бота."""
     # Arrange
@@ -51,7 +51,7 @@ async def test_setup_bot_commands_success():
     assert len(default_commands) == 10
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_setup_bot_commands_structure():
     """Тест структуры команд бота."""
     # Arrange
@@ -75,7 +75,7 @@ async def test_setup_bot_commands_structure():
         assert any(ord(char) > 127 for char in cmd.description)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_setup_bot_commands_error_handling():
     """Тест обработки ошибок при регистрации команд."""
     # Arrange
@@ -89,7 +89,7 @@ async def test_setup_bot_commands_error_handling():
     assert mock_bot.set_my_commands.call_count == 1
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_setup_bot_commands_language_differences():
     """Тест различий в командах для разных языков."""
     # Arrange

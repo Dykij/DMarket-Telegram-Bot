@@ -5,12 +5,13 @@ Defines data structures for portfolio management.
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from decimal import Decimal
 from enum import Enum
+import logging
 from typing import Any
+
 
 logger = logging.getLogger(__name__)
 

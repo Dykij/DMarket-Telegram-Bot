@@ -22,6 +22,7 @@ from .competition import (
 from .manager import TargetManager
 from .validators import GAME_IDS, extract_attributes_from_title, validate_attributes
 
+
 __all__ = [
     # Manager
     "TargetManager",

@@ -12,6 +12,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 
 from src.utils.sentry_breadcrumbs import add_command_breadcrumb
 
+
 logger = logging.getLogger(__name__)
 
 

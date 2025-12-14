@@ -20,6 +20,7 @@ from src.telegram_bot.chart_generator import (
 from src.utils.exceptions import handle_exceptions
 from src.utils.logging_utils import get_logger
 
+
 logger = get_logger(__name__)
 
 # Константы для callback данных

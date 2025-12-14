@@ -6,13 +6,14 @@
 """
 
 import asyncio
-import time
 from collections import defaultdict
 from dataclasses import dataclass
+import time
 from typing import Any
 
-import structlog
 from redis.asyncio import Redis
+import structlog
+
 
 logger = structlog.get_logger(__name__)
 

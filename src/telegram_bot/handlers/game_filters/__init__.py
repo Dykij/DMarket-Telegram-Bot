@@ -53,6 +53,7 @@ from .utils import (
     update_filters,
 )
 
+
 __all__ = [
     # Constants
     "CS2_CATEGORIES",

@@ -54,6 +54,7 @@ from src.telegram_bot.smart_notifications.utils import (
     get_price_history_for_items,
 )
 
+
 __all__ = [
     # Constants
     "DATA_DIR",

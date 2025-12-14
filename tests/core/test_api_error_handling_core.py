@@ -24,45 +24,45 @@ from src.utils.api_error_handling import (
 class TestAPIErrorHandling:
     """Тесты обработки API ошибок."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_response_success_200(self):
         """Тест обработки успешного ответа 200."""
         response = MagicMock()
         response.status = 200  # Используем status вместо status_code
         response.json = AsyncMock(return_value={"result": "success"})
-        
+
         result = await handle_response(response)
-        
+
         assert result == {"result": "success"}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_response_success_201(self):
         """Тест обработки успешного ответа 201."""
         response = MagicMock()
         response.status = 201
         response.json = AsyncMock(return_value={"created": True})
-        
+
         result = await handle_response(response)
-        
+
         assert result == {"created": True}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_response_error_400(self):
         """Тест обработки ошибки 400."""
         response = MagicMock()
         response.status = 400
         response.text = "Bad request"
-        
+
         with pytest.raises(APIError):
             await handle_response(response)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_response_error_500(self):
         """Тест обработки ошибки 500."""
         response = MagicMock()
         response.status = 500
         response.text = "Internal server error"
-        
+
         with pytest.raises(APIError):
             await handle_response(response)
 
@@ -90,34 +90,34 @@ class TestAPIErrorClasses:
     def test_api_error_creation(self):
         """Тест создания APIError."""
         error = APIError("Test error", status_code=404)
-        
+
         assert isinstance(error, Exception)
         assert error.status_code == 404
 
     def test_authentication_error_creation(self):
         """Тест создания AuthenticationError."""
         error = AuthenticationError("Invalid token")
-        
+
         assert isinstance(error, APIError)
         assert error.status_code == 401
 
     def test_rate_limit_error_creation(self):
         """Тест создания RateLimitError."""
         error = RateLimitError("Too many requests")
-        
+
         assert isinstance(error, APIError)
         assert error.status_code == 429
 
     def test_validation_error_creation(self):
         """Тест создания ValidationError."""
         error = ValidationError("Invalid input")
-        
+
         assert isinstance(error, Exception)
 
     def test_network_error_creation(self):
         """Тест создания NetworkError."""
         error = NetworkError("Connection failed")
-        
+
         assert isinstance(error, Exception)
 
 

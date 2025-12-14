@@ -5,6 +5,7 @@ import logging
 import time
 from typing import TYPE_CHECKING
 
+
 if TYPE_CHECKING:
     from src.utils.notifier import Notifier
 

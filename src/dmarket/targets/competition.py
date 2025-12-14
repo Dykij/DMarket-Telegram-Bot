@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from .validators import GAME_IDS
 
+
 if TYPE_CHECKING:
     from src.interfaces import IDMarketAPI
 

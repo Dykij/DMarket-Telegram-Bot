@@ -15,13 +15,14 @@ Example:
 """
 
 import asyncio
-import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
+import logging
 from typing import Any
 
 from src.dmarket.arbitrage_scanner import ArbitrageScanner
+
 
 logger = logging.getLogger(__name__)
 

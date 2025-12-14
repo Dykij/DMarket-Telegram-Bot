@@ -1814,7 +1814,7 @@ class TestAdditionalMarketplaceMethods:
 # ==================== ТЕСТЫ ДЛЯ ПОЛУЧЕНИЯ МЕТАДАННЫХ ====================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_supported_games_success(dmarket_api):
     """Тест успешного получения списка поддерживаемых игр."""
     # Arrange
@@ -1878,7 +1878,7 @@ async def test_get_supported_games_success(dmarket_api):
         assert len(enabled_games) == 3
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_supported_games_empty_response(dmarket_api):
     """Тест обработки пустого ответа от API."""
     # Arrange
@@ -1893,7 +1893,7 @@ async def test_get_supported_games_empty_response(dmarket_api):
         assert len(result) == 0
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_supported_games_invalid_format(dmarket_api):
     """Тест обработки невалидного формата ответа."""
     # Arrange
@@ -1909,7 +1909,7 @@ async def test_get_supported_games_invalid_format(dmarket_api):
         assert len(result) == 0  # Должен вернуть пустой список при ошибке
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_supported_games_http_error(dmarket_api):
     """Тест обработки HTTP ошибки при запросе игр."""
     # Arrange
@@ -1925,7 +1925,7 @@ async def test_get_supported_games_http_error(dmarket_api):
             await dmarket_api.get_supported_games()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_supported_games_generic_exception(dmarket_api):
     """Тест обработки общих исключений при запросе игр."""
     # Arrange
@@ -1941,7 +1941,7 @@ async def test_get_supported_games_generic_exception(dmarket_api):
         assert len(result) == 0
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_supported_games_filters_enabled_games(dmarket_api):
     """Тест фильтрации только активных игр."""
     # Arrange

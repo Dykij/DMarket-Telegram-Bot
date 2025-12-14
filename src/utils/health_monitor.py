@@ -210,15 +210,14 @@ class HealthMonitor:
                     message="Redis connection OK",
                     details=health,
                 )
-            else:
-                # Redis unavailable but memory cache fallback is OK
-                return HealthCheckResult(
-                    service="redis",
-                    status=ServiceStatus.DEGRADED,
-                    response_time_ms=response_time,
-                    message="Redis unavailable, using memory cache",
-                    details=health,
-                )
+            # Redis unavailable but memory cache fallback is OK
+            return HealthCheckResult(
+                service="redis",
+                status=ServiceStatus.DEGRADED,
+                response_time_ms=response_time,
+                message="Redis unavailable, using memory cache",
+                details=health,
+            )
         except Exception as e:
             response_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
             logger.error("Redis health check failed: %s", e)
