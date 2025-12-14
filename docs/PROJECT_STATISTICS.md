@@ -6,20 +6,20 @@
 
 ### Lines of Code
 
-| Category | Lines | Percentage |
-|----------|-------|------------|
-| Source Code | 22,344 | 60% |
-| Test Code | 15,000+ | 40% |
-| **Total** | **37,344+** | **100%** |
+| Category    | Lines       | Percentage |
+| ----------- | ----------- | ---------- |
+| Source Code | 22,344      | 60%        |
+| Test Code   | 15,000+     | 40%        |
+| **Total**   | **37,344+** | **100%**   |
 
 ### File Count
 
-| Type | Count |
-|------|-------|
-| Python Files | 200+ |
-| Test Files | 150+ |
-| Documentation | 50+ |
-| Configuration | 20+ |
+| Type          | Count |
+| ------------- | ----- |
+| Python Files  | 200+  |
+| Test Files    | 150+  |
+| Documentation | 50+   |
+| Configuration | 20+   |
 
 ## 🧪 Testing
 
@@ -33,7 +33,7 @@ Total Tests: 2437+
 ├── Contract Tests:      43  ✅
 └── Property Tests:      44  ✅
 
-Coverage: 85%+ 
+Coverage: 85%+
 Target:   90%
 ```
 
@@ -98,21 +98,21 @@ Total: 80+ modules
 
 ### Response Times (Average)
 
-| Operation | Time |
-|-----------|------|
-| Bot Command | 50ms |
-| API Request | 200ms |
-| Database Query | 10ms |
-| Arbitrage Scan | 2-5s |
+| Operation      | Time  |
+| -------------- | ----- |
+| Bot Command    | 50ms  |
+| API Request    | 200ms |
+| Database Query | 10ms  |
+| Arbitrage Scan | 2-5s  |
 
 ### Resource Usage
 
-| Metric | Value |
-|--------|-------|
-| Memory | ~200MB |
-| CPU | 5-10% |
+| Metric  | Value   |
+| ------- | ------- |
+| Memory  | ~200MB  |
+| CPU     | 5-10%   |
 | Network | ~50KB/s |
-| Disk | 500MB |
+| Disk    | 500MB   |
 
 ## 🔄 CI/CD
 
@@ -156,23 +156,23 @@ Total: 50+ documentation files
 
 ### Documentation Coverage
 
-| Category | Coverage |
-|----------|----------|
-| Public APIs | 100% |
-| Modules | 95% |
-| Complex Logic | 90% |
-| Configuration | 100% |
+| Category      | Coverage |
+| ------------- | -------- |
+| Public APIs   | 100%     |
+| Modules       | 95%      |
+| Complex Logic | 90%      |
+| Configuration | 100%     |
 
 ## 🐛 Issues & PRs
 
 ### GitHub Activity (Last 30 Days)
 
-| Metric | Count |
-|--------|-------|
-| Commits | 150+ |
-| PRs Merged | 25+ |
-| Issues Closed | 15+ |
-| Contributors | 1 (active) |
+| Metric        | Count      |
+| ------------- | ---------- |
+| Commits       | 150+       |
+| PRs Merged    | 25+        |
+| Issues Closed | 15+        |
+| Contributors  | 1 (active) |
 
 ### Issue Resolution Time
 
@@ -191,13 +191,13 @@ Total: 50+ documentation files
 
 ### Maturity Levels
 
-| Aspect | Level |
-|--------|-------|
-| Code Quality | ⭐⭐⭐⭐⭐ |
+| Aspect        | Level |
+| ------------- | ----- |
+| Code Quality  | ⭐⭐⭐⭐⭐ |
 | Test Coverage | ⭐⭐⭐⭐☆ |
 | Documentation | ⭐⭐⭐⭐⭐ |
-| CI/CD | ⭐⭐⭐⭐⭐ |
-| Security | ⭐⭐⭐⭐⭐ |
+| CI/CD         | ⭐⭐⭐⭐⭐ |
+| Security      | ⭐⭐⭐⭐⭐ |
 
 ## 🎯 Milestones
 
@@ -273,12 +273,12 @@ Dec 2025: 37,000+ lines ← Current
 ### Test Growth
 
 ```
-Month    | Tests | Growth
----------|-------|-------
-Nov 2024 | 500   | -
-Dec 2024 | 1000  | +100%
-Jan 2025 | 1500  | +50%
-Dec 2025 | 2437  | +62%
+| Month    | Tests | Growth |
+| -------- | ----- | ------ |
+| Nov 2024 | 500   | -      |
+| Dec 2024 | 1000  | +100%  |
+| Jan 2025 | 1500  | +50%   |
+| Dec 2025 | 2437  | +62%   |
 ```
 
 ---
