@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Any
 
 import structlog
-from sqlalchemy import BigInteger, Column, DateTime, Integer, String, Text, JSON
+from sqlalchemy import JSON, BigInteger, Column, DateTime, Integer, String, Text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.base import Base
@@ -162,9 +162,7 @@ class AuditLogger:
         Returns:
             Созданная запись аудит лога
         """
-        event_type_str = (
-            event_type.value if isinstance(event_type, AuditEventType) else event_type
-        )
+        event_type_str = event_type.value if isinstance(event_type, AuditEventType) else event_type
 
         audit_log = AuditLog(
             timestamp=datetime.utcnow(),

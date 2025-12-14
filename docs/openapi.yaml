@@ -1,0 +1,458 @@
+openapi: 3.0.3
+info:
+  title: DMarket Telegram Bot API
+  description: |
+    API документация для DMarket Telegram Bot.
+    
+    Бот предоставляет функциональность для автоматической торговли и арбитража
+    на площадке DMarket с поддержкой нескольких игр (CS:GO, Dota 2, TF2, Rust).
+    
+    ## Основные возможности
+    - 🎯 Многоуровневый арбитраж (5 уровней)
+    - 🤖 Автоматические buy orders (таргеты)
+    - 📊 Real-time мониторинг цен
+    - 📈 Анализ рынка и история продаж
+    - 🔔 Smart notifications
+    - 🌐 Multi-language support (RU, EN, ES, DE)
+    
+  version: 1.0.0
+  contact:
+    name: DMarket Bot Support
+    url: https://github.com/Dykij/DMarket-Telegram-Bot
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.dmarket-bot.example.com/v1
+    description: Production server
+  - url: http://localhost:8000/v1
+    description: Development server
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Users
+    description: User management
+  - name: Arbitrage
+    description: Arbitrage scanning and opportunities
+  - name: Targets
+    description: Buy order targets management
+  - name: Market
+    description: Market data and analysis
+  - name: Notifications
+    description: Notification preferences
+  - name: Admin
+    description: Admin operations
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Check API health status
+      operationId: healthCheck
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /users/{user_id}:
+    get:
+      tags:
+        - Users
+      summary: Get user info
+      description: Retrieve user information and settings
+      operationId: getUser
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: User information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+
+  /arbitrage/scan:
+    post:
+      tags:
+        - Arbitrage
+      summary: Scan for arbitrage opportunities
+      description: Scan market for arbitrage opportunities at specified level
+      operationId: scanArbitrage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArbitrageScanRequest'
+      responses:
+        '200':
+          description: Arbitrage opportunities found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArbitrageScanResponse'
+        '400':
+          description: Invalid request
+        '429':
+          description: Rate limit exceeded
+
+  /targets:
+    get:
+      tags:
+        - Targets
+      summary: List user targets
+      description: Get list of all active targets for user
+      operationId: listTargets
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: game
+          in: query
+          schema:
+            type: string
+            enum: [csgo, dota2, tf2, rust]
+      responses:
+        '200':
+          description: List of targets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TargetListResponse'
+
+    post:
+      tags:
+        - Targets
+      summary: Create target
+      description: Create new buy order target
+      operationId: createTarget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTargetRequest'
+      responses:
+        '201':
+          description: Target created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Target'
+        '400':
+          description: Invalid request
+
+  /targets/{target_id}:
+    delete:
+      tags:
+        - Targets
+      summary: Delete target
+      description: Delete existing target
+      operationId: deleteTarget
+      parameters:
+        - name: target_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Target deleted
+        '404':
+          description: Target not found
+
+  /market/items:
+    get:
+      tags:
+        - Market
+      summary: Get market items
+      description: Get list of market items with filters
+      operationId: getMarketItems
+      parameters:
+        - name: game
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [csgo, dota2, tf2, rust]
+        - name: price_from
+          in: query
+          schema:
+            type: number
+            format: float
+        - name: price_to
+          in: query
+          schema:
+            type: number
+            format: float
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: Market items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketItemsResponse'
+
+  /admin/users/{user_id}/ban:
+    post:
+      tags:
+        - Admin
+      summary: Ban user
+      description: Ban user from using the bot
+      operationId: banUser
+      security:
+        - AdminAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: User banned
+        '403':
+          description: Forbidden
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+          example: 1.0.0
+
+    User:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          format: int64
+          example: 123456789
+        username:
+          type: string
+          example: trader123
+        language:
+          type: string
+          enum: [ru, en, es, de]
+          default: en
+        balance:
+          type: number
+          format: float
+          example: 1250.50
+        created_at:
+          type: string
+          format: date-time
+
+    ArbitrageScanRequest:
+      type: object
+      required:
+        - level
+        - game
+      properties:
+        level:
+          type: string
+          enum: [boost, standard, medium, advanced, pro]
+          description: Trading level
+        game:
+          type: string
+          enum: [csgo, dota2, tf2, rust]
+        min_profit:
+          type: number
+          format: float
+          minimum: 0
+          description: Minimum profit threshold
+
+    ArbitrageScanResponse:
+      type: object
+      properties:
+        opportunities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArbitrageOpportunity'
+        total:
+          type: integer
+        scan_time:
+          type: number
+          format: float
+          description: Scan duration in seconds
+
+    ArbitrageOpportunity:
+      type: object
+      properties:
+        item_id:
+          type: string
+        item_name:
+          type: string
+        buy_price:
+          type: number
+          format: float
+        sell_price:
+          type: number
+          format: float
+        profit:
+          type: number
+          format: float
+        profit_percent:
+          type: number
+          format: float
+        game:
+          type: string
+
+    CreateTargetRequest:
+      type: object
+      required:
+        - user_id
+        - game
+        - item_name
+        - price
+      properties:
+        user_id:
+          type: integer
+          format: int64
+        game:
+          type: string
+          enum: [csgo, dota2, tf2, rust]
+        item_name:
+          type: string
+        price:
+          type: number
+          format: float
+          minimum: 0.01
+        quantity:
+          type: integer
+          default: 1
+
+    Target:
+      type: object
+      properties:
+        target_id:
+          type: string
+        user_id:
+          type: integer
+          format: int64
+        game:
+          type: string
+        item_name:
+          type: string
+        price:
+          type: number
+          format: float
+        quantity:
+          type: integer
+        status:
+          type: string
+          enum: [active, completed, cancelled]
+        created_at:
+          type: string
+          format: date-time
+
+    TargetListResponse:
+      type: object
+      properties:
+        targets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Target'
+        total:
+          type: integer
+
+    MarketItemsResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketItem'
+        total:
+          type: integer
+        cursor:
+          type: string
+          description: Pagination cursor
+
+    MarketItem:
+      type: object
+      properties:
+        item_id:
+          type: string
+        title:
+          type: string
+        price:
+          type: object
+          properties:
+            USD:
+              type: string
+        suggestedPrice:
+          type: object
+          properties:
+            USD:
+              type: string
+        image:
+          type: string
+          format: uri
+        game:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        code:
+          type: integer
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    
+    AdminAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Admin-level JWT token
+
+security:
+  - BearerAuth: []

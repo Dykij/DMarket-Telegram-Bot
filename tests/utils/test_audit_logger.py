@@ -1,21 +1,16 @@
 """Тесты для audit_logger.py"""
 
-import pytest
-from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
-from src.utils.audit_logger import (
-    AuditEventType,
-    AuditLogger,
-    AuditLog,
-    AuditSeverity,
-)
+import pytest
+
+from src.utils.audit_logger import AuditEventType, AuditLog, AuditLogger, AuditSeverity
 
 
 class TestAuditLogger:
     """Тесты для AuditLogger."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_session(self):
         """Create mock async session."""
         session = AsyncMock()
@@ -24,12 +19,12 @@ class TestAuditLogger:
         session.execute = AsyncMock()
         return session
 
-    @pytest.fixture
+    @pytest.fixture()
     def audit_logger(self, mock_session):
         """Create audit logger."""
         return AuditLogger(mock_session)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_log_basic(self, audit_logger, mock_session):
         """Тест базового логирования."""
         result = await audit_logger.log(
@@ -47,7 +42,7 @@ class TestAuditLogger:
         mock_session.add.assert_called_once()
         mock_session.commit.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_log_user_action(self, audit_logger, mock_session):
         """Тест логирования действия пользователя."""
         result = await audit_logger.log_user_action(
@@ -61,7 +56,7 @@ class TestAuditLogger:
         assert result.details == {"item_name": "AK-47", "price": 10.50}
         assert result.severity == AuditSeverity.INFO.value
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_log_security_event(self, audit_logger, mock_session):
         """Тест логирования события безопасности."""
         result = await audit_logger.log_security_event(
@@ -76,7 +71,7 @@ class TestAuditLogger:
         assert result.severity == AuditSeverity.WARNING.value
         assert result.success == "false"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_log_system_event(self, audit_logger, mock_session):
         """Тест логирования системного события."""
         result = await audit_logger.log_system_event(
@@ -91,7 +86,7 @@ class TestAuditLogger:
         assert result.severity == AuditSeverity.CRITICAL.value
         assert result.error_message == "Connection timeout"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_user_history(self, audit_logger, mock_session):
         """Тест получения истории пользователя."""
         # Mock результатов запроса
@@ -120,7 +115,7 @@ class TestAuditLogger:
         assert all(log.user_id == 12345 for log in history)
         mock_session.execute.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_security_events(self, audit_logger, mock_session):
         """Тест получения событий безопасности."""
         mock_logs = [
@@ -141,7 +136,7 @@ class TestAuditLogger:
         assert len(events) == 1
         assert events[0].event_type == "security_violation"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_search_logs(self, audit_logger, mock_session):
         """Тест поиска логов."""
         mock_logs = [
