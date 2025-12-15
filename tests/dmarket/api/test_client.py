@@ -15,7 +15,7 @@ Target: 40+ tests to achieve 70%+ coverage
 
 import asyncio
 import time
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
@@ -544,15 +544,17 @@ class TestDMarketClientRateLimiting:
 
         mock_httpx_client.get = AsyncMock(side_effect=[mock_429_response, mock_success_response])
 
-        # Act
-        start_time = time.time()
-        result = await client._request("GET", "/test")
-        elapsed_time = time.time() - start_time
+        # Act - Mock asyncio.sleep to speed up test while verifying Retry-After is respected
+        with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+            result = await client._request("GET", "/test")
 
         # Assert
-        # Should have waited at least 1 second (allowing for some timing variance)
-        assert elapsed_time >= 1.0
+        # Should have called sleep with Retry-After delay (2 seconds)
         assert result is not None
+        assert mock_sleep.call_count >= 1
+        # Verify sleep was called with the Retry-After value (2 seconds)
+        sleep_calls = [call[0][0] for call in mock_sleep.call_args_list]
+        assert any(delay >= 2.0 for delay in sleep_calls)
 
     @pytest.mark.asyncio()
     async def test_rate_limiter_allows_requests_after_cooldown(
@@ -563,10 +565,11 @@ class TestDMarketClientRateLimiting:
         client._client = mock_httpx_client
         mock_httpx_client.get = AsyncMock(return_value=mock_response)
 
-        # Act - make multiple requests
-        result1 = await client._request("GET", "/test1")
-        await asyncio.sleep(0.1)
-        result2 = await client._request("GET", "/test2")
+        # Act - make multiple requests (mock sleep to speed up test)
+        with patch("asyncio.sleep", new_callable=AsyncMock):
+            result1 = await client._request("GET", "/test1")
+            await asyncio.sleep(0.1)  # Mocked - instant
+            result2 = await client._request("GET", "/test2")
 
         # Assert
         assert result1 is not None
@@ -658,7 +661,8 @@ class TestDMarketClientRetry:
         )
 
         # Act
-        result = await client._request("GET", "/test")
+        with patch("asyncio.sleep", new_callable=AsyncMock):
+            result = await client._request("GET", "/test")
 
         # Assert
         assert mock_httpx_client.get.call_count >= 2
@@ -685,7 +689,8 @@ class TestDMarketClientRetry:
         mock_httpx_client.get = AsyncMock(side_effect=[mock_502_response, mock_response])
 
         # Act
-        result = await client._request("GET", "/test")
+        with patch("asyncio.sleep", new_callable=AsyncMock):
+            result = await client._request("GET", "/test")
 
         # Assert
         assert mock_httpx_client.get.call_count == 2
@@ -712,7 +717,8 @@ class TestDMarketClientRetry:
         mock_httpx_client.get = AsyncMock(side_effect=[mock_503_response, mock_response])
 
         # Act
-        result = await client._request("GET", "/test")
+        with patch("asyncio.sleep", new_callable=AsyncMock):
+            result = await client._request("GET", "/test")
 
         # Assert
         assert mock_httpx_client.get.call_count == 2
@@ -732,7 +738,8 @@ class TestDMarketClientRetry:
         )
 
         # Act
-        result = await client._request("GET", "/test")
+        with patch("asyncio.sleep", new_callable=AsyncMock):
+            result = await client._request("GET", "/test")
 
         # Assert
         assert mock_httpx_client.get.call_count == 2
@@ -748,7 +755,8 @@ class TestDMarketClientRetry:
         mock_httpx_client.get = AsyncMock(side_effect=httpx.ConnectError("Connection failed"))
 
         # Act
-        result = await client._request("GET", "/test")
+        with patch("asyncio.sleep", new_callable=AsyncMock):
+            result = await client._request("GET", "/test")
 
         # Assert
         assert result is not None
@@ -770,15 +778,19 @@ class TestDMarketClientRetry:
             ]
         )
 
-        # Act
-        start_time = time.time()
-        result = await client._request("GET", "/test")
-        elapsed_time = time.time() - start_time
+        # Act - Mock asyncio.sleep to verify exponential backoff pattern
+        with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+            result = await client._request("GET", "/test")
 
         # Assert
-        # Should have some delay due to retries (at least 1 second total)
-        assert elapsed_time >= 1.0
+        # Verify exponential backoff pattern (delays should increase)
         assert result is not None
+        assert mock_sleep.call_count >= 2
+        # Check that sleep was called with increasing delays (exponential backoff)
+        if mock_sleep.call_count >= 2:
+            delays = [call[0][0] for call in mock_sleep.call_args_list]
+            # Delays should generally increase (allowing for some jitter)
+            assert delays[1] >= delays[0] * 0.8  # Allow 20% variance for jitter
 
     @pytest.mark.asyncio()
     async def test_no_retry_on_400_error(self, client, mock_httpx_client):
@@ -846,7 +858,8 @@ class TestDMarketClientRetry:
         mock_httpx_client.get = AsyncMock(side_effect=httpx.ConnectError("Connection failed"))
 
         # Act
-        result = await client._request("GET", "/test")
+        with patch("asyncio.sleep", new_callable=AsyncMock):
+            result = await client._request("GET", "/test")
 
         # Assert
         # Should be: initial attempt + 2 retries = 3 total
