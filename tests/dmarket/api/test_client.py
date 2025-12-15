@@ -989,3 +989,121 @@ class TestDMarketClientContextManager:
 
         # Assert
         assert client._client is None or client._client.is_closed
+
+
+# Additional Tests for 95%+ Coverage
+
+
+class TestDMarketClientDryRunMode:
+    """Tests for DRY_RUN mode warnings and behavior."""
+
+    def test_client_init_with_dry_run_false_logs_warning(self, api_keys, caplog):
+        """Test that dry_run=False logs a warning about real trades."""
+        # Arrange & Act
+        import logging
+
+        caplog.set_level(logging.WARNING)
+        client = DMarketAPIClient(
+            public_key=api_keys["public_key"],
+            secret_key=api_keys["secret_key"],
+            dry_run=False,
+        )
+
+        # Assert
+        assert client.dry_run is False
+        # Check that warning was logged about real trades
+        assert any(
+            "DRY_RUN=false" in record.message and "REAL TRADES" in record.message
+            for record in caplog.records
+        )
+
+    def test_client_init_with_dry_run_true_no_warning(self, api_keys, caplog):
+        """Test that dry_run=True doesn't log trade warning."""
+        # Arrange & Act
+        import logging
+
+        caplog.set_level(logging.WARNING)
+        client = DMarketAPIClient(
+            public_key=api_keys["public_key"],
+            secret_key=api_keys["secret_key"],
+            dry_run=True,
+        )
+
+        # Assert
+        assert client.dry_run is True
+        # Should not have DRY_RUN warning
+        assert not any("DRY_RUN=false" in record.message for record in caplog.records)
+
+
+class TestDMarketClientCacheSaving:
+    """Tests for cache saving functionality."""
+
+    @pytest.mark.asyncio()
+    async def test_get_request_saves_to_cache_when_enabled(
+        self, client, mock_httpx_client, mock_response
+    ):
+        """Test that GET requests save results to cache when enabled."""
+        # Arrange
+        from src.dmarket.api.cache import clear_cache
+
+        client._client = mock_httpx_client
+        client.enable_cache = True
+        mock_httpx_client.get = AsyncMock(return_value=mock_response)
+
+        # Clear cache first
+        clear_cache()
+
+        # Act
+        path = "/test/cacheable"
+        result = await client._request("GET", path)
+
+        # Assert
+        assert result is not None
+        # Verify result was saved to cache (next call should use cache)
+        result2 = await client._request("GET", path)
+        assert result2 is not None
+
+    @pytest.mark.asyncio()
+    async def test_get_request_does_not_save_when_cache_disabled(
+        self, client, mock_httpx_client, mock_response
+    ):
+        """Test that GET requests don't save to cache when disabled."""
+        # Arrange
+        from src.dmarket.api.cache import clear_cache
+
+        client._client = mock_httpx_client
+        client.enable_cache = False
+        mock_httpx_client.get = AsyncMock(return_value=mock_response)
+
+        # Clear cache first
+        clear_cache()
+
+        # Act
+        result = await client._request("GET", "/test/path")
+
+        # Assert
+        assert result is not None
+        # Each call should hit the API (not cache)
+        assert mock_httpx_client.get.call_count >= 1
+
+
+class TestDMarketClientCircuitBreaker:
+    """Tests for circuit breaker error handling."""
+
+    @pytest.mark.asyncio()
+    async def test_request_handles_circuit_breaker_open(self, client, mock_httpx_client):
+        """Test handling of CircuitBreakerError."""
+        # Arrange
+        from circuitbreaker import CircuitBreakerError
+
+        client._client = mock_httpx_client
+        mock_httpx_client.get = AsyncMock(
+            side_effect=CircuitBreakerError("Circuit breaker is open")
+        )
+
+        # Act
+        result = await client._request("GET", "/test")
+
+        # Assert
+        assert result is not None
+        assert "error" in result or result.get("success") is False

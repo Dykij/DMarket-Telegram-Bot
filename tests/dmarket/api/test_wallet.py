@@ -1016,6 +1016,136 @@ class TestWalletErrorHandling:
         assert "invalid" in result["error_message"].lower()
         assert "api keys" in result["error_message"].lower()
 
+
+# Additional Tests for 95%+ Coverage
+
+
+class TestWalletSecretKeyConversion:
+    """Tests for different secret key format conversions in direct requests."""
+
+    @pytest.mark.asyncio()
+    async def test_direct_request_with_base64_secret_key(self, wallet_client, mock_httpx_client):
+        """Test direct balance request with base64-encoded secret key."""
+        # Arrange
+        import base64
+
+        wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
+
+        # Create a valid base64 key (44 chars)
+        wallet_client._secret_key = base64.b64encode(b"a" * 32).decode("utf-8")
+
+        mock_response = MagicMock(spec=httpx.Response)
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "usd": "5000",
+            "usdAvailableToWithdraw": "4000",
+        }
+        mock_httpx_client.get = AsyncMock(return_value=mock_response)
+
+        # Act
+        result = await wallet_client.direct_balance_request()
+
+        # Assert
+        assert result["success"] is True
+
+    @pytest.mark.asyncio()
+    async def test_direct_request_with_short_secret_key(self, wallet_client, mock_httpx_client):
+        """Test direct balance request with short secret key (padded)."""
+        # Arrange
+        wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
+
+        # Short key that will be padded
+        wallet_client._secret_key = "short_key"
+
+        mock_response = MagicMock(spec=httpx.Response)
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "usd": "3000",
+            "usdAvailableToWithdraw": "2500",
+        }
+        mock_httpx_client.get = AsyncMock(return_value=mock_response)
+
+        # Act
+        result = await wallet_client.direct_balance_request()
+
+        # Assert
+        assert result["success"] is True
+
+    @pytest.mark.asyncio()
+    async def test_direct_request_with_long_hex_secret_key(self, wallet_client, mock_httpx_client):
+        """Test direct balance request with long hex secret key (truncated)."""
+        # Arrange
+        wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
+
+        # Long hex key (>64 chars) that will be truncated
+        wallet_client._secret_key = "a" * 80
+
+        mock_response = MagicMock(spec=httpx.Response)
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "usd": "6000",
+            "usdAvailableToWithdraw": "5500",
+        }
+        mock_httpx_client.get = AsyncMock(return_value=mock_response)
+
+        # Act
+        result = await wallet_client.direct_balance_request()
+
+        # Assert
+        assert result["success"] is True
+
+    @pytest.mark.asyncio()
+    async def test_direct_request_signature_fallback_to_hmac(
+        self, wallet_client, mock_httpx_client
+    ):
+        """Test fallback to HMAC when Ed25519 signature fails."""
+        # Arrange
+        wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
+
+        # Set invalid secret key that will cause Ed25519 to fail
+        wallet_client._secret_key = "invalid_key_format_☠"
+
+        mock_response = MagicMock(spec=httpx.Response)
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "usd": "7000",
+            "usdAvailableToWithdraw": "6500",
+        }
+        mock_httpx_client.get = AsyncMock(return_value=mock_response)
+
+        # Act
+        result = await wallet_client.direct_balance_request()
+
+        # Assert
+        # Should succeed with HMAC fallback
+        assert result["success"] is True
+
+
+class TestWalletLegacyKeyFormats:
+    """Tests for legacy key format handling."""
+
+    def test_parse_balance_with_complex_nested_structure(self, wallet_client):
+        """Test parsing balance with deeply nested structure."""
+        # Arrange
+        response = {
+            "funds": {
+                "usdWallet": {
+                    "balance": 150.0,
+                    "availableBalance": 120.0,
+                    "totalBalance": 180.0,
+                },
+                "otherData": "ignored",
+            }
+        }
+
+        # Act
+        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+
+        # Assert
+        assert usd_amount == 15000.0
+        assert usd_available == 12000.0
+        assert usd_total == 18000.0
+
     @pytest.mark.asyncio()
     async def test_get_balance_handles_general_exception(self, wallet_client, mock_httpx_client):
         """Test handling of general exception during balance retrieval."""
