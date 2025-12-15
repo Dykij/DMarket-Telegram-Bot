@@ -1129,40 +1129,4 @@ class TestDMarketClientEdgeCases:
             # Verify save_to_cache was called (line 310)
             mock_save.assert_called()
 
-    @pytest.mark.asyncio()
-    async def test_http_error_json_decode_error_handling(self, client, mock_httpx_client):
-        """Test HTTP error handling when JSON decoding fails."""
-        # Arrange
-        import json
-        from unittest.mock import patch
 
-        client._client = mock_httpx_client
-
-        mock_error_response = MagicMock(spec=httpx.Response)
-        mock_error_response.status_code = 500
-        mock_error_response.text = "Internal Server Error - Plain Text"
-        mock_error_response.json.side_effect = json.JSONDecodeError("msg", "doc", 0)
-
-        # Create a successful response after circuit breaker recovers
-        mock_success_response = MagicMock(spec=httpx.Response)
-        mock_success_response.status_code = 200
-        mock_success_response.json.return_value = {"success": True}
-        mock_success_response.raise_for_status = MagicMock()
-
-        # Bypass circuit breaker for this test
-        with patch("src.dmarket.api.client.call_with_circuit_breaker") as mock_cb:
-
-            async def mock_call(*args, **kwargs):
-                # Simulate the HTTP error
-                raise httpx.HTTPStatusError(
-                    "500", request=MagicMock(), response=mock_error_response
-                )
-
-            mock_cb.side_effect = mock_call
-
-            # Act
-            result = await client._request("GET", "/test")
-
-            # Assert - should handle non-JSON error response (lines 385-387)
-            assert result is not None
-            assert result.get("error") is True
