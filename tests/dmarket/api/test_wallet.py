@@ -654,3 +654,481 @@ class TestWalletUserProfile:
         wallet_client._request.assert_called_once_with(
             "GET", wallet_client.ENDPOINT_ACCOUNT_DETAILS
         )
+
+
+# Additional Tests for Increased Coverage
+
+
+class TestWalletGetBalanceSuccessPath:
+    """Tests for successful balance retrieval through direct request."""
+
+    @pytest.mark.asyncio()
+    async def test_get_balance_success_via_direct_request_with_full_data(
+        self, wallet_client, mock_httpx_client
+    ):
+        """Test successful balance retrieval via direct request with all balance fields."""
+        # Arrange
+        wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
+
+        mock_response = MagicMock(spec=httpx.Response)
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "usd": "50000",
+            "usdAvailableToWithdraw": "40000",
+        }
+
+        mock_httpx_client.get = AsyncMock(return_value=mock_response)
+
+        # Mock _request to fail so direct_balance_request is the successful path
+        wallet_client._request = AsyncMock(return_value={"error": "Not found", "code": "NOT_FOUND"})
+
+        # Act
+        result = await wallet_client.get_balance()
+
+        # Assert
+        assert result["error"] is False
+        assert result["balance"] == 500.0
+        assert result["available_balance"] == 400.0
+        assert "additional_info" in result
+        assert result["additional_info"]["method"] == "direct_request"
+        assert "raw_response" in result["additional_info"]
+
+    @pytest.mark.asyncio()
+    async def test_get_balance_direct_request_with_locked_balance(
+        self, wallet_client, mock_httpx_client
+    ):
+        """Test balance retrieval with locked and trade-protected balances."""
+        # Arrange
+        wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
+
+        # Create a proper response that goes through direct_balance_request
+        mock_response = MagicMock(spec=httpx.Response)
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "funds": {
+                "usdWallet": {
+                    "balance": 100.0,
+                    "availableBalance": 80.0,
+                    "totalBalance": 120.0,
+                }
+            }
+        }
+
+        mock_httpx_client.get = AsyncMock(return_value=mock_response)
+
+        # Act
+        result = await wallet_client.direct_balance_request()
+
+        # Assert
+        assert result["success"] is True
+        assert result["data"]["balance"] == 100.0
+        assert result["data"]["available"] == 80.0
+        assert result["data"]["total"] == 120.0
+
+    @pytest.mark.asyncio()
+    async def test_get_balance_handles_exception_in_direct_request(
+        self, wallet_client, mock_httpx_client
+    ):
+        """Test that exceptions in direct_balance_request are handled gracefully."""
+        # Arrange
+        wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
+        mock_httpx_client.get = AsyncMock(side_effect=Exception("Network error"))
+
+        # Act
+        result = await wallet_client.direct_balance_request()
+
+        # Assert
+        assert result["success"] is False
+        assert "error" in result
+        assert "Network error" in result["error"]
+
+
+class TestWalletParseBalanceEdgeCases:
+    """Tests for edge cases in balance parsing."""
+
+    def test_parse_balance_with_string_dollar_value(self, wallet_client):
+        """Test parsing balance with dollar sign in string."""
+        # Arrange
+        response = {
+            "usdAvailableToWithdraw": "$25.50",
+        }
+
+        # Act
+        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+
+        # Assert
+        assert usd_amount == 2550.0
+        assert usd_available == 2550.0
+        assert usd_total == 2550.0
+
+    def test_parse_balance_handles_parse_error(self, wallet_client):
+        """Test that parse errors return zeros."""
+        # Arrange
+        response = {
+            "usd": "invalid_value",
+        }
+
+        # Act
+        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+
+        # Assert
+        assert usd_amount == 0.0
+        assert usd_available == 0.0
+        assert usd_total == 0.0
+
+
+class TestWalletGetBalanceEndpointFallback:
+    """Tests for endpoint fallback logic in get_balance."""
+
+    @pytest.mark.asyncio()
+    async def test_get_balance_tries_all_endpoints_on_failure(
+        self, wallet_client, mock_httpx_client
+    ):
+        """Test that get_balance tries all endpoints when direct request fails."""
+        # Arrange
+        wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
+
+        # Mock direct_balance_request to fail
+        mock_direct_response = MagicMock(spec=httpx.Response)
+        mock_direct_response.status_code = 500
+        mock_direct_response.text = "Server Error"
+        mock_httpx_client.get = AsyncMock(return_value=mock_direct_response)
+
+        # Mock all _request calls to fail
+        call_count = 0
+
+        async def mock_request_side_effect(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            return {"error": "Failed", "code": "ERROR"}
+
+        wallet_client._request = AsyncMock(side_effect=mock_request_side_effect)
+
+        # Act
+        result = await wallet_client.get_balance()
+
+        # Assert
+        assert result["error"] is True
+        assert call_count >= 1  # Should have tried at least one endpoint
+
+    @pytest.mark.asyncio()
+    async def test_get_balance_returns_first_successful_endpoint(
+        self, wallet_client, mock_httpx_client
+    ):
+        """Test that get_balance returns result from first successful endpoint."""
+        # Arrange
+        wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
+
+        # Mock direct_balance_request to fail
+        mock_direct_response = MagicMock(spec=httpx.Response)
+        mock_direct_response.status_code = 500
+        mock_direct_response.text = "Server Error"
+        mock_httpx_client.get = AsyncMock(return_value=mock_direct_response)
+
+        # Mock _request to succeed on first call
+        wallet_client._request = AsyncMock(
+            return_value={
+                "usd": "30000",
+                "usdAvailableToWithdraw": "25000",
+            }
+        )
+
+        # Act
+        result = await wallet_client.get_balance()
+
+        # Assert
+        assert result["error"] is False
+        assert result["balance"] == 300.0
+        assert result["available_balance"] == 250.0
+
+
+class TestWalletDeprecatedMethods:
+    """Tests for deprecated wallet methods."""
+
+    @pytest.mark.asyncio()
+    async def test_get_user_balance_deprecated(self, wallet_client):
+        """Test that get_user_balance is deprecated but still works."""
+        # Arrange
+        wallet_client._get_client = AsyncMock()
+        wallet_client._request = AsyncMock(
+            return_value={
+                "usd": "10000",
+                "usdAvailableToWithdraw": "8000",
+            }
+        )
+
+        # Mock direct_balance_request to fail
+        mock_httpx_client = AsyncMock(spec=httpx.AsyncClient)
+        mock_direct_response = MagicMock(spec=httpx.Response)
+        mock_direct_response.status_code = 500
+        mock_direct_response.text = "Error"
+        mock_httpx_client.get = AsyncMock(return_value=mock_direct_response)
+        wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
+
+        # Act
+        result = await wallet_client.get_user_balance()
+
+        # Assert
+        assert result is not None
+        assert "balance" in result
+
+
+class TestWalletErrorHandling:
+    """Tests for error handling in wallet operations."""
+
+    def test_parse_balance_with_integer_usd_available(self, wallet_client):
+        """Test parsing balance with integer usdAvailableToWithdraw."""
+        # Arrange
+        response = {
+            "usdAvailableToWithdraw": 1500,  # Integer instead of string
+        }
+
+        # Act
+        usd_amount, usd_available, _ = wallet_client._parse_balance_from_response(response)
+
+        # Assert
+        assert usd_amount == 150000.0
+        assert usd_available == 150000.0
+
+    @pytest.mark.asyncio()
+    async def test_get_balance_handles_404_error(self, wallet_client, mock_httpx_client):
+        """Test handling of 404 error with proper error code."""
+        # Arrange
+        wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
+
+        # Mock direct_balance_request to fail
+        mock_direct_response = MagicMock(spec=httpx.Response)
+        mock_direct_response.status_code = 500
+        mock_direct_response.text = "Error"
+        mock_httpx_client.get = AsyncMock(return_value=mock_direct_response)
+
+        # Mock _request to return None (all endpoints failed)
+        wallet_client._request = AsyncMock(return_value=None)
+
+        # Mock _try_endpoints_for_balance to return 404 error
+        async def mock_try_endpoints(*args, **kwargs):
+            return None, None, Exception("404 Not Found")
+
+        wallet_client._try_endpoints_for_balance = mock_try_endpoints
+
+        # Act
+        result = await wallet_client.get_balance()
+
+        # Assert
+        assert result["error"] is True
+        assert result["status_code"] == 404
+        assert result["code"] == "NOT_FOUND"
+
+    @pytest.mark.asyncio()
+    async def test_get_balance_handles_unauthorized_in_error_message(
+        self, wallet_client, mock_httpx_client
+    ):
+        """Test handling of unauthorized error in error message."""
+        # Arrange
+        wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
+
+        # Mock direct_balance_request to fail
+        mock_direct_response = MagicMock(spec=httpx.Response)
+        mock_direct_response.status_code = 500
+        mock_direct_response.text = "Error"
+        mock_httpx_client.get = AsyncMock(return_value=mock_direct_response)
+
+        # Mock _try_endpoints_for_balance to return 401 error
+        async def mock_try_endpoints(*args, **kwargs):
+            return None, None, Exception("401 Unauthorized access")
+
+        wallet_client._try_endpoints_for_balance = mock_try_endpoints
+
+        # Act
+        result = await wallet_client.get_balance()
+
+        # Assert
+        assert result["error"] is True
+        assert result["status_code"] == 401
+        assert result["code"] == "UNAUTHORIZED"
+
+    @pytest.mark.asyncio()
+    async def test_get_balance_with_error_response_from_endpoint(
+        self, wallet_client, mock_httpx_client
+    ):
+        """Test handling of error response with code and status from endpoint."""
+        # Arrange
+        wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
+
+        # Mock direct_balance_request to fail
+        mock_direct_response = MagicMock(spec=httpx.Response)
+        mock_direct_response.status_code = 500
+        mock_direct_response.text = "Error"
+        mock_httpx_client.get = AsyncMock(return_value=mock_direct_response)
+
+        # Mock _try_endpoints_for_balance to return error response
+        error_response = {
+            "error": "API Error",
+            "code": "SERVER_ERROR",
+            "status": 500,
+            "message": "Internal server error",
+        }
+
+        async def mock_try_endpoints(*args, **kwargs):
+            return error_response, "/account/v1/balance", None
+
+        wallet_client._try_endpoints_for_balance = mock_try_endpoints
+
+        # Act
+        result = await wallet_client.get_balance()
+
+        # Assert
+        assert result["error"] is True
+        assert result["status_code"] == 500
+        assert result["code"] == "SERVER_ERROR"
+
+    @pytest.mark.asyncio()
+    async def test_get_balance_with_unauthorized_error_code(self, wallet_client, mock_httpx_client):
+        """Test handling of Unauthorized error code from API."""
+        # Arrange
+        wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
+
+        # Mock direct_balance_request to fail
+        mock_direct_response = MagicMock(spec=httpx.Response)
+        mock_direct_response.status_code = 500
+        mock_direct_response.text = "Error"
+        mock_httpx_client.get = AsyncMock(return_value=mock_direct_response)
+
+        # Mock _try_endpoints_for_balance to return Unauthorized error
+        error_response = {
+            "code": "Unauthorized",
+            "message": "Invalid API keys",
+            "status": 401,
+        }
+
+        async def mock_try_endpoints(*args, **kwargs):
+            return error_response, "/account/v1/balance", None
+
+        wallet_client._try_endpoints_for_balance = mock_try_endpoints
+
+        # Act
+        result = await wallet_client.get_balance()
+
+        # Assert
+        assert result["error"] is True
+        assert result["status_code"] == 401
+        assert result["code"] == "UNAUTHORIZED"
+        assert "invalid" in result["error_message"].lower()
+        assert "api keys" in result["error_message"].lower()
+
+    @pytest.mark.asyncio()
+    async def test_get_balance_handles_general_exception(self, wallet_client, mock_httpx_client):
+        """Test handling of general exception during balance retrieval."""
+        # Arrange
+        wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
+
+        # Mock direct_balance_request to fail
+        mock_httpx_client.get = AsyncMock(side_effect=Exception("Unexpected error"))
+
+        # Mock _try_endpoints_for_balance to raise exception
+        async def mock_try_endpoints(*args, **kwargs):
+            raise Exception("Database connection failed")
+
+        wallet_client._try_endpoints_for_balance = mock_try_endpoints
+
+        # Act
+        result = await wallet_client.get_balance()
+
+        # Assert
+        assert result["error"] is True
+        assert result["status_code"] == 500
+        assert "Database connection failed" in result["error_message"]
+
+    def test_parse_balance_handles_value_error(self, wallet_client):
+        """Test that ValueError in parsing is handled gracefully."""
+        # Arrange
+        response = {
+            "usd": "not_a_number",
+            "usdAvailableToWithdraw": "also_not_a_number",
+        }
+
+        # Act
+        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+
+        # Assert - should return zeros on parse error
+        assert usd_amount == 0.0
+        assert usd_available == 0.0
+        assert usd_total == 0.0
+
+    def test_parse_balance_handles_type_error(self, wallet_client):
+        """Test that TypeError in parsing is handled gracefully."""
+        # Arrange
+        response = {
+            "funds": None,  # Will cause TypeError when trying to access
+        }
+
+        # Act
+        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+
+        # Assert - should return zeros on parse error
+        assert usd_amount == 0.0
+        assert usd_available == 0.0
+        assert usd_total == 0.0
+
+    def test_parse_balance_handles_key_error(self, wallet_client):
+        """Test that KeyError in parsing is handled gracefully."""
+        # Arrange
+        response = {
+            "funds": {
+                "invalidKey": "data",
+            }
+        }
+
+        # Act
+        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+
+        # Assert - should return zeros on parse error
+        assert usd_amount == 0.0
+        assert usd_available == 0.0
+        assert usd_total == 0.0
+
+    @pytest.mark.asyncio()
+    async def test_get_balance_exception_with_404_in_message(
+        self, wallet_client, mock_httpx_client
+    ):
+        """Test exception handling with 404 in error message."""
+        # Arrange
+        wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
+        mock_httpx_client.get = AsyncMock(side_effect=Exception("404 resource not found"))
+
+        # Mock _try_endpoints_for_balance to also raise 404 exception
+        async def mock_try_endpoints(*args, **kwargs):
+            raise Exception("404 not found")
+
+        wallet_client._try_endpoints_for_balance = mock_try_endpoints
+
+        # Act
+        result = await wallet_client.get_balance()
+
+        # Assert
+        assert result["error"] is True
+        assert result["status_code"] == 404
+        assert result["code"] == "NOT_FOUND"
+
+    @pytest.mark.asyncio()
+    async def test_get_balance_exception_with_401_in_message(
+        self, wallet_client, mock_httpx_client
+    ):
+        """Test exception handling with 401 in error message."""
+        # Arrange
+        wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
+        mock_httpx_client.get = AsyncMock(side_effect=Exception("401 unauthorized"))
+
+        # Mock _try_endpoints_for_balance to also raise 401 exception
+        async def mock_try_endpoints(*args, **kwargs):
+            raise Exception("401 Unauthorized access")
+
+        wallet_client._try_endpoints_for_balance = mock_try_endpoints
+
+        # Act
+        result = await wallet_client.get_balance()
+
+        # Assert
+        assert result["error"] is True
+        assert result["status_code"] == 401
+        assert result["code"] == "UNAUTHORIZED"

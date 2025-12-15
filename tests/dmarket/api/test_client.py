@@ -130,6 +130,20 @@ class TestDMarketClientInitialization:
         assert client.rate_limiter is not None
         assert hasattr(client.rate_limiter, "wait_if_needed")
 
+    def test_client_init_with_bytes_secret_key(self, api_keys):
+        """Test that client handles bytes secret key correctly."""
+        # Arrange
+        public_key = api_keys["public_key"]
+        secret_key_bytes = api_keys["secret_key"].encode("utf-8")
+
+        # Act
+        client = DMarketAPIClient(public_key=public_key, secret_key=secret_key_bytes)
+
+        # Assert
+        assert client.public_key == public_key
+        assert client._secret_key == api_keys["secret_key"]
+        assert client.secret_key == secret_key_bytes
+
 
 # TestDMarketClientAuthentication
 
@@ -340,6 +354,22 @@ class TestDMarketClientRequests:
         # Assert
         assert result is not None
         mock_httpx_client.delete.assert_called_once()
+
+    @pytest.mark.asyncio()
+    async def test_put_request_success(self, client, mock_httpx_client, mock_response):
+        """Test successful PUT request."""
+        # Arrange
+        client._client = mock_httpx_client
+        mock_httpx_client.put = AsyncMock(return_value=mock_response)
+        path = "/test/endpoint"
+        data = {"key": "value"}
+
+        # Act
+        result = await client._request("PUT", path, data=data)
+
+        # Assert
+        assert result is not None
+        mock_httpx_client.put.assert_called_once()
 
     @pytest.mark.asyncio()
     async def test_request_includes_auth_headers(self, client, mock_httpx_client, mock_response):
@@ -894,6 +924,30 @@ class TestDMarketClientCache:
         # Note: Cache might not reduce call count due to TTL or cache key logic
         # Just verify both requests succeed
         assert mock_httpx_client.get.call_count >= 1
+
+    @pytest.mark.asyncio()
+    async def test_cache_hit_returns_cached_data(self, client, mock_httpx_client, mock_response):
+        """Test that cache hit returns cached data without making new request."""
+        # Arrange
+        from src.dmarket.api.cache import get_cache_key, save_to_cache
+
+        client._client = mock_httpx_client
+        client.enable_cache = True
+        path = "/account/v1/balance"
+
+        # Pre-populate cache
+        cache_key = get_cache_key("GET", path, {}, {})
+        cached_response = {"cached": True, "balance": 10000}
+        save_to_cache(cache_key, cached_response, "short")
+
+        # Act
+        result = await client._request("GET", path)
+
+        # Assert
+        assert result == cached_response
+        assert result["cached"] is True
+        # Should not make HTTP request due to cache hit
+        mock_httpx_client.get.assert_not_called()
 
 
 # TestDMarketClientContextManager
