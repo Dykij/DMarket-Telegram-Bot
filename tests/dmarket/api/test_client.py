@@ -15,19 +15,17 @@ Target: 40+ tests to achieve 70%+ coverage
 
 import asyncio
 import time
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import httpx
 import pytest
-from circuitbreaker import CircuitBreakerError
 
 from src.dmarket.api.client import DMarketAPIClient
-
 
 # Test fixtures
 
 
-@pytest.fixture
+@pytest.fixture()
 def api_keys():
     """Fixture providing test API keys."""
     return {
@@ -36,7 +34,7 @@ def api_keys():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def client(api_keys):
     """Fixture providing a DMarketAPIClient instance."""
     return DMarketAPIClient(
@@ -46,7 +44,7 @@ def client(api_keys):
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_httpx_client():
     """Fixture providing a mocked httpx.AsyncClient."""
     mock_client = AsyncMock(spec=httpx.AsyncClient)
@@ -59,7 +57,7 @@ def mock_httpx_client():
     return mock_client
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_response():
     """Fixture providing a mocked successful HTTP response."""
     mock_resp = MagicMock(spec=httpx.Response)
@@ -263,7 +261,7 @@ class TestDMarketClientAuthentication:
 class TestDMarketClientRequests:
     """Tests for DMarketAPIClient HTTP request methods."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_request_success(self, client, mock_httpx_client, mock_response):
         """Test successful GET request."""
         # Arrange
@@ -279,7 +277,7 @@ class TestDMarketClientRequests:
         assert result["success"] is True
         mock_httpx_client.get.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_request_with_params(self, client, mock_httpx_client, mock_response):
         """Test GET request with query parameters."""
         # Arrange
@@ -297,7 +295,7 @@ class TestDMarketClientRequests:
         call_args = mock_httpx_client.get.call_args
         assert call_args is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_post_request_success(self, client, mock_httpx_client, mock_response):
         """Test successful POST request."""
         # Arrange
@@ -312,7 +310,7 @@ class TestDMarketClientRequests:
         assert result is not None
         mock_httpx_client.post.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_post_request_with_body(self, client, mock_httpx_client, mock_response):
         """Test POST request with JSON body."""
         # Arrange
@@ -328,7 +326,7 @@ class TestDMarketClientRequests:
         assert result is not None
         mock_httpx_client.post.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_delete_request_success(self, client, mock_httpx_client, mock_response):
         """Test successful DELETE request."""
         # Arrange
@@ -343,7 +341,7 @@ class TestDMarketClientRequests:
         assert result is not None
         mock_httpx_client.delete.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_request_includes_auth_headers(self, client, mock_httpx_client, mock_response):
         """Test that requests include authentication headers."""
         # Arrange
@@ -361,15 +359,13 @@ class TestDMarketClientRequests:
         assert "X-Api-Key" in headers
         assert "X-Request-Sign" in headers
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_request_handles_timeout(self, client, mock_httpx_client):
         """Test handling of timeout errors."""
         # Arrange
         client._client = mock_httpx_client
         client.max_retries = 0
-        mock_httpx_client.get = AsyncMock(
-            side_effect=httpx.TimeoutException("Request timeout")
-        )
+        mock_httpx_client.get = AsyncMock(side_effect=httpx.TimeoutException("Request timeout"))
 
         # Act
         result = await client._request("GET", "/test")
@@ -379,15 +375,13 @@ class TestDMarketClientRequests:
         assert result.get("error") is True
         assert "message" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_request_handles_connection_error(self, client, mock_httpx_client):
         """Test handling of connection errors."""
         # Arrange
         client._client = mock_httpx_client
         client.max_retries = 0
-        mock_httpx_client.get = AsyncMock(
-            side_effect=httpx.ConnectError("Connection failed")
-        )
+        mock_httpx_client.get = AsyncMock(side_effect=httpx.ConnectError("Connection failed"))
 
         # Act
         result = await client._request("GET", "/test")
@@ -396,7 +390,7 @@ class TestDMarketClientRequests:
         assert result is not None
         assert result.get("error") is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_request_handles_http_error_500(self, client, mock_httpx_client):
         """Test handling of HTTP 500 errors."""
         # Arrange
@@ -424,7 +418,7 @@ class TestDMarketClientRequests:
         assert result is not None
         assert result.get("error") is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_request_returns_json_response(self, client, mock_httpx_client):
         """Test that successful request returns parsed JSON."""
         # Arrange
@@ -444,7 +438,7 @@ class TestDMarketClientRequests:
         # Assert
         assert result == expected_data
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_request_handles_non_json_response(self, client, mock_httpx_client):
         """Test handling of non-JSON responses."""
         # Arrange
@@ -466,7 +460,7 @@ class TestDMarketClientRequests:
         assert "text" in result
         assert result["text"] == "Plain text response"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_unsupported_method_raises_error(self, client, mock_httpx_client):
         """Test that unsupported HTTP method raises ValueError."""
         # Arrange
@@ -492,7 +486,7 @@ class TestDMarketClientRateLimiting:
         assert client.rate_limiter is not None
         assert hasattr(client.rate_limiter, "wait_if_needed")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_rate_limiter_respects_429_retry_after(self, client, mock_httpx_client):
         """Test that rate limiter respects 429 Retry-After header."""
         # Arrange
@@ -518,9 +512,7 @@ class TestDMarketClientRateLimiting:
             )
         )
 
-        mock_httpx_client.get = AsyncMock(
-            side_effect=[mock_429_response, mock_success_response]
-        )
+        mock_httpx_client.get = AsyncMock(side_effect=[mock_429_response, mock_success_response])
 
         # Act
         start_time = time.time()
@@ -532,7 +524,7 @@ class TestDMarketClientRateLimiting:
         assert elapsed_time >= 1.0
         assert result is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_rate_limiter_allows_requests_after_cooldown(
         self, client, mock_httpx_client, mock_response
     ):
@@ -551,7 +543,7 @@ class TestDMarketClientRateLimiting:
         assert result2 is not None
         assert mock_httpx_client.get.call_count == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_rate_limit_error_returns_error_dict(self, client, mock_httpx_client):
         """Test that rate limit error returns proper error dict."""
         # Arrange
@@ -580,7 +572,7 @@ class TestDMarketClientRateLimiting:
         assert result is not None
         assert result.get("error") is True or result.get("success") is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_request_waits_for_rate_limiter(self, client, mock_httpx_client, mock_response):
         """Test that request waits for rate limiter before executing."""
         # Arrange
@@ -612,7 +604,7 @@ class TestDMarketClientRateLimiting:
 class TestDMarketClientRetry:
     """Tests for retry logic with exponential backoff."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_on_500_error(self, client, mock_httpx_client, mock_response):
         """Test retry logic on HTTP 500 error."""
         # Arrange
@@ -641,7 +633,7 @@ class TestDMarketClientRetry:
         # Assert
         assert mock_httpx_client.get.call_count >= 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_on_502_error(self, client, mock_httpx_client, mock_response):
         """Test retry logic on HTTP 502 error."""
         # Arrange
@@ -668,7 +660,7 @@ class TestDMarketClientRetry:
         # Assert
         assert mock_httpx_client.get.call_count == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_on_503_error(self, client, mock_httpx_client, mock_response):
         """Test retry logic on HTTP 503 error."""
         # Arrange
@@ -695,7 +687,7 @@ class TestDMarketClientRetry:
         # Assert
         assert mock_httpx_client.get.call_count == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_on_connection_error(self, client, mock_httpx_client, mock_response):
         """Test retry logic on connection error."""
         # Arrange
@@ -716,16 +708,14 @@ class TestDMarketClientRetry:
         assert mock_httpx_client.get.call_count == 2
         assert result is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_max_retries_exceeded_returns_error(self, client, mock_httpx_client):
         """Test that exceeding max retries returns error dict."""
         # Arrange
         client._client = mock_httpx_client
         client.max_retries = 1
 
-        mock_httpx_client.get = AsyncMock(
-            side_effect=httpx.ConnectError("Connection failed")
-        )
+        mock_httpx_client.get = AsyncMock(side_effect=httpx.ConnectError("Connection failed"))
 
         # Act
         result = await client._request("GET", "/test")
@@ -735,7 +725,7 @@ class TestDMarketClientRetry:
         assert result.get("error") is True
         assert "message" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_with_exponential_backoff(self, client, mock_httpx_client, mock_response):
         """Test that retry uses exponential backoff."""
         # Arrange
@@ -760,7 +750,7 @@ class TestDMarketClientRetry:
         assert elapsed_time >= 1.0
         assert result is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_retry_on_400_error(self, client, mock_httpx_client):
         """Test that 400 errors are not retried."""
         # Arrange
@@ -788,7 +778,7 @@ class TestDMarketClientRetry:
         assert mock_httpx_client.get.call_count == 1  # No retries
         assert result is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_retry_on_404_error(self, client, mock_httpx_client):
         """Test that 404 errors are not retried."""
         # Arrange
@@ -816,16 +806,14 @@ class TestDMarketClientRetry:
         assert mock_httpx_client.get.call_count == 1  # No retries
         assert result is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_count_is_limited(self, client, mock_httpx_client):
         """Test that retry count respects max_retries limit."""
         # Arrange
         client._client = mock_httpx_client
         client.max_retries = 2
 
-        mock_httpx_client.get = AsyncMock(
-            side_effect=httpx.ConnectError("Connection failed")
-        )
+        mock_httpx_client.get = AsyncMock(side_effect=httpx.ConnectError("Connection failed"))
 
         # Act
         result = await client._request("GET", "/test")
@@ -835,7 +823,7 @@ class TestDMarketClientRetry:
         assert mock_httpx_client.get.call_count == 3
         assert result.get("error") is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_custom_retry_codes(self, api_keys):
         """Test that custom retry codes are respected."""
         # Arrange
@@ -873,13 +861,13 @@ class TestDMarketClientCache:
         # Assert
         assert client.enable_cache is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_clear_cache_method(self, client):
         """Test that clear_cache method works."""
         # Act & Assert - should not raise
         await client.clear_cache()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_clear_cache_for_endpoint(self, client):
         """Test clearing cache for specific endpoint."""
         # Arrange
@@ -888,7 +876,7 @@ class TestDMarketClientCache:
         # Act & Assert - should not raise
         await client.clear_cache_for_endpoint(endpoint)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_cached_response_returned_for_get(self, client, mock_httpx_client, mock_response):
         """Test that cached response is returned for subsequent GET requests."""
         # Arrange
@@ -914,7 +902,7 @@ class TestDMarketClientCache:
 class TestDMarketClientContextManager:
     """Tests for async context manager functionality."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_async_context_manager_enter(self, client):
         """Test async context manager entry."""
         # Act & Assert
@@ -922,7 +910,7 @@ class TestDMarketClientContextManager:
             assert api is not None
             assert api._client is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_async_context_manager_exit(self, client):
         """Test async context manager exit."""
         # Arrange & Act
@@ -932,7 +920,7 @@ class TestDMarketClientContextManager:
         # Assert - client should be closed after exiting context
         assert client._client is None or client._client.is_closed
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_client_closed_on_exit(self, api_keys):
         """Test that HTTP client is properly closed on context exit."""
         # Arrange
