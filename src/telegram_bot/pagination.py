@@ -1,14 +1,13 @@
 """Модуль для управления пагинацией результатов в Telegram-боте."""
 
-from collections.abc import Callable
 import logging
+from collections.abc import Callable
 from typing import Any
 
 from telegram import InlineKeyboardMarkup
 
 from src.telegram_bot.keyboards import create_pagination_keyboard
 from src.telegram_bot.utils.formatters import format_opportunities
-
 
 logger = logging.getLogger(__name__)
 
@@ -313,14 +312,11 @@ class PaginationManager:
         _, current_page, total_pages = self.get_page(user_id)
 
         # Создаем клавиатуру с помощью унифицированной функции
+        # Добавляем +1 к current_page т.к. create_pagination_keyboard работает с 1-based индексацией
         return create_pagination_keyboard(
-            current_page=current_page,
-            total_pages=total_pages,
+            current_page=current_page + 1,
+            total_pages=total_pages if total_pages > 0 else 1,
             prefix=prefix,
-            with_nums=True,
-            back_button=True,
-            back_text="« Назад",
-            back_callback="back_to_menu",
         )
 
     def format_current_page(

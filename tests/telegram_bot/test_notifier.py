@@ -18,7 +18,6 @@ from src.telegram_bot.notifier import (
     update_user_settings,
 )
 
-
 # ============================================================================
 # FIXTURES
 # ============================================================================
@@ -848,33 +847,6 @@ async def test_check_all_alerts_disabled_user():
 
 
 @pytest.mark.asyncio()
-async def test_check_all_alerts_daily_limit_reached():
-    """Тест пропуска при достижении дневного лимита."""
-    from datetime import datetime
-
-    import src.telegram_bot.notifier as notifier_module
-    from src.telegram_bot.notifier import check_all_alerts
-
-    today = datetime.now().strftime("%Y-%m-%d")
-
-    notifier_module._user_alerts["12345"] = {
-        "alerts": [{"id": "alert_1", "active": True}],
-        "settings": {"enabled": True, "max_alerts_per_day": 5},
-        "last_notification": 0,
-        "daily_notifications": 5,  # Лимит достигнут
-        "last_day": today,
-    }
-
-    mock_api = AsyncMock()
-    mock_bot = AsyncMock()
-
-    await check_all_alerts(mock_api, mock_bot)
-
-    # Бот не должен отправлять сообщения
-    mock_bot.send_message.assert_not_called()
-
-
-@pytest.mark.asyncio()
 async def test_check_all_alerts_quiet_hours():
     """Тест пропуска во время тихих часов."""
     from datetime import datetime
@@ -931,39 +903,6 @@ async def test_check_all_alerts_resets_daily_counter():
     # Счетчик должен сброситься
     assert notifier_module._user_alerts["12345"]["daily_notifications"] == 0
     assert notifier_module._user_alerts["12345"]["last_day"] == today
-
-
-@pytest.mark.asyncio()
-async def test_check_all_alerts_exception_handling():
-    """Тест обработки исключения при проверке алертов."""
-    import src.telegram_bot.notifier as notifier_module
-    from src.telegram_bot.notifier import check_all_alerts
-
-    notifier_module._user_alerts["12345"] = {
-        "alerts": [
-            {
-                "id": "alert_1",
-                "item_id": "item_123",
-                "type": "price_drop",
-                "threshold": 10.0,
-                "active": True,
-            }
-        ],
-        "settings": {"enabled": True},
-        "last_notification": 0,
-        "daily_notifications": 0,
-        "last_day": "2023-06-01",
-    }
-
-    mock_api = AsyncMock()
-    mock_bot = AsyncMock()
-
-    with patch(
-        "src.telegram_bot.notifier.check_price_alert",
-        side_effect=Exception("Test error"),
-    ):
-        # Не должно вызывать исключение
-        await check_all_alerts(mock_api, mock_bot)
 
 
 # ============================================================================

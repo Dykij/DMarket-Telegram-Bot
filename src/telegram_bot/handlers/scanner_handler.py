@@ -14,7 +14,6 @@ from src.utils.exceptions import handle_exceptions
 from src.utils.logging_utils import get_logger
 from src.utils.sentry_breadcrumbs import add_command_breadcrumb, add_trading_breadcrumb
 
-
 logger = get_logger(__name__)
 
 # Константы для callback данных
@@ -342,10 +341,6 @@ async def handle_level_scan(
             current_page=current_page,
             total_pages=total_pages,
             prefix=f"scanner_paginate:{level}_{game}_",
-            with_nums=True,
-            back_button=True,
-            back_text="⬅️ Назад к сканеру",
-            back_callback=SCANNER_ACTION,
         )
 
         # Отправляем результаты
@@ -533,10 +528,6 @@ async def handle_scanner_pagination(
         current_page=current_page,
         total_pages=total_pages,
         prefix=f"scanner_paginate:{level_game}_",
-        with_nums=True,
-        back_button=True,
-        back_text="⬅️ Назад к сканеру",
-        back_callback=SCANNER_ACTION,
     )
 
     await query.edit_message_text(

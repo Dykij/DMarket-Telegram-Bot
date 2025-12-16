@@ -18,7 +18,6 @@ from src.telegram_bot.pagination import pagination_manager
 from src.telegram_bot.utils.api_client import create_api_client_from_env
 from src.utils.exceptions import handle_exceptions
 
-
 logger = structlog.get_logger(__name__)
 
 # Константы для callback данных
@@ -192,10 +191,6 @@ async def display_results_with_pagination(
         current_page=current_page,
         total_pages=total_pages,
         prefix=f"intra_paginate:{action_type}_{game}_",
-        with_nums=True,
-        back_button=True,
-        back_text="« Назад к арбитражу",
-        back_callback=INTRA_ARBITRAGE_ACTION,
     )
 
     # Добавляем заголовок к тексту
@@ -267,10 +262,6 @@ async def handle_intramarket_pagination(
         current_page=current_page,
         total_pages=total_pages,
         prefix=f"intra_paginate:{action_type}_{game}_",
-        with_nums=True,
-        back_button=True,
-        back_text="« Назад к арбитражу",
-        back_callback=INTRA_ARBITRAGE_ACTION,
     )
 
     # Добавляем заголовок к тексту

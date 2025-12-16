@@ -28,7 +28,6 @@ from src.telegram_bot.utils.api_client import setup_api_client
 from src.telegram_bot.utils.formatters import format_opportunities
 from src.utils.telegram_error_handlers import telegram_error_boundary
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -161,10 +160,6 @@ async def show_arbitrage_opportunities(
         current_page=current_page,
         total_pages=total_pages,
         prefix="arb_",
-        with_nums=True,
-        back_button=True,
-        back_text="« Назад к меню",
-        back_callback="back_to_menu",
     )
 
     # Отправляем сообщение

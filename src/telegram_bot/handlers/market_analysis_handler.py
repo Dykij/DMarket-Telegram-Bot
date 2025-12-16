@@ -530,7 +530,6 @@ async def show_trending_items_results(
         current_page=current_page,
         total_pages=total_pages,
         prefix=f"paginate:trending:{game}_",
-        with_nums=True,
     )
 
     # Добавляем фильтры цены и возврат к анализу рынка

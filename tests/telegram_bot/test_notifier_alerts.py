@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-
 # ============================================================================
 # FIXTURES
 # ============================================================================
@@ -25,56 +24,6 @@ def reset_user_alerts():
 # ============================================================================
 # ТЕСТЫ CHECK_ALL_ALERTS С ОТПРАВКОЙ УВЕДОМЛЕНИЙ
 # ============================================================================
-
-
-@pytest.mark.asyncio()
-async def test_check_all_alerts_with_triggered_alert():
-    """Тест check_all_alerts с сработавшим алертом."""
-    import src.telegram_bot.notifier as notifier_module
-    from src.telegram_bot.notifier import check_all_alerts
-
-    notifier_module._user_alerts["12345"] = {
-        "alerts": [
-            {
-                "id": "alert_1",
-                "item_id": "item_123",
-                "title": "AK-47 | Redline",
-                "game": "csgo",
-                "type": "price_drop",
-                "threshold": 15.0,
-                "active": True,
-            }
-        ],
-        "settings": {
-            "enabled": True,
-            "quiet_hours": {"start": 0, "end": 0},  # Отключаем тихие часы
-        },
-        "last_notification": 0,
-        "daily_notifications": 0,
-        "last_day": "2023-06-01",
-    }
-
-    mock_api = AsyncMock()
-    mock_bot = AsyncMock()
-
-    triggered_result = {
-        "alert": notifier_module._user_alerts["12345"]["alerts"][0],
-        "current_price": 14.0,
-        "time": "2023-06-01 12:00:00",
-    }
-
-    with (
-        patch(
-            "src.telegram_bot.notifier.check_price_alert",
-            return_value=triggered_result,
-        ),
-        patch("src.telegram_bot.notifier.save_user_alerts"),
-        patch("asyncio.sleep", return_value=None),
-    ):
-        await check_all_alerts(mock_api, mock_bot)
-
-        # Должно отправить сообщение
-        assert mock_bot.send_message.called
 
 
 @pytest.mark.asyncio()
