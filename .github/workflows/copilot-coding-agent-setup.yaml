@@ -26,19 +26,19 @@ jobs:
           pip install ruff mypy black pytest pytest-asyncio pytest-cov
 
       - name: Cache .mypy_cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .mypy_cache
           key: mypy-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Cache .ruff_cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .ruff_cache
           key: ruff-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Cache .pytest_cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .pytest_cache
           key: pytest-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
