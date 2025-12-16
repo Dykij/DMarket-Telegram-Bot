@@ -245,13 +245,51 @@ except RateLimitError:
 
 ## 🔗 Полезные ресурсы
 
+### GitHub Copilot
 - [GitHub Copilot Documentation](https://docs.github.com/en/copilot)
 - [VS Code Copilot Guide](https://code.visualstudio.com/docs/copilot/overview)
 - [Prompt Engineering Guide](https://github.com/brexhq/prompt-engineering)
 
+### AI Agent Tools
+- [AnyTool & n8n Integration Guide](ANYTOOL_N8N_INTEGRATION_GUIDE.md) — Universal Tool-Use Layer
+- [HKUDS/AnyTool](https://github.com/HKUDS/AnyTool) — Smart Tool RAG для AI агентов
+- [n8n Tutorial](https://www.freecodecamp.org/news/learn-n8n-to-design-develop-and-deploy-production-grade-ai-agents/) — Visual workflow automation
+- [MCP Protocol](https://modelcontextprotocol.io/) — Model Context Protocol
+
+---
+
+## 🤖 Advanced: AnyTool & n8n
+
+Для продвинутой автоматизации с AI агентами см. [AnyTool & n8n Integration Guide](ANYTOOL_N8N_INTEGRATION_GUIDE.md).
+
+### Ключевые возможности:
+
+| Инструмент | Назначение | Статус |
+|------------|-----------|--------|
+| **AnyTool MCP** | Smart Tool RAG для GitHub Copilot | 📋 Планируется |
+| **n8n Workflows** | Visual automation для DevOps | 📋 Планируется |
+| **MCP Server** | DMarket API интеграция | 📋 Планируется |
+
+### Важно: DMarket ToS Compliance
+
+При использовании AI агентов **запрещено** использовать:
+- ❌ GUI automation (браузер, десктоп)
+- ❌ Web scraping
+- ❌ Browser automation (Selenium, Puppeteer)
+
+**Разрешено** только:
+- ✅ API вызовы через официальный Trading API
+- ✅ Локальные shell операции
+- ✅ MCP серверы для API
+
 ---
 
 ## 📝 Changelog
+
+### v1.1 (Декабрь 2025)
+- Добавлена секция AnyTool & n8n
+- Ссылки на новую документацию
+- DMarket ToS compliance предупреждения
 
 ### v1.0 (Декабрь 2025)
 - Начальная версия руководства
