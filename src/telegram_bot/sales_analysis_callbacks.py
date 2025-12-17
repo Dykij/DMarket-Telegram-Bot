@@ -13,7 +13,7 @@ from src.dmarket.arbitrage_sales_analysis import (
     get_sales_volume_stats,
 )
 from src.dmarket.sales_history import analyze_sales_history, get_sales_history
-from src.telegram_bot.sales_analysis_handlers import (  # type: ignore[import-untyped]
+from src.telegram_bot.handlers.sales_analysis_handlers import (  # type: ignore[import-untyped]
     get_liquidity_emoji,
     get_trend_emoji,
     handle_arbitrage_with_sales,
