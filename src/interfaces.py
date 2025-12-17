@@ -104,6 +104,39 @@ class IDMarketAPI(Protocol):
         """
         ...
 
+    async def create_target(
+        self,
+        game: str,
+        title: str,
+        price: float,
+        amount: int = 1,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Создать одиночный таргет (buy order).
+
+        Args:
+            game: Код игры
+            title: Название предмета
+            price: Цена покупки
+            amount: Количество
+            **kwargs: Дополнительные параметры
+
+        Returns:
+            Результат создания таргета
+        """
+        ...
+
+    async def delete_target(self, target_id: str) -> dict[str, Any]:
+        """Удалить таргет.
+
+        Args:
+            target_id: ID таргета для удаления
+
+        Returns:
+            Результат удаления
+        """
+        ...
+
     async def get_user_targets(
         self,
         game_id: str | None = None,
@@ -115,6 +148,104 @@ class IDMarketAPI(Protocol):
 
         Returns:
             Список активных таргетов
+        """
+        ...
+
+    async def get_targets_by_title(
+        self,
+        title: str,
+        game: str | None = None,
+    ) -> dict[str, Any]:
+        """Получить таргеты по названию предмета.
+
+        Args:
+            title: Название предмета
+            game: Опциональный фильтр по игре
+
+        Returns:
+            Список таргетов
+        """
+        ...
+
+    async def get_closed_targets(
+        self,
+        game_id: str | None = None,
+        limit: int = 100,
+    ) -> dict[str, Any]:
+        """Получить закрытые таргеты.
+
+        Args:
+            game_id: Опциональный фильтр по игре
+            limit: Максимальное количество
+
+        Returns:
+            Список закрытых таргетов
+        """
+        ...
+
+    async def get_sales_history(
+        self,
+        item_id: str,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Получить историю продаж предмета.
+
+        Args:
+            item_id: ID предмета
+            **kwargs: Дополнительные параметры
+
+        Returns:
+            История продаж
+        """
+        ...
+
+    async def get_aggregated_prices_bulk(
+        self,
+        item_ids: list[str],
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Получить агрегированные цены для нескольких предметов.
+
+        Args:
+            item_ids: Список ID предметов
+            **kwargs: Дополнительные параметры
+
+        Returns:
+            Агрегированные цены
+        """
+        ...
+
+    async def get_user_inventory(
+        self,
+        game: str | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Получить инвентарь пользователя.
+
+        Args:
+            game: Опциональный фильтр по игре
+            **kwargs: Дополнительные параметры
+
+        Returns:
+            Инвентарь пользователя
+        """
+        ...
+
+    async def get_buy_orders_competition(
+        self,
+        title: str,
+        game: str,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Получить конкуренцию по buy orders.
+
+        Args:
+            title: Название предмета
+            game: Код игры
+            **kwargs: Дополнительные параметры
+
+        Returns:
+            Данные о конкуренции
         """
         ...
 

@@ -261,7 +261,7 @@ class AutoSeller:
             await self._list_item(sale)
         else:
             # Schedule listing after delay
-            asyncio.create_task(self._delayed_list(sale))
+            _ = asyncio.create_task(self._delayed_list(sale))
 
         return sale
 

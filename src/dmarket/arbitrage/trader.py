@@ -451,7 +451,7 @@ class ArbitrageTrader:
         self.current_game = game
         self.min_profit_percentage = min_profit_percentage
 
-        asyncio.create_task(
+        _ = asyncio.create_task(
             self._auto_trading_loop(game, min_profit_percentage, max_concurrent_trades),
         )
 

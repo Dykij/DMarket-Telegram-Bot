@@ -113,6 +113,7 @@ class MarketVisualizer:
         df = self.process_price_data(price_history)
 
         # Create figure with appropriate subplot layout
+        ax2 = None  # Initialize ax2 for type checker
         if include_volume and "volume" in df.columns:
             fig, (ax1, ax2) = plt.subplots(
                 2,
@@ -149,7 +150,7 @@ class MarketVisualizer:
         plt.setp(ax1.get_xticklabels(), rotation=45, ha="right")
 
         # Add volume subplot if requested and available
-        if include_volume and "volume" in df.columns:
+        if include_volume and "volume" in df.columns and ax2 is not None:
             # Plot volume as bar chart
             ax2.bar(
                 df.index,
