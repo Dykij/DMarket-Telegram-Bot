@@ -120,8 +120,8 @@ from .trader import ArbitrageTrader
 # Public API
 # =============================================================================
 __all__ = [
-    "ArbitrageTrader",
     "AUTO_TRADING_INTERVAL",
+    "ArbitrageTrader",
     "BASE_COMMISSION_PERCENT",
     "CACHE_CLEANUP_COUNT",
     "CACHE_TTL",

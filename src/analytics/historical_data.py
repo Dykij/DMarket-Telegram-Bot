@@ -250,7 +250,9 @@ class HistoricalDataCollector:
                     ts_str = sale.get("date") or sale.get("timestamp")
                     if ts_str:
                         try:
-                            ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+                            ts = datetime.fromisoformat(
+                                ts_str.replace("Z", "+00:00")  # noqa: FURB162
+                            )
                         except (ValueError, TypeError):
                             ts = datetime.now(UTC)
                     else:

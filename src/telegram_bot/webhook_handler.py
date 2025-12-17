@@ -53,7 +53,7 @@ class WebhookHandler:
     def __init__(
         self,
         bot_app: Application,  # type: ignore[type-arg]
-        host: str = "0.0.0.0",
+        host: str = "0.0.0.0",  # noqa: S104
         port: int = 8443,
         webhook_path: str = "/webhook",
         health_path: str = "/health",

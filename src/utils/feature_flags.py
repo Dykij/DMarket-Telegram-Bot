@@ -342,12 +342,12 @@ class FeatureFlagsManager:
         try:
             config = {"features": self.flags}
 
-            with open(self.config_path, "w", encoding="utf-8") as f:
+            with open(self.config_path, "w", encoding="utf-8") as f:  # noqa: ASYNC230
                 yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
 
             logger.info("feature_flags_saved", config_path=self.config_path)
 
-        except Exception as e:
+        except Exception:
             logger.exception("feature_flags_save_error")
 
 

@@ -665,7 +665,9 @@ class Backtester:
         for price_data in prices:
             timestamp = price_data.get("timestamp")
             if isinstance(timestamp, str):
-                timestamp = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+                timestamp = datetime.fromisoformat(
+                    timestamp.replace("Z", "+00:00")  # noqa: FURB162
+                )
             elif isinstance(timestamp, int | float):
                 timestamp = datetime.fromtimestamp(timestamp, tz=UTC)
 

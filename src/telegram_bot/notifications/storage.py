@@ -31,7 +31,7 @@ class AlertStorage:
     _instance: ClassVar[AlertStorage | None] = None
     _initialized: bool = False
 
-    def __new__(cls) -> AlertStorage:
+    def __new__(cls) -> AlertStorage:  # noqa: PYI034
         """Создает единственный экземпляр хранилища."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
