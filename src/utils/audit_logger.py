@@ -4,7 +4,7 @@
 Записывает все важные операции для безопасности, комплаенса и отладки.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 import enum
 from typing import Any
 
@@ -166,7 +166,7 @@ class AuditLogger:
         event_type_str = event_type.value if isinstance(event_type, AuditEventType) else event_type
 
         audit_log = AuditLog(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             event_type=event_type_str,
             severity=severity.value,
             user_id=user_id,

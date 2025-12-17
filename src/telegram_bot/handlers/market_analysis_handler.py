@@ -21,6 +21,7 @@ from src.telegram_bot.utils.formatters import format_market_items
 # Импортируем новые функции из улучшенного анализатора цен
 from src.utils.price_analyzer import find_undervalued_items, get_investment_recommendations
 
+
 # Настройка логирования
 logger = logging.getLogger(__name__)
 
