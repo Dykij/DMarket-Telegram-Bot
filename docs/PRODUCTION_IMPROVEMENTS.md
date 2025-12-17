@@ -178,5 +178,5 @@ docker-compose logs -f bot
 ---
 
 **Автор:** Production-grade улучшения от senior Python dev
-**Дата:** 22 декабря 2025 г.
+**Дата:** 17 декабря 2025 г.
 **Версия:** 1.0
