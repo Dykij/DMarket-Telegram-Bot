@@ -222,7 +222,7 @@ class UserRateLimiter:
         """
         stats = {}
 
-        for action in self.limits.keys():
+        for action in self.limits:
             _, info = await self.check_limit(user_id, action, cost=0)
             stats[action] = info
 
@@ -256,7 +256,7 @@ class UserRateLimiter:
                 else:
                     # Удалить все ключи пользователя
                     keys_to_delete = [
-                        k for k in self._local_cache.keys() if k.startswith(f"{user_id}:")
+                        k for k in self._local_cache if k.startswith(f"{user_id}:")
                     ]
                     for key in keys_to_delete:
                         del self._local_cache[key]
