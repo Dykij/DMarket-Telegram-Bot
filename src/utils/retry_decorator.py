@@ -96,7 +96,7 @@ def retry_on_failure(
                             )
                         raise
 
-            # This should never be reached as AsyncRetrying will either return or raise
+            # Unreachable: tenacity's AsyncRetrying always returns result or raises exception
             raise RuntimeError("Retry loop completed without returning")  # pragma: no cover
 
         @functools.wraps(func)
@@ -141,7 +141,7 @@ def retry_on_failure(
                         )
                     raise
 
-            # This should never be reached as retry will either return or raise
+            # Unreachable: tenacity's retry always returns result or raises exception
             raise RuntimeError("Retry loop completed without returning")  # pragma: no cover
 
         # Return appropriate wrapper based on function type

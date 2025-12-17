@@ -429,8 +429,6 @@ def audit_decorator(event_type: AuditEventType, action: str):
             user_id = kwargs.get("user_id") or (args[0] if args else None)
 
             try:
-                # Логировать успех (требует session в context)
-                # В реальном использовании session должен быть доступен
                 return await func(*args, **kwargs)
 
             except Exception as e:
