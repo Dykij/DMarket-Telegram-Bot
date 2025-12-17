@@ -5,11 +5,12 @@ Collects price history from DMarket API and stores it for backtesting analysis.
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+import logging
 from typing import TYPE_CHECKING, Any
+
 
 if TYPE_CHECKING:
     from src.interfaces import IDMarketAPI

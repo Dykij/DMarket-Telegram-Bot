@@ -10,7 +10,7 @@ import json
 import logging
 from pathlib import Path
 import time
-from typing import Any, ClassVar, Self
+from typing import Any, ClassVar
 
 from .constants import DEFAULT_USER_SETTINGS
 
@@ -31,7 +31,7 @@ class AlertStorage:
     _instance: ClassVar[AlertStorage | None] = None
     _initialized: bool = False
 
-    def __new__(cls) -> Self:
+    def __new__(cls) -> AlertStorage:
         """Создает единственный экземпляр хранилища."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)

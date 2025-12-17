@@ -11,13 +11,14 @@ Extracted from notifier.py during R-4 refactoring.
 
 from __future__ import annotations
 
+from datetime import datetime
 import logging
 import time
-from datetime import datetime
 from typing import Any
 
 from .constants import DEFAULT_USER_SETTINGS
 from .storage import get_storage
+
 
 __all__ = [
     "add_price_alert",
@@ -52,16 +53,8 @@ async def add_price_alert(
 
     """
     storage = get_storage()
+    # get_user_data always returns a dict (creates user if not exists)
     user_data = storage.get_user_data(user_id)
-
-    # Create user record if it doesn't exist
-    if user_data is None:
-        storage.ensure_user_exists(user_id)
-        user_data = storage.get_user_data(user_id)
-        if user_data is None:
-            # Should never happen, but satisfy type checker
-            msg = f"Failed to create user data for {user_id}"
-            raise RuntimeError(msg)
 
     # Generate alert ID
     alert_id = f"alert_{int(time.time())}_{user_id}"
@@ -106,14 +99,8 @@ async def remove_price_alert(user_id: int, alert_id: str) -> bool:
 
     """
     storage = get_storage()
+    # get_user_data always returns a dict (creates user if not exists)
     user_data = storage.get_user_data(user_id)
-
-    if user_data is None:
-        storage.ensure_user_exists(user_id)
-        user_data = storage.get_user_data(user_id)
-        if user_data is None:
-            msg = f"Failed to create user data for {user_id}"
-            raise RuntimeError(msg)
 
     alerts = user_data.get("alerts", [])
     for i, alert in enumerate(alerts):
@@ -137,13 +124,8 @@ async def get_user_alerts(user_id: int) -> list[dict[str, Any]]:
 
     """
     storage = get_storage()
+    # get_user_data always returns a dict (creates user if not exists)
     user_data = storage.get_user_data(user_id)
-
-    if user_data is None:
-        storage.ensure_user_exists(user_id)
-        user_data = storage.get_user_data(user_id)
-        if user_data is None:
-            return []
 
     return [alert for alert in user_data.get("alerts", []) if alert["active"]]
 
@@ -160,15 +142,8 @@ async def update_user_settings(
 
     """
     storage = get_storage()
+    # get_user_data always returns a dict (creates user if not exists)
     user_data = storage.get_user_data(user_id)
-
-    if user_data is None:
-        # Create user with default settings
-        storage.ensure_user_exists(user_id)
-        user_data = storage.get_user_data(user_id)
-        if user_data is None:
-            msg = f"Failed to create user data for {user_id}"
-            raise RuntimeError(msg)
 
     # Update settings
     user_data["settings"].update(settings)
@@ -190,13 +165,8 @@ def get_user_settings(user_id: int) -> dict[str, Any]:
 
     """
     storage = get_storage()
+    # get_user_data always returns a dict (creates user if not exists)
     user_data = storage.get_user_data(user_id)
-
-    if user_data is None:
-        storage.ensure_user_exists(user_id)
-        user_data = storage.get_user_data(user_id)
-        if user_data is None:
-            return DEFAULT_USER_SETTINGS.copy()
 
     return dict(user_data.get("settings", DEFAULT_USER_SETTINGS.copy()))
 
@@ -211,10 +181,8 @@ def reset_daily_counter(user_id: int) -> None:
 
     """
     storage = get_storage()
+    # get_user_data always returns a dict (creates user if not exists)
     user_data = storage.get_user_data(user_id)
-
-    if user_data is None:
-        return
 
     today = datetime.now().strftime("%Y-%m-%d")
     if user_data.get("last_day") != today:
@@ -231,13 +199,8 @@ def increment_notification_count(user_id: int) -> None:
 
     """
     storage = get_storage()
+    # get_user_data always returns a dict (creates user if not exists)
     user_data = storage.get_user_data(user_id)
-
-    if user_data is None:
-        storage.ensure_user_exists(user_id)
-        user_data = storage.get_user_data(user_id)
-        if user_data is None:
-            return
 
     user_data["daily_notifications"] = user_data.get("daily_notifications", 0) + 1
     user_data["last_notification"] = time.time()
@@ -261,13 +224,8 @@ def can_send_notification(user_id: int) -> bool:
 
     """
     storage = get_storage()
+    # get_user_data always returns a dict (creates user if not exists)
     user_data = storage.get_user_data(user_id)
-
-    if user_data is None:
-        storage.ensure_user_exists(user_id)
-        user_data = storage.get_user_data(user_id)
-        if user_data is None:
-            return True  # New users can receive notifications
 
     settings = user_data.get("settings", DEFAULT_USER_SETTINGS)
 

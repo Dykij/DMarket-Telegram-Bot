@@ -321,11 +321,12 @@ class Application:
             # Отправить уведомления
             for user_id in admin_users:
                 try:
+                    details = {"consecutive_errors": consecutive_errors}
                     await send_critical_shutdown_notification(
                         bot=self.bot.bot,
                         user_id=int(user_id),
                         reason=reason,
-                        consecutive_errors=consecutive_errors,
+                        details=details,
                     )
                     logger.info(
                         f"Critical shutdown notification sent to {user_id}",
@@ -359,13 +360,6 @@ class Application:
             # Если нет админов, отправить первому разрешенному пользователю
             admin_users = self.config.security.allowed_users[:1]
 
-        # Контекст ошибки
-        context = {
-            "component": "main_application",
-            "dry_run": getattr(self.config, "dry_run", True),
-            "debug": getattr(self.config, "debug", False),
-        }
-
         # Отправить уведомления
         for user_id in admin_users:
             try:
@@ -374,8 +368,7 @@ class Application:
                     user_id=int(user_id),
                     error_type=type(error).__name__,
                     error_message=str(error),
-                    traceback_text=traceback_text,
-                    context=context,
+                    traceback_str=traceback_text,
                 )
                 logger.info(f"Crash notification sent to user {user_id}")
             except Exception as e:

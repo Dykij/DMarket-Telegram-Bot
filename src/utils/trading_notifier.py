@@ -75,18 +75,20 @@ class TradingNotifier:
 
         # Отправить уведомление о намерении купить
         if self.bot and self.user_id:
+            item_dict = {
+                "title": item_name,
+                "price": {"USD": int(buy_price * 100)},
+                "game": game,
+            }
+            reason = (
+                f"Источник: {source}, Прибыль: ${profit_usd:.2f} ({profit_percent:.1f}%)"
+            )
             await send_buy_intent_notification(
                 bot=self.bot,
                 user_id=self.user_id,
-                item_name=item_name,
-                buy_price=buy_price,
-                sell_price=sell_price,
-                profit_usd=profit_usd,
-                profit_percent=profit_percent,
-                source=source,
-                dry_run=self.api.dry_run,
-                notification_queue=self.notification_queue,
-                item_id=item_id,
+                item=item_dict,
+                reason=reason,
+                callback_data=item_id,
             )
 
         try:
@@ -97,27 +99,31 @@ class TradingNotifier:
             if result.get("success"):
                 # Отправить уведомление об успешной покупке
                 if self.bot and self.user_id:
+                    item_dict = {
+                        "title": item_name,
+                        "price": {"USD": int(buy_price * 100)},
+                        "game": game,
+                    }
                     await send_buy_success_notification(
                         bot=self.bot,
                         user_id=self.user_id,
-                        item_name=item_name,
+                        item=item_dict,
                         buy_price=buy_price,
-                        sell_price=sell_price,
                         order_id=result.get("orderId"),
-                        dry_run=self.api.dry_run,
-                        notification_queue=self.notification_queue,
                     )
             elif self.bot and self.user_id:
                 # Отправить уведомление об ошибке
                 error_reason = result.get("error", "Unknown error")
+                item_dict = {
+                    "title": item_name,
+                    "price": {"USD": int(buy_price * 100)},
+                    "game": game,
+                }
                 await send_buy_failed_notification(
                     bot=self.bot,
                     user_id=self.user_id,
-                    item_name=item_name,
-                    buy_price=buy_price,
-                    error_reason=str(error_reason),
-                    dry_run=self.api.dry_run,
-                    notification_queue=self.notification_queue,
+                    item=item_dict,
+                    error=str(error_reason),
                 )
 
             return result
@@ -125,14 +131,16 @@ class TradingNotifier:
         except Exception as e:
             # Отправить уведомление об ошибке
             if self.bot and self.user_id:
+                item_dict = {
+                    "title": item_name,
+                    "price": {"USD": int(buy_price * 100)},
+                    "game": game,
+                }
                 await send_buy_failed_notification(
                     bot=self.bot,
                     user_id=self.user_id,
-                    item_name=item_name,
-                    buy_price=buy_price,
-                    error_reason=str(e),
-                    dry_run=self.api.dry_run,
-                    notification_queue=self.notification_queue,
+                    item=item_dict,
+                    error=str(e),
                 )
 
             raise
@@ -164,20 +172,18 @@ class TradingNotifier:
 
             # Если продажа успешна, отправить уведомление
             if result.get("success"):
-                profit_usd = (sell_price * 0.93) - buy_price
-                profit_percent = (profit_usd / buy_price) * 100
-
                 if self.bot and self.user_id:
+                    item_dict = {
+                        "title": item_name,
+                        "price": {"USD": int(sell_price * 100)},
+                        "game": game,
+                    }
                     await send_sell_success_notification(
                         bot=self.bot,
                         user_id=self.user_id,
-                        item_name=item_name,
-                        buy_price=buy_price,
+                        item=item_dict,
                         sell_price=sell_price,
-                        profit_usd=profit_usd,
-                        profit_percent=profit_percent,
-                        dry_run=self.api.dry_run,
-                        notification_queue=self.notification_queue,
+                        buy_price=buy_price,
                     )
 
             return result
