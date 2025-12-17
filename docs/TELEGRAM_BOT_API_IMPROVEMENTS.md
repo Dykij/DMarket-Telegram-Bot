@@ -4,9 +4,9 @@
 
 This document analyzes the current DMarket Telegram Bot implementation against the official **Telegram Bot API** (https://core.telegram.org/bots/api) and identifies opportunities for improvement and optimization.
 
-**Current Version**: python-telegram-bot 22.5  
-**Telegram Bot API Version**: v7.11 (latest as of Dec 2025)  
-**Analysis Date**: December 7, 2025
+**Current Version**: python-telegram-bot 22.0+  
+**Telegram Bot API Version**: v9.2 (August 15, 2025)  
+**Last Updated**: December 17, 2025
 
 ---
 
@@ -752,7 +752,7 @@ except TelegramError as e:
 
 ---
 
-**Last Updated**: December 7, 2025  
+**Last Updated**: December 17, 2025  
 **Maintainer**: DMarket Bot Team  
 **Related Docs**: 
 - [DATA_STRUCTURES_GUIDE.md](DATA_STRUCTURES_GUIDE.md)

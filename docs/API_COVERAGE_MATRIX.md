@@ -6,7 +6,7 @@ This document maps our implementation against the official DMarket Trading API v
 - **Official Docs**: https://docs.dmarket.com/v1/swagger.html
 - **OpenAPI Spec**: https://docs.dmarket.com/v1/trading.swagger.json
 
-**Last Updated**: December 7, 2025
+**Last Updated**: December 17, 2025
 **API Version**: v1.1.0
 
 ## ✅ Implementation Status
@@ -494,6 +494,11 @@ async def test_response_schema(endpoint, schema):
 
 ## 📝 Changelog
 
+### December 17, 2025
+- Updated documentation to reflect current state
+- API v1.1.0 changes documented
+- New endpoints added to matrix
+
 ### December 7, 2025
 - Created initial coverage matrix
 - Documented 46 endpoints
@@ -509,4 +514,4 @@ async def test_response_schema(endpoint, schema):
 
 **Maintainer**: DMarket Bot Team
 **Contact**: See [CONTRIBUTING.md](CONTRIBUTING.md) for questions
-**Last Audit**: December 7, 2025
+**Last Audit**: December 17, 2025

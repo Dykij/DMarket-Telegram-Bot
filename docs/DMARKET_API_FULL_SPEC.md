@@ -3,7 +3,12 @@
 **Версия API**: v1.1.0
 **Базовый URL**: `https://api.dmarket.com`
 **Дата документа**: 17 декабря 2025 г.
-**Последнее обновление**: Синхронизировано с [официальной документацией](https://docs.dmarket.com/v1/swagger.html)
+**Последнее обновление**: Актуализировано с [официальной документацией](https://docs.dmarket.com/v1/swagger.html)
+
+> **Важные изменения API v1.1.0:**
+> - Эндпоинт `/price-aggregator/v1/aggregated-prices` устарел → используйте `/marketplace-api/v1/aggregated-prices`
+> - `/user-offers/closed` и `/user-targets/closed` поддерживают новые статусы (`reverted`, `trade_protected`)
+> - Пагинация через cursor вместо offset для улучшенной производительности
 
 ---
 
