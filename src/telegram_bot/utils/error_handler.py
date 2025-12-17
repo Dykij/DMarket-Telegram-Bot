@@ -57,13 +57,13 @@ ERROR_MESSAGE_ADMIN_HTML = """
 
 
 async def handle_network_error(
-    update: Update,
+    update: Update | None,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает сетевые ошибки при взаимодействии с Telegram API.
 
     Args:
-        update: Объект обновления
+        update: Объект обновления (может быть None)
         context: Контекст бота с информацией об ошибке
 
     """
@@ -125,7 +125,7 @@ async def retry_last_action(context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def handle_forbidden_error(
-    update: Update,
+    update: Update | None,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает ошибки доступа (403 Forbidden).
@@ -164,7 +164,7 @@ async def handle_forbidden_error(
 
 
 async def handle_bad_request(
-    update: Update,
+    update: Update | None,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает ошибки некорректного запроса (400 Bad Request).
@@ -213,7 +213,7 @@ async def handle_bad_request(
 
 
 async def handle_dmarket_api_error(
-    update: Update,
+    update: Update | None,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает ошибки при работе с DMarket API.
@@ -261,7 +261,7 @@ async def handle_dmarket_api_error(
 # Основной обработчик ошибок
 
 
-async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def error_handler(update: Update | None, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Глобальный обработчик ошибок для Telegram бота.
 
     Обрабатывает все типы ошибок, логирует их, отправляет сообщения
