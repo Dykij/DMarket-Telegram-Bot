@@ -118,6 +118,56 @@ class IDMarketAPI(Protocol):
         """
         ...
 
+    async def get_sales_history(
+        self,
+        game: str,
+        title: str,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Получить историю продаж для предмета.
+
+        Args:
+            game: Код игры (csgo, dota2, tf2, rust)
+            title: Название предмета
+            **kwargs: Дополнительные параметры
+
+        Returns:
+            Словарь с историей продаж
+        """
+        ...
+
+    async def get_aggregated_prices_bulk(
+        self,
+        game: str,
+        titles: list[str],
+    ) -> list[dict[str, Any]]:
+        """Получить агрегированные цены для нескольких предметов.
+
+        Args:
+            game: Код игры
+            titles: Список названий предметов
+
+        Returns:
+            Список с ценовыми данными
+        """
+        ...
+
+    async def get_user_inventory(
+        self,
+        game: str,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Получить инвентарь пользователя.
+
+        Args:
+            game: Код игры
+            **kwargs: Дополнительные фильтры
+
+        Returns:
+            Словарь с предметами инвентаря
+        """
+        ...
+
 
 @runtime_checkable
 class ICache(Protocol):

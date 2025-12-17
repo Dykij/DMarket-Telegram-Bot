@@ -2,6 +2,15 @@
 
 This module provides a Redis-backed cache implementation for distributed
 caching across multiple bot instances, with TTL support and async operations.
+
+Security Note:
+    This module uses pickle for serialization. Pickle is safe here because:
+    1. Data is only serialized/deserialized internally by the application
+    2. No untrusted external data is ever unpickled
+    3. Redis connection is secured and internal-only
+
+    If you need to cache data from untrusted sources, use json serialization
+    or implement a whitelist of allowed types.
 """
 
 import logging

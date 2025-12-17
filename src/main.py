@@ -325,7 +325,7 @@ class Application:
                         bot=self.bot.bot,
                         user_id=int(user_id),
                         reason=reason,
-                        consecutive_errors=consecutive_errors,
+                        details={"consecutive_errors": consecutive_errors},
                     )
                     logger.info(
                         f"Critical shutdown notification sent to {user_id}",
@@ -374,8 +374,7 @@ class Application:
                     user_id=int(user_id),
                     error_type=type(error).__name__,
                     error_message=str(error),
-                    traceback_text=traceback_text,
-                    context=context,
+                    traceback_str=traceback_text,
                 )
                 logger.info(f"Crash notification sent to user {user_id}")
             except Exception as e:
