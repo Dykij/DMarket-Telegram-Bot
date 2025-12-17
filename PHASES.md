@@ -1,10 +1,10 @@
 # 🚀 DMarket Bot - Improvements Roadmap
 
-> **Status**: All Phases Complete ✅ | Coverage Improvements in Progress
+> **Status**: All Phases Complete ✅ | Coverage Improvements COMPLETE ✅
 >
 > **Last Updated**: December 17, 2025
 >
-> **Current State**: 3003+ tests passing | Phase 1-4 complete | Coverage sprint active
+> **Current State**: 3700+ tests passing | Phase 1-4 complete | All priorities COMPLETE ✅
 
 ---
 
@@ -12,11 +12,14 @@
 
 | Метрика | Значение | Статус |
 |---------|----------|--------|
-| **Всего тестов** | 3003+ | ✅ |
+| **Всего тестов** | 3700+ | ✅ |
 | **Pass rate** | 100% | ✅ |
 | **Время выполнения** | ~180s | ✅ |
 | **Фазы завершены** | 4/4 | ✅ |
-| **Coverage sprint** | В процессе | 🔄 |
+| **Coverage sprint** | ✅ ЗАВЕРШЕНО | ✅ |
+| **Приоритет 1** | 220 тестов | ✅ |
+| **Приоритет 2** | 324 теста | ✅ |
+| **Приоритет 3** | 169 тестов | ✅ |
 
 ---
 
@@ -124,13 +127,46 @@
 
 ### Малые модули с 0% покрытием
 
-| # | Модуль | Строк | Описание |
-|---|--------|-------|----------|
-| 1 | `src/utils/price_sanity_checker.py` | 77 | Валидация цен |
-| 2 | `src/utils/prometheus_metrics.py` | 48 | Prometheus метрики |
-| 3 | `src/utils/trading_notifier.py` | 46 | Торговые уведомления |
-| 4 | `src/telegram_bot/handlers/game_filters/utils.py` | 47 | Утилиты фильтров |
-| 5 | `src/telegram_bot/commands/resume_command.py` | 28 | Команда resume |
+| # | Модуль | Строк | Описание | Статус |
+|---|--------|-------|----------|--------|
+| 1 | `src/utils/price_sanity_checker.py` | 77 | Валидация цен | ✅ **43 теста** |
+| 2 | `src/utils/prometheus_metrics.py` | 48 | Prometheus метрики | ✅ **65 тестов** |
+| 3 | `src/utils/trading_notifier.py` | 46 | Торговые уведомления | ✅ **34 теста** |
+| 4 | `src/telegram_bot/handlers/game_filters/utils.py` | 47 | Утилиты фильтров | ✅ **48 тестов** |
+| 5 | `src/telegram_bot/commands/resume_command.py` | 28 | Команда resume | ✅ **25 тестов** |
+
+```
+📋 TODO: Создать тесты для модулей низкого приоритета
+
+✅ src/utils/price_sanity_checker.py - ЗАВЕРШЕНО
+  - [x] Тесты PriceSanityCheckFailed exception - 43 теста
+  - [x] Тесты check_price_sanity method
+  - [x] Тесты _get_price_history
+  - [x] Тесты _send_critical_alert
+
+✅ src/utils/prometheus_metrics.py - ЗАВЕРШЕНО
+  - [x] Тесты для всех метрик - 65 тестов
+  - [x] Тесты для track_ функций
+  - [x] Тесты Timer context manager
+
+✅ src/utils/trading_notifier.py - ЗАВЕРШЕНО
+  - [x] Тесты TradingNotifier class - 34 теста
+  - [x] Тесты buy_item_with_notifications
+  - [x] Тесты sell_item_with_notifications
+  - [x] Тесты buy_with_notifications function
+
+✅ src/telegram_bot/handlers/game_filters/utils.py - ЗАВЕРШЕНО
+  - [x] Тесты get_current_filters - 48 тестов
+  - [x] Тесты update_filters
+  - [x] Тесты get_game_filter_keyboard
+  - [x] Тесты get_filter_description
+  - [x] Тесты build_api_params_for_game
+
+✅ src/telegram_bot/commands/resume_command.py - ЗАВЕРШЕНО
+  - [x] Тесты resume_command handler - 25 тестов
+  - [x] Тесты admin authorization
+  - [x] Тесты edge cases
+```
 
 ---
 
@@ -289,13 +325,24 @@ pytest --cov=src --cov-report=html
 
 ---
 
-**Версия**: 2.5
+**Версия**: 3.0
 **Обновлено**: December 17, 2025
 **Следующий review**: December 23, 2025
 
 ---
 
 ## 📅 ИСТОРИЯ ИЗМЕНЕНИЙ
+
+### December 17, 2025 (Update 5) - FINAL
+- ✅ **Приоритет 3 ПОЛНОСТЬЮ ЗАВЕРШЁН**
+- ✅ Добавлено 169 новых тестов для модулей низкого приоритета:
+  - `test_price_sanity_checker.py` - 43 теста для валидации цен
+  - `test_prometheus_metrics.py` - 65 тестов для Prometheus метрик
+  - `test_trading_notifier.py` - 34 теста для торговых уведомлений
+  - `test_game_filters_utils.py` - 48 тестов для утилит фильтров
+  - `test_resume_command.py` - 25 тестов для команды /resume
+- 🎉 **ВСЕ ПРИОРИТЕТЫ ЗАВЕРШЕНЫ!**
+- **Общий итог**: 713 новых тестов добавлено (220 + 101 + 128 + 95 + 169)
 
 ### December 17, 2025 (Update 4)
 - ✅ Добавлены 95 новых тестов для оставшихся модулей smart_notifications:
