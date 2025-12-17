@@ -89,10 +89,10 @@
 | 1 | `src/telegram_bot/smart_notifications/checkers.py` | 117 | ✅ **15 тестов** |
 | 2 | `src/telegram_bot/smart_notifications/senders.py` | 81 | ✅ **21 тест** |
 | 3 | `src/telegram_bot/smart_notifications/handlers.py` | 56 | ✅ **14 тестов** |
-| 4 | `src/telegram_bot/smart_notifications/utils.py` | 71 | ⏳ В очереди |
-| 5 | `src/telegram_bot/smart_notifications/preferences.py` | 53 | ⏳ В очереди |
-| 6 | `src/telegram_bot/smart_notifications/alerts.py` | 38 | ⏳ В очереди |
-| 7 | `src/telegram_bot/smart_notifications/throttling.py` | 35 | ⏳ В очереди |
+| 4 | `src/telegram_bot/smart_notifications/utils.py` | 71 | ✅ **37 тестов** |
+| 5 | `src/telegram_bot/smart_notifications/preferences.py` | 53 | ✅ **24 теста** |
+| 6 | `src/telegram_bot/smart_notifications/alerts.py` | 38 | ✅ **17 тестов** |
+| 7 | `src/telegram_bot/smart_notifications/throttling.py` | 35 | ✅ **17 тестов** |
 
 ```
 📋 TODO: Создать тесты для модулей среднего приоритета
@@ -108,14 +108,14 @@
 ✅ Scanner - ЗАВЕРШЕНО
   - [x] analysis.py - 55 тестов
   
-✅ Smart notifications - ЧАСТИЧНО ЗАВЕРШЕНО
+✅ Smart notifications - ПОЛНОСТЬЮ ЗАВЕРШЕНО
   - [x] checkers.py - 15 тестов
   - [x] senders.py - 21 тест
   - [x] handlers.py - 14 тестов
-  - [ ] utils.py - в очереди
-  - [ ] preferences.py - в очереди
-  - [ ] alerts.py - в очереди
-  - [ ] throttling.py - в очереди
+  - [x] utils.py - 37 тестов
+  - [x] preferences.py - 24 теста
+  - [x] alerts.py - 17 тестов
+  - [x] throttling.py - 17 тестов
 ```
 
 ---
@@ -289,13 +289,22 @@ pytest --cov=src --cov-report=html
 
 ---
 
-**Версия**: 2.4
+**Версия**: 2.5
 **Обновлено**: December 17, 2025
 **Следующий review**: December 23, 2025
 
 ---
 
 ## 📅 ИСТОРИЯ ИЗМЕНЕНИЙ
+
+### December 17, 2025 (Update 4)
+- ✅ Добавлены 95 новых тестов для оставшихся модулей smart_notifications:
+  - `test_utils.py` - 37 тестов для API вызовов и извлечения цен
+  - `test_preferences.py` - 24 теста для управления предпочтениями пользователей
+  - `test_alerts.py` - 17 тестов для управления алертами
+  - `test_throttling.py` - 17 тестов для throttling уведомлений
+- ✅ **Приоритет 2 ПОЛНОСТЬЮ ЗАВЕРШЁН**
+- **Общий итог**: 544 новых тестов добавлено (220 + 101 + 128 + 95)
 
 ### December 17, 2025 (Update 3)
 - ✅ Добавлены 128 новых тестов для оставшихся модулей Приоритета 2:
