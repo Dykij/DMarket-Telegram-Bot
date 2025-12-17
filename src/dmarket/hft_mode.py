@@ -326,7 +326,7 @@ class HighFrequencyTrader:
                 # Circuit breaker
                 if self.consecutive_errors >= self.config.max_consecutive_errors:
                     self.status = HFTStatus.ERROR_STOP
-                    logger.error("🔴 HFT Circuit breaker triggered!")
+                    logger.exception("🔴 HFT Circuit breaker triggered!")
                     if self.notifier:
                         await self._send_notification(
                             f"🔴 HFT Circuit breaker!\n"

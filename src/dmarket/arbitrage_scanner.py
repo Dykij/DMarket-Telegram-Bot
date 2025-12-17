@@ -22,7 +22,6 @@ from src.dmarket.arbitrage import (
     arbitrage_pro,
 )
 from src.dmarket.dmarket_api import DMarketAPI  # Нужен для создания нового клиента
-from src.dmarket.item_filters import ItemFilters
 from src.dmarket.liquidity_analyzer import LiquidityAnalyzer
 
 # Import from scanner submodules (R-2 refactoring)
@@ -32,6 +31,7 @@ from src.utils.sentry_breadcrumbs import add_trading_breadcrumb
 
 
 if TYPE_CHECKING:
+    from src.dmarket.item_filters import ItemFilters
     from src.interfaces import IDMarketAPI
 
 # Настройка логирования

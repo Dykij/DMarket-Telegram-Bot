@@ -136,7 +136,7 @@ def telegram_error_boundary(
 
             except AuthenticationError as e:
                 # Authentication/API key error
-                logger.error(
+                logger.exception(
                     f"Authentication error in {func.__name__}",
                     extra={
                         "handler": func.__name__,
@@ -178,7 +178,7 @@ def telegram_error_boundary(
 
             except APIError as e:
                 # Generic API error
-                logger.error(
+                logger.exception(
                     f"API error in {func.__name__}",
                     extra={
                         "handler": func.__name__,
@@ -282,7 +282,6 @@ class BaseHandler:
                 "error": str(error),
                 "error_type": type(error).__name__,
             },
-            exc_info=True,
         )
 
         # Notify user
@@ -334,7 +333,7 @@ class BaseHandler:
                 await update.callback_query.message.reply_text(text, **kwargs)  # type: ignore[union-attr]
                 await update.callback_query.answer()
         except Exception as e:
-            self.logger.error(
+            self.logger.exception(
                 f"Failed to send reply: {e}",
                 extra={"text": text, "error": str(e)},
             )

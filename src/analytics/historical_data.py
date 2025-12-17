@@ -5,11 +5,12 @@ Collects price history from DMarket API and stores it for backtesting analysis.
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+import logging
 from typing import TYPE_CHECKING, Any
+
 
 if TYPE_CHECKING:
     from src.interfaces import IDMarketAPI
@@ -249,7 +250,7 @@ class HistoricalDataCollector:
                     ts_str = sale.get("date") or sale.get("timestamp")
                     if ts_str:
                         try:
-                            ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+                            ts = datetime.fromisoformat(ts_str)
                         except (ValueError, TypeError):
                             ts = datetime.now(UTC)
                     else:

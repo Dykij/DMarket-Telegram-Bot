@@ -75,7 +75,6 @@ __all__ = [
     "get_current_filters",
     "get_filter_description",
     "get_game_filter_keyboard",
-    "update_filters",
     # Handlers
     "handle_filter_value_callback",
     "handle_float_range_callback",
@@ -90,4 +89,5 @@ __all__ = [
     "handle_set_rarity_callback",
     "handle_set_slot_callback",
     "handle_set_type_callback",
+    "update_filters",
 ]

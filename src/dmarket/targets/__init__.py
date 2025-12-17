@@ -24,14 +24,14 @@ from .validators import GAME_IDS, extract_attributes_from_title, validate_attrib
 
 
 __all__ = [
+    # Validators
+    "GAME_IDS",
     # Manager
     "TargetManager",
     # Competition
     "analyze_target_competition",
     "assess_competition",
-    "filter_low_competition_items",
-    # Validators
-    "GAME_IDS",
     "extract_attributes_from_title",
+    "filter_low_competition_items",
     "validate_attributes",
 ]

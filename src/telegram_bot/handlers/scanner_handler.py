@@ -14,6 +14,7 @@ from src.utils.exceptions import handle_exceptions
 from src.utils.logging_utils import get_logger
 from src.utils.sentry_breadcrumbs import add_command_breadcrumb, add_trading_breadcrumb
 
+
 logger = get_logger(__name__)
 
 # Константы для callback данных
@@ -357,7 +358,7 @@ async def handle_level_scan(
         )
 
     except Exception as e:
-        logger.error(f"Ошибка при сканировании уровня {level}: {e}")
+        logger.exception(f"Ошибка при сканировании уровня {level}: {e}")
         await query.edit_message_text(
             "❌ Произошла ошибка при сканировании.\n\nПожалуйста, попробуйте позже.",
             parse_mode="Markdown",

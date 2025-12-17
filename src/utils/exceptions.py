@@ -500,7 +500,7 @@ def format_error_for_user(
 
 
 @overload
-def handle_exceptions(
+def handle_exceptions[F: Callable[..., Any]](
     func_or_logger: F,
     default_error_message: str = ...,
     reraise: bool = ...,

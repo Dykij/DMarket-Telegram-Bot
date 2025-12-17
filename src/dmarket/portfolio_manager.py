@@ -302,7 +302,7 @@ class PortfolioManager:
                 targets = targets_data.get("Items", [])
 
             except Exception as e:
-                logger.error("Error fetching portfolio data: %s", e)
+                logger.exception("Error fetching portfolio data: %s", e)
 
         # Build portfolio assets
         assets: list[PortfolioAsset] = []

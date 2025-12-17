@@ -8,6 +8,7 @@
 """
 
 import time
+from typing import Any
 
 from prometheus_client import Counter, Gauge, Histogram, Info, generate_latest, make_asgi_app
 
@@ -256,7 +257,7 @@ def get_metrics() -> bytes:
     return generate_latest()
 
 
-def create_metrics_app():
+def create_metrics_app() -> Any:
     """Create ASGI app for Prometheus metrics endpoint.
 
     Returns:
@@ -280,14 +281,20 @@ class Timer:
         print(f"Elapsed: {t.elapsed}s")
     """
 
-    def __init__(self):
-        self.start_time = None
-        self.elapsed = None
+    def __init__(self) -> None:
+        self.start_time: float | None = None
+        self.elapsed: float | None = None
 
-    def __enter__(self):
+    def __enter__(self) -> "Timer":
         self.start_time = time.perf_counter()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.elapsed = time.perf_counter() - self.start_time
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: Any,
+    ) -> bool:
+        if self.start_time is not None:
+            self.elapsed = time.perf_counter() - self.start_time
         return False

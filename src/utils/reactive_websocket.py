@@ -9,7 +9,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from enum import Enum
 import json
-from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
 
 import aiohttp
 from aiohttp import ClientSession
@@ -48,7 +48,7 @@ class SubscriptionState(str, Enum):
     ERROR = "error"
 
 
-class Observable(Generic[T]):
+class Observable[T]:
     """Observable pattern implementation for event streams."""
 
     def __init__(self) -> None:

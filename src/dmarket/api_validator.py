@@ -74,7 +74,7 @@ async def send_api_change_notification(
             logger.exception(f"Failed to send API change notification: {e}")
 
 
-def validate_response(
+def validate_response[T: BaseModel](
     schema: type[T],
     endpoint: str = "unknown",
 ) -> Callable:
@@ -153,7 +153,7 @@ def validate_response(
     return decorator
 
 
-def validate_and_log(
+def validate_and_log[T: BaseModel](
     data: dict[str, Any],
     schema: type[T],
     endpoint: str = "unknown",

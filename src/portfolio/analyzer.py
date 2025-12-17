@@ -5,12 +5,15 @@ Provides analytics for portfolio optimization.
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Any
+import logging
+from typing import TYPE_CHECKING, Any
 
-from .models import Portfolio, PortfolioItem
+
+if TYPE_CHECKING:
+    from .models import Portfolio, PortfolioItem
+
 
 logger = logging.getLogger(__name__)
 

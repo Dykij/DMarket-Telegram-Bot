@@ -67,34 +67,34 @@ __all__ = [
     "DEFAULT_COOLDOWN",
     "NOTIFICATION_TYPES",
     "SMART_ALERTS_FILE",
-    # Preferences
-    "load_user_preferences",
-    "save_user_preferences",
-    "register_user",
-    "update_user_preferences",
+    "check_market_opportunities",
+    # Checkers
+    "check_price_alerts",
     # Alerts
     "create_alert",
     "deactivate_alert",
-    "get_user_alerts",
-    # Checkers
-    "check_price_alerts",
-    "check_market_opportunities",
-    # Throttling
-    "should_throttle_notification",
-    "record_notification",
-    # Senders
-    "send_price_alert_notification",
-    "send_market_opportunity_notification",
-    "notify_user",
-    # Handlers
-    "handle_notification_callback",
-    "register_notification_handlers",
+    "get_item_by_id",
+    "get_item_price",
     # Utils
     "get_market_data_for_items",
-    "get_item_by_id",
     "get_market_items_for_game",
     "get_price_history_for_items",
-    "get_item_price",
+    "get_user_alerts",
+    # Handlers
+    "handle_notification_callback",
+    # Preferences
+    "load_user_preferences",
+    "notify_user",
+    "record_notification",
+    "register_notification_handlers",
+    "register_user",
+    "save_user_preferences",
+    "send_market_opportunity_notification",
+    # Senders
+    "send_price_alert_notification",
+    # Throttling
+    "should_throttle_notification",
     # Main
     "start_notification_checker",
+    "update_user_preferences",
 ]

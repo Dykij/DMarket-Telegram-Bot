@@ -158,13 +158,13 @@ __all__ = [
     "ArbitrageTrader",
     # === Backward compatibility (cache) ===
     "_arbitrage_cache",
-    "_save_arbitrage_cache",
     # === Calculations ===
     "_calculate_commission",
     "_find_arbitrage_async",
     "_get_cached_results",
     # === Search ===
     "_group_items_by_name",
+    "_save_arbitrage_cache",
     "_save_to_cache",
     "arbitrage_boost",
     "arbitrage_boost_async",

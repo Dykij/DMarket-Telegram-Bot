@@ -4,7 +4,7 @@
 Записывает все важные операции для безопасности, комплаенса и отладки.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 import enum
 from typing import Any
 
@@ -166,7 +166,7 @@ class AuditLogger:
         event_type_str = event_type.value if isinstance(event_type, AuditEventType) else event_type
 
         audit_log = AuditLog(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             event_type=event_type_str,
             severity=severity.value,
             user_id=user_id,
@@ -429,16 +429,15 @@ def audit_decorator(event_type: AuditEventType, action: str):
             user_id = kwargs.get("user_id") or (args[0] if args else None)
 
             try:
-                result = await func(*args, **kwargs)
+                return await func(*args, **kwargs)
 
                 # Логировать успех (требует session в context)
                 # В реальном использовании session должен быть доступен
 
-                return result
 
             except Exception as e:
                 # Логировать ошибку
-                logger.error(
+                logger.exception(
                     "audit_decorator_error",
                     event_type=event_type.value,
                     action=action,
