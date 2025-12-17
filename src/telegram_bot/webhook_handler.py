@@ -7,12 +7,15 @@ Usage:
     ```python
     from src.telegram_bot.webhook_handler import WebhookHandler, WebhookFailover
 
-    # Create webhook handler
+    # Create webhook handler (default: localhost for security)
     webhook = WebhookHandler(
         bot_app=application,
-        host="0.0.0.0",
         port=8443,
     )
+
+    # For Docker/container environments, set WEBHOOK_HOST=0.0.0.0
+    # or pass host explicitly:
+    # webhook = WebhookHandler(bot_app=application, host="0.0.0.0", port=8443)
 
     # Or use failover manager for automatic switching
     failover = WebhookFailover(
@@ -29,6 +32,7 @@ from __future__ import annotations
 import asyncio
 from datetime import UTC, datetime
 import logging
+import os
 from typing import TYPE_CHECKING, Any
 
 from aiohttp import web
@@ -39,6 +43,10 @@ if TYPE_CHECKING:
     from telegram.ext import Application
 
 logger = logging.getLogger(__name__)
+
+
+# Security: Default to localhost. Use 0.0.0.0 only in Docker/container environments
+DEFAULT_WEBHOOK_HOST = os.environ.get("WEBHOOK_HOST", "127.0.0.1")
 
 
 class WebhookHandler:
@@ -53,7 +61,7 @@ class WebhookHandler:
     def __init__(
         self,
         bot_app: Application,  # type: ignore[type-arg]
-        host: str = "0.0.0.0",
+        host: str | None = None,
         port: int = 8443,
         webhook_path: str = "/webhook",
         health_path: str = "/health",
@@ -62,13 +70,13 @@ class WebhookHandler:
 
         Args:
             bot_app: Telegram Application instance
-            host: Host to bind to
+            host: Host to bind to (default 127.0.0.1, use 0.0.0.0 in containers)
             port: Port to listen on
             webhook_path: Path for webhook endpoint
             health_path: Path for health endpoint
         """
         self.bot_app = bot_app
-        self.host = host
+        self.host = host or DEFAULT_WEBHOOK_HOST
         self.port = port
         self.webhook_path = webhook_path
         self.health_path = health_path

@@ -425,14 +425,14 @@ class DMarketAPI:
             key_parts.append(str(sorted_params))
 
         if data:
-            # Для POST-данных используем хеш от JSON
+            # Для POST-данных используем хеш от JSON (SHA256 для безопасности)
             try:
                 data_str = json.dumps(data, sort_keys=True)
-                key_parts.append(hashlib.md5(data_str.encode()).hexdigest())
+                key_parts.append(hashlib.sha256(data_str.encode()).hexdigest()[:32])
             except (TypeError, ValueError):
                 key_parts.append(str(data))
 
-        return hashlib.md5("|".join(key_parts).encode()).hexdigest()
+        return hashlib.sha256("|".join(key_parts).encode()).hexdigest()[:32]
 
     def _is_cacheable(self, method: str, path: str) -> tuple[bool, str]:
         """Определяет, можно ли кэшировать данный запрос и на какой период.

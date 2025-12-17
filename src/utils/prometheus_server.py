@@ -1,6 +1,7 @@
 """HTTP сервер для экспорта Prometheus метрик."""
 
 import asyncio
+import os
 
 from aiohttp import web
 import structlog
@@ -11,17 +12,24 @@ from src.utils.prometheus_exporter import MetricsCollector
 logger = structlog.get_logger(__name__)
 
 
+# Security: Default to localhost. Use 0.0.0.0 only in Docker/container environments
+DEFAULT_HOST = os.environ.get("PROMETHEUS_HOST", "127.0.0.1")
+
+
 class PrometheusServer:
     """HTTP сервер для Prometheus метрик."""
 
-    def __init__(self, port: int = 8000):
+    def __init__(self, port: int = 8000, host: str | None = None):
         """
         Инициализация сервера.
 
         Args:
             port: Порт для HTTP сервера
+            host: Хост для привязки (по умолчанию 127.0.0.1 для безопасности,
+                  используйте 0.0.0.0 в контейнерах)
         """
         self.port = port
+        self.host = host or DEFAULT_HOST
         self.app = web.Application()
         self.runner = None
         self.site = None
@@ -44,10 +52,10 @@ class PrometheusServer:
         self.runner = web.AppRunner(self.app)
         await self.runner.setup()
 
-        self.site = web.TCPSite(self.runner, "0.0.0.0", self.port)
+        self.site = web.TCPSite(self.runner, self.host, self.port)
         await self.site.start()
 
-        logger.info("prometheus_server_started", port=self.port)
+        logger.info("prometheus_server_started", host=self.host, port=self.port)
 
     async def stop(self):
         """Остановить сервер."""

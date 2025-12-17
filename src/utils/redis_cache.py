@@ -4,8 +4,8 @@ This module provides a Redis-backed cache implementation for distributed
 caching across multiple bot instances, with TTL support and async operations.
 """
 
+import json
 import logging
-import pickle
 from typing import Any, cast
 
 
@@ -31,7 +31,7 @@ class RedisCache:
     - TTL (Time To Live) support
     - Async operations
     - Automatic fallback to in-memory cache if Redis unavailable
-    - Pickle serialization for complex objects
+    - JSON serialization for safe data storage (replaces pickle for security)
     """
 
     def __init__(
@@ -134,7 +134,7 @@ class RedisCache:
                 value = await self._redis.get(key)
                 if value is not None:
                     self._hits += 1
-                    return pickle.loads(value)
+                    return json.loads(value)
                 self._misses += 1
                 return None
             except Exception as e:
@@ -175,7 +175,7 @@ class RedisCache:
         # Try Redis first
         if self._connected and self._redis:
             try:
-                serialized = pickle.dumps(value)
+                serialized = json.dumps(value)
                 await self._redis.setex(key, ttl, serialized)
                 return True
             except Exception as e:
