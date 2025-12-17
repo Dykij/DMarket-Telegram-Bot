@@ -379,9 +379,11 @@ class MarketAnalyzer:
         if rsi:
             signals["rsi"] = {
                 "value": rsi,
-                "signal": SignalType.SELL
-                if rsi > 70
-                else (SignalType.BUY if rsi < 30 else SignalType.HOLD),
+                "signal": (
+                    SignalType.SELL
+                    if rsi > 70
+                    else (SignalType.BUY if rsi < 30 else SignalType.HOLD)
+                ),
                 "weight": 0.3,
             }
 

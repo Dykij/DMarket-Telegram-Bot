@@ -59,6 +59,6 @@ class MarketDataCache(Base):
             "item_hash_name": self.item_hash_name,
             "data_type": self.data_type,
             "data": self.data,
-            "created_at": (self.created_at.isoformat() if self.created_at else None),
-            "expires_at": (self.expires_at.isoformat() if self.expires_at else None),
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "expires_at": self.expires_at.isoformat() if self.expires_at else None,
         }

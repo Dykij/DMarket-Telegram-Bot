@@ -194,6 +194,7 @@ async def alerts_command(
 )
 # ==================== Alert Action Handlers ====================
 
+
 async def _handle_toggle_alert(
     query,
     update: Update,

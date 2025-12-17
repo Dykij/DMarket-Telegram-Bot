@@ -119,9 +119,7 @@ async def check_price_alerts(
         except (APIError, NetworkError) as e:
             logger.exception(f"Error checking price alerts for user {user_id_str}: {e}")
         except Exception as e:  # noqa: BLE001
-            logger.exception(
-                f"Unexpected error checking price alerts for user {user_id_str}: {e}"
-            )
+            logger.exception(f"Unexpected error checking price alerts for user {user_id_str}: {e}")
 
     # Save changes
     save_user_preferences()

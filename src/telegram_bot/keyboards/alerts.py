@@ -145,12 +145,14 @@ def create_price_alerts_keyboard(
         type_emoji = "📉" if alert_type == "below" else "📈"
         status_emoji = "🟢" if alert.get("active", True) else "🔴"
 
-        keyboard.append([
-            InlineKeyboardButton(
-                text=f"{status_emoji} {type_emoji} {item_name} ${price:.2f}",
-                callback_data=f"alert_view_{alert_id}",
-            )
-        ])
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    text=f"{status_emoji} {type_emoji} {item_name} ${price:.2f}",
+                    callback_data=f"alert_view_{alert_id}",
+                )
+            ]
+        )
 
     # Навигация по страницам
     if total_pages > 1:
@@ -168,10 +170,12 @@ def create_price_alerts_keyboard(
         keyboard.append(nav_row)
 
     # Основные действия
-    keyboard.append([
-        InlineKeyboardButton(text="➕ Создать", callback_data="alert_create"),
-        InlineKeyboardButton(text="🗑️ Удалить все", callback_data="alert_delete_all"),
-    ])
+    keyboard.append(
+        [
+            InlineKeyboardButton(text="➕ Создать", callback_data="alert_create"),
+            InlineKeyboardButton(text="🗑️ Удалить все", callback_data="alert_delete_all"),
+        ]
+    )
 
     keyboard.append([InlineKeyboardButton(text="◀️ Назад", callback_data=CB_BACK)])
 

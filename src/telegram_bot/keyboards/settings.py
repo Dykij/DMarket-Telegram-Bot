@@ -90,12 +90,14 @@ def get_language_keyboard(current_language: str = "ru") -> InlineKeyboardMarkup:
     for lang_code, lang_name in languages.items():
         # Добавить галочку для текущего языка
         mark = " ✓" if lang_code == current_language else ""
-        buttons.append([
-            InlineKeyboardButton(
-                text=f"{lang_name}{mark}",
-                callback_data=f"lang_{lang_code}",
-            )
-        ])
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    text=f"{lang_name}{mark}",
+                    callback_data=f"lang_{lang_code}",
+                )
+            ]
+        )
 
     buttons.append([InlineKeyboardButton(text="◀️ Назад", callback_data="settings")])
 
@@ -121,12 +123,14 @@ def get_risk_profile_keyboard(current_risk: str = "medium") -> InlineKeyboardMar
     buttons = []
     for risk_code, risk_name in profiles.items():
         mark = " ✓" if risk_code == current_risk else ""
-        buttons.append([
-            InlineKeyboardButton(
-                text=f"{risk_name}{mark}",
-                callback_data=f"risk_{risk_code}",
-            )
-        ])
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    text=f"{risk_name}{mark}",
+                    callback_data=f"risk_{risk_code}",
+                )
+            ]
+        )
 
     buttons.append([InlineKeyboardButton(text="◀️ Назад", callback_data="settings")])
 
@@ -175,12 +179,14 @@ def create_game_selection_keyboard() -> InlineKeyboardMarkup:
     buttons = []
     for game_id, game_name in GAMES.items():
         label = game_labels.get(game_id, f"🎮 {game_name}")
-        buttons.append([
-            InlineKeyboardButton(
-                text=label,
-                callback_data=f"{CB_GAME_PREFIX}{game_id}",
-            )
-        ])
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    text=label,
+                    callback_data=f"{CB_GAME_PREFIX}{game_id}",
+                )
+            ]
+        )
 
     buttons.append([InlineKeyboardButton(text="◀️ Назад", callback_data="settings")])
 

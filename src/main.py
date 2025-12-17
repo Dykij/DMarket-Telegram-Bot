@@ -174,9 +174,7 @@ class Application:
                     admin_users_raw = self.config.security.allowed_users
 
                 # Convert to list[int] for DailyReportScheduler
-                admin_users: list[int] = [
-                    int(uid) for uid in admin_users_raw if str(uid).isdigit()
-                ]
+                admin_users: list[int] = [int(uid) for uid in admin_users_raw if str(uid).isdigit()]
 
                 report_time = time(
                     hour=self.config.daily_report.report_time_hour,

@@ -562,9 +562,7 @@ def handle_exceptions(
         else (
             None
             if is_called_without_parens
-            else func_or_logger
-            if isinstance(func_or_logger, logging.Logger)
-            else None
+            else func_or_logger if isinstance(func_or_logger, logging.Logger) else None
         )
     )
 

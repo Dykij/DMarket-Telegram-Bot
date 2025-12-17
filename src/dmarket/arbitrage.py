@@ -454,7 +454,7 @@ async def find_arbitrage_opportunities_async(
                         {
                             "item_title": item.get("title", "Unknown"),
                             "market_from": "DMarket",
-                            "market_to": ("Steam Market" if game == "csgo" else "Game Market"),
+                            "market_to": "Steam Market" if game == "csgo" else "Game Market",
                             "buy_price": buy_price,
                             "sell_price": sell_price,
                             "profit_amount": profit_amount,
@@ -1218,9 +1218,10 @@ class ArbitrageTrader:
             if "error" in purchase_data:
                 return {
                     "success": False,
-                    "error": purchase_data.get("error", {}).get(
-                        "message",
-                        "Неизвестная ошибка при покупке",
+                    "error": (
+                        purchase_data.get("error", {}).get(
+                            "message", "Неизвестная ошибка при покупке"
+                        )
                     ),
                 }
 
@@ -1279,9 +1280,10 @@ class ArbitrageTrader:
             if "error" in sell_data:
                 return {
                     "success": False,
-                    "error": sell_data.get("error", {}).get(
-                        "message",
-                        "Неизвестная ошибка при выставлении на продажу",
+                    "error": (
+                        sell_data.get("error", {}).get(
+                            "message", "Неизвестная ошибка при выставлении на продажу"
+                        )
                     ),
                 }
 

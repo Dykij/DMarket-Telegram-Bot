@@ -1089,7 +1089,9 @@ class DMarketAPI:
                     logger.debug(f"📊 Balance data: {balance_data}")
 
                     usd_amount = balance_data.get("balance", 0) * 100
-                    usd_available = balance_data.get("available", balance_data.get("balance", 0)) * 100
+                    usd_available = (
+                        balance_data.get("available", balance_data.get("balance", 0)) * 100
+                    )
                     usd_total = balance_data.get("total", balance_data.get("balance", 0)) * 100
                     usd_locked = balance_data.get("locked", 0) * 100
                     usd_trade_protected = balance_data.get("trade_protected", 0) * 100
@@ -1129,14 +1131,14 @@ class DMarketAPI:
                 self.ENDPOINT_BALANCE_LEGACY,  # Legacy endpoint (for backward compatibility)
             ]
 
-            response, successful_endpoint, last_error = await self._try_endpoints_for_balance(endpoints)
+            response, successful_endpoint, last_error = await self._try_endpoints_for_balance(
+                endpoints
+            )
 
             # If we didn't get a response from any endpoint
             if not response:
                 error_message = (
-                    str(last_error)
-                    if last_error
-                    else "Failed to get balance from any endpoint"
+                    str(last_error) if last_error else "Failed to get balance from any endpoint"
                 )
                 logger.error(f"Critical error getting balance: {error_message}")
 
@@ -2875,19 +2877,15 @@ class DMarketAPI:
                 self.ENDPOINT_GAMES_LIST,
             )
 
-            if not isinstance(response, list):
-                logger.warning(
-                    f"Неожиданный формат ответа от /game/v1/games: {type(response)}"
-                )
+            if not isinstance(response, list):  # type: ignore[unreachable]
+                logger.warning(f"Неожиданный формат ответа от /game/v1/games: {type(response)}")
                 return []
 
             logger.info(f"Получено {len(response)} игр от DMarket API")
 
             # Логируем для отладки
             enabled_count = sum(1 for g in response if g.get("enabled", False))
-            logger.debug(
-                f"Активных игр: {enabled_count}/{len(response)}"
-            )
+            logger.debug(f"Активных игр: {enabled_count}/{len(response)}")
 
             return response
 

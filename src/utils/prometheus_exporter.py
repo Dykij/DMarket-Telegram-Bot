@@ -20,10 +20,12 @@ F = TypeVar("F", bound=Callable[..., Awaitable[Any]])
 
 # Информация о версии
 bot_info = Info("dmarket_bot", "DMarket Telegram Bot информация")
-bot_info.info({
-    "version": "1.0.0",
-    "python_version": "3.11+",
-})
+bot_info.info(
+    {
+        "version": "1.0.0",
+        "python_version": "3.11+",
+    }
+)
 
 # Счетчики команд
 commands_total = Counter(

@@ -112,10 +112,12 @@ def create_arbitrage_keyboard(
     ]
 
     if include_analysis:
-        keyboard.append([
-            InlineKeyboardButton(text="📈 Анализ", callback_data="arb_analysis"),
-            InlineKeyboardButton(text="📊 Уровни", callback_data="arb_levels"),
-        ])
+        keyboard.append(
+            [
+                InlineKeyboardButton(text="📈 Анализ", callback_data="arb_analysis"),
+                InlineKeyboardButton(text="📊 Уровни", callback_data="arb_levels"),
+            ]
+        )
 
     if include_auto:
         keyboard.append([InlineKeyboardButton(text="🤖 Авто", callback_data="arb_auto")])

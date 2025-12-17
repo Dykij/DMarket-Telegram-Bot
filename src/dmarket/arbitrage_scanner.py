@@ -941,9 +941,10 @@ class ArbitrageScanner:
             if "error" in purchase_data:
                 return {
                     "success": False,
-                    "error": purchase_data.get("error", {}).get(
-                        "message",
-                        "Неизвестная ошибка при покупке",
+                    "error": (
+                        purchase_data.get("error", {}).get(
+                            "message", "Неизвестная ошибка при покупке"
+                        )
                     ),
                 }
 
@@ -999,9 +1000,10 @@ class ArbitrageScanner:
             if "error" in sell_data:
                 return {
                     "success": False,
-                    "error": sell_data.get("error", {}).get(
-                        "message",
-                        "Неизвестная ошибка при выставлении на продажу",
+                    "error": (
+                        sell_data.get("error", {}).get(
+                            "message", "Неизвестная ошибка при выставлении на продажу"
+                        )
                     ),
                 }
 

@@ -143,7 +143,7 @@ class WebhookHandler:
             data = await request.json()
             update = Update.de_json(data, self.bot_app.bot)
 
-            if update:
+            if update is not None:
                 await self.bot_app.process_update(update)
                 self._request_count += 1
                 self._last_request_time = datetime.now(UTC)

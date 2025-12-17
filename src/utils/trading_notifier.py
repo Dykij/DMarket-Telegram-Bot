@@ -47,9 +47,7 @@ class TradingNotifier:
         self.notification_queue = notification_queue
         self.user_id = user_id
 
-    def _create_item_dict(
-        self, item_name: str, price: float, game: str
-    ) -> dict[str, Any]:
+    def _create_item_dict(self, item_name: str, price: float, game: str) -> dict[str, Any]:
         """Create item dictionary for notification functions.
 
         Args:
@@ -96,9 +94,7 @@ class TradingNotifier:
         # Отправить уведомление о намерении купить
         if self.bot and self.user_id:
             item_dict = self._create_item_dict(item_name, buy_price, game)
-            reason = (
-                f"Источник: {source}, Прибыль: ${profit_usd:.2f} ({profit_percent:.1f}%)"
-            )
+            reason = f"Источник: {source}, Прибыль: ${profit_usd:.2f} ({profit_percent:.1f}%)"
             await send_buy_intent_notification(
                 bot=self.bot,
                 user_id=self.user_id,

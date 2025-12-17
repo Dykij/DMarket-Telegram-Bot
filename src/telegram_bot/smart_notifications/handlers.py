@@ -176,6 +176,4 @@ def register_notification_handlers(
         )
         logger.info("Started notification checker (task: %s)", _checker_task.get_name())
     else:
-        logger.error(
-            "Could not start notification checker: DMarketAPI not found in bot_data"
-        )
+        logger.error("Could not start notification checker: DMarketAPI not found in bot_data")

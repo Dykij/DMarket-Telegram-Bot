@@ -121,7 +121,6 @@ from .trader import ArbitrageTrader
 # =============================================================================
 __all__ = [
     "AUTO_TRADING_INTERVAL",
-    "ArbitrageTrader",
     "BASE_COMMISSION_PERCENT",
     "CACHE_CLEANUP_COUNT",
     "CACHE_TTL",
@@ -154,6 +153,7 @@ __all__ = [
     "MIN_COMMISSION_PERCENT",
     "MIN_PROFIT_PERCENT",
     "PRICE_RANGES",
+    "ArbitrageTrader",
     "_arbitrage_cache",
     "_calculate_commission",
     "_find_arbitrage_async",

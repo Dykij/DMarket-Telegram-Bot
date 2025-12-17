@@ -167,7 +167,9 @@ async def analyze_price_changes(
                             "game": game,
                             "sales_volume": item.get("salesVolume", 0),
                             "image_url": item.get("imageUrl", ""),
-                            "item_url": f"https://dmarket.com/ingame-items/{game}/{market_hash_name.lower().replace(' ', '-')}",
+                            "item_url": (
+                                f"https://dmarket.com/ingame-items/{game}/{market_hash_name.lower().replace(' ', '-')}"
+                            ),
                             "timestamp": int(time.time()),
                         },
                     )
@@ -266,7 +268,9 @@ async def find_trending_items(
                     "sales_volume": sales_volume,
                     "popularity_score": _calculate_popularity_score(item),
                     "image_url": item.get("imageUrl", ""),
-                    "item_url": f"https://dmarket.com/ingame-items/{game}/{market_hash_name.lower().replace(' ', '-')}",
+                    "item_url": (
+                        f"https://dmarket.com/ingame-items/{game}/{market_hash_name.lower().replace(' ', '-')}"
+                    ),
                     "timestamp": int(time.time()),
                     "game": game,
                     "offers_count": item.get("offersCount", 0),
@@ -469,8 +473,8 @@ async def generate_market_report(
                 "market_volatility_level": _calculate_market_volatility_level(
                     results[2],
                 ),
-                "average_market_liquidity": market_depth.get("summary", {}).get(
-                    "average_liquidity_score", 0
+                "average_market_liquidity": (
+                    market_depth.get("summary", {}).get("average_liquidity_score", 0)
                 ),
                 "market_health": market_depth.get("summary", {}).get("market_health", "unknown"),
                 "recommended_actions": _generate_market_recommendations(results),
@@ -607,22 +611,24 @@ async def analyze_market_depth(
                 market_balance = "balanced"
                 balance_description = "Сбалансированный рынок"
 
-            depth_analysis.append({
-                "title": title,
-                "order_count": order_count,
-                "offer_count": offer_count,
-                "total_volume": total_volume,
-                "order_price": order_price,
-                "offer_price": offer_price,
-                "spread": spread,
-                "spread_percent": spread_percent,
-                "buy_pressure": buy_pressure,
-                "sell_pressure": sell_pressure,
-                "liquidity_score": liquidity_score,
-                "market_balance": market_balance,
-                "balance_description": balance_description,
-                "arbitrage_potential": spread_percent > 5.0,
-            })
+            depth_analysis.append(
+                {
+                    "title": title,
+                    "order_count": order_count,
+                    "offer_count": offer_count,
+                    "total_volume": total_volume,
+                    "order_price": order_price,
+                    "offer_price": offer_price,
+                    "spread": spread,
+                    "spread_percent": spread_percent,
+                    "buy_pressure": buy_pressure,
+                    "sell_pressure": sell_pressure,
+                    "liquidity_score": liquidity_score,
+                    "market_balance": market_balance,
+                    "balance_description": balance_description,
+                    "arbitrage_potential": spread_percent > 5.0,
+                }
+            )
 
         # Рассчитываем сводные показатели
         if depth_analysis:
@@ -648,11 +654,11 @@ async def analyze_market_depth(
                 "market_health": (
                     "excellent"
                     if avg_liquidity >= 75
-                    else "good"
-                    if avg_liquidity >= 50
-                    else "moderate"
-                    if avg_liquidity >= 25
-                    else "poor"
+                    else (
+                        "good"
+                        if avg_liquidity >= 50
+                        else "moderate" if avg_liquidity >= 25 else "poor"
+                    )
                 ),
             }
         else:

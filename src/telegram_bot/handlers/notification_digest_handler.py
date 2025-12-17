@@ -523,12 +523,14 @@ async def show_frequency_menu(update: Update, context: ContextTypes.DEFAULT_TYPE
         }
 
         button_text = checkmark + freq_names.get(freq, freq.value)
-        keyboard.append([
-            InlineKeyboardButton(
-                button_text,
-                callback_data=DIGEST_SET_FREQ.format(freq.value),
-            )
-        ])
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    button_text,
+                    callback_data=DIGEST_SET_FREQ.format(freq.value),
+                )
+            ]
+        )
 
     keyboard.append([InlineKeyboardButton("◀️ Назад", callback_data=DIGEST_BACK)])
 
@@ -586,12 +588,14 @@ async def show_grouping_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)
         checkmark = "✅ " if is_selected else "⬜ "
 
         button_text = checkmark + group_names.get(mode, mode.value)
-        keyboard.append([
-            InlineKeyboardButton(
-                button_text,
-                callback_data=DIGEST_SET_GROUP.format(mode.value),
-            )
-        ])
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    button_text,
+                    callback_data=DIGEST_SET_GROUP.format(mode.value),
+                )
+            ]
+        )
 
     keyboard.append([InlineKeyboardButton("◀️ Назад", callback_data=DIGEST_BACK)])
 
@@ -644,9 +648,9 @@ async def show_min_items_menu(update: Update, context: ContextTypes.DEFAULT_TYPE
         checkmark = "✅ " if is_selected else "⬜ "
 
         button_text = f"{checkmark}{value} уведомлений"
-        keyboard.append([
-            InlineKeyboardButton(button_text, callback_data=DIGEST_SET_MIN.format(value))
-        ])
+        keyboard.append(
+            [InlineKeyboardButton(button_text, callback_data=DIGEST_SET_MIN.format(value))]
+        )
 
     keyboard.append([InlineKeyboardButton("◀️ Назад", callback_data=DIGEST_BACK)])
 

@@ -144,9 +144,9 @@ class HFTStatistics:
             "win_rate": (len(successful) / len(trades) * 100) if trades else 0,
             "total_profit": sum(t.expected_profit for t in successful),
             "total_spent": sum(t.buy_price for t in trades),
-            "average_profit": sum(t.expected_profit for t in successful) / len(successful)
-            if successful
-            else 0,
+            "average_profit": (
+                sum(t.expected_profit for t in successful) / len(successful) if successful else 0
+            ),
         }
 
 
@@ -528,9 +528,9 @@ class HighFrequencyTrader:
             "total_spent": self.stats.total_spent,
             "average_profit": self.stats.average_profit,
             "runtime_hours": self.stats.runtime_hours,
-            "last_scan": self.stats.last_scan_time.isoformat()
-            if self.stats.last_scan_time
-            else None,
+            "last_scan": (
+                self.stats.last_scan_time.isoformat() if self.stats.last_scan_time else None
+            ),
             "consecutive_errors": self.consecutive_errors,
         }
 

@@ -315,12 +315,7 @@ class ItemFilters:
 
         for item in items:
             # Get item name from different possible fields
-            item_name = (
-                item.get("title")
-                or item.get("name")
-                or item.get("market_hash_name")
-                or ""
-            )
+            item_name = item.get("title") or item.get("name") or item.get("market_hash_name") or ""
 
             # Skip blacklisted items
             if self.is_item_blacklisted(item_name):
@@ -363,12 +358,7 @@ class ItemFilters:
             Tuple of (is_valid, reason_if_invalid)
 
         """
-        item_name = (
-            item.get("title")
-            or item.get("name")
-            or item.get("market_hash_name")
-            or ""
-        )
+        item_name = item.get("title") or item.get("name") or item.get("market_hash_name") or ""
 
         # Check blacklist
         if self.is_item_blacklisted(item_name):
@@ -401,7 +391,10 @@ class ItemFilters:
             if current_price > 0 and avg_price > 0:
                 boost_percent = filters.get("boost_percent", 150)
                 if current_price > avg_price * (boost_percent / 100):
-                    return False, f"Price ${current_price:.2f} is >{boost_percent}% of average ${avg_price:.2f}"
+                    return (
+                        False,
+                        f"Price ${current_price:.2f} is >{boost_percent}% of average ${avg_price:.2f}",
+                    )
 
         return True, None
 
