@@ -268,12 +268,22 @@ class TestHandle429:
 
     @pytest.mark.asyncio()
     async def test_handle_429_max_wait_time(self):
-        """Тест максимального времени ожидания (60 сек)."""
+        """Тест максимального времени ожидания (60 сек).
+
+        Замокали asyncio.sleep для ускорения теста с 60+ секунд до <1 секунды.
+        """
         limiter = RateLimiter()
         # Симулируем много попыток
         limiter.retry_attempts["user"] = 10
 
-        wait_time, attempts = await limiter.handle_429("user")
+        # Мокаем asyncio.sleep чтобы не ждать реальные 60 секунд
+        with patch("src.utils.rate_limiter.asyncio.sleep", return_value=None) as mock_sleep:
+            wait_time, attempts = await limiter.handle_429("user")
+
+            # Проверяем что sleep был вызван с правильным временем
+            mock_sleep.assert_called_once()
+            called_wait_time = mock_sleep.call_args[0][0]
+            assert called_wait_time <= 60.0
 
         # Максимум 60 секунд (MAX_BACKOFF_TIME)
         assert wait_time <= 60.0

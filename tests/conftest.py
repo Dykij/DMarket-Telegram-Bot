@@ -4,9 +4,37 @@
 """
 
 import logging
+import os
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+
+
+# ==============================================================================
+# HYPOTHESIS ПРОФИЛЬ НАСТРОЙКА (для CI)
+# ==============================================================================
+
+def pytest_configure(config):
+    """Настроить pytest перед запуском тестов.
+
+    Автоматически устанавливает Hypothesis CI профиль в GitHub Actions.
+    """
+    # Автоматически используем CI профиль в GitHub Actions
+    if os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS"):
+        os.environ.setdefault("HYPOTHESIS_PROFILE", "ci")
+
+    # Попытка загрузить Hypothesis профили из pyproject.toml
+    try:
+        from hypothesis import settings as hypothesis_settings
+        # Проверяем, существует ли профиль ci
+        # Если HYPOTHESIS_PROFILE=ci, hypothesis автоматически использует его
+    except ImportError:
+        pass  # Hypothesis не установлен
+
+
+# ==============================================================================
+# ФИКСТУРЫ
+# ==============================================================================
 
 
 @pytest.fixture()

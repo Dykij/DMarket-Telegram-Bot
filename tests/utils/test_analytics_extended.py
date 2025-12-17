@@ -8,6 +8,10 @@
 from datetime import datetime, timedelta
 import io
 
+# Используем 'agg' backend для headless генерации графиков (ускорение)
+import matplotlib
+matplotlib.use('agg')
+
 import pytest
 
 from src.utils.analytics import ChartGenerator, MarketAnalyzer
@@ -367,18 +371,22 @@ def test_chart_generation_performance(chart_generator):
 
 
 def test_multiple_charts_generation_performance(chart_generator):
-    """Тест производительности создания нескольких графиков."""
+    """Тест производительности создания нескольких графиков.
+
+    Оптимизирован с использованием matplotlib agg backend и
+    уменьшенным количеством итераций для ускорения.
+    """
     data = [{"date": datetime.now().isoformat(), "price": 100 + i * 5} for i in range(10)]
 
     import time
 
     start = time.time()
 
-    # Создаем 10 графиков
-    for _ in range(10):
+    # Создаем 5 графиков (уменьшено с 10 для ускорения)
+    for _ in range(5):
         chart_generator.create_price_history_chart(data)
 
     duration = time.time() - start
 
-    # Должен создать все за разумное время (< 30 секунд)
-    assert duration < 30.0
+    # Должен создать все за разумное время (< 15 секунд с agg backend)
+    assert duration < 15.0
