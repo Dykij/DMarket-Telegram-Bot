@@ -615,6 +615,10 @@ ignore_errors = true                # Игнорировать ошибки в �
 module = "alembic.*"
 ignore_errors = true                # Игнорировать ошибки в миграциях
 
+[[tool.mypy.overrides]]
+module = "yaml.*"
+ignore_missing_imports = true       # Игнорировать отсутствующие stubs для yaml
+
 [tool.coverage.run]
 branch = true                       # Покрытие ветвлений (if/else)
 source = ["src"]                    # Какой код измерять

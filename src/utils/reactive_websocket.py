@@ -48,7 +48,7 @@ class SubscriptionState(str, Enum):
     ERROR = "error"
 
 
-class Observable(Generic[T]):
+class Observable(Generic[T]):  # noqa: UP046
     """Observable pattern implementation for event streams."""
 
     def __init__(self) -> None:
