@@ -6,9 +6,9 @@ Prometheus metrics для мониторинга бота.
 
 from __future__ import annotations
 
-import time
 from collections.abc import Awaitable, Callable
 from functools import wraps
+import time
 from typing import Any, TypeVar
 
 from prometheus_client import Counter, Gauge, Histogram, Info, generate_latest
@@ -224,8 +224,7 @@ def measure_time(
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             start = time.time()
             try:
-                result = await func(*args, **kwargs)
-                return result
+                return await func(*args, **kwargs)
             finally:
                 duration = time.time() - start
                 if labels:

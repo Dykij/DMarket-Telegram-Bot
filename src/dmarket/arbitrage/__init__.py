@@ -120,6 +120,7 @@ from .trader import ArbitrageTrader
 # Public API
 # =============================================================================
 __all__ = [
+    "ArbitrageTrader",
     "AUTO_TRADING_INTERVAL",
     "BASE_COMMISSION_PERCENT",
     "CACHE_CLEANUP_COUNT",
@@ -135,7 +136,6 @@ __all__ = [
     "ERROR_PAUSE_SHORT",
     "ERROR_THRESHOLD_LONG",
     "ERROR_THRESHOLD_SHORT",
-    # === Constants ===
     "GAMES",
     "GAME_COMMISSION_FACTORS",
     "HIGH_FEE",
@@ -154,17 +154,12 @@ __all__ = [
     "MIN_COMMISSION_PERCENT",
     "MIN_PROFIT_PERCENT",
     "PRICE_RANGES",
-    # === Trader ===
-    "ArbitrageTrader",
-    # === Backward compatibility (cache) ===
     "_arbitrage_cache",
-    "_save_arbitrage_cache",
-    # === Calculations ===
     "_calculate_commission",
     "_find_arbitrage_async",
     "_get_cached_results",
-    # === Search ===
     "_group_items_by_name",
+    "_save_arbitrage_cache",
     "_save_to_cache",
     "arbitrage_boost",
     "arbitrage_boost_async",
@@ -178,7 +173,6 @@ __all__ = [
     "calculate_profit_percent",
     "cents_to_usd",
     "clear_cache",
-    # === Core ===
     "fetch_market_items",
     "find_arbitrage_items",
     "find_arbitrage_opportunities",
@@ -186,7 +180,6 @@ __all__ = [
     "find_arbitrage_opportunities_async",
     "get_arbitrage_cache",
     "get_cache_statistics",
-    # === Cache ===
     "get_cached_results",
     "get_fee_for_liquidity",
     "is_profitable_opportunity",

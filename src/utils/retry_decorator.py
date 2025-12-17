@@ -97,6 +97,9 @@ def retry_on_failure(
                             )
                         raise
 
+            # This should never be reached due to reraise=True
+            raise RuntimeError("All retry attempts exhausted without exception")
+
         @functools.wraps(func)
         def sync_wrapper(*args: Any, **kwargs: Any) -> T:
             """Sync wrapper for retry logic."""
@@ -139,6 +142,9 @@ def retry_on_failure(
                             },
                         )
                     raise
+
+            # This should never be reached due to reraise=True
+            raise RuntimeError("All retry attempts exhausted without exception")
 
         # Return appropriate wrapper based on function type
         import inspect
