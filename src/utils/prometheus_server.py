@@ -19,7 +19,7 @@ DEFAULT_HOST = os.environ.get("PROMETHEUS_HOST", "127.0.0.1")
 class PrometheusServer:
     """HTTP сервер для Prometheus метрик."""
 
-    def __init__(self, port: int = 8000, host: str | None = None):
+    def __init__(self, port: int = 8000, host: str | None = None) -> None:
         """
         Инициализация сервера.
 
@@ -31,8 +31,8 @@ class PrometheusServer:
         self.port = port
         self.host = host or DEFAULT_HOST
         self.app = web.Application()
-        self.runner = None
-        self.site = None
+        self.runner: web.AppRunner | None = None
+        self.site: web.TCPSite | None = None
 
         # Роуты
         self.app.router.add_get("/metrics", self.metrics_handler)
@@ -47,7 +47,7 @@ class PrometheusServer:
         """Обработчик /health endpoint."""
         return web.json_response({"status": "ok"})
 
-    async def start(self):
+    async def start(self) -> None:
         """Запустить сервер."""
         self.runner = web.AppRunner(self.app)
         await self.runner.setup()
@@ -57,7 +57,7 @@ class PrometheusServer:
 
         logger.info("prometheus_server_started", host=self.host, port=self.port)
 
-    async def stop(self):
+    async def stop(self) -> None:
         """Остановить сервер."""
         if self.site:
             await self.site.stop()
@@ -67,7 +67,7 @@ class PrometheusServer:
         logger.info("prometheus_server_stopped")
 
 
-async def run_prometheus_server(port: int = 8000):
+async def run_prometheus_server(port: int = 8000) -> None:
     """
     Запустить Prometheus сервер.
 

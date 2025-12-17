@@ -4,10 +4,14 @@ Prometheus metrics для мониторинга бота.
 Экспортирует метрики для Prometheus/Grafana.
 """
 
+import functools
 import time
+from collections.abc import Awaitable, Callable
+from typing import Any, TypeVar
 
 from prometheus_client import Counter, Gauge, Histogram, Info, generate_latest
 
+T = TypeVar("T")
 
 # Информация о версии
 bot_info = Info("dmarket_bot", "DMarket Telegram Bot информация")
@@ -198,17 +202,25 @@ class MetricsCollector:
         return generate_latest()
 
 
-def measure_time(metric: Histogram, labels: dict[str, str] | None = None):
+def measure_time(
+    metric: Histogram, labels: dict[str, str] | None = None
+) -> Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]:
     """
     Декоратор для измерения времени выполнения.
 
     Args:
         metric: Histogram метрика
         labels: Лейблы для метрики
+
+    Returns:
+        Декоратор для измерения времени выполнения асинхронной функции.
     """
 
-    def decorator(func):
-        async def wrapper(*args, **kwargs):
+    def decorator(
+        func: Callable[..., Awaitable[T]]
+    ) -> Callable[..., Awaitable[T]]:
+        @functools.wraps(func)
+        async def wrapper(*args: Any, **kwargs: Any) -> T:
             start = time.time()
             try:
                 return await func(*args, **kwargs)

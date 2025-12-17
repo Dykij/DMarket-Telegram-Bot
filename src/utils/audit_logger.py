@@ -4,9 +4,11 @@
 Записывает все важные операции для безопасности, комплаенса и отладки.
 """
 
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 import enum
-from typing import Any
+import functools
+from typing import Any, TypeVar
 
 from sqlalchemy import JSON, BigInteger, Column, DateTime, Integer, String, Text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,6 +18,8 @@ from src.models.base import Base
 
 
 logger = structlog.get_logger(__name__)
+
+T = TypeVar("T")
 
 
 class AuditEventType(str, enum.Enum):
@@ -315,10 +319,7 @@ class AuditLogger:
         query = select(AuditLog).where(AuditLog.user_id == user_id)
 
         if event_type:
-            event_type_str = (
-                event_type.value if isinstance(event_type, AuditEventType) else event_type
-            )
-            query = query.where(AuditLog.event_type == event_type_str)
+            query = query.where(AuditLog.event_type == event_type.value)
 
         query = query.order_by(AuditLog.timestamp.desc()).limit(limit)
 
@@ -409,7 +410,9 @@ class AuditLogger:
         return list(result.scalars().all())
 
 
-def audit_decorator(event_type: AuditEventType, action: str):
+def audit_decorator(
+    event_type: AuditEventType, action: str
+) -> Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]:
     """
     Декоратор для автоматического аудит-логирования.
 
@@ -417,14 +420,20 @@ def audit_decorator(event_type: AuditEventType, action: str):
         event_type: Тип события
         action: Описание действия
 
+    Returns:
+        Декоратор для логирования асинхронной функции.
+
     Example:
         @audit_decorator(AuditEventType.TARGET_CREATE, "Create target")
         async def create_target(user_id: int, ...):
             ...
     """
 
-    def decorator(func):
-        async def wrapper(*args, **kwargs):
+    def decorator(
+        func: Callable[..., Awaitable[T]]
+    ) -> Callable[..., Awaitable[T]]:
+        @functools.wraps(func)
+        async def wrapper(*args: Any, **kwargs: Any) -> T:
             # Попытаться извлечь user_id из аргументов
             user_id = kwargs.get("user_id") or (args[0] if args else None)
 
