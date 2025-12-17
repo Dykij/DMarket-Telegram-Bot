@@ -1,7 +1,7 @@
 # Deployment Guide
 
-**Версия**: 2.0
-**Последнее обновление**: 19 ноября 2025 г.
+**Версия**: 3.0
+**Последнее обновление**: 17 декабря 2025 г.
 
 ---
 
@@ -129,7 +129,7 @@ make docs
 - 1 CPU core
 - 512 MB RAM
 - 1 GB disk space
-- Python 3.10+
+- Python 3.11+
 
 **Recommended for Production:**
 - 2+ CPU cores

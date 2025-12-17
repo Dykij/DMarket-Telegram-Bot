@@ -1,6 +1,6 @@
 # State Management & Auto-Recovery Guide
 
-**Дата**: 20 ноября 2025 г.
+**Дата**: 17 декабря 2025 г.
 **Версия**: 1.0
 
 ---
@@ -363,6 +363,6 @@ await state_manager.cleanup_old_checkpoints(days=7)
 
 ---
 
-**Обновлено**: 20 ноября 2025 г.
+**Обновлено**: 17 декабря 2025 г.
 **Версия модуля**: 1.0
 **Статус**: Production Ready
