@@ -86,8 +86,9 @@ def retry_on_failure(
                             },
                         )
                         if attempt >= max_attempts:
-                            logger.error(
-                                f"All retry attempts exhausted for {func.__name__}",
+                            logger.exception(
+                                "All retry attempts exhausted for %s",
+                                func.__name__,
                                 extra={
                                     "function": func.__name__,
                                     "attempts": max_attempts,
@@ -128,8 +129,9 @@ def retry_on_failure(
                         },
                     )
                     if attempt >= max_attempts:
-                        logger.error(
-                            f"All retry attempts exhausted for {func.__name__}",
+                        logger.exception(
+                            "All retry attempts exhausted for %s",
+                            func.__name__,
                             extra={
                                 "function": func.__name__,
                                 "attempts": max_attempts,
