@@ -301,8 +301,8 @@ class PortfolioManager:
                 targets_data = await self._api.get_user_targets()
                 targets = targets_data.get("Items", [])
 
-            except Exception as e:
-                logger.error("Error fetching portfolio data: %s", e)
+            except Exception:
+                logger.exception("Error fetching portfolio data")
 
         # Build portfolio assets
         assets: list[PortfolioAsset] = []

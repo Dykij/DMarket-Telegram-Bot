@@ -150,7 +150,7 @@ class WebhookHandler:
 
             return web.Response(status=200)
         except Exception as e:
-            logger.error("Webhook processing error: %s", e)
+            logger.exception("Webhook processing error")
             self._error_count += 1
             return web.Response(status=500)
 
@@ -343,7 +343,7 @@ class WebhookFailover:
             await self.webhook_handler.stop()
             return False
         except Exception as e:
-            logger.error("Failed to setup webhook: %s", e)
+            logger.exception("Failed to setup webhook")
             if self.webhook_handler.is_running:
                 await self.webhook_handler.stop()
             return False
@@ -400,7 +400,7 @@ class WebhookFailover:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error("Error in failover loop: %s", e)
+                logger.exception("Error in failover loop")
 
     async def _switch_to_polling(self) -> None:
         """Switch from webhook to polling mode."""

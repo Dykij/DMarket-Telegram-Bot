@@ -358,7 +358,7 @@ class RedisCache:
                 pong = await self._redis.ping()
                 health["redis_connected"] = True
                 health["redis_ping"] = pong
-            except Exception:
+            except Exception as e:
                 logger.exception("Redis health check failed")
                 health["error"] = str(e)
 

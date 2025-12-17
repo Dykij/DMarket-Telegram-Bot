@@ -436,14 +436,13 @@ def audit_decorator(event_type: AuditEventType, action: str):
 
                 return result
 
-            except Exception as e:
+            except Exception:
                 # Логировать ошибку
-                logger.error(
+                logger.exception(
                     "audit_decorator_error",
                     event_type=event_type.value,
                     action=action,
                     user_id=user_id,
-                    error=str(e),
                 )
                 raise
 

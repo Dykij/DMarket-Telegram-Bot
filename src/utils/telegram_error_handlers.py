@@ -136,12 +136,12 @@ def telegram_error_boundary(
 
             except AuthenticationError as e:
                 # Authentication/API key error
-                logger.error(
-                    f"Authentication error in {func.__name__}",
+                logger.exception(
+                    "Authentication error in %s",
+                    func.__name__,
                     extra={
                         "handler": func.__name__,
                         "user_id": user_id,
-                        "error": str(e),
                     },
                 )
                 error_message = "❌ Ошибка аутентификации. Проверьте API ключи в /settings"
@@ -178,12 +178,12 @@ def telegram_error_boundary(
 
             except APIError as e:
                 # Generic API error
-                logger.error(
-                    f"API error in {func.__name__}",
+                logger.exception(
+                    "API error in %s",
+                    func.__name__,
                     extra={
                         "handler": func.__name__,
                         "user_id": user_id,
-                        "error": str(e),
                         "status_code": getattr(e, "status_code", None),
                     },
                 )
@@ -275,14 +275,13 @@ class BaseHandler:
         user_id = update.effective_user.id if update.effective_user else None
 
         # Log error
-        self.logger.error(
-            f"Error occurred: {error}",
+        self.logger.exception(
+            "Error occurred: %s",
+            error,
             extra={
                 "user_id": user_id,
-                "error": str(error),
                 "error_type": type(error).__name__,
             },
-            exc_info=True,
         )
 
         # Notify user
@@ -333,8 +332,8 @@ class BaseHandler:
             elif update.callback_query:
                 await update.callback_query.message.reply_text(text, **kwargs)  # type: ignore[union-attr]
                 await update.callback_query.answer()
-        except Exception as e:
-            self.logger.error(
-                f"Failed to send reply: {e}",
-                extra={"text": text, "error": str(e)},
+        except Exception:
+            self.logger.exception(
+                "Failed to send reply",
+                extra={"text": text},
             )

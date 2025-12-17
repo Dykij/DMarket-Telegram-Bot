@@ -97,7 +97,7 @@ class FeatureFlagsManager:
             )
             return self._get_default_config()
         except Exception as e:
-            logger.error("feature_flags_load_error", error=str(e))
+            logger.exception("feature_flags_load_error")
             return self._get_default_config()
 
     def _get_default_config(self) -> dict[str, Any]:
@@ -348,7 +348,7 @@ class FeatureFlagsManager:
             logger.info("feature_flags_saved", config_path=self.config_path)
 
         except Exception as e:
-            logger.error("feature_flags_save_error", error=str(e))
+            logger.exception("feature_flags_save_error")
 
 
 # Глобальный экземпляр (инициализируется в main)
