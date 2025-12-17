@@ -78,21 +78,21 @@
 |---|--------|-------|----------|--------|
 | 1 | `src/telegram_bot/handlers/portfolio_handler.py` | 149 | Управление портфелем | ✅ **45 тестов** |
 | 2 | `src/telegram_bot/handlers/rate_limit_admin.py` | 125 | Админ rate limiting | ✅ **27 тестов** |
-| 3 | `src/dmarket/scanner/analysis.py` | 110 | Анализ сканера | ⏳ В очереди |
+| 3 | `src/dmarket/scanner/analysis.py` | 110 | Анализ сканера | ✅ **55 тестов** |
 | 4 | `src/utils/batch_processor.py` | 98 | Пакетная обработка | ✅ **29 тестов** |
-| 5 | `src/telegram_bot/handlers/backtest_handler.py` | 95 | Бэктестинг | ⏳ В очереди |
+| 5 | `src/telegram_bot/handlers/backtest_handler.py` | 95 | Бэктестинг | ✅ **38 тестов** |
 
 ### Модули smart_notifications (0% покрытия)
 
-| # | Модуль | Строк |
-|---|--------|-------|
-| 1 | `src/telegram_bot/smart_notifications/checkers.py` | 117 |
-| 2 | `src/telegram_bot/smart_notifications/senders.py` | 81 |
-| 3 | `src/telegram_bot/smart_notifications/utils.py` | 71 |
-| 4 | `src/telegram_bot/smart_notifications/handlers.py` | 56 |
-| 5 | `src/telegram_bot/smart_notifications/preferences.py` | 53 |
-| 6 | `src/telegram_bot/smart_notifications/alerts.py` | 38 |
-| 7 | `src/telegram_bot/smart_notifications/throttling.py` | 35 |
+| # | Модуль | Строк | Статус |
+|---|--------|-------|--------|
+| 1 | `src/telegram_bot/smart_notifications/checkers.py` | 117 | ✅ **15 тестов** |
+| 2 | `src/telegram_bot/smart_notifications/senders.py` | 81 | ✅ **21 тест** |
+| 3 | `src/telegram_bot/smart_notifications/handlers.py` | 56 | ✅ **14 тестов** |
+| 4 | `src/telegram_bot/smart_notifications/utils.py` | 71 | ⏳ В очереди |
+| 5 | `src/telegram_bot/smart_notifications/preferences.py` | 53 | ⏳ В очереди |
+| 6 | `src/telegram_bot/smart_notifications/alerts.py` | 38 | ⏳ В очереди |
+| 7 | `src/telegram_bot/smart_notifications/throttling.py` | 35 | ⏳ В очереди |
 
 ```
 📋 TODO: Создать тесты для модулей среднего приоритета
@@ -100,15 +100,22 @@
 ✅ Telegram handlers - ЗАВЕРШЕНО
   - [x] portfolio_handler.py - 45 тестов
   - [x] rate_limit_admin.py - 27 тестов
-  - [ ] backtest_handler.py - 10 тестов
+  - [x] backtest_handler.py - 38 тестов
   
 ✅ Utils - ЗАВЕРШЕНО
   - [x] batch_processor.py - 29 тестов
   
-□ Smart notifications (весь модуль) - В ОЧЕРЕДИ
-  - [ ] checkers.py - 15 тестов
-  - [ ] senders.py - 10 тестов
-  - [ ] handlers.py - 8 тестов
+✅ Scanner - ЗАВЕРШЕНО
+  - [x] analysis.py - 55 тестов
+  
+✅ Smart notifications - ЧАСТИЧНО ЗАВЕРШЕНО
+  - [x] checkers.py - 15 тестов
+  - [x] senders.py - 21 тест
+  - [x] handlers.py - 14 тестов
+  - [ ] utils.py - в очереди
+  - [ ] preferences.py - в очереди
+  - [ ] alerts.py - в очереди
+  - [ ] throttling.py - в очереди
 ```
 
 ---
@@ -282,13 +289,23 @@ pytest --cov=src --cov-report=html
 
 ---
 
-**Версия**: 2.3
+**Версия**: 2.4
 **Обновлено**: December 17, 2025
 **Следующий review**: December 23, 2025
 
 ---
 
 ## 📅 ИСТОРИЯ ИЗМЕНЕНИЙ
+
+### December 17, 2025 (Update 3)
+- ✅ Добавлены 128 новых тестов для оставшихся модулей Приоритета 2:
+  - `test_analysis.py` - 55 тестов для scanner/analysis.py
+  - `test_backtest_handler.py` - 38 тестов для backtesting handler
+  - `test_checkers.py` - 15 тестов для smart_notifications/checkers
+  - `test_handlers.py` - 14 тестов для smart_notifications/handlers
+  - `test_senders.py` - 21 тест для smart_notifications/senders
+- ✅ Приоритет 2 почти полностью завершён (большинство модулей)
+- **Общий итог**: 449 новых тестов добавлено
 
 ### December 17, 2025 (Update 2)
 - ✅ Добавлены 101 новый тест для Приоритета 2:
