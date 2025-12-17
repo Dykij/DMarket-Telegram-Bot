@@ -18,7 +18,7 @@ from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.logging_utils import get_logger
 
 
-logger = get_logger(__name__, {"component": "reactive_websocket"})
+logger = get_logger(__name__)
 
 T = TypeVar("T")
 
