@@ -106,11 +106,14 @@ class AlertStorage:
     def get_user_data(self, user_id: int) -> dict[str, Any]:
         """Получает данные пользователя или создает новую запись.
 
+        This method always returns a valid dict - it creates user data
+        if the user doesn't exist yet. Callers do not need to check for None.
+
         Args:
             user_id: ID пользователя в Telegram
 
         Returns:
-            Словарь с данными пользователя
+            Словарь с данными пользователя (never None)
 
         """
         user_id_str = str(user_id)

@@ -47,6 +47,26 @@ class TradingNotifier:
         self.notification_queue = notification_queue
         self.user_id = user_id
 
+    def _create_item_dict(
+        self, item_name: str, price: float, game: str
+    ) -> dict[str, Any]:
+        """Create item dictionary for notification functions.
+
+        Args:
+            item_name: Item name/title
+            price: Price in USD (will be converted to cents)
+            game: Game code (csgo, dota2, etc.)
+
+        Returns:
+            Item dictionary compatible with notification functions
+
+        """
+        return {
+            "title": item_name,
+            "price": {"USD": int(price * 100)},
+            "game": game,
+        }
+
     async def buy_item_with_notifications(
         self,
         item_id: str,
@@ -75,11 +95,7 @@ class TradingNotifier:
 
         # Отправить уведомление о намерении купить
         if self.bot and self.user_id:
-            item_dict = {
-                "title": item_name,
-                "price": {"USD": int(buy_price * 100)},
-                "game": game,
-            }
+            item_dict = self._create_item_dict(item_name, buy_price, game)
             reason = (
                 f"Источник: {source}, Прибыль: ${profit_usd:.2f} ({profit_percent:.1f}%)"
             )
@@ -99,11 +115,7 @@ class TradingNotifier:
             if result.get("success"):
                 # Отправить уведомление об успешной покупке
                 if self.bot and self.user_id:
-                    item_dict = {
-                        "title": item_name,
-                        "price": {"USD": int(buy_price * 100)},
-                        "game": game,
-                    }
+                    item_dict = self._create_item_dict(item_name, buy_price, game)
                     await send_buy_success_notification(
                         bot=self.bot,
                         user_id=self.user_id,
@@ -114,11 +126,7 @@ class TradingNotifier:
             elif self.bot and self.user_id:
                 # Отправить уведомление об ошибке
                 error_reason = result.get("error", "Unknown error")
-                item_dict = {
-                    "title": item_name,
-                    "price": {"USD": int(buy_price * 100)},
-                    "game": game,
-                }
+                item_dict = self._create_item_dict(item_name, buy_price, game)
                 await send_buy_failed_notification(
                     bot=self.bot,
                     user_id=self.user_id,
@@ -131,11 +139,7 @@ class TradingNotifier:
         except Exception as e:
             # Отправить уведомление об ошибке
             if self.bot and self.user_id:
-                item_dict = {
-                    "title": item_name,
-                    "price": {"USD": int(buy_price * 100)},
-                    "game": game,
-                }
+                item_dict = self._create_item_dict(item_name, buy_price, game)
                 await send_buy_failed_notification(
                     bot=self.bot,
                     user_id=self.user_id,
@@ -173,11 +177,7 @@ class TradingNotifier:
             # Если продажа успешна, отправить уведомление
             if result.get("success"):
                 if self.bot and self.user_id:
-                    item_dict = {
-                        "title": item_name,
-                        "price": {"USD": int(sell_price * 100)},
-                        "game": game,
-                    }
+                    item_dict = self._create_item_dict(item_name, sell_price, game)
                     await send_sell_success_notification(
                         bot=self.bot,
                         user_id=self.user_id,
