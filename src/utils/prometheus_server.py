@@ -44,7 +44,8 @@ class PrometheusServer:
         self.runner = web.AppRunner(self.app)
         await self.runner.setup()
 
-        self.site = web.TCPSite(self.runner, "0.0.0.0", self.port)
+        # noqa: S104  # Intentional: metrics need to be accessible from outside
+        self.site = web.TCPSite(self.runner, "0.0.0.0", self.port)  # noqa: S104
         await self.site.start()
 
         logger.info("prometheus_server_started", port=self.port)

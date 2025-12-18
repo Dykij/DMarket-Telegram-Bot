@@ -5,6 +5,7 @@ Feature flags система для управления функциональ�
 и постепенно раскатывать новые возможности.
 """
 
+import asyncio
 import enum
 import random
 from typing import Any
@@ -342,8 +343,12 @@ class FeatureFlagsManager:
         try:
             config = {"features": self.flags}
 
-            with open(self.config_path, "w", encoding="utf-8") as f:
-                yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
+            # Use asyncio.to_thread to avoid blocking
+            def _write_config() -> None:
+                with open(self.config_path, "w", encoding="utf-8") as f:
+                    yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
+
+            await asyncio.to_thread(_write_config)
 
             logger.info("feature_flags_saved", config_path=self.config_path)
 

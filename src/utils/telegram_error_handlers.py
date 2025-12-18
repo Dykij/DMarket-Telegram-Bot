@@ -274,7 +274,7 @@ class BaseHandler:
         # Extract user info
         user_id = update.effective_user.id if update.effective_user else None
 
-        # Log error
+        # Log error (exception() already includes exc_info=True)
         self.logger.exception(
             f"Error occurred: {error}",
             extra={
@@ -282,7 +282,6 @@ class BaseHandler:
                 "error": str(error),
                 "error_type": type(error).__name__,
             },
-            exc_info=True,
         )
 
         # Notify user

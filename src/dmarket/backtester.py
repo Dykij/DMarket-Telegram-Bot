@@ -665,7 +665,9 @@ class Backtester:
         for price_data in prices:
             timestamp = price_data.get("timestamp")
             if isinstance(timestamp, str):
-                timestamp = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+                timestamp = datetime.fromisoformat(timestamp.replace("Z", "")).replace(
+                    tzinfo=UTC
+                )
             elif isinstance(timestamp, int | float):
                 timestamp = datetime.fromtimestamp(timestamp, tz=UTC)
 
@@ -720,10 +722,13 @@ class Backtester:
         current_price = base_price
         start_time = datetime.now(UTC) - timedelta(days=num_days)
 
+        # Use numpy's new random Generator API
+        rng = np.random.default_rng()
+
         for day in range(num_days):
             for hour in range(points_per_day):
                 # Random walk with mean reversion
-                change = np.random.normal(0, volatility * current_price)
+                change = rng.normal(0, volatility * current_price)
                 mean_reversion = (base_price - current_price) * 0.1
                 current_price = max(0.01, current_price + change + mean_reversion)
 
@@ -733,7 +738,7 @@ class Backtester:
                     item_id=item_id,
                     item_name=item_name,
                     price=round(current_price, 2),
-                    volume=int(np.random.poisson(5)),
+                    volume=int(rng.poisson(5)),
                 )
                 dataset.add_price(price_point)
 
