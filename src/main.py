@@ -319,12 +319,11 @@ class Application:
             # Отправить уведомления
             for user_id in admin_users:
                 try:
-                    details = {"consecutive_errors": consecutive_errors}
                     await send_critical_shutdown_notification(
                         bot=self.bot.bot,
                         user_id=int(user_id),
                         reason=reason,
-                        details=details,
+                        details={"consecutive_errors": consecutive_errors},
                     )
                     logger.info(
                         f"Critical shutdown notification sent to {user_id}",

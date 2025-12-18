@@ -8,11 +8,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from decimal import Decimal
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-
-if TYPE_CHECKING:
-    from .models import Portfolio, PortfolioItem
+from .models import Portfolio, PortfolioItem
 
 
 logger = logging.getLogger(__name__)

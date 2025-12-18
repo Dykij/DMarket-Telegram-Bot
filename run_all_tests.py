@@ -3,6 +3,7 @@
 import subprocess
 import sys
 
+
 if __name__ == "__main__":
     print("=" * 80)
     print("Starting full test suite...")

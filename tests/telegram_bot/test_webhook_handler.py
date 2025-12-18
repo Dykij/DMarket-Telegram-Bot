@@ -214,9 +214,7 @@ class TestWebhookFailover:
         return handler
 
     @pytest.fixture()
-    def failover(
-        self, mock_bot_app: MagicMock, mock_webhook_handler: MagicMock
-    ) -> WebhookFailover:
+    def failover(self, mock_bot_app: MagicMock, mock_webhook_handler: MagicMock) -> WebhookFailover:
         """Create WebhookFailover instance."""
         return WebhookFailover(
             bot_app=mock_bot_app,
@@ -289,9 +287,7 @@ class TestWebhookFailover:
         await failover.stop()
 
     @pytest.mark.asyncio()
-    async def test_stop(
-        self, failover: WebhookFailover, mock_webhook_handler: MagicMock
-    ) -> None:
+    async def test_stop(self, failover: WebhookFailover, mock_webhook_handler: MagicMock) -> None:
         """Test stopping failover manager."""
         await failover.start_with_failover()
         await failover.stop()

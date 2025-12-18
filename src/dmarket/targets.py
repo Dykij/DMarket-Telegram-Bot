@@ -25,7 +25,7 @@ from src.dmarket.targets import (
 
 # Emit deprecation warning
 warnings.warn(
-    "targets.py is deprecated. " "Import from src.dmarket.targets instead.",
+    "targets.py is deprecated. Import from src.dmarket.targets instead.",
     DeprecationWarning,
     stacklevel=2,
 )

@@ -25,7 +25,6 @@ class IDMarketAPI(Protocol):
         >>> class MockAPI:
         ...     async def get_balance(self) -> dict[str, Any]:
         ...         return {"balance": 100.0}
-        ...
         >>> mock = MockAPI()
         >>> isinstance(mock, IDMarketAPI)
         True
@@ -104,39 +103,6 @@ class IDMarketAPI(Protocol):
         """
         ...
 
-    async def create_target(
-        self,
-        game: str,
-        title: str,
-        price: float,
-        amount: int = 1,
-        **kwargs: Any,
-    ) -> dict[str, Any]:
-        """Создать одиночный таргет (buy order).
-
-        Args:
-            game: Код игры
-            title: Название предмета
-            price: Цена покупки
-            amount: Количество
-            **kwargs: Дополнительные параметры
-
-        Returns:
-            Результат создания таргета
-        """
-        ...
-
-    async def delete_target(self, target_id: str) -> dict[str, Any]:
-        """Удалить таргет.
-
-        Args:
-            target_id: ID таргета для удаления
-
-        Returns:
-            Результат удаления
-        """
-        ...
-
     async def get_user_targets(
         self,
         game_id: str | None = None,
@@ -151,101 +117,55 @@ class IDMarketAPI(Protocol):
         """
         ...
 
-    async def get_targets_by_title(
-        self,
-        title: str,
-        game: str | None = None,
-    ) -> dict[str, Any]:
-        """Получить таргеты по названию предмета.
-
-        Args:
-            title: Название предмета
-            game: Опциональный фильтр по игре
-
-        Returns:
-            Список таргетов
-        """
-        ...
-
-    async def get_closed_targets(
-        self,
-        game_id: str | None = None,
-        limit: int = 100,
-    ) -> dict[str, Any]:
-        """Получить закрытые таргеты.
-
-        Args:
-            game_id: Опциональный фильтр по игре
-            limit: Максимальное количество
-
-        Returns:
-            Список закрытых таргетов
-        """
-        ...
-
     async def get_sales_history(
         self,
-        item_id: str,
-        **kwargs: Any,
+        game: str,
+        title: str,
+        limit: int = 100,
     ) -> dict[str, Any]:
         """Получить историю продаж предмета.
 
         Args:
-            item_id: ID предмета
-            **kwargs: Дополнительные параметры
+            game: Код игры
+            title: Название предмета
+            limit: Максимальное количество записей
 
         Returns:
-            История продаж
+            История продаж с ценами и датами
         """
         ...
 
     async def get_aggregated_prices_bulk(
         self,
-        item_ids: list[str],
-        **kwargs: Any,
+        titles: list[str],
+        game: str = "csgo",
     ) -> dict[str, Any]:
         """Получить агрегированные цены для нескольких предметов.
 
         Args:
-            item_ids: Список ID предметов
-            **kwargs: Дополнительные параметры
+            titles: Список названий предметов
+            game: Код игры
 
         Returns:
-            Агрегированные цены
+            Агрегированные цены для каждого предмета
         """
         ...
 
     async def get_user_inventory(
         self,
-        game: str | None = None,
-        **kwargs: Any,
+        game_id: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
     ) -> dict[str, Any]:
         """Получить инвентарь пользователя.
 
         Args:
-            game: Опциональный фильтр по игре
-            **kwargs: Дополнительные параметры
+            game_id: Опциональный фильтр по игре
+            limit: Максимальное количество предметов
+            offset: Смещение для пагинации
 
         Returns:
-            Инвентарь пользователя
-        """
-        ...
-
-    async def get_buy_orders_competition(
-        self,
-        title: str,
-        game: str,
-        **kwargs: Any,
-    ) -> dict[str, Any]:
-        """Получить конкуренцию по buy orders.
-
-        Args:
-            title: Название предмета
-            game: Код игры
-            **kwargs: Дополнительные параметры
-
-        Returns:
-            Данные о конкуренции
+            Список предметов в инвентаре
         """
         ...
 

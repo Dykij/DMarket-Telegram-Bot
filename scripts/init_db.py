@@ -3,10 +3,11 @@
 This script initializes the database schema using Alembic migrations.
 """
 
+from pathlib import Path
 import subprocess
 import sys
 import traceback
-from pathlib import Path
+
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))

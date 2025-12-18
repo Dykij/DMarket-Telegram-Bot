@@ -13,9 +13,10 @@ Exit codes:
     1 - Обнаружена кириллица в файлах
 """
 
+from pathlib import Path
 import re
 import sys
-from pathlib import Path
+
 
 # Опасные кириллические символы, похожие на латиницу
 DANGEROUS_CYRILLIC_CHARS: dict[str, str] = {

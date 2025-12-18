@@ -51,7 +51,7 @@ logger = logging.getLogger(__name__)
 
 # Emit deprecation warning
 warnings.warn(
-    "smart_notifier.py is deprecated. " "Import from src.telegram_bot.smart_notifications instead.",
+    "smart_notifier.py is deprecated. Import from src.telegram_bot.smart_notifications instead.",
     DeprecationWarning,
     stacklevel=2,
 )
@@ -61,30 +61,39 @@ _user_preferences = get_user_preferences()
 _active_alerts = get_active_alerts()
 
 __all__ = [
+    # Constants
     "DATA_DIR",
     "DEFAULT_COOLDOWN",
     "NOTIFICATION_TYPES",
     "SMART_ALERTS_FILE",
-    "check_market_opportunities",
-    "check_price_alerts",
+    # Preferences
+    "load_user_preferences",
+    "save_user_preferences",
+    "register_user",
+    "update_user_preferences",
+    # Alerts
     "create_alert",
     "deactivate_alert",
-    "get_item_by_id",
-    "get_item_price",
+    "get_user_alerts",
+    # Checkers
+    "check_price_alerts",
+    "check_market_opportunities",
+    # Throttling
+    "should_throttle_notification",
+    "record_notification",
+    # Senders
+    "send_price_alert_notification",
+    "send_market_opportunity_notification",
+    "notify_user",
+    # Handlers
+    "handle_notification_callback",
+    "register_notification_handlers",
+    # Utils
     "get_market_data_for_items",
+    "get_item_by_id",
     "get_market_items_for_game",
     "get_price_history_for_items",
-    "get_user_alerts",
-    "handle_notification_callback",
-    "load_user_preferences",
-    "notify_user",
-    "record_notification",
-    "register_notification_handlers",
-    "register_user",
-    "save_user_preferences",
-    "send_market_opportunity_notification",
-    "send_price_alert_notification",
-    "should_throttle_notification",
+    "get_item_price",
+    # Main
     "start_notification_checker",
-    "update_user_preferences",
 ]

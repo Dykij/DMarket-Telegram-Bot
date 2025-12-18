@@ -17,9 +17,7 @@ Usage:
 
     # Load historical data
     await backtester.load_historical_data(
-        game="csgo",
-        start_date=datetime(2025, 1, 1),
-        end_date=datetime(2025, 6, 1)
+        game="csgo", start_date=datetime(2025, 1, 1), end_date=datetime(2025, 6, 1)
     )
 
     # Run backtest with strategy

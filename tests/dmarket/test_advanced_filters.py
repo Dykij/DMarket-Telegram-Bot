@@ -137,9 +137,7 @@ class TestCategoryFilter:
         assert result == FilterResult.FAIL
         assert "Sticker" in reason
 
-    def test_bad_category_graffiti(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    def test_bad_category_graffiti(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test that graffiti is filtered out."""
         item = {"title": "Sealed Graffiti | Piggles", "price": {"USD": 50}}
         result, reason = filter_instance._check_category(item["title"], item)
@@ -157,16 +155,20 @@ class TestCategoryFilter:
 
         assert result == FilterResult.PASS
 
-    def test_is_in_good_category(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    def test_is_in_good_category(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test good category detection."""
         # Check items with explicit category keywords
         assert filter_instance.is_in_good_category("AWP | Rifle Skin") is True  # Has "Rifle"
-        assert filter_instance.is_in_good_category("★ Butterfly Knife | Fade") is True  # Has "Knife"
+        assert (
+            filter_instance.is_in_good_category("★ Butterfly Knife | Fade") is True
+        )  # Has "Knife"
         assert filter_instance.is_in_good_category("Glock-18 | Pistol Skin") is True  # Has "Pistol"
-        assert filter_instance.is_in_good_category("Sticker | AWP") is False  # No good category keyword
-        assert filter_instance.is_in_good_category("AK-47 | Redline") is False  # No explicit category keyword
+        assert (
+            filter_instance.is_in_good_category("Sticker | AWP") is False
+        )  # No good category keyword
+        assert (
+            filter_instance.is_in_good_category("AK-47 | Redline") is False
+        )  # No explicit category keyword
 
 
 class TestPriceExtraction:
@@ -177,33 +179,25 @@ class TestPriceExtraction:
         """Create filter instance."""
         return AdvancedArbitrageFilter()
 
-    def test_extract_price_usd_dict(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    def test_extract_price_usd_dict(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test price extraction from USD dict."""
         item = {"price": {"USD": 1500}}  # $15.00 in cents
         price = filter_instance._extract_price(item)
         assert price == 15.0
 
-    def test_extract_price_sales_price(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    def test_extract_price_sales_price(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test price extraction from salesPrice."""
         item = {"salesPrice": 2000}  # $20.00 in cents
         price = filter_instance._extract_price(item)
         assert price == 20.0
 
-    def test_extract_price_suggested(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    def test_extract_price_suggested(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test price extraction from suggestedPrice."""
         item = {"suggestedPrice": {"USD": 2500}}
         price = filter_instance._extract_price(item)
         assert price == 25.0
 
-    def test_extract_price_missing(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    def test_extract_price_missing(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test price extraction when no price field."""
         item = {"title": "Test Item"}
         price = filter_instance._extract_price(item)
@@ -224,18 +218,14 @@ class TestLiquidityFilter:
         result, reason = filter_instance._check_liquidity(item)
         assert result == FilterResult.PASS
 
-    def test_liquidity_no_offers(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    def test_liquidity_no_offers(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test item with no offers fails."""
         item = {"offersCount": 0}
         result, reason = filter_instance._check_liquidity(item)
         assert result == FilterResult.FAIL
         assert "No active market offers" in reason
 
-    def test_liquidity_low_score(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    def test_liquidity_low_score(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test item with low liquidity score fails."""
         item = {"offersCount": 10, "liquidityScore": 30}
         result, reason = filter_instance._check_liquidity(item)
@@ -349,9 +339,7 @@ class TestOutlierDetection:
         return filter_inst
 
     @pytest.mark.asyncio()
-    async def test_outlier_pass(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    async def test_outlier_pass(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test normal price passes outlier check."""
         mock_client = MagicMock()
 
@@ -365,9 +353,7 @@ class TestOutlierDetection:
         assert result == FilterResult.PASS
 
     @pytest.mark.asyncio()
-    async def test_outlier_fail_high(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    async def test_outlier_fail_high(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test high outlier price fails."""
         mock_client = MagicMock()
 
@@ -382,9 +368,7 @@ class TestOutlierDetection:
         assert "outlier" in reason.lower()
 
     @pytest.mark.asyncio()
-    async def test_outlier_fail_low(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    async def test_outlier_fail_low(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test low outlier price fails."""
         mock_client = MagicMock()
 
@@ -411,9 +395,7 @@ class TestFullEvaluation:
         return AdvancedArbitrageFilter(config=config)
 
     @pytest.mark.asyncio()
-    async def test_evaluate_good_item(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    async def test_evaluate_good_item(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test evaluation of a good item."""
         item = {
             "title": "AK-47 | Redline (Field-Tested)",
@@ -427,9 +409,7 @@ class TestFullEvaluation:
         assert filter_instance.statistics.passed == 1
 
     @pytest.mark.asyncio()
-    async def test_evaluate_bad_category(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    async def test_evaluate_bad_category(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test evaluation of item in bad category."""
         item = {
             "title": "Sticker | AWP (Holo)",
@@ -443,9 +423,7 @@ class TestFullEvaluation:
         assert filter_instance.statistics.failed_category == 1
 
     @pytest.mark.asyncio()
-    async def test_evaluate_low_price(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    async def test_evaluate_low_price(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test evaluation of low-priced item."""
         item = {
             "title": "AK-47 | Safari Mesh",
@@ -509,32 +487,24 @@ class TestMathHelpers:
         """Create filter instance."""
         return AdvancedArbitrageFilter()
 
-    def test_calculate_median_odd(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    def test_calculate_median_odd(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test median calculation with odd count."""
         numbers = [1.0, 2.0, 3.0, 4.0, 5.0]
         median = filter_instance._calculate_median(numbers)
         assert median == 3.0
 
-    def test_calculate_median_even(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    def test_calculate_median_even(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test median calculation with even count."""
         numbers = [1.0, 2.0, 3.0, 4.0]
         median = filter_instance._calculate_median(numbers)
         assert median == 2.5
 
-    def test_calculate_median_empty(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    def test_calculate_median_empty(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test median calculation with empty list."""
         median = filter_instance._calculate_median([])
         assert median == 0.0
 
-    def test_calculate_std_dev(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    def test_calculate_std_dev(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test standard deviation calculation."""
         numbers = [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0]
         mean = sum(numbers) / len(numbers)  # 5.0
@@ -543,9 +513,7 @@ class TestMathHelpers:
         # Expected sample std dev ≈ 2.14 (using n-1 formula)
         assert abs(std_dev - 2.14) < 0.1
 
-    def test_calculate_std_dev_insufficient(
-        self, filter_instance: AdvancedArbitrageFilter
-    ) -> None:
+    def test_calculate_std_dev_insufficient(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test std dev with insufficient data."""
         std_dev = filter_instance._calculate_std_dev([1.0], 1.0)
         assert std_dev == 0.0

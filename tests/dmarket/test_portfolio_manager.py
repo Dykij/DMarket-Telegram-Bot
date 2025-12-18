@@ -508,9 +508,7 @@ class TestRebalancing:
             category_distribution={"Knife": 50.0, "Rifle": 40.0},
         )
 
-        recommendations = await portfolio_manager.get_rebalancing_recommendations(
-            snapshot=snapshot
-        )
+        recommendations = await portfolio_manager.get_rebalancing_recommendations(snapshot=snapshot)
 
         # Should recommend selling the overconcentrated item
         sell_recs = [r for r in recommendations if r.action == RebalanceAction.SELL]
@@ -545,9 +543,7 @@ class TestRebalancing:
             category_distribution={"Rifle": 50.0},
         )
 
-        recommendations = await portfolio_manager.get_rebalancing_recommendations(
-            snapshot=snapshot
-        )
+        recommendations = await portfolio_manager.get_rebalancing_recommendations(snapshot=snapshot)
 
         # Should recommend price reduction
         price_recs = [r for r in recommendations if r.action == RebalanceAction.REDUCE_PRICE]
@@ -581,9 +577,7 @@ class TestRebalancing:
             category_distribution={"Rifle": 50.0},
         )
 
-        recommendations = await portfolio_manager.get_rebalancing_recommendations(
-            snapshot=snapshot
-        )
+        recommendations = await portfolio_manager.get_rebalancing_recommendations(snapshot=snapshot)
 
         # Should recommend cancelling target
         cancel_recs = [r for r in recommendations if r.action == RebalanceAction.CANCEL_TARGET]
@@ -806,9 +800,7 @@ class TestEdgeCases:
         snapshot = await pm.get_portfolio_snapshot()
 
         # Should have negative profit
-        losing_asset = next(
-            (a for a in snapshot.assets if a.item_name == "Losing Item"), None
-        )
+        losing_asset = next((a for a in snapshot.assets if a.item_name == "Losing Item"), None)
         if losing_asset:
             assert losing_asset.profit_loss < 0
 

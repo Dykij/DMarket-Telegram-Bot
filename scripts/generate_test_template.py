@@ -16,8 +16,8 @@ Examples:
 
 import argparse
 import ast
-import sys
 from pathlib import Path
+import sys
 from typing import Any
 
 

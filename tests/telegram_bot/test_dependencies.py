@@ -285,6 +285,7 @@ class TestInjectDependencies:
     @pytest.mark.asyncio()
     async def test_handles_missing_dependencies(self, mock_context):
         """Тест обработки отсутствующих зависимостей."""
+
         @inject_dependencies
         async def handler(update, context, *, dmarket_api=None, scanner=None):
             return {"api": dmarket_api, "scanner": scanner}

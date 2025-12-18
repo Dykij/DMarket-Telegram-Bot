@@ -11,11 +11,9 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from enum import Enum
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-
-if TYPE_CHECKING:
-    from .historical_data import PriceHistory, PricePoint
+from .historical_data import PriceHistory, PricePoint
 
 
 logger = logging.getLogger(__name__)

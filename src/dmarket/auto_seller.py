@@ -22,7 +22,7 @@ Usage:
         item_id="abc123",
         item_name="AK-47 | Redline",
         buy_price=10.50,
-        target_margin=0.08  # 8% target margin
+        target_margin=0.08,  # 8% target margin
     )
 
     # Start background price adjustment

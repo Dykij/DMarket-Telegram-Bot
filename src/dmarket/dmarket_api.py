@@ -428,11 +428,11 @@ class DMarketAPI:
             # Для POST-данных используем хеш от JSON
             try:
                 data_str = json.dumps(data, sort_keys=True)
-                key_parts.append(hashlib.md5(data_str.encode()).hexdigest())
+                key_parts.append(hashlib.sha256(data_str.encode()).hexdigest())
             except (TypeError, ValueError):
                 key_parts.append(str(data))
 
-        return hashlib.md5("|".join(key_parts).encode()).hexdigest()
+        return hashlib.sha256("|".join(key_parts).encode()).hexdigest()
 
     def _is_cacheable(self, method: str, path: str) -> tuple[bool, str]:
         """Определяет, можно ли кэшировать данный запрос и на какой период.
@@ -2686,9 +2686,7 @@ class DMarketAPI:
 
         Example:
             >>> competition = await api.get_buy_orders_competition(
-            ...     game_id="csgo",
-            ...     title="AK-47 | Redline (Field-Tested)",
-            ...     price_threshold=8.00
+            ...     game_id="csgo", title="AK-47 | Redline (Field-Tested)", price_threshold=8.00
             ... )
             >>> if competition["competition_level"] == "low":
             ...     print("Низкая конкуренция - можно создавать таргет")
@@ -2877,7 +2875,7 @@ class DMarketAPI:
                 self.ENDPOINT_GAMES_LIST,
             )
 
-            if not isinstance(response, list):  # type: ignore[unreachable]
+            if not isinstance(response, list):
                 logger.warning(f"Неожиданный формат ответа от /game/v1/games: {type(response)}")
                 return []
 

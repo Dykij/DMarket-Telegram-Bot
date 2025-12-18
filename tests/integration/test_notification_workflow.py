@@ -18,7 +18,7 @@ import pytest
 # ============================================================================
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_bot():
     """Create mock Telegram bot."""
     bot = AsyncMock()
@@ -26,7 +26,7 @@ def mock_bot():
     return bot
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_user_settings():
     """Create mock user notification settings."""
     return {
@@ -44,7 +44,7 @@ def mock_user_settings():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_notifications():
     """Create sample notifications."""
     return [
@@ -84,7 +84,7 @@ def sample_notifications():
 class TestNotificationQueueIntegration:
     """Tests for notification queue integration."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_queue_creation(self, mock_bot):
         """Test notification queue creation."""
         from src.telegram_bot.notification_queue import NotificationQueue
@@ -95,7 +95,7 @@ class TestNotificationQueueIntegration:
         assert queue.bot is mock_bot
         assert not queue.is_running
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_queue_enqueue_method_exists(self, mock_bot):
         """Test queue has enqueue method."""
         from src.telegram_bot.notification_queue import NotificationQueue
@@ -104,7 +104,7 @@ class TestNotificationQueueIntegration:
 
         assert hasattr(queue, "enqueue")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_queue_start_stop(self, mock_bot):
         """Test queue start and stop."""
         from src.telegram_bot.notification_queue import NotificationQueue
@@ -128,7 +128,7 @@ class TestNotificationQueueIntegration:
 class TestNotificationFilteringIntegration:
     """Tests for notification filtering integration."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_filters_disabled_notification_types(
         self, mock_bot, mock_user_settings, sample_notifications
     ):
@@ -147,7 +147,7 @@ class TestNotificationFilteringIntegration:
         enabled = mock_user_settings["notification_types"].get("price_rise", True)
         assert enabled is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_filters_during_quiet_hours(self, mock_user_settings):
         """Test filtering during quiet hours."""
         current_hour = datetime.now().hour
@@ -171,17 +171,14 @@ class TestNotificationFilteringIntegration:
         if is_quiet:
             assert True  # Would filter
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_respects_daily_limit(self, mock_user_settings):
         """Test respecting daily notification limit."""
         mock_user_settings["max_alerts_per_day"] = 5
         mock_user_settings["daily_count"] = 5
 
         # Already at limit
-        at_limit = (
-            mock_user_settings["daily_count"]
-            >= mock_user_settings["max_alerts_per_day"]
-        )
+        at_limit = mock_user_settings["daily_count"] >= mock_user_settings["max_alerts_per_day"]
         assert at_limit is True
 
 
@@ -193,7 +190,7 @@ class TestNotificationFilteringIntegration:
 class TestNotificationFormattingIntegration:
     """Tests for notification formatting integration."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_format_price_drop_notification(self, sample_notifications):
         """Test formatting price drop notification."""
         notification = sample_notifications[0]  # price_drop
@@ -208,7 +205,7 @@ class TestNotificationFormattingIntegration:
         assert notification["item"] in message
         assert f"{notification['old_price']:.2f}" in message
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_format_arbitrage_notification(self, sample_notifications):
         """Test formatting arbitrage notification."""
         notification = sample_notifications[1]  # arbitrage
@@ -218,13 +215,15 @@ class TestNotificationFormattingIntegration:
         message += f"🎮 {notification['item']}\n"
         message += f"📊 Покупка: ${notification['buy_price']:.2f}\n"
         message += f"📈 Продажа: ${notification['sell_price']:.2f}\n"
-        message += f"💵 Прибыль: ${notification['profit']:.2f} ({notification['profit_percent']:.1f}%)"
+        message += (
+            f"💵 Прибыль: ${notification['profit']:.2f} ({notification['profit_percent']:.1f}%)"
+        )
 
         assert "💰" in message
         assert notification["item"] in message
         assert f"{notification['profit']:.2f}" in message
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_format_good_deal_notification(self, sample_notifications):
         """Test formatting good deal notification."""
         notification = sample_notifications[2]  # good_deal
@@ -249,7 +248,7 @@ class TestNotificationFormattingIntegration:
 class TestNotificationDeliveryIntegration:
     """Tests for notification delivery integration."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_successful_delivery(self, mock_bot):
         """Test successful notification delivery."""
         user_id = 123456789
@@ -259,24 +258,22 @@ class TestNotificationDeliveryIntegration:
 
         mock_bot.send_message.assert_called_once_with(chat_id=user_id, text=message)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_delivery_with_keyboard(self, mock_bot):
         """Test notification delivery with inline keyboard."""
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
         user_id = 123456789
         message = "Test notification"
-        keyboard = InlineKeyboardMarkup(
-            [[InlineKeyboardButton("View Details", callback_data="view_details")]]
-        )
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("View Details", callback_data="view_details")]
+        ])
 
-        await mock_bot.send_message(
-            chat_id=user_id, text=message, reply_markup=keyboard
-        )
+        await mock_bot.send_message(chat_id=user_id, text=message, reply_markup=keyboard)
 
         assert mock_bot.send_message.called
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_delivery_retry_on_failure(self, mock_bot):
         """Test notification delivery retry on failure."""
         # First attempt fails, second succeeds
@@ -307,7 +304,7 @@ class TestNotificationDeliveryIntegration:
 class TestNotificationStorageIntegration:
     """Tests for notification storage integration."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_save_notification_history(self):
         """Test saving notification to history."""
         history = []
@@ -324,7 +321,7 @@ class TestNotificationStorageIntegration:
         assert len(history) == 1
         assert history[0]["type"] == "price_drop"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_recent_notifications(self):
         """Test getting recent notifications."""
         history = [
@@ -340,7 +337,7 @@ class TestNotificationStorageIntegration:
         assert recent[0]["type"] == "arbitrage"
         assert recent[1]["type"] == "good_deal"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_clear_old_notifications(self):
         """Test clearing old notifications."""
         history = [
@@ -364,7 +361,7 @@ class TestNotificationStorageIntegration:
 class TestCompleteNotificationWorkflow:
     """Tests for complete notification workflow."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_price_alert_workflow(self, mock_bot, mock_user_settings):
         """Test complete price alert workflow."""
         # Step 1: Price change detected
@@ -384,13 +381,11 @@ class TestCompleteNotificationWorkflow:
         message = f"📉 {price_change['title']}: ${price_change['old_price']} → ${price_change['new_price']}"
 
         # Step 4: Send notification
-        await mock_bot.send_message(
-            chat_id=mock_user_settings["user_id"], text=message
-        )
+        await mock_bot.send_message(chat_id=mock_user_settings["user_id"], text=message)
 
         assert mock_bot.send_message.called
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_arbitrage_alert_workflow(self, mock_bot, mock_user_settings):
         """Test complete arbitrage alert workflow."""
         # Step 1: Arbitrage opportunity found
@@ -408,13 +403,11 @@ class TestCompleteNotificationWorkflow:
 
         # Step 3: Format and send
         message = f"💰 Арбитраж: {opportunity['item']} +${opportunity['profit']:.2f}"
-        await mock_bot.send_message(
-            chat_id=mock_user_settings["user_id"], text=message
-        )
+        await mock_bot.send_message(chat_id=mock_user_settings["user_id"], text=message)
 
         assert mock_bot.send_message.called
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_daily_digest_workflow(self, mock_bot, mock_user_settings):
         """Test daily digest notification workflow."""
         # Step 1: Collect daily statistics
@@ -437,9 +430,7 @@ class TestCompleteNotificationWorkflow:
         )
 
         # Step 3: Send digest
-        await mock_bot.send_message(
-            chat_id=mock_user_settings["user_id"], text=message
-        )
+        await mock_bot.send_message(chat_id=mock_user_settings["user_id"], text=message)
 
         assert mock_bot.send_message.called
         assert "📊" in message

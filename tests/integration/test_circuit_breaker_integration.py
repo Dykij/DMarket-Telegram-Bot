@@ -6,9 +6,8 @@
 - Взаимодействие с API клиентом
 """
 
-import pytest
-
 import httpx
+import pytest
 
 
 # ============================================================================
@@ -19,7 +18,7 @@ import httpx
 class TestCircuitBreakerConfiguration:
     """Tests for circuit breaker configuration."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_circuit_breaker_exists(self):
         """Test circuit breaker module exists."""
         from src.utils.api_circuit_breaker import APICircuitBreaker
@@ -27,26 +26,26 @@ class TestCircuitBreakerConfiguration:
         cb = APICircuitBreaker(name="test")
         assert cb is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_circuit_breaker_failure_threshold(self):
         """Test circuit breaker has correct failure threshold."""
         from src.utils.api_circuit_breaker import APICircuitBreaker
 
         assert APICircuitBreaker.FAILURE_THRESHOLD == 5
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_circuit_breaker_recovery_timeout(self):
         """Test circuit breaker has correct recovery timeout."""
         from src.utils.api_circuit_breaker import APICircuitBreaker
 
         assert APICircuitBreaker.RECOVERY_TIMEOUT == 60
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_circuit_breaker_expected_exception(self):
         """Test circuit breaker has expected exception type."""
         from src.utils.api_circuit_breaker import APICircuitBreaker
 
-        assert APICircuitBreaker.EXPECTED_EXCEPTION == httpx.HTTPError
+        assert httpx.HTTPError == APICircuitBreaker.EXPECTED_EXCEPTION
 
 
 # ============================================================================
@@ -57,14 +56,14 @@ class TestCircuitBreakerConfiguration:
 class TestCircuitBreakerGlobalInstance:
     """Tests for circuit breaker global instance."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_dmarket_api_breaker_exists(self):
         """Test DMarket API circuit breaker exists."""
         from src.utils.api_circuit_breaker import dmarket_api_breaker
 
         assert dmarket_api_breaker is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_dmarket_api_breaker_type(self):
         """Test DMarket circuit breaker is APICircuitBreaker."""
         from src.utils.api_circuit_breaker import (
@@ -83,7 +82,7 @@ class TestCircuitBreakerGlobalInstance:
 class TestCircuitBreakerInheritance:
     """Tests for circuit breaker inheritance."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_circuit_breaker_inherits_from_circuitbreaker(self):
         """Test APICircuitBreaker inherits from circuitbreaker.CircuitBreaker."""
         from circuitbreaker import CircuitBreaker
@@ -92,7 +91,7 @@ class TestCircuitBreakerInheritance:
 
         assert issubclass(APICircuitBreaker, CircuitBreaker)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_circuit_breaker_is_callable(self):
         """Test circuit breaker is callable as decorator."""
         from src.utils.api_circuit_breaker import APICircuitBreaker
@@ -109,14 +108,14 @@ class TestCircuitBreakerInheritance:
 class TestCircuitBreakerHelperFunction:
     """Tests for circuit breaker helper function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_with_circuit_breaker_exists(self):
         """Test call_with_circuit_breaker function exists."""
         from src.utils.api_circuit_breaker import call_with_circuit_breaker
 
         assert callable(call_with_circuit_breaker)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_with_circuit_breaker_success(self):
         """Test call_with_circuit_breaker with successful call."""
         from src.utils.api_circuit_breaker import call_with_circuit_breaker

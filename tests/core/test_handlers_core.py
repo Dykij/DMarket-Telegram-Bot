@@ -2,7 +2,7 @@
 
 Покрывают основные команды:
 - /start
-- /help  
+- /help
 - /balance
 - /webapp
 """

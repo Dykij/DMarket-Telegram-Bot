@@ -15,6 +15,7 @@ import time
 from src.utils.config import Config
 from src.utils.database import DatabaseManager
 
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 

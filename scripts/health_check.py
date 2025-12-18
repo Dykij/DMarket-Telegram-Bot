@@ -17,12 +17,12 @@ Usage:
 
 import argparse
 import asyncio
+from datetime import UTC, datetime
 import json
 import logging
 import os
-import sys
-from datetime import datetime, timezone
 from pathlib import Path
+import sys
 from typing import Any
 
 
@@ -32,17 +32,18 @@ from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.config import Config
 from src.utils.database import DatabaseManager
 
+
 logger = logging.getLogger(__name__)
 
 
 def get_utc_timestamp() -> str:
     """Get current UTC timestamp in ISO format."""
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def get_readable_timestamp() -> str:
     """Get current UTC timestamp in human-readable format for Telegram messages."""
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    return datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
 
 
 def format_error_json(error: str) -> str:
@@ -55,11 +56,14 @@ def format_error_json(error: str) -> str:
         JSON formatted error response
 
     """
-    return json.dumps({
-        "timestamp": get_utc_timestamp(),
-        "all_healthy": False,
-        "error": error,
-    }, indent=2)
+    return json.dumps(
+        {
+            "timestamp": get_utc_timestamp(),
+            "all_healthy": False,
+            "error": error,
+        },
+        indent=2,
+    )
 
 
 def get_status_emoji(status: str) -> str:
@@ -397,9 +401,7 @@ async def main() -> int:
         )
 
         # Check if all tests passed (excluding skipped)
-        all_healthy = all(
-            r["status"] in ("healthy", "skipped") for r in results
-        )
+        all_healthy = all(r["status"] in ("healthy", "skipped") for r in results)
 
         # JSON output
         if args.json:
@@ -444,6 +446,7 @@ async def main() -> int:
             print()
             print(f"❌ Unexpected error: {e}")
             import traceback
+
             traceback.print_exc()
 
         if args.json:

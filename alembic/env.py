@@ -8,14 +8,15 @@ This module configures Alembic for database migrations with:
 - Type and default comparison
 """
 
-import os
-import sys
 from logging.config import fileConfig
+import os
 from pathlib import Path
+import sys
 
 from sqlalchemy import MetaData, pool
 
 from alembic import context
+
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -24,6 +25,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # ruff: noqa: E402
 from src.models.target import Base as TargetBase
 from src.models.user import Base as UserBase
+
 
 # Naming conventions for constraints
 # This ensures consistent naming across all migrations

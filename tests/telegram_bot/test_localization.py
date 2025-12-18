@@ -15,6 +15,7 @@ import pytest
 
 from src.telegram_bot.localization import LANGUAGES, LOCALIZATIONS
 
+
 # ============================================================================
 # Test Class: Language Definitions
 # ============================================================================

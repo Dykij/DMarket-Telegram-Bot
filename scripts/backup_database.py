@@ -166,9 +166,7 @@ class DatabaseBackup:
 
                 if self.compress:
                     # Compress the backup
-                    with Path(backup_raw).open("rb") as f_in, gzip.open(
-                        backup_path, "wb"
-                    ) as f_out:
+                    with Path(backup_raw).open("rb") as f_in, gzip.open(backup_path, "wb") as f_out:
                         shutil.copyfileobj(f_in, f_out)
                     Path(backup_raw).unlink()
                 else:
@@ -328,14 +326,12 @@ class DatabaseBackup:
 
         for backup_file in self.backup_dir.glob(f"dmarket_bot_{self.db_type}_*"):
             stat = backup_file.stat()
-            backups.append(
-                {
-                    "filename": backup_file.name,
-                    "path": str(backup_file),
-                    "size_mb": stat.st_size / (1024 * 1024),
-                    "created_at": datetime.fromtimestamp(stat.st_mtime, tz=UTC),
-                }
-            )
+            backups.append({
+                "filename": backup_file.name,
+                "path": str(backup_file),
+                "size_mb": stat.st_size / (1024 * 1024),
+                "created_at": datetime.fromtimestamp(stat.st_mtime, tz=UTC),
+            })
 
         return sorted(backups, key=lambda x: x["created_at"], reverse=True)
 

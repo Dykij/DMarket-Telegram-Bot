@@ -88,9 +88,7 @@ class TestArbitrageLevelsConstants:
 
         for level_name, level_config in ARBITRAGE_LEVELS.items():
             for field in required_fields:
-                assert field in level_config, (
-                    f"Level {level_name} missing field {field}"
-                )
+                assert field in level_config, f"Level {level_name} missing field {field}"
 
     def test_profit_percentages_ascending(self):
         """Тест что процент прибыли возрастает с уровнем."""
@@ -177,10 +175,7 @@ class TestArbitrageScannerFiltering:
         ]
 
         # Фильтрация результатов с минимальной прибылью 10%
-        filtered = [
-            opp for opp in opportunities
-            if opp["profit_percent"] >= 10.0
-        ]
+        filtered = [opp for opp in opportunities if opp["profit_percent"] >= 10.0]
 
         assert len(filtered) == 2
         assert all(opp["profit_percent"] >= 10.0 for opp in filtered)
@@ -198,8 +193,7 @@ class TestArbitrageScannerFiltering:
         # Фильтрация по диапазону 10-20
         price_range = (10.0, 20.0)
         filtered = [
-            opp for opp in opportunities
-            if price_range[0] <= opp["buy_price"] <= price_range[1]
+            opp for opp in opportunities if price_range[0] <= opp["buy_price"] <= price_range[1]
         ]
 
         assert len(filtered) == 1
@@ -266,9 +260,7 @@ class TestArbitrageScannerCaching:
         # Проверка устаревания
         cached_entry = cache.get(cache_key)
         if cached_entry:
-            is_expired = (
-                time.time() - cached_entry["timestamp"] > cache_ttl
-            )
+            is_expired = time.time() - cached_entry["timestamp"] > cache_ttl
             assert is_expired is True
 
 

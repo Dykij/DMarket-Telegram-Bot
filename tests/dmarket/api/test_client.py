@@ -22,6 +22,7 @@ import pytest
 
 from src.dmarket.api.client import DMarketAPIClient
 
+
 # Test fixtures
 
 
@@ -1141,5 +1142,3 @@ class TestDMarketClientEdgeCases:
             await client._request("GET", "/exchange/v1/market/items")
             # Verify save_to_cache was called (line 310)
             mock_save.assert_called()
-
-

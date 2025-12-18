@@ -283,7 +283,7 @@ class TestCaching:
 
         assert key1 == key2
         assert isinstance(key1, str)
-        assert len(key1) == 32  # MD5 hash
+        assert len(key1) == 64  # SHA256 hash
 
     def test_get_cache_key_different_params(self, dmarket_api):
         """Тест разных ключей для разных параметров."""
@@ -298,7 +298,7 @@ class TestCaching:
         key = dmarket_api._get_cache_key("POST", "/test", data=data)
 
         assert isinstance(key, str)
-        assert len(key) == 32
+        assert len(key) == 64  # SHA256 hash
 
     def test_is_cacheable_balance(self, dmarket_api):
         """Тест определения кэшируемости для баланса."""

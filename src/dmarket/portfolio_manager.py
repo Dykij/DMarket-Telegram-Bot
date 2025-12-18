@@ -297,8 +297,8 @@ class PortfolioManager:
                 targets_data = await self._api.get_user_targets()
                 targets = targets_data.get("Items", [])
 
-            except Exception:
-                logger.exception("Error fetching portfolio data")
+            except Exception as e:
+                logger.error("Error fetching portfolio data: %s", e)
 
         # Build portfolio assets
         assets: list[PortfolioAsset] = []
@@ -842,9 +842,9 @@ class PortfolioManager:
             "unrealized_pnl": total_profit_loss,
             "profitable_items": profitable_items,
             "losing_items": losing_items,
-            "win_rate": (
-                (profitable_items / snapshot.asset_count * 100) if snapshot.asset_count > 0 else 0
-            ),
+            "win_rate": (profitable_items / snapshot.asset_count * 100)
+            if snapshot.asset_count > 0
+            else 0,
             "game_distribution": snapshot.game_distribution,
             "category_distribution": snapshot.category_distribution,
         }
@@ -863,11 +863,9 @@ class PortfolioManager:
             "📊 *Portfolio Report*",
             "",
             f"💰 *Total Value:* ${snapshot.total_value_usd:.2f}",
-            (
-                f"💵 Cash: ${snapshot.cash_balance:.2f} ({snapshot.cash_balance/snapshot.total_value_usd*100:.1f}%)"
-                if snapshot.total_value_usd > 0
-                else ""
-            ),
+            f"💵 Cash: ${snapshot.cash_balance:.2f} ({snapshot.cash_balance / snapshot.total_value_usd * 100:.1f}%)"
+            if snapshot.total_value_usd > 0
+            else "",
             f"📦 Inventory: ${snapshot.inventory_value:.2f}",
             f"🏷️ Listed: ${snapshot.listed_value:.2f}",
             f"🎯 Targets: ${snapshot.targets_value:.2f}",
@@ -893,14 +891,12 @@ class PortfolioManager:
             RiskLevel.CRITICAL: "🔴",
         }
 
-        lines.extend(
-            [
-                "",
-                f"⚠️ *Risk Level:* {risk_emoji.get(risk.overall_risk, '⚪')} {risk.overall_risk.value.upper()}",
-                f"📊 Diversification: {risk.diversification_score:.0f}/100",
-                f"🎯 Concentration: {risk.concentration_score:.0f}%",
-            ]
-        )
+        lines.extend([
+            "",
+            f"⚠️ *Risk Level:* {risk_emoji.get(risk.overall_risk, '⚪')} {risk.overall_risk.value.upper()}",
+            f"📊 Diversification: {risk.diversification_score:.0f}/100",
+            f"🎯 Concentration: {risk.concentration_score:.0f}%",
+        ])
 
         # Risk factors
         if risk.risk_factors:
