@@ -71,7 +71,7 @@ class ItemFilters:
             logger.info(f"Loaded item filters from {self.config_path}")
 
         except Exception as e:
-            logger.error(f"Failed to load item filters: {e}")
+            logger.exception(f"Failed to load item filters: {e}")
             self.config = self._get_default_config()
 
     def _get_default_config(self) -> dict[str, Any]:
@@ -207,11 +207,7 @@ class ItemFilters:
                 return True
 
         # Check regex patterns
-        for pattern in self._bad_patterns:
-            if pattern.search(item_name):
-                return True
-
-        return False
+        return any(pattern.search(item_name) for pattern in self._bad_patterns)
 
     def is_item_in_good_category(self, item_name: str) -> bool:
         """Check if item is in a good category.
@@ -228,11 +224,7 @@ class ItemFilters:
                 return True
 
         # Check good patterns
-        for pattern in self._good_patterns:
-            if pattern.search(item_name):
-                return True
-
-        return False
+        return any(pattern.search(item_name) for pattern in self._good_patterns)
 
     def is_item_allowed(self, item_name: str) -> bool:
         """Check if item passes all filters.

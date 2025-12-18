@@ -356,7 +356,7 @@ class DiscordNotifier:
                 return False
 
         except httpx.RequestError as e:
-            logger.error(
+            logger.exception(
                 "discord_webhook_request_error",
                 extra={"error": str(e)},
             )

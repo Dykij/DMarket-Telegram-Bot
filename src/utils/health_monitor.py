@@ -173,7 +173,7 @@ class HealthMonitor:
             )
         except Exception as e:
             response_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
-            logger.error("Database health check failed: %s", e)
+            logger.exception("Database health check failed: %s", e)
 
             return HealthCheckResult(
                 service="database",
@@ -220,7 +220,7 @@ class HealthMonitor:
             )
         except Exception as e:
             response_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
-            logger.error("Redis health check failed: %s", e)
+            logger.exception("Redis health check failed: %s", e)
 
             return HealthCheckResult(
                 service="redis",
@@ -276,7 +276,7 @@ class HealthMonitor:
             )
         except Exception as e:
             response_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
-            logger.error("DMarket API health check failed: %s", e)
+            logger.exception("DMarket API health check failed: %s", e)
 
             return HealthCheckResult(
                 service="dmarket_api",
@@ -328,7 +328,7 @@ class HealthMonitor:
                 )
         except Exception as e:
             response_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
-            logger.error("Telegram API health check failed: %s", e)
+            logger.exception("Telegram API health check failed: %s", e)
 
             return HealthCheckResult(
                 service="telegram_api",
@@ -409,7 +409,7 @@ class HealthMonitor:
                 if asyncio.iscoroutine(cb_result):
                     await cb_result
             except Exception as e:
-                logger.error("Error in alert callback: %s", e)
+                logger.exception("Error in alert callback: %s", e)
 
     async def start_heartbeat(self) -> None:
         """Start the heartbeat monitoring loop."""
@@ -448,7 +448,7 @@ class HealthMonitor:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error("Error in heartbeat loop: %s", e)
+                logger.exception("Error in heartbeat loop: %s", e)
                 await asyncio.sleep(self.config.interval_seconds)
 
     def get_overall_status(self) -> ServiceStatus:

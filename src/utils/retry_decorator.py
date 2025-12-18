@@ -86,7 +86,7 @@ def retry_on_failure(
                             },
                         )
                         if attempt >= max_attempts:
-                            logger.error(
+                            logger.exception(
                                 f"All retry attempts exhausted for {func.__name__}",
                                 extra={
                                     "function": func.__name__,
@@ -96,17 +96,18 @@ def retry_on_failure(
                             )
                         raise
 
+            # This should never be reached due to reraise=True
+            raise RuntimeError("Retry logic exhausted without returning or raising")
+
         @functools.wraps(func)
         def sync_wrapper(*args: Any, **kwargs: Any) -> T:
             """Sync wrapper for retry logic."""
-            attempt = 0
-            for attempt_obj in retry(
+            for attempt, attempt_obj in enumerate(retry(
                 stop=stop_after_attempt(max_attempts),
                 wait=wait_exponential(multiplier=multiplier, min=min_wait, max=max_wait),
                 retry=retry_if_exception_type(retry_on),
                 reraise=True,
-            )(lambda: func(*args, **kwargs)):
-                attempt += 1
+            )(lambda: func(*args, **kwargs)), start=1):
                 try:
                     result = attempt_obj
                     if attempt > 1:
@@ -130,7 +131,7 @@ def retry_on_failure(
                         },
                     )
                     if attempt >= max_attempts:
-                        logger.error(
+                        logger.exception(
                             f"All retry attempts exhausted for {func.__name__}",
                             extra={
                                 "function": func.__name__,
@@ -139,6 +140,9 @@ def retry_on_failure(
                             },
                         )
                     raise
+
+            # This should never be reached due to reraise=True
+            raise RuntimeError("Retry logic exhausted without returning or raising")
 
         # Return appropriate wrapper based on function type
         import inspect

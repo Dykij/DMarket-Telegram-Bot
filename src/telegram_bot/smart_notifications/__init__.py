@@ -56,41 +56,33 @@ from src.telegram_bot.smart_notifications.utils import (
 
 
 __all__ = [
-    # Constants
     "DATA_DIR",
     "DEFAULT_COOLDOWN",
     "NOTIFICATION_TYPES",
     "SMART_ALERTS_FILE",
-    # Preferences
-    "get_active_alerts",
-    "get_user_preferences",
-    "get_user_prefs",
-    "load_user_preferences",
-    "register_user",
-    "save_user_preferences",
-    "update_user_preferences",
-    # Alerts
-    "create_alert",
-    "deactivate_alert",
-    "get_user_alerts",
-    # Throttling
-    "record_notification",
-    "should_throttle_notification",
-    # Senders
-    "notify_user",
-    "send_market_opportunity_notification",
-    "send_price_alert_notification",
-    # Checkers
     "check_market_opportunities",
     "check_price_alerts",
-    "start_notification_checker",
-    # Handlers
-    "handle_notification_callback",
-    "register_notification_handlers",
-    # Utils
+    "create_alert",
+    "deactivate_alert",
+    "get_active_alerts",
     "get_item_by_id",
     "get_item_price",
     "get_market_data_for_items",
     "get_market_items_for_game",
     "get_price_history_for_items",
+    "get_user_alerts",
+    "get_user_preferences",
+    "get_user_prefs",
+    "handle_notification_callback",
+    "load_user_preferences",
+    "notify_user",
+    "record_notification",
+    "register_notification_handlers",
+    "register_user",
+    "save_user_preferences",
+    "send_market_opportunity_notification",
+    "send_price_alert_notification",
+    "should_throttle_notification",
+    "start_notification_checker",
+    "update_user_preferences",
 ]

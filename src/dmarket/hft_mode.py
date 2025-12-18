@@ -205,7 +205,7 @@ class HighFrequencyTrader:
         # Get initial balance
         balance_result = await self.api.get_balance()
         if balance_result.get("error"):
-            logger.error(f"Failed to get initial balance: {balance_result}")
+            logger.exception(f"Failed to get initial balance: {balance_result}")
             return False
 
         self.stats.start_balance = balance_result.get("balance", 0)
@@ -214,7 +214,7 @@ class HighFrequencyTrader:
 
         # Check if balance is above stop threshold
         if not await self._check_balance():
-            logger.error("Initial balance below stop threshold, cannot start HFT")
+            logger.exception("Initial balance below stop threshold, cannot start HFT")
             return False
 
         self._stop_event.clear()
@@ -326,7 +326,7 @@ class HighFrequencyTrader:
                 # Circuit breaker
                 if self.consecutive_errors >= self.config.max_consecutive_errors:
                     self.status = HFTStatus.ERROR_STOP
-                    logger.error("🔴 HFT Circuit breaker triggered!")
+                    logger.exception("🔴 HFT Circuit breaker triggered!")
                     if self.notifier:
                         await self._send_notification(
                             f"🔴 HFT Circuit breaker!\n"
