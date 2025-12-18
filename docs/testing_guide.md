@@ -216,3 +216,123 @@ async def test_get_balance(vcr_cassette_async):
 2. **Перезаписывайте при изменении API** - `--vcr-record=all`
 3. **Используйте `@pytest.mark.vcr()`** для маркировки тестов
 4. **Проверяйте фильтрацию** - убедитесь, что секреты не попадают в кассеты
+
+---
+
+## Управление логами в тестах
+
+При запуске большого количества тестов логи могут стать трудночитаемыми.
+Проект предоставляет несколько способов управления verbosity логов.
+
+### Переменные окружения
+
+```bash
+# Установить уровень логирования для тестов
+export TEST_LOG_LEVEL=DEBUG   # DEBUG, INFO, WARNING, ERROR
+
+# Включить structlog форматирование
+export TEST_LOG_STRUCTLOG=1
+
+# Использовать JSON формат
+export TEST_LOG_JSON=1
+
+# Запустить тесты
+python -m pytest tests/
+```
+
+### Опции командной строки pytest
+
+```bash
+# Показать логи в консоли с определенным уровнем
+pytest --log-cli-level=INFO tests/
+
+# Подавить все логи (только вывод тестов)
+pytest --log-cli-level=CRITICAL tests/
+
+# Сохранить подробные логи в файл
+pytest --log-file=tests.log --log-file-level=DEBUG tests/
+
+# Показать WARNING и выше в консоли, DEBUG в файл
+pytest --log-cli-level=WARNING --log-file=debug.log --log-file-level=DEBUG tests/
+```
+
+### Маркеры pytest
+
+```python
+import pytest
+
+@pytest.mark.quiet_logs
+def test_something_noisy():
+    """Логи будут полностью подавлены."""
+    noisy_function()
+
+@pytest.mark.verbose_logs
+def test_need_debugging():
+    """Будут показаны все DEBUG логи."""
+    complex_function()
+
+@pytest.mark.log_level("ERROR")
+def test_only_errors():
+    """Показать только ERROR и выше."""
+    function_with_warnings()
+```
+
+### Фикстуры для тестов
+
+```python
+def test_with_suppressed_logs(suppress_logs):
+    """Фикстура suppress_logs подавляет все логи."""
+    noisy_function()
+
+def test_with_debug_logs(enable_debug_logs):
+    """Фикстура enable_debug_logs показывает DEBUG."""
+    function_with_detailed_logging()
+
+def test_log_assertions(log_capture):
+    """Фикстура log_capture позволяет проверять содержимое логов."""
+    my_function()
+    assert "expected" in log_capture.text
+```
+
+### Класс LogAssertions
+
+```python
+from tests.conftest import LogAssertions
+
+def test_error_logging(caplog):
+    """Проверка что ошибки логируются корректно."""
+    function_that_logs_error()
+
+    # Проверить наличие сообщения
+    LogAssertions.assert_logged(caplog, "error occurred", level="ERROR")
+
+    # Проверить отсутствие чувствительных данных
+    LogAssertions.assert_not_logged(caplog, "password")
+    LogAssertions.assert_not_logged(caplog, "api_key")
+
+    # Shortcut для ошибок
+    LogAssertions.assert_error_logged(caplog, "connection failed")
+```
+
+### Рекомендации по читаемости логов
+
+1. **Для CI/CD**: Используйте `--log-cli-level=WARNING` чтобы видеть только важные сообщения
+2. **Для отладки**: Используйте `--log-cli-level=DEBUG` или `--log-file`
+3. **Для быстрого прогона**: Используйте `--no-header --no-summary -q` плюс подавление логов
+4. **Для анализа**: Сохраняйте в JSON формат с `TEST_LOG_JSON=1` и анализируйте с `jq`
+
+### Пример фильтрации логов с jq
+
+```bash
+# Запустить тесты с JSON логами
+TEST_LOG_JSON=1 pytest --log-file=tests.json tests/
+
+# Показать только ERROR логи
+cat tests.json | jq 'select(.level == "ERROR")'
+
+# Показать логи определенного модуля
+cat tests.json | jq 'select(.logger | contains("dmarket"))'
+
+# Статистика по уровням
+cat tests.json | jq -s 'group_by(.level) | map({level: .[0].level, count: length})'
+```
