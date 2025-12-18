@@ -278,9 +278,7 @@ class DMarketAPIClient:
                         client.put, url, json=data, headers=headers
                     )
                 elif method.upper() == "DELETE":
-                    response = await call_with_circuit_breaker(
-                        client.delete, url, headers=headers
-                    )
+                    response = await call_with_circuit_breaker(client.delete, url, headers=headers)
                 else:
                     msg = f"Unsupported HTTP method: {method}"
                     raise ValueError(msg)

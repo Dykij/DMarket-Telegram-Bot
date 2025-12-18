@@ -18,6 +18,7 @@ import pytest
 
 from src.dmarket.api.wallet import WalletOperationsMixin
 
+
 # Mock client class for testing the mixin
 
 

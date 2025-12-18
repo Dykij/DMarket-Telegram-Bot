@@ -489,7 +489,11 @@ class TestBacktester:
     def test_load_data_from_list(self, backtester):
         """Test loading data from list."""
         prices = [
-            {"timestamp": datetime.now(UTC) - timedelta(hours=i), "price": 10.0 + i * 0.1, "volume": 5}
+            {
+                "timestamp": datetime.now(UTC) - timedelta(hours=i),
+                "price": 10.0 + i * 0.1,
+                "volume": 5,
+            }
             for i in range(10)
         ]
 
@@ -633,7 +637,7 @@ class TestBacktesterMetrics:
         equity_curve = [
             (datetime.now(UTC) - timedelta(hours=5), 1000.0),
             (datetime.now(UTC) - timedelta(hours=4), 1100.0),  # Peak
-            (datetime.now(UTC) - timedelta(hours=3), 990.0),   # Drawdown
+            (datetime.now(UTC) - timedelta(hours=3), 990.0),  # Drawdown
             (datetime.now(UTC) - timedelta(hours=2), 1050.0),
             (datetime.now(UTC) - timedelta(hours=1), 1000.0),
         ]
@@ -645,10 +649,7 @@ class TestBacktesterMetrics:
 
     def test_max_drawdown_no_drawdown(self, backtester):
         """Test max drawdown when equity only rises."""
-        equity_curve = [
-            (datetime.now(UTC) - timedelta(hours=i), 1000.0 + i * 10)
-            for i in range(5)
-        ]
+        equity_curve = [(datetime.now(UTC) - timedelta(hours=i), 1000.0 + i * 10) for i in range(5)]
 
         max_dd = backtester._calculate_max_drawdown(equity_curve)
 
@@ -658,10 +659,7 @@ class TestBacktesterMetrics:
         """Test Sharpe ratio calculation."""
         # Create equity curve with some returns
         base_time = datetime.now(UTC)
-        equity_curve = [
-            (base_time - timedelta(hours=10 - i), 1000.0 + i * 5)
-            for i in range(10)
-        ]
+        equity_curve = [(base_time - timedelta(hours=10 - i), 1000.0 + i * 5) for i in range(10)]
 
         sharpe = backtester._calculate_sharpe_ratio(equity_curve)
 

@@ -704,7 +704,9 @@ async def reset_filters(
     await show_notification_filters(update, context)
 
 
-def register_notification_filter_handlers(application: Application[Any, Any, Any, Any, Any, Any]) -> None:  # type: ignore[type-arg]
+def register_notification_filter_handlers(
+    application: Application[Any, Any, Any, Any, Any, Any],
+) -> None:  # type: ignore[type-arg]
     """Зарегистрировать обработчики фильтров уведомлений.
 
     Args:

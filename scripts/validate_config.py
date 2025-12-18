@@ -4,8 +4,8 @@ This script validates the configuration before running the bot.
 It checks for required environment variables and validates their format.
 """
 
-import sys
 from pathlib import Path
+import sys
 
 
 # Add parent directory to path to import src modules
@@ -42,9 +42,7 @@ def main() -> int:
         # Display configuration summary
         print("📊 Configuration Summary:")
         print("-" * 60)
-        print(
-            f"  Bot Token: {'***' + config.bot.token[-10:] if config.bot.token else 'NOT SET'}"
-        )
+        print(f"  Bot Token: {'***' + config.bot.token[-10:] if config.bot.token else 'NOT SET'}")
         print(f"  Bot Username: {config.bot.username}")
         print(f"  DMarket API URL: {config.dmarket.api_url}")
         print(

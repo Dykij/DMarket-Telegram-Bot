@@ -9,16 +9,16 @@ Tests the rate limiting decorator for Telegram bot commands including:
 - Missing rate limiter handling
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from telegram import CallbackQuery, Message, Update, User
 from telegram.ext import ContextTypes
 
 from src.utils.rate_limit_decorator import rate_limit
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_user():
     """Create a mock Telegram user."""
     user = MagicMock(spec=User)
@@ -27,7 +27,7 @@ def mock_user():
     return user
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_update(mock_user):
     """Create a mock Telegram Update."""
     update = MagicMock(spec=Update)
@@ -38,7 +38,7 @@ def mock_update(mock_user):
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context():
     """Create a mock Telegram context."""
     context = MagicMock(spec=ContextTypes.DEFAULT_TYPE)
@@ -46,7 +46,7 @@ def mock_context():
     return context
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_rate_limiter():
     """Create a mock UserRateLimiter."""
     limiter = AsyncMock()
@@ -58,7 +58,7 @@ def mock_rate_limiter():
 class TestRateLimitDecorator:
     """Tests for rate_limit decorator basic functionality."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_decorator_allows_request_within_limit(
         self, mock_update, mock_context, mock_rate_limiter
     ):
@@ -78,7 +78,7 @@ class TestRateLimitDecorator:
         assert result == "success"
         mock_rate_limiter.check_limit.assert_called_once_with(12345, "test", 1)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_decorator_blocks_request_when_limit_exceeded(
         self, mock_update, mock_context, mock_rate_limiter
     ):
@@ -105,7 +105,7 @@ class TestRateLimitDecorator:
         assert "scan" in call_text
         assert "30 сек" in call_text
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_decorator_with_custom_message(
         self, mock_update, mock_context, mock_rate_limiter
     ):
@@ -133,7 +133,7 @@ class TestRateLimitDecorator:
 class TestRateLimitWhitelist:
     """Tests for whitelist bypass functionality."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_whitelisted_user_bypasses_rate_limit(
         self, mock_update, mock_context, mock_rate_limiter
     ):
@@ -154,7 +154,7 @@ class TestRateLimitWhitelist:
         mock_rate_limiter.is_whitelisted.assert_called_once_with(12345)
         mock_rate_limiter.check_limit.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_non_whitelisted_user_checks_limit(
         self, mock_update, mock_context, mock_rate_limiter
     ):
@@ -180,7 +180,7 @@ class TestRateLimitWhitelist:
 class TestRateLimitCallbackQuery:
     """Tests for callback query handling."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_decorator_handles_callback_query_limit_exceeded(
         self, mock_user, mock_context, mock_rate_limiter
     ):
@@ -219,7 +219,7 @@ class TestRateLimitCallbackQuery:
 class TestRateLimitEdgeCases:
     """Tests for edge cases and error handling."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_decorator_without_effective_user(self, mock_context):
         """Test that decorator passes through when no effective user."""
         # Arrange
@@ -236,7 +236,7 @@ class TestRateLimitEdgeCases:
         # Assert
         assert result == "success"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_decorator_without_rate_limiter(self, mock_update, mock_context):
         """Test that decorator passes through when rate limiter not found."""
         # Arrange
@@ -252,11 +252,9 @@ class TestRateLimitEdgeCases:
 
         # Assert
         assert result == "success"
-        mock_logger.warning.assert_called_once_with(
-            "rate_limiter_not_found", user_id=12345
-        )
+        mock_logger.warning.assert_called_once_with("rate_limiter_not_found", user_id=12345)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_decorator_with_default_action(
         self, mock_update, mock_context, mock_rate_limiter
     ):
@@ -276,10 +274,8 @@ class TestRateLimitEdgeCases:
         assert result == "success"
         mock_rate_limiter.check_limit.assert_called_once_with(12345, "default", 1)
 
-    @pytest.mark.asyncio
-    async def test_decorator_with_custom_cost(
-        self, mock_update, mock_context, mock_rate_limiter
-    ):
+    @pytest.mark.asyncio()
+    async def test_decorator_with_custom_cost(self, mock_update, mock_context, mock_rate_limiter):
         """Test that decorator uses custom cost parameter."""
         # Arrange
         mock_context.bot_data.user_rate_limiter = mock_rate_limiter

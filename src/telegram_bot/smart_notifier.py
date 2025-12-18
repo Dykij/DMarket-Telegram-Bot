@@ -51,8 +51,7 @@ logger = logging.getLogger(__name__)
 
 # Emit deprecation warning
 warnings.warn(
-    "smart_notifier.py is deprecated. "
-    "Import from src.telegram_bot.smart_notifications instead.",
+    "smart_notifier.py is deprecated. Import from src.telegram_bot.smart_notifications instead.",
     DeprecationWarning,
     stacklevel=2,
 )

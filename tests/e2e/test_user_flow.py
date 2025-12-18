@@ -1,4 +1,5 @@
 """E2E тесты."""
+
 import pytest
 
 

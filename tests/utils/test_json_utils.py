@@ -5,9 +5,9 @@
 с использованием orjson или fallback на стандартный json.
 """
 
+from datetime import datetime
 import io
 import json as stdlib_json
-from datetime import datetime
 from unittest.mock import patch
 
 import pytest

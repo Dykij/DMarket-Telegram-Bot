@@ -18,18 +18,16 @@ import pytest
 from telegram import Chat, Message, Update, User
 from telegram.ext import ContextTypes
 
+# Import with aliases to avoid pytest collection
 from src.telegram_bot.commands.test_sentry_command import (
     _test_api_error,
     _test_breadcrumbs,
     _test_division_error,
     _test_simple_error,
-)
-
-# Import with aliases to avoid pytest collection
-from src.telegram_bot.commands.test_sentry_command import (
     test_sentry_command as sentry_command_handler,
     test_sentry_info as sentry_info_handler,
 )
+
 
 # ============================================================================
 # Test Fixtures

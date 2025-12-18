@@ -24,6 +24,7 @@ from telegram.ext import ContextTypes
 from src.telegram_bot.commands.balance_command import check_balance_command
 from src.utils.exceptions import APIError
 
+
 # ============================================================================
 # Test Fixtures
 # ============================================================================

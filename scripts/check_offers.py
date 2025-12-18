@@ -91,7 +91,9 @@ async def check_offers() -> None:
             )
 
             if "error" in offers_response or "code" in offers_response:
-                print(f"⚠️  Ошибка при получении предложений: {offers_response.get('message', 'Unknown error')}")
+                print(
+                    f"⚠️  Ошибка при получении предложений: {offers_response.get('message', 'Unknown error')}"
+                )
                 print("\n💡 Попробуем альтернативный метод...")
 
                 # Пробуем альтернативный эндпоинт
@@ -186,4 +188,3 @@ if __name__ == "__main__":
     print("\n" + "=" * 70)
     print("✅ Проверка завершена")
     print("=" * 70 + "\n")
-

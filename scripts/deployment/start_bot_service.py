@@ -1,9 +1,9 @@
 """Скрипт для запуска Telegram бота в фоновом режиме."""
 
 import logging
+from pathlib import Path
 import subprocess
 import sys
-from pathlib import Path
 
 
 # Настройка логирования
@@ -57,8 +57,7 @@ def start_bot_service() -> bool:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             startupinfo=startupinfo,
-            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
-            | subprocess.DETACHED_PROCESS,
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS,
         )
 
         logger.info("Бот запущен с PID: %s", process.pid)

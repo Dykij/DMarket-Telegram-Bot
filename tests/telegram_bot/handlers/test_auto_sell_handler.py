@@ -109,7 +109,9 @@ class TestAutoSellCommand:
 
         mock_update.message.reply_text.assert_called_once()
         call_kwargs = mock_update.message.reply_text.call_args.kwargs
-        assert "✅ Enabled" in call_kwargs.get("text", mock_update.message.reply_text.call_args[0][0])
+        assert "✅ Enabled" in call_kwargs.get(
+            "text", mock_update.message.reply_text.call_args[0][0]
+        )
 
     @pytest.mark.asyncio()
     async def test_handle_auto_sell_command_disabled(
@@ -296,9 +298,7 @@ class TestCancelSaleCallback:
     """Tests for cancel sale callback."""
 
     @pytest.mark.asyncio()
-    async def test_cancel_sale_success(
-        self, handler, mock_query, mock_context, mock_auto_seller
-    ):
+    async def test_cancel_sale_success(self, handler, mock_query, mock_context, mock_auto_seller):
         """Test successful sale cancellation."""
         mock_auto_seller.cancel_sale = AsyncMock(return_value=True)
 
@@ -313,9 +313,7 @@ class TestCancelSaleCallback:
         assert "cancelled" in text
 
     @pytest.mark.asyncio()
-    async def test_cancel_sale_failure(
-        self, handler, mock_query, mock_context, mock_auto_seller
-    ):
+    async def test_cancel_sale_failure(self, handler, mock_query, mock_context, mock_auto_seller):
         """Test failed sale cancellation."""
         mock_auto_seller.cancel_sale = AsyncMock(return_value=False)
 
@@ -384,9 +382,7 @@ class TestBackCallback:
     """Tests for back callback."""
 
     @pytest.mark.asyncio()
-    async def test_back_to_main_menu(
-        self, handler, mock_query, mock_context, mock_auto_seller
-    ):
+    async def test_back_to_main_menu(self, handler, mock_query, mock_context, mock_auto_seller):
         """Test returning to main menu."""
         update = MagicMock()
         update.callback_query = mock_query

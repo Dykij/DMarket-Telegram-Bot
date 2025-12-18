@@ -15,10 +15,10 @@ Examples:
 """
 
 import argparse
+from datetime import datetime
 import json
 import subprocess
 import sys
-from datetime import datetime
 
 
 def run_pytest_with_timing(

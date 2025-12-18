@@ -76,9 +76,7 @@ class TestGetBuyOrdersCompetition:
     """Тесты метода get_buy_orders_competition."""
 
     @pytest.mark.asyncio()
-    async def test_low_competition_detection(
-        self, mock_dmarket_api, sample_orders_response_low
-    ):
+    async def test_low_competition_detection(self, mock_dmarket_api, sample_orders_response_low):
         """Тест определения низкой конкуренции."""
         # Arrange
         mock_dmarket_api.get_targets_by_title.return_value = sample_orders_response_low
@@ -104,9 +102,7 @@ class TestGetBuyOrdersCompetition:
         assert result["average_price"] == 8.35  # (8.50 + 8.20) / 2
 
     @pytest.mark.asyncio()
-    async def test_high_competition_detection(
-        self, mock_dmarket_api, sample_orders_response_high
-    ):
+    async def test_high_competition_detection(self, mock_dmarket_api, sample_orders_response_high):
         """Тест определения высокой конкуренции."""
         # Arrange
         mock_dmarket_api.get_targets_by_title.return_value = sample_orders_response_high
@@ -128,9 +124,7 @@ class TestGetBuyOrdersCompetition:
         assert result["total_orders"] == 15
 
     @pytest.mark.asyncio()
-    async def test_no_competition(
-        self, mock_dmarket_api, sample_orders_response_empty
-    ):
+    async def test_no_competition(self, mock_dmarket_api, sample_orders_response_empty):
         """Тест при отсутствии конкуренции."""
         # Arrange
         mock_dmarket_api.get_targets_by_title.return_value = sample_orders_response_empty
@@ -160,8 +154,8 @@ class TestGetBuyOrdersCompetition:
         mock_dmarket_api.get_targets_by_title.return_value = {
             "orders": [
                 {"title": "Item", "price": "1000", "amount": 5},  # $10.00
-                {"title": "Item", "price": "800", "amount": 3},   # $8.00
-                {"title": "Item", "price": "600", "amount": 2},   # $6.00
+                {"title": "Item", "price": "800", "amount": 3},  # $8.00
+                {"title": "Item", "price": "600", "amount": 2},  # $6.00
             ]
         }
 

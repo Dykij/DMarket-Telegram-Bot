@@ -12,6 +12,7 @@ from typing import Any
 
 from .constants import CACHE_CLEANUP_COUNT, CACHE_TTL, MAX_CACHE_SIZE
 
+
 logger = logging.getLogger(__name__)
 
 # =============================================================================

@@ -8,19 +8,20 @@ This module tests the core user interaction commands ensuring proper:
 - Error handling for edge cases
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-from telegram import Update, User, Message, Chat
-from telegram.ext import ContextTypes, Application
+
+import pytest
+from telegram import Chat, Message, Update, User
+from telegram.ext import Application, ContextTypes
 
 from src.telegram_bot.commands.basic_commands import (
-    start_command,
     help_command,
     register_basic_commands,
+    start_command,
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_user():
     """Create a mock Telegram user."""
     user = MagicMock(spec=User)
@@ -30,7 +31,7 @@ def mock_user():
     return user
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_chat():
     """Create a mock Telegram chat."""
     chat = MagicMock(spec=Chat)
@@ -39,7 +40,7 @@ def mock_chat():
     return chat
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_message(mock_user, mock_chat):
     """Create a mock Telegram message."""
     message = MagicMock(spec=Message)
@@ -49,7 +50,7 @@ def mock_message(mock_user, mock_chat):
     return message
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_update(mock_user, mock_message, mock_chat):
     """Create a mock Update object."""
     update = MagicMock(spec=Update)
@@ -59,7 +60,7 @@ def mock_update(mock_user, mock_message, mock_chat):
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context():
     """Create a mock context."""
     context = MagicMock(spec=ContextTypes.DEFAULT_TYPE)
@@ -69,7 +70,7 @@ def mock_context():
 class TestStartCommand:
     """Tests for the /start command."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_command_sends_welcome_message(
         self, mock_update, mock_context, mock_message
     ):
@@ -84,10 +85,8 @@ class TestStartCommand:
         assert "/help" in call_args
         assert "DMarket" in call_args
 
-    @pytest.mark.asyncio
-    async def test_start_command_logs_user_interaction(
-        self, mock_update, mock_context, mock_user
-    ):
+    @pytest.mark.asyncio()
+    async def test_start_command_logs_user_interaction(self, mock_update, mock_context, mock_user):
         """Test that /start command logs user interaction."""
         # Arrange
         with patch("src.telegram_bot.commands.basic_commands.logger") as mock_logger:
@@ -100,7 +99,7 @@ class TestStartCommand:
             assert "/start" in str(call_args)
             assert str(mock_user.id) in str(call_args)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_command_adds_sentry_breadcrumb(
         self, mock_update, mock_context, mock_user, mock_chat
     ):
@@ -120,7 +119,7 @@ class TestStartCommand:
                 chat_id=mock_chat.id,
             )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_command_handles_no_user(self, mock_context):
         """Test that /start command handles missing user gracefully."""
         # Arrange
@@ -135,10 +134,8 @@ class TestStartCommand:
         # Assert - Should return early without sending message
         update.message.reply_text.assert_not_called()
 
-    @pytest.mark.asyncio
-    async def test_start_command_handles_no_message(
-        self, mock_update, mock_context
-    ):
+    @pytest.mark.asyncio()
+    async def test_start_command_handles_no_message(self, mock_update, mock_context):
         """Test that /start command handles missing message object."""
         # Arrange
         mock_update.message = None
@@ -148,7 +145,7 @@ class TestStartCommand:
 
         # No assertion needed - just verify no exception
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_command_handles_user_without_username(
         self, mock_update, mock_context, mock_user
     ):
@@ -170,10 +167,8 @@ class TestStartCommand:
 class TestHelpCommand:
     """Tests for the /help command."""
 
-    @pytest.mark.asyncio
-    async def test_help_command_sends_command_list(
-        self, mock_update, mock_context, mock_message
-    ):
+    @pytest.mark.asyncio()
+    async def test_help_command_sends_command_list(self, mock_update, mock_context, mock_message):
         """Test that /help command sends list of available commands."""
         # Act
         await help_command(mock_update, mock_context)
@@ -188,10 +183,8 @@ class TestHelpCommand:
         assert "/balance" in call_args
         assert "/arbitrage" in call_args
 
-    @pytest.mark.asyncio
-    async def test_help_command_logs_user_interaction(
-        self, mock_update, mock_context, mock_user
-    ):
+    @pytest.mark.asyncio()
+    async def test_help_command_logs_user_interaction(self, mock_update, mock_context, mock_user):
         """Test that /help command logs user interaction."""
         # Arrange
         with patch("src.telegram_bot.commands.basic_commands.logger") as mock_logger:
@@ -204,7 +197,7 @@ class TestHelpCommand:
             assert "/help" in str(call_args)
             assert str(mock_user.id) in str(call_args)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_help_command_adds_sentry_breadcrumb(
         self, mock_update, mock_context, mock_user, mock_chat
     ):
@@ -224,7 +217,7 @@ class TestHelpCommand:
                 chat_id=mock_chat.id,
             )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_help_command_handles_no_user(self, mock_context):
         """Test that /help command handles missing user gracefully."""
         # Arrange
@@ -239,10 +232,8 @@ class TestHelpCommand:
         # Assert - Should return early without sending message
         update.message.reply_text.assert_not_called()
 
-    @pytest.mark.asyncio
-    async def test_help_command_handles_no_message(
-        self, mock_update, mock_context
-    ):
+    @pytest.mark.asyncio()
+    async def test_help_command_handles_no_message(self, mock_update, mock_context):
         """Test that /help command handles missing message object."""
         # Arrange
         mock_update.message = None
@@ -252,7 +243,7 @@ class TestHelpCommand:
 
         # No assertion needed - just verify no exception
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_help_command_includes_all_commands(
         self, mock_update, mock_context, mock_message
     ):
@@ -322,7 +313,7 @@ class TestRegisterBasicCommands:
 class TestEdgeCases:
     """Tests for edge cases and error scenarios."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_command_with_callback_query_instead_of_message(
         self, mock_update, mock_context
     ):
@@ -336,7 +327,7 @@ class TestEdgeCases:
 
         # No message sent since update.message is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_help_command_with_callback_query_instead_of_message(
         self, mock_update, mock_context
     ):
@@ -350,7 +341,7 @@ class TestEdgeCases:
 
         # No message sent since update.message is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_commands_handle_message_send_failure(
         self, mock_update, mock_context, mock_message
     ):

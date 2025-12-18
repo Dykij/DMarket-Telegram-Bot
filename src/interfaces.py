@@ -25,7 +25,6 @@ class IDMarketAPI(Protocol):
         >>> class MockAPI:
         ...     async def get_balance(self) -> dict[str, Any]:
         ...         return {"balance": 100.0}
-        ...
         >>> mock = MockAPI()
         >>> isinstance(mock, IDMarketAPI)
         True
@@ -115,6 +114,58 @@ class IDMarketAPI(Protocol):
 
         Returns:
             Список активных таргетов
+        """
+        ...
+
+    async def get_sales_history(
+        self,
+        game: str,
+        title: str,
+        limit: int = 100,
+    ) -> dict[str, Any]:
+        """Получить историю продаж предмета.
+
+        Args:
+            game: Код игры
+            title: Название предмета
+            limit: Максимальное количество записей
+
+        Returns:
+            История продаж с ценами и датами
+        """
+        ...
+
+    async def get_aggregated_prices_bulk(
+        self,
+        titles: list[str],
+        game: str = "csgo",
+    ) -> dict[str, Any]:
+        """Получить агрегированные цены для нескольких предметов.
+
+        Args:
+            titles: Список названий предметов
+            game: Код игры
+
+        Returns:
+            Агрегированные цены для каждого предмета
+        """
+        ...
+
+    async def get_user_inventory(
+        self,
+        game_id: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> dict[str, Any]:
+        """Получить инвентарь пользователя.
+
+        Args:
+            game_id: Опциональный фильтр по игре
+            limit: Максимальное количество предметов
+            offset: Смещение для пагинации
+
+        Returns:
+            Список предметов в инвентаре
         """
         ...
 

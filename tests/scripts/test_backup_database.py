@@ -125,9 +125,7 @@ class TestDatabaseBackup:
         assert path == Path("path/to/test.db")
 
     @pytest.mark.asyncio()
-    async def test_backup_sqlite_compressed(
-        self, temp_dir: Path, sqlite_db: Path
-    ) -> None:
+    async def test_backup_sqlite_compressed(self, temp_dir: Path, sqlite_db: Path) -> None:
         """Test SQLite backup with compression."""
         backup_dir = temp_dir / "backups"
 
@@ -148,9 +146,7 @@ class TestDatabaseBackup:
             assert len(data) > 0
 
     @pytest.mark.asyncio()
-    async def test_backup_sqlite_uncompressed(
-        self, temp_dir: Path, sqlite_db: Path
-    ) -> None:
+    async def test_backup_sqlite_uncompressed(self, temp_dir: Path, sqlite_db: Path) -> None:
         """Test SQLite backup without compression."""
         backup_dir = temp_dir / "backups"
 
@@ -185,9 +181,7 @@ class TestDatabaseBackup:
             await backup.backup()
 
     @pytest.mark.asyncio()
-    async def test_restore_sqlite_compressed(
-        self, temp_dir: Path, sqlite_db: Path
-    ) -> None:
+    async def test_restore_sqlite_compressed(self, temp_dir: Path, sqlite_db: Path) -> None:
         """Test restoring SQLite from compressed backup."""
         backup_dir = temp_dir / "backups"
 

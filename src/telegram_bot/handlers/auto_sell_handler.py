@@ -88,12 +88,8 @@ class AutoSellHandler:
                 InlineKeyboardButton("⚙️ Config", callback_data="auto_sell:config"),
             ],
             [
-                InlineKeyboardButton(
-                    "🔄 Toggle", callback_data="auto_sell:toggle"
-                ),
-                InlineKeyboardButton(
-                    "📋 Active Sales", callback_data="auto_sell:active"
-                ),
+                InlineKeyboardButton("🔄 Toggle", callback_data="auto_sell:toggle"),
+                InlineKeyboardButton("📋 Active Sales", callback_data="auto_sell:active"),
             ],
             [
                 InlineKeyboardButton("❌ Cancel", callback_data="auto_sell:cancel_menu"),
@@ -103,9 +99,7 @@ class AutoSellHandler:
 
         status = "✅ Enabled" if self._is_enabled() else "❌ Disabled"
         await update.message.reply_text(
-            f"🤖 *Auto-Sell Management*\n\n"
-            f"Status: {status}\n\n"
-            f"Choose an option:",
+            f"🤖 *Auto-Sell Management*\n\nStatus: {status}\n\nChoose an option:",
             reply_markup=reply_markup,
             parse_mode="Markdown",
         )
@@ -314,8 +308,7 @@ class AutoSellHandler:
         lines = ["📋 *Active Sales*\n"]
         for sale in sales[:10]:
             profit_str = (
-                f"+${sale['profit']:.2f}" if sale["profit"] >= 0
-                else f"-${abs(sale['profit']):.2f}"
+                f"+${sale['profit']:.2f}" if sale["profit"] >= 0 else f"-${abs(sale['profit']):.2f}"
             )
             lines.append(
                 f"• *{sale['item_name'][:25]}*\n"
@@ -355,7 +348,9 @@ class AutoSellHandler:
         # Create button for each sale (max 5)
         keyboard = []
         for sale in sales[:5]:
-            short_name = sale["item_name"][:20] + "..." if len(sale["item_name"]) > 20 else sale["item_name"]
+            short_name = (
+                sale["item_name"][:20] + "..." if len(sale["item_name"]) > 20 else sale["item_name"]
+            )
             keyboard.append([
                 InlineKeyboardButton(
                     f"❌ {short_name}",
@@ -433,12 +428,8 @@ class AutoSellHandler:
                 InlineKeyboardButton("⚙️ Config", callback_data="auto_sell:config"),
             ],
             [
-                InlineKeyboardButton(
-                    "🔄 Toggle", callback_data="auto_sell:toggle"
-                ),
-                InlineKeyboardButton(
-                    "📋 Active Sales", callback_data="auto_sell:active"
-                ),
+                InlineKeyboardButton("🔄 Toggle", callback_data="auto_sell:toggle"),
+                InlineKeyboardButton("📋 Active Sales", callback_data="auto_sell:active"),
             ],
             [
                 InlineKeyboardButton("❌ Cancel", callback_data="auto_sell:cancel_menu"),
@@ -447,9 +438,7 @@ class AutoSellHandler:
 
         status = "✅ Enabled" if self._is_enabled() else "❌ Disabled"
         await query.edit_message_text(
-            f"🤖 *Auto-Sell Management*\n\n"
-            f"Status: {status}\n\n"
-            f"Choose an option:",
+            f"🤖 *Auto-Sell Management*\n\nStatus: {status}\n\nChoose an option:",
             reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode="Markdown",
         )

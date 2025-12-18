@@ -28,6 +28,7 @@ from src.telegram_bot.utils.api_client import setup_api_client
 from src.telegram_bot.utils.formatters import format_opportunities
 from src.utils.telegram_error_handlers import telegram_error_boundary
 
+
 logger = logging.getLogger(__name__)
 
 

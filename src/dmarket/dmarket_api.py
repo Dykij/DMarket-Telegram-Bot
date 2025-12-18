@@ -428,11 +428,11 @@ class DMarketAPI:
             # Для POST-данных используем хеш от JSON
             try:
                 data_str = json.dumps(data, sort_keys=True)
-                key_parts.append(hashlib.md5(data_str.encode()).hexdigest())
+                key_parts.append(hashlib.sha256(data_str.encode()).hexdigest())
             except (TypeError, ValueError):
                 key_parts.append(str(data))
 
-        return hashlib.md5("|".join(key_parts).encode()).hexdigest()
+        return hashlib.sha256("|".join(key_parts).encode()).hexdigest()
 
     def _is_cacheable(self, method: str, path: str) -> tuple[bool, str]:
         """Определяет, можно ли кэшировать данный запрос и на какой период.
@@ -895,12 +895,12 @@ class DMarketAPI:
         error_code: str = "ERROR",
     ) -> dict[str, Any]:
         """Create standardized error response for balance requests.
-        
+
         Args:
             error_message: Human-readable error message
             status_code: HTTP status code
             error_code: Machine-readable error code
-            
+
         Returns:
             Standardized error response dict
         """
@@ -925,14 +925,14 @@ class DMarketAPI:
         **kwargs: Any,
     ) -> dict[str, Any]:
         """Create standardized success response for balance requests.
-        
+
         Args:
             usd_amount: Total balance in cents
             usd_available: Available balance in cents
             usd_total: Total balance including locked funds in cents
             min_required: Minimum required balance in cents (default 100 = $1.00)
             **kwargs: Additional fields to include in response
-            
+
         Returns:
             Standardized success response dict
         """
@@ -951,10 +951,10 @@ class DMarketAPI:
 
     def _parse_balance_from_response(self, response: dict[str, Any]) -> tuple[float, float, float]:
         """Parse balance data from various DMarket API response formats.
-        
+
         Args:
             response: API response dict
-            
+
         Returns:
             Tuple of (usd_amount, usd_available, usd_total) in cents
         """
@@ -1019,10 +1019,10 @@ class DMarketAPI:
         endpoints: list[str],
     ) -> tuple[dict[str, Any] | None, str | None, Exception | None]:
         """Try multiple endpoints to get balance data.
-        
+
         Args:
             endpoints: List of endpoint URLs to try
-            
+
         Returns:
             Tuple of (response_dict, successful_endpoint, last_error)
         """
@@ -1089,7 +1089,9 @@ class DMarketAPI:
                     logger.debug(f"📊 Balance data: {balance_data}")
 
                     usd_amount = balance_data.get("balance", 0) * 100
-                    usd_available = balance_data.get("available", balance_data.get("balance", 0)) * 100
+                    usd_available = (
+                        balance_data.get("available", balance_data.get("balance", 0)) * 100
+                    )
                     usd_total = balance_data.get("total", balance_data.get("balance", 0)) * 100
                     usd_locked = balance_data.get("locked", 0) * 100
                     usd_trade_protected = balance_data.get("trade_protected", 0) * 100
@@ -1129,14 +1131,14 @@ class DMarketAPI:
                 self.ENDPOINT_BALANCE_LEGACY,  # Legacy endpoint (for backward compatibility)
             ]
 
-            response, successful_endpoint, last_error = await self._try_endpoints_for_balance(endpoints)
+            response, successful_endpoint, last_error = await self._try_endpoints_for_balance(
+                endpoints
+            )
 
             # If we didn't get a response from any endpoint
             if not response:
                 error_message = (
-                    str(last_error)
-                    if last_error
-                    else "Failed to get balance from any endpoint"
+                    str(last_error) if last_error else "Failed to get balance from any endpoint"
                 )
                 logger.error(f"Critical error getting balance: {error_message}")
 
@@ -2684,9 +2686,7 @@ class DMarketAPI:
 
         Example:
             >>> competition = await api.get_buy_orders_competition(
-            ...     game_id="csgo",
-            ...     title="AK-47 | Redline (Field-Tested)",
-            ...     price_threshold=8.00
+            ...     game_id="csgo", title="AK-47 | Redline (Field-Tested)", price_threshold=8.00
             ... )
             >>> if competition["competition_level"] == "low":
             ...     print("Низкая конкуренция - можно создавать таргет")
@@ -2876,18 +2876,14 @@ class DMarketAPI:
             )
 
             if not isinstance(response, list):
-                logger.warning(
-                    f"Неожиданный формат ответа от /game/v1/games: {type(response)}"
-                )
+                logger.warning(f"Неожиданный формат ответа от /game/v1/games: {type(response)}")
                 return []
 
             logger.info(f"Получено {len(response)} игр от DMarket API")
 
             # Логируем для отладки
             enabled_count = sum(1 for g in response if g.get("enabled", False))
-            logger.debug(
-                f"Активных игр: {enabled_count}/{len(response)}"
-            )
+            logger.debug(f"Активных игр: {enabled_count}/{len(response)}")
 
             return response
 

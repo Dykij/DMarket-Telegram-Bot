@@ -8,15 +8,15 @@
 """
 
 import asyncio
+from datetime import datetime
 import os
+from pathlib import Path
 import sys
 import traceback
-from datetime import datetime
-from pathlib import Path
 from typing import Any
 
-import httpx
 from dotenv import load_dotenv
+import httpx
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
@@ -191,9 +191,7 @@ class GitHubActionsMonitor:
                 raise
             except (httpx.TimeoutException, httpx.NetworkError) as e:
                 if attempt == max_retries - 1:
-                    console.print(
-                        f"[yellow]⚠️  Пропускаем run {run_id} из-за ошибки сети[/yellow]"
-                    )
+                    console.print(f"[yellow]⚠️  Пропускаем run {run_id} из-за ошибки сети[/yellow]")
                     return []  # Возвращаем пустой список вместо ошибки
                 await asyncio.sleep(2**attempt)  # Exponential backoff
             except Exception as e:
@@ -225,9 +223,7 @@ class GitHubActionsMonitor:
         cancelled_runs = sum(1 for r in runs if r["conclusion"] == "cancelled")
 
         # Расчет success rate
-        overall_success_rate = (
-            (successful_runs / total_runs * 100) if total_runs > 0 else 0
-        )
+        overall_success_rate = (successful_runs / total_runs * 100) if total_runs > 0 else 0
 
         # Расчет времени выполнения
         durations = []
@@ -262,9 +258,7 @@ class GitHubActionsMonitor:
         for stats in workflow_stats.values():
             if stats["total"] > 0:
                 stats["success_rate"] = (stats["success"] / stats["total"]) * 100
-                stats["meets_target"] = (
-                    stats["success_rate"] >= self.target_success_rate
-                )
+                stats["meets_target"] = stats["success_rate"] >= self.target_success_rate
 
         # Отображение таблицы по workflows
         table = Table(title="📈 Success Rate по Workflows", show_header=True)
@@ -312,15 +306,12 @@ class GitHubActionsMonitor:
         # Проверка достижения цели
         if overall_success_rate >= self.target_success_rate:
             console.print(
-                f"\n[green]✅ Цель достигнута! "
-                f"Success rate >= {self.target_success_rate}%"
-                "[/green]"
+                f"\n[green]✅ Цель достигнута! Success rate >= {self.target_success_rate}%[/green]"
             )
         else:
             diff = self.target_success_rate - overall_success_rate
             console.print(
-                f"\n[yellow]⚠️ До цели: {diff:.1f}% "
-                f"(цель: {self.target_success_rate}%)[/yellow]"
+                f"\n[yellow]⚠️ До цели: {diff:.1f}% (цель: {self.target_success_rate}%)[/yellow]"
             )
 
         return {
@@ -348,43 +339,36 @@ class GitHubActionsMonitor:
             failed_runs = await self.get_workflow_runs(status="failure", limit=5)
             failed_jobs = []
 
-            console.print(
-                f"[dim]Обработка {len(failed_runs)} проваленных runs...[/dim]"
-            )
+            console.print(f"[dim]Обработка {len(failed_runs)} проваленных runs...[/dim]")
 
             for i, run in enumerate(failed_runs, 1):
                 console.print(
-                    f"[dim]  [{i}/{len(failed_runs)}] "
-                    f"{run['name']} #{run['run_number']}[/dim]"
+                    f"[dim]  [{i}/{len(failed_runs)}] {run['name']} #{run['run_number']}[/dim]"
                 )
 
                 try:
                     jobs = await self.get_workflow_jobs(run["id"])
                     for job in jobs:
                         if job["conclusion"] == "failure":
-                            failed_jobs.append(
-                                {
-                                    "workflow": run["name"],
-                                    "run_number": run["run_number"],
-                                    "job_name": job["name"],
-                                    "started_at": job["started_at"],
-                                    "completed_at": job["completed_at"],
-                                    "html_url": job["html_url"],
-                                    "steps": [
-                                        {
-                                            "name": step["name"],
-                                            "status": step["status"],
-                                            "conclusion": step["conclusion"],
-                                        }
-                                        for step in job.get("steps", [])
-                                        if step.get("conclusion") == "failure"
-                                    ],
-                                }
-                            )
+                            failed_jobs.append({
+                                "workflow": run["name"],
+                                "run_number": run["run_number"],
+                                "job_name": job["name"],
+                                "started_at": job["started_at"],
+                                "completed_at": job["completed_at"],
+                                "html_url": job["html_url"],
+                                "steps": [
+                                    {
+                                        "name": step["name"],
+                                        "status": step["status"],
+                                        "conclusion": step["conclusion"],
+                                    }
+                                    for step in job.get("steps", [])
+                                    if step.get("conclusion") == "failure"
+                                ],
+                            })
                 except Exception as e:
-                    console.print(
-                        f"[yellow]⚠️  Пропускаем run {run['id']}: {e}[/yellow]"
-                    )
+                    console.print(f"[yellow]⚠️  Пропускаем run {run['id']}: {e}[/yellow]")
                     continue
 
             return failed_jobs
@@ -508,9 +492,7 @@ class GitHubActionsMonitor:
             report += f"### {emoji} {workflow_name}\n"
             report += f"- Запусков: {stats['total']}\n"
             report += f"- Success Rate: {stats['success_rate']:.1f}%\n"
-            report += (
-                f"- Успешных: {stats['success']}, Провалено: {stats['failure']}\n\n"
-            )
+            report += f"- Успешных: {stats['success']}, Провалено: {stats['failure']}\n\n"
 
         report += "---\n\n"
 
@@ -666,32 +648,17 @@ async def main():
 
                 reset_dt = dt.fromtimestamp(reset_time)
                 console.print(f"\n[red]❌ Rate limit исчерпан! (0/{limit})[/red]")
-                console.print(
-                    f"[yellow]⏰ Сброс через: {reset_dt.strftime('%H:%M:%S')}[/yellow]"
-                )
+                console.print(f"[yellow]⏰ Сброс через: {reset_dt.strftime('%H:%M:%S')}[/yellow]")
                 console.print("\n[cyan]💡 Решение: Установите GitHub Token[/cyan]")
-                console.print(
-                    "[dim]   1. Создайте токен: "
-                    "https://github.com/settings/tokens[/dim]"
-                )
-                console.print(
-                    "[dim]   2. Установите: $env:GITHUB_TOKEN = 'your_token'[/dim]"
-                )
-                console.print(
-                    "[dim]   3. Запустите снова: .\\scripts\\run_monitor.ps1[/dim]\n"
-                )
+                console.print("[dim]   1. Создайте токен: https://github.com/settings/tokens[/dim]")
+                console.print("[dim]   2. Установите: $env:GITHUB_TOKEN = 'your_token'[/dim]")
+                console.print("[dim]   3. Запустите снова: .\\scripts\\run_monitor.ps1[/dim]\n")
                 sys.exit(1)
             elif remaining < 10:
-                console.print(
-                    f"[yellow]⚠️  Осталось запросов: {remaining}/{limit}[/yellow]"
-                )
-                console.print(
-                    "[yellow]   Рекомендуется установить GitHub Token[/yellow]"
-                )
+                console.print(f"[yellow]⚠️  Осталось запросов: {remaining}/{limit}[/yellow]")
+                console.print("[yellow]   Рекомендуется установить GitHub Token[/yellow]")
             else:
-                console.print(
-                    f"[green]✅ Rate limit: {remaining}/{limit} запросов[/green]\n"
-                )
+                console.print(f"[green]✅ Rate limit: {remaining}/{limit} запросов[/green]\n")
 
         # Анализ workflow health с таймаутом
         console.print("[yellow]📊 Анализирую workflows...[/yellow]")
@@ -737,8 +704,7 @@ async def main():
         report_dir.mkdir(parents=True, exist_ok=True)
 
         report_file = (
-            report_dir / f"github_actions_report_"
-            f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+            report_dir / f"github_actions_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         )
         report_file.write_text(report, encoding="utf-8")
 
