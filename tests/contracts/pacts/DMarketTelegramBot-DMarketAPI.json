@@ -7232,6 +7232,375 @@
       "type": "Synchronous/HTTP"
     },
     {
+      "description": "a request for aggregated prices",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "items exist for aggregation"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "cursor": "",
+            "filter": {
+              "game": "csgo",
+              "titles": [
+                "AK-47 | Redline (Field-Tested)"
+              ]
+            },
+            "limit": "100"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/aggregated-prices"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "aggregatedPrices": [
+              {
+                "offerBestPrice": "1250",
+                "offerCount": 23,
+                "orderBestPrice": "1200",
+                "orderCount": 15,
+                "title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "nextCursor": ""
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.aggregatedPrices": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].offerBestPrice": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].offerCount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].orderBestPrice": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].orderCount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.nextCursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request for aggregated prices",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "items exist for aggregation"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "cursor": "",
+            "filter": {
+              "game": "csgo",
+              "titles": [
+                "AK-47 | Redline (Field-Tested)"
+              ]
+            },
+            "limit": "100"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/aggregated-prices"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "aggregatedPrices": [
+              {
+                "offerBestPrice": "1250",
+                "offerCount": 23,
+                "orderBestPrice": "1200",
+                "orderCount": 15,
+                "title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "nextCursor": ""
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.aggregatedPrices": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].offerBestPrice": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].offerCount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].orderBestPrice": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].orderCount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.nextCursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request for aggregated prices",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "items exist for aggregation"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "cursor": "",
+            "filter": {
+              "game": "csgo",
+              "titles": [
+                "AK-47 | Redline (Field-Tested)"
+              ]
+            },
+            "limit": "100"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/aggregated-prices"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "aggregatedPrices": [
+              {
+                "offerBestPrice": "1250",
+                "offerCount": 23,
+                "orderBestPrice": "1200",
+                "orderCount": 15,
+                "title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "nextCursor": ""
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.aggregatedPrices": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].offerBestPrice": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].offerCount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].orderBestPrice": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].orderCount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.nextCursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
       "description": "a request for empty inventory",
       "pending": false,
       "providerStates": [
@@ -9801,6 +10170,138 @@
       "type": "Synchronous/HTTP"
     },
     {
+      "description": "a request for empty inventory",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has empty inventory"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/user-inventory",
+        "query": {
+          "GameID": [
+            "a8db"
+          ],
+          "Limit": [
+            "100"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Cursor": "",
+            "Items": [],
+            "Total": "0"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request for empty inventory",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has empty inventory"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/user-inventory",
+        "query": {
+          "GameID": [
+            "a8db"
+          ],
+          "Limit": [
+            "100"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Cursor": "",
+            "Items": [],
+            "Total": "0"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request for empty inventory",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has empty inventory"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/user-inventory",
+        "query": {
+          "GameID": [
+            "a8db"
+          ],
+          "Limit": [
+            "100"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Cursor": "",
+            "Items": [],
+            "Total": "0"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
       "description": "a request for inventory items not on market",
       "pending": false,
       "providerStates": [
@@ -18460,6 +18961,933 @@
       "type": "Synchronous/HTTP"
     },
     {
+      "description": "a request for inventory items not on market",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has items not on market"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/user-inventory",
+        "query": {
+          "BasicFilters.InMarket": [
+            "false"
+          ],
+          "GameID": [
+            "a8db"
+          ],
+          "Limit": [
+            "100"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Cursor": "cursor_token",
+            "Items": [
+              {
+                "Attributes": {
+                  "exterior": "Field-Tested",
+                  "floatValue": "0.25"
+                },
+                "Image": "https://example.com/img.png",
+                "InMarket": false,
+                "ItemID": "inv_item_123",
+                "Price": {
+                  "USD": "1300"
+                },
+                "Title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "Total": "5"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Cursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.Items[*].Attributes.exterior": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Attributes.floatValue": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Image": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^https?://"
+                }
+              ]
+            },
+            "$.Items[*].InMarket": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].ItemID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Price.USD": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.Items[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request for inventory items not on market",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has items not on market"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/user-inventory",
+        "query": {
+          "BasicFilters.InMarket": [
+            "false"
+          ],
+          "GameID": [
+            "a8db"
+          ],
+          "Limit": [
+            "100"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Cursor": "cursor_token",
+            "Items": [
+              {
+                "Attributes": {
+                  "exterior": "Field-Tested",
+                  "floatValue": "0.25"
+                },
+                "Image": "https://example.com/img.png",
+                "InMarket": false,
+                "ItemID": "inv_item_123",
+                "Price": {
+                  "USD": "1300"
+                },
+                "Title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "Total": "5"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Cursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.Items[*].Attributes.exterior": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Attributes.floatValue": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Image": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^https?://"
+                }
+              ]
+            },
+            "$.Items[*].InMarket": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].ItemID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Price.USD": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.Items[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request for inventory items not on market",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has items not on market"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/user-inventory",
+        "query": {
+          "BasicFilters.InMarket": [
+            "false"
+          ],
+          "GameID": [
+            "a8db"
+          ],
+          "Limit": [
+            "100"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Cursor": "cursor_token",
+            "Items": [
+              {
+                "Attributes": {
+                  "exterior": "Field-Tested",
+                  "floatValue": "0.25"
+                },
+                "Image": "https://example.com/img.png",
+                "InMarket": false,
+                "ItemID": "inv_item_123",
+                "Price": {
+                  "USD": "1300"
+                },
+                "Title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "Total": "5"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Cursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.Items[*].Attributes.exterior": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Attributes.floatValue": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Image": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^https?://"
+                }
+              ]
+            },
+            "$.Items[*].InMarket": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].ItemID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Price.USD": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.Items[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request for market items",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "market has items for csgo"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/exchange/v1/market/items",
+        "query": {
+          "currency": [
+            "USD"
+          ],
+          "gameId": [
+            "a8db"
+          ],
+          "limit": [
+            "100"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "cursor": "next_page_cursor",
+            "objects": [
+              {
+                "extra": {
+                  "category": "Rifle",
+                  "exterior": "Field-Tested",
+                  "rarity": "Classified"
+                },
+                "imageUrl": "https://example.com/img.png",
+                "itemId": "item_12345",
+                "price": {
+                  "USD": "1250"
+                },
+                "suggestedPrice": {
+                  "USD": "1300"
+                },
+                "title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "total": 100
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.cursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.objects[*].extra.category": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects[*].extra.exterior": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects[*].extra.rarity": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects[*].imageUrl": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^https?://"
+                }
+              ]
+            },
+            "$.objects[*].itemId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects[*].price.USD": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.objects[*].suggestedPrice.USD": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.objects[*].title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request for market items",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "market has items for csgo"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/exchange/v1/market/items",
+        "query": {
+          "currency": [
+            "USD"
+          ],
+          "gameId": [
+            "a8db"
+          ],
+          "limit": [
+            "100"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "cursor": "next_page_cursor",
+            "objects": [
+              {
+                "extra": {
+                  "category": "Rifle",
+                  "exterior": "Field-Tested",
+                  "rarity": "Classified"
+                },
+                "imageUrl": "https://example.com/img.png",
+                "itemId": "item_12345",
+                "price": {
+                  "USD": "1250"
+                },
+                "suggestedPrice": {
+                  "USD": "1300"
+                },
+                "title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "total": 100
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.cursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.objects[*].extra.category": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects[*].extra.exterior": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects[*].extra.rarity": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects[*].imageUrl": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^https?://"
+                }
+              ]
+            },
+            "$.objects[*].itemId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects[*].price.USD": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.objects[*].suggestedPrice.USD": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.objects[*].title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request for market items",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "market has items for csgo"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/exchange/v1/market/items",
+        "query": {
+          "currency": [
+            "USD"
+          ],
+          "gameId": [
+            "a8db"
+          ],
+          "limit": [
+            "100"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "cursor": "next_page_cursor",
+            "objects": [
+              {
+                "extra": {
+                  "category": "Rifle",
+                  "exterior": "Field-Tested",
+                  "rarity": "Classified"
+                },
+                "imageUrl": "https://example.com/img.png",
+                "itemId": "item_12345",
+                "price": {
+                  "USD": "1250"
+                },
+                "suggestedPrice": {
+                  "USD": "1300"
+                },
+                "title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "total": 100
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.cursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.objects[*].extra.category": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects[*].extra.exterior": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects[*].extra.rarity": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects[*].imageUrl": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^https?://"
+                }
+              ]
+            },
+            "$.objects[*].itemId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects[*].price.USD": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.objects[*].suggestedPrice.USD": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.objects[*].title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
       "description": "a request for market items",
       "pending": false,
       "providerStates": [
@@ -33585,6 +35013,324 @@
       "type": "Synchronous/HTTP"
     },
     {
+      "description": "a request for offers by title",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "offers exist for the item title"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/exchange/v1/offers-by-title",
+        "query": {
+          "Limit": [
+            "100"
+          ],
+          "Title": [
+            "AK-47 | Redline (Field-Tested)"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "cursor": "",
+            "objects": [
+              {
+                "itemId": "offer_123",
+                "price": {
+                  "USD": "1250"
+                },
+                "title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "total": 45
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.cursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.objects[*].itemId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects[*].price.USD": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.objects[*].title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request for offers by title",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "offers exist for the item title"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/exchange/v1/offers-by-title",
+        "query": {
+          "Limit": [
+            "100"
+          ],
+          "Title": [
+            "AK-47 | Redline (Field-Tested)"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "cursor": "",
+            "objects": [
+              {
+                "itemId": "offer_123",
+                "price": {
+                  "USD": "1250"
+                },
+                "title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "total": 45
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.cursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.objects[*].itemId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects[*].price.USD": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.objects[*].title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request for offers by title",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "offers exist for the item title"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/exchange/v1/offers-by-title",
+        "query": {
+          "Limit": [
+            "100"
+          ],
+          "Title": [
+            "AK-47 | Redline (Field-Tested)"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "cursor": "",
+            "objects": [
+              {
+                "itemId": "offer_123",
+                "price": {
+                  "USD": "1250"
+                },
+                "title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "total": 45
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.cursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.objects[*].itemId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.objects[*].price.USD": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.objects[*].title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
       "description": "a request for targets by title",
       "pending": false,
       "providerStates": [
@@ -38764,6 +40510,273 @@
       "type": "Synchronous/HTTP"
     },
     {
+      "description": "a request for targets by title",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "targets exist for the item"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/targets-by-title/csgo/AK-47%20%7C%20Redline%20(Field-Tested)"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "orders": [
+              {
+                "amount": 10,
+                "attributes": {
+                  "exterior": "Field-Tested"
+                },
+                "price": "1200",
+                "title": "AK-47 | Redline (Field-Tested)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.orders": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.orders[*].amount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.orders[*].attributes.exterior": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.orders[*].price": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.orders[*].title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request for targets by title",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "targets exist for the item"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/targets-by-title/csgo/AK-47%20%7C%20Redline%20(Field-Tested)"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "orders": [
+              {
+                "amount": 10,
+                "attributes": {
+                  "exterior": "Field-Tested"
+                },
+                "price": "1200",
+                "title": "AK-47 | Redline (Field-Tested)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.orders": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.orders[*].amount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.orders[*].attributes.exterior": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.orders[*].price": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.orders[*].title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request for targets by title",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "targets exist for the item"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/targets-by-title/csgo/AK-47%20%7C%20Redline%20(Field-Tested)"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "orders": [
+              {
+                "amount": 10,
+                "attributes": {
+                  "exterior": "Field-Tested"
+                },
+                "price": "1200",
+                "title": "AK-47 | Redline (Field-Tested)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.orders": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.orders[*].amount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.orders[*].attributes.exterior": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.orders[*].price": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.orders[*].title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
       "description": "a request for user profile",
       "pending": false,
       "providerStates": [
@@ -43189,6 +45202,234 @@
       "type": "Synchronous/HTTP"
     },
     {
+      "description": "a request for user profile",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has an active account"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/account/v1/user"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "email": "test@example.com",
+            "id": "user_123456",
+            "settings": {
+              "targetsLimit": 100
+            },
+            "username": "testuser"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.email": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$"
+                }
+              ]
+            },
+            "$.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.settings.targetsLimit": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.username": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request for user profile",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has an active account"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/account/v1/user"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "email": "test@example.com",
+            "id": "user_123456",
+            "settings": {
+              "targetsLimit": 100
+            },
+            "username": "testuser"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.email": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$"
+                }
+              ]
+            },
+            "$.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.settings.targetsLimit": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.username": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request for user profile",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has an active account"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/account/v1/user"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "email": "test@example.com",
+            "id": "user_123456",
+            "settings": {
+              "targetsLimit": 100
+            },
+            "username": "testuser"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.email": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$"
+                }
+              ]
+            },
+            "$.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.settings.targetsLimit": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.username": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
       "description": "a request to buy expensive items",
       "pending": false,
       "providerStates": [
@@ -47556,6 +49797,231 @@
       "type": "Synchronous/HTTP"
     },
     {
+      "description": "a request to buy expensive items",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has insufficient balance"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "offers": [
+              {
+                "offerId": "offer_expensive",
+                "price": {
+                  "amount": 999999,
+                  "currency": "USD"
+                }
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "PATCH",
+        "path": "/exchange/v1/offers-buy"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "error": {
+              "code": "InsufficientFunds",
+              "message": "Not enough balance to complete purchase"
+            }
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.error.code": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.error.message": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 400
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to buy expensive items",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has insufficient balance"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "offers": [
+              {
+                "offerId": "offer_expensive",
+                "price": {
+                  "amount": 999999,
+                  "currency": "USD"
+                }
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "PATCH",
+        "path": "/exchange/v1/offers-buy"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "error": {
+              "code": "InsufficientFunds",
+              "message": "Not enough balance to complete purchase"
+            }
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.error.code": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.error.message": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 400
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to buy expensive items",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has insufficient balance"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "offers": [
+              {
+                "offerId": "offer_expensive",
+                "price": {
+                  "amount": 999999,
+                  "currency": "USD"
+                }
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "PATCH",
+        "path": "/exchange/v1/offers-buy"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "error": {
+              "code": "InsufficientFunds",
+              "message": "Not enough balance to complete purchase"
+            }
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.error.code": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.error.message": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 400
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
       "description": "a request to buy items",
       "pending": false,
       "providerStates": [
@@ -53199,6 +55665,297 @@
       "type": "Synchronous/HTTP"
     },
     {
+      "description": "a request to buy items",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has sufficient balance"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "offers": [
+              {
+                "offerId": "offer_12345",
+                "price": {
+                  "amount": 1250,
+                  "currency": "USD"
+                }
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "PATCH",
+        "path": "/exchange/v1/offers-buy"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "dmOffersStatus": {
+              "offer_12345": {
+                "status": "Success"
+              }
+            },
+            "orderId": "order_12345",
+            "status": "TxPending",
+            "txId": "tx_67890"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.dmOffersStatus.offer_12345.status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Success|Failed|InsufficientFunds)$"
+                }
+              ]
+            },
+            "$.orderId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(TxPending|TxSuccess|TxFailed)$"
+                }
+              ]
+            },
+            "$.txId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to buy items",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has sufficient balance"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "offers": [
+              {
+                "offerId": "offer_12345",
+                "price": {
+                  "amount": 1250,
+                  "currency": "USD"
+                }
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "PATCH",
+        "path": "/exchange/v1/offers-buy"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "dmOffersStatus": {
+              "offer_12345": {
+                "status": "Success"
+              }
+            },
+            "orderId": "order_12345",
+            "status": "TxPending",
+            "txId": "tx_67890"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.dmOffersStatus.offer_12345.status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Success|Failed|InsufficientFunds)$"
+                }
+              ]
+            },
+            "$.orderId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(TxPending|TxSuccess|TxFailed)$"
+                }
+              ]
+            },
+            "$.txId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to buy items",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has sufficient balance"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "offers": [
+              {
+                "offerId": "offer_12345",
+                "price": {
+                  "amount": 1250,
+                  "currency": "USD"
+                }
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "PATCH",
+        "path": "/exchange/v1/offers-buy"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "dmOffersStatus": {
+              "offer_12345": {
+                "status": "Success"
+              }
+            },
+            "orderId": "order_12345",
+            "status": "TxPending",
+            "txId": "tx_67890"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.dmOffersStatus.offer_12345.status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Success|Failed|InsufficientFunds)$"
+                }
+              ]
+            },
+            "$.orderId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(TxPending|TxSuccess|TxFailed)$"
+                }
+              ]
+            },
+            "$.txId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
       "description": "a request to create a target",
       "pending": false,
       "providerStates": [
@@ -58900,6 +61657,300 @@
       "type": "Synchronous/HTTP"
     },
     {
+      "description": "a request to create a target",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user can create targets"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "GameID": "a8db",
+            "Targets": [
+              {
+                "Amount": 1,
+                "Price": {
+                  "Amount": 1200,
+                  "Currency": "USD"
+                },
+                "Title": "AK-47 | Redline (Field-Tested)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-targets/create"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "Status": "Created",
+                "TargetID": "new_target_123",
+                "Title": "AK-47 | Redline (Field-Tested)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.Result[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Created|Updated|Error)$"
+                }
+              ]
+            },
+            "$.Result[*].TargetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to create a target",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user can create targets"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "GameID": "a8db",
+            "Targets": [
+              {
+                "Amount": 1,
+                "Price": {
+                  "Amount": 1200,
+                  "Currency": "USD"
+                },
+                "Title": "AK-47 | Redline (Field-Tested)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-targets/create"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "Status": "Created",
+                "TargetID": "new_target_123",
+                "Title": "AK-47 | Redline (Field-Tested)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.Result[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Created|Updated|Error)$"
+                }
+              ]
+            },
+            "$.Result[*].TargetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to create a target",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user can create targets"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "GameID": "a8db",
+            "Targets": [
+              {
+                "Amount": 1,
+                "Price": {
+                  "Amount": 1200,
+                  "Currency": "USD"
+                },
+                "Title": "AK-47 | Redline (Field-Tested)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-targets/create"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "Status": "Created",
+                "TargetID": "new_target_123",
+                "Title": "AK-47 | Redline (Field-Tested)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.Result[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Created|Updated|Error)$"
+                }
+              ]
+            },
+            "$.Result[*].TargetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
       "description": "a request to create offers",
       "pending": false,
       "providerStates": [
@@ -64485,6 +67536,294 @@
       "type": "Synchronous/HTTP"
     },
     {
+      "description": "a request to create offers",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has items to sell"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "Offers": [
+              {
+                "AssetID": "asset_67890",
+                "Price": {
+                  "Amount": 1300,
+                  "Currency": "USD"
+                }
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-offers/create"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "AssetID": "asset_67890",
+                "OfferID": "offer_12345",
+                "Status": "Created"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.Result[*].AssetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[*].OfferID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Created|Updated|Error)$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to create offers",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has items to sell"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "Offers": [
+              {
+                "AssetID": "asset_67890",
+                "Price": {
+                  "Amount": 1300,
+                  "Currency": "USD"
+                }
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-offers/create"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "AssetID": "asset_67890",
+                "OfferID": "offer_12345",
+                "Status": "Created"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.Result[*].AssetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[*].OfferID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Created|Updated|Error)$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to create offers",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has items to sell"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "Offers": [
+              {
+                "AssetID": "asset_67890",
+                "Price": {
+                  "Amount": 1300,
+                  "Currency": "USD"
+                }
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-offers/create"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "AssetID": "asset_67890",
+                "OfferID": "offer_12345",
+                "Status": "Created"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.Result[*].AssetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[*].OfferID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Created|Updated|Error)$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
       "description": "a request to delete offers",
       "pending": false,
       "providerStates": [
@@ -67344,6 +70683,153 @@
       "type": "Synchronous/HTTP"
     },
     {
+      "description": "a request to delete offers",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has offers to delete"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "force": true,
+            "objects": [
+              {
+                "offerId": "offer_12345"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "DELETE",
+        "path": "/exchange/v1/offers"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "status": "ok"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to delete offers",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has offers to delete"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "force": true,
+            "objects": [
+              {
+                "offerId": "offer_12345"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "DELETE",
+        "path": "/exchange/v1/offers"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "status": "ok"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to delete offers",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has offers to delete"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "force": true,
+            "objects": [
+              {
+                "offerId": "offer_12345"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "DELETE",
+        "path": "/exchange/v1/offers"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "status": "ok"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
       "description": "a request to delete targets",
       "pending": false,
       "providerStates": [
@@ -72175,6 +75661,255 @@
       "type": "Synchronous/HTTP"
     },
     {
+      "description": "a request to delete targets",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has targets to delete"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "Targets": [
+              {
+                "TargetID": "target_123"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-targets/delete"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "Status": "Deleted",
+                "TargetID": "target_123"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.Result[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Deleted|NotFound|Error)$"
+                }
+              ]
+            },
+            "$.Result[*].TargetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to delete targets",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has targets to delete"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "Targets": [
+              {
+                "TargetID": "target_123"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-targets/delete"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "Status": "Deleted",
+                "TargetID": "target_123"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.Result[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Deleted|NotFound|Error)$"
+                }
+              ]
+            },
+            "$.Result[*].TargetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to delete targets",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has targets to delete"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "Targets": [
+              {
+                "TargetID": "target_123"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-targets/delete"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "Status": "Deleted",
+                "TargetID": "target_123"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.Result[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Deleted|NotFound|Error)$"
+                }
+              ]
+            },
+            "$.Result[*].TargetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
       "description": "a request to edit offer prices",
       "pending": false,
       "providerStates": [
@@ -77238,6 +80973,705 @@
       "type": "Synchronous/HTTP"
     },
     {
+      "description": "a request to edit offer prices",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has offers to edit"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "Offers": [
+              {
+                "OfferID": "offer_12345",
+                "Price": {
+                  "Amount": 1400,
+                  "Currency": "USD"
+                }
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-offers/edit"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "OfferID": "offer_12345",
+                "Status": "Updated"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.Result[*].OfferID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Updated|Error|NotFound)$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to edit offer prices",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has offers to edit"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "Offers": [
+              {
+                "OfferID": "offer_12345",
+                "Price": {
+                  "Amount": 1400,
+                  "Currency": "USD"
+                }
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-offers/edit"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "OfferID": "offer_12345",
+                "Status": "Updated"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.Result[*].OfferID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Updated|Error|NotFound)$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to edit offer prices",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has offers to edit"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "Offers": [
+              {
+                "OfferID": "offer_12345",
+                "Price": {
+                  "Amount": 1400,
+                  "Currency": "USD"
+                }
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-offers/edit"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "OfferID": "offer_12345",
+                "Status": "Updated"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.Result[*].OfferID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Updated|Error|NotFound)$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list user inventory",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has items in inventory"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/user-inventory",
+        "query": {
+          "GameID": [
+            "a8db"
+          ],
+          "Limit": [
+            "100"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Cursor": "cursor_token",
+            "Items": [
+              {
+                "Attributes": {
+                  "exterior": "Field-Tested",
+                  "floatValue": "0.25"
+                },
+                "Image": "https://example.com/img.png",
+                "InMarket": false,
+                "ItemID": "inv_item_123",
+                "Price": {
+                  "USD": "1300"
+                },
+                "Title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "Total": "5"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Cursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.Items[*].Attributes.exterior": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Attributes.floatValue": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Image": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^https?://"
+                }
+              ]
+            },
+            "$.Items[*].InMarket": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].ItemID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Price.USD": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.Items[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list user inventory",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has items in inventory"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/user-inventory",
+        "query": {
+          "GameID": [
+            "a8db"
+          ],
+          "Limit": [
+            "100"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Cursor": "cursor_token",
+            "Items": [
+              {
+                "Attributes": {
+                  "exterior": "Field-Tested",
+                  "floatValue": "0.25"
+                },
+                "Image": "https://example.com/img.png",
+                "InMarket": false,
+                "ItemID": "inv_item_123",
+                "Price": {
+                  "USD": "1300"
+                },
+                "Title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "Total": "5"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Cursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.Items[*].Attributes.exterior": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Attributes.floatValue": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Image": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^https?://"
+                }
+              ]
+            },
+            "$.Items[*].InMarket": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].ItemID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Price.USD": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.Items[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list user inventory",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has items in inventory"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/user-inventory",
+        "query": {
+          "GameID": [
+            "a8db"
+          ],
+          "Limit": [
+            "100"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Cursor": "cursor_token",
+            "Items": [
+              {
+                "Attributes": {
+                  "exterior": "Field-Tested",
+                  "floatValue": "0.25"
+                },
+                "Image": "https://example.com/img.png",
+                "InMarket": false,
+                "ItemID": "inv_item_123",
+                "Price": {
+                  "USD": "1300"
+                },
+                "Title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "Total": "5"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Cursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.Items[*].Attributes.exterior": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Attributes.floatValue": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Image": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^https?://"
+                }
+              ]
+            },
+            "$.Items[*].InMarket": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].ItemID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Price.USD": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.Items[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
       "description": "a request to list user inventory",
       "pending": false,
       "providerStates": [
@@ -93059,6 +97493,858 @@
                 {
                   "match": "regex",
                   "regex": "^(OfferStatusActive|OfferStatusSold|OfferStatusInactive)$"
+                }
+              ]
+            },
+            "$.Items[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list user offers",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has active offers"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/user-offers",
+        "query": {
+          "GameID": [
+            "a8db"
+          ],
+          "Limit": [
+            "100"
+          ],
+          "Status": [
+            "OfferStatusActive"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Items": [
+              {
+                "AssetID": "asset_67890",
+                "CreatedDate": 1699876543,
+                "OfferID": "offer_12345",
+                "Price": {
+                  "Amount": 1300,
+                  "Currency": "USD"
+                },
+                "Status": "OfferStatusActive",
+                "Title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "Total": "10"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Items": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.Items[*].AssetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].CreatedDate": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.Items[*].OfferID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Price.Amount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.Items[*].Price.Currency": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(OfferStatusActive|OfferStatusSold|OfferStatusInactive)$"
+                }
+              ]
+            },
+            "$.Items[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list user offers",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has active offers"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/user-offers",
+        "query": {
+          "GameID": [
+            "a8db"
+          ],
+          "Limit": [
+            "100"
+          ],
+          "Status": [
+            "OfferStatusActive"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Items": [
+              {
+                "AssetID": "asset_67890",
+                "CreatedDate": 1699876543,
+                "OfferID": "offer_12345",
+                "Price": {
+                  "Amount": 1300,
+                  "Currency": "USD"
+                },
+                "Status": "OfferStatusActive",
+                "Title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "Total": "10"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Items": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.Items[*].AssetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].CreatedDate": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.Items[*].OfferID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Price.Amount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.Items[*].Price.Currency": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(OfferStatusActive|OfferStatusSold|OfferStatusInactive)$"
+                }
+              ]
+            },
+            "$.Items[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list user offers",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has active offers"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/user-offers",
+        "query": {
+          "GameID": [
+            "a8db"
+          ],
+          "Limit": [
+            "100"
+          ],
+          "Status": [
+            "OfferStatusActive"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Items": [
+              {
+                "AssetID": "asset_67890",
+                "CreatedDate": 1699876543,
+                "OfferID": "offer_12345",
+                "Price": {
+                  "Amount": 1300,
+                  "Currency": "USD"
+                },
+                "Status": "OfferStatusActive",
+                "Title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "Total": "10"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Items": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.Items[*].AssetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].CreatedDate": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.Items[*].OfferID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Price.Amount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.Items[*].Price.Currency": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(OfferStatusActive|OfferStatusSold|OfferStatusInactive)$"
+                }
+              ]
+            },
+            "$.Items[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list user targets",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has active targets"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/user-targets",
+        "query": {
+          "BasicFilters.Status": [
+            "TargetStatusActive"
+          ],
+          "GameID": [
+            "a8db"
+          ],
+          "Limit": [
+            "100"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Cursor": "cursor_token",
+            "Items": [
+              {
+                "Amount": 1,
+                "CreatedAt": 1699876543,
+                "Price": {
+                  "Amount": 1200,
+                  "Currency": "USD"
+                },
+                "Status": "TargetStatusActive",
+                "TargetID": "target_123",
+                "Title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "Total": "10"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Cursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.Items[*].Amount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.Items[*].CreatedAt": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.Items[*].Price.Amount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.Items[*].Price.Currency": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(USD|EUR|DMC)$"
+                }
+              ]
+            },
+            "$.Items[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(TargetStatusActive|TargetStatusInactive)$"
+                }
+              ]
+            },
+            "$.Items[*].TargetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list user targets",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has active targets"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/user-targets",
+        "query": {
+          "BasicFilters.Status": [
+            "TargetStatusActive"
+          ],
+          "GameID": [
+            "a8db"
+          ],
+          "Limit": [
+            "100"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Cursor": "cursor_token",
+            "Items": [
+              {
+                "Amount": 1,
+                "CreatedAt": 1699876543,
+                "Price": {
+                  "Amount": 1200,
+                  "Currency": "USD"
+                },
+                "Status": "TargetStatusActive",
+                "TargetID": "target_123",
+                "Title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "Total": "10"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Cursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.Items[*].Amount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.Items[*].CreatedAt": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.Items[*].Price.Amount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.Items[*].Price.Currency": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(USD|EUR|DMC)$"
+                }
+              ]
+            },
+            "$.Items[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(TargetStatusActive|TargetStatusInactive)$"
+                }
+              ]
+            },
+            "$.Items[*].TargetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list user targets",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has active targets"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/user-targets",
+        "query": {
+          "BasicFilters.Status": [
+            "TargetStatusActive"
+          ],
+          "GameID": [
+            "a8db"
+          ],
+          "Limit": [
+            "100"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Cursor": "cursor_token",
+            "Items": [
+              {
+                "Amount": 1,
+                "CreatedAt": 1699876543,
+                "Price": {
+                  "Amount": 1200,
+                  "Currency": "USD"
+                },
+                "Status": "TargetStatusActive",
+                "TargetID": "target_123",
+                "Title": "AK-47 | Redline (Field-Tested)"
+              }
+            ],
+            "Total": "10"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Cursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Items": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 0
+                }
+              ]
+            },
+            "$.Items[*].Amount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.Items[*].CreatedAt": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.Items[*].Price.Amount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.Items[*].Price.Currency": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(USD|EUR|DMC)$"
+                }
+              ]
+            },
+            "$.Items[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(TargetStatusActive|TargetStatusInactive)$"
+                }
+              ]
+            },
+            "$.Items[*].TargetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
                 }
               ]
             },
@@ -101331,6 +106617,219 @@
       },
       "response": {
         "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request when rate limited",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has exceeded rate limit"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/account/v1/balance"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "error": {
+              "code": "RATE_LIMIT_EXCEEDED",
+              "message": "Too many requests"
+            }
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ],
+          "Retry-After": [
+            "60"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.error.code": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.error.message": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Retry-After": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 429
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request when rate limited",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has exceeded rate limit"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/account/v1/balance"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "error": {
+              "code": "RATE_LIMIT_EXCEEDED",
+              "message": "Too many requests"
+            }
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ],
+          "Retry-After": [
+            "60"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.error.code": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.error.message": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Retry-After": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 429
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request when rate limited",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has exceeded rate limit"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/account/v1/balance"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "error": {
+              "code": "RATE_LIMIT_EXCEEDED",
+              "message": "Too many requests"
+            }
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ],
+          "Retry-After": [
+            "60"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.error.code": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.error.message": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Retry-After": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 429
       },
       "type": "Synchronous/HTTP"
     },
@@ -105540,6 +111039,138 @@
           }
         },
         "status": 401
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "request for empty targets list",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has no targets"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/user-targets",
+        "query": {
+          "GameID": [
+            "a8db"
+          ],
+          "Limit": [
+            "100"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Cursor": "",
+            "Items": [],
+            "Total": "0"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "request for empty targets list",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has no targets"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/user-targets",
+        "query": {
+          "GameID": [
+            "a8db"
+          ],
+          "Limit": [
+            "100"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Cursor": "",
+            "Items": [],
+            "Total": "0"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "request for empty targets list",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user has no targets"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": [
+            "application/json"
+          ]
+        },
+        "method": "GET",
+        "path": "/marketplace-api/v1/user-targets",
+        "query": {
+          "GameID": [
+            "a8db"
+          ],
+          "Limit": [
+            "100"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Cursor": "",
+            "Items": [],
+            "Total": "0"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
       },
       "type": "Synchronous/HTTP"
     },
@@ -115383,35 +121014,25 @@
       "type": "Synchronous/HTTP"
     },
     {
-      "description": "request to create multiple targets",
+      "description": "request for multiple items prices",
       "pending": false,
       "providerStates": [
         {
-          "name": "user can create multiple targets"
+          "name": "multiple items exist for aggregation"
         }
       ],
       "request": {
         "body": {
           "content": {
-            "GameID": "a8db",
-            "Targets": [
-              {
-                "Amount": 1,
-                "Price": {
-                  "Amount": 1200,
-                  "Currency": "USD"
-                },
-                "Title": "AK-47 | Redline (Field-Tested)"
-              },
-              {
-                "Amount": 1,
-                "Price": {
-                  "Amount": 4000,
-                  "Currency": "USD"
-                },
-                "Title": "AWP | Asiimov (Field-Tested)"
-              }
-            ]
+            "cursor": "",
+            "filter": {
+              "game": "csgo",
+              "titles": [
+                "AK-47 | Redline (Field-Tested)",
+                "AWP | Asiimov (Field-Tested)"
+              ]
+            },
+            "limit": "100"
           },
           "contentType": "application/json",
           "encoded": false
@@ -115425,18 +121046,21 @@
           ]
         },
         "method": "POST",
-        "path": "/marketplace-api/v1/user-targets/create"
+        "path": "/marketplace-api/v1/aggregated-prices"
       },
       "response": {
         "body": {
           "content": {
-            "Result": [
+            "aggregatedPrices": [
               {
-                "Status": "Created",
-                "TargetID": "target_123",
-                "Title": "Item Name"
+                "offerBestPrice": "1250",
+                "offerCount": 15,
+                "orderBestPrice": "1200",
+                "orderCount": 10,
+                "title": "Item Name"
               }
-            ]
+            ],
+            "nextCursor": ""
           },
           "contentType": "application/json",
           "encoded": false
@@ -115448,7 +121072,7 @@
         },
         "matchingRules": {
           "body": {
-            "$.Result": {
+            "$.aggregatedPrices": {
               "combine": "AND",
               "matchers": [
                 {
@@ -115457,16 +121081,41 @@
                 }
               ]
             },
-            "$.Result[*].Status": {
+            "$.aggregatedPrices[*].offerBestPrice": {
               "combine": "AND",
               "matchers": [
                 {
                   "match": "regex",
-                  "regex": "^(Created|Updated|Error)$"
+                  "regex": "^\\d+$"
                 }
               ]
             },
-            "$.Result[*].TargetID": {
+            "$.aggregatedPrices[*].offerCount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].orderBestPrice": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].orderCount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].title": {
               "combine": "AND",
               "matchers": [
                 {
@@ -115474,7 +121123,255 @@
                 }
               ]
             },
-            "$.Result[*].Title": {
+            "$.nextCursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "request for multiple items prices",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "multiple items exist for aggregation"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "cursor": "",
+            "filter": {
+              "game": "csgo",
+              "titles": [
+                "AK-47 | Redline (Field-Tested)",
+                "AWP | Asiimov (Field-Tested)"
+              ]
+            },
+            "limit": "100"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/aggregated-prices"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "aggregatedPrices": [
+              {
+                "offerBestPrice": "1250",
+                "offerCount": 15,
+                "orderBestPrice": "1200",
+                "orderCount": 10,
+                "title": "Item Name"
+              }
+            ],
+            "nextCursor": ""
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.aggregatedPrices": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 2
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].offerBestPrice": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].offerCount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].orderBestPrice": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].orderCount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.nextCursor": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "request for multiple items prices",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "multiple items exist for aggregation"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "cursor": "",
+            "filter": {
+              "game": "csgo",
+              "titles": [
+                "AK-47 | Redline (Field-Tested)",
+                "AWP | Asiimov (Field-Tested)"
+              ]
+            },
+            "limit": "100"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/aggregated-prices"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "aggregatedPrices": [
+              {
+                "offerBestPrice": "1250",
+                "offerCount": 15,
+                "orderBestPrice": "1200",
+                "orderCount": 10,
+                "title": "Item Name"
+              }
+            ],
+            "nextCursor": ""
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.aggregatedPrices": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 2
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].offerBestPrice": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].offerCount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].orderBestPrice": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^\\d+$"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].orderCount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.aggregatedPrices[*].title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.nextCursor": {
               "combine": "AND",
               "matchers": [
                 {
@@ -121305,6 +127202,682 @@
               ]
             },
             "$.Result[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "request to create multiple targets",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user can create multiple targets"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "GameID": "a8db",
+            "Targets": [
+              {
+                "Amount": 1,
+                "Price": {
+                  "Amount": 1200,
+                  "Currency": "USD"
+                },
+                "Title": "AK-47 | Redline (Field-Tested)"
+              },
+              {
+                "Amount": 1,
+                "Price": {
+                  "Amount": 4000,
+                  "Currency": "USD"
+                },
+                "Title": "AWP | Asiimov (Field-Tested)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-targets/create"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "Status": "Created",
+                "TargetID": "target_123",
+                "Title": "Item Name"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 2
+                }
+              ]
+            },
+            "$.Result[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Created|Updated|Error)$"
+                }
+              ]
+            },
+            "$.Result[*].TargetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "request to create multiple targets",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user can create multiple targets"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "GameID": "a8db",
+            "Targets": [
+              {
+                "Amount": 1,
+                "Price": {
+                  "Amount": 1200,
+                  "Currency": "USD"
+                },
+                "Title": "AK-47 | Redline (Field-Tested)"
+              },
+              {
+                "Amount": 1,
+                "Price": {
+                  "Amount": 4000,
+                  "Currency": "USD"
+                },
+                "Title": "AWP | Asiimov (Field-Tested)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-targets/create"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "Status": "Created",
+                "TargetID": "target_123",
+                "Title": "Item Name"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 2
+                }
+              ]
+            },
+            "$.Result[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Created|Updated|Error)$"
+                }
+              ]
+            },
+            "$.Result[*].TargetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "request to create multiple targets",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user can create multiple targets"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "GameID": "a8db",
+            "Targets": [
+              {
+                "Amount": 1,
+                "Price": {
+                  "Amount": 1200,
+                  "Currency": "USD"
+                },
+                "Title": "AK-47 | Redline (Field-Tested)"
+              },
+              {
+                "Amount": 1,
+                "Price": {
+                  "Amount": 4000,
+                  "Currency": "USD"
+                },
+                "Title": "AWP | Asiimov (Field-Tested)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-targets/create"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "Status": "Created",
+                "TargetID": "target_123",
+                "Title": "Item Name"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 2
+                }
+              ]
+            },
+            "$.Result[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Created|Updated|Error)$"
+                }
+              ]
+            },
+            "$.Result[*].TargetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "request to create multiple targets",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user can create multiple targets"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "GameID": "a8db",
+            "Targets": [
+              {
+                "Amount": 1,
+                "Price": {
+                  "Amount": 1200,
+                  "Currency": "USD"
+                },
+                "Title": "AK-47 | Redline (Field-Tested)"
+              },
+              {
+                "Amount": 1,
+                "Price": {
+                  "Amount": 4000,
+                  "Currency": "USD"
+                },
+                "Title": "AWP | Asiimov (Field-Tested)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-targets/create"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "Status": "Created",
+                "TargetID": "target_123",
+                "Title": "Item Name"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 2
+                }
+              ]
+            },
+            "$.Result[*].Status": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^(Created|Updated|Error)$"
+                }
+              ]
+            },
+            "$.Result[*].TargetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[*].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "request to create target with attrs",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user can create targets with attributes"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "GameID": "a8db",
+            "Targets": [
+              {
+                "Amount": 1,
+                "Attrs": {
+                  "floatPartValue": 0.01,
+                  "phase": "Phase 2"
+                },
+                "Price": {
+                  "Amount": 150000,
+                  "Currency": "USD"
+                },
+                "Title": "★ Karambit | Doppler (Factory New)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-targets/create"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "Status": "Created",
+                "TargetID": "target_456",
+                "Title": "★ Karambit | Doppler (Factory New)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result[0].TargetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[0].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "request to create target with attrs",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user can create targets with attributes"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "GameID": "a8db",
+            "Targets": [
+              {
+                "Amount": 1,
+                "Attrs": {
+                  "floatPartValue": 0.01,
+                  "phase": "Phase 2"
+                },
+                "Price": {
+                  "Amount": 150000,
+                  "Currency": "USD"
+                },
+                "Title": "★ Karambit | Doppler (Factory New)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-targets/create"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "Status": "Created",
+                "TargetID": "target_456",
+                "Title": "★ Karambit | Doppler (Factory New)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result[0].TargetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[0].Title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "request to create target with attrs",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "user can create targets with attributes"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "GameID": "a8db",
+            "Targets": [
+              {
+                "Amount": 1,
+                "Attrs": {
+                  "floatPartValue": 0.01,
+                  "phase": "Phase 2"
+                },
+                "Price": {
+                  "Amount": 150000,
+                  "Currency": "USD"
+                },
+                "Title": "★ Karambit | Doppler (Factory New)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Accept": [
+            "application/json"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/marketplace-api/v1/user-targets/create"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "Result": [
+              {
+                "Status": "Created",
+                "TargetID": "target_456",
+                "Title": "★ Karambit | Doppler (Factory New)"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.Result[0].TargetID": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.Result[0].Title": {
               "combine": "AND",
               "matchers": [
                 {
