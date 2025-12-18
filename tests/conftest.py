@@ -8,6 +8,21 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from src.utils.api_circuit_breaker import reset_circuit_breaker
+
+
+@pytest.fixture(autouse=True)
+def reset_circuit_breaker_state():
+    """Reset circuit breaker state before each test.
+
+    This fixture ensures that tests don't affect each other through
+    the global circuit breaker state.
+    """
+    reset_circuit_breaker()
+    yield
+    # Also reset after test to clean up
+    reset_circuit_breaker()
+
 
 @pytest.fixture()
 def mock_logger():

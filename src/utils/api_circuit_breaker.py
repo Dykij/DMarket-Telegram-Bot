@@ -44,6 +44,15 @@ class APICircuitBreaker(CircuitBreaker):
 dmarket_api_breaker = APICircuitBreaker(name="dmarket_api")
 
 
+def reset_circuit_breaker() -> None:
+    """Reset the circuit breaker to closed state.
+
+    This is useful for testing to ensure a clean state between tests.
+    Uses the library's public reset() method for safety.
+    """
+    dmarket_api_breaker.reset()
+
+
 async def call_with_circuit_breaker(
     func: Callable[..., Any],
     *args: Any,
