@@ -214,3 +214,6 @@ backups/
 *.sql.gz
 *.tar.gz
 *.zip
+
+# Test logs
+tests/logs/
