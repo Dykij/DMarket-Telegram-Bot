@@ -787,3 +787,7 @@ deadline = 5000  # 5 секунд на сложные тесты
 verbosity = "verbose"
 stateful_step_count = 50
 
+
+[tool.poetry.group.dev.dependencies]
+circuitbreaker = "^2.1.3"
+
