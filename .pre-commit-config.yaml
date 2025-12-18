@@ -14,12 +14,13 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.8.6
     hooks:
-      # Линтинг и автоисправление
+      # Линтинг и автоисправление с preview rules для экспериментальных фиксов
       - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
+        args: [--fix, --exit-non-zero-on-fix, --preview]
         types_or: [python, pyi]
-      # Форматирование кода (замена Black)
+      # Форматирование кода (замена Black) с preview features
       - id: ruff-format
+        args: [--preview]
         types_or: [python, pyi]
 
   # ============================================================================
@@ -42,6 +43,8 @@ repos:
           - types-redis
           - types-PyYAML
           - types-psutil
+          - types-aiofiles          # Async file operations
+          - types-cachetools        # Caching utilities
           - sqlalchemy[mypy]  # SQLAlchemy plugin для MyPy
           - pydantic  # Для поддержки Pydantic моделей
         files: ^src/
