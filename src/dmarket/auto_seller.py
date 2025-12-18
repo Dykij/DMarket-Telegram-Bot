@@ -231,9 +231,7 @@ class AutoSeller:
             raise ValueError("Auto-sell is disabled")
 
         if len(self.scheduled_sales) >= self.config.max_active_sales:
-            raise ValueError(
-                f"Maximum active sales reached ({self.config.max_active_sales})"
-            )
+            raise ValueError(f"Maximum active sales reached ({self.config.max_active_sales})")
 
         margin = target_margin or (self.config.target_margin_percent / 100)
 
@@ -263,7 +261,7 @@ class AutoSeller:
             await self._list_item(sale)
         else:
             # Schedule listing after delay
-            asyncio.create_task(self._delayed_list(sale))
+            _ = asyncio.create_task(self._delayed_list(sale))
 
         return sale
 
@@ -724,9 +722,7 @@ class AutoSeller:
 
     async def _check_and_adjust_prices(self) -> None:
         """Check all listed items and adjust prices if needed."""
-        listed_sales = [
-            s for s in self.scheduled_sales.values() if s.status == SaleStatus.LISTED
-        ]
+        listed_sales = [s for s in self.scheduled_sales.values() if s.status == SaleStatus.LISTED]
 
         for sale in listed_sales:
             # Check for stop-loss
@@ -818,18 +814,12 @@ def load_sale_config(config_path: str = "config/config.yaml") -> SaleConfig:
             max_margin_percent=auto_sell_config.get("max_margin_percent", 12.0),
             target_margin_percent=auto_sell_config.get("target_margin_percent", 8.0),
             undercut_cents=auto_sell_config.get("undercut_cents", 1),
-            price_check_interval_minutes=auto_sell_config.get(
-                "price_check_interval_minutes", 30
-            ),
+            price_check_interval_minutes=auto_sell_config.get("price_check_interval_minutes", 30),
             stop_loss_hours=auto_sell_config.get("stop_loss_hours", 48),
             stop_loss_percent=auto_sell_config.get("stop_loss_percent", 5.0),
             max_active_sales=auto_sell_config.get("max_active_sales", 50),
-            delay_before_list_seconds=auto_sell_config.get(
-                "delay_before_list_seconds", 5
-            ),
-            pricing_strategy=PricingStrategy(
-                auto_sell_config.get("pricing_strategy", "undercut")
-            ),
+            delay_before_list_seconds=auto_sell_config.get("delay_before_list_seconds", 5),
+            pricing_strategy=PricingStrategy(auto_sell_config.get("pricing_strategy", "undercut")),
             dmarket_fee_percent=auto_sell_config.get("dmarket_fee_percent", 7.0),
         )
 

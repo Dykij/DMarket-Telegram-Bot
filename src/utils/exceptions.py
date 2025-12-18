@@ -500,7 +500,7 @@ def format_error_for_user(
 
 
 @overload
-def handle_exceptions(
+def handle_exceptions(  # noqa: UP047
     func_or_logger: F,
     default_error_message: str = ...,
     reraise: bool = ...,
@@ -510,7 +510,7 @@ def handle_exceptions(
 
 
 @overload
-def handle_exceptions(
+def handle_exceptions(  # noqa: UP047
     func_or_logger: logging.Logger | None = ...,
     default_error_message: str = ...,
     reraise: bool = ...,
@@ -519,7 +519,7 @@ def handle_exceptions(
 ) -> Callable[[F], F]: ...
 
 
-def handle_exceptions(
+def handle_exceptions(  # noqa: UP047
     func_or_logger: Callable[..., Any] | logging.Logger | None = None,
     default_error_message: str = "Произошла ошибка",
     reraise: bool = True,
@@ -562,9 +562,7 @@ def handle_exceptions(
         else (
             None
             if is_called_without_parens
-            else func_or_logger
-            if isinstance(func_or_logger, logging.Logger)
-            else None
+            else func_or_logger if isinstance(func_or_logger, logging.Logger) else None
         )
     )
 

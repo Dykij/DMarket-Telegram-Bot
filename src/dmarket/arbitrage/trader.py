@@ -303,17 +303,19 @@ class ArbitrageTrader:
                     profit_percent = (net_profit / buy_price) * 100 if buy_price > 0 else 0
 
                     if profit_percent >= min_profit and net_profit > 0:
-                        opportunities.append({
-                            "name": name,
-                            "buy_price": buy_price,
-                            "sell_price": sell_price,
-                            "profit": net_profit,
-                            "profit_percentage": profit_percent,
-                            "commission_percent": commission,
-                            "buy_item_id": cheapest.get("itemId"),
-                            "sell_item_id": item.get("itemId"),
-                            "game": game,
-                        })
+                        opportunities.append(
+                            {
+                                "name": name,
+                                "buy_price": buy_price,
+                                "sell_price": sell_price,
+                                "profit": net_profit,
+                                "profit_percentage": profit_percent,
+                                "commission_percent": commission,
+                                "buy_item_id": cheapest.get("itemId"),
+                                "sell_item_id": item.get("itemId"),
+                                "game": game,
+                            }
+                        )
                         break  # Берем только лучшую цену для продажи
 
             # Сортируем по прибыльности
@@ -395,15 +397,17 @@ class ArbitrageTrader:
             self.daily_traded += item["buy_price"]
 
             # Записываем в историю
-            self.transaction_history.append({
-                "item_name": item["name"],
-                "buy_price": item["buy_price"],
-                "sell_price": item["sell_price"],
-                "profit": item["profit"],
-                "profit_percentage": item["profit_percentage"],
-                "game": item["game"],
-                "timestamp": time.time(),
-            })
+            self.transaction_history.append(
+                {
+                    "item_name": item["name"],
+                    "buy_price": item["buy_price"],
+                    "sell_price": item["sell_price"],
+                    "profit": item["profit"],
+                    "profit_percentage": item["profit_percentage"],
+                    "game": item["game"],
+                    "timestamp": time.time(),
+                }
+            )
 
             # Сбрасываем счетчик ошибок
             self.error_count = 0
@@ -447,7 +451,7 @@ class ArbitrageTrader:
         self.current_game = game
         self.min_profit_percentage = min_profit_percentage
 
-        asyncio.create_task(
+        _ = asyncio.create_task(
             self._auto_trading_loop(game, min_profit_percentage, max_concurrent_trades),
         )
 
@@ -665,9 +669,10 @@ class ArbitrageTrader:
             if "error" in purchase_data:
                 return {
                     "success": False,
-                    "error": purchase_data.get("error", {}).get(
-                        "message",
-                        "Неизвестная ошибка при покупке",
+                    "error": (
+                        purchase_data.get("error", {}).get(
+                            "message", "Неизвестная ошибка при покупке"
+                        )
                     ),
                 }
 
@@ -720,9 +725,10 @@ class ArbitrageTrader:
             if "error" in sell_data:
                 return {
                     "success": False,
-                    "error": sell_data.get("error", {}).get(
-                        "message",
-                        "Неизвестная ошибка при выставлении",
+                    "error": (
+                        sell_data.get("error", {}).get(
+                            "message", "Неизвестная ошибка при выставлении"
+                        )
                     ),
                 }
 

@@ -53,7 +53,7 @@ class WebhookHandler:
     def __init__(
         self,
         bot_app: Application,  # type: ignore[type-arg]
-        host: str = "0.0.0.0",
+        host: str = "0.0.0.0",  # noqa: S104
         port: int = 8443,
         webhook_path: str = "/webhook",
         health_path: str = "/health",
@@ -143,14 +143,14 @@ class WebhookHandler:
             data = await request.json()
             update = Update.de_json(data, self.bot_app.bot)
 
-            if update:
+            if update is not None:
                 await self.bot_app.process_update(update)
                 self._request_count += 1
                 self._last_request_time = datetime.now(UTC)
 
             return web.Response(status=200)
         except Exception as e:
-            logger.error("Webhook processing error: %s", e)
+            logger.exception("Webhook processing error")
             self._error_count += 1
             return web.Response(status=500)
 
@@ -343,7 +343,7 @@ class WebhookFailover:
             await self.webhook_handler.stop()
             return False
         except Exception as e:
-            logger.error("Failed to setup webhook: %s", e)
+            logger.exception("Failed to setup webhook")
             if self.webhook_handler.is_running:
                 await self.webhook_handler.stop()
             return False
@@ -400,7 +400,7 @@ class WebhookFailover:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error("Error in failover loop: %s", e)
+                logger.exception("Error in failover loop")
 
     async def _switch_to_polling(self) -> None:
         """Switch from webhook to polling mode."""

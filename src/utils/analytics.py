@@ -418,7 +418,7 @@ class MarketAnalyzer:
             "q25": float(np.percentile(prices, 25)),
             "q75": float(np.percentile(prices, 75)),
             "range": float(np.max(prices) - np.min(prices)),
-            "cv": (float(np.std(prices) / np.mean(prices)) if np.mean(prices) != 0 else 0),
+            "cv": float(np.std(prices) / np.mean(prices)) if np.mean(prices) != 0 else 0,
         }
 
     @staticmethod

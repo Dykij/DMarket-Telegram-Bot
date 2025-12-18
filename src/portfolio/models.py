@@ -136,9 +136,11 @@ class PortfolioItem:
             buy_price=Decimal(str(data["buy_price"])),
             current_price=Decimal(str(data["current_price"])),
             quantity=data.get("quantity", 1),
-            purchased_at=datetime.fromisoformat(data["purchased_at"])
-            if "purchased_at" in data
-            else datetime.now(UTC),
+            purchased_at=(
+                datetime.fromisoformat(data["purchased_at"])
+                if "purchased_at" in data
+                else datetime.now(UTC)
+            ),
             category=ItemCategory(data.get("category", "other")),
             rarity=ItemRarity(data.get("rarity", "mil_spec")),
             float_value=data.get("float_value"),

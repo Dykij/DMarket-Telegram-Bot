@@ -355,11 +355,8 @@ class DiscordNotifier:
                 )
                 return False
 
-        except httpx.RequestError as e:
-            logger.error(
-                "discord_webhook_request_error",
-                extra={"error": str(e)},
-            )
+        except httpx.RequestError:
+            logger.exception("discord_webhook_request_error")
             return False
 
     def _get_level_emoji(self, level: NotificationLevel) -> str:

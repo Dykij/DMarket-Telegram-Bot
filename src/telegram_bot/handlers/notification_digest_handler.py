@@ -9,13 +9,12 @@
 
 from __future__ import annotations
 
-import asyncio
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
@@ -23,6 +22,10 @@ from telegram.ext import Application, CallbackQueryHandler, CommandHandler, Cont
 
 from src.utils.exceptions import handle_exceptions
 from src.utils.logging_utils import get_logger
+
+
+if TYPE_CHECKING:
+    import asyncio
 
 
 # Logger instance
@@ -523,12 +526,14 @@ async def show_frequency_menu(update: Update, context: ContextTypes.DEFAULT_TYPE
         }
 
         button_text = checkmark + freq_names.get(freq, freq.value)
-        keyboard.append([
-            InlineKeyboardButton(
-                button_text,
-                callback_data=DIGEST_SET_FREQ.format(freq.value),
-            )
-        ])
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    button_text,
+                    callback_data=DIGEST_SET_FREQ.format(freq.value),
+                )
+            ]
+        )
 
     keyboard.append([InlineKeyboardButton("◀️ Назад", callback_data=DIGEST_BACK)])
 
@@ -586,12 +591,14 @@ async def show_grouping_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)
         checkmark = "✅ " if is_selected else "⬜ "
 
         button_text = checkmark + group_names.get(mode, mode.value)
-        keyboard.append([
-            InlineKeyboardButton(
-                button_text,
-                callback_data=DIGEST_SET_GROUP.format(mode.value),
-            )
-        ])
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    button_text,
+                    callback_data=DIGEST_SET_GROUP.format(mode.value),
+                )
+            ]
+        )
 
     keyboard.append([InlineKeyboardButton("◀️ Назад", callback_data=DIGEST_BACK)])
 
@@ -644,9 +651,9 @@ async def show_min_items_menu(update: Update, context: ContextTypes.DEFAULT_TYPE
         checkmark = "✅ " if is_selected else "⬜ "
 
         button_text = f"{checkmark}{value} уведомлений"
-        keyboard.append([
-            InlineKeyboardButton(button_text, callback_data=DIGEST_SET_MIN.format(value))
-        ])
+        keyboard.append(
+            [InlineKeyboardButton(button_text, callback_data=DIGEST_SET_MIN.format(value))]
+        )
 
     keyboard.append([InlineKeyboardButton("◀️ Назад", callback_data=DIGEST_BACK)])
 

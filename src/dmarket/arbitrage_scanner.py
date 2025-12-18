@@ -22,7 +22,6 @@ from src.dmarket.arbitrage import (
     arbitrage_pro,
 )
 from src.dmarket.dmarket_api import DMarketAPI  # Нужен для создания нового клиента
-from src.dmarket.item_filters import ItemFilters
 from src.dmarket.liquidity_analyzer import LiquidityAnalyzer
 
 # Import from scanner submodules (R-2 refactoring)
@@ -32,6 +31,7 @@ from src.utils.sentry_breadcrumbs import add_trading_breadcrumb
 
 
 if TYPE_CHECKING:
+    from src.dmarket.item_filters import ItemFilters
     from src.interfaces import IDMarketAPI
 
 # Настройка логирования
@@ -941,9 +941,10 @@ class ArbitrageScanner:
             if "error" in purchase_data:
                 return {
                     "success": False,
-                    "error": purchase_data.get("error", {}).get(
-                        "message",
-                        "Неизвестная ошибка при покупке",
+                    "error": (
+                        purchase_data.get("error", {}).get(
+                            "message", "Неизвестная ошибка при покупке"
+                        )
                     ),
                 }
 
@@ -999,9 +1000,10 @@ class ArbitrageScanner:
             if "error" in sell_data:
                 return {
                     "success": False,
-                    "error": sell_data.get("error", {}).get(
-                        "message",
-                        "Неизвестная ошибка при выставлении на продажу",
+                    "error": (
+                        sell_data.get("error", {}).get(
+                            "message", "Неизвестная ошибка при выставлении на продажу"
+                        )
                     ),
                 }
 

@@ -87,7 +87,7 @@ async def check_balance_command(
         # Create API client
         api_client = create_dmarket_api_client(context)
 
-        if not api_client:
+        if api_client is None:
             error_text = (
                 "❌ <b>Ошибка подключения:</b>\n\n"
                 "Не удалось создать клиент DMarket API. "
@@ -271,7 +271,8 @@ async def check_balance_command(
                 )
 
         except APIError as e:
-            error_message = await handle_api_error(e)
+            handle_api_error(e)
+            error_message = str(e)
             error_text = (
                 f"❌ <b>Ошибка при проверке баланса:</b>\n\n{error_message}\n\n"
                 f"Возможно, проблема с подключением к DMarket API. "

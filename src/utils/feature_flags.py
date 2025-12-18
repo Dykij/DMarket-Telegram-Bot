@@ -97,7 +97,7 @@ class FeatureFlagsManager:
             )
             return self._get_default_config()
         except Exception as e:
-            logger.error("feature_flags_load_error", error=str(e))
+            logger.exception("feature_flags_load_error")
             return self._get_default_config()
 
     def _get_default_config(self) -> dict[str, Any]:
@@ -342,13 +342,13 @@ class FeatureFlagsManager:
         try:
             config = {"features": self.flags}
 
-            with open(self.config_path, "w", encoding="utf-8") as f:
+            with open(self.config_path, "w", encoding="utf-8") as f:  # noqa: ASYNC230
                 yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
 
             logger.info("feature_flags_saved", config_path=self.config_path)
 
-        except Exception as e:
-            logger.error("feature_flags_save_error", error=str(e))
+        except Exception:
+            logger.exception("feature_flags_save_error")
 
 
 # Глобальный экземпляр (инициализируется в main)

@@ -70,7 +70,7 @@ async def rate_limit_stats_command(
         await update.message.reply_text(message, parse_mode="Markdown")
 
     except Exception as e:
-        logger.error("rate_limit_stats_error", error=str(e), user_id=user_id)
+        logger.exception("rate_limit_stats_error", user_id=user_id)
         await update.message.reply_text(f"❌ Ошибка получения статистики: {e}")
 
 
@@ -116,7 +116,7 @@ async def rate_limit_reset_command(
         await update.message.reply_text(message)
 
     except Exception as e:
-        logger.error("rate_limit_reset_error", error=str(e), user_id=user_id)
+        logger.exception("rate_limit_reset_error", user_id=user_id)
         await update.message.reply_text(f"❌ Ошибка сброса лимитов: {e}")
 
 
@@ -179,7 +179,7 @@ async def rate_limit_whitelist_command(
             )
 
     except Exception as e:
-        logger.error("rate_limit_whitelist_error", error=str(e), user_id=user_id)
+        logger.exception("rate_limit_whitelist_error", user_id=user_id)
         await update.message.reply_text(f"❌ Ошибка управления whitelist: {e}")
 
 
@@ -250,5 +250,5 @@ async def rate_limit_config_command(
         await update.message.reply_text(message, parse_mode="Markdown")
 
     except Exception as e:
-        logger.error("rate_limit_config_error", error=str(e), action=action)
+        logger.exception("rate_limit_config_error", action=action)
         await update.message.reply_text(f"❌ Ошибка обновления лимита: {e}")

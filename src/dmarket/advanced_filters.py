@@ -187,9 +187,7 @@ class AdvancedArbitrageFilter:
 
         # 3. Sales history analysis (requires API client)
         if self.config.enable_sales_history_filter and api_client:
-            result, reason = await self._check_sales_history(
-                item_name, price, api_client, game
-            )
+            result, reason = await self._check_sales_history(item_name, price, api_client, game)
             if result == FilterResult.FAIL:
                 self.statistics.failed_sales_history += 1
                 reasons.append(reason)
@@ -208,9 +206,7 @@ class AdvancedArbitrageFilter:
 
         # 5. Outlier detection
         if self.config.enable_outlier_filter:
-            result, reason = await self._check_outlier(
-                item_name, price, api_client, game
-            )
+            result, reason = await self._check_outlier(item_name, price, api_client, game)
             if result == FilterResult.FAIL:
                 self.statistics.failed_outlier += 1
                 reasons.append(reason)
@@ -219,9 +215,7 @@ class AdvancedArbitrageFilter:
         self.statistics.passed += 1
         return True, ["Passed all filters"]
 
-    def _check_category(
-        self, item_name: str, item: dict[str, Any]
-    ) -> tuple[FilterResult, str]:
+    def _check_category(self, item_name: str, item: dict[str, Any]) -> tuple[FilterResult, str]:
         """Check if item category is allowed.
 
         Args:
@@ -301,9 +295,7 @@ class AdvancedArbitrageFilter:
             if cache_key in self._sales_cache:
                 sales_data = self._sales_cache[cache_key]
             else:
-                sales_data = await self._fetch_sales_history(
-                    item_name, api_client, game
-                )
+                sales_data = await self._fetch_sales_history(item_name, api_client, game)
                 self._sales_cache[cache_key] = sales_data
 
             if not sales_data or sales_data.get("num_sales", 0) < 3:
@@ -391,9 +383,7 @@ class AdvancedArbitrageFilter:
 
             # Calculate good points (sales with profit potential)
             min_margin = self.config.min_profit_margin / 100
-            good_count = sum(
-                1 for p in prices if p >= avg_price * (1 - min_margin)
-            )
+            good_count = sum(1 for p in prices if p >= avg_price * (1 - min_margin))
             good_points_percent = (good_count / len(prices)) * 100
 
             return {
@@ -572,9 +562,7 @@ def load_filter_config_from_yaml(config_path: str) -> FilterConfig:
             enable_category_filter=filters_config.get("ENABLE_CATEGORY_FILTER", True),
             enable_outlier_filter=filters_config.get("ENABLE_OUTLIER_FILTER", True),
             enable_liquidity_filter=filters_config.get("ENABLE_LIQUIDITY_FILTER", True),
-            enable_sales_history_filter=filters_config.get(
-                "ENABLE_SALES_HISTORY_FILTER", True
-            ),
+            enable_sales_history_filter=filters_config.get("ENABLE_SALES_HISTORY_FILTER", True),
         )
 
     except Exception as e:

@@ -184,7 +184,7 @@ def setup_sentry(
         # Performance monitoring
         enable_tracing=True,
         # Database query spans
-        _experiments={
+        _experiments={  # type: ignore[typeddict-unknown-key]
             "profiles_sample_rate": 0.5 if environment == "production" else 1.0,
         },
     )

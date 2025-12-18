@@ -57,13 +57,13 @@ ERROR_MESSAGE_ADMIN_HTML = """
 
 
 async def handle_network_error(
-    update: Update,
+    update: Update | None,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает сетевые ошибки при взаимодействии с Telegram API.
 
     Args:
-        update: Объект обновления
+        update: Объект обновления (может быть None)
         context: Контекст бота с информацией об ошибке
 
     """
@@ -91,7 +91,7 @@ async def handle_network_error(
         logger.error("Сетевая ошибка: %s", error)
 
     # Отправляем сообщение пользователю, если возможно
-    if update and update.effective_chat:
+    if update is not None and update.effective_chat:
         try:
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -125,7 +125,7 @@ async def retry_last_action(context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def handle_forbidden_error(
-    update: Update,
+    update: Update | None,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает ошибки доступа (403 Forbidden).
@@ -150,7 +150,7 @@ async def handle_forbidden_error(
         user_message = "У бота недостаточно прав для отправки сообщений в этот чат."
 
     # Отправляем сообщение пользователю, если возможно
-    if update and update.effective_chat:
+    if update is not None and update.effective_chat:
         try:
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -164,7 +164,7 @@ async def handle_forbidden_error(
 
 
 async def handle_bad_request(
-    update: Update,
+    update: Update | None,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает ошибки некорректного запроса (400 Bad Request).
@@ -199,7 +199,7 @@ async def handle_bad_request(
         user_message = "Произошла ошибка при работе с файлом."
 
     # Отправляем сообщение пользователю, если возможно
-    if update and update.effective_chat:
+    if update is not None and update.effective_chat:
         try:
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -213,7 +213,7 @@ async def handle_bad_request(
 
 
 async def handle_dmarket_api_error(
-    update: Update,
+    update: Update | None,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Обрабатывает ошибки при работе с DMarket API.
@@ -244,7 +244,7 @@ async def handle_dmarket_api_error(
         logger.error("Ошибка DMarket API: %s, %s", error, dmarket_error)
 
     # Отправляем сообщение пользователю
-    if update and update.effective_chat:
+    if update is not None and update.effective_chat:
         try:
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -261,7 +261,7 @@ async def handle_dmarket_api_error(
 # Основной обработчик ошибок
 
 
-async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def error_handler(update: Update | None, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Глобальный обработчик ошибок для Telegram бота.
 
     Обрабатывает все типы ошибок, логирует их, отправляет сообщения
@@ -283,7 +283,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         tb_string = "No traceback available"
 
     # Подробное логирование
-    update_str = update.to_dict() if update else "Нет данных update"
+    update_str = update.to_dict() if update is not None else "Нет данных update"
     logger.error("Исключение при обработке обновления %s:\n%s", update_str, tb_string)
 
     # Обработка различных типов ошибок
@@ -304,7 +304,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     username = "Неизвестно"
     message_text = "Неизвестно"
 
-    if update:
+    if update is not None:
         if update.effective_user:
             user_id = update.effective_user.id
             username = update.effective_user.username or "Неизвестно"
@@ -316,7 +316,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             message_text = update.effective_message.text or "Неизвестно"
 
     # Отправляем сообщение об ошибке пользователю
-    if update and update.effective_chat:
+    if update is not None and update.effective_chat:
         try:
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,

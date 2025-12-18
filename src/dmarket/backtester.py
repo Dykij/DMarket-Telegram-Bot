@@ -367,9 +367,7 @@ class SimpleArbitrageStrategy(TradingStrategy):
             return False, ""
 
         # Calculate potential profit/loss
-        profit_percent = (
-            (current_price.price - position.price) / position.price
-        ) * 100
+        profit_percent = ((current_price.price - position.price) / position.price) * 100
 
         # Close at profit target
         if profit_percent >= self.min_profit_percent:
@@ -465,9 +463,7 @@ class MomentumStrategy(TradingStrategy):
         if position.action != TradeAction.BUY:
             return False, ""
 
-        profit_percent = (
-            (current_price.price - position.price) / position.price
-        ) * 100
+        profit_percent = ((current_price.price - position.price) / position.price) * 100
 
         if profit_percent >= self.profit_target:
             return True, f"Profit target: {profit_percent:.1f}%"
@@ -569,9 +565,7 @@ class MeanReversionStrategy(TradingStrategy):
         if position.action != TradeAction.BUY:
             return False, ""
 
-        profit_percent = (
-            (current_price.price - position.price) / position.price
-        ) * 100
+        profit_percent = ((current_price.price - position.price) / position.price) * 100
 
         if profit_percent >= self.profit_target:
             return True, f"Profit target: {profit_percent:.1f}%"
@@ -665,7 +659,9 @@ class Backtester:
         for price_data in prices:
             timestamp = price_data.get("timestamp")
             if isinstance(timestamp, str):
-                timestamp = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+                timestamp = datetime.fromisoformat(
+                    timestamp.replace("Z", "+00:00")  # noqa: FURB162
+                )
             elif isinstance(timestamp, int | float):
                 timestamp = datetime.fromtimestamp(timestamp, tz=UTC)
 
@@ -720,10 +716,13 @@ class Backtester:
         current_price = base_price
         start_time = datetime.now(UTC) - timedelta(days=num_days)
 
+        # Use new random Generator API (NPY002)
+        rng = np.random.default_rng()
+
         for day in range(num_days):
             for hour in range(points_per_day):
                 # Random walk with mean reversion
-                change = np.random.normal(0, volatility * current_price)
+                change = rng.normal(0, volatility * current_price)
                 mean_reversion = (base_price - current_price) * 0.1
                 current_price = max(0.01, current_price + change + mean_reversion)
 
@@ -733,7 +732,7 @@ class Backtester:
                     item_id=item_id,
                     item_name=item_name,
                     price=round(current_price, 2),
-                    volume=int(np.random.poisson(5)),
+                    volume=int(rng.poisson(5)),
                 )
                 dataset.add_price(price_point)
 
@@ -792,9 +791,7 @@ class Backtester:
             # Update historical prices
             for item in items_to_test:
                 if item in self.data:
-                    current_prices = [
-                        p for p in self.data[item].prices if p.timestamp == timestamp
-                    ]
+                    current_prices = [p for p in self.data[item].prices if p.timestamp == timestamp]
                     for price in current_prices:
                         historical_prices[item].append(price)
 
@@ -880,9 +877,7 @@ class Backtester:
 
         for position in self.open_positions:
             if position.item_id == current_price.item_id:
-                should_close, reason = strategy.should_close_position(
-                    position, current_price
-                )
+                should_close, reason = strategy.should_close_position(position, current_price)
                 if should_close:
                     positions_to_close.append((position, current_price, reason))
 
@@ -959,9 +954,7 @@ class Backtester:
         total_roi = ((self.current_balance - self.initial_balance) / self.initial_balance) * 100
 
         # Calculate win rate
-        win_rate = (
-            (len(winning_trades) / len(closed_trades) * 100) if closed_trades else 0
-        )
+        win_rate = (len(winning_trades) / len(closed_trades) * 100) if closed_trades else 0
 
         # Calculate average profit/loss
         avg_profit = (
@@ -970,9 +963,7 @@ class Backtester:
             else 0
         )
         avg_loss = (
-            sum(t.profit or 0 for t in losing_trades) / len(losing_trades)
-            if losing_trades
-            else 0
+            sum(t.profit or 0 for t in losing_trades) / len(losing_trades) if losing_trades else 0
         )
 
         # Calculate profit factor
@@ -988,10 +979,7 @@ class Backtester:
 
         # Average trade ROI
         avg_trade_roi = (
-            sum(
-                ((t.profit or 0) / (t.price * t.quantity)) * 100
-                for t in closed_trades
-            )
+            sum(((t.profit or 0) / (t.price * t.quantity)) * 100 for t in closed_trades)
             / len(closed_trades)
             if closed_trades
             else 0
@@ -1102,9 +1090,7 @@ class Backtester:
 
         results = []
         for strategy in strategies:
-            result = asyncio.get_event_loop().run_until_complete(
-                self.run(strategy, item_id)
-            )
+            result = asyncio.get_event_loop().run_until_complete(self.run(strategy, item_id))
             results.append(result)
 
         return results

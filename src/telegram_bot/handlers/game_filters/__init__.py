@@ -55,7 +55,6 @@ from .utils import (
 
 
 __all__ = [
-    # Constants
     "CS2_CATEGORIES",
     "CS2_EXTERIORS",
     "CS2_RARITIES",
@@ -70,13 +69,10 @@ __all__ = [
     "TF2_CLASSES",
     "TF2_QUALITIES",
     "TF2_TYPES",
-    # Utils
     "build_api_params_for_game",
     "get_current_filters",
     "get_filter_description",
     "get_game_filter_keyboard",
-    "update_filters",
-    # Handlers
     "handle_filter_value_callback",
     "handle_float_range_callback",
     "handle_game_filters",
@@ -90,4 +86,5 @@ __all__ = [
     "handle_set_rarity_callback",
     "handle_set_slot_callback",
     "handle_set_type_callback",
+    "update_filters",
 ]

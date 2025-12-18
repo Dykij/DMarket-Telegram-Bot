@@ -229,7 +229,7 @@ def cached(
     return decorator
 
 
-def profile_performance(func: Callable[..., T]) -> Callable[..., T]:
+def profile_performance(func: Callable[..., T]) -> Callable[..., T]:  # noqa: UP047
     """Декоратор для профилирования производительности функций.
 
     Args:

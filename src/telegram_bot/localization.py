@@ -21,8 +21,12 @@ LOCALIZATIONS = {
     # Русский язык (базовый)
     "ru": {
         # Общие строки
-        "welcome": "Привет, {user}! 👋\n\nЯ бот для арбитража DMarket. Помогу найти выгодные сделки.\n\nИспользуйте меню для выбора желаемой операции:",
-        "help": "Доступные команды:\n\n/start - Начать работу с ботом\n/arbitrage - Открыть меню арбитража\n/dmarket - Проверить статус DMarket API\n/settings - Настройки профиля\n/help - Показать эту справку",
+        "welcome": (
+            "Привет, {user}! 👋\n\nЯ бот для арбитража DMarket. Помогу найти выгодные сделки.\n\nИспользуйте меню для выбора желаемой операции:"
+        ),
+        "help": (
+            "Доступные команды:\n\n/start - Начать работу с ботом\n/arbitrage - Открыть меню арбитража\n/dmarket - Проверить статус DMarket API\n/settings - Настройки профиля\n/help - Показать эту справку"
+        ),
         "select_mode": "📊 Выберите режим арбитража:",
         "checking_api": "🔍 Проверяю статус DMarket API...",
         "api_ok": "✅ API работает нормально.\n\n🕒 Последнее обновление: только что",
@@ -58,11 +62,17 @@ LOCALIZATIONS = {
         "auto_found": "✅ Найдено {count} предметов для арбитража.",
         "auto_no_results": "ℹ️ Не найдено предметов для арбитража.",
         "auto_processing": "⏳ Обрабатываем и готовим к автоматической торговле...",
-        "auto_insufficient_balance": "⚠️ Недостаточно средств для торговли.\n\nТекущий баланс: ${balance:.2f}\nДля торговли необходимо минимум $1.00",
-        "auto_completed": "✅ Арбитраж завершен!\n\nНайдено предметов: {found}\nКупленные предметы: {purchases}\nПроданные предметы: {sales}\nОбщая прибыль: ${profit:.2f}",
+        "auto_insufficient_balance": (
+            "⚠️ Недостаточно средств для торговли.\n\nТекущий баланс: ${balance:.2f}\nДля торговли необходимо минимум $1.00"
+        ),
+        "auto_completed": (
+            "✅ Арбитраж завершен!\n\nНайдено предметов: {found}\nКупленные предметы: {purchases}\nПроданные предметы: {sales}\nОбщая прибыль: ${profit:.2f}"
+        ),
         # Ошибки
         "error_general": "❌ Произошла ошибка: {error}",
-        "error_api_keys": "❌ Ошибка: API ключи DMarket не настроены.\n\nДля использования автоматического арбитража необходимо указать API ключи DMarket с помощью команды /setup.",
+        "error_api_keys": (
+            "❌ Ошибка: API ключи DMarket не настроены.\n\nДля использования автоматического арбитража необходимо указать API ключи DMarket с помощью команды /setup."
+        ),
         "try_again": "🔄 Попробовать снова",
         # Риск и ликвидность
         "risk_low": "низкий",
@@ -83,8 +93,12 @@ LOCALIZATIONS = {
     # English
     "en": {
         # General strings
-        "welcome": "Hello, {user}! 👋\n\nI'm a DMarket arbitrage bot. I'll help you find profitable deals.\n\nUse the menu to select your desired operation:",
-        "help": "Available commands:\n\n/start - Start working with the bot\n/arbitrage - Open arbitrage menu\n/dmarket - Check DMarket API status\n/settings - Profile settings\n/help - Show this help",
+        "welcome": (
+            "Hello, {user}! 👋\n\nI'm a DMarket arbitrage bot. I'll help you find profitable deals.\n\nUse the menu to select your desired operation:"
+        ),
+        "help": (
+            "Available commands:\n\n/start - Start working with the bot\n/arbitrage - Open arbitrage menu\n/dmarket - Check DMarket API status\n/settings - Profile settings\n/help - Show this help"
+        ),
         "select_mode": "📊 Select arbitrage mode:",
         "checking_api": "🔍 Checking DMarket API status...",
         "api_ok": "✅ API is working normally.\n\n🕒 Last update: just now",
@@ -120,11 +134,17 @@ LOCALIZATIONS = {
         "auto_found": "✅ Found {count} items for arbitrage.",
         "auto_no_results": "ℹ️ No arbitrage items found.",
         "auto_processing": "⏳ Processing and preparing for automatic trading...",
-        "auto_insufficient_balance": "⚠️ Insufficient balance for trading.\n\nCurrent balance: ${balance:.2f}\nMinimum required: $1.00",
-        "auto_completed": "✅ Arbitrage completed!\n\nItems found: {found}\nItems purchased: {purchases}\nItems sold: {sales}\nTotal profit: ${profit:.2f}",
+        "auto_insufficient_balance": (
+            "⚠️ Insufficient balance for trading.\n\nCurrent balance: ${balance:.2f}\nMinimum required: $1.00"
+        ),
+        "auto_completed": (
+            "✅ Arbitrage completed!\n\nItems found: {found}\nItems purchased: {purchases}\nItems sold: {sales}\nTotal profit: ${profit:.2f}"
+        ),
         # Errors
         "error_general": "❌ An error occurred: {error}",
-        "error_api_keys": "❌ Error: DMarket API keys are not configured.\n\nTo use automatic arbitrage, you need to set DMarket API keys using the /setup command.",
+        "error_api_keys": (
+            "❌ Error: DMarket API keys are not configured.\n\nTo use automatic arbitrage, you need to set DMarket API keys using the /setup command."
+        ),
         "try_again": "🔄 Try again",
         # Risk and liquidity
         "risk_low": "low",
@@ -145,8 +165,12 @@ LOCALIZATIONS = {
     # Español
     "es": {
         # Cadenas generales
-        "welcome": "¡Hola, {user}! 👋\n\nSoy un bot de arbitraje de DMarket. Te ayudaré a encontrar ofertas rentables.\n\nUtiliza el menú para seleccionar la operación deseada:",
-        "help": "Comandos disponibles:\n\n/start - Comenzar a trabajar con el bot\n/arbitrage - Abrir menú de arbitraje\n/dmarket - Verificar estado de API de DMarket\n/settings - Configuración de perfil\n/help - Mostrar esta ayuda",
+        "welcome": (
+            "¡Hola, {user}! 👋\n\nSoy un bot de arbitraje de DMarket. Te ayudaré a encontrar ofertas rentables.\n\nUtiliza el menú para seleccionar la operación deseada:"
+        ),
+        "help": (
+            "Comandos disponibles:\n\n/start - Comenzar a trabajar con el bot\n/arbitrage - Abrir menú de arbitraje\n/dmarket - Verificar estado de API de DMarket\n/settings - Configuración de perfil\n/help - Mostrar esta ayuda"
+        ),
         "select_mode": "📊 Selecciona el modo de arbitraje:",
         "checking_api": "🔍 Verificando el estado de la API de DMarket...",
         "api_ok": "✅ La API está funcionando normalmente.\n\n🕒 Última actualización: ahora mismo",
@@ -160,7 +184,9 @@ LOCALIZATIONS = {
         "api_settings": "🔑 Configuración de API de DMarket",
         "api_key_prompt": "Introduce tu clave pública de API de DMarket:",
         "api_secret_prompt": "Introduce tu clave secreta de API de DMarket:",
-        "api_keys_set": "✅ Las claves API han sido configuradas. Ahora puedes usar todas las funciones del bot.",
+        "api_keys_set": (
+            "✅ Las claves API han sido configuradas. Ahora puedes usar todas las funciones del bot."
+        ),
         "trade_settings": "💼 Configuración de comercio",
         "auto_trading_on": "✅ El comercio automático está ACTIVADO",
         "auto_trading_off": "❌ El comercio automático está DESACTIVADO",
@@ -182,11 +208,17 @@ LOCALIZATIONS = {
         "auto_found": "✅ Se encontraron {count} artículos para arbitraje.",
         "auto_no_results": "ℹ️ No se encontraron artículos para arbitraje.",
         "auto_processing": "⏳ Procesando y preparando para comercio automático...",
-        "auto_insufficient_balance": "⚠️ Saldo insuficiente para comerciar.\n\nSaldo actual: ${balance:.2f}\nMínimo requerido: $1.00",
-        "auto_completed": "✅ ¡Arbitraje completado!\n\nArtículos encontrados: {found}\nArtículos comprados: {purchases}\nArtículos vendidos: {sales}\nBeneficio total: ${profit:.2f}",
+        "auto_insufficient_balance": (
+            "⚠️ Saldo insuficiente para comerciar.\n\nSaldo actual: ${balance:.2f}\nMínimo requerido: $1.00"
+        ),
+        "auto_completed": (
+            "✅ ¡Arbitraje completado!\n\nArtículos encontrados: {found}\nArtículos comprados: {purchases}\nArtículos vendidos: {sales}\nBeneficio total: ${profit:.2f}"
+        ),
         # Errores
         "error_general": "❌ Ocurrió un error: {error}",
-        "error_api_keys": "❌ Error: Las claves API de DMarket no están configuradas.\n\nPara usar el arbitraje automático, debes configurar las claves API de DMarket usando el comando /setup.",
+        "error_api_keys": (
+            "❌ Error: Las claves API de DMarket no están configuradas.\n\nPara usar el arbitraje automático, debes configurar las claves API de DMarket usando el comando /setup."
+        ),
         "try_again": "🔄 Intentar de nuevo",
         # Riesgo y liquidez
         "risk_low": "bajo",
@@ -207,8 +239,12 @@ LOCALIZATIONS = {
     # Deutsch
     "de": {
         # Allgemeine Strings
-        "welcome": "Hallo, {user}! 👋\n\nIch bin ein DMarket-Arbitrage-Bot. Ich helfe dir, profitable Deals zu finden.\n\nVerwende das Menü, um die gewünschte Operation auszuwählen:",
-        "help": "Verfügbare Befehle:\n\n/start - Bot starten\n/arbitrage - Arbitrage-Menü öffnen\n/dmarket - DMarket API-Status prüfen\n/settings - Profileinstellungen\n/help - Diese Hilfe anzeigen",
+        "welcome": (
+            "Hallo, {user}! 👋\n\nIch bin ein DMarket-Arbitrage-Bot. Ich helfe dir, profitable Deals zu finden.\n\nVerwende das Menü, um die gewünschte Operation auszuwählen:"
+        ),
+        "help": (
+            "Verfügbare Befehle:\n\n/start - Bot starten\n/arbitrage - Arbitrage-Menü öffnen\n/dmarket - DMarket API-Status prüfen\n/settings - Profileinstellungen\n/help - Diese Hilfe anzeigen"
+        ),
         "select_mode": "📊 Wähle den Arbitrage-Modus:",
         "checking_api": "🔍 Prüfe DMarket API-Status...",
         "api_ok": "✅ API funktioniert normal.\n\n🕒 Letzte Aktualisierung: gerade eben",
@@ -222,7 +258,9 @@ LOCALIZATIONS = {
         "api_settings": "🔑 DMarket API-Einstellungen",
         "api_key_prompt": "Gib deinen öffentlichen DMarket API-Schlüssel ein:",
         "api_secret_prompt": "Gib deinen geheimen DMarket API-Schlüssel ein:",
-        "api_keys_set": "✅ API-Schlüssel wurden eingestellt. Du kannst jetzt alle Bot-Funktionen nutzen.",
+        "api_keys_set": (
+            "✅ API-Schlüssel wurden eingestellt. Du kannst jetzt alle Bot-Funktionen nutzen."
+        ),
         "trade_settings": "💼 Handelseinstellungen",
         "auto_trading_on": "✅ Automatischer Handel ist AKTIVIERT",
         "auto_trading_off": "❌ Automatischer Handel ist DEAKTIVIERT",
@@ -244,11 +282,17 @@ LOCALIZATIONS = {
         "auto_found": "✅ {count} Artikel für Arbitrage gefunden.",
         "auto_no_results": "ℹ️ Keine Arbitrage-Artikel gefunden.",
         "auto_processing": "⏳ Verarbeite und bereite für automatischen Handel vor...",
-        "auto_insufficient_balance": "⚠️ Unzureichendes Guthaben für Handel.\n\nAktuelles Guthaben: ${balance:.2f}\nMinimum erforderlich: $1.00",
-        "auto_completed": "✅ Arbitrage abgeschlossen!\n\nArtikel gefunden: {found}\nArtikel gekauft: {purchases}\nArtikel verkauft: {sales}\nGesamtgewinn: ${profit:.2f}",
+        "auto_insufficient_balance": (
+            "⚠️ Unzureichendes Guthaben für Handel.\n\nAktuelles Guthaben: ${balance:.2f}\nMinimum erforderlich: $1.00"
+        ),
+        "auto_completed": (
+            "✅ Arbitrage abgeschlossen!\n\nArtikel gefunden: {found}\nArtikel gekauft: {purchases}\nArtikel verkauft: {sales}\nGesamtgewinn: ${profit:.2f}"
+        ),
         # Fehler
         "error_general": "❌ Ein Fehler ist aufgetreten: {error}",
-        "error_api_keys": "❌ Fehler: DMarket API-Schlüssel sind nicht konfiguriert.\n\nUm automatische Arbitrage zu nutzen, musst du DMarket API-Schlüssel mit dem Befehl /setup einrichten.",
+        "error_api_keys": (
+            "❌ Fehler: DMarket API-Schlüssel sind nicht konfiguriert.\n\nUm automatische Arbitrage zu nutzen, musst du DMarket API-Schlüssel mit dem Befehl /setup einrichten."
+        ),
         "try_again": "🔄 Erneut versuchen",
         # Risiko und Liquidität
         "risk_low": "niedrig",

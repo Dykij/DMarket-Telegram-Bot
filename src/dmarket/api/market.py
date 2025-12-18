@@ -349,9 +349,9 @@ class MarketOperationsMixin:
                 currency=currency,
             )
 
-            if response and "objects" in response:
+            if isinstance(response, dict) and "objects" in response:
                 all_prices.extend(response["objects"])
-            elif response and isinstance(response, list):
+            elif isinstance(response, list):
                 all_prices.extend(response)
 
         return {"objects": all_prices}

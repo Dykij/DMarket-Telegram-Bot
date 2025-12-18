@@ -319,12 +319,14 @@ class TargetManager:
 
                 if not competition.get("should_proceed", False):
                     logger.info(f"Пропуск '{title}': высокая конкуренция")
-                    results.append({
-                        "title": title,
-                        "status": "skipped",
-                        "reason": "high_competition",
-                        "competition": competition,
-                    })
+                    results.append(
+                        {
+                            "title": title,
+                            "status": "skipped",
+                            "reason": "high_competition",
+                            "competition": competition,
+                        }
+                    )
                     continue
 
                 # Если есть лучшая цена конкурентов, корректируем
@@ -339,23 +341,27 @@ class TargetManager:
                     price=target_price,
                     amount=1,
                 )
-                results.append({
-                    "title": title,
-                    "status": "created",
-                    "price": target_price,
-                    "result": result,
-                })
+                results.append(
+                    {
+                        "title": title,
+                        "status": "created",
+                        "price": target_price,
+                        "result": result,
+                    }
+                )
                 created += 1
 
                 # Задержка между созданиями
                 await self._delay(0.5)
 
             except Exception as e:
-                results.append({
-                    "title": title,
-                    "status": "error",
-                    "error": str(e),
-                })
+                results.append(
+                    {
+                        "title": title,
+                        "status": "error",
+                        "error": str(e),
+                    }
+                )
 
         logger.info(f"Создано {created}/{len(items)} умных таргетов")
         return results
@@ -390,15 +396,17 @@ class TargetManager:
 
             targets = []
             for trade in result.get("trades", []):
-                targets.append({
-                    "id": trade.get("TargetID"),
-                    "title": trade.get("Title"),
-                    "price": float(trade.get("Price", 0)) / 100,
-                    "game": trade.get("GameID"),
-                    "status": trade.get("Status"),
-                    "closed_at": trade.get("ClosedAt"),
-                    "created_at": trade.get("CreatedAt"),
-                })
+                targets.append(
+                    {
+                        "id": trade.get("TargetID"),
+                        "title": trade.get("Title"),
+                        "price": float(trade.get("Price", 0)) / 100,
+                        "game": trade.get("GameID"),
+                        "status": trade.get("Status"),
+                        "closed_at": trade.get("ClosedAt"),
+                        "created_at": trade.get("CreatedAt"),
+                    }
+                )
 
             logger.info(f"Найдено {len(targets)} закрытых таргетов")
             return targets
@@ -440,7 +448,7 @@ class TargetManager:
             "active_count": len(active),
             "closed_count": len(closed),
             "successful_count": len(successful),
-            "success_rate": ((len(successful) / len(closed) * 100) if closed else 0.0),
+            "success_rate": (len(successful) / len(closed) * 100) if closed else 0.0,
             "average_price": (
                 sum(t["price"] for t in successful) / len(successful) if successful else 0.0
             ),

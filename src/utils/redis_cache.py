@@ -99,8 +99,8 @@ class RedisCache:
             logger.info(f"Connected to Redis at {self.redis_url}")
             return True
 
-        except Exception as e:
-            logger.error(f"Failed to connect to Redis: {e}")
+        except Exception:
+            logger.exception("Failed to connect to Redis")
             self._connected = False
 
             if not self._fallback_enabled:
@@ -134,11 +134,11 @@ class RedisCache:
                 value = await self._redis.get(key)
                 if value is not None:
                     self._hits += 1
-                    return pickle.loads(value)
+                    return pickle.loads(value)  # noqa: S301
                 self._misses += 1
                 return None
-            except Exception as e:
-                logger.error(f"Redis get error for key {key}: {e}")
+            except Exception:
+                logger.exception("Redis get error for key %s", key)
                 self._errors += 1
                 # Fall through to memory cache
 
@@ -178,8 +178,8 @@ class RedisCache:
                 serialized = pickle.dumps(value)
                 await self._redis.setex(key, ttl, serialized)
                 return True
-            except Exception as e:
-                logger.error(f"Redis set error for key {key}: {e}")
+            except Exception:
+                logger.exception("Redis set error for key %s", key)
                 self._errors += 1
                 # Fall through to memory cache
 
@@ -206,8 +206,8 @@ class RedisCache:
             try:
                 result = await self._redis.delete(key)
                 success = result > 0
-            except Exception as e:
-                logger.error(f"Redis delete error for key {key}: {e}")
+            except Exception:
+                logger.exception("Redis delete error for key %s", key)
                 self._errors += 1
 
         # Delete from memory cache
@@ -239,8 +239,8 @@ class RedisCache:
                 else:
                     await self._redis.flushdb()
                     count = 1  # Indicate success
-            except Exception as e:
-                logger.error(f"Redis clear error: {e}")
+            except Exception:
+                logger.exception("Redis clear error")
                 self._errors += 1
 
         # Clear from memory cache
@@ -266,8 +266,8 @@ class RedisCache:
         if self._connected and self._redis:
             try:
                 return bool(await self._redis.exists(key))
-            except Exception as e:
-                logger.error(f"Redis exists error for key {key}: {e}")
+            except Exception:
+                logger.exception("Redis exists error for key %s", key)
                 self._errors += 1
 
         # Check memory cache
@@ -303,8 +303,8 @@ class RedisCache:
                 pipeline.expire(key, ttl)
                 results = await pipeline.execute()
                 return cast("int", results[0])
-            except Exception as e:
-                logger.error(f"Redis increment error for key {key}: {e}")
+            except Exception:
+                logger.exception("Redis increment error for key %s", key)
                 self._errors += 1
 
         # Fallback to memory cache (non-atomic)
@@ -359,7 +359,7 @@ class RedisCache:
                 health["redis_connected"] = True
                 health["redis_ping"] = pong
             except Exception as e:
-                logger.error(f"Redis health check failed: {e}")
+                logger.exception("Redis health check failed")
                 health["error"] = str(e)
 
         return health

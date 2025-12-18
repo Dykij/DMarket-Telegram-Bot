@@ -110,7 +110,7 @@ async def handle_dmarket_arbitrage_impl(
     }
 
     # Показываем, что запрос обрабатывается
-    if query.message and query.message.chat:
+    if query.message is not None and query.message.chat is not None:
         await query.message.chat.send_action(ChatAction.TYPING)
 
     # Редактируем сообщение, показывая процесс поиска
@@ -126,7 +126,7 @@ async def handle_dmarket_arbitrage_impl(
     )
 
     # Показываем индикатор загрузки
-    if query.message and query.message.chat:
+    if query.message is not None and query.message.chat is not None:
         await query.message.chat.send_action(ChatAction.TYPING)
 
     # Определяем функцию для получения данных арбитража
@@ -267,7 +267,7 @@ async def handle_best_opportunities_impl(
     game = user_data.get("current_game", "csgo")
 
     # Показываем, что запрос обрабатывается
-    if query.message and query.message.chat:
+    if query.message is not None and query.message.chat is not None:
         await query.message.chat.send_action(ChatAction.TYPING)
 
     # Редактируем сообщение, показывая процесс поиска
@@ -282,7 +282,7 @@ async def handle_best_opportunities_impl(
     )
 
     # Показываем индикатор загрузки
-    if query.message and query.message.chat:
+    if query.message is not None and query.message.chat is not None:
         await query.message.chat.send_action(ChatAction.TYPING)
 
     # Получаем арбитражные возможности
@@ -362,7 +362,7 @@ async def handle_game_selection_impl(
     await query.answer()
 
     # Показываем индикатор, что бот печатает
-    if query.message and query.message.chat:
+    if query.message is not None and query.message.chat is not None:
         await query.message.chat.send_action(ChatAction.TYPING)
 
     # Получаем клавиатуру выбора игры
@@ -409,7 +409,7 @@ async def handle_game_selected_impl(
     context.user_data["current_game"] = game
 
     # Показываем индикатор, что бот печатает
-    if query.message and query.message.chat:
+    if query.message is not None and query.message.chat is not None:
         await query.message.chat.send_action(ChatAction.TYPING)
 
     # Получаем клавиатуру арбитража
@@ -444,7 +444,7 @@ async def handle_market_comparison_impl(
     await query.answer()
 
     # Показываем индикатор, что бот печатает
-    if query.message and query.message.chat:
+    if query.message is not None and query.message.chat is not None:
         await query.message.chat.send_action(ChatAction.TYPING)
 
     # Получаем клавиатуру сравнения маркетплейсов

@@ -120,9 +120,7 @@ async def send_price_alert_notification(
                 disable_web_page_preview=False,
             )
 
-        logger.info(
-            f"Sent price alert notification to user {user_id} for {alert.get('item_name')}"
-        )
+        logger.info(f"Sent price alert notification to user {user_id} for {alert.get('item_name')}")
 
         # Update notification history
         await record_notification(user_id, "price_alert", alert.get("item_id"))
@@ -266,9 +264,7 @@ async def send_market_opportunity_notification(
                     disable_web_page_preview=True,
                 )
 
-        logger.info(
-            f"Sent market opportunity notification to user {user_id} for {item_name}"
-        )
+        logger.info(f"Sent market opportunity notification to user {user_id} for {item_name}")
 
         # Update notification history
         await record_notification(

@@ -12,13 +12,14 @@ from typing import Any
 
 from .constants import CACHE_CLEANUP_COUNT, CACHE_TTL, MAX_CACHE_SIZE
 
+
 logger = logging.getLogger(__name__)
 
 # =============================================================================
 # Глобальный кэш
 # =============================================================================
 
-_arbitrage_cache: dict[str, tuple[list[dict[str, Any]], float]] = {}
+_arbitrage_cache: dict[tuple[Any, ...] | str, tuple[list[dict[str, Any]], float]] = {}
 """Глобальный кэш результатов арбитража.
 
 Формат: {cache_key: (items, timestamp)}

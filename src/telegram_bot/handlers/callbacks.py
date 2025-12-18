@@ -28,6 +28,7 @@ from src.telegram_bot.utils.api_client import setup_api_client
 from src.telegram_bot.utils.formatters import format_opportunities
 from src.utils.telegram_error_handlers import telegram_error_boundary
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -494,18 +495,18 @@ async def button_callback_handler(
                 "6. Перезапустите бота\n\n"
                 "📖 Подробная инструкция: НАСТРОЙКА_API_КЛЮЧЕЙ.md",
                 parse_mode=ParseMode.HTML,
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("« Назад", callback_data="settings")]
-                ]),
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("« Назад", callback_data="settings")]]
+                ),
             )
 
         elif callback_data == "settings_proxy":
             await query.edit_message_text(
                 "🌐 <b>Настройка Proxy</b>\n\nФункция находится в разработке.",
                 parse_mode=ParseMode.HTML,
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("« Назад", callback_data="settings")]
-                ]),
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("« Назад", callback_data="settings")]]
+                ),
             )
 
         elif callback_data == "settings_currency":
@@ -514,17 +515,17 @@ async def button_callback_handler(
                 "Текущая валюта: USD\n\n"
                 "Функция смены валюты находится в разработке.",
                 parse_mode=ParseMode.HTML,
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("« Назад", callback_data="settings")]
-                ]),
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("« Назад", callback_data="settings")]]
+                ),
             )
 
         elif callback_data == "settings_intervals":
             await query.edit_message_text(
                 "⏰ <b>Настройка интервалов обновления</b>\n\nФункция находится в разработке.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("« Назад", callback_data="settings")]
-                ]),
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("« Назад", callback_data="settings")]]
+                ),
                 parse_mode=ParseMode.HTML,
             )
 
@@ -538,9 +539,9 @@ async def button_callback_handler(
         elif callback_data == "settings_auto_refresh":
             await query.edit_message_text(
                 "🔄 <b>Автоматическое обновление</b>\n\nФункция находится в разработке.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("« Назад", callback_data="settings")]
-                ]),
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("« Назад", callback_data="settings")]]
+                ),
                 parse_mode=ParseMode.HTML,
             )
 
@@ -557,17 +558,17 @@ async def button_callback_handler(
             await query.edit_message_text(
                 "👁️ <b>Мои оповещения</b>\n\nУ вас пока нет активных оповещений.",
                 parse_mode=ParseMode.HTML,
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("« Назад", callback_data="alerts")]
-                ]),
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("« Назад", callback_data="alerts")]]
+                ),
             )
 
         elif callback_data == "alert_settings":
             await query.edit_message_text(
                 "⚙️ <b>Настройки оповещений</b>\n\nФункция находится в разработке.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("« Назад", callback_data="alerts")]
-                ]),
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("« Назад", callback_data="alerts")]]
+                ),
                 parse_mode=ParseMode.HTML,
             )
 

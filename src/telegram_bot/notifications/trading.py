@@ -76,18 +76,20 @@ async def send_buy_intent_notification(
 
     keyboard = None
     if callback_data:
-        keyboard = InlineKeyboardMarkup([
+        keyboard = InlineKeyboardMarkup(
             [
-                InlineKeyboardButton(
-                    "✅ Купить",
-                    callback_data=f"buy:{callback_data}",
-                ),
-                InlineKeyboardButton(
-                    "❌ Отмена",
-                    callback_data=f"cancel_buy:{callback_data}",
-                ),
-            ],
-        ])
+                [
+                    InlineKeyboardButton(
+                        "✅ Купить",
+                        callback_data=f"buy:{callback_data}",
+                    ),
+                    InlineKeyboardButton(
+                        "❌ Отмена",
+                        callback_data=f"cancel_buy:{callback_data}",
+                    ),
+                ],
+            ]
+        )
 
     try:
         await bot.send_message(

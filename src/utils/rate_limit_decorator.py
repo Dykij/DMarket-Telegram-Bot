@@ -3,13 +3,15 @@
 """
 
 import functools
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 import structlog
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from src.utils.user_rate_limiter import UserRateLimiter
+
+if TYPE_CHECKING:
+    from src.utils.user_rate_limiter import UserRateLimiter
 
 
 logger = structlog.get_logger(__name__)

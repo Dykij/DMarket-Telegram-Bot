@@ -70,8 +70,8 @@ class ItemFilters:
 
             logger.info(f"Loaded item filters from {self.config_path}")
 
-        except Exception as e:
-            logger.error(f"Failed to load item filters: {e}")
+        except Exception:
+            logger.exception("Failed to load item filters")
             self.config = self._get_default_config()
 
     def _get_default_config(self) -> dict[str, Any]:
@@ -207,11 +207,7 @@ class ItemFilters:
                 return True
 
         # Check regex patterns
-        for pattern in self._bad_patterns:
-            if pattern.search(item_name):
-                return True
-
-        return False
+        return any(pattern.search(item_name) for pattern in self._bad_patterns)
 
     def is_item_in_good_category(self, item_name: str) -> bool:
         """Check if item is in a good category.
@@ -228,11 +224,7 @@ class ItemFilters:
                 return True
 
         # Check good patterns
-        for pattern in self._good_patterns:
-            if pattern.search(item_name):
-                return True
-
-        return False
+        return any(pattern.search(item_name) for pattern in self._good_patterns)
 
     def is_item_allowed(self, item_name: str) -> bool:
         """Check if item passes all filters.
@@ -323,12 +315,7 @@ class ItemFilters:
 
         for item in items:
             # Get item name from different possible fields
-            item_name = (
-                item.get("title")
-                or item.get("name")
-                or item.get("market_hash_name")
-                or ""
-            )
+            item_name = item.get("title") or item.get("name") or item.get("market_hash_name") or ""
 
             # Skip blacklisted items
             if self.is_item_blacklisted(item_name):
@@ -371,12 +358,7 @@ class ItemFilters:
             Tuple of (is_valid, reason_if_invalid)
 
         """
-        item_name = (
-            item.get("title")
-            or item.get("name")
-            or item.get("market_hash_name")
-            or ""
-        )
+        item_name = item.get("title") or item.get("name") or item.get("market_hash_name") or ""
 
         # Check blacklist
         if self.is_item_blacklisted(item_name):
@@ -409,7 +391,10 @@ class ItemFilters:
             if current_price > 0 and avg_price > 0:
                 boost_percent = filters.get("boost_percent", 150)
                 if current_price > avg_price * (boost_percent / 100):
-                    return False, f"Price ${current_price:.2f} is >{boost_percent}% of average ${avg_price:.2f}"
+                    return (
+                        False,
+                        f"Price ${current_price:.2f} is >{boost_percent}% of average ${avg_price:.2f}",
+                    )
 
         return True, None
 

@@ -10,7 +10,7 @@ import json
 import logging
 from pathlib import Path
 import time
-from typing import Any, ClassVar, Self
+from typing import Any, ClassVar
 
 from .constants import DEFAULT_USER_SETTINGS
 
@@ -31,7 +31,7 @@ class AlertStorage:
     _instance: ClassVar[AlertStorage | None] = None
     _initialized: bool = False
 
-    def __new__(cls) -> Self:
+    def __new__(cls) -> AlertStorage:  # noqa: PYI034
         """Создает единственный экземпляр хранилища."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
@@ -106,11 +106,14 @@ class AlertStorage:
     def get_user_data(self, user_id: int) -> dict[str, Any]:
         """Получает данные пользователя или создает новую запись.
 
+        This method always returns a valid dict - it creates user data
+        if the user doesn't exist yet. Callers do not need to check for None.
+
         Args:
             user_id: ID пользователя в Telegram
 
         Returns:
-            Словарь с данными пользователя
+            Словарь с данными пользователя (never None)
 
         """
         user_id_str = str(user_id)

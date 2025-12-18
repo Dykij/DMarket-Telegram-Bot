@@ -280,14 +280,18 @@ class Timer:
         print(f"Elapsed: {t.elapsed}s")
     """
 
-    def __init__(self):
-        self.start_time = None
-        self.elapsed = None
+    def __init__(self) -> None:
+        self.start_time: float = 0.0
+        self.elapsed: float = 0.0
 
-    def __enter__(self):
+    def __enter__(self) -> "Timer":
         self.start_time = time.perf_counter()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: object,
+    ) -> None:
         self.elapsed = time.perf_counter() - self.start_time
-        return False

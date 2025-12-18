@@ -77,6 +77,7 @@ def get_dmarket_api(context: ContextTypes.DEFAULT_TYPE) -> IDMarketAPI | None:
     # Затем пробуем DI контейнер
     try:
         from src.containers import get_container
+
         container = get_container()
         return container.dmarket_api()
     except (RuntimeError, ImportError) as e:
@@ -102,6 +103,7 @@ def get_arbitrage_scanner(
     """
     try:
         from src.containers import get_container
+
         container = get_container()
         return container.arbitrage_scanner()
     except (RuntimeError, ImportError):
@@ -110,6 +112,7 @@ def get_arbitrage_scanner(
         api = get_dmarket_api(context)
         if api is not None:
             from src.dmarket.arbitrage_scanner import ArbitrageScanner
+
             return ArbitrageScanner(api_client=api)  # type: ignore[arg-type]
         return None
 
@@ -132,6 +135,7 @@ def get_target_manager(
     """
     try:
         from src.containers import get_container
+
         container = get_container()
         return container.target_manager()
     except (RuntimeError, ImportError):
@@ -140,6 +144,7 @@ def get_target_manager(
         api = get_dmarket_api(context)
         if api is not None:
             from src.dmarket.targets import TargetManager
+
             return TargetManager(api_client=api)  # type: ignore[arg-type]
         return None
 
@@ -171,6 +176,7 @@ def get_database(context: ContextTypes.DEFAULT_TYPE) -> Any | None:
 
     try:
         from src.containers import get_container
+
         container = get_container()
         return container.database()
     except (RuntimeError, ImportError):
@@ -188,6 +194,7 @@ def get_memory_cache(context: ContextTypes.DEFAULT_TYPE) -> Any | None:
     """
     try:
         from src.containers import get_container
+
         container = get_container()
         return container.memory_cache()
     except (RuntimeError, ImportError):
@@ -223,8 +230,11 @@ def inject_dependencies(handler_func: Any) -> Any:
     Returns:
         Обернутая функция с инъекцией зависимостей
     """
+
     @functools.wraps(handler_func)
-    async def wrapper(update: Any, context: ContextTypes.DEFAULT_TYPE, *args: Any, **kwargs: Any) -> Any:
+    async def wrapper(
+        update: Any, context: ContextTypes.DEFAULT_TYPE, *args: Any, **kwargs: Any
+    ) -> Any:
         # Получить параметры функции
         sig = inspect.signature(handler_func)
 

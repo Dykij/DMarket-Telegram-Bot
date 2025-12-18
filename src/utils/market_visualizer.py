@@ -113,6 +113,7 @@ class MarketVisualizer:
         df = self.process_price_data(price_history)
 
         # Create figure with appropriate subplot layout
+        ax2 = None  # Initialize ax2 for type checker
         if include_volume and "volume" in df.columns:
             fig, (ax1, ax2) = plt.subplots(
                 2,
@@ -149,7 +150,7 @@ class MarketVisualizer:
         plt.setp(ax1.get_xticklabels(), rotation=45, ha="right")
 
         # Add volume subplot if requested and available
-        if include_volume and "volume" in df.columns:
+        if include_volume and "volume" in df.columns and ax2 is not None:
             # Plot volume as bar chart
             ax2.bar(
                 df.index,
@@ -516,9 +517,7 @@ class MarketVisualizer:
         trend_color = (
             (0, 200, 100)
             if trend == "up"
-            else (255, 80, 80)
-            if trend == "down"
-            else (170, 170, 170)
+            else (255, 80, 80) if trend == "down" else (170, 170, 170)
         )
         draw.text(
             (20, y_pos),
@@ -535,16 +534,12 @@ class MarketVisualizer:
         price_24h_color = (
             (0, 200, 100)
             if price_change_24h > 0
-            else (255, 80, 80)
-            if price_change_24h < 0
-            else text_color
+            else (255, 80, 80) if price_change_24h < 0 else text_color
         )
         price_7d_color = (
             (0, 200, 100)
             if price_change_7d > 0
-            else (255, 80, 80)
-            if price_change_7d < 0
-            else text_color
+            else (255, 80, 80) if price_change_7d < 0 else text_color
         )
 
         draw.text(
@@ -567,9 +562,7 @@ class MarketVisualizer:
         volatility_color = (
             (170, 170, 170)
             if volatility == "low"
-            else (255, 170, 0)
-            if volatility == "medium"
-            else (255, 80, 80)
+            else (255, 170, 0) if volatility == "medium" else (255, 80, 80)
         )
         draw.text(
             (20, y_pos),
