@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 env:
-  PYTHON_VERSION: "3.11"
+  PYTHON_VERSION: "3.12"
 
 permissions:
   contents: read
@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   ruff-check:
-    name: Ruff Linting
+    name: Ruff Linting (Strict)
     runs-on: ubuntu-latest
 
     steps:
@@ -39,9 +39,12 @@ jobs:
       - name: Install Ruff
         run: pip install ruff
 
-      - name: Run Ruff check
+      # Строгая проверка без автоисправлений - ловим все нефиксируемые ошибки
+      - name: Run Ruff check (strict, no autofix)
         run: |
           ruff check src/ tests/ scripts/ \
+            --no-fix \
+            --preview \
             --output-format=github \
             --select=ALL \
             --ignore=D,ANN101,ANN102,ANN401,S101,PLR0913
@@ -50,7 +53,7 @@ jobs:
         if: always()
         uses: chartboost/ruff-action@v1
         with:
-          args: 'check --output-format=github'
+          args: 'check --output-format=github --preview'
 
   ruff-format:
     name: Ruff Format Check
@@ -68,15 +71,15 @@ jobs:
       - name: Install Ruff
         run: pip install ruff
 
-      - name: Check formatting
-        run: ruff format --check src/ tests/ scripts/
+      - name: Check formatting (with preview)
+        run: ruff format --check --preview src/ tests/ scripts/
 
       - name: Show diff if formatting needed
         if: failure()
-        run: ruff format --diff src/ tests/ scripts/
+        run: ruff format --diff --preview src/ tests/ scripts/
 
   mypy-check:
-    name: MyPy Type Checking
+    name: MyPy Type Checking (Strict)
     runs-on: ubuntu-latest
 
     steps:
@@ -92,17 +95,20 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install mypy
+          pip install mypy types-requests types-redis types-PyYAML types-psutil types-aiofiles types-cachetools
           pip install -r requirements.txt || true
 
-      - name: Run MyPy
+      # Строгая проверка типов для отлова нефиксируемых ошибок
+      - name: Run MyPy (strict mode)
         run: |
           mypy src/ \
+            --strict \
             --install-types \
             --non-interactive \
-            --ignore-missing-imports \
             --show-error-codes \
-            --pretty
+            --pretty \
+            --warn-unused-ignores \
+            --warn-return-any
         continue-on-error: true
 
       - name: Generate MyPy report
@@ -177,9 +183,9 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Ruff Linting | ${{ needs.ruff-check.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruff Linting (Strict) | ${{ needs.ruff-check.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruff Formatting | ${{ needs.ruff-format.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| MyPy Type Check | ${{ needs.mypy-check.result == 'success' && '✅ Passed' || '⚠️ Warnings' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| MyPy Type Check (Strict) | ${{ needs.mypy-check.result == 'success' && '✅ Passed' || '⚠️ Warnings' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Complexity Analysis | ${{ needs.complexity.result == 'success' && '✅ Passed' || '⚠️ Review' }} |" >> $GITHUB_STEP_SUMMARY
 
       - name: Comment on PR
@@ -201,9 +207,9 @@ jobs:
 
             | Check | Status |
             |-------|--------|
-            | Ruff Linting | ${status(results.ruff)} |
+            | Ruff Linting (Strict) | ${status(results.ruff)} |
             | Ruff Formatting | ${status(results.format)} |
-            | MyPy Type Check | ${results.mypy === 'success' ? '✅' : '⚠️'} |
+            | MyPy Type Check (Strict) | ${results.mypy === 'success' ? '✅' : '⚠️'} |
             | Complexity | ${results.complexity === 'success' ? '✅' : '⚠️'} |
 
             ${results.ruff !== 'success' ? '⚠️ **Please fix linting errors before merging**' : ''}

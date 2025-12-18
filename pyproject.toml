@@ -132,43 +132,15 @@ exclude_dirs = [
 # Assert checking
 # assert_used = true
 
-[tool.black]
-line-length = 100
-target-version = ["py311", "py312", "py313"]  # Поддержка Python 3.11-3.13
-include = '\.pyi?$'  # Включая stub-файлы (.pyi)
-# Принудительно использовать одинарные кавычки для совместимости с Ruff
-skip-string-normalization = false
-# Включить режим предварительного просмотра для новых функций
-preview = true  # Новые фичи Black - тестируем постепенно
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | venv
-  | env
-  | _build
-  | buck-out
-  | build
-  | dist
-  | \.pytest_cache
-  | \.ruff_cache
-  | htmlcov
-  | \.eggs
-  | \.egg-info
-  | alembic/versions  # Не трогаем auto-generated миграции Alembic
-  | data/
-  | logs/
-)/
-'''
+# NOTE: [tool.black] section removed - Ruff-format fully replaces Black
+# Ruff-format is faster, integrated with the linter, and compatible with Black style
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"  # Python 3.12+ features
+
+# Enable preview rules for latest lint improvements
+preview = true
 
 # Директории для исключения
 extend-exclude = [
@@ -198,6 +170,9 @@ show-fixes = true
 output-format = "concise"
 
 [tool.ruff.lint]
+# Enable preview rules for experimental fixes (stable in Ruff v0.8+)
+preview = true
+
 # Категории правил для проверки
 select = [
     "E",     # pycodestyle errors
