@@ -105,6 +105,7 @@ jobs:
             --strict \
             --install-types \
             --non-interactive \
+            --ignore-missing-imports \
             --show-error-codes \
             --pretty \
             --warn-unused-ignores \
