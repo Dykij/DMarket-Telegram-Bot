@@ -428,11 +428,15 @@ class DMarketAPI:
             # Для POST-данных используем хеш от JSON
             try:
                 data_str = json.dumps(data, sort_keys=True)
-                key_parts.append(hashlib.md5(data_str.encode()).hexdigest())
+                # Use SHA256 for security, truncate to 32 chars for consistency
+                key_parts.append(
+                    hashlib.sha256(data_str.encode()).hexdigest()[:32]  # noqa: S324
+                )
             except (TypeError, ValueError):
                 key_parts.append(str(data))
 
-        return hashlib.md5("|".join(key_parts).encode()).hexdigest()
+        # Use SHA256 for security, truncate to 32 chars (128-bit collision resistance)
+        return hashlib.sha256("|".join(key_parts).encode()).hexdigest()[:32]  # noqa: S324
 
     def _is_cacheable(self, method: str, path: str) -> tuple[bool, str]:
         """Определяет, можно ли кэшировать данный запрос и на какой период.
@@ -895,12 +899,12 @@ class DMarketAPI:
         error_code: str = "ERROR",
     ) -> dict[str, Any]:
         """Create standardized error response for balance requests.
-        
+
         Args:
             error_message: Human-readable error message
             status_code: HTTP status code
             error_code: Machine-readable error code
-            
+
         Returns:
             Standardized error response dict
         """
@@ -925,14 +929,14 @@ class DMarketAPI:
         **kwargs: Any,
     ) -> dict[str, Any]:
         """Create standardized success response for balance requests.
-        
+
         Args:
             usd_amount: Total balance in cents
             usd_available: Available balance in cents
             usd_total: Total balance including locked funds in cents
             min_required: Minimum required balance in cents (default 100 = $1.00)
             **kwargs: Additional fields to include in response
-            
+
         Returns:
             Standardized success response dict
         """
@@ -951,10 +955,10 @@ class DMarketAPI:
 
     def _parse_balance_from_response(self, response: dict[str, Any]) -> tuple[float, float, float]:
         """Parse balance data from various DMarket API response formats.
-        
+
         Args:
             response: API response dict
-            
+
         Returns:
             Tuple of (usd_amount, usd_available, usd_total) in cents
         """
@@ -1019,10 +1023,10 @@ class DMarketAPI:
         endpoints: list[str],
     ) -> tuple[dict[str, Any] | None, str | None, Exception | None]:
         """Try multiple endpoints to get balance data.
-        
+
         Args:
             endpoints: List of endpoint URLs to try
-            
+
         Returns:
             Tuple of (response_dict, successful_endpoint, last_error)
         """

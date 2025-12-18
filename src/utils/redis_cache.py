@@ -4,8 +4,8 @@ This module provides a Redis-backed cache implementation for distributed
 caching across multiple bot instances, with TTL support and async operations.
 """
 
+import json
 import logging
-import pickle
 from typing import Any, cast
 
 
@@ -31,7 +31,7 @@ class RedisCache:
     - TTL (Time To Live) support
     - Async operations
     - Automatic fallback to in-memory cache if Redis unavailable
-    - Pickle serialization for complex objects
+    - JSON serialization for safe data handling (no pickle)
     """
 
     def __init__(
@@ -134,7 +134,8 @@ class RedisCache:
                 value = await self._redis.get(key)
                 if value is not None:
                     self._hits += 1
-                    return pickle.loads(value)
+                    # Use JSON for safe deserialization instead of pickle
+                    return json.loads(value)
                 self._misses += 1
                 return None
             except Exception as e:
@@ -164,20 +165,31 @@ class RedisCache:
 
         Args:
             key: Cache key
-            value: Value to cache
+            value: Value to cache. Must be JSON serializable:
+                   - Supported: str, int, float, bool, None, list, dict
+                   - Not supported: custom objects, functions, datetime (use ISO string)
             ttl: TTL in seconds (None = use default)
 
         Returns:
             True if successful, False otherwise
+
+        Raises:
+            TypeError: If value is not JSON serializable (only in Redis mode)
         """
         ttl = ttl or self.default_ttl
 
         # Try Redis first
         if self._connected and self._redis:
             try:
-                serialized = pickle.dumps(value)
+                # Use JSON for safe serialization instead of pickle
+                serialized = json.dumps(value)
                 await self._redis.setex(key, ttl, serialized)
                 return True
+            except TypeError as e:
+                logger.error(f"JSON serialization error for key {key}: {e}. "
+                           "Value must be JSON serializable (str, int, float, bool, None, list, dict)")
+                self._errors += 1
+                # Fall through to memory cache
             except Exception as e:
                 logger.error(f"Redis set error for key {key}: {e}")
                 self._errors += 1
