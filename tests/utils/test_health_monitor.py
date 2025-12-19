@@ -494,3 +494,249 @@ class TestHealthMonitorIntegration:
         # Summary should be available
         summary = monitor.get_status_summary()
         assert summary["overall_status"] in ["healthy", "degraded", "unhealthy", "unknown"]
+
+
+class TestHealthMonitorExtended:
+    """Extended tests for HealthMonitor to improve coverage."""
+
+    @pytest.fixture()
+    def mock_database(self) -> MagicMock:
+        """Create mock database manager."""
+        db = MagicMock()
+        db.get_db_status = AsyncMock(return_value={"pool_size": 5, "connected": True})
+        return db
+
+    @pytest.fixture()
+    def mock_redis(self) -> MagicMock:
+        """Create mock Redis cache."""
+        redis = MagicMock()
+        redis.health_check = AsyncMock(return_value={"redis_ping": True, "connected": True})
+        return redis
+
+    @pytest.fixture()
+    def monitor(self, mock_database: MagicMock, mock_redis: MagicMock) -> HealthMonitor:
+        """Create health monitor with mocks."""
+        return HealthMonitor(
+            database=mock_database,
+            redis_cache=mock_redis,
+            telegram_bot_token="test_token",
+            config=HeartbeatConfig(interval_seconds=1, failure_threshold=2),
+        )
+
+    @pytest.mark.asyncio()
+    async def test_check_redis_not_configured(self) -> None:
+        """Test Redis health check when not configured."""
+        monitor = HealthMonitor()
+
+        result = await monitor.check_redis()
+
+        assert result.service == "redis"
+        assert result.status == ServiceStatus.UNKNOWN
+        assert "not configured" in result.message
+
+    @pytest.mark.asyncio()
+    async def test_check_dmarket_api_error(self, monitor: HealthMonitor) -> None:
+        """Test DMarket API health check when error occurs."""
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+
+        with patch("httpx.AsyncClient") as mock_client:
+            mock_client.return_value.__aenter__.return_value.get = AsyncMock(
+                return_value=mock_response
+            )
+
+            result = await monitor.check_dmarket_api()
+
+        assert result.service == "dmarket_api"
+        assert result.status == ServiceStatus.UNHEALTHY
+        assert "500" in result.message
+
+    @pytest.mark.asyncio()
+    async def test_check_dmarket_api_exception(self, monitor: HealthMonitor) -> None:
+        """Test DMarket API health check when exception occurs."""
+        with patch("httpx.AsyncClient") as mock_client:
+            mock_client.return_value.__aenter__.return_value.get = AsyncMock(
+                side_effect=Exception("Network error")
+            )
+
+            result = await monitor.check_dmarket_api()
+
+        assert result.service == "dmarket_api"
+        assert result.status == ServiceStatus.UNHEALTHY
+        assert "Network error" in result.message
+
+    @pytest.mark.asyncio()
+    async def test_check_telegram_api_error(self, monitor: HealthMonitor) -> None:
+        """Test Telegram API health check when error occurs."""
+        mock_response = MagicMock()
+        mock_response.status_code = 401
+
+        with patch("httpx.AsyncClient") as mock_client:
+            mock_client.return_value.__aenter__.return_value.get = AsyncMock(
+                return_value=mock_response
+            )
+
+            result = await monitor.check_telegram_api()
+
+        assert result.service == "telegram_api"
+        assert result.status == ServiceStatus.UNHEALTHY
+        assert "401" in result.message
+
+    @pytest.mark.asyncio()
+    async def test_check_telegram_api_not_ok(self, monitor: HealthMonitor) -> None:
+        """Test Telegram API health check when response not ok."""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"ok": False, "description": "Invalid token"}
+
+        with patch("httpx.AsyncClient") as mock_client:
+            mock_client.return_value.__aenter__.return_value.get = AsyncMock(
+                return_value=mock_response
+            )
+
+            result = await monitor.check_telegram_api()
+
+        assert result.service == "telegram_api"
+        assert result.status == ServiceStatus.UNHEALTHY
+
+    @pytest.mark.asyncio()
+    async def test_check_telegram_api_exception(self, monitor: HealthMonitor) -> None:
+        """Test Telegram API health check when exception occurs."""
+        with patch("httpx.AsyncClient") as mock_client:
+            mock_client.return_value.__aenter__.return_value.get = AsyncMock(
+                side_effect=Exception("Connection refused")
+            )
+
+            result = await monitor.check_telegram_api()
+
+        assert result.service == "telegram_api"
+        assert result.status == ServiceStatus.UNHEALTHY
+        assert "Connection refused" in result.message
+
+    @pytest.mark.asyncio()
+    async def test_sync_alert_callback(self, monitor: HealthMonitor) -> None:
+        """Test that sync alert callbacks work."""
+        sync_callback_called = False
+
+        def sync_callback(result: HealthCheckResult) -> None:
+            nonlocal sync_callback_called
+            sync_callback_called = True
+
+        monitor.register_alert_callback(sync_callback)
+
+        # Simulate failure threshold reached
+        unhealthy_result = HealthCheckResult(
+            service="test",
+            status=ServiceStatus.UNHEALTHY,
+            response_time_ms=100.0,
+            message="Test failure",
+        )
+
+        await monitor._update_service_status("test", unhealthy_result)
+        await monitor._update_service_status("test", unhealthy_result)
+
+        assert sync_callback_called
+
+    @pytest.mark.asyncio()
+    async def test_alert_callback_with_exception(self, monitor: HealthMonitor) -> None:
+        """Test that exceptions in alert callbacks are handled."""
+
+        def failing_callback(result: HealthCheckResult) -> None:
+            raise ValueError("Callback error")
+
+        monitor.register_alert_callback(failing_callback)
+
+        # Simulate failure threshold reached - should not raise
+        unhealthy_result = HealthCheckResult(
+            service="test",
+            status=ServiceStatus.UNHEALTHY,
+            response_time_ms=100.0,
+        )
+
+        await monitor._update_service_status("test", unhealthy_result)
+        await monitor._update_service_status("test", unhealthy_result)
+
+        # Should complete without raising
+        assert True
+
+    @pytest.mark.asyncio()
+    async def test_heartbeat_loop_with_error(self, monitor: HealthMonitor) -> None:
+        """Test heartbeat loop handles errors gracefully."""
+        call_count = 0
+
+        async def failing_check() -> dict[str, HealthCheckResult]:
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise Exception("First check failed")
+            return {}
+
+        with patch.object(monitor, "run_all_checks", side_effect=failing_check):
+            await monitor.start_heartbeat()
+            await asyncio.sleep(0.2)  # Let loop run
+            await monitor.stop_heartbeat()
+
+        # Loop should have continued despite error
+        assert call_count >= 1
+
+    @pytest.mark.asyncio()
+    async def test_get_overall_status_with_unknown(self, monitor: HealthMonitor) -> None:
+        """Test overall status when some services are unknown."""
+        monitor._last_results = {
+            "database": HealthCheckResult("database", ServiceStatus.HEALTHY, 10.0),
+            "redis": HealthCheckResult("redis", ServiceStatus.UNKNOWN, 5.0),
+        }
+
+        status = monitor.get_overall_status()
+        assert status == ServiceStatus.UNKNOWN
+
+    @pytest.mark.asyncio()
+    async def test_update_service_status_healthy_resets_failure_count(
+        self, monitor: HealthMonitor
+    ) -> None:
+        """Test that healthy status resets failure count after recovery threshold."""
+        monitor._failure_counts["test"] = 5
+        monitor._success_counts["test"] = 0
+
+        healthy_result = HealthCheckResult(
+            service="test",
+            status=ServiceStatus.HEALTHY,
+            response_time_ms=50.0,
+        )
+
+        # First healthy update
+        await monitor._update_service_status("test", healthy_result)
+        assert monitor._success_counts["test"] == 1
+
+        # Second healthy update - should trigger recovery
+        await monitor._update_service_status("test", healthy_result)
+        assert monitor._failure_counts["test"] == 0
+
+    @pytest.mark.asyncio()
+    async def test_get_status_summary_includes_success_counts(
+        self, monitor: HealthMonitor
+    ) -> None:
+        """Test that status summary includes success counts."""
+        monitor._last_results = {
+            "database": HealthCheckResult("database", ServiceStatus.HEALTHY, 10.0),
+        }
+        monitor._failure_counts = {"database": 0}
+        monitor._success_counts = {"database": 5}
+
+        summary = monitor.get_status_summary()
+
+        assert "success_counts" in summary
+        assert summary["success_counts"]["database"] == 5
+
+    @pytest.mark.asyncio()
+    async def test_stop_heartbeat_when_not_running(self, monitor: HealthMonitor) -> None:
+        """Test stopping heartbeat when not running."""
+        # Should not raise error
+        await monitor.stop_heartbeat()
+        assert not monitor.is_running
+
+    def test_monitor_without_config(self) -> None:
+        """Test monitor creation without explicit config."""
+        monitor = HealthMonitor()
+        assert monitor.config is not None
+        assert monitor.config.interval_seconds == 30  # Default value
