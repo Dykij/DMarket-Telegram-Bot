@@ -578,19 +578,20 @@ async def copilot_assisted_trading():
 
 ## 📋 План внедрения
 
-### Phase 1: MCP Server (2-3 дня)
+### Phase 1: MCP Server (2-3 дня) ✅ ЗАВЕРШЕНО
 
-- [ ] Создать `src/mcp_server/dmarket_mcp.py`
-- [ ] Настроить AnyTool config без GUI/Web
-- [ ] Протестировать базовые операции
-- [ ] Документация MCP методов
+- [x] Создать `src/mcp_server/dmarket_mcp.py`
+- [x] Настроить AnyTool config без GUI/Web
+- [x] Создать `src/utils/anytool_integration.py`
+- [x] Документация MCP методов
 
-### Phase 2: AnyTool Integration (1 неделя)
+### Phase 2: AnyTool Integration (1 неделя) ✅ БАЗОВАЯ РЕАЛИЗАЦИЯ
 
-- [ ] Интегрировать AnyTool в бота
-- [ ] Настроить Smart Tool RAG
+- [x] Интегрировать AnyTool в бота (fallback режим)
+- [x] Настроить безопасную конфигурацию (DMarket ToS compliance)
+- [ ] Настроить Smart Tool RAG (требует установки AnyTool)
 - [ ] Включить Quality Tracking
-- [ ] Добавить logging и мониторинг
+- [x] Добавить logging и мониторинг
 
 ### Phase 3: n8n Workflows (1-2 недели)
 
@@ -608,6 +609,52 @@ async def copilot_assisted_trading():
 - [ ] Security audit
 - [ ] Расширение workflows
 - [ ] Мониторинг и алерты
+
+---
+
+## 🚀 Быстрый старт
+
+### Установка AnyTool
+
+```bash
+# AnyTool не на PyPI, устанавливаем с GitHub
+pip install git+https://github.com/HKUDS/AnyTool.git
+```
+
+### Использование MCP Server
+
+```python
+# Запуск MCP сервера напрямую
+python -m src.mcp_server.dmarket_mcp
+
+# Или через Python
+from src.mcp_server.dmarket_mcp import create_dmarket_mcp_server
+
+server = create_dmarket_mcp_server(dry_run=True)
+tools = await server.list_tools()
+result = await server.call_tool("get_balance", {})
+```
+
+### Использование AnyTool Integration
+
+```python
+from src.utils.anytool_integration import (
+    execute_safe_task,
+    get_anytool_status,
+)
+
+# Проверить статус интеграции
+status = get_anytool_status()
+print(f"AnyTool installed: {status['is_installed']}")
+print(f"MCP Server available: {status['mcp_server_available']}")
+
+# Выполнить задачу безопасно
+result = await execute_safe_task(
+    "Найди арбитражные возможности для CS:GO",
+    dry_run=True
+)
+print(result)
+```
 
 ---
 

@@ -86,3 +86,8 @@ schedule>=1.2.2                    # Latest scheduler
 
 # Dependency Injection (P2-17)
 dependency-injector>=4.41.0        # DI framework for Python
+
+# AI Agent Integration (AnyTool)
+# Note: AnyTool is installed from GitHub as it's not on PyPI
+# pip install git+https://github.com/HKUDS/AnyTool.git
+# anytool @ git+https://github.com/HKUDS/AnyTool.git  # Uncomment when ready to use

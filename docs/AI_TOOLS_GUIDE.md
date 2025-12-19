@@ -266,9 +266,35 @@ except RateLimitError:
 
 | Инструмент | Назначение | Статус |
 |------------|-----------|--------|
-| **AnyTool MCP** | Smart Tool RAG для GitHub Copilot | 📋 Планируется |
+| **AnyTool MCP** | Smart Tool RAG для GitHub Copilot | ✅ Реализовано |
 | **n8n Workflows** | Visual automation для DevOps | 📋 Планируется |
-| **MCP Server** | DMarket API интеграция | 📋 Планируется |
+| **MCP Server** | DMarket API интеграция | ✅ Реализовано |
+
+### Установленные компоненты:
+
+```
+src/mcp_server/
+├── __init__.py           # Package exports
+└── dmarket_mcp.py        # MCP Server для DMarket API (14 инструментов)
+
+src/utils/
+└── anytool_integration.py  # Safe AnyTool wrapper с DMarket ToS compliance
+
+anytool/config/
+└── config_mcp.json       # MCP конфигурация для AnyTool
+```
+
+### Быстрый старт:
+
+```python
+from src.utils.anytool_integration import execute_safe_task
+
+# Выполнить задачу через AnyTool (с fallback на MCP Server)
+result = await execute_safe_task(
+    "Получи мой баланс на DMarket",
+    dry_run=True
+)
+```
 
 ### Важно: DMarket ToS Compliance
 
@@ -285,6 +311,12 @@ except RateLimitError:
 ---
 
 ## 📝 Changelog
+
+### v1.2 (Декабрь 2025)
+- ✅ Реализован MCP Server (`src/mcp_server/dmarket_mcp.py`)
+- ✅ Добавлена AnyTool интеграция (`src/utils/anytool_integration.py`)
+- ✅ Создана конфигурация MCP (`anytool/config/config_mcp.json`)
+- 14 инструментов для DMarket API
 
 ### v1.1 (Декабрь 2025)
 - Добавлена секция AnyTool & n8n

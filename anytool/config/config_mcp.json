@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "dmarket": {
+      "command": "python",
+      "args": ["-m", "src.mcp_server.dmarket_mcp"],
+      "env": {
+        "DMARKET_PUBLIC_KEY": "${DMARKET_PUBLIC_KEY}",
+        "DMARKET_SECRET_KEY": "${DMARKET_SECRET_KEY}",
+        "DRY_RUN": "true"
+      },
+      "description": "DMarket Trading API MCP Server for AI agents"
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      },
+      "description": "GitHub MCP Server for repository operations"
+    }
+  },
+  "settings": {
+    "defaultTimeout": 120000,
+    "maxConcurrentCalls": 5,
+    "retryAttempts": 3,
+    "logLevel": "INFO"
+  }
+}
