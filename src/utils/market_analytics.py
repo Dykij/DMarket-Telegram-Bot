@@ -445,8 +445,8 @@ class MarketAnalyzer:
         }
 
         logger.info(
-            "Price drop prediction: probability=%.2f, recommendation=%s",
-            result["probability"],
+            "Price drop prediction: confidence=%.2f, recommendation=%s",
+            result["confidence"],
             result["recommendation"],
         )
         return result
