@@ -170,7 +170,7 @@ class TestTaskValidation:
         integration = AnyToolIntegration()
 
         with pytest.raises(ValueError) as exc_info:
-            integration._validate_task("Open browser and go to dmarket.com")
+            integration._validate_task("Open browser and navigate to website")
 
         assert "blocked" in str(exc_info.value).lower()
 

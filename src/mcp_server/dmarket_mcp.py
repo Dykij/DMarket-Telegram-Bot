@@ -264,7 +264,7 @@ class DMarketMCPServer:
                     },
                     "price": {
                         "type": "number",
-                        "description": "Цена покупки в USD (в центах: $8.50 = 850)",
+                        "description": "Цена покупки в USD (например: 8.50 для $8.50). Будет автоматически конвертирована в центы для API.",
                     },
                     "amount": {
                         "type": "integer",

@@ -317,6 +317,7 @@ class AnyToolIntegration:
             ValueError: If task requests prohibited operations
 
         """
+        # Keywords that indicate GUI/browser automation (prohibited by DMarket ToS)
         prohibited_keywords = [
             "browser",
             "selenium",
@@ -328,9 +329,11 @@ class AnyToolIntegration:
             "screenshot",
             "click button",
             "fill form",
-            "navigate to",
+            "navigate to website",
             "open website",
-            "dmarket.com",  # Direct website access
+            "open dmarket",  # Browser navigation to DMarket (API mentions are OK)
+            "visit dmarket",
+            "go to dmarket",
         ]
 
         task_lower = task.lower()
