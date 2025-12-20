@@ -86,3 +86,7 @@ schedule>=1.2.2                    # Latest scheduler
 
 # Dependency Injection (P2-17)
 dependency-injector>=4.41.0        # DI framework for Python
+
+# AnyTool / MCP Integration
+mcp>=1.0.0                         # Model Context Protocol for AI tools
+pydantic>=2.10.0                   # Already included above

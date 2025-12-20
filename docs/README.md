@@ -40,6 +40,7 @@
 - **[Telegram Bot API](TELEGRAM_BOT_API.md)** - Справочник Telegram Bot API 9.2
 - **[Фильтры игр](game_filters_guide.md)** - Фильтры для CS:GO, Dota 2, TF2, Rust
 - **[API Documentation](API_DOCUMENTATION.md)** - Детальная документация API
+- **[AnyTool Integration](ANYTOOL_INTEGRATION_GUIDE.md)** - 🆕 Интеграция с MCP Server для AI инструментов
 
 ### Разработка и инфраструктура
 

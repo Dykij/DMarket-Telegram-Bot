@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "dmarket-bot": {
+      "command": "python",
+      "args": [
+        "-m",
+        "src.mcp_server.dmarket_mcp"
+      ],
+      "env": {
+        "DMARKET_PUBLIC_KEY": "${DMARKET_PUBLIC_KEY}",
+        "DMARKET_SECRET_KEY": "${DMARKET_SECRET_KEY}"
+      },
+      "description": "DMarket Bot MCP Server - provides tools for trading automation",
+      "tools": [
+        "get_balance",
+        "get_market_items",
+        "scan_arbitrage",
+        "get_item_details",
+        "create_target",
+        "get_targets"
+      ]
+    }
+  },
+  "version": "1.0.0",
+  "protocol": "mcp",
+  "created": "2025-12-20"
+}
