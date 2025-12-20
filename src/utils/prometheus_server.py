@@ -33,7 +33,7 @@ class PrometheusServer:
     async def metrics_handler(self, request: web.Request) -> web.Response:
         """Обработчик /metrics endpoint."""
         metrics = MetricsCollector.get_metrics()
-        return web.Response(body=metrics, content_type="text/plain; charset=utf-8")
+        return web.Response(body=metrics, content_type="text/plain", charset="utf-8")
 
     async def health_handler(self, request: web.Request) -> web.Response:
         """Обработчик /health endpoint."""
