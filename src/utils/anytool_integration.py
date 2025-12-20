@@ -4,10 +4,10 @@ AnyTool Integration для DMarket Telegram Bot.
 Модуль для интеграции с AnyTool через MCP (Model Context Protocol).
 """
 
-import json
 import asyncio
-from typing import Any, Optional, Callable
+import json
 from pathlib import Path
+from typing import Any, Callable
 
 import structlog
 from pydantic import BaseModel, Field
@@ -35,8 +35,8 @@ class AnyToolClient:
 
     def __init__(
         self,
-        config: Optional[AnyToolConfig] = None,
-        api_client: Optional[DMarketAPI] = None,
+        config: AnyToolConfig | None = None,
+        api_client: DMarketAPI | None = None,
     ):
         """
         Инициализация AnyTool клиента.
@@ -47,8 +47,8 @@ class AnyToolClient:
         """
         self.config = config or AnyToolConfig()
         self.api_client = api_client or DMarketAPI(
-            public_key=settings.dmarket_public_key,
-            secret_key=settings.dmarket_secret_key,
+            public_key=settings.dmarket.public_key,
+            secret_key=settings.dmarket.secret_key,
         )
         self._callbacks: dict[str, list[Callable]] = {}
 
@@ -63,7 +63,7 @@ class AnyToolClient:
         if event not in self._callbacks:
             self._callbacks[event] = []
         self._callbacks[event].append(callback)
-        logger.debug("callback_registered", event=event)
+        logger.debug("callback_registered", event_name=event)
 
     async def _trigger_callbacks(self, event: str, data: Any) -> None:
         """Запуск callbacks для события."""
@@ -77,7 +77,7 @@ class AnyToolClient:
                 except Exception as e:
                     logger.error(
                         "callback_error",
-                        event=event,
+                        event_name=event,
                         error=str(e),
                         exc_info=True,
                     )
@@ -109,11 +109,14 @@ class AnyToolClient:
             # Прямой вызов через API клиент
             result = await self._execute_tool(tool_name, arguments)
 
-            await self._trigger_callbacks("tool_called", {
-                "tool": tool_name,
-                "arguments": arguments,
-                "result": result,
-            })
+            await self._trigger_callbacks(
+                "tool_called",
+                {
+                    "tool": tool_name,
+                    "arguments": arguments,
+                    "result": result,
+                },
+            )
 
             return result
 
@@ -136,7 +139,7 @@ class AnyToolClient:
             balance = await self.api_client.get_balance()
             return {"success": True, "balance": balance}
 
-        elif tool_name == "get_market_items":
+        if tool_name == "get_market_items":
             items = await self.api_client.get_market_items(
                 game=arguments["game"],
                 limit=arguments.get("limit", 10),
@@ -148,7 +151,7 @@ class AnyToolClient:
                 "items": items.get("objects", []),
             }
 
-        elif tool_name == "scan_arbitrage":
+        if tool_name == "scan_arbitrage":
             from src.dmarket.arbitrage_scanner import ArbitrageScanner
 
             scanner = ArbitrageScanner(api_client=self.api_client)
@@ -158,21 +161,18 @@ class AnyToolClient:
             )
 
             min_profit = arguments.get("min_profit", 0.5)
-            filtered = [
-                opp for opp in opportunities
-                if opp.get("profit", 0) >= min_profit
-            ]
+            filtered = [opp for opp in opportunities if opp.get("profit", 0) >= min_profit]
 
             return {
                 "success": True,
                 "opportunities": filtered,
             }
 
-        elif tool_name == "get_item_details":
+        if tool_name == "get_item_details":
             details = await self.api_client.get_item_by_id(arguments["item_id"])
             return {"success": True, "item": details}
 
-        elif tool_name == "create_target":
+        if tool_name == "create_target":
             from src.dmarket.targets import TargetManager
 
             target_manager = TargetManager(api_client=self.api_client)
@@ -184,15 +184,14 @@ class AnyToolClient:
             )
             return {"success": True, "target": target}
 
-        elif tool_name == "get_targets":
+        if tool_name == "get_targets":
             from src.dmarket.targets import TargetManager
 
             target_manager = TargetManager(api_client=self.api_client)
             targets = await target_manager.get_all_targets()
             return {"success": True, "targets": targets}
 
-        else:
-            raise ValueError(f"Unknown tool: {tool_name}")
+        raise ValueError(f"Unknown tool: {tool_name}")
 
     async def get_available_tools(self) -> list[dict[str, Any]]:
         """Получить список доступных инструментов."""
@@ -276,7 +275,7 @@ class AnyToolClient:
 
 
 # Глобальный клиент AnyTool
-_anytool_client: Optional[AnyToolClient] = None
+_anytool_client: AnyToolClient | None = None
 
 
 def get_anytool_client() -> AnyToolClient:
@@ -287,9 +286,7 @@ def get_anytool_client() -> AnyToolClient:
     return _anytool_client
 
 
-async def initialize_anytool(
-    config_path: Optional[str | Path] = None
-) -> AnyToolClient:
+async def initialize_anytool(config_path: str | Path | None = None) -> AnyToolClient:
     """
     Инициализация AnyTool интеграции.
 

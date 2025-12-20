@@ -1,12 +1,11 @@
 """Утилиты для оптимизации производительности проекта."""
 
 import asyncio
-from collections.abc import Callable
 import functools
 import logging
 import time
+from collections.abc import Callable
 from typing import Any, TypeVar
-
 
 logger = logging.getLogger(__name__)
 
@@ -249,7 +248,9 @@ def profile_performance(func: Callable[..., T]) -> Callable[..., T]:  # noqa: UP
             finally:
                 execution_time = time.time() - start_time
                 logger.info(
-                    f"Время выполнения {func.__name__}: {execution_time:.4f} сек",
+                    "Время выполнения %s: %.4f сек",
+                    func.__name__,
+                    execution_time,
                 )
 
         return async_wrapper  # type: ignore[return-value]

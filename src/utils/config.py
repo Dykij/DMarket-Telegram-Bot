@@ -5,14 +5,13 @@ from various sources including environment variables, YAML files, and defaults.
 """
 
 import contextlib
-from dataclasses import dataclass, field
 import logging
 import os
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 import yaml
-
 
 # Load environment variables from .env file
 try:
@@ -500,3 +499,7 @@ class Config:
                 f"  - {err}" for err in errors
             )
             raise ValueError(error_msg)
+
+
+# Global settings instance
+settings = Config.load()

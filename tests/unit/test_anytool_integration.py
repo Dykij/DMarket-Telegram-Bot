@@ -4,21 +4,21 @@
 Проверяет функциональность интеграции с AnyTool через MCP.
 """
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from pathlib import Path
 import json
+from unittest.mock import AsyncMock, patch
 
+import pytest
+
+from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.anytool_integration import (
     AnyToolClient,
     AnyToolConfig,
     get_anytool_client,
     initialize_anytool,
 )
-from src.dmarket.dmarket_api import DMarketAPI
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_api_client():
     """Фикстура для мокированного API клиента."""
     client = AsyncMock(spec=DMarketAPI)
@@ -30,13 +30,11 @@ def mock_api_client():
             ]
         }
     )
-    client.get_item_by_id = AsyncMock(
-        return_value={"title": "Test Item", "price": {"USD": "1000"}}
-    )
+    client.get_item_by_id = AsyncMock(return_value={"title": "Test Item", "price": {"USD": "1000"}})
     return client
 
 
-@pytest.fixture
+@pytest.fixture()
 def anytool_config():
     """Фикстура для конфигурации AnyTool."""
     return AnyToolConfig(
@@ -47,7 +45,7 @@ def anytool_config():
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def anytool_client(mock_api_client, anytool_config):
     """Фикстура для AnyTool клиента."""
     return AnyToolClient(config=anytool_config, api_client=mock_api_client)
@@ -104,7 +102,7 @@ class TestAnyToolClient:
         assert "test_event" in anytool_client._callbacks
         assert test_callback in anytool_client._callbacks["test_event"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trigger_callbacks_with_sync_callback(self, anytool_client):
         """Тест запуска синхронных callbacks."""
         callback_called = False
@@ -118,7 +116,7 @@ class TestAnyToolClient:
         await anytool_client._trigger_callbacks("test_event", {"test": "data"})
         assert callback_called
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trigger_callbacks_with_async_callback(self, anytool_client):
         """Тест запуска асинхронных callbacks."""
         callback_called = False
@@ -132,7 +130,7 @@ class TestAnyToolClient:
         await anytool_client._trigger_callbacks("test_event", {"test": "data"})
         assert callback_called
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_tool_when_disabled(self, anytool_client):
         """Тест вызова инструмента когда интеграция отключена."""
         anytool_client.config.enabled = False
@@ -140,7 +138,7 @@ class TestAnyToolClient:
         with pytest.raises(ValueError, match="AnyTool integration is disabled"):
             await anytool_client.call_tool("get_balance", {})
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_tool_get_balance(self, anytool_client, mock_api_client):
         """Тест вызова get_balance через AnyTool."""
         result = await anytool_client.call_tool("get_balance", {})
@@ -149,7 +147,7 @@ class TestAnyToolClient:
         assert "balance" in result
         mock_api_client.get_balance.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_tool_get_market_items(self, anytool_client, mock_api_client):
         """Тест вызова get_market_items через AnyTool."""
         result = await anytool_client.call_tool(
@@ -171,12 +169,10 @@ class TestAnyToolClient:
             price_to=1000,
         )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_tool_scan_arbitrage(self, anytool_client):
         """Тест вызова scan_arbitrage через AnyTool."""
-        with patch(
-            "src.utils.anytool_integration.ArbitrageScanner"
-        ) as mock_scanner_class:
+        with patch("src.dmarket.arbitrage_scanner.ArbitrageScanner") as mock_scanner_class:
             mock_scanner = AsyncMock()
             mock_scanner.scan_level = AsyncMock(
                 return_value=[
@@ -199,7 +195,7 @@ class TestAnyToolClient:
             assert len(result["opportunities"]) == 1
             assert result["opportunities"][0]["profit"] == 1.5
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_tool_get_item_details(self, anytool_client, mock_api_client):
         """Тест вызова get_item_details через AnyTool."""
         result = await anytool_client.call_tool(
@@ -211,14 +207,12 @@ class TestAnyToolClient:
         assert "item" in result
         mock_api_client.get_item_by_id.assert_called_once_with("test_item_123")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_tool_create_target(self, anytool_client):
         """Тест вызова create_target через AnyTool."""
-        with patch("src.utils.anytool_integration.TargetManager") as mock_tm_class:
+        with patch("src.dmarket.targets.TargetManager") as mock_tm_class:
             mock_tm = AsyncMock()
-            mock_tm.create_target = AsyncMock(
-                return_value={"target_id": "test_target_123"}
-            )
+            mock_tm.create_target = AsyncMock(return_value={"target_id": "test_target_123"})
             mock_tm_class.return_value = mock_tm
 
             result = await anytool_client.call_tool(
@@ -240,10 +234,10 @@ class TestAnyToolClient:
                 amount=2,
             )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_tool_get_targets(self, anytool_client):
         """Тест вызова get_targets через AnyTool."""
-        with patch("src.utils.anytool_integration.TargetManager") as mock_tm_class:
+        with patch("src.dmarket.targets.TargetManager") as mock_tm_class:
             mock_tm = AsyncMock()
             mock_tm.get_all_targets = AsyncMock(
                 return_value=[
@@ -258,13 +252,13 @@ class TestAnyToolClient:
             assert result["success"] is True
             assert len(result["targets"]) == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_tool_unknown_tool(self, anytool_client):
         """Тест вызова неизвестного инструмента."""
         with pytest.raises(ValueError, match="Unknown tool"):
             await anytool_client.call_tool("unknown_tool", {})
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_available_tools(self, anytool_client):
         """Тест получения списка доступных инструментов."""
         tools = await anytool_client.get_available_tools()
@@ -287,7 +281,7 @@ class TestAnyToolClient:
 
         assert config_path.exists()
 
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             config = json.load(f)
 
         assert "mcpServers" in config
@@ -304,7 +298,7 @@ class TestGlobalClient:
         client2 = get_anytool_client()
         assert client1 is client2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_initialize_anytool(self, tmp_path):
         """Тест инициализации AnyTool."""
         config_path = tmp_path / "config_mcp.json"

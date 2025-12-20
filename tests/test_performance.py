@@ -1,6 +1,7 @@
 """Тесты для модуля performance."""
 
 import asyncio
+import logging
 import time
 
 import pytest
@@ -214,6 +215,8 @@ class TestProfilePerformance:
 
     def test_profile_sync_function(self, caplog):
         """Тест профилирования синхронной функции."""
+        # Устанавливаем уровень логирования для нужного логгера
+        caplog.set_level(logging.INFO, logger="src.utils.performance")
 
         @profile_performance
         def slow_function():
@@ -229,6 +232,8 @@ class TestProfilePerformance:
     @pytest.mark.asyncio()
     async def test_profile_async_function(self, caplog):
         """Тест профилирования асинхронной функции."""
+        # Устанавливаем уровень логирования для нужного логгера
+        caplog.set_level(logging.INFO, logger="src.utils.performance")
 
         @profile_performance
         async def slow_async_function():

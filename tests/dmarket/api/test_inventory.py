@@ -303,3 +303,269 @@ class TestInventoryEdgeCases:
         for game in games:
             result = await inventory_mixin.get_user_inventory(game=game)
             assert result is not None
+
+
+# =============================================================================
+# NEW TESTS - Added to improve coverage from 58% to 95%+
+# Target: Cover all inventory methods and edge cases
+# =============================================================================
+
+
+class TestDepositAssets:
+    """Tests for deposit_assets method."""
+
+    @pytest.mark.asyncio()
+    async def test_deposit_assets_success(self, inventory_mixin, mock_request):
+        """Test successful asset deposit."""
+        # Arrange
+        asset_ids = ["asset1", "asset2", "asset3"]
+        mock_request.return_value = {
+            "success": True,
+            "depositId": "dep_123",
+            "status": "pending",
+        }
+
+        # Act
+        result = await inventory_mixin.deposit_assets(asset_ids=asset_ids)
+
+        # Assert
+        assert result["success"] is True
+        assert "depositId" in result
+        mock_request.assert_called_once()
+
+    @pytest.mark.asyncio()
+    async def test_deposit_assets_empty_list(self, inventory_mixin, mock_request):
+        """Test deposit with empty asset list."""
+        # Arrange
+        mock_request.return_value = {"success": False, "error": "No assets"}
+
+        # Act
+        result = await inventory_mixin.deposit_assets(asset_ids=[])
+
+        # Assert
+        assert result is not None
+
+
+class TestGetDepositStatus:
+    """Tests for get_deposit_status method."""
+
+    @pytest.mark.asyncio()
+    async def test_get_deposit_status_success(self, inventory_mixin, mock_request):
+        """Test getting deposit status."""
+        # Arrange
+        deposit_id = "dep_123"
+        mock_request.return_value = {
+            "depositId": deposit_id,
+            "status": "completed",
+            "assets": ["asset1", "asset2"],
+        }
+
+        # Act
+        result = await inventory_mixin.get_deposit_status(deposit_id=deposit_id)
+
+        # Assert
+        assert result["depositId"] == deposit_id
+        assert result["status"] == "completed"
+        mock_request.assert_called_once()
+
+    @pytest.mark.asyncio()
+    async def test_get_deposit_status_pending(self, inventory_mixin, mock_request):
+        """Test deposit status when still pending."""
+        # Arrange
+        mock_request.return_value = {"status": "pending"}
+
+        # Act
+        result = await inventory_mixin.get_deposit_status(deposit_id="dep_456")
+
+        # Assert
+        assert result["status"] == "pending"
+
+
+class TestWithdrawAssets:
+    """Tests for withdraw_assets method."""
+
+    @pytest.mark.asyncio()
+    async def test_withdraw_assets_success(self, inventory_mixin, mock_request):
+        """Test successful asset withdrawal."""
+        # Arrange
+        asset_ids = ["asset1"]
+        mock_request.return_value = {
+            "success": True,
+            "withdrawalId": "with_789",
+        }
+
+        # Act
+        result = await inventory_mixin.withdraw_assets(asset_ids=asset_ids)
+
+        # Assert
+        assert result["success"] is True
+        assert "withdrawalId" in result
+        mock_request.assert_called_once()
+
+    @pytest.mark.asyncio()
+    async def test_withdraw_assets_multiple_items(self, inventory_mixin, mock_request):
+        """Test withdrawing multiple assets."""
+        # Arrange
+        asset_ids = [f"asset{i}" for i in range(10)]
+        mock_request.return_value = {"success": True}
+
+        # Act
+        result = await inventory_mixin.withdraw_assets(asset_ids=asset_ids)
+
+        # Assert
+        assert result["success"] is True
+
+
+class TestSyncInventory:
+    """Tests for sync_inventory method."""
+
+    @pytest.mark.asyncio()
+    async def test_sync_inventory_success(self, inventory_mixin, mock_request):
+        """Test successful inventory sync."""
+        # Arrange
+        mock_request.return_value = {
+            "success": True,
+            "itemsSynced": 50,
+            "timestamp": "2025-01-01T00:00:00Z",
+        }
+
+        # Act
+        result = await inventory_mixin.sync_inventory(game="csgo")
+
+        # Assert
+        assert result["success"] is True
+        assert result["itemsSynced"] == 50
+        mock_request.assert_called_once()
+
+    @pytest.mark.asyncio()
+    async def test_sync_inventory_different_games(self, inventory_mixin, mock_request):
+        """Test sync for different games."""
+        # Arrange
+        mock_request.return_value = {"success": True}
+
+        # Act
+        await inventory_mixin.sync_inventory(game="dota2")
+
+        # Assert
+        call_args = mock_request.call_args
+        assert "gameId" in call_args[1]["params"]
+        assert call_args[1]["params"]["gameId"] == "dota2"
+
+
+class TestGetAllUserInventory:
+    """Tests for get_all_user_inventory method."""
+
+    @pytest.mark.asyncio()
+    async def test_get_all_inventory_with_pagination(self, inventory_mixin, mock_request):
+        """Test getting all inventory with automatic pagination."""
+        # Arrange
+        mock_request.side_effect = [
+            {"items": [{"id": str(i)} for i in range(100)]},
+            {"items": [{"id": str(i)} for i in range(100, 150)]},
+            {"items": []},  # Empty means done
+        ]
+
+        # Act
+        result = await inventory_mixin.get_all_user_inventory(game="csgo")
+
+        # Assert
+        assert len(result) == 150
+        assert mock_request.call_count == 3
+
+    @pytest.mark.asyncio()
+    async def test_get_all_inventory_respects_max_items(self, inventory_mixin, mock_request):
+        """Test that max_items limit is respected."""
+        # Arrange
+        mock_request.side_effect = [
+            {"items": [{"id": str(i)} for i in range(100)]},
+            {"items": [{"id": str(i)} for i in range(100, 200)]},
+        ]
+
+        # Act
+        result = await inventory_mixin.get_all_user_inventory(max_items=120)
+
+        # Assert
+        assert len(result) <= 120
+
+    @pytest.mark.asyncio()
+    async def test_get_all_inventory_empty(self, inventory_mixin, mock_request):
+        """Test when inventory is empty."""
+        # Arrange
+        mock_request.return_value = {"items": []}
+
+        # Act
+        result = await inventory_mixin.get_all_user_inventory()
+
+        # Assert
+        assert result == []
+
+
+class TestInventoryEdgeCases:
+    """Tests for edge cases in inventory operations."""
+
+    @pytest.mark.asyncio()
+    async def test_get_inventory_with_zero_limit(self, inventory_mixin, mock_request):
+        """Test inventory with limit=0."""
+        # Arrange
+        mock_request.return_value = {"items": []}
+
+        # Act
+        result = await inventory_mixin.get_user_inventory(limit=0)
+
+        # Assert
+        assert result is not None
+
+    @pytest.mark.asyncio()
+    async def test_get_inventory_large_offset(self, inventory_mixin, mock_request):
+        """Test inventory with very large offset."""
+        # Arrange
+        mock_request.return_value = {"items": []}
+
+        # Act
+        result = await inventory_mixin.get_user_inventory(offset=10000)
+
+        # Assert
+        assert result is not None
+        call_args = mock_request.call_args
+        assert call_args[1]["params"]["offset"] == 10000
+
+    @pytest.mark.asyncio()
+    async def test_list_inventory_with_custom_game_id(self, inventory_mixin, mock_request):
+        """Test list inventory with custom game ID."""
+        # Arrange
+        mock_request.return_value = {"items": []}
+
+        # Act
+        await inventory_mixin.list_user_inventory(game_id="b57e")
+
+        # Assert
+        call_args = mock_request.call_args
+        assert call_args[1]["params"]["GameID"] == "b57e"
+
+    @pytest.mark.asyncio()
+    async def test_deposit_assets_with_metadata(self, inventory_mixin, mock_request):
+        """Test deposit with additional metadata."""
+        # Arrange
+        mock_request.return_value = {"success": True}
+
+        # Act
+        result = await inventory_mixin.deposit_assets(
+            asset_ids=["asset1"],
+            metadata={"source": "test"},
+        )
+
+        # Assert
+        assert result is not None
+
+    @pytest.mark.asyncio()
+    async def test_withdraw_assets_single_item(self, inventory_mixin, mock_request):
+        """Test withdrawing single asset."""
+        # Arrange
+        mock_request.return_value = {"success": True}
+
+        # Act
+        result = await inventory_mixin.withdraw_assets(asset_ids=["single_asset"])
+
+        # Assert
+        assert result["success"] is True
+        mock_request.assert_called_once()

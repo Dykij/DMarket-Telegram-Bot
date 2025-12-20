@@ -4,15 +4,23 @@
 Проверяет функциональность DMarket MCP сервера.
 """
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-import json
+from unittest.mock import AsyncMock, patch
 
-from src.mcp_server.dmarket_mcp import DMarketMCPServer
+import pytest
+
 from src.dmarket.dmarket_api import DMarketAPI
 
+# Проверяем доступность MCP перед импортом
+try:
+    from src.mcp_server.dmarket_mcp import MCP_AVAILABLE, DMarketMCPServer
+except ImportError:
+    MCP_AVAILABLE = False
+    DMarketMCPServer = None
 
-@pytest.fixture
+pytestmark = pytest.mark.skipif(not MCP_AVAILABLE, reason="MCP module not installed")
+
+
+@pytest.fixture()
 def mock_api_client():
     """Фикстура для мокированного API клиента."""
     client = AsyncMock(spec=DMarketAPI)
@@ -25,13 +33,11 @@ def mock_api_client():
             ]
         }
     )
-    client.get_item_by_id = AsyncMock(
-        return_value={"title": "Test Item", "price": {"USD": "1000"}}
-    )
+    client.get_item_by_id = AsyncMock(return_value={"title": "Test Item", "price": {"USD": "1000"}})
     return client
 
 
-@pytest.fixture
+@pytest.fixture()
 def mcp_server(mock_api_client):
     """Фикстура для MCP сервера."""
     return DMarketMCPServer(api_client=mock_api_client)
@@ -53,7 +59,7 @@ class TestDMarketMCPServer:
             mock_api.assert_called_once()
             assert server.api_client is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_balance(self, mcp_server, mock_api_client):
         """Тест получения баланса."""
         result = await mcp_server._get_balance()
@@ -63,7 +69,7 @@ class TestDMarketMCPServer:
         assert result["balance"]["usd"] == "10000"
         mock_api_client.get_balance.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_market_items(self, mcp_server, mock_api_client):
         """Тест получения предметов рынка."""
         result = await mcp_server._get_market_items(
@@ -84,7 +90,7 @@ class TestDMarketMCPServer:
             price_to=1000,
         )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_market_items_with_defaults(self, mcp_server, mock_api_client):
         """Тест получения предметов рынка с параметрами по умолчанию."""
         result = await mcp_server._get_market_items(game="dota2")
@@ -98,12 +104,10 @@ class TestDMarketMCPServer:
             price_to=None,
         )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_scan_arbitrage(self, mcp_server):
         """Тест сканирования арбитража."""
-        with patch(
-            "src.mcp_server.dmarket_mcp.ArbitrageScanner"
-        ) as mock_scanner_class:
+        with patch("src.mcp_server.dmarket_mcp.ArbitrageScanner") as mock_scanner_class:
             mock_scanner = AsyncMock()
             mock_scanner.scan_level = AsyncMock(
                 return_value=[
@@ -126,12 +130,10 @@ class TestDMarketMCPServer:
             assert result["count"] == 2  # Только > 1.0 прибыли
             assert len(result["opportunities"]) == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_scan_arbitrage_with_defaults(self, mcp_server):
         """Тест сканирования арбитража с параметрами по умолчанию."""
-        with patch(
-            "src.mcp_server.dmarket_mcp.ArbitrageScanner"
-        ) as mock_scanner_class:
+        with patch("src.mcp_server.dmarket_mcp.ArbitrageScanner") as mock_scanner_class:
             mock_scanner = AsyncMock()
             mock_scanner.scan_level = AsyncMock(return_value=[])
             mock_scanner_class.return_value = mock_scanner
@@ -142,17 +144,13 @@ class TestDMarketMCPServer:
             assert result["level"] == "standard"
             assert result["min_profit"] == 0.5
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_scan_arbitrage_limits_results(self, mcp_server):
         """Тест ограничения результатов сканирования."""
-        with patch(
-            "src.mcp_server.dmarket_mcp.ArbitrageScanner"
-        ) as mock_scanner_class:
+        with patch("src.mcp_server.dmarket_mcp.ArbitrageScanner") as mock_scanner_class:
             mock_scanner = AsyncMock()
             # Создаем 25 возможностей
-            opportunities = [
-                {"item": f"Item {i}", "profit": 1.0} for i in range(25)
-            ]
+            opportunities = [{"item": f"Item {i}", "profit": 1.0} for i in range(25)]
             mock_scanner.scan_level = AsyncMock(return_value=opportunities)
             mock_scanner_class.return_value = mock_scanner
 
@@ -164,7 +162,7 @@ class TestDMarketMCPServer:
             # Должно вернуть максимум 20
             assert len(result["opportunities"]) == 20
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_item_details(self, mcp_server, mock_api_client):
         """Тест получения деталей предмета."""
         result = await mcp_server._get_item_details(item_id="test_item_123")
@@ -174,14 +172,12 @@ class TestDMarketMCPServer:
         assert result["item"]["title"] == "Test Item"
         mock_api_client.get_item_by_id.assert_called_once_with("test_item_123")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_target(self, mcp_server):
         """Тест создания таргета."""
         with patch("src.mcp_server.dmarket_mcp.TargetManager") as mock_tm_class:
             mock_tm = AsyncMock()
-            mock_tm.create_target = AsyncMock(
-                return_value={"target_id": "test_target_123"}
-            )
+            mock_tm.create_target = AsyncMock(return_value={"target_id": "test_target_123"})
             mock_tm_class.return_value = mock_tm
 
             result = await mcp_server._create_target(
@@ -201,7 +197,7 @@ class TestDMarketMCPServer:
                 amount=2,
             )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_target_with_default_amount(self, mcp_server):
         """Тест создания таргета с количеством по умолчанию."""
         with patch("src.mcp_server.dmarket_mcp.TargetManager") as mock_tm_class:
@@ -222,7 +218,7 @@ class TestDMarketMCPServer:
                 amount=1,
             )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_targets(self, mcp_server):
         """Тест получения списка таргетов."""
         with patch("src.mcp_server.dmarket_mcp.TargetManager") as mock_tm_class:
@@ -247,7 +243,7 @@ class TestDMarketMCPServer:
 class TestMCPServerTools:
     """Тесты для инструментов MCP сервера."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_tools_returns_all_tools(self, mcp_server):
         """Тест получения списка всех инструментов."""
         # Получаем обработчик list_tools
@@ -285,34 +281,26 @@ class TestMCPServerTools:
 class TestMCPServerErrorHandling:
     """Тесты обработки ошибок MCP сервера."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_balance_error_handling(self, mcp_server, mock_api_client):
         """Тест обработки ошибок при получении баланса."""
-        mock_api_client.get_balance = AsyncMock(
-            side_effect=Exception("API Error")
-        )
+        mock_api_client.get_balance = AsyncMock(side_effect=Exception("API Error"))
 
         with pytest.raises(Exception, match="API Error"):
             await mcp_server._get_balance()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_market_items_error_handling(self, mcp_server, mock_api_client):
         """Тест обработки ошибок при получении предметов."""
-        mock_api_client.get_market_items = AsyncMock(
-            side_effect=Exception("Network Error")
-        )
+        mock_api_client.get_market_items = AsyncMock(side_effect=Exception("Network Error"))
 
         with pytest.raises(Exception, match="Network Error"):
             await mcp_server._get_market_items(game="csgo")
 
-    @pytest.mark.asyncio
-    async def test_get_item_details_error_handling(
-        self, mcp_server, mock_api_client
-    ):
+    @pytest.mark.asyncio()
+    async def test_get_item_details_error_handling(self, mcp_server, mock_api_client):
         """Тест обработки ошибок при получении деталей предмета."""
-        mock_api_client.get_item_by_id = AsyncMock(
-            side_effect=Exception("Item Not Found")
-        )
+        mock_api_client.get_item_by_id = AsyncMock(side_effect=Exception("Item Not Found"))
 
         with pytest.raises(Exception, match="Item Not Found"):
             await mcp_server._get_item_details(item_id="invalid_id")

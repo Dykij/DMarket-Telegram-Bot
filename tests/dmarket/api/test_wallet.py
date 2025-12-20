@@ -1263,3 +1263,107 @@ class TestWalletLegacyKeyFormats:
         assert result["error"] is True
         assert result["status_code"] == 401
         assert result["code"] == "UNAUTHORIZED"
+
+
+# =============================================================================
+# NEW TESTS - Added to improve coverage from 11% to 70%+
+# Target: Test uncovered methods (get_user_profile, get_account_details)
+# =============================================================================
+
+
+class TestWalletUserProfile:
+    """Tests for get_user_profile method."""
+
+    @pytest.mark.asyncio()
+    async def test_get_user_profile_success(self, wallet_client):
+        """Test successful retrieval of user profile."""
+        # Arrange
+        expected_profile = {
+            "user_id": "test_user_123",
+            "email": "test@example.com",
+            "created_at": "2025-01-01T00:00:00Z",
+        }
+        wallet_client._request = AsyncMock(return_value=expected_profile)
+
+        # Act
+        result = await wallet_client.get_user_profile()
+
+        # Assert
+        assert result == expected_profile
+        wallet_client._request.assert_called_once_with("GET", "/account/v1/user")
+
+    @pytest.mark.asyncio()
+    async def test_get_user_profile_handles_api_error(self, wallet_client):
+        """Test handling of API error when getting user profile."""
+        # Arrange
+        wallet_client._request = AsyncMock(side_effect=Exception("API Error"))
+
+        # Act & Assert
+        with pytest.raises(Exception) as exc_info:
+            await wallet_client.get_user_profile()
+        
+        assert "API Error" in str(exc_info.value)
+
+    @pytest.mark.asyncio()
+    async def test_get_user_profile_with_empty_response(self, wallet_client):
+        """Test user profile with empty response."""
+        # Arrange
+        wallet_client._request = AsyncMock(return_value={})
+
+        # Act
+        result = await wallet_client.get_user_profile()
+
+        # Assert
+        assert result == {}
+
+
+class TestWalletAccountDetails:
+    """Tests for get_account_details method."""
+
+    @pytest.mark.asyncio()
+    async def test_get_account_details_success(self, wallet_client):
+        """Test successful retrieval of account details."""
+        # Arrange
+        expected_details = {
+            "account_id": "acc_123",
+            "balance": {"USD": "10000"},
+            "verified": True,
+        }
+        wallet_client._request = AsyncMock(return_value=expected_details)
+
+        # Act
+        result = await wallet_client.get_account_details()
+
+        # Assert
+        assert result == expected_details
+        wallet_client._request.assert_called_once_with(
+            "GET",
+            wallet_client.ENDPOINT_ACCOUNT_DETAILS
+        )
+
+    @pytest.mark.asyncio()
+    async def test_get_account_details_handles_timeout(self, wallet_client):
+        """Test handling of timeout when getting account details."""
+        # Arrange
+        import asyncio
+        wallet_client._request = AsyncMock(
+            side_effect=asyncio.TimeoutError("Request timeout")
+        )
+
+        # Act & Assert
+        with pytest.raises(asyncio.TimeoutError):
+            await wallet_client.get_account_details()
+
+    @pytest.mark.asyncio()
+    async def test_get_account_details_with_partial_data(self, wallet_client):
+        """Test account details with partial data."""
+        # Arrange
+        partial_details = {"account_id": "acc_456"}
+        wallet_client._request = AsyncMock(return_value=partial_details)
+
+        # Act
+        result = await wallet_client.get_account_details()
+
+        # Assert
+        assert result["account_id"] == "acc_456"
+        assert "balance" not in result

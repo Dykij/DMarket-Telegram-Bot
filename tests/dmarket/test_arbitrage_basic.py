@@ -89,10 +89,10 @@ class TestConstants:
 
     def test_price_ranges_values(self):
         """Тест значений ценовых диапазонов."""
+        assert PRICE_RANGES["boost"] == (0.5, 1.0)  # Обновлено: разгон на самых дешевых
         assert PRICE_RANGES["low"] == (1.0, 5.0)
         assert PRICE_RANGES["medium"] == (5.0, 20.0)
         assert PRICE_RANGES["high"] == (20.0, 100.0)
-        assert PRICE_RANGES["boost"] == (0.5, 3.0)
         assert PRICE_RANGES["pro"] == (100.0, 1000.0)
 
     def test_price_ranges_ascending(self):

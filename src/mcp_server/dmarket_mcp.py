@@ -6,12 +6,22 @@ DMarket MCP Server для интеграции с AnyTool.
 
 import asyncio
 import json
-from typing import Any, Optional
+from typing import Any
 
 import structlog
-from mcp.server import Server
-from mcp.server.stdio import stdio_server
-from mcp.types import Tool, TextContent, CallToolResult
+
+try:
+    from mcp.server import Server
+    from mcp.server.stdio import stdio_server
+    from mcp.types import TextContent, Tool
+
+    MCP_AVAILABLE = True
+except ImportError:
+    MCP_AVAILABLE = False
+    Server = None
+    stdio_server = None
+    TextContent = None
+    Tool = None
 
 from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.config import settings
@@ -22,17 +32,23 @@ logger = structlog.get_logger(__name__)
 class DMarketMCPServer:
     """MCP Server для DMarket API."""
 
-    def __init__(self, api_client: Optional[DMarketAPI] = None):
+    def __init__(self, api_client: DMarketAPI | None = None):
         """
         Инициализация MCP сервера.
 
         Args:
             api_client: Клиент DMarket API (опционально)
+
+        Raises:
+            RuntimeError: Если MCP модуль не установлен
         """
+        if not MCP_AVAILABLE:
+            raise RuntimeError("MCP module is not installed. Install it with: pip install mcp")
+
         self.server = Server("dmarket-bot")
         self.api_client = api_client or DMarketAPI(
-            public_key=settings.dmarket_public_key,
-            secret_key=settings.dmarket_secret_key,
+            public_key=settings.dmarket.public_key,
+            secret_key=settings.dmarket.secret_key,
         )
         self._setup_handlers()
 
@@ -199,9 +215,7 @@ class DMarketMCPServer:
                 return [
                     TextContent(
                         type="text",
-                        text=json.dumps(
-                            {"error": str(e), "tool": name}, ensure_ascii=False
-                        ),
+                        text=json.dumps({"error": str(e), "tool": name}, ensure_ascii=False),
                     )
                 ]
 
@@ -217,8 +231,8 @@ class DMarketMCPServer:
         self,
         game: str,
         limit: int = 10,
-        price_from: Optional[int] = None,
-        price_to: Optional[int] = None,
+        price_from: int | None = None,
+        price_to: int | None = None,
     ) -> dict[str, Any]:
         """Получить предметы рынка."""
         items = await self.api_client.get_market_items(
@@ -247,9 +261,7 @@ class DMarketMCPServer:
         opportunities = await scanner.scan_level(level=level, game=game)
 
         # Фильтрация по минимальной прибыли
-        filtered = [
-            opp for opp in opportunities if opp.get("profit", 0) >= min_profit
-        ]
+        filtered = [opp for opp in opportunities if opp.get("profit", 0) >= min_profit]
 
         return {
             "success": True,
