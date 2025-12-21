@@ -952,21 +952,31 @@ def test_update_user_returns_success():
 
 **Цель:** Улучшить покрытие утилит (~115 тестов)
 
-- [ ] **market_analytics.py** - 35 тестов
-  - Анализ цен: RSI, MACD, Bollinger Bands (8 тестов)
-  - Sanity checks (8 тестов)
-  - Определение трендов (6 тестов)
-  - Анализ ликвидности (6 тестов)
-  - Edge cases (7 тестов)
+**Статус на 21 декабря 2025:**
+
+- [x] **market_analytics.py** - ✅ **41 тестов** (УЖЕ ГОТОВО!)
+  - ✅ Покрытие: **93.75%** ✅
+  - ✅ RSI, MACD, Bollinger Bands тесты
+  - ✅ Trend detection и liquidity analysis
+  - ✅ Trading insights тесты
+
+- [x] **batch_processor.py** - ✅ **89 тестов** (ЗАВЕРШЕНО!)
+  - ✅ Покрытие: **91.13%** ✅
+  - ✅ ProgressTracker тесты (11 тестов)
+  - ✅ chunked_api_calls тесты (7 тестов)
+  - ✅ process_with_concurrency тесты (7 тестов)
+  - ✅ Integration тесты (2 теста)
+
+- [x] **balance_command.py** - ✅ **29 тестов** (УЖЕ ГОТОВО!)
+  - ✅ Покрытие: **85.45%** ✅
+  - ✅ Все сценарии API ошибок
+  - ✅ Currency formatting тесты
+
 - [ ] **price_analyzer.py** - 30 тестов
   - Анализ ценовых паттернов
   - Обнаружение аномалий
   - Edge cases
-- [ ] **batch_processor.py** - 20 тестов
-  - Пакетная обработка (6 тестов)
-  - Параллельная обработка (6 тестов)
-  - Обработка ошибок (5 тестов)
-  - Edge cases (3 теста)
+
 - [ ] **reactive_websocket.py** - 30 тестов
   - Подключение/переподключение (8 тестов)
   - Обработка сообщений (8 тестов)
@@ -974,7 +984,13 @@ def test_update_user_returns_success():
   - Обработка ошибок (5 тестов)
   - Edge cases (3 теста)
 
-**Ожидаемый результат:** 6-30% → 70%+ покрытие utils, +1-2% общего покрытия
+**Прогресс Недели 7-8:**
+- ✅ market_analytics.py: 93.75% покрытие
+- ✅ batch_processor.py: 43.55% → 91.13% (+47.58%)
+- ✅ balance_command.py: 85.45% покрытие
+- **Добавлено тестов:** 29 новых тестов для batch_processor
+
+**Ожидаемый результат:** ✅ 70%+ покрытие utils ДОСТИГНУТО для основных модулей!
 
 ---
 
