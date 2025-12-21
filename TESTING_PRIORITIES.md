@@ -17,13 +17,40 @@
 > **Analytics Historical Data модуль покрытие:** 91%+ ✅ (НОВОЕ!)
 > **Analytics Backtester модуль покрытие:** 83%+ ✅ (НОВОЕ!)
 > **DMarket Models покрытие:** 97%+ ✅ (НОВОЕ!)
-> **Всего тестов:** 3850+ (все проходят) 🆕 +84 новых тестов (dmarket/models/market_models)
+> **Telegram Bot Initialization покрытие:** 85%+ ✅ (НОВОЕ!)
+> **Всего тестов:** 3900+ (все проходят) 🆕 +46 новых тестов (telegram_bot/initialization)
 > **Завершено:** Неделя 5-6 (Telegram Handlers) ✅ + Неделя 7-8 (Utils & Analytics) ✅
 > **Статус:** ВСЕ ЗАПЛАНИРОВАННЫЕ ЗАДАЧИ ВЫПОЛНЕНЫ! + ДОПОЛНИТЕЛЬНЫЕ МОДУЛИ!
 
 ---
 
-## ✅ НОВЕЙШЕЕ ОБНОВЛЕНИЕ: DMarket Models модуль (21 декабря 2025)
+## ✅ НОВЕЙШЕЕ ОБНОВЛЕНИЕ: Telegram Bot Initialization модуль (21 декабря 2025)
+
+**🎉 Добавлено 46 новых тестов для модуля telegram_bot/initialization.py:**
+
+### 📊 Результаты telegram_bot/initialization модуля
+
+| Модуль                              | Было   | Стало      | Тесты | Статус     |
+| ----------------------------------- | ------ | ---------- | ----- | ---------- |
+| **telegram_bot/initialization.py**  | 0%     | **85%+**   | 46    | ✅ ОТЛИЧНО!  |
+
+**Покрытые классы и функции:**
+- setup_logging tests (7) - default, custom level, file, error file, formatter
+- initialize_bot tests (4) - token validation, persistence, admin IDs
+- setup_bot_commands tests (5) - commands, languages, error handling
+- setup_signal_handlers tests (3) - non-Windows, Windows, NotImplementedError
+- register_handlers tests (6) - command, callback, message, conversation handlers
+- initialize_services tests (2) - success, failure
+- get_bot_token tests (2) - success, missing token
+- initialize_bot_application alias tests (1)
+- setup_and_run_bot tests (5) - log dirs, tokens, handlers, errors
+- start_bot tests (3) - init services, polling, save profiles
+- Integration tests (4) - module exports, callable checks
+- Edge cases tests (4) - multiple calls, None token, empty string
+
+---
+
+## ✅ Предыдущее обновление: DMarket Models модуль (21 декабря 2025)
 
 **🎉 Добавлено 84 новых тестов для модуля dmarket/models/market_models.py:**
 
