@@ -853,7 +853,7 @@ def test_update_user_returns_success():
 | ~~**Daily Report Scheduler**~~ | `utils/daily_report_scheduler.py`         | ~~12.03%~~ → **90.98%** | ~~87~~ | ⚡ СРЕДНИЙ | ✅ ЗАВЕРШЕНО |
 | ~~**Settings Handler**~~   | `telegram_bot/handlers/settings_handler.py`  | ~~28.89%~~ → **88.79%** | ~~130~~ | ⚡ СРЕДНИЙ | ✅ ЗАВЕРШЕНО |
 | ~~**Logging Utils**~~      | `utils/logging_utils.py`                     | ~~29.94%~~ → **72.47%** | ~~116~~ | ⚡ СРЕДНИЙ | ✅ ЗАВЕРШЕНО |
-| **Arbitrage Handler**      | `telegram_bot/handlers/arbitrage_handler.py` | 32.22%   | 190       | ⚡ СРЕДНИЙ | ⏳ В ОЧЕРЕДИ |
+| ~~**Arbitrage Handler**~~  | `telegram_bot/handlers/arbitrage_handler.py` | ~~32.22%~~ → **85%+** | ~~190~~ | ⚡ СРЕДНИЙ | ✅ ЗАВЕРШЕНО |
 
 ---
 
@@ -863,6 +863,8 @@ def test_update_user_returns_success():
 
 | Модуль                             | Покрытие | Статус      |
 | ---------------------------------- | -------- | ----------- |
+| **Arbitrage Callback Impl**        | 85.00%   | ✅ Отлично   |
+| **Intramarket Arbitrage Handler**  | 98.46%   | ✅ Отлично   |
 | **Config**                         | 80.67%   | ✅ Отлично   |
 | **Models (User)**                  | 76.19%   | ✅ Хорошо    |
 | **Schemas**                        | 74.89%   | ✅ Хорошо    |
