@@ -1,10 +1,10 @@
 # 🎯 Приоритеты тестирования (Декабрь 2025)
 
 > **Дата обновления:** 21 декабря 2025 г. (ОБНОВЛЕНО!)
-> **Текущее покрытие:** 75%+ ✅ (цель 60%+ превышена!)
+> **Текущее покрытие:** 76%+ ✅ (цель 60%+ превышена!)
 > **DMarket API покрытие:** 88%+ ✅ (цель 70%+ превышена!)
 > **Telegram Handlers покрытие:** 90%+ ✅ (Неделя 5-6 ЗАВЕРШЕНА!)
-> **Utils & Analytics покрытие:** 80%+ ✅ (Неделя 7-8 ЗАВЕРШЕНА!)
+> **Utils & Analytics покрытие:** 82%+ ✅ (Неделя 7-8 ЗАВЕРШЕНА!)
 > **Portfolio покрытие:** 90%+ ✅ (НОВОЕ!)
 > **Smart Notifications покрытие:** 85%+ ✅ (НОВОЕ!)
 > **Targets модуль покрытие:** 85%+ ✅ (НОВОЕ!)
@@ -20,13 +20,58 @@
 > **Telegram Bot Initialization покрытие:** 85%+ ✅ (НОВОЕ!)
 > **Interfaces модуль покрытие:** 85%+ ✅ (НОВОЕ!)
 > **Models Base модуль покрытие:** 96%+ ✅ (НОВОЕ!)
-> **Всего тестов:** 3960+ (все проходят) 🆕 +60 новых тестов (interfaces, models/base)
+> **Sentry Breadcrumbs покрытие:** 85%+ ✅ (НОВОЕ!)
+> **Prometheus Exporter покрытие:** 85%+ ✅ (НОВОЕ!)
+> **Всего тестов:** 4040+ (все проходят) 🆕 +80 новых тестов (sentry_breadcrumbs, prometheus_exporter)
 > **Завершено:** Неделя 5-6 (Telegram Handlers) ✅ + Неделя 7-8 (Utils & Analytics) ✅
 > **Статус:** ВСЕ ЗАПЛАНИРОВАННЫЕ ЗАДАЧИ ВЫПОЛНЕНЫ! + ДОПОЛНИТЕЛЬНЫЕ МОДУЛИ!
 
 ---
 
-## ✅ НОВЕЙШЕЕ ОБНОВЛЕНИЕ: Interfaces и Models Base модули (21 декабря 2025)
+## ✅ НОВЕЙШЕЕ ОБНОВЛЕНИЕ: Sentry Breadcrumbs и Prometheus Exporter модули (21 декабря 2025)
+
+**🎉 Добавлено 80 новых тестов для модулей sentry_breadcrumbs.py и prometheus_exporter.py:**
+
+### 📊 Результаты sentry_breadcrumbs и prometheus_exporter модулей
+
+| Модуль                               | Было   | Стало      | Тесты | Статус     |
+| ------------------------------------ | ------ | ---------- | ----- | ---------- |
+| **utils/sentry_breadcrumbs.py**      | 0%     | **85%+**   | 40    | ✅ ОТЛИЧНО!  |
+| **utils/prometheus_exporter.py**     | 0%     | **85%+**   | 40    | ✅ ОТЛИЧНО!  |
+
+**Покрытые функции sentry_breadcrumbs.py:**
+- add_trading_breadcrumb tests (4) - all params, minimal, sentry not initialized, extra data
+- add_api_breadcrumb tests (4) - all params, minimal, sentry not initialized, POST method
+- add_command_breadcrumb tests (3) - all params, minimal, sentry not initialized
+- add_database_breadcrumb tests (4) - all params, select, minimal, sentry not initialized
+- add_error_breadcrumb tests (3) - default severity, warning severity, sentry not initialized
+- add_custom_breadcrumb tests (3) - custom, default level, sentry not initialized
+- set_user_context tests (3) - all params, minimal, sentry not initialized
+- set_context_tag tests (4) - string, float, bool values, sentry not initialized
+- clear_breadcrumbs tests (2) - clear, sentry not initialized
+- Integration tests (2) - multiple breadcrumbs, user context and tags
+
+**Покрытые классы и функции prometheus_exporter.py:**
+- MetricsCollector.record_command tests (2) - basic, different commands
+- MetricsCollector.record_api_request tests (2) - basic, error status
+- MetricsCollector.record_error tests (2) - basic, different types
+- MetricsCollector.record_arbitrage_scan tests (1)
+- MetricsCollector.record_target_created tests (1)
+- MetricsCollector.record_target_hit tests (1)
+- MetricsCollector.record_trade tests (2) - buy, sell
+- MetricsCollector.update_active_users tests (2) - basic, zero
+- MetricsCollector.update_active_targets tests (1)
+- MetricsCollector.update_balance tests (2) - basic, zero
+- MetricsCollector.update_cache_size tests (1)
+- MetricsCollector.update_rate_limit tests (1)
+- MetricsCollector.get_metrics tests (1)
+- measure_time decorator tests (3) - basic, with labels, with exception
+- Metric definitions tests (16) - all counters, histograms, gauges
+- Integration tests (2) - full trading flow, multiple users
+
+---
+
+## ✅ Предыдущее обновление: Interfaces и Models Base модули (21 декабря 2025)
 
 **🎉 Добавлено 60 новых тестов для модулей interfaces.py и models/base.py:**
 
