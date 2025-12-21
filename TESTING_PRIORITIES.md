@@ -25,13 +25,36 @@
 > **Models Alert покрытие:** 85%+ ✅ (НОВОЕ!)
 > **Models Market покрытие:** 85%+ ✅ (НОВОЕ!)
 > **Models Log покрытие:** 85%+ ✅ (НОВОЕ!)
-> **Всего тестов:** 4120+ (все проходят) 🆕 +80 новых тестов (alert, market, log models)
+> **AnyTool Integration покрытие:** 85%+ ✅ (НОВОЕ!)
+> **Всего тестов:** 4150+ (все проходят) 🆕 +33 новых тестов (anytool_integration)
 > **Завершено:** Неделя 5-6 (Telegram Handlers) ✅ + Неделя 7-8 (Utils & Analytics) ✅
 > **Статус:** ВСЕ ЗАПЛАНИРОВАННЫЕ ЗАДАЧИ ВЫПОЛНЕНЫ! + ДОПОЛНИТЕЛЬНЫЕ МОДУЛИ!
 
 ---
 
-## ✅ НОВЕЙШЕЕ ОБНОВЛЕНИЕ: Models Alert, Market, Log модули (21 декабря 2025)
+## ✅ НОВЕЙШЕЕ ОБНОВЛЕНИЕ: AnyTool Integration модуль (21 декабря 2025)
+
+**🎉 Добавлено 33 новых теста для anytool_integration.py:**
+
+### 📊 Результаты anytool_integration модуля
+
+| Модуль                        | Было   | Стало      | Тесты | Статус     |
+| ----------------------------- | ------ | ---------- | ----- | ---------- |
+| **utils/anytool_integration.py** | 0%  | **85%+**   | 33    | ✅ ОТЛИЧНО!  |
+
+**Покрытые классы и функции:**
+- AnyToolConfig dataclass tests (3) - default, custom, partial config
+- AnyToolClient initialization tests (3) - default, custom config, api client
+- Callback functionality tests (7) - register, multiple, different events, trigger sync/async, error handling
+- Tool call tests (12) - disabled, get_balance, get_market_items, scan_arbitrage, get_item_details, create_target, get_targets, unknown, callback trigger
+- Available tools tests (2) - list tools, descriptions
+- Export config tests (2) - export, create directory
+- Module functions tests (3) - singleton, initialize, initialize with path
+- Edge cases tests (3) - API error, filter low profit, string path
+
+---
+
+## ✅ ПРЕДЫДУЩЕЕ ОБНОВЛЕНИЕ: Models Alert, Market, Log модули (21 декабря 2025)
 
 **🎉 Добавлено 80 новых тестов для моделей alert.py, market.py и log.py:**
 
