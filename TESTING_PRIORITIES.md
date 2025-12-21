@@ -1,7 +1,7 @@
 # 🎯 Приоритеты тестирования (Декабрь 2025)
 
 > **Дата обновления:** 21 декабря 2025 г. (ОБНОВЛЕНО!)
-> **Текущее покрытие:** 73%+ ✅ (цель 60%+ превышена!)
+> **Текущее покрытие:** 75%+ ✅ (цель 60%+ превышена!)
 > **DMarket API покрытие:** 88%+ ✅ (цель 70%+ превышена!)
 > **Telegram Handlers покрытие:** 90%+ ✅ (Неделя 5-6 ЗАВЕРШЕНА!)
 > **Utils & Analytics покрытие:** 80%+ ✅ (Неделя 7-8 ЗАВЕРШЕНА!)
@@ -9,13 +9,76 @@
 > **Smart Notifications покрытие:** 85%+ ✅ (НОВОЕ!)
 > **Targets модуль покрытие:** 85%+ ✅ (НОВОЕ!)
 > **Chart Generator покрытие:** 85%+ ✅ (НОВОЕ!)
-> **Всего тестов:** 3393+ (все проходят) 🆕 +29 новых тестов (chart_generator)
+> **Notifications модуль покрытие:** 85%+ ✅ (НОВОЕ!)
+> **Всего тестов:** 3500+ (все проходят) 🆕 +129 новых тестов (notifications module)
 > **Завершено:** Неделя 5-6 (Telegram Handlers) ✅ + Неделя 7-8 (Utils & Analytics) ✅
 > **Статус:** ВСЕ ЗАПЛАНИРОВАННЫЕ ЗАДАЧИ ВЫПОЛНЕНЫ! + ДОПОЛНИТЕЛЬНЫЕ МОДУЛИ!
 
 ---
 
-## ✅ НОВЕЙШЕЕ ОБНОВЛЕНИЕ: Chart Generator Модуль
+## ✅ НОВЕЙШЕЕ ОБНОВЛЕНИЕ: Notifications Полный Модуль (alerts, checker, formatters, constants, handlers)
+
+**🎉 Добавлено 129 новых тестов для полного покрытия notifications модуля:**
+
+### 📊 Результаты notifications модуля (21 декабря 2025)
+
+| Модуль                  | Было   | Стало      | Тесты | Статус     |
+| ----------------------- | ------ | ---------- | ----- | ---------- |
+| **notifications/alerts.py**  | 0% | **85%+**   | 21   | ✅ ОТЛИЧНО!  |
+| **notifications/checker.py** | 0% | **85%+**   | 18   | ✅ ОТЛИЧНО!  |
+| **notifications/formatters.py** | 0% | **85%+**   | 38   | ✅ ОТЛИЧНО!  |
+| **notifications/constants.py** | 0% | **85%+**   | 28   | ✅ ОТЛИЧНО!  |
+| **notifications/handlers.py** | 0% | **85%+**   | 24   | ✅ ОТЛИЧНО!  |
+
+**Покрытые функции alerts.py:**
+- add_price_alert (4 теста) - создание алертов, генерация ID
+- remove_price_alert (3 теста) - удаление существующего, несуществующего
+- get_user_alerts (3 теста) - получение только активных алертов
+- update_user_settings (1 тест) - обновление настроек
+- get_user_settings (2 теста) - получение существующих/дефолтных
+- reset_daily_counter (2 теста) - сброс счетчика нового дня
+- increment_notification_count (2 теста) - инкремент счетчика
+- can_send_notification (3 теста) - проверка лимитов и тихих часов
+- Integration tests (1 тест)
+
+**Покрытые функции checker.py:**
+- get_current_price (5 тестов) - API, кэш, stale cache, errors
+- check_price_alert (6 тестов) - price_drop/rise/below/above, no price
+- check_good_deal_alerts (3 теста) - discounts, no data, errors
+- check_all_alerts (2 теста) - triggers, empty storage
+- run_alerts_checker (1 тест) - stop on event
+- Module exports (1 тест)
+
+**Покрытые функции formatters.py:**
+- format_price (6 тестов) - USD, zero, None, large, fractional, other currency
+- format_profit (5 тестов) - positive, negative, zero, without percent
+- format_item_brief (4 теста) - basic, missing title/price, game fallback
+- format_alert_message (7 тестов) - basic, triggered, price_above, good_deal
+- format_alerts_list (3 теста) - empty, single, multiple
+- format_user_settings (3 теста) - enabled, disabled, quiet hours
+- NOTIFICATION_TYPES (5 тестов) - exists, keys, values
+- Module exports (5 тестов)
+
+**Покрытые функции constants.py:**
+- NOTIFICATION_TYPES (4 теста) - exists, keys, emoji values, is_final
+- _PRICE_CACHE_TTL (3 теста) - exists, value, positive
+- DEFAULT_USER_SETTINGS (6 тестов) - all keys and values
+- NOTIFICATION_PRIORITIES (7 теста) - keys, integers, ordering
+- Module exports (5 тестов)
+- Integration tests (3 теста)
+
+**Покрытые функции handlers.py:**
+- handle_buy_cancel_callback (3 теста) - success, no query, wrong prefix
+- handle_alert_callback (4 теста) - success, not found, no query/user
+- list_alerts_command (3 теста) - with alerts, empty, no user
+- remove_alert_command (4 теста) - success, no args, invalid, out of range
+- settings_command (2 теста) - show, update settings
+- register_notification_handlers (2 теста) - with API, without API
+- Module exports (6 тестов)
+
+---
+
+## ✅ ПРЕДЫДУЩЕЕ ОБНОВЛЕНИЕ: Chart Generator Модуль
 
 **🎉 Добавлено 29 новых тестов для модуля chart_generator:**
 
