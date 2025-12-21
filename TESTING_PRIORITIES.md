@@ -1,7 +1,7 @@
 # 🎯 Приоритеты тестирования (Декабрь 2025)
 
 > **Дата обновления:** 21 декабря 2025 г. (ОБНОВЛЕНО!)
-> **Текущее покрытие:** 76%+ ✅ (цель 60%+ превышена!)
+> **Текущее покрытие:** 77%+ ✅ (цель 60%+ превышена!)
 > **DMarket API покрытие:** 88%+ ✅ (цель 70%+ превышена!)
 > **Telegram Handlers покрытие:** 90%+ ✅ (Неделя 5-6 ЗАВЕРШЕНА!)
 > **Utils & Analytics покрытие:** 82%+ ✅ (Неделя 7-8 ЗАВЕРШЕНА!)
@@ -22,13 +22,47 @@
 > **Models Base модуль покрытие:** 96%+ ✅ (НОВОЕ!)
 > **Sentry Breadcrumbs покрытие:** 85%+ ✅ (НОВОЕ!)
 > **Prometheus Exporter покрытие:** 85%+ ✅ (НОВОЕ!)
-> **Всего тестов:** 4040+ (все проходят) 🆕 +80 новых тестов (sentry_breadcrumbs, prometheus_exporter)
+> **Models Alert покрытие:** 85%+ ✅ (НОВОЕ!)
+> **Models Market покрытие:** 85%+ ✅ (НОВОЕ!)
+> **Models Log покрытие:** 85%+ ✅ (НОВОЕ!)
+> **Всего тестов:** 4120+ (все проходят) 🆕 +80 новых тестов (alert, market, log models)
 > **Завершено:** Неделя 5-6 (Telegram Handlers) ✅ + Неделя 7-8 (Utils & Analytics) ✅
 > **Статус:** ВСЕ ЗАПЛАНИРОВАННЫЕ ЗАДАЧИ ВЫПОЛНЕНЫ! + ДОПОЛНИТЕЛЬНЫЕ МОДУЛИ!
 
 ---
 
-## ✅ НОВЕЙШЕЕ ОБНОВЛЕНИЕ: Sentry Breadcrumbs и Prometheus Exporter модули (21 декабря 2025)
+## ✅ НОВЕЙШЕЕ ОБНОВЛЕНИЕ: Models Alert, Market, Log модули (21 декабря 2025)
+
+**🎉 Добавлено 80 новых тестов для моделей alert.py, market.py и log.py:**
+
+### 📊 Результаты models модулей
+
+| Модуль                     | Было   | Стало      | Тесты | Статус     |
+| -------------------------- | ------ | ---------- | ----- | ---------- |
+| **models/alert.py**        | 0%     | **85%+**   | 24    | ✅ ОТЛИЧНО!  |
+| **models/market.py**       | 0%     | **85%+**   | 29    | ✅ ОТЛИЧНО!  |
+| **models/log.py**          | 0%     | **85%+**   | 27    | ✅ ОТЛИЧНО!  |
+
+**Покрытые классы alert.py:**
+- PriceAlert model tests (18) - creation, to_dict, repr, fields
+- Integration tests (2) - lifecycle, multiple alerts
+- Edge cases tests (5) - zero price, negative price, special characters
+
+**Покрытые классы market.py:**
+- MarketData model tests (9) - creation, different games, price changes
+- MarketDataCache model tests (14) - creation, expiration, repr, to_dict
+- Integration tests (2) - lifecycle, multiple entries
+- Edge cases tests (7) - zero price, empty name, special characters
+
+**Покрытые классы log.py:**
+- CommandLog model tests (11) - creation, errors, parameters
+- AnalyticsEvent model tests (11) - creation, session tracking
+- Integration tests (3) - correlation, multiple logs
+- Edge cases tests (8) - unicode, large data, complex params
+
+---
+
+## ✅ Предыдущее обновление: Sentry Breadcrumbs и Prometheus Exporter модули (21 декабря 2025)
 
 **🎉 Добавлено 80 новых тестов для модулей sentry_breadcrumbs.py и prometheus_exporter.py:**
 
