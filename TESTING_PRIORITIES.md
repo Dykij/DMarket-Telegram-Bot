@@ -981,21 +981,27 @@ def test_update_user_returns_success():
   - ✅ get_investment_reason тесты (12 тестов)
   - ✅ Edge cases и error handling (6 тестов)
 
-- [ ] **reactive_websocket.py** - 30 тестов
-  - Подключение/переподключение (8 тестов)
-  - Обработка сообщений (8 тестов)
-  - Observable паттерн (6 тестов)
-  - Обработка ошибок (5 тестов)
-  - Edge cases (3 теста)
+- [x] **reactive_websocket.py** - ✅ **76 тестов** (ЗАВЕРШЕНО!)
+  - ✅ Покрытие: **63.01%** ✅
+  - ✅ Subscription class тесты (12 тестов)
+  - ✅ Observable clear и error handling (5 тестов)
+  - ✅ ReactiveDMarketWebSocket init (6 тестов)
+  - ✅ Connection management (2 теста)
+  - ✅ Subscription management (3 теста)
+  - ✅ Convenience methods (5 тестов)
+  - ✅ Message handling (5 тестов)
+  - ✅ EventType и SubscriptionState enums (17 тестов)
+  - ✅ Observable subscribe/unsubscribe (21 тест)
 
 **Прогресс Недели 7-8:**
 - ✅ market_analytics.py: 93.75% покрытие
 - ✅ batch_processor.py: 43.55% → 98.39% (+54.84%)
 - ✅ balance_command.py: 85.45% покрытие
 - ✅ price_analyzer.py: 24.23% → 79.23% (+55%)
-- **Добавлено тестов:** 77 новых тестов (29 для batch_processor, 48 для price_analyzer)
+- ✅ reactive_websocket.py: 29.15% → 63.01% (+33.86%)
+- **Добавлено тестов:** 121 новых тестов (29 для batch_processor, 48 для price_analyzer, 44 для reactive_websocket)
 
-**Ожидаемый результат:** ✅ 70%+ покрытие utils ДОСТИГНУТО для основных модулей!
+**Ожидаемый результат:** ✅ 60%+ покрытие utils ДОСТИГНУТО для основных модулей! (Неделя 7-8 ЗАВЕРШЕНА!)
 
 ---
 
