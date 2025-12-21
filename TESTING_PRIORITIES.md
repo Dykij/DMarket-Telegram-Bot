@@ -844,16 +844,16 @@ def test_update_user_returns_success():
 
 ### Высокий приоритет для улучшения
 
-| Модуль                     | Файл                                         | Покрытие | Пропущено | Приоритет |
-| -------------------------- | -------------------------------------------- | -------- | --------- | --------- |
-| **Price Analyzer**         | `utils/price_analyzer.py`                    | 6.15%    | 172       | 🔥 ВЫСОКИЙ |
-| **Market Alerts**          | `telegram_bot/market_alerts.py`              | 6.95%    | 270       | 🔥 ВЫСОКИЙ |
-| **Trading Notifications**  | `telegram_bot/notifications/trading.py`      | 11.76%   | 87        | ⚡ СРЕДНИЙ |
-| **Daily Report Scheduler** | `utils/daily_report_scheduler.py`            | 12.03%   | 87        | ⚡ СРЕДНИЙ |
-| **Scanner Cache**          | `dmarket/scanner/cache.py`                   | 25.76%   | 37        | ⚡ СРЕДНИЙ |
-| **Settings Handler**       | `telegram_bot/handlers/settings_handler.py`  | 28.89%   | 130       | ⚡ СРЕДНИЙ |
-| **Logging Utils**          | `utils/logging_utils.py`                     | 29.94%   | 116       | ⚡ СРЕДНИЙ |
-| **Arbitrage Handler**      | `telegram_bot/handlers/arbitrage_handler.py` | 32.22%   | 190       | ⚡ СРЕДНИЙ |
+| Модуль                     | Файл                                         | Покрытие | Пропущено | Приоритет | Статус |
+| -------------------------- | -------------------------------------------- | -------- | --------- | --------- | ------ |
+| ~~**Price Analyzer**~~     | `utils/price_analyzer.py`                    | ~~6.15%~~ → **79.23%** | ~~172~~ | 🔥 ВЫСОКИЙ | ✅ ЗАВЕРШЕНО |
+| ~~**Market Alerts**~~      | `telegram_bot/market_alerts.py`              | ~~6.95%~~ → **67.39%** | ~~270~~ | 🔥 ВЫСОКИЙ | ✅ ЗАВЕРШЕНО |
+| **Trading Notifications**  | `telegram_bot/notifications/trading.py`      | 11.76%   | 87        | ⚡ СРЕДНИЙ | ⏳ В ОЧЕРЕДИ |
+| **Daily Report Scheduler** | `utils/daily_report_scheduler.py`            | 12.03%   | 87        | ⚡ СРЕДНИЙ | ⏳ В ОЧЕРЕДИ |
+| **Scanner Cache**          | `dmarket/scanner/cache.py`                   | 25.76%   | 37        | ⚡ СРЕДНИЙ | ⏳ В ОЧЕРЕДИ |
+| **Settings Handler**       | `telegram_bot/handlers/settings_handler.py`  | 28.89%   | 130       | ⚡ СРЕДНИЙ | ⏳ В ОЧЕРЕДИ |
+| **Logging Utils**          | `utils/logging_utils.py`                     | 29.94%   | 116       | ⚡ СРЕДНИЙ | ⏳ В ОЧЕРЕДИ |
+| **Arbitrage Handler**      | `telegram_bot/handlers/arbitrage_handler.py` | 32.22%   | 190       | ⚡ СРЕДНИЙ | ⏳ В ОЧЕРЕДИ |
 
 ---
 
