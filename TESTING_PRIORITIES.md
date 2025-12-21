@@ -961,7 +961,7 @@ def test_update_user_returns_success():
   - ✅ Trading insights тесты
 
 - [x] **batch_processor.py** - ✅ **89 тестов** (ЗАВЕРШЕНО!)
-  - ✅ Покрытие: **91.13%** ✅
+  - ✅ Покрытие: **98.39%** ✅
   - ✅ ProgressTracker тесты (11 тестов)
   - ✅ chunked_api_calls тесты (7 тестов)
   - ✅ process_with_concurrency тесты (7 тестов)
@@ -972,10 +972,14 @@ def test_update_user_returns_success():
   - ✅ Все сценарии API ошибок
   - ✅ Currency formatting тесты
 
-- [ ] **price_analyzer.py** - 30 тестов
-  - Анализ ценовых паттернов
-  - Обнаружение аномалий
-  - Edge cases
+- [x] **price_analyzer.py** - ✅ **78 тестов** (ЗАВЕРШЕНО!)
+  - ✅ Покрытие: **79.23%** ✅
+  - ✅ calculate_price_trend тесты (7 тестов)
+  - ✅ find_undervalued_items тесты (8 тестов)
+  - ✅ analyze_supply_demand тесты (9 тестов)
+  - ✅ get_investment_recommendations тесты (6 тестов)
+  - ✅ get_investment_reason тесты (12 тестов)
+  - ✅ Edge cases и error handling (6 тестов)
 
 - [ ] **reactive_websocket.py** - 30 тестов
   - Подключение/переподключение (8 тестов)
@@ -986,9 +990,10 @@ def test_update_user_returns_success():
 
 **Прогресс Недели 7-8:**
 - ✅ market_analytics.py: 93.75% покрытие
-- ✅ batch_processor.py: 43.55% → 91.13% (+47.58%)
+- ✅ batch_processor.py: 43.55% → 98.39% (+54.84%)
 - ✅ balance_command.py: 85.45% покрытие
-- **Добавлено тестов:** 29 новых тестов для batch_processor
+- ✅ price_analyzer.py: 24.23% → 79.23% (+55%)
+- **Добавлено тестов:** 77 новых тестов (29 для batch_processor, 48 для price_analyzer)
 
 **Ожидаемый результат:** ✅ 70%+ покрытие utils ДОСТИГНУТО для основных модулей!
 
