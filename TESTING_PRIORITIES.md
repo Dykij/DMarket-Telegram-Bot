@@ -848,7 +848,7 @@ def test_update_user_returns_success():
 | -------------------------- | -------------------------------------------- | -------- | --------- | --------- | ------ |
 | ~~**Price Analyzer**~~     | `utils/price_analyzer.py`                    | ~~6.15%~~ → **79.23%** | ~~172~~ | 🔥 ВЫСОКИЙ | ✅ ЗАВЕРШЕНО |
 | ~~**Market Alerts**~~      | `telegram_bot/market_alerts.py`              | ~~6.95%~~ → **67.39%** | ~~270~~ | 🔥 ВЫСОКИЙ | ✅ ЗАВЕРШЕНО |
-| **Trading Notifications**  | `telegram_bot/notifications/trading.py`      | 11.76%   | 87        | ⚡ СРЕДНИЙ | ⏳ В ОЧЕРЕДИ |
+| ~~**Trading Notifications**~~ | `telegram_bot/notifications/trading.py`   | ~~11.76%~~ → **100%** | ~~87~~ | ⚡ СРЕДНИЙ | ✅ ЗАВЕРШЕНО |
 | **Daily Report Scheduler** | `utils/daily_report_scheduler.py`            | 12.03%   | 87        | ⚡ СРЕДНИЙ | ⏳ В ОЧЕРЕДИ |
 | **Scanner Cache**          | `dmarket/scanner/cache.py`                   | 25.76%   | 37        | ⚡ СРЕДНИЙ | ⏳ В ОЧЕРЕДИ |
 | **Settings Handler**       | `telegram_bot/handlers/settings_handler.py`  | 28.89%   | 130       | ⚡ СРЕДНИЙ | ⏳ В ОЧЕРЕДИ |
