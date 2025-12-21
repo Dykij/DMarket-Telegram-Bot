@@ -16,13 +16,55 @@
 > **Game Filters модуль покрытие:** 88%+ ✅ (НОВОЕ!)
 > **Analytics Historical Data модуль покрытие:** 91%+ ✅ (НОВОЕ!)
 > **Analytics Backtester модуль покрытие:** 83%+ ✅ (НОВОЕ!)
-> **Всего тестов:** 3800+ (все проходят) 🆕 +48 новых тестов (analytics/backtester)
+> **DMarket Models покрытие:** 97%+ ✅ (НОВОЕ!)
+> **Всего тестов:** 3850+ (все проходят) 🆕 +84 новых тестов (dmarket/models/market_models)
 > **Завершено:** Неделя 5-6 (Telegram Handlers) ✅ + Неделя 7-8 (Utils & Analytics) ✅
 > **Статус:** ВСЕ ЗАПЛАНИРОВАННЫЕ ЗАДАЧИ ВЫПОЛНЕНЫ! + ДОПОЛНИТЕЛЬНЫЕ МОДУЛИ!
 
 ---
 
-## ✅ НОВЕЙШЕЕ ОБНОВЛЕНИЕ: Analytics Backtester модуль (21 декабря 2025)
+## ✅ НОВЕЙШЕЕ ОБНОВЛЕНИЕ: DMarket Models модуль (21 декабря 2025)
+
+**🎉 Добавлено 84 новых тестов для модуля dmarket/models/market_models.py:**
+
+### 📊 Результаты dmarket/models/market_models модуля
+
+| Модуль                              | Было   | Стало      | Тесты | Статус     |
+| ----------------------------------- | ------ | ---------- | ----- | ---------- |
+| **dmarket/models/market_models.py** | 0%     | **96.96%** | 84   | ✅ ОТЛИЧНО!  |
+
+**Покрытые классы и функции:**
+- OfferStatus enum tests (6) - DEFAULT, ACTIVE, SOLD, INACTIVE, IN_TRANSFER
+- TargetStatus enum tests (2) - ACTIVE, INACTIVE
+- TransferStatus enum tests (3) - PENDING, COMPLETED, FAILED
+- TradeStatus enum tests (3) - SUCCESSFUL, REVERTED, TRADE_PROTECTED
+- Price model tests (7) - creation, dollars property, from_dollars classmethod
+- MarketPrice model tests (2)
+- Balance model tests (7) - creation, usd_dollars property, available_usd_dollars
+- UserProfile model tests (2)
+- MarketItem model tests (8) - price_usd property, suggested_price_usd, from_dict
+- MarketItemsResponse model tests (2)
+- Offer model tests (1)
+- TargetAttrs model tests (2)
+- Target model tests (2)
+- CreateTargetRequest model tests (1)
+- AggregatedPrice model tests (6) - spread_usd, spread_percent properties
+- TargetOrder model tests (4)
+- OfferByTitle model tests (3)
+- InventoryItem model tests (2)
+- UserInventoryResponse model tests (1)
+- BuyItemResponse model tests (1)
+- CreateOfferResponse model tests (1)
+- SalesHistory model tests (6) - price_float, date_datetime, from_dict
+- DepositAsset model tests (1)
+- DepositStatus model tests (1)
+- BalanceLegacy model tests (3)
+- Module exports tests (2)
+- Edge cases tests (4)
+
+---
+
+## ✅ Предыдущее обновление: Analytics Backtester модуль (21 декабря 2025)
 
 **🎉 Добавлено 48 новых тестов для модуля analytics/backtester.py:**
 
