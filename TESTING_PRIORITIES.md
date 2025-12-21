@@ -15,13 +15,37 @@
 > **User Profiles модуль покрытие:** 85%+ ✅ (НОВОЕ!)
 > **Game Filters модуль покрытие:** 88%+ ✅ (НОВОЕ!)
 > **Analytics Historical Data модуль покрытие:** 91%+ ✅ (НОВОЕ!)
-> **Всего тестов:** 3750+ (все проходят) 🆕 +44 новых тестов (analytics/historical_data)
+> **Analytics Backtester модуль покрытие:** 83%+ ✅ (НОВОЕ!)
+> **Всего тестов:** 3800+ (все проходят) 🆕 +48 новых тестов (analytics/backtester)
 > **Завершено:** Неделя 5-6 (Telegram Handlers) ✅ + Неделя 7-8 (Utils & Analytics) ✅
 > **Статус:** ВСЕ ЗАПЛАНИРОВАННЫЕ ЗАДАЧИ ВЫПОЛНЕНЫ! + ДОПОЛНИТЕЛЬНЫЕ МОДУЛИ!
 
 ---
 
-## ✅ НОВЕЙШЕЕ ОБНОВЛЕНИЕ: Analytics Historical Data модуль (21 декабря 2025)
+## ✅ НОВЕЙШЕЕ ОБНОВЛЕНИЕ: Analytics Backtester модуль (21 декабря 2025)
+
+**🎉 Добавлено 48 новых тестов для модуля analytics/backtester.py:**
+
+### 📊 Результаты analytics/backtester модуля
+
+| Модуль                         | Было   | Стало      | Тесты | Статус     |
+| ------------------------------ | ------ | ---------- | ----- | ---------- |
+| **analytics/backtester.py**    | 24.82% | **83.33%** | 48   | ✅ ОТЛИЧНО!  |
+
+**Покрытые классы и функции:**
+- TradeType enum tests (2) - BUY, SELL
+- Trade dataclass tests (6) - creation, total_cost, net_amount
+- Position dataclass tests (4) - creation, total_value, update
+- BacktestResult dataclass tests (6) - total_return, avg_profit, to_dict
+- SimpleArbitrageStrategy tests (9) - should_buy, should_sell conditions
+- Backtester class tests (13) - run, execute_buy/sell, metrics calculations
+- TradingStrategy abstract tests (1)
+- Module exports tests (2)
+- Edge cases tests (3)
+
+---
+
+## ✅ Предыдущее обновление: Analytics Historical Data модуль (21 декабря 2025)
 
 **🎉 Добавлено 44 новых тестов для модуля analytics/historical_data.py:**
 
