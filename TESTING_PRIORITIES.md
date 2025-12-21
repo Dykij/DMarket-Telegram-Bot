@@ -18,13 +18,46 @@
 > **Analytics Backtester модуль покрытие:** 83%+ ✅ (НОВОЕ!)
 > **DMarket Models покрытие:** 97%+ ✅ (НОВОЕ!)
 > **Telegram Bot Initialization покрытие:** 85%+ ✅ (НОВОЕ!)
-> **Всего тестов:** 3900+ (все проходят) 🆕 +46 новых тестов (telegram_bot/initialization)
+> **Interfaces модуль покрытие:** 85%+ ✅ (НОВОЕ!)
+> **Models Base модуль покрытие:** 96%+ ✅ (НОВОЕ!)
+> **Всего тестов:** 3960+ (все проходят) 🆕 +60 новых тестов (interfaces, models/base)
 > **Завершено:** Неделя 5-6 (Telegram Handlers) ✅ + Неделя 7-8 (Utils & Analytics) ✅
 > **Статус:** ВСЕ ЗАПЛАНИРОВАННЫЕ ЗАДАЧИ ВЫПОЛНЕНЫ! + ДОПОЛНИТЕЛЬНЫЕ МОДУЛИ!
 
 ---
 
-## ✅ НОВЕЙШЕЕ ОБНОВЛЕНИЕ: Telegram Bot Initialization модуль (21 декабря 2025)
+## ✅ НОВЕЙШЕЕ ОБНОВЛЕНИЕ: Interfaces и Models Base модули (21 декабря 2025)
+
+**🎉 Добавлено 60 новых тестов для модулей interfaces.py и models/base.py:**
+
+### 📊 Результаты interfaces и models/base модулей
+
+| Модуль                     | Было   | Стало      | Тесты | Статус     |
+| -------------------------- | ------ | ---------- | ----- | ---------- |
+| **src/interfaces.py**      | 0%     | **85%+**   | 36    | ✅ ОТЛИЧНО!  |
+| **src/models/base.py**     | 0%     | **96.30%** | 24    | ✅ ОТЛИЧНО!  |
+
+**Покрытые классы и функции interfaces.py:**
+- IDMarketAPI Protocol tests (11) - get_balance, get_market_items, buy_item, sell_item, create_targets, get_user_targets, get_sales_history, get_aggregated_prices_bulk, get_user_inventory
+- ICache Protocol tests (7) - get, set, delete, clear methods
+- IArbitrageScanner Protocol tests (4) - scan_game, find_opportunities
+- ITargetManager Protocol tests (5) - create_target, delete_targets, get_active_targets
+- IDatabase Protocol tests (5) - init_database, get_async_session, close
+- Module exports tests (6) - __all__, importable checks
+- Protocol runtime checking tests (2)
+- Edge cases tests (4)
+
+**Покрытые классы и функции models/base.py:**
+- SQLiteUUID TypeDecorator tests (10) - process_bind_param, process_result_value, roundtrip
+- UUIDType alias tests (2)
+- Base declarative model tests (2) - to_dict method
+- to_dict method with mock tests (3)
+- Edge cases tests (4) - empty string, invalid UUID, short UUID
+- Module imports tests (3)
+
+---
+
+## ✅ Предыдущее обновление: Telegram Bot Initialization модуль (21 декабря 2025)
 
 **🎉 Добавлено 46 новых тестов для модуля telegram_bot/initialization.py:**
 
