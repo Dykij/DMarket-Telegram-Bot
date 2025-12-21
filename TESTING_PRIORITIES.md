@@ -850,6 +850,7 @@ def test_update_user_returns_success():
 | ~~**Market Alerts**~~      | `telegram_bot/market_alerts.py`              | ~~6.95%~~ → **67.39%** | ~~270~~ | 🔥 ВЫСОКИЙ | ✅ ЗАВЕРШЕНО |
 | ~~**Trading Notifications**~~ | `telegram_bot/notifications/trading.py`   | ~~11.76%~~ → **100%** | ~~87~~ | ⚡ СРЕДНИЙ | ✅ ЗАВЕРШЕНО |
 | ~~**Scanner Cache**~~      | `dmarket/scanner/cache.py`                   | ~~25.76%~~ → **100%** | ~~37~~ | ⚡ СРЕДНИЙ | ✅ ЗАВЕРШЕНО |
+| ~~**Scanner Analysis**~~   | `dmarket/scanner/analysis.py`                | ~~0%~~ → **98.05%** | ~~110~~ | ⚡ СРЕДНИЙ | ✅ ЗАВЕРШЕНО |
 | ~~**Daily Report Scheduler**~~ | `utils/daily_report_scheduler.py`         | ~~12.03%~~ → **90.98%** | ~~87~~ | ⚡ СРЕДНИЙ | ✅ ЗАВЕРШЕНО |
 | ~~**Settings Handler**~~   | `telegram_bot/handlers/settings_handler.py`  | ~~28.89%~~ → **88.79%** | ~~130~~ | ⚡ СРЕДНИЙ | ✅ ЗАВЕРШЕНО |
 | ~~**Logging Utils**~~      | `utils/logging_utils.py`                     | ~~29.94%~~ → **72.47%** | ~~116~~ | ⚡ СРЕДНИЙ | ✅ ЗАВЕРШЕНО |
