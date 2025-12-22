@@ -1,36 +1,18 @@
 {
   "user_preferences": {
-    "123456789": {
-      "frequency": "normal",
-      "quiet_hours": {
-        "start": 23,
-        "end": 8
-      },
-      "last_notification": {
-        "market_opportunity:item-123": 1763138196.4451318
-      }
+    "123": {
+      "enabled": false
     }
   },
   "active_alerts": {
-    "123456789": [
+    "123": [
       {
-        "id": "test-alert-id",
-        "user_id": "123456789",
         "type": "price_alert",
-        "item_id": "item-123",
-        "item_name": "AK-47 | Redline",
-        "game": "csgo",
-        "conditions": {
-          "price": 10.0,
-          "direction": "below"
-        },
-        "one_time": true,
-        "created_at": 1763138196.416131,
-        "last_triggered": 1763138196.422131,
-        "trigger_count": 1,
-        "active": false
+        "active": true,
+        "item_id": "item_1",
+        "game": "csgo"
       }
     ]
   },
-  "updated_at": 1763138196.446137
+  "updated_at": 1766414206.112287
 }
