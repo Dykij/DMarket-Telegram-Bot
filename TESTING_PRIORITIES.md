@@ -961,17 +961,36 @@ def test_update_user_returns_success():
   - Анализ ценовых паттернов
   - Обнаружение аномалий
   - Edge cases
-- [ ] **batch_processor.py** - 20 тестов
-  - Пакетная обработка (6 тестов)
-  - Параллельная обработка (6 тестов)
-  - Обработка ошибок (5 тестов)
+- [x] **batch_processor.py** - 25 тестов ✅ (22 декабря 2025)
+  - SimpleBatchProcessor инициализация (3 теста)
+  - Пакетная обработка (8 тестов)
+  - Progress callbacks (3 теста)
+  - Error callbacks (2 теста)
+  - Edge cases (6 тестов)
+  - Integration tests (3 теста)
+- [x] **reactive_websocket.py** - 23 теста ✅ (22 декабря 2025)
+  - EventType enum (2 теста)
+  - SubscriptionState enum (2 теста)
+  - Observable pattern (11 тестов)
   - Edge cases (3 теста)
-- [ ] **reactive_websocket.py** - 30 тестов
-  - Подключение/переподключение (8 тестов)
-  - Обработка сообщений (8 тестов)
-  - Observable паттерн (6 тестов)
-  - Обработка ошибок (5 тестов)
-  - Edge cases (3 теста)
+  - Generic types (2 теста)
+  - Integration tests (3 теста)
+- [x] **market_alerts.py** - 26 тестов ✅ (22 декабря 2025)
+  - MarketAlertsManager инициализация (9 тестов)
+  - Subscriber management (4 теста)
+  - Monitoring control (2 теста)
+  - Alert management (2 теста)
+  - Threshold configuration (4 теста)
+  - Check intervals (2 теста)
+  - Integration tests (3 теста)
+- [x] **dashboard_handler.py** - 26 тестов ✅ (22 декабря 2025)
+  - ScannerDashboard инициализация (3 теста)
+  - Scan result management (4 теста)
+  - User statistics (6 тестов)
+  - Dashboard constants (1 тест)
+  - Active scans (3 теста)
+  - Edge cases (4 теста)
+  - Integration tests (1 тест)
 
 **Ожидаемый результат:** 6-30% → 70%+ покрытие utils, +1-2% общего покрытия
 
