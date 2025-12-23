@@ -820,6 +820,8 @@ def test_update_user_returns_success():
 | **Backtest Handler**       | `telegram_bot/handlers/backtest_handler.py`  | 0%       | ~350      | ⚡ СРЕДНИЙ | ✅ 35 тестов (23 дек 2025) |
 | **Rate Limit Admin**       | `telegram_bot/handlers/rate_limit_admin.py`  | 0%       | ~255      | ⚡ СРЕДНИЙ | ✅ 34 теста (23 дек 2025) |
 | **Resume Command**         | `telegram_bot/commands/resume_command.py`    | 0%       | 28        | ⚡ СРЕДНИЙ | ✅ 16 тестов (23 дек 2025) |
+| **Notification Handlers**  | `telegram_bot/notifications/handlers.py`     | 8.4%     | ~450      | 🔥 ВЫСОКИЙ | ✅ 37 тестов (24 дек 2025) |
+| **Notification Formatters**| `telegram_bot/notifications/formatters.py`   | 29.5%    | ~170      | ⚡ СРЕДНИЙ | ✅ 33 теста (24 дек 2025) |
 
 ---
 
