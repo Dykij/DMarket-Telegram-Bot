@@ -806,6 +806,7 @@ def test_update_user_returns_success():
 | Модуль                     | Файл                                         | Покрытие | Пропущено | Приоритет | Статус |
 | -------------------------- | -------------------------------------------- | -------- | --------- | --------- | ------ |
 | **Price Analyzer**         | `utils/price_analyzer.py`                    | 6.15%    | 172       | 🔥 ВЫСОКИЙ | ✅ 39 тестов (22 дек 2025) |
+| **Logs Command**           | `telegram_bot/commands/logs_command.py`      | 5.9%     | 78        | 🔥 ВЫСОКИЙ | ✅ 20 тестов (23 дек 2025) |
 | **Market Alerts**          | `telegram_bot/market_alerts.py`              | 6.95%    | 270       | 🔥 ВЫСОКИЙ | ✅ 26 тестов |
 | **Trading Notifications**  | `telegram_bot/notifications/trading.py`      | 11.76%   | 87        | ⚡ СРЕДНИЙ | ✅ 37 тестов (22 дек 2025) |
 | **Daily Report Scheduler** | `utils/daily_report_scheduler.py`            | 12.03%   | 87        | ⚡ СРЕДНИЙ | ✅ 22 теста |
@@ -818,6 +819,7 @@ def test_update_user_returns_success():
 | **Chart Generator**        | `telegram_bot/chart_generator.py`            | ~20%     | 120       | ⚡ СРЕДНИЙ | ✅ 30 тестов (23 дек 2025) |
 | **Backtest Handler**       | `telegram_bot/handlers/backtest_handler.py`  | 0%       | ~350      | ⚡ СРЕДНИЙ | ✅ 35 тестов (23 дек 2025) |
 | **Rate Limit Admin**       | `telegram_bot/handlers/rate_limit_admin.py`  | 0%       | ~255      | ⚡ СРЕДНИЙ | ✅ 34 теста (23 дек 2025) |
+| **Resume Command**         | `telegram_bot/commands/resume_command.py`    | 0%       | 28        | ⚡ СРЕДНИЙ | ✅ 16 тестов (23 дек 2025) |
 
 ---
 
