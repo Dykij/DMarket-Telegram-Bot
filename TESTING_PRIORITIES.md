@@ -816,6 +816,8 @@ def test_update_user_returns_success():
 | **Sales Analysis Callbacks** | `telegram_bot/sales_analysis_callbacks.py` | 6.0%     | 236       | 🔥 ВЫСОКИЙ | ✅ 30 тестов (22 дек 2025) |
 | **User Profiles**          | `telegram_bot/user_profiles.py`              | ~30%     | 180       | ⚡ СРЕДНИЙ | ✅ 42 теста (23 дек 2025) |
 | **Chart Generator**        | `telegram_bot/chart_generator.py`            | ~20%     | 120       | ⚡ СРЕДНИЙ | ✅ 30 тестов (23 дек 2025) |
+| **Backtest Handler**       | `telegram_bot/handlers/backtest_handler.py`  | 0%       | ~350      | ⚡ СРЕДНИЙ | ✅ 35 тестов (23 дек 2025) |
+| **Rate Limit Admin**       | `telegram_bot/handlers/rate_limit_admin.py`  | 0%       | ~255      | ⚡ СРЕДНИЙ | ✅ 34 теста (23 дек 2025) |
 
 ---
 
