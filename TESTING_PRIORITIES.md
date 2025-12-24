@@ -822,6 +822,9 @@ def test_update_user_returns_success():
 | **Resume Command**         | `telegram_bot/commands/resume_command.py`    | 0%       | 28        | ⚡ СРЕДНИЙ | ✅ 16 тестов (23 дек 2025) |
 | **Notification Handlers**  | `telegram_bot/notifications/handlers.py`     | 8.4%     | ~450      | 🔥 ВЫСОКИЙ | ✅ 37 тестов (24 дек 2025) |
 | **Notification Formatters**| `telegram_bot/notifications/formatters.py`   | 29.5%    | ~170      | ⚡ СРЕДНИЙ | ✅ 33 теста (24 дек 2025) |
+| **Scanner Analysis**       | `dmarket/scanner/analysis.py`                | 0%       | ~332      | 🔥 ВЫСОКИЙ | ✅ 55 тестов (24 дек 2025) |
+| **Scanner Filters**        | `dmarket/scanner/filters.py`                 | 21%      | ~213      | ⚡ СРЕДНИЙ | ✅ 45 тестов (24 дек 2025) |
+| **State Manager**          | `utils/state_manager.py`                     | 41.7%    | ~558      | ⚡ СРЕДНИЙ | ✅ 36 тестов (24 дек 2025) |
 
 ---
 
