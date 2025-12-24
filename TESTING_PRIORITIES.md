@@ -831,6 +831,9 @@ def test_update_user_returns_success():
 | **Targets Validators**     | `dmarket/targets/validators.py`              | 47.9%    | ~50       | ⚡ СРЕДНИЙ | ✅ 34 теста (24 дек 2025) |
 | **API Client**             | `telegram_bot/utils/api_client.py`           | 16.7%    | ~115      | ⚡ СРЕДНИЙ | ✅ 28 тестов (24 дек 2025) |
 | **API Helper**             | `telegram_bot/utils/api_helper.py`           | 21.4%    | ~40       | ⚡ СРЕДНИЙ | ✅ 18 тестов (24 дек 2025) |
+| **Arbitrage Calculations** | `dmarket/arbitrage/calculations.py`          | 58.4%    | ~110      | ⚡ СРЕДНИЙ | ✅ 107 тестов (24 дек 2025) |
+| **MCP Server**             | `mcp_server/dmarket_mcp.py`                  | 22.2%    | ~260      | ⚡ СРЕДНИЙ | ✅ 35 тестов (24 дек 2025) |
+| **Notification Digest**    | `telegram_bot/handlers/notification_digest_handler.py` | 0% | ~380   | 🔥 ВЫСОКИЙ | ✅ 40 тестов (existing)
 
 ---
 
