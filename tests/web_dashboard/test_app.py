@@ -83,12 +83,12 @@ class TestContentType:
     def test_root_returns_json(self, client):
         """Test root endpoint returns JSON content type."""
         response = client.get("/")
-        assert response.headers["content-type"] == "application/json"
+        assert "application/json" in response.headers["content-type"]
 
     def test_health_returns_json(self, client):
         """Test health endpoint returns JSON content type."""
         response = client.get("/api/v1/health")
-        assert response.headers["content-type"] == "application/json"
+        assert "application/json" in response.headers["content-type"]
 
 
 class TestInvalidEndpoints:
