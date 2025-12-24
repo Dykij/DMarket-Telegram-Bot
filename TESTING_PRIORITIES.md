@@ -825,6 +825,12 @@ def test_update_user_returns_success():
 | **Scanner Analysis**       | `dmarket/scanner/analysis.py`                | 0%       | ~332      | 🔥 ВЫСОКИЙ | ✅ 55 тестов (24 дек 2025) |
 | **Scanner Filters**        | `dmarket/scanner/filters.py`                 | 21%      | ~213      | ⚡ СРЕДНИЙ | ✅ 45 тестов (24 дек 2025) |
 | **State Manager**          | `utils/state_manager.py`                     | 41.7%    | ~558      | ⚡ СРЕДНИЙ | ✅ 36 тестов (24 дек 2025) |
+| **Initialization**         | `telegram_bot/initialization.py`             | 19%      | ~260      | ⚡ СРЕДНИЙ | ✅ 45 тестов (24 дек 2025) |
+| **Profiles**               | `telegram_bot/profiles.py`                   | 31%      | ~40       | ⚡ СРЕДНИЙ | ✅ 25 тестов (24 дек 2025) |
+| **Targets Competition**    | `dmarket/targets/competition.py`             | 8.7%     | ~240      | 🔥 ВЫСОКИЙ | ✅ 38 тестов (24 дек 2025) |
+| **Targets Validators**     | `dmarket/targets/validators.py`              | 47.9%    | ~50       | ⚡ СРЕДНИЙ | ✅ 34 теста (24 дек 2025) |
+| **API Client**             | `telegram_bot/utils/api_client.py`           | 16.7%    | ~115      | ⚡ СРЕДНИЙ | ✅ 28 тестов (24 дек 2025) |
+| **API Helper**             | `telegram_bot/utils/api_helper.py`           | 21.4%    | ~40       | ⚡ СРЕДНИЙ | ✅ 18 тестов (24 дек 2025) |
 
 ---
 
