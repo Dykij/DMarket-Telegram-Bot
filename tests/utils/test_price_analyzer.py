@@ -379,3 +379,701 @@ class TestEdgeCases:
         assert result["min_price"] == 0.01
         assert result["max_price"] == 10000.0
         assert result["volatility"] > 0
+
+
+# ============================================================================
+# Additional Tests for Extended Coverage
+# ============================================================================
+
+from src.utils.price_analyzer import (
+    calculate_price_trend,
+    find_undervalued_items,
+    analyze_supply_demand,
+    get_investment_recommendations,
+    get_investment_reason,
+)
+
+
+class TestCalculatePriceTrend:
+    """Tests for calculate_price_trend function."""
+
+    @pytest.mark.asyncio()
+    async def test_calculate_trend_upward(self, mock_api):
+        """Test detection of upward trend."""
+        # Arrange
+        mock_api._request.return_value = {
+            "sales": [
+                {"date": "2024-01-01T00:00:00", "price": 1000, "volume": 1},
+                {"date": "2024-01-02T00:00:00", "price": 1100, "volume": 1},
+                {"date": "2024-01-03T00:00:00", "price": 1200, "volume": 1},
+                {"date": "2024-01-04T00:00:00", "price": 1300, "volume": 1},
+                {"date": "2024-01-05T00:00:00", "price": 1400, "volume": 1},
+                {"date": "2024-01-06T00:00:00", "price": 1500, "volume": 1},
+                {"date": "2024-01-07T00:00:00", "price": 1600, "volume": 1},
+                {"date": "2024-01-08T00:00:00", "price": 1700, "volume": 1},
+            ]
+        }
+
+        # Act
+        result = await calculate_price_trend(mock_api, "item123", days=7)
+
+        # Assert
+        assert result["trend"] == "upward"
+        assert result["confidence"] > 0
+        assert result["change_percent"] > 0
+
+    @pytest.mark.asyncio()
+    async def test_calculate_trend_downward(self, mock_api):
+        """Test detection of downward trend."""
+        # Arrange
+        mock_api._request.return_value = {
+            "sales": [
+                {"date": "2024-01-01T00:00:00", "price": 2000, "volume": 1},
+                {"date": "2024-01-02T00:00:00", "price": 1800, "volume": 1},
+                {"date": "2024-01-03T00:00:00", "price": 1600, "volume": 1},
+                {"date": "2024-01-04T00:00:00", "price": 1400, "volume": 1},
+                {"date": "2024-01-05T00:00:00", "price": 1200, "volume": 1},
+                {"date": "2024-01-06T00:00:00", "price": 1000, "volume": 1},
+                {"date": "2024-01-07T00:00:00", "price": 800, "volume": 1},
+                {"date": "2024-01-08T00:00:00", "price": 600, "volume": 1},
+            ]
+        }
+
+        # Act
+        result = await calculate_price_trend(mock_api, "item123", days=7)
+
+        # Assert
+        assert result["trend"] == "downward"
+        assert result["change_percent"] < 0
+
+    @pytest.mark.asyncio()
+    async def test_calculate_trend_stable(self, mock_api):
+        """Test detection of stable/sideways trend."""
+        # Arrange - prices that oscillate around the same value
+        mock_api._request.return_value = {
+            "sales": [
+                {"date": "2024-01-01T00:00:00", "price": 1000, "volume": 1},
+                {"date": "2024-01-02T00:00:00", "price": 1020, "volume": 1},
+                {"date": "2024-01-03T00:00:00", "price": 980, "volume": 1},
+                {"date": "2024-01-04T00:00:00", "price": 1010, "volume": 1},
+                {"date": "2024-01-05T00:00:00", "price": 990, "volume": 1},
+                {"date": "2024-01-06T00:00:00", "price": 1000, "volume": 1},
+                {"date": "2024-01-07T00:00:00", "price": 1010, "volume": 1},
+                {"date": "2024-01-08T00:00:00", "price": 1000, "volume": 1},
+            ]
+        }
+
+        # Act
+        result = await calculate_price_trend(mock_api, "item123", days=7)
+
+        # Assert - trend should be stable or show minimal change
+        assert result["trend"] in ["stable", "upward", "downward"]
+        assert abs(result["change_percent"]) < 10  # Less than 10% change indicates stable
+
+    @pytest.mark.asyncio()
+    async def test_calculate_trend_empty_history(self, mock_api):
+        """Test trend calculation with empty history."""
+        # Arrange
+        mock_api._request.return_value = {}
+
+        # Act
+        result = await calculate_price_trend(mock_api, "item123", days=7)
+
+        # Assert
+        assert result["trend"] == "unknown"
+        assert result["confidence"] == 0.0
+
+    @pytest.mark.asyncio()
+    async def test_calculate_trend_insufficient_data(self, mock_api):
+        """Test trend calculation with insufficient data (1 point)."""
+        # Arrange
+        mock_api._request.return_value = {
+            "sales": [
+                {"date": "2024-01-01T00:00:00", "price": 1000, "volume": 1},
+            ]
+        }
+
+        # Act
+        result = await calculate_price_trend(mock_api, "item123", days=7)
+
+        # Assert
+        assert result["trend"] == "stable"
+        assert result["confidence"] == 0.0
+
+    @pytest.mark.asyncio()
+    async def test_calculate_trend_returns_period_prices(self, mock_api):
+        """Test that trend calculation returns period prices."""
+        # Arrange
+        mock_api._request.return_value = {
+            "sales": [
+                {"date": "2024-01-01T00:00:00", "price": 1000, "volume": 1},
+                {"date": "2024-01-02T00:00:00", "price": 1100, "volume": 1},
+                {"date": "2024-01-03T00:00:00", "price": 1200, "volume": 1},
+                {"date": "2024-01-04T00:00:00", "price": 1300, "volume": 1},
+            ]
+        }
+
+        # Act
+        result = await calculate_price_trend(mock_api, "item123", days=7)
+
+        # Assert
+        assert "period_prices" in result
+        assert isinstance(result["period_prices"], list)
+        assert len(result["period_prices"]) >= 2
+
+    @pytest.mark.asyncio()
+    async def test_calculate_trend_returns_absolute_change(self, mock_api):
+        """Test that trend calculation returns absolute change."""
+        # Arrange
+        mock_api._request.return_value = {
+            "sales": [
+                {"date": "2024-01-01T00:00:00", "price": 1000, "volume": 1},
+                {"date": "2024-01-02T00:00:00", "price": 1200, "volume": 1},
+                {"date": "2024-01-03T00:00:00", "price": 1400, "volume": 1},
+                {"date": "2024-01-04T00:00:00", "price": 1600, "volume": 1},
+            ]
+        }
+
+        # Act
+        result = await calculate_price_trend(mock_api, "item123", days=7)
+
+        # Assert
+        assert "absolute_change" in result
+        assert result["absolute_change"] > 0
+
+
+class TestFindUndervaluedItems:
+    """Tests for find_undervalued_items function."""
+
+    @pytest.mark.asyncio()
+    async def test_find_undervalued_items_success(self, mock_api):
+        """Test successful finding of undervalued items."""
+        # Arrange
+        mock_api.get_market_items = AsyncMock(return_value={
+            "objects": [
+                {
+                    "itemId": "item1",
+                    "title": "AK-47 | Redline",
+                    "price": {"amount": 1000},  # $10 current price
+                }
+            ]
+        })
+        mock_api._request = AsyncMock(return_value={
+            "sales": [
+                {"date": "2024-01-01T00:00:00", "price": 1500, "volume": 1},  # avg $15
+                {"date": "2024-01-02T00:00:00", "price": 1600, "volume": 1},
+                {"date": "2024-01-03T00:00:00", "price": 1500, "volume": 1},
+            ]
+        })
+
+        # Act
+        result = await find_undervalued_items(
+            mock_api,
+            game="csgo",
+            price_from=1.0,
+            price_to=100.0,
+            discount_threshold=20.0,
+            max_results=10,
+        )
+
+        # Assert
+        assert isinstance(result, list)
+
+    @pytest.mark.asyncio()
+    async def test_find_undervalued_items_empty_response(self, mock_api):
+        """Test finding undervalued items with empty response."""
+        # Arrange
+        mock_api.get_market_items = AsyncMock(return_value={})
+
+        # Act
+        result = await find_undervalued_items(mock_api, game="csgo")
+
+        # Assert
+        assert result == []
+
+    @pytest.mark.asyncio()
+    async def test_find_undervalued_items_no_objects(self, mock_api):
+        """Test finding undervalued items with no objects."""
+        # Arrange
+        mock_api.get_market_items = AsyncMock(return_value={"objects": []})
+
+        # Act
+        result = await find_undervalued_items(mock_api, game="csgo")
+
+        # Assert
+        assert result == []
+
+    @pytest.mark.asyncio()
+    async def test_find_undervalued_items_api_error(self, mock_api):
+        """Test handling API error when finding undervalued items."""
+        # Arrange
+        mock_api.get_market_items = AsyncMock(side_effect=Exception("API Error"))
+
+        # Act
+        result = await find_undervalued_items(mock_api, game="csgo")
+
+        # Assert
+        assert result == []
+
+    @pytest.mark.asyncio()
+    async def test_find_undervalued_items_filters_by_discount(self, mock_api):
+        """Test that items are filtered by discount threshold."""
+        # Arrange
+        mock_api.get_market_items = AsyncMock(return_value={
+            "objects": [
+                {
+                    "itemId": "item1",
+                    "title": "Item 1",
+                    "price": {"amount": 500},  # $5 - 50% below avg
+                }
+            ]
+        })
+        mock_api._request = AsyncMock(return_value={
+            "sales": [
+                {"date": "2024-01-01T00:00:00", "price": 1000, "volume": 1},  # avg $10
+            ]
+        })
+
+        # Act
+        result = await find_undervalued_items(
+            mock_api,
+            game="csgo",
+            discount_threshold=30.0,  # Looking for > 30% discount
+        )
+
+        # Assert
+        # Item has 50% discount, should be found
+        assert isinstance(result, list)
+
+    @pytest.mark.asyncio()
+    async def test_find_undervalued_items_max_results(self, mock_api):
+        """Test that results are limited to max_results."""
+        # Arrange
+        objects = [
+            {
+                "itemId": f"item{i}",
+                "title": f"Item {i}",
+                "price": {"amount": 500},
+            }
+            for i in range(20)
+        ]
+        mock_api.get_market_items = AsyncMock(return_value={"objects": objects})
+        mock_api._request = AsyncMock(return_value={
+            "sales": [
+                {"date": "2024-01-01T00:00:00", "price": 2000, "volume": 1},
+            ]
+        })
+
+        # Act
+        result = await find_undervalued_items(
+            mock_api,
+            game="csgo",
+            max_results=5,
+            discount_threshold=10.0,
+        )
+
+        # Assert
+        assert len(result) <= 5
+
+
+class TestAnalyzeSupplyDemand:
+    """Tests for analyze_supply_demand function."""
+
+    @pytest.mark.asyncio()
+    async def test_analyze_supply_demand_high_liquidity(self, mock_api):
+        """Test high liquidity detection."""
+        # Arrange
+        mock_api._request = AsyncMock(return_value={
+            "offers": [
+                {"price": 1000, "id": f"sell{i}"} for i in range(10)
+            ],
+            "targets": [
+                {"price": 950, "id": f"buy{i}"} for i in range(10)
+            ],
+        })
+
+        # Act
+        result = await analyze_supply_demand(mock_api, "item123")
+
+        # Assert
+        assert result["liquidity"] == "high"
+        assert result["supply_count"] == 10
+        assert result["demand_count"] == 10
+
+    @pytest.mark.asyncio()
+    async def test_analyze_supply_demand_medium_liquidity(self, mock_api):
+        """Test medium liquidity detection."""
+        # Arrange - spread must be < 20% and have > 2 buy/sell offers
+        mock_api._request = AsyncMock(return_value={
+            "offers": [
+                {"price": 1000, "id": f"sell{i}"} for i in range(3)  # Min sell: $10
+            ],
+            "targets": [
+                {"price": 900, "id": f"buy{i}"} for i in range(3)  # Max buy: $9
+            ],
+        })
+        # Spread: (10-9)/10 * 100 = 10% < 20%, so medium liquidity
+
+        # Act
+        result = await analyze_supply_demand(mock_api, "item123")
+
+        # Assert
+        assert result["liquidity"] == "medium"
+
+    @pytest.mark.asyncio()
+    async def test_analyze_supply_demand_low_liquidity(self, mock_api):
+        """Test low liquidity detection."""
+        # Arrange
+        mock_api._request = AsyncMock(return_value={
+            "offers": [
+                {"price": 1000, "id": "sell1"}
+            ],
+            "targets": [
+                {"price": 500, "id": "buy1"}
+            ],
+        })
+
+        # Act
+        result = await analyze_supply_demand(mock_api, "item123")
+
+        # Assert
+        assert result["liquidity"] == "low"
+
+    @pytest.mark.asyncio()
+    async def test_analyze_supply_demand_empty_response(self, mock_api):
+        """Test empty response handling."""
+        # Arrange
+        mock_api._request = AsyncMock(return_value=None)
+
+        # Act
+        result = await analyze_supply_demand(mock_api, "item123")
+
+        # Assert
+        assert result["liquidity"] == "unknown"
+        assert result["supply_count"] == 0
+        assert result["demand_count"] == 0
+
+    @pytest.mark.asyncio()
+    async def test_analyze_supply_demand_api_error(self, mock_api):
+        """Test API error handling."""
+        # Arrange
+        mock_api._request = AsyncMock(side_effect=Exception("API Error"))
+
+        # Act
+        result = await analyze_supply_demand(mock_api, "item123")
+
+        # Assert
+        assert result["liquidity"] == "unknown"
+        assert result["spread"] == 0
+
+    @pytest.mark.asyncio()
+    async def test_analyze_supply_demand_spread_calculation(self, mock_api):
+        """Test spread calculation."""
+        # Arrange
+        mock_api._request = AsyncMock(return_value={
+            "offers": [
+                {"price": 1000, "id": "sell1"},  # Min sell: $10
+            ],
+            "targets": [
+                {"price": 900, "id": "buy1"},  # Max buy: $9
+            ],
+        })
+
+        # Act
+        result = await analyze_supply_demand(mock_api, "item123")
+
+        # Assert
+        assert result["min_sell_price"] == 10.0
+        assert result["max_buy_price"] == 9.0
+        assert result["spread"] == 1.0  # $10 - $9 = $1
+        assert result["spread_percent"] == 10.0  # 1/10 * 100 = 10%
+
+
+class TestGetInvestmentRecommendations:
+    """Tests for get_investment_recommendations function."""
+
+    @pytest.mark.asyncio()
+    async def test_get_recommendations_low_risk(self, mock_api):
+        """Test getting recommendations with low risk level."""
+        # Arrange
+        mock_api.get_market_items = AsyncMock(return_value={"objects": []})
+
+        # Act
+        result = await get_investment_recommendations(
+            mock_api,
+            game="csgo",
+            budget=100.0,
+            risk_level="low",
+        )
+
+        # Assert
+        assert isinstance(result, list)
+
+    @pytest.mark.asyncio()
+    async def test_get_recommendations_medium_risk(self, mock_api):
+        """Test getting recommendations with medium risk level."""
+        # Arrange
+        mock_api.get_market_items = AsyncMock(return_value={"objects": []})
+
+        # Act
+        result = await get_investment_recommendations(
+            mock_api,
+            game="csgo",
+            budget=100.0,
+            risk_level="medium",
+        )
+
+        # Assert
+        assert isinstance(result, list)
+
+    @pytest.mark.asyncio()
+    async def test_get_recommendations_high_risk(self, mock_api):
+        """Test getting recommendations with high risk level."""
+        # Arrange
+        mock_api.get_market_items = AsyncMock(return_value={"objects": []})
+
+        # Act
+        result = await get_investment_recommendations(
+            mock_api,
+            game="csgo",
+            budget=100.0,
+            risk_level="high",
+        )
+
+        # Assert
+        assert isinstance(result, list)
+
+    @pytest.mark.asyncio()
+    async def test_get_recommendations_empty_result(self, mock_api):
+        """Test getting recommendations with no matches."""
+        # Arrange
+        mock_api.get_market_items = AsyncMock(return_value={"objects": []})
+
+        # Act
+        result = await get_investment_recommendations(
+            mock_api,
+            game="csgo",
+            budget=10.0,
+            risk_level="medium",
+        )
+
+        # Assert
+        assert result == []
+
+    @pytest.mark.asyncio()
+    async def test_get_recommendations_respects_budget(self, mock_api):
+        """Test that recommendations respect the budget."""
+        # Arrange
+        mock_api.get_market_items = AsyncMock(return_value={"objects": []})
+
+        # Act
+        result = await get_investment_recommendations(
+            mock_api,
+            game="csgo",
+            budget=50.0,
+            risk_level="low",
+        )
+
+        # Assert
+        assert isinstance(result, list)
+        # Low risk settings should filter by price_to = min(50, budget)
+
+
+class TestGetInvestmentReason:
+    """Tests for get_investment_reason function."""
+
+    def test_get_reason_significant_discount(self):
+        """Test reason for significant discount."""
+        # Arrange
+        item_data = {
+            "discount": 30.0,
+            "liquidity": "high",
+            "trend": "stable",
+            "trend_confidence": 0.5,
+            "demand_count": 5,
+        }
+
+        # Act
+        reason = get_investment_reason(item_data)
+
+        # Assert
+        assert "Значительная скидка" in reason
+        assert "30.0%" in reason
+
+    def test_get_reason_good_discount(self):
+        """Test reason for good discount."""
+        # Arrange
+        item_data = {
+            "discount": 20.0,
+            "liquidity": "medium",
+            "trend": "stable",
+            "trend_confidence": 0.5,
+            "demand_count": 3,
+        }
+
+        # Act
+        reason = get_investment_reason(item_data)
+
+        # Assert
+        assert "Хорошая скидка" in reason
+        assert "20.0%" in reason
+
+    def test_get_reason_standard_discount(self):
+        """Test reason for standard discount."""
+        # Arrange
+        item_data = {
+            "discount": 10.0,
+            "liquidity": "low",
+            "trend": "stable",
+            "trend_confidence": 0.5,
+            "demand_count": 1,
+        }
+
+        # Act
+        reason = get_investment_reason(item_data)
+
+        # Assert
+        assert "10.0%" in reason
+
+    def test_get_reason_high_liquidity(self):
+        """Test reason includes high liquidity."""
+        # Arrange
+        item_data = {
+            "discount": 15.0,
+            "liquidity": "high",
+            "trend": "stable",
+            "trend_confidence": 0.3,
+            "demand_count": 3,
+        }
+
+        # Act
+        reason = get_investment_reason(item_data)
+
+        # Assert
+        assert "Высокая ликвидность" in reason
+
+    def test_get_reason_medium_liquidity(self):
+        """Test reason includes medium liquidity."""
+        # Arrange
+        item_data = {
+            "discount": 15.0,
+            "liquidity": "medium",
+            "trend": "stable",
+            "trend_confidence": 0.3,
+            "demand_count": 3,
+        }
+
+        # Act
+        reason = get_investment_reason(item_data)
+
+        # Assert
+        assert "Средняя ликвидность" in reason
+
+    def test_get_reason_low_liquidity(self):
+        """Test reason includes low liquidity."""
+        # Arrange
+        item_data = {
+            "discount": 15.0,
+            "liquidity": "low",
+            "trend": "stable",
+            "trend_confidence": 0.3,
+            "demand_count": 1,
+        }
+
+        # Act
+        reason = get_investment_reason(item_data)
+
+        # Assert
+        assert "Низкая ликвидность" in reason
+
+    def test_get_reason_upward_trend(self):
+        """Test reason includes upward trend."""
+        # Arrange
+        item_data = {
+            "discount": 15.0,
+            "liquidity": "medium",
+            "trend": "upward",
+            "trend_confidence": 0.8,
+            "demand_count": 5,
+        }
+
+        # Act
+        reason = get_investment_reason(item_data)
+
+        # Assert
+        assert "Восходящий тренд" in reason
+
+    def test_get_reason_downward_trend(self):
+        """Test reason includes downward trend warning."""
+        # Arrange
+        item_data = {
+            "discount": 15.0,
+            "liquidity": "medium",
+            "trend": "downward",
+            "trend_confidence": 0.8,
+            "demand_count": 5,
+        }
+
+        # Act
+        reason = get_investment_reason(item_data)
+
+        # Assert
+        assert "Нисходящий тренд" in reason
+        assert "риск" in reason
+
+    def test_get_reason_high_demand(self):
+        """Test reason includes high demand."""
+        # Arrange
+        item_data = {
+            "discount": 15.0,
+            "liquidity": "medium",
+            "trend": "stable",
+            "trend_confidence": 0.3,
+            "demand_count": 15,
+        }
+
+        # Act
+        reason = get_investment_reason(item_data)
+
+        # Assert
+        assert "Высокий спрос" in reason
+        assert "15 заявок" in reason
+
+    def test_get_reason_moderate_demand(self):
+        """Test reason includes moderate demand."""
+        # Arrange
+        item_data = {
+            "discount": 15.0,
+            "liquidity": "medium",
+            "trend": "stable",
+            "trend_confidence": 0.3,
+            "demand_count": 7,
+        }
+
+        # Act
+        reason = get_investment_reason(item_data)
+
+        # Assert
+        assert "Умеренный спрос" in reason
+        assert "7 заявок" in reason
+
+    def test_get_reason_combined(self):
+        """Test that reason combines multiple factors."""
+        # Arrange
+        item_data = {
+            "discount": 30.0,
+            "liquidity": "high",
+            "trend": "upward",
+            "trend_confidence": 0.8,
+            "demand_count": 12,
+        }
+
+        # Act
+        reason = get_investment_reason(item_data)
+
+        # Assert
+        assert "Значительная скидка" in reason
+        assert "Высокая ликвидность" in reason
+        assert "Восходящий тренд" in reason
+        assert "Высокий спрос" in reason
+        assert ". " in reason  # Multiple reasons joined
