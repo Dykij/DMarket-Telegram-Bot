@@ -204,6 +204,44 @@ def sample_recommendations():
     ]
 
 
+# ======================== Helper functions for test data ========================
+
+
+def create_undervalued_item(trend: str = "stable") -> list[dict]:
+    """Create test data for undervalued item with specified trend."""
+    return [{
+        "title": "Test Item",
+        "current_price": 100.0,
+        "avg_price": 120.0,
+        "discount": 16.7,
+        "trend": trend,
+        "volume": 50,
+    }]
+
+
+def create_recommendation_item(liquidity: str = "medium") -> list[dict]:
+    """Create test data for recommendation item with specified liquidity."""
+    return [{
+        "title": "Test Item",
+        "current_price": 100.0,
+        "discount": 10.0,
+        "liquidity": liquidity,
+        "investment_score": 7.0,
+        "reason": "Test reason",
+    }]
+
+
+def create_volatility_item(volatility_score: float = 15.0) -> list[dict]:
+    """Create test data for volatility item with specified score."""
+    return [{
+        "market_hash_name": "Test Item",
+        "current_price": 100.0,
+        "change_24h_percent": 10.0,
+        "change_7d_percent": 15.0,
+        "volatility_score": volatility_score,
+    }]
+
+
 # ======================== Тесты market_analysis_command ========================
 
 
@@ -749,14 +787,7 @@ class TestShowVolatilityResultsExtended:
         self, mock_pagination, mock_callback_query, mock_context
     ):
         """Тест отображения очень высокой волатильности."""
-        data = [{
-            "market_hash_name": "Test Item",
-            "current_price": 100.0,
-            "change_24h_percent": 50.0,
-            "change_7d_percent": 80.0,
-            "volatility_score": 35.0,  # > 30
-        }]
-        mock_pagination.get_page.return_value = (data, 0, 1)
+        mock_pagination.get_page.return_value = (create_volatility_item(35.0), 0, 1)
 
         await show_volatility_results(mock_callback_query, mock_context, "csgo")
 
@@ -769,14 +800,7 @@ class TestShowVolatilityResultsExtended:
         self, mock_pagination, mock_callback_query, mock_context
     ):
         """Тест отображения высокой волатильности."""
-        data = [{
-            "market_hash_name": "Test Item",
-            "current_price": 100.0,
-            "change_24h_percent": 25.0,
-            "change_7d_percent": 40.0,
-            "volatility_score": 25.0,  # > 20, <= 30
-        }]
-        mock_pagination.get_page.return_value = (data, 0, 1)
+        mock_pagination.get_page.return_value = (create_volatility_item(25.0), 0, 1)
 
         await show_volatility_results(mock_callback_query, mock_context, "csgo")
 
@@ -789,14 +813,7 @@ class TestShowVolatilityResultsExtended:
         self, mock_pagination, mock_callback_query, mock_context
     ):
         """Тест отображения средней волатильности."""
-        data = [{
-            "market_hash_name": "Test Item",
-            "current_price": 100.0,
-            "change_24h_percent": 10.0,
-            "change_7d_percent": 15.0,
-            "volatility_score": 15.0,  # > 10, <= 20
-        }]
-        mock_pagination.get_page.return_value = (data, 0, 1)
+        mock_pagination.get_page.return_value = (create_volatility_item(15.0), 0, 1)
 
         await show_volatility_results(mock_callback_query, mock_context, "csgo")
 
@@ -809,14 +826,7 @@ class TestShowVolatilityResultsExtended:
         self, mock_pagination, mock_callback_query, mock_context
     ):
         """Тест отображения низкой волатильности."""
-        data = [{
-            "market_hash_name": "Test Item",
-            "current_price": 100.0,
-            "change_24h_percent": 2.0,
-            "change_7d_percent": 5.0,
-            "volatility_score": 5.0,  # <= 10
-        }]
-        mock_pagination.get_page.return_value = (data, 0, 1)
+        mock_pagination.get_page.return_value = (create_volatility_item(5.0), 0, 1)
 
         await show_volatility_results(mock_callback_query, mock_context, "csgo")
 
@@ -874,9 +884,18 @@ class TestShowMarketReportExtended:
     ):
         """Тест отображения уровней волатильности рынка."""
         for level, expected in [("low", "Низкая"), ("medium", "Средняя"), ("high", "Высокая")]:
-            sample_market_report["market_summary"]["market_volatility_level"] = level
+            # Create a copy to avoid modifying shared fixture
+            report_copy = {
+                "game": sample_market_report["game"],
+                "market_summary": {
+                    **sample_market_report["market_summary"],
+                    "market_volatility_level": level,
+                },
+                "price_changes": sample_market_report.get("price_changes", []),
+                "trending_items": sample_market_report.get("trending_items", []),
+            }
 
-            await show_market_report(mock_callback_query, mock_context, sample_market_report)
+            await show_market_report(mock_callback_query, mock_context, report_copy)
 
             args = mock_callback_query.edit_message_text.call_args[0]
             assert expected in args[0]
@@ -891,15 +910,7 @@ class TestShowUndervaluedItemsResultsExtended:
         self, mock_pagination, mock_callback_query, mock_context
     ):
         """Тест иконки восходящего тренда."""
-        data = [{
-            "title": "Test",
-            "current_price": 100.0,
-            "avg_price": 120.0,
-            "discount": 16.7,
-            "trend": "upward",
-            "volume": 50,
-        }]
-        mock_pagination.get_page.return_value = (data, 0, 1)
+        mock_pagination.get_page.return_value = (create_undervalued_item("upward"), 0, 1)
 
         await show_undervalued_items_results(mock_callback_query, mock_context, "csgo")
 
@@ -912,15 +923,7 @@ class TestShowUndervaluedItemsResultsExtended:
         self, mock_pagination, mock_callback_query, mock_context
     ):
         """Тест иконки нисходящего тренда."""
-        data = [{
-            "title": "Test",
-            "current_price": 100.0,
-            "avg_price": 120.0,
-            "discount": 16.7,
-            "trend": "downward",
-            "volume": 50,
-        }]
-        mock_pagination.get_page.return_value = (data, 0, 1)
+        mock_pagination.get_page.return_value = (create_undervalued_item("downward"), 0, 1)
 
         await show_undervalued_items_results(mock_callback_query, mock_context, "csgo")
 
@@ -933,15 +936,7 @@ class TestShowUndervaluedItemsResultsExtended:
         self, mock_pagination, mock_callback_query, mock_context
     ):
         """Тест иконки стабильного тренда."""
-        data = [{
-            "title": "Test",
-            "current_price": 100.0,
-            "avg_price": 120.0,
-            "discount": 16.7,
-            "trend": "stable",
-            "volume": 50,
-        }]
-        mock_pagination.get_page.return_value = (data, 0, 1)
+        mock_pagination.get_page.return_value = (create_undervalued_item("stable"), 0, 1)
 
         await show_undervalued_items_results(mock_callback_query, mock_context, "csgo")
 
@@ -958,15 +953,7 @@ class TestShowInvestmentRecommendationsResultsExtended:
         self, mock_pagination, mock_callback_query, mock_context
     ):
         """Тест иконки высокой ликвидности."""
-        data = [{
-            "title": "Test",
-            "current_price": 100.0,
-            "discount": 10.0,
-            "liquidity": "high",
-            "investment_score": 8.0,
-            "reason": "Good",
-        }]
-        mock_pagination.get_page.return_value = (data, 0, 1)
+        mock_pagination.get_page.return_value = (create_recommendation_item("high"), 0, 1)
 
         await show_investment_recommendations_results(mock_callback_query, mock_context, "csgo")
 
@@ -979,15 +966,7 @@ class TestShowInvestmentRecommendationsResultsExtended:
         self, mock_pagination, mock_callback_query, mock_context
     ):
         """Тест иконки средней ликвидности."""
-        data = [{
-            "title": "Test",
-            "current_price": 100.0,
-            "discount": 10.0,
-            "liquidity": "medium",
-            "investment_score": 6.0,
-            "reason": "Ok",
-        }]
-        mock_pagination.get_page.return_value = (data, 0, 1)
+        mock_pagination.get_page.return_value = (create_recommendation_item("medium"), 0, 1)
 
         await show_investment_recommendations_results(mock_callback_query, mock_context, "csgo")
 
@@ -1000,15 +979,7 @@ class TestShowInvestmentRecommendationsResultsExtended:
         self, mock_pagination, mock_callback_query, mock_context
     ):
         """Тест иконки низкой ликвидности."""
-        data = [{
-            "title": "Test",
-            "current_price": 100.0,
-            "discount": 10.0,
-            "liquidity": "low",
-            "investment_score": 4.0,
-            "reason": "Risky",
-        }]
-        mock_pagination.get_page.return_value = (data, 0, 1)
+        mock_pagination.get_page.return_value = (create_recommendation_item("low"), 0, 1)
 
         await show_investment_recommendations_results(mock_callback_query, mock_context, "csgo")
 
