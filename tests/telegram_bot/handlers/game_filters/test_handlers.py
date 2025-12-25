@@ -570,7 +570,7 @@ class TestHandleSetClassCallback:
 Test Coverage Summary:
 ======================
 
-Total Tests: 35 tests
+Total Tests: 28 tests
 
 Test Categories:
 1. handle_game_filters: 3 tests

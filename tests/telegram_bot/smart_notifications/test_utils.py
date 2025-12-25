@@ -633,7 +633,7 @@ class TestGetItemPrice:
 Test Coverage Summary:
 ======================
 
-Total Tests: 42 tests
+Total Tests: 40 tests
 
 Test Categories:
 1. get_market_data_for_items: 8 tests
