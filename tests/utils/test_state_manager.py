@@ -276,3 +276,298 @@ class TestStateManagerCallbacks:
 
         # Assert
         assert manager._shutdown_callback is None
+
+
+# TestStateManagerAsyncMethods
+
+
+class TestStateManagerAsyncMethods:
+    """Tests for StateManager async methods."""
+
+    @pytest.mark.asyncio
+    async def test_trigger_emergency_shutdown(self):
+        """Test emergency shutdown trigger."""
+        # Arrange
+        mock_session = MagicMock()
+        manager = StateManager(session=mock_session)
+        callback = AsyncMock()
+        manager.set_shutdown_callback(callback)
+
+        # Act
+        await manager.trigger_emergency_shutdown("Test reason")
+
+        # Assert
+        assert manager.is_paused is True
+        callback.assert_called_once_with("Test reason")
+
+    @pytest.mark.asyncio
+    async def test_trigger_emergency_shutdown_sync_callback(self):
+        """Test emergency shutdown with sync callback."""
+        # Arrange
+        mock_session = MagicMock()
+        manager = StateManager(session=mock_session)
+        callback = MagicMock()
+        manager.set_shutdown_callback(callback)
+
+        # Act
+        await manager.trigger_emergency_shutdown("Test reason")
+
+        # Assert
+        assert manager.is_paused is True
+        callback.assert_called_once_with("Test reason")
+
+    @pytest.mark.asyncio
+    async def test_trigger_emergency_shutdown_no_callback(self):
+        """Test emergency shutdown without callback."""
+        # Arrange
+        mock_session = MagicMock()
+        manager = StateManager(session=mock_session)
+
+        # Act
+        await manager.trigger_emergency_shutdown("Test reason")
+
+        # Assert
+        assert manager.is_paused is True
+
+    @pytest.mark.asyncio
+    async def test_trigger_emergency_shutdown_callback_error(self):
+        """Test emergency shutdown when callback raises error."""
+        # Arrange
+        mock_session = MagicMock()
+        manager = StateManager(session=mock_session)
+        callback = AsyncMock(side_effect=Exception("Callback error"))
+        manager.set_shutdown_callback(callback)
+
+        # Act - should not raise
+        await manager.trigger_emergency_shutdown("Test reason")
+
+        # Assert
+        assert manager.is_paused is True
+
+    @pytest.mark.asyncio
+    async def test_mark_checkpoint_completed(self):
+        """Test marking checkpoint as completed."""
+        from unittest.mock import patch
+
+        # Arrange
+        mock_session = AsyncMock()
+        mock_session.execute = AsyncMock()
+        mock_session.commit = AsyncMock()
+        manager = StateManager(session=mock_session)
+        scan_id = uuid4()
+
+        # Mock save_checkpoint
+        with patch.object(manager, 'save_checkpoint', new_callable=AsyncMock) as mock_save:
+            # Act
+            await manager.mark_checkpoint_completed(scan_id)
+
+            # Assert
+            mock_save.assert_called_once_with(
+                scan_id=scan_id,
+                status="completed",
+            )
+
+    @pytest.mark.asyncio
+    async def test_mark_checkpoint_failed(self):
+        """Test marking checkpoint as failed."""
+        from unittest.mock import patch
+
+        # Arrange
+        mock_session = AsyncMock()
+        manager = StateManager(session=mock_session)
+        scan_id = uuid4()
+
+        with patch.object(manager, 'save_checkpoint', new_callable=AsyncMock) as mock_save:
+            # Act
+            await manager.mark_checkpoint_failed(
+                scan_id=scan_id,
+                error_message="Test error",
+            )
+
+            # Assert
+            mock_save.assert_called_once()
+            call_kwargs = mock_save.call_args.kwargs
+            assert call_kwargs["status"] == "failed"
+            assert call_kwargs["extra_data"]["error"] == "Test error"
+
+    @pytest.mark.asyncio
+    async def test_mark_checkpoint_failed_no_message(self):
+        """Test marking checkpoint as failed without error message."""
+        from unittest.mock import patch
+
+        # Arrange
+        mock_session = AsyncMock()
+        manager = StateManager(session=mock_session)
+        scan_id = uuid4()
+
+        with patch.object(manager, 'save_checkpoint', new_callable=AsyncMock) as mock_save:
+            # Act
+            await manager.mark_checkpoint_failed(scan_id=scan_id)
+
+            # Assert
+            mock_save.assert_called_once()
+            call_kwargs = mock_save.call_args.kwargs
+            assert call_kwargs["status"] == "failed"
+
+
+# TestShutdownHandlers
+
+
+class TestShutdownHandlers:
+    """Tests for shutdown handler registration."""
+
+    def test_register_shutdown_handlers_sets_flag(self):
+        """Test that registering handlers sets the flag."""
+        from unittest.mock import patch
+
+        # Arrange
+        mock_session = MagicMock()
+        manager = StateManager(session=mock_session)
+        scan_id = uuid4()
+
+        with patch('signal.signal'):
+            # Act
+            manager.register_shutdown_handlers(scan_id)
+
+        # Assert
+        assert manager._shutdown_handlers_registered is True
+
+    def test_register_shutdown_handlers_idempotent(self):
+        """Test that handlers are only registered once."""
+        from unittest.mock import patch
+
+        # Arrange
+        mock_session = MagicMock()
+        manager = StateManager(session=mock_session)
+        scan_id = uuid4()
+
+        with patch('signal.signal') as mock_signal:
+            # Act
+            manager.register_shutdown_handlers(scan_id)
+            call_count_1 = mock_signal.call_count
+
+            manager.register_shutdown_handlers(scan_id)
+            call_count_2 = mock_signal.call_count
+
+            # Assert - should not register again
+            assert call_count_1 == call_count_2
+
+
+# TestLocalStateManager
+
+
+class TestLocalStateManager:
+    """Tests for LocalStateManager class."""
+
+    def test_init_creates_directory(self, tmp_path):
+        """Test that initialization creates state directory."""
+        from src.utils.state_manager import LocalStateManager
+
+        # Arrange
+        state_dir = tmp_path / "new_dir"
+
+        # Act
+        manager = LocalStateManager(state_dir=state_dir)
+
+        # Assert
+        assert state_dir.exists()
+
+    def test_get_checkpoint_file(self, tmp_path):
+        """Test checkpoint file path generation."""
+        from src.utils.state_manager import LocalStateManager
+
+        # Arrange
+        manager = LocalStateManager(state_dir=tmp_path)
+        scan_id = uuid4()
+
+        # Act
+        file_path = manager._get_checkpoint_file(scan_id)
+
+        # Assert
+        assert str(scan_id) in str(file_path)
+        assert file_path.suffix == ".json"
+
+    @pytest.mark.asyncio
+    async def test_save_checkpoint(self, tmp_path):
+        """Test saving checkpoint to file."""
+        import json
+        from src.utils.state_manager import LocalStateManager
+
+        # Arrange
+        manager = LocalStateManager(state_dir=tmp_path)
+        scan_id = uuid4()
+
+        # Act
+        await manager.save_checkpoint(
+            scan_id=scan_id,
+            cursor="page_2",
+            processed_items=50,
+            total_items=100,
+            extra_data={"game": "csgo"},
+            status="in_progress",
+        )
+
+        # Assert
+        file_path = manager._get_checkpoint_file(scan_id)
+        assert file_path.exists()
+
+        data = json.loads(file_path.read_text())
+        assert data["scan_id"] == str(scan_id)
+        assert data["cursor"] == "page_2"
+        assert data["processed_items"] == 50
+
+    @pytest.mark.asyncio
+    async def test_load_checkpoint(self, tmp_path):
+        """Test loading checkpoint from file."""
+        from src.utils.state_manager import LocalStateManager
+
+        # Arrange
+        manager = LocalStateManager(state_dir=tmp_path)
+        scan_id = uuid4()
+
+        await manager.save_checkpoint(
+            scan_id=scan_id,
+            cursor="page_3",
+            processed_items=75,
+            total_items=100,
+        )
+
+        # Act
+        checkpoint = await manager.load_checkpoint(scan_id)
+
+        # Assert
+        assert checkpoint is not None
+        assert checkpoint.scan_id == scan_id
+        assert checkpoint.cursor == "page_3"
+
+    @pytest.mark.asyncio
+    async def test_load_checkpoint_not_found(self, tmp_path):
+        """Test loading non-existent checkpoint."""
+        from src.utils.state_manager import LocalStateManager
+
+        # Arrange
+        manager = LocalStateManager(state_dir=tmp_path)
+        scan_id = uuid4()
+
+        # Act
+        checkpoint = await manager.load_checkpoint(scan_id)
+
+        # Assert
+        assert checkpoint is None
+
+    @pytest.mark.asyncio
+    async def test_load_checkpoint_invalid_json(self, tmp_path):
+        """Test loading checkpoint with invalid JSON."""
+        from src.utils.state_manager import LocalStateManager
+
+        # Arrange
+        manager = LocalStateManager(state_dir=tmp_path)
+        scan_id = uuid4()
+        file_path = manager._get_checkpoint_file(scan_id)
+        file_path.write_text("invalid json {")
+
+        # Act
+        checkpoint = await manager.load_checkpoint(scan_id)
+
+        # Assert
+        assert checkpoint is None

@@ -88,7 +88,7 @@ data/*.json
 data/*.csv
 data/*.xlsx
 !data/.gitkeep
-!data/notifications/
+data/notifications/*.json
 data/sales_history/*.json
 data/market_cache/*.json
 data/user_data/*.json
