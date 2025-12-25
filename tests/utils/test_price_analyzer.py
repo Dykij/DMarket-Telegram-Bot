@@ -13,7 +13,12 @@ from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.price_analyzer import (
     _CACHE_TTL,
     _price_history_cache,
+    analyze_supply_demand,
     calculate_price_statistics,
+    calculate_price_trend,
+    find_undervalued_items,
+    get_investment_reason,
+    get_investment_recommendations,
     get_item_price_history,
 )
 
@@ -385,13 +390,6 @@ class TestEdgeCases:
 # Additional Tests for Extended Coverage
 # ============================================================================
 
-from src.utils.price_analyzer import (
-    calculate_price_trend,
-    find_undervalued_items,
-    analyze_supply_demand,
-    get_investment_recommendations,
-    get_investment_reason,
-)
 
 
 class TestCalculatePriceTrend:
