@@ -1828,7 +1828,13 @@ tests/
 | `src/dmarket/filters/` | Пустая директория | Нет тестов |
 | `src/telegram_bot/user_profiles.json` | Хардкод данных | Нет тестов |
 | `src/utils/analytics.py` | Дублирует `market_analytics.py` | `tests/utils/test_analytics_extended.py` |
-| `anytool/` | Неиспользуемая директория | `tests/unit/test_anytool_integration.py` |
+| ~~`anytool/`~~ | ~~Неиспользуемая директория~~ **ИСКЛЮЧЕНО** - модуль активно используется для MCP интеграции | `tests/unit/test_anytool_integration.py` ✅ |
+
+**ВАЖНО:** Модуль `anytool/` НЕ подлежит удалению! Это активный MCP (Model Context Protocol) интеграционный модуль с:
+- `anytool/config/config_mcp.json` - конфигурация MCP
+- `src/utils/anytool_integration.py` - интеграционный код (305 строк)
+- `tests/unit/test_anytool_integration.py` - тесты
+- `docs/ANYTOOL_INTEGRATION_GUIDE.md` - документация
 
 ### Процедура удаления
 
@@ -1848,16 +1854,16 @@ grep -r "from src.utils.analytics import" src/ tests/
 
 ## 📊 Сводная таблица Phase 2
 
-### Новые тесты (120 тестов)
+### Новые тесты (120+ тестов)
 
-| Категория | Q1 2026 | Q2 2026 | Итого |
-|-----------|---------|---------|-------|
-| Performance | 35 | - | 35 |
-| Security | 20 | - | 20 |
-| Fuzz | 15 | - | 15 |
-| Property-Based | - | 30 | 30 |
-| BDD/Acceptance | - | 20 | 20 |
-| **Итого** | **70** | **50** | **120** |
+| Категория | Q1 2026 | Q2 2026 | Итого | Статус |
+|-----------|---------|---------|-------|--------|
+| Security | 23 | - | 23 | ✅ НАЧАТО (tests/security/test_api_key_security.py) |
+| Performance | 20 | - | 20 | ✅ НАЧАТО (tests/performance/test_benchmarks.py) |
+| Fuzz | - | 15 | 15 | Уже есть (tests/property_based/test_fuzz_inputs.py) |
+| Property-Based | - | 30 | 30 | Уже есть (tests/property_based/) |
+| BDD/Acceptance | - | 20 | 20 | Запланировано |
+| **Итого** | **43** | **65** | **108+** | - |
 
 ### Рефакторинг тестов (сокращение дублирования)
 
@@ -1872,12 +1878,46 @@ grep -r "from src.utils.analytics import" src/ tests/
 |--------|-----------|--------|------------|
 | `dmarket_api.py` | ~200 | 2 файла | Заменен на `api/client.py` |
 | `analytics.py` | ~100 | 1 файл | Заменен на `market_analytics.py` |
-| `anytool/` | ~50 | 1 файл | Не используется |
-| **Итого** | **~350** | **4 файла** | - |
+| ~~`anytool/`~~ | ~~~50~~ | ~~1 файл~~ | **НЕ УДАЛЯТЬ** - активный модуль MCP |
+| **Итого** | **~300** | **3 файла** | - |
 
 ---
 
-**Версия:** 7.0 (Phase 2 - Расширенные методы тестирования)
+## ✅ Phase 2 Progress (25 декабря 2025)
+
+### Добавленные тесты Phase 2
+
+| Файл | Тестов | Категория | Статус |
+|------|--------|-----------|--------|
+| `tests/security/test_api_key_security.py` | 23 | Security | ✅ НОВЫЙ |
+| `tests/performance/test_benchmarks.py` | 20 (4 без benchmark + 16 с benchmark) | Performance | ✅ НОВЫЙ |
+| **Итого** | **43** | - | ✅ |
+
+### Security тесты (23 теста)
+- ✅ API key not logged (4 теста)
+- ✅ API key encryption (2 теста)
+- ✅ Input validation - SQL injection (5 тестов)
+- ✅ Input validation - XSS prevention (3 теста)
+- ✅ Command injection prevention (1 тест)
+- ✅ Rate limiting (2 теста)
+- ✅ Secure randomness (2 теста)
+- ✅ Authentication security (2 теста)
+- ✅ Sensitive data handling (2 теста)
+
+### Performance тесты (20 тестов)
+- ✅ Price calculation (3 теста) - требуют pytest-benchmark
+- ✅ Cache performance (3 теста) - требуют pytest-benchmark
+- ✅ Filtering performance (2 теста) - требуют pytest-benchmark
+- ✅ Sorting performance (2 теста) - требуют pytest-benchmark
+- ✅ Pagination performance (2 теста) - требуют pytest-benchmark
+- ✅ String operations (2 теста) - требуют pytest-benchmark
+- ✅ JSON performance (2 теста) - требуют pytest-benchmark
+- ✅ Async performance (2 теста) - работают без benchmark
+- ✅ Memory efficiency (2 теста) - работают без benchmark
+
+---
+
+**Версия:** 7.1 (Phase 2 - Security и Performance тесты добавлены)
 **Последнее обновление:** 25 декабря 2025 г.
-**Статус:** 🟢 Phase 1 завершена (70%+ покрытие), Phase 2 запланирована
-**Готовность плана:** ✅ Phase 1 ЗАВЕРШЕНА! Начат Phase 2 с новыми видами тестирования
+**Статус:** 🟢 Phase 1 завершена (70%+ покрытие), Phase 2 в процессе
+**Готовность плана:** ✅ Phase 1 ЗАВЕРШЕНА! Phase 2: +43 теста добавлено
