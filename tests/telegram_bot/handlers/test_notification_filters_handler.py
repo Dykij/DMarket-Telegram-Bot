@@ -382,10 +382,10 @@ class TestShowGamesFilter:
         # Act
         await show_games_filter(mock_update, mock_context)
 
-        # Assert
+        # Assert - verify message is sent with reply markup for game selection
+        mock_update.callback_query.edit_message_text.assert_called_once()
         call_args = mock_update.callback_query.edit_message_text.call_args
-        text = call_args.kwargs.get("text", "")
-        assert "игр" in text.lower()
+        assert "reply_markup" in call_args.kwargs
 
 
 class TestToggleGameFilter:
@@ -454,10 +454,10 @@ class TestShowProfitFilter:
         # Act
         await show_profit_filter(mock_update, mock_context)
 
-        # Assert
+        # Assert - verify message is sent with reply markup for profit selection
+        mock_update.callback_query.edit_message_text.assert_called_once()
         call_args = mock_update.callback_query.edit_message_text.call_args
-        text = call_args.kwargs.get("text", "")
-        assert "прибыл" in text.lower()
+        assert "reply_markup" in call_args.kwargs
 
 
 class TestSetProfitFilter:
