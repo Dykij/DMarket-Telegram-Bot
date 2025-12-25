@@ -32,12 +32,15 @@ class TestShouldThrottleNotification:
         from datetime import datetime as dt
         current_hour = dt.now().hour
 
+        # Use modulo to handle hour wraparound
+        quiet_end = (current_hour + 2) % 24
+
         with patch(
             "src.telegram_bot.smart_notifications.throttling.get_user_preferences",
             return_value={
                 "123": {
                     # Set quiet hours to include current hour
-                    "quiet_hours": {"start": current_hour, "end": current_hour + 2},
+                    "quiet_hours": {"start": current_hour, "end": quiet_end},
                 }
             },
         ):
@@ -109,7 +112,7 @@ class TestShouldThrottleNotification:
                 notification_type="price_alert",
             )
 
-        # Should be throttled because 60s < default cooldown (3600s)
+        # Should be throttled because 60s < default cooldown (1800s for price_alert)
         assert result is True
 
     @pytest.mark.asyncio
@@ -133,7 +136,7 @@ class TestShouldThrottleNotification:
                 "123": {
                     "quiet_hours": {"start": quiet_start, "end": quiet_end},
                     "last_notification": {
-                        "price_alert": current_time - 7200,  # 2 hours ago
+                        "price_alert": current_time - 2000,  # ~33 min ago
                     },
                 }
             },
@@ -143,7 +146,7 @@ class TestShouldThrottleNotification:
                 notification_type="price_alert",
             )
 
-        # Should not be throttled because 7200s > default cooldown (3600s)
+        # Should not be throttled because 2000s > default cooldown (1800s for price_alert)
         assert result is False
 
     @pytest.mark.asyncio
@@ -206,7 +209,7 @@ class TestShouldThrottleNotification:
                     "frequency": "high",  # Halves cooldown
                     "quiet_hours": {"start": quiet_start, "end": quiet_end},
                     "last_notification": {
-                        "price_alert": current_time - 2000,  # ~33 minutes ago
+                        "price_alert": current_time - 1000,  # ~17 minutes ago
                     },
                 }
             },
@@ -216,7 +219,7 @@ class TestShouldThrottleNotification:
                 notification_type="price_alert",
             )
 
-        # Should not be throttled (2000s > 1800s which is halved cooldown)
+        # Should not be throttled (1000s > 900s which is halved cooldown from 1800s)
         assert result is False
 
     @pytest.mark.asyncio
