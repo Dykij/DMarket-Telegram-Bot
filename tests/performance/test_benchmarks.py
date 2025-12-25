@@ -233,19 +233,18 @@ class TestPaginationPerformance:
 
     def test_generator_pagination_speed(self, benchmark):
         """Benchmark generator-based pagination speed."""
+        import itertools
 
-        def create_items():
-            for i in range(100000):
-                yield {"id": i}
-
-        def paginate_generator(gen, page: int, page_size: int) -> list:
-            """Paginate generator."""
-            import itertools
-
+        def paginate_generator_benchmark() -> list:
+            """Create generator and paginate it."""
+            # Create fresh generator each time
+            gen = ({"id": i} for i in range(100000))
+            page = 500
+            page_size = 100
             start = page * page_size
             return list(itertools.islice(gen, start, start + page_size))
 
-        results = benchmark(paginate_generator, create_items(), 500, 100)
+        results = benchmark(paginate_generator_benchmark)
         assert len(results) == 100
 
 
