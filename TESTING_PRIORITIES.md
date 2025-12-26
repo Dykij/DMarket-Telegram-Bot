@@ -23,8 +23,8 @@
 |--------|------|-------|------------------|--------------|-----------|--------|
 | **dmarket_api.py** | `src/dmarket/dmarket_api.py` | 3092 | ~45% | 100+ | 🔥 КРИТИЧЕСКИЙ | ✅ +52 тестов (26.12.2025) |
 | **portfolio_manager.py** | `src/dmarket/portfolio_manager.py` | 961 | ~45% | 60+ | 🔥 КРИТИЧЕСКИЙ | ✅ +38 тестов (26.12.2025) |
-| **arbitrage_scanner.py** | `src/dmarket/arbitrage_scanner.py` | 1666 | ~35% | 150+ | 🔥 КРИТИЧЕСКИЙ | 📋 Следующий |
-| **game_filter_handlers.py** | `src/telegram_bot/handlers/game_filter_handlers.py` | 1196 | ~40% | 100+ | 🔥 КРИТИЧЕСКИЙ | 📋 Ожидает |
+| **arbitrage_scanner.py** | `src/dmarket/arbitrage_scanner.py` | 1666 | ~50% | 150+ | 🔥 КРИТИЧЕСКИЙ | ✅ +76 тестов (26.12.2025) |
+| **game_filter_handlers.py** | `src/telegram_bot/handlers/game_filter_handlers.py` | 1196 | ~40% | 100+ | 🔥 КРИТИЧЕСКИЙ | 📋 Следующий |
 | **market_analysis_handler.py** | `src/telegram_bot/handlers/market_analysis_handler.py` | 1121 | ~45% | 80+ | 🔥 ВЫСОКИЙ | 📋 Ожидает |
 | **backtester.py** | `src/dmarket/backtester.py` | 1118 | ~40% | 90+ | 🔥 ВЫСОКИЙ | 📋 Ожидает |
 | **arbitrage_sales_analysis.py** | `src/dmarket/arbitrage_sales_analysis.py` | 998 | ~35% | 85+ | 🔥 ВЫСОКИЙ | 📋 Ожидает |
