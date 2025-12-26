@@ -29,9 +29,8 @@
 | **backtester.py** | `src/dmarket/backtester.py` | 1118 | ~40% | 90+ | 🔥 ВЫСОКИЙ | 📋 Ожидает |
 | **arbitrage_sales_analysis.py** | `src/dmarket/arbitrage_sales_analysis.py` | 998 | ~35% | 85+ | 🔥 ВЫСОКИЙ | 📋 Ожидает |
 | **market_analysis.py** | `src/dmarket/market_analysis.py` | 988 | ~40% | 80+ | 🔥 ВЫСОКИЙ | 📋 Ожидает |
-| **portfolio_manager.py** | `src/dmarket/portfolio_manager.py` | 961 | ~30% | 100+ | 🔥 ВЫСОКИЙ |
-| **market_alerts_handler.py** | `src/telegram_bot/handlers/market_alerts_handler.py` | 934 | ~35% | 80+ | ⚡ ВЫСОКИЙ |
-| **market_visualizer.py** | `src/utils/market_visualizer.py` | 867 | ~25% | 90+ | ⚡ СРЕДНИЙ |
+| **market_alerts_handler.py** | `src/telegram_bot/handlers/market_alerts_handler.py` | 934 | ~35% | 80+ | ⚡ ВЫСОКИЙ | 📋 Ожидает |
+| **market_visualizer.py** | `src/utils/market_visualizer.py` | 867 | ~25% | 90+ | ⚡ СРЕДНИЙ | 📋 Ожидает |
 
 #### 🟡 Модули с покрытием 40-50% (требуют улучшения)
 
