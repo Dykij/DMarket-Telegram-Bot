@@ -1,11 +1,11 @@
 # 🎯 Приоритеты тестирования (Декабрь 2025)
 
-> **Дата обновления:** 26 декабря 2025 г. (версия 9.4)
+> **Дата обновления:** 26 декабря 2025 г. (версия 9.5)
 > **Текущее покрытие:** ~76% ✅ (цель 80% в процессе)
 > **DMarket API покрытие:** 87.5%+ ✅ (цель 70%+ превышена!)
-> **Всего тестов:** 1173+ (все проходят)
+> **Всего тестов:** 1217+ (все проходят)
 > **В процессе:** Phase 3 - Достижение 80% покрытия
-> **Добавлено в этом PR:** 1173+ тестов ✅ (Phase 1: 640 + Phase 2: 87 + Phase 3: 446)
+> **Добавлено в этом PR:** 1217+ тестов ✅ (Phase 1: 640 + Phase 2: 87 + Phase 3: 490)
 
 ---
 
@@ -2141,12 +2141,33 @@ grep -r "from src.utils.analytics import" src/ tests/
 | `api/cache.py` | 46 | 15 | ⚡ СРЕДНИЙ |
 | `liquidity_rules.py` | 27 | 10 | ⚡ СРЕДНИЙ |
 
-#### 6. Pagination & Callbacks (0% покрытия) - ~100 тестов
+#### 6. Pagination & Callbacks - ~100 тестов (✅ ЗАВЕРШЕНО 26.12.2025)
 
-| Модуль | Строк | Тестов | Приоритет |
-|--------|-------|--------|-----------|
-| `pagination.py` | 132 | 40 | ⚡ СРЕДНИЙ |
-| `sales_analysis_callbacks.py` | 236 | 60 | ⚡ СРЕДНИЙ |
+| Модуль | Строк | Тестов | Приоритет | Статус |
+|--------|-------|--------|-----------|--------|
+| `pagination.py` | 132 | 23 | ⚡ СРЕДНИЙ | ✅ ЗАВЕРШЕНО (ранее) |
+| `sales_analysis_callbacks.py` | 236 | 44 | ⚡ СРЕДНИЙ | ✅ ЗАВЕРШЕНО (NEW) |
+
+**✅ pagination.py - ЗАВЕРШЕНО (ранее):**
+- 23 теста
+- Покрытие: PaginationManager initialization, add_items, get_page
+- Page navigation (next/prev), items_per_page settings
+- Filter and sort, get_mode, clear_user_data
+- Pagination keyboard, format_current_page
+
+**✅ sales_analysis_callbacks.py - ЗАВЕРШЕНО (26 декабря 2025):**
+- 44 теста добавлено (NEW)
+- Покрытие: handle_sales_history_callback (8 тестов)
+- handle_liquidity_callback (6 тестов)
+- handle_refresh_sales_callback (4 теста)
+- handle_refresh_liquidity_callback (2 теста)
+- handle_all_arbitrage_sales_callback (5 тестов)
+- handle_refresh_arbitrage_sales_callback (3 теста)
+- handle_setup_sales_filters_callback (4 теста)
+- handle_all_volume_stats_callback (4 теста)
+- handle_refresh_volume_stats_callback (3 теста)
+- price_trend_to_text helper (5 тестов)
+- Edge cases, error handling, API errors
 
 #### 7. Utils Module (0% покрытия) - ~60 тестов
 
