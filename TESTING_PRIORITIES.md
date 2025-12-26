@@ -1,11 +1,11 @@
 # 🎯 Приоритеты тестирования (Декабрь 2025)
 
-> **Дата обновления:** 26 декабря 2025 г. (версия 9.7)
+> **Дата обновления:** 26 декабря 2025 г. (версия 9.8)
 > **Текущее покрытие:** ~78% ✅ (цель 80% почти достигнута!)
 > **DMarket API покрытие:** 90%+ ✅ (auth.py, cache.py, liquidity_rules.py полностью покрыты)
-> **Всего тестов:** 1309+ (все проходят)
+> **Всего тестов:** 1421+ (все проходят)
 > **В процессе:** Phase 3 - Достижение 80% покрытия
-> **Добавлено в этом PR:** 1309+ тестов ✅ (Phase 1: 640 + Phase 2: 87 + Phase 3: 582)
+> **Добавлено в этом PR:** 1421+ тестов ✅ (Phase 1: 640 + Phase 2: 87 + Phase 3: 694)
 
 ---
 
@@ -2007,6 +2007,9 @@ grep -r "from src.utils.analytics import" src/ tests/
 | `target_handler.py` | 92 | 35 | ✅ **ЗАВЕРШЕНО** | 26.12.2025 |
 | `liquidity_settings_handler.py` | 127 | 51 | ✅ **ЗАВЕРШЕНО** | 26.12.2025 |
 | `rate_limit_admin.py` | 125 | 41 | ✅ **ЗАВЕРШЕНО** | 26.12.2025 |
+| `backtest_handler.py` | 95 | 36 | ✅ **ЗАВЕРШЕНО** | 26.12.2025 |
+| `dashboard_handler.py` | 250 | 39 | ✅ **ЗАВЕРШЕНО** | 26.12.2025 |
+| `portfolio_handler.py` | 149 | 37 | ✅ **ЗАВЕРШЕНО** | 26.12.2025 |
 
 **✅ market_analysis_handler.py - ЗАВЕРШЕНО (25 декабря 2025):**
 - 64 теста добавлено
@@ -2043,6 +2046,37 @@ grep -r "from src.utils.analytics import" src/ tests/
 - 51 тест (NEW)
 - Покрытие: settings CRUD, toggle, reset, value input processing
 - Edge cases и boundary validation
+
+**✅ backtest_handler.py - ЗАВЕРШЕНО (26 декабря 2025):**
+- 36 тестов (NEW)
+- Покрытие: BacktestHandler initialization, set_api
+- handle_backtest_command: days parsing, min/max limits, invalid days, keyboard display
+- handle_callback: results, settings, balance change
+- _run_backtest: no API, loading message, error handling
+- _display_result: positive/negative profit, statistics display
+- _show_results: empty results, with results
+- Edge cases: float precision balance, zero balance, large balance
+
+**✅ dashboard_handler.py - ЗАВЕРШЕНО (26 декабря 2025):**
+- 39 тестов (NEW)
+- Покрытие: ScannerDashboard initialization
+- add_scan_result: single, multiple, history limit, timestamp
+- get_user_stats: empty, single scan, multiple scans, filter by user
+- mark_scan_active/complete: timestamps, replace previous
+- get_dashboard_keyboard: markup structure, buttons
+- format_stats_message: zero stats, with data, time formatting (just now, minutes, hours, days)
+- get_scanner_control_keyboard: with/without level, back button
+- Dashboard callbacks: query handling, message handling
+- Edge cases: empty opportunities, missing profit key, negative profit, large history
+
+**✅ portfolio_handler.py - ЗАВЕРШЕНО (26 декабря 2025):**
+- 37 тестов (NEW)
+- Покрытие: PortfolioHandler initialization, set_api
+- handle_portfolio_command: no message, no user, summary display, keyboard
+- handle_callback: details, performance, risk, diversification, sync, update_prices, back, remove
+- handle_add_item_id: no message, no user_data, no text, invalid format, valid format, success message
+- _format_summary: empty portfolio, with data
+- Edge cases: whitespace handling, item ID generation, case insensitive game, comma in name, zero/large price
 
 **Детальный план:**
 
