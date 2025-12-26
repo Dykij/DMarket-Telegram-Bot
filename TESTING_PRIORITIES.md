@@ -2006,7 +2006,7 @@ grep -r "from src.utils.analytics import" src/ tests/
 | `settings_handlers.py` | 169 | 40 | ✅ **ЗАВЕРШЕНО** | ранее |
 | `target_handler.py` | 92 | 35 | ✅ **ЗАВЕРШЕНО** | 26.12.2025 |
 | `liquidity_settings_handler.py` | 127 | 51 | ✅ **ЗАВЕРШЕНО** | 26.12.2025 |
-| `rate_limit_admin.py` | 125 | 35 | ⚡ СРЕДНИЙ | Q2 2026 |
+| `rate_limit_admin.py` | 125 | 41 | ✅ **ЗАВЕРШЕНО** | 26.12.2025 |
 
 **✅ market_analysis_handler.py - ЗАВЕРШЕНО (25 декабря 2025):**
 - 64 теста добавлено
@@ -2016,6 +2016,13 @@ grep -r "from src.utils.analytics import" src/ tests/
 **✅ sales_analysis_handlers.py - ЗАВЕРШЕНО (25 декабря 2025):**
 - 41 тест добавлено  
 - Покрытие всех функций форматирования и callbacks
+
+**✅ rate_limit_admin.py - ЗАВЕРШЕНО (26 декабря 2025):**
+- 41 тест добавлено (NEW)
+- Покрытие: is_admin, rate_limit_stats_command, rate_limit_reset_command
+- rate_limit_whitelist_command (add/remove/check), rate_limit_config_command
+- Admin authorization, rate limiter не настроен, error handling
+- Stats formatting: low/medium/high usage indicators
 
 **✅ intramarket_arbitrage_handler.py - ЗАВЕРШЕНО (26 декабря 2025):**
 - 41 тест добавлено
@@ -2092,7 +2099,7 @@ grep -r "from src.utils.analytics import" src/ tests/
 | Модуль | Строк | Тестов | Приоритет |
 |--------|-------|--------|-----------|
 | `backtester.py` | 210 | 46 | ✅ **ЗАВЕРШЕНО** 26.12.2025 |
-| `historical_data.py` | 136 | 35 | 🔥 ВЫСОКИЙ |
+| `historical_data.py` | 136 | 46 | ✅ **ЗАВЕРШЕНО** 26.12.2025 |
 
 **✅ backtester.py - ЗАВЕРШЕНО (26 декабря 2025):**
 - 46 тестов добавлено (NEW)
@@ -2101,41 +2108,29 @@ grep -r "from src.utils.analytics import" src/ tests/
 - Backtester run, metrics calculation (drawdown, sharpe)
 - Integration tests для полных trading cycles
 
-**Детальный план:**
-
-```python
-# tests/analytics/test_backtester.py (~55 тестов)
-- test_run_backtest (10 тестов)
-- test_calculate_returns (8 тестов)
-- test_calculate_max_drawdown (8 тестов)
-- test_calculate_sharpe_ratio (8 тестов)
-- test_generate_report (10 тестов)
-- test_edge_cases (11 тестов)
-
-# tests/analytics/test_historical_data.py (~35 тестов)
-- test_fetch_historical_prices (10 тестов)
-- test_aggregate_data (8 тестов)
-- test_data_validation (10 тестов)
-- test_cache_management (7 тестов)
-```
+**✅ historical_data.py - ЗАВЕРШЕНО (26 декабря 2025):**
+- 46 тестов добавлено (NEW)
+- Покрытие: PricePoint, PriceHistory dataclasses
+- HistoricalDataCollector: collect_price_history, collect_batch
+- Cache management: cache_hit, cache_bypass, clear_cache, get_cache_stats
+- API parsing: sales_history, aggregated_prices, timestamp formats
+- Edge cases: unicode titles, large prices, special characters
 
 #### 4. Portfolio Module (0% покрытия) - ~60 тестов
 
 | Модуль | Строк | Тестов | Приоритет |
 |--------|-------|--------|-----------|
-| `analyzer.py` | 182 | 60 | 🔥 ВЫСОКИЙ |
+| `analyzer.py` | 182 | 42 | ✅ **ЗАВЕРШЕНО** 26.12.2025 |
 
-**Детальный план:**
-
-```python
-# tests/portfolio/test_analyzer.py (~60 тестов)
-- test_calculate_portfolio_value (10 тестов)
-- test_calculate_pnl (10 тестов)
-- test_asset_allocation (10 тестов)
-- test_risk_assessment (10 тестов)
-- test_performance_metrics (10 тестов)
-- test_edge_cases (10 тестов)
-```
+**✅ analyzer.py - ЗАВЕРШЕНО (26 декабря 2025):**
+- 42 теста добавлено (NEW)
+- Покрытие: ConcentrationRisk, DiversificationReport, RiskReport dataclasses
+- PortfolioAnalyzer: analyze_diversification, analyze_risk
+- get_top_performers, get_worst_performers
+- Private methods: _calculate_distribution, _calculate_volatility_score
+- _calculate_liquidity_score, _calculate_concentration_score
+- _find_high_risk_items, _generate_diversification_recommendations
+- Edge cases: very large portfolio, extreme price differences
 
 #### 5. DMarket API (0% покрытия) - ~40 тестов
 
