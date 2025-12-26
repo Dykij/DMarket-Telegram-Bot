@@ -823,11 +823,16 @@ class TestCheckUserBalance:
 
     @pytest.mark.asyncio
     async def test_check_user_balance_frozen_funds(self, mock_api_client):
-        """Test balance check with frozen funds."""
+        """Test balance check with frozen funds.
+        
+        When available balance (50 cents = $0.50) is below min_required ($1.00)
+        AND frozen balance (1000 cents = $10.00) is significant (> $0.01),
+        the diagnosis should be 'funds_frozen'.
+        """
         from src.dmarket.arbitrage_scanner import ArbitrageScanner
         
         mock_api_client._request = AsyncMock(return_value={
-            "usd": {"available": 50, "frozen": 1000}  # Low available, high frozen
+            "usd": {"available": 50, "frozen": 1000}  # 50 cents available, 1000 cents frozen
         })
         scanner = ArbitrageScanner(api_client=mock_api_client)
         
@@ -1043,8 +1048,8 @@ class TestAnalyzeItem:
         
         item = {
             "title": "Test Item",
-            "price": {"USD": 1000},  # $10
-            "suggestedPrice": {"USD": 1200},  # $12 (20% profit)
+            "price": {"USD": 1000},  # 1000 cents = $10.00
+            "suggestedPrice": {"USD": 1200},  # 1200 cents = $12.00 (20% profit)
         }
         config = {
             "price_range": (5.0, 50.0),
