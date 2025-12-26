@@ -617,8 +617,10 @@ class TestHandleIntramarketCallback:
         # Should show error about API client
         call_args = mock_update.callback_query.edit_message_text.call_args_list
         # Check last call for error message
-        error_shown = any("API" in str(call) or "ошибка" in str(call).lower() 
-                        for call in call_args)
+        error_shown = any(
+            "API" in str(call) or "ошибка" in str(call).lower()
+            for call in call_args
+        )
         # At minimum, some message should be shown
         assert len(call_args) > 0
 
