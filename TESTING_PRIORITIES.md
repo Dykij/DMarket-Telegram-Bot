@@ -28,8 +28,8 @@
 | **market_analysis_handler.py** | `src/telegram_bot/handlers/market_analysis_handler.py` | 1121 | ~60% | 40+ | 🔥 ВЫСОКИЙ | ✅ +76 тестов (26.12.2025) |
 | **backtester.py** | `src/dmarket/backtester.py` | 1118 | ~55% | 50+ | 🔥 ВЫСОКИЙ | ✅ +94 тестов (26.12.2025) |
 | **arbitrage_sales_analysis.py** | `src/dmarket/arbitrage_sales_analysis.py` | 998 | ~55% | 85+ | 🔥 ВЫСОКИЙ | ✅ +63 тестов (26.12.2025) |
-| **market_analysis.py** | `src/dmarket/market_analysis.py` | 988 | ~40% | 80+ | 🔥 ВЫСОКИЙ | 📋 Следующий |
-| **market_alerts_handler.py** | `src/telegram_bot/handlers/market_alerts_handler.py` | 934 | ~35% | 80+ | ⚡ ВЫСОКИЙ | 📋 Ожидает |
+| **market_analysis.py** | `src/dmarket/market_analysis.py` | 988 | ~55% | 80+ | 🔥 ВЫСОКИЙ | ✅ +72 тестов (26.12.2025) |
+| **market_alerts_handler.py** | `src/telegram_bot/handlers/market_alerts_handler.py` | 934 | ~35% | 80+ | ⚡ ВЫСОКИЙ | 📋 Следующий |
 | **market_visualizer.py** | `src/utils/market_visualizer.py` | 867 | ~25% | 90+ | ⚡ СРЕДНИЙ | 📋 Ожидает |
 
 #### 🟡 Модули с покрытием 40-50% (требуют улучшения)
