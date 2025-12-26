@@ -1,17 +1,17 @@
 # 🎯 Приоритеты тестирования (Декабрь 2025)
 
-> **Дата обновления:** 26 декабря 2025 г. (версия 9.6)
-> **Текущее покрытие:** ~77% ✅ (цель 80% в процессе)
-> **DMarket API покрытие:** 87.5%+ ✅ (цель 70%+ превышена!)
+> **Дата обновления:** 26 декабря 2025 г. (версия 9.7)
+> **Текущее покрытие:** ~78% ✅ (цель 80% почти достигнута!)
+> **DMarket API покрытие:** 90%+ ✅ (auth.py, cache.py, liquidity_rules.py полностью покрыты)
 > **Всего тестов:** 1309+ (все проходят)
 > **В процессе:** Phase 3 - Достижение 80% покрытия
 > **Добавлено в этом PR:** 1309+ тестов ✅ (Phase 1: 640 + Phase 2: 87 + Phase 3: 582)
 
 ---
 
-## ✅ ВАЖНОЕ ОБНОВЛЕНИЕ: DMarket API Тесты Завершены
+## ✅ ВАЖНОЕ ОБНОВЛЕНИЕ: Phase 3 Почти Завершена (26 декабря 2025)
 
-**🎉 Поздравляем!** DMarket API модули успешно покрыты тестами:
+**🎉 Все основные модули Phase 3 покрыты тестами!**
 
 ### 📊 Результаты DMarket API (20 декабря 2025)
 
@@ -2133,13 +2133,29 @@ grep -r "from src.utils.analytics import" src/ tests/
 - _find_high_risk_items, _generate_diversification_recommendations
 - Edge cases: very large portfolio, extreme price differences
 
-#### 5. DMarket API (0% покрытия) - ~40 тестов
+#### 5. DMarket API (0% покрытия) - ~40 тестов (✅ ЗАВЕРШЕНО 26.12.2025)
 
 | Модуль | Строк | Тестов | Приоритет | Статус |
 |--------|-------|--------|-----------|--------|
-| `api/auth.py` | 55 | 20 | 🔥 ВЫСОКИЙ | ⏳ Pending |
-| `api/cache.py` | 46 | 15 | ⚡ СРЕДНИЙ | ⏳ Pending |
+| `api/auth.py` | 55 | 25 | 🔥 ВЫСОКИЙ | ✅ ЗАВЕРШЕНО (existing) |
+| `api/cache.py` | 46 | 25 | ⚡ СРЕДНИЙ | ✅ ЗАВЕРШЕНО (existing) |
 | `liquidity_rules.py` | 27 | 37 | ⚡ СРЕДНИЙ | ✅ ЗАВЕРШЕНО (NEW) |
+
+**✅ api/auth.py - ЗАВЕРШЕНО (existing):**
+- 25 тестов (уже существовали)
+- Покрытие: generate_signature_ed25519 (6 тестов)
+- _convert_secret_key (4 теста) - HEX, Base64, long HEX, unknown format
+- generate_signature_hmac (4 теста) - with/without body, timestamp, hexdigest
+- Edge cases (3 теста) - special chars, unicode, different methods
+- Additional API tests (8 тестов)
+
+**✅ api/cache.py - ЗАВЕРШЕНО (existing):**
+- 25 тестов (уже существовали)
+- Покрытие: get_cache_key (6 тестов) - simple, params, data, consistency
+- is_cacheable (7 тестов) - short/medium/long TTL, POST not cacheable
+- save_to_cache/get_from_cache (6 тестов) - basic, TTL types
+- clear_cache operations (4 тестов) - all, by endpoint
+- Edge cases (2 теста) - unknown TTL, overwrite, empty data
 
 **✅ liquidity_rules.py - ЗАВЕРШЕНО (26 декабря 2025):**
 - 37 тестов добавлено (NEW)
@@ -2179,14 +2195,23 @@ grep -r "from src.utils.analytics import" src/ tests/
 - price_trend_to_text helper (5 тестов)
 - Edge cases, error handling, API errors
 
-#### 7. Utils Module (0% покрытия) - ~60 тестов (✅ ЧАСТИЧНО ЗАВЕРШЕНО 26.12.2025)
+#### 7. Utils Module (0% покрытия) - ~60 тестов (✅ ЗАВЕРШЕНО 26.12.2025)
 
 | Модуль | Строк | Тестов | Приоритет | Статус |
 |--------|-------|--------|-----------|--------|
 | `performance.py` | 76 | 55 | ⚡ СРЕДНИЙ | ✅ ЗАВЕРШЕНО (36 existing + 19 NEW) |
 | `rate_limit_decorator.py` | 34 | 10 | ⚡ СРЕДНИЙ | ✅ ЗАВЕРШЕНО (existing) |
-| `prometheus_server.py` | 38 | 15 | 🟢 НИЗКИЙ | ⏳ Pending |
-| `api_helper.py` | 20 | 10 | 🟢 НИЗКИЙ | ⏳ Pending |
+| `prometheus_server.py` | 38 | 17 | 🟢 НИЗКИЙ | ✅ ЗАВЕРШЕНО (existing) |
+
+**✅ prometheus_server.py - ЗАВЕРШЕНО (existing):**
+- 17 тестов (уже существовали)
+- Покрытие: PrometheusServer class (12 тестов)
+  - init (default/custom port), routes configured
+  - metrics_handler, health_handler
+  - start/stop server, lifecycle
+- run_prometheus_server (2 теста) - cancellation, custom port
+- Integration tests (2 теста) - full lifecycle, bytes content
+- Edge cases (1 тест) - multiple instances, idempotent stop
 
 **✅ performance.py - ЗАВЕРШЕНО (26 декабря 2025):**
 - 55 тестов (36 existing + 19 NEW)
