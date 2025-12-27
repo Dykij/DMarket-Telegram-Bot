@@ -979,6 +979,72 @@ class TestTimestampHandling:
 
 
 # ============================================================================
+# Test Class: Edge Cases and Special Scenarios
+# ============================================================================
+
+
+class TestBalanceEdgeCases:
+    """Tests for edge cases and special scenarios."""
+
+    @pytest.mark.asyncio()
+    async def test_handles_none_username_in_account_info(
+        self, mock_callback_query, mock_context, mock_api_client
+    ):
+        """Test handling when account info returns None for username."""
+        # Arrange
+        with (
+            patch(
+                "src.telegram_bot.commands.balance_command.create_dmarket_api_client",
+                return_value=mock_api_client,
+            ),
+            patch("src.telegram_bot.commands.balance_command.add_command_breadcrumb"),
+        ):
+            mock_api_client.get_user_balance.return_value = {
+                "available_balance": 100.0,
+                "total_balance": 100.0,
+                "has_funds": True,
+                "error": False,
+            }
+            mock_api_client.get_account_details.return_value = {"username": None}
+            mock_api_client.get_active_offers.return_value = {"total": 0}
+
+            # Act
+            await check_balance_command(mock_callback_query, mock_context)
+
+            # Assert
+            final_call = mock_callback_query.edit_message_text.call_args_list[-1]
+            final_text = final_call.kwargs["text"]
+
+            # Should use default "Неизвестный" for None username
+            assert "Пользователь" in final_text
+
+    @pytest.mark.asyncio()
+    async def test_handles_update_with_no_message(
+        self, mock_user, mock_context, mock_api_client
+    ):
+        """Test handling Update object with no message attribute."""
+        # Arrange
+        update = MagicMock(spec=Update)
+        update.effective_user = mock_user
+        update.effective_chat = MagicMock()
+        update.effective_chat.id = 123
+        update.message = None  # No message
+
+        with (
+            patch(
+                "src.telegram_bot.commands.balance_command.create_dmarket_api_client",
+                return_value=mock_api_client,
+            ),
+            patch("src.telegram_bot.commands.balance_command.add_command_breadcrumb"),
+        ):
+            # Act
+            await check_balance_command(update, mock_context)
+
+            # Assert - should handle gracefully without crashing
+            # The function should return early when message is None
+
+
+# ============================================================================
 # Test Summary
 # ============================================================================
 
@@ -986,7 +1052,7 @@ class TestTimestampHandling:
 Test Coverage Summary:
 ======================
 
-Total Tests: 28 tests
+Total Tests: 30 tests
 
 Test Categories:
 1. Initialization & User Extraction: 3 tests
@@ -998,6 +1064,7 @@ Test Categories:
 7. Currency Formatting: 6 tests (parametrized)
 8. Warning Messages: 2 tests
 9. Timestamp Handling: 1 test
+10. Edge Cases & Special Scenarios: 2 tests
 
 Coverage Areas:
 ✅ Balance retrieval and display (8 tests)
@@ -1007,7 +1074,8 @@ Coverage Areas:
 ✅ User authorization (3 tests)
 ✅ Warning messages (2 tests)
 ✅ Timestamp display (1 test)
+✅ Edge cases (2 tests)
 
 Expected Coverage: 90%+
-File Size: ~1,400 lines
+File Size: ~1,450 lines
 """

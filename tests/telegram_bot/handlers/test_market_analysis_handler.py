@@ -204,6 +204,44 @@ def sample_recommendations():
     ]
 
 
+# ======================== Helper functions for test data ========================
+
+
+def create_undervalued_item(trend: str = "stable") -> list[dict]:
+    """Create test data for undervalued item with specified trend."""
+    return [{
+        "title": "Test Item",
+        "current_price": 100.0,
+        "avg_price": 120.0,
+        "discount": 16.7,
+        "trend": trend,
+        "volume": 50,
+    }]
+
+
+def create_recommendation_item(liquidity: str = "medium") -> list[dict]:
+    """Create test data for recommendation item with specified liquidity."""
+    return [{
+        "title": "Test Item",
+        "current_price": 100.0,
+        "discount": 10.0,
+        "liquidity": liquidity,
+        "investment_score": 7.0,
+        "reason": "Test reason",
+    }]
+
+
+def create_volatility_item(volatility_score: float = 15.0) -> list[dict]:
+    """Create test data for volatility item with specified score."""
+    return [{
+        "market_hash_name": "Test Item",
+        "current_price": 100.0,
+        "change_24h_percent": 10.0,
+        "change_7d_percent": 15.0,
+        "volatility_score": volatility_score,
+    }]
+
+
 # ======================== Тесты market_analysis_command ========================
 
 
@@ -546,3 +584,609 @@ def test_register_market_analysis_handlers():
 
     # Проверяем что обработчики добавлены
     assert mock_dispatcher.add_handler.call_count >= 4
+
+
+# ======================== Расширенные тесты (Phase 3) ========================
+
+
+class TestMarketAnalysisCommandExtended:
+    """Расширенные тесты для market_analysis_command."""
+
+    @pytest.mark.asyncio()
+    async def test_command_with_no_message(self, mock_context):
+        """Тест возврата при отсутствии сообщения."""
+        update = MagicMock(spec=Update)
+        update.message = None
+
+        result = await market_analysis_command(update, mock_context)
+
+        assert result is None
+
+    @pytest.mark.asyncio()
+    async def test_command_keyboard_has_game_buttons(self, mock_update, mock_context):
+        """Тест наличия кнопок выбора игр в клавиатуре."""
+        await market_analysis_command(mock_update, mock_context)
+
+        _, kwargs = mock_update.message.reply_text.call_args
+        keyboard = kwargs["reply_markup"]
+
+        # Собираем все callback_data
+        callback_data_list = [
+            button.callback_data
+            for row in keyboard.inline_keyboard
+            for button in row
+            if button.callback_data
+        ]
+
+        # Проверяем наличие select_game колбэков
+        assert any("select_game" in data for data in callback_data_list)
+
+
+class TestMarketAnalysisCallbackExtended:
+    """Расширенные тесты для market_analysis_callback."""
+
+    @pytest.mark.asyncio()
+    async def test_callback_with_no_query(self, mock_context):
+        """Тест возврата при отсутствии query."""
+        update = MagicMock(spec=Update)
+        update.callback_query = None
+
+        result = await market_analysis_callback(update, mock_context)
+
+        assert result is None
+
+    @pytest.mark.asyncio()
+    async def test_callback_with_no_data(self, mock_update, mock_context):
+        """Тест возврата при отсутствии data."""
+        mock_update.callback_query.data = None
+
+        result = await market_analysis_callback(mock_update, mock_context)
+
+        assert result is None
+
+    @pytest.mark.asyncio()
+    async def test_callback_with_short_data(self, mock_update, mock_context):
+        """Тест возврата при коротких данных."""
+        mock_update.callback_query.data = "analysis"
+
+        result = await market_analysis_callback(mock_update, mock_context)
+
+        assert result is None
+
+    @pytest.mark.asyncio()
+    async def test_callback_with_none_user_data(self, mock_update):
+        """Тест возврата при None user_data."""
+        context = MagicMock()
+        context.user_data = None
+        mock_update.callback_query.data = "analysis:price_changes:csgo"
+
+        result = await market_analysis_callback(mock_update, context)
+
+        assert result is None
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env")
+    @patch("src.telegram_bot.handlers.market_analysis_handler.find_trending_items")
+    async def test_callback_trending_action(
+        self, mock_trending, mock_api_client, mock_update, mock_context
+    ):
+        """Тест вызова trending анализа."""
+        mock_update.callback_query.data = "analysis:trending:csgo"
+        mock_context.user_data["market_analysis"] = {
+            "current_game": "csgo",
+            "min_price": 1.0,
+            "max_price": 500.0,
+        }
+        mock_api_client.return_value = MagicMock()
+        mock_trending.return_value = []
+
+        await market_analysis_callback(mock_update, mock_context)
+
+        mock_trending.assert_called_once()
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env")
+    @patch("src.telegram_bot.handlers.market_analysis_handler.analyze_market_volatility")
+    async def test_callback_volatility_action(
+        self, mock_volatility, mock_api_client, mock_update, mock_context
+    ):
+        """Тест вызова volatility анализа."""
+        mock_update.callback_query.data = "analysis:volatility:csgo"
+        mock_context.user_data["market_analysis"] = {
+            "current_game": "csgo",
+            "min_price": 1.0,
+            "max_price": 500.0,
+        }
+        mock_api_client.return_value = MagicMock()
+        mock_volatility.return_value = []
+
+        await market_analysis_callback(mock_update, mock_context)
+
+        mock_volatility.assert_called_once()
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env")
+    @patch("src.telegram_bot.handlers.market_analysis_handler.generate_market_report")
+    async def test_callback_report_action(
+        self, mock_report, mock_api_client, mock_update, mock_context
+    ):
+        """Тест вызова report анализа."""
+        mock_update.callback_query.data = "analysis:report:csgo"
+        mock_context.user_data["market_analysis"] = {
+            "current_game": "csgo",
+        }
+        mock_api_client.return_value = MagicMock()
+        mock_report.return_value = {"game": "csgo", "market_summary": {}}
+
+        await market_analysis_callback(mock_update, mock_context)
+
+        mock_report.assert_called_once()
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env")
+    @patch("src.telegram_bot.handlers.market_analysis_handler.find_undervalued_items")
+    async def test_callback_undervalued_action(
+        self, mock_undervalued, mock_api_client, mock_update, mock_context
+    ):
+        """Тест вызова undervalued анализа."""
+        mock_update.callback_query.data = "analysis:undervalued:csgo"
+        mock_context.user_data["market_analysis"] = {
+            "current_game": "csgo",
+            "min_price": 1.0,
+            "max_price": 500.0,
+        }
+        mock_api_client.return_value = MagicMock()
+        mock_undervalued.return_value = []
+
+        await market_analysis_callback(mock_update, mock_context)
+
+        mock_undervalued.assert_called_once()
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env")
+    @patch("src.telegram_bot.handlers.market_analysis_handler.get_investment_recommendations")
+    async def test_callback_recommendations_action(
+        self, mock_recommendations, mock_api_client, mock_update, mock_context
+    ):
+        """Тест вызова recommendations анализа."""
+        mock_update.callback_query.data = "analysis:recommendations:csgo"
+        mock_context.user_data["market_analysis"] = {
+            "current_game": "csgo",
+            "max_price": 100.0,
+        }
+        mock_api_client.return_value = MagicMock()
+        mock_recommendations.return_value = []
+
+        await market_analysis_callback(mock_update, mock_context)
+
+        mock_recommendations.assert_called_once()
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env")
+    async def test_callback_handles_exception(
+        self, mock_api_client, mock_update, mock_context
+    ):
+        """Тест обработки исключения."""
+        mock_update.callback_query.data = "analysis:price_changes:csgo"
+        mock_context.user_data["market_analysis"] = {"current_game": "csgo"}
+        mock_api_client.side_effect = Exception("Test error")
+
+        await market_analysis_callback(mock_update, mock_context)
+
+        mock_update.callback_query.edit_message_text.assert_called()
+        args = mock_update.callback_query.edit_message_text.call_args[0]
+        assert "ошибка" in args[0].lower()
+
+
+class TestShowVolatilityResultsExtended:
+    """Расширенные тесты для show_volatility_results."""
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
+    async def test_volatility_level_very_high(
+        self, mock_pagination, mock_callback_query, mock_context
+    ):
+        """Тест отображения очень высокой волатильности."""
+        mock_pagination.get_page.return_value = (create_volatility_item(35.0), 0, 1)
+
+        await show_volatility_results(mock_callback_query, mock_context, "csgo")
+
+        args = mock_callback_query.edit_message_text.call_args[0]
+        assert "Очень высокая" in args[0]
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
+    async def test_volatility_level_high(
+        self, mock_pagination, mock_callback_query, mock_context
+    ):
+        """Тест отображения высокой волатильности."""
+        mock_pagination.get_page.return_value = (create_volatility_item(25.0), 0, 1)
+
+        await show_volatility_results(mock_callback_query, mock_context, "csgo")
+
+        args = mock_callback_query.edit_message_text.call_args[0]
+        assert "Высокая" in args[0]
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
+    async def test_volatility_level_medium(
+        self, mock_pagination, mock_callback_query, mock_context
+    ):
+        """Тест отображения средней волатильности."""
+        mock_pagination.get_page.return_value = (create_volatility_item(15.0), 0, 1)
+
+        await show_volatility_results(mock_callback_query, mock_context, "csgo")
+
+        args = mock_callback_query.edit_message_text.call_args[0]
+        assert "Средняя" in args[0]
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
+    async def test_volatility_level_low(
+        self, mock_pagination, mock_callback_query, mock_context
+    ):
+        """Тест отображения низкой волатильности."""
+        mock_pagination.get_page.return_value = (create_volatility_item(5.0), 0, 1)
+
+        await show_volatility_results(mock_callback_query, mock_context, "csgo")
+
+        args = mock_callback_query.edit_message_text.call_args[0]
+        assert "Низкая" in args[0]
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
+    async def test_volatility_with_pagination_buttons(
+        self, mock_pagination, mock_callback_query, mock_context, sample_volatility_data
+    ):
+        """Тест кнопок пагинации при наличии нескольких страниц."""
+        mock_pagination.get_page.return_value = (sample_volatility_data, 0, 3)
+
+        await show_volatility_results(mock_callback_query, mock_context, "csgo")
+
+        _, kwargs = mock_callback_query.edit_message_text.call_args
+        keyboard = kwargs["reply_markup"]
+
+        # Должна быть кнопка "Вперед" на первой странице
+        button_texts = [button.text for row in keyboard.inline_keyboard for button in row]
+        assert any("Вперед" in text for text in button_texts)
+
+
+class TestShowMarketReportExtended:
+    """Расширенные тесты для show_market_report."""
+
+    @pytest.mark.asyncio()
+    async def test_market_direction_down(
+        self, mock_callback_query, mock_context, sample_market_report
+    ):
+        """Тест отображения падающего направления рынка."""
+        sample_market_report["market_summary"]["price_change_direction"] = "down"
+
+        await show_market_report(mock_callback_query, mock_context, sample_market_report)
+
+        args = mock_callback_query.edit_message_text.call_args[0]
+        assert "Падающий" in args[0]
+
+    @pytest.mark.asyncio()
+    async def test_market_direction_stable(
+        self, mock_callback_query, mock_context, sample_market_report
+    ):
+        """Тест отображения стабильного направления рынка."""
+        sample_market_report["market_summary"]["price_change_direction"] = "stable"
+
+        await show_market_report(mock_callback_query, mock_context, sample_market_report)
+
+        args = mock_callback_query.edit_message_text.call_args[0]
+        assert "Стабильный" in args[0]
+
+    @pytest.mark.asyncio()
+    async def test_market_volatility_levels(
+        self, mock_callback_query, mock_context, sample_market_report
+    ):
+        """Тест отображения уровней волатильности рынка."""
+        for level, expected in [("low", "Низкая"), ("medium", "Средняя"), ("high", "Высокая")]:
+            # Create a copy to avoid modifying shared fixture
+            report_copy = {
+                "game": sample_market_report["game"],
+                "market_summary": {
+                    **sample_market_report["market_summary"],
+                    "market_volatility_level": level,
+                },
+                "price_changes": sample_market_report.get("price_changes", []),
+                "trending_items": sample_market_report.get("trending_items", []),
+            }
+
+            await show_market_report(mock_callback_query, mock_context, report_copy)
+
+            args = mock_callback_query.edit_message_text.call_args[0]
+            assert expected in args[0]
+
+
+class TestShowUndervaluedItemsResultsExtended:
+    """Расширенные тесты для show_undervalued_items_results."""
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
+    async def test_trend_icon_upward(
+        self, mock_pagination, mock_callback_query, mock_context
+    ):
+        """Тест иконки восходящего тренда."""
+        mock_pagination.get_page.return_value = (create_undervalued_item("upward"), 0, 1)
+
+        await show_undervalued_items_results(mock_callback_query, mock_context, "csgo")
+
+        args = mock_callback_query.edit_message_text.call_args[0]
+        assert "🔼" in args[0]
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
+    async def test_trend_icon_downward(
+        self, mock_pagination, mock_callback_query, mock_context
+    ):
+        """Тест иконки нисходящего тренда."""
+        mock_pagination.get_page.return_value = (create_undervalued_item("downward"), 0, 1)
+
+        await show_undervalued_items_results(mock_callback_query, mock_context, "csgo")
+
+        args = mock_callback_query.edit_message_text.call_args[0]
+        assert "🔽" in args[0]
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
+    async def test_trend_icon_stable(
+        self, mock_pagination, mock_callback_query, mock_context
+    ):
+        """Тест иконки стабильного тренда."""
+        mock_pagination.get_page.return_value = (create_undervalued_item("stable"), 0, 1)
+
+        await show_undervalued_items_results(mock_callback_query, mock_context, "csgo")
+
+        args = mock_callback_query.edit_message_text.call_args[0]
+        assert "➡️" in args[0]
+
+
+class TestShowInvestmentRecommendationsResultsExtended:
+    """Расширенные тесты для show_investment_recommendations_results."""
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
+    async def test_liquidity_icon_high(
+        self, mock_pagination, mock_callback_query, mock_context
+    ):
+        """Тест иконки высокой ликвидности."""
+        mock_pagination.get_page.return_value = (create_recommendation_item("high"), 0, 1)
+
+        await show_investment_recommendations_results(mock_callback_query, mock_context, "csgo")
+
+        args = mock_callback_query.edit_message_text.call_args[0]
+        assert "🟢" in args[0]
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
+    async def test_liquidity_icon_medium(
+        self, mock_pagination, mock_callback_query, mock_context
+    ):
+        """Тест иконки средней ликвидности."""
+        mock_pagination.get_page.return_value = (create_recommendation_item("medium"), 0, 1)
+
+        await show_investment_recommendations_results(mock_callback_query, mock_context, "csgo")
+
+        args = mock_callback_query.edit_message_text.call_args[0]
+        assert "🟡" in args[0]
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
+    async def test_liquidity_icon_low(
+        self, mock_pagination, mock_callback_query, mock_context
+    ):
+        """Тест иконки низкой ликвидности."""
+        mock_pagination.get_page.return_value = (create_recommendation_item("low"), 0, 1)
+
+        await show_investment_recommendations_results(mock_callback_query, mock_context, "csgo")
+
+        args = mock_callback_query.edit_message_text.call_args[0]
+        assert "🔴" in args[0]
+
+
+class TestHandlePeriodChangeExtended:
+    """Расширенные тесты для handle_period_change."""
+
+    @pytest.mark.asyncio()
+    async def test_returns_early_with_no_query(self, mock_context):
+        """Тест возврата при отсутствии query."""
+        update = MagicMock(spec=Update)
+        update.callback_query = None
+
+        result = await handle_period_change(update, mock_context)
+
+        assert result is None
+
+    @pytest.mark.asyncio()
+    async def test_returns_early_with_no_data(self, mock_update, mock_context):
+        """Тест возврата при отсутствии data."""
+        mock_update.callback_query.data = None
+
+        result = await handle_period_change(mock_update, mock_context)
+
+        assert result is None
+
+    @pytest.mark.asyncio()
+    async def test_returns_early_with_short_data(self, mock_update, mock_context):
+        """Тест возврата при коротких данных."""
+        mock_update.callback_query.data = "period_change"
+
+        result = await handle_period_change(mock_update, mock_context)
+
+        assert result is None
+
+    @pytest.mark.asyncio()
+    async def test_returns_early_with_none_user_data(self, mock_update):
+        """Тест возврата при None user_data."""
+        context = MagicMock()
+        context.user_data = None
+        mock_update.callback_query.data = "period_change:24h:csgo"
+
+        result = await handle_period_change(mock_update, context)
+
+        assert result is None
+
+
+class TestHandleRiskLevelChangeExtended:
+    """Расширенные тесты для handle_risk_level_change."""
+
+    @pytest.mark.asyncio()
+    async def test_returns_early_with_no_query(self, mock_context):
+        """Тест возврата при отсутствии query."""
+        update = MagicMock(spec=Update)
+        update.callback_query = None
+
+        result = await handle_risk_level_change(update, mock_context)
+
+        assert result is None
+
+    @pytest.mark.asyncio()
+    async def test_returns_early_with_no_data(self, mock_update, mock_context):
+        """Тест возврата при отсутствии data."""
+        mock_update.callback_query.data = None
+
+        result = await handle_risk_level_change(mock_update, mock_context)
+
+        assert result is None
+
+    @pytest.mark.asyncio()
+    async def test_returns_early_with_short_data(self, mock_update, mock_context):
+        """Тест возврата при коротких данных."""
+        mock_update.callback_query.data = "analysis_risk:low"
+
+        result = await handle_risk_level_change(mock_update, mock_context)
+
+        assert result is None
+
+    @pytest.mark.asyncio()
+    async def test_returns_early_with_none_user_data(self, mock_update):
+        """Тест возврата при None user_data."""
+        context = MagicMock()
+        context.user_data = None
+        mock_update.callback_query.data = "analysis_risk:low:csgo"
+
+        result = await handle_risk_level_change(mock_update, context)
+
+        assert result is None
+
+
+class TestHandlePaginationAnalysisExtended:
+    """Расширенные тесты для handle_pagination_analysis."""
+
+    @pytest.mark.asyncio()
+    async def test_returns_early_with_no_query(self, mock_context):
+        """Тест возврата при отсутствии query."""
+        update = MagicMock(spec=Update)
+        update.callback_query = None
+
+        result = await handle_pagination_analysis(update, mock_context)
+
+        assert result is None
+
+    @pytest.mark.asyncio()
+    async def test_returns_early_with_no_data(self, mock_update, mock_context):
+        """Тест возврата при отсутствии data."""
+        mock_update.callback_query.data = None
+
+        result = await handle_pagination_analysis(mock_update, mock_context)
+
+        assert result is None
+
+    @pytest.mark.asyncio()
+    async def test_returns_early_with_short_data(self, mock_update, mock_context):
+        """Тест возврата при коротких данных."""
+        mock_update.callback_query.data = "analysis_page:next"
+
+        result = await handle_pagination_analysis(mock_update, mock_context)
+
+        assert result is None
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
+    @patch("src.telegram_bot.handlers.market_analysis_handler.show_volatility_results")
+    async def test_pagination_volatility_type(
+        self, mock_show_results, mock_pagination, mock_update, mock_context
+    ):
+        """Тест пагинации для типа volatility."""
+        mock_update.callback_query.data = "analysis_page:next:volatility:csgo"
+        mock_show_results.return_value = None
+
+        await handle_pagination_analysis(mock_update, mock_context)
+
+        mock_pagination.next_page.assert_called_once()
+        mock_show_results.assert_called_once()
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
+    @patch("src.telegram_bot.handlers.market_analysis_handler.show_undervalued_items_results")
+    async def test_pagination_undervalued_type(
+        self, mock_show_results, mock_pagination, mock_update, mock_context
+    ):
+        """Тест пагинации для типа undervalued."""
+        mock_update.callback_query.data = "analysis_page:next:undervalued:csgo"
+        mock_show_results.return_value = None
+
+        await handle_pagination_analysis(mock_update, mock_context)
+
+        mock_pagination.next_page.assert_called_once()
+        mock_show_results.assert_called_once()
+
+    @pytest.mark.asyncio()
+    @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
+    @patch("src.telegram_bot.handlers.market_analysis_handler.show_investment_recommendations_results")
+    async def test_pagination_recommendations_type(
+        self, mock_show_results, mock_pagination, mock_update, mock_context
+    ):
+        """Тест пагинации для типа recommendations."""
+        mock_update.callback_query.data = "analysis_page:prev:recommendations:csgo"
+        mock_show_results.return_value = None
+
+        await handle_pagination_analysis(mock_update, mock_context)
+
+        mock_pagination.prev_page.assert_called_once()
+        mock_show_results.assert_called_once()
+
+
+class TestGetBackToMarketAnalysisKeyboardExtended:
+    """Расширенные тесты для get_back_to_market_analysis_keyboard."""
+
+    def test_keyboard_for_different_games(self):
+        """Тест создания клавиатуры для разных игр."""
+        games = ["csgo", "dota2", "tf2", "rust"]
+
+        for game in games:
+            keyboard = get_back_to_market_analysis_keyboard(game)
+            assert game in keyboard.inline_keyboard[0][0].callback_data
+
+    def test_keyboard_callback_data_format(self):
+        """Тест формата callback_data."""
+        keyboard = get_back_to_market_analysis_keyboard("csgo")
+        callback_data = keyboard.inline_keyboard[0][0].callback_data
+
+        assert callback_data.startswith("analysis:")
+        assert "csgo" in callback_data
+
+
+class TestRegisterMarketAnalysisHandlersExtended:
+    """Расширенные тесты для register_market_analysis_handlers."""
+
+    def test_registers_command_handler(self):
+        """Тест регистрации CommandHandler."""
+        mock_dispatcher = MagicMock()
+
+        register_market_analysis_handlers(mock_dispatcher)
+
+        # Проверяем что add_handler был вызван
+        assert mock_dispatcher.add_handler.called
+
+    def test_registers_callback_handlers(self):
+        """Тест регистрации CallbackQueryHandler."""
+        mock_dispatcher = MagicMock()
+
+        register_market_analysis_handlers(mock_dispatcher)
+
+        # Должно быть зарегистрировано минимум 5 обработчиков
+        assert mock_dispatcher.add_handler.call_count >= 5

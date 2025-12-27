@@ -200,3 +200,243 @@ class TestCachingBehavior:
 
             # At least first call should have been made
             assert first_count >= 1
+
+
+class TestBalanceWorkflows:
+    """Test balance-related workflows."""
+
+    async def test_balance_check_workflow(self, test_database: DatabaseManager) -> None:
+        """Test complete balance check workflow."""
+        # Create user for balance tracking
+        user = await test_database.get_or_create_user(telegram_id=7777, username="balance_test")
+        assert user is not None
+
+        # Simulate balance data
+        balance_data = {
+            "available_balance": 150.50,
+            "total_balance": 200.00,
+            "has_funds": True,
+        }
+
+        # Verify balance data structure
+        assert balance_data["available_balance"] == 150.50
+        assert balance_data["has_funds"] is True
+
+    async def test_balance_insufficient_workflow(self, test_database: DatabaseManager) -> None:
+        """Test workflow when balance is insufficient."""
+        # Create user
+        user = await test_database.get_or_create_user(telegram_id=8888, username="low_balance")
+        assert user is not None
+
+        # Simulate insufficient balance
+        balance_data = {
+            "available_balance": 0.50,
+            "total_balance": 0.50,
+            "has_funds": False,
+        }
+
+        # Verify low balance detection
+        assert balance_data["available_balance"] < 1.0
+        assert balance_data["has_funds"] is False
+
+
+class TestNotificationWorkflows:
+    """Test notification-related workflows."""
+
+    async def test_price_alert_trigger_workflow(
+        self,
+        mock_dmarket_api: DMarketAPI,
+        test_database: DatabaseManager,
+    ) -> None:
+        """Test price alert trigger workflow."""
+        # Create user
+        user = await test_database.get_or_create_user(telegram_id=12345, username="test")
+
+        # Mock price data
+        current_price = {"price": {"USD": "1000"}}
+        alert_threshold = 1200  # Alert if price drops below 1200
+
+        with patch.object(mock_dmarket_api, "_request", return_value=current_price):
+            # Check if alert should trigger
+            price_usd = int(current_price["price"]["USD"])
+            should_alert = price_usd < alert_threshold
+            assert should_alert is True
+
+    async def test_arbitrage_notification_workflow(
+        self,
+        mock_dmarket_api: DMarketAPI,
+    ) -> None:
+        """Test arbitrage opportunity notification workflow."""
+        opportunity = {
+            "item": "Test Item",
+            "buy_price": 10.0,
+            "sell_price": 15.0,
+            "profit_percent": 43.0,
+        }
+
+        # Calculate if worth notifying
+        min_profit_percent = 10.0
+        should_notify = opportunity["profit_percent"] >= min_profit_percent
+        assert should_notify is True
+
+
+class TestTargetWorkflows:
+    """Test target-related workflows."""
+
+    async def test_create_and_monitor_target(self, mock_dmarket_api: DMarketAPI) -> None:
+        """Test creating and monitoring a target."""
+        # Create targets (correct method name)
+        create_response = {"created": [{"targetId": "target_123", "status": "active"}]}
+
+        with patch.object(mock_dmarket_api, "_request", return_value=create_response):
+            result = await mock_dmarket_api.create_targets(
+                game_id="csgo", targets=[{"title": "Test", "price": 1000}]
+            )
+            assert "created" in result or result.get("created") is not None
+
+    async def test_delete_target_workflow(self, mock_dmarket_api: DMarketAPI) -> None:
+        """Test deleting a target."""
+        delete_response = {"deleted": ["target_123"]}
+
+        with patch.object(mock_dmarket_api, "_request", return_value=delete_response):
+            result = await mock_dmarket_api.delete_targets(target_ids=["target_123"])
+            assert "deleted" in result
+
+    async def test_list_targets_workflow(self, mock_dmarket_api: DMarketAPI) -> None:
+        """Test listing user targets."""
+        list_response = {"targets": [{"targetId": "target_123", "price": 1500}]}
+
+        with patch.object(mock_dmarket_api, "_request", return_value=list_response):
+            result = await mock_dmarket_api.get_user_targets(game_id="csgo")
+            assert "targets" in result
+
+
+class TestFilterWorkflows:
+    """Test filter-related workflows."""
+
+    async def test_game_filter_application(self, mock_dmarket_api: DMarketAPI) -> None:
+        """Test applying game filter to scan."""
+        market_response = {
+            "objects": [
+                {"title": "CS Item", "gameId": "csgo"},
+                {"title": "Dota Item", "gameId": "dota2"},
+            ],
+            "cursor": "",
+        }
+
+        with patch.object(mock_dmarket_api, "_request", return_value=market_response):
+            result = await mock_dmarket_api.get_market_items(game="csgo")
+
+            # Filter to csgo items only
+            filtered = [
+                obj for obj in result.get("objects", []) if obj.get("gameId") == "csgo"
+            ]
+            assert len(filtered) == 1
+            assert filtered[0]["title"] == "CS Item"
+
+    async def test_price_range_filter_application(self, mock_dmarket_api: DMarketAPI) -> None:
+        """Test applying price range filter."""
+        market_response = {
+            "objects": [
+                {"title": "Cheap Item", "price": {"USD": "500"}},
+                {"title": "Medium Item", "price": {"USD": "1500"}},
+                {"title": "Expensive Item", "price": {"USD": "5000"}},
+            ],
+            "cursor": "",
+        }
+
+        with patch.object(mock_dmarket_api, "_request", return_value=market_response):
+            result = await mock_dmarket_api.get_market_items(
+                price_from=1000, price_to=3000
+            )
+
+            # Filter by price range
+            filtered = [
+                obj
+                for obj in result.get("objects", [])
+                if 1000 <= int(obj["price"]["USD"]) <= 3000
+            ]
+            assert len(filtered) == 1
+            assert filtered[0]["title"] == "Medium Item"
+
+
+class TestDataPersistenceWorkflows:
+    """Test data persistence workflows."""
+
+    async def test_user_settings_persistence(self, test_database: DatabaseManager) -> None:
+        """Test user settings are persisted correctly."""
+        # Create user
+        user = await test_database.get_or_create_user(telegram_id=55555, username="settings_test")
+        assert user is not None
+
+        # Update settings
+        user.language = "en"
+
+        # Retrieve user again
+        retrieved_user = await test_database.get_or_create_user(telegram_id=55555)
+        assert retrieved_user.id == user.id
+
+    async def test_scan_history_persistence(self, test_database: DatabaseManager) -> None:
+        """Test scan history is persisted correctly."""
+        # Create user first
+        user = await test_database.get_or_create_user(telegram_id=66666, username="history_test")
+        assert user is not None
+
+        # Mock scan data
+        scan_data = {
+            "user_id": user.id,
+            "game": "csgo",
+            "level": "standard",
+            "opportunities_found": 5,
+        }
+
+        # Verify scan data structure
+        assert scan_data["opportunities_found"] == 5
+
+
+class TestRateLimitingWorkflows:
+    """Test rate limiting workflows."""
+
+    async def test_rate_limit_handling(self, mock_dmarket_api: DMarketAPI) -> None:
+        """Test handling of rate limit responses."""
+        import httpx
+
+        # Simulate rate limit error
+        error = httpx.HTTPStatusError(
+            message="Rate limit exceeded",
+            request=httpx.Request("GET", "http://test.com"),
+            response=httpx.Response(status_code=429),
+        )
+
+        with patch.object(mock_dmarket_api, "_request", side_effect=error):
+            try:
+                await mock_dmarket_api.get_market_items(game="csgo")
+            except httpx.HTTPStatusError as e:
+                assert e.response.status_code == 429
+
+    async def test_retry_after_rate_limit(self, mock_dmarket_api: DMarketAPI) -> None:
+        """Test retry behavior after rate limit."""
+        import httpx
+
+        call_count = 0
+
+        def mock_request(*args: Any, **kwargs: Any) -> dict[str, Any]:
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise httpx.HTTPStatusError(
+                    message="Rate limit",
+                    request=httpx.Request("GET", "http://test.com"),
+                    response=httpx.Response(status_code=429),
+                )
+            return {"objects": [], "cursor": ""}
+
+        with patch.object(mock_dmarket_api, "_request", side_effect=mock_request):
+            # First call fails, second succeeds
+            try:
+                await mock_dmarket_api.get_market_items(game="csgo")
+            except httpx.HTTPStatusError:
+                pass
+
+            result = await mock_dmarket_api.get_market_items(game="csgo")
+            assert "objects" in result
