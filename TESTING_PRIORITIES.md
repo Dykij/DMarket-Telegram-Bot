@@ -56,7 +56,7 @@
 | **arbitrage/trader.py** | `src/dmarket/arbitrage/trader.py` | 739 | ~55% | 45+ | 🟢 СРЕДНИЙ | ✅ +114 тестов (27.12.2025) |
 | **dashboard_handler.py** | `src/telegram_bot/handlers/dashboard_handler.py` | 737 | ~60% | 40+ | 🟢 СРЕДНИЙ | ✅ +90 тестов (27.12.2025) |
 | **market_analyzer.py** | `src/utils/market_analyzer.py` | 727 | ~50% | 50+ | 🟢 СРЕДНИЙ | ✅ +88 тестов (27.12.2025) |
-| **intramarket_arbitrage.py** | `src/dmarket/intramarket_arbitrage.py` | 726 | ~55% | 45+ | 🟢 СРЕДНИЙ |
+| **intramarket_arbitrage.py** | `src/dmarket/intramarket_arbitrage.py` | 726 | ~55% | 45+ | 🟢 СРЕДНИЙ | ✅ +78 тестов (27.12.2025) |
 | **market_analytics.py** | `src/utils/market_analytics.py` | 664 | ~65% | 35+ | 🟢 НИЗКИЙ |
 | **logging_utils.py** | `src/utils/logging_utils.py` | 644 | ~60% | 40+ | 🟢 НИЗКИЙ |
 
