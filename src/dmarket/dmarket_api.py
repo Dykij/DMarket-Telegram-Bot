@@ -1,26 +1,45 @@
 """DMarket API client module for interacting with DMarket API.
 
-This module provides an asynchronous client for DMarket API, including:
-- Signature generation for authenticated requests
-- Rate limiting and retry logic
+This module provides an asynchronous client for DMarket API v1.1.0, including:
+- Ed25519 signature generation for authenticated requests (recommended)
+- HMAC-SHA256 fallback for backward compatibility
+- Rate limiting and automatic retry logic with exponential backoff
 - Methods for market operations (get items, buy, sell, inventory, balance)
-- Error handling and logging
-- Caching of frequently used requests
+- Target (buy order) management with competition analysis
+- Error handling with circuit breaker pattern
+- Response caching for frequently used requests
 - Support for all documented DMarket API endpoints
+
+Authentication:
+- Uses Ed25519 (NACL library) as the recommended signing method
+- Timestamp must be within 2 minutes of server time
+- Required headers: X-Api-Key, X-Sign-Date, X-Request-Sign
+
+Prices:
+- All prices in API are in CENTS (divide by 100 for USD)
+- Example: price=1250 means $12.50
 
 Example usage:
 
-    # Импортируем класс DMarketAPI
     from src.dmarket.dmarket_api import DMarketAPI
 
-    # Создаем экземпляр API клиента
+    # Initialize API client (DRY_RUN=True by default for safety)
     api = DMarketAPI(public_key, secret_key)
 
-    # Используем методы API
-    items = await api.get_market_items(game="csgo")
-    balance = await api.get_balance()  # Рекомендуемый метод получения баланса
+    # Get user balance
+    balance = await api.get_balance()
+
+    # Get market items
+    items = await api.get_market_items(game="csgo", limit=100)
+
+    # Create buy order (target)
+    result = await api.create_targets("a8db", [
+        {"Title": "AK-47 | Redline (Field-Tested)", "Amount": 1, "Price": {"Amount": 800, "Currency": "USD"}}
+    ])
 
 Documentation: https://docs.dmarket.com/v1/swagger.html
+GitHub examples: https://github.com/dmarket/dm-trading-tools
+Last updated: December 28, 2025
 """
 
 import asyncio

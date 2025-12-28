@@ -1,6 +1,18 @@
 """Signature generation for DMarket API authentication.
 
-This module provides signature generation using Ed25519 and HMAC-SHA256.
+This module provides signature generation using Ed25519 (recommended) and HMAC-SHA256 (legacy).
+
+DMarket API Authentication:
+- Ed25519 is the RECOMMENDED method using NACL library
+- HMAC-SHA256 is supported for backward compatibility
+- Timestamp must be within 2 minutes of server time
+
+Required Headers:
+- X-Api-Key: Your public API key
+- X-Sign-Date: Timestamp in seconds
+- X-Request-Sign: Signature in format "dmar ed25519 {signature}"
+
+Documentation: https://docs.dmarket.com/v1/swagger.html
 """
 
 import base64
