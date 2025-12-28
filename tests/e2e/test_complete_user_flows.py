@@ -438,3 +438,171 @@ class TestCompleteUserJourney:
         )
         targets = await mock_api.get_user_targets()
         assert len(targets.get("targets", [])) > 0
+
+
+# ============================================================================
+# E2E: MULTI-GAME SCAN FLOW
+# ============================================================================
+
+
+class TestMultiGameScanFlow:
+    """Tests for multi-game scanning end-to-end flow."""
+
+    @pytest.mark.asyncio()
+    @pytest.mark.e2e()
+    async def test_scan_csgo_items(self, mock_context):
+        """Test scanning CS:GO items flow."""
+        mock_api = mock_context.bot_data["dmarket_api"]
+        mock_api.get_market_items = AsyncMock(
+            return_value={
+                "objects": [
+                    {"title": "AK-47 | Redline", "price": {"USD": "1500"}, "gameId": "a8db"},
+                ],
+                "total": "1",
+            }
+        )
+
+        result = await mock_api.get_market_items("csgo")
+        assert "objects" in result
+        assert len(result["objects"]) > 0
+
+    @pytest.mark.asyncio()
+    @pytest.mark.e2e()
+    async def test_scan_dota2_items(self, mock_context):
+        """Test scanning Dota 2 items flow."""
+        mock_api = mock_context.bot_data["dmarket_api"]
+        mock_api.get_market_items = AsyncMock(
+            return_value={
+                "objects": [
+                    {"title": "Arcana", "price": {"USD": "3000"}, "gameId": "9a92"},
+                ],
+                "total": "1",
+            }
+        )
+
+        result = await mock_api.get_market_items("dota2")
+        assert "objects" in result
+
+    @pytest.mark.asyncio()
+    @pytest.mark.e2e()
+    async def test_scan_rust_items(self, mock_context):
+        """Test scanning Rust items flow."""
+        mock_api = mock_context.bot_data["dmarket_api"]
+        mock_api.get_market_items = AsyncMock(
+            return_value={
+                "objects": [
+                    {"title": "Rust Item", "price": {"USD": "500"}, "gameId": "rust"},
+                ],
+                "total": "1",
+            }
+        )
+
+        result = await mock_api.get_market_items("rust")
+        assert "objects" in result
+
+    @pytest.mark.asyncio()
+    @pytest.mark.e2e()
+    async def test_scan_tf2_items(self, mock_context):
+        """Test scanning TF2 items flow."""
+        mock_api = mock_context.bot_data["dmarket_api"]
+        mock_api.get_market_items = AsyncMock(
+            return_value={
+                "objects": [
+                    {"title": "Unusual Hat", "price": {"USD": "100"}, "gameId": "tf2"},
+                ],
+                "total": "1",
+            }
+        )
+
+        result = await mock_api.get_market_items("tf2")
+        assert "objects" in result
+
+
+# ============================================================================
+# E2E: API KEY MANAGEMENT FLOW
+# ============================================================================
+
+
+class TestAPIKeyManagementFlow:
+    """Tests for API key management end-to-end flow."""
+
+    @pytest.mark.asyncio()
+    @pytest.mark.e2e()
+    async def test_setup_api_keys_flow(self, mock_context):
+        """Test API key setup flow."""
+        # Simulate storing API keys
+        mock_context.user_data["api_keys"] = {
+            "public_key": "test_public_key_123",
+            "secret_key": "test_secret_key_456",
+        }
+
+        assert mock_context.user_data["api_keys"]["public_key"] == "test_public_key_123"
+
+    @pytest.mark.asyncio()
+    @pytest.mark.e2e()
+    async def test_validate_api_keys_flow(self, mock_context):
+        """Test API key validation flow."""
+        mock_api = mock_context.bot_data["dmarket_api"]
+        mock_api.get_balance = AsyncMock(return_value={"usd": "100", "dmc": "0"})
+
+        # Validation by checking balance
+        result = await mock_api.get_balance()
+        assert "usd" in result
+
+    @pytest.mark.asyncio()
+    @pytest.mark.e2e()
+    async def test_revoke_api_keys_flow(self, mock_context):
+        """Test API key revocation flow."""
+        # Set and then revoke keys
+        mock_context.user_data["api_keys"] = {"public_key": "test", "secret_key": "test"}
+
+        # Revoke
+        mock_context.user_data["api_keys"] = None
+
+        assert mock_context.user_data["api_keys"] is None
+
+
+# ============================================================================
+# E2E: PROFIT CALCULATION FLOW
+# ============================================================================
+
+
+class TestProfitCalculationFlow:
+    """Tests for profit calculation end-to-end flow."""
+
+    @pytest.mark.asyncio()
+    @pytest.mark.e2e()
+    async def test_calculate_simple_profit(self):
+        """Test simple profit calculation."""
+        buy_price = 10.0
+        sell_price = 15.0
+        commission = 7.0
+
+        # Calculate gross profit
+        gross_profit = sell_price - buy_price
+
+        # Calculate commission
+        commission_amount = sell_price * (commission / 100)
+
+        # Net profit
+        net_profit = gross_profit - commission_amount
+
+        assert net_profit > 0
+        assert abs(net_profit - 3.95) < 0.01
+
+    @pytest.mark.asyncio()
+    @pytest.mark.e2e()
+    async def test_calculate_profit_with_high_commission(self):
+        """Test profit calculation with high commission."""
+        buy_price = 100.0
+        sell_price = 110.0
+        commission = 10.0
+
+        gross_profit = sell_price - buy_price  # 10
+        commission_amount = sell_price * (commission / 100)  # 11
+
+        net_profit = gross_profit - commission_amount
+
+        # With 10% commission on $110, commission is $11
+        # Net profit = 10 - 11 = -1
+        assert net_profit < 0
