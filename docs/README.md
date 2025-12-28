@@ -1,7 +1,7 @@
 # 📚 Документация DMarket Telegram Bot
 
-**Дата**: 19 декабря 2025 г.
-**Версия**: 5.0
+**Дата**: 28 декабря 2025 г.
+**Версия**: 1.0.0
 
 Добро пожаловать в документацию DMarket Telegram Bot - автоматизированной системы для торговли игровыми предметами.
 
@@ -40,7 +40,7 @@
 - **[Telegram Bot API](TELEGRAM_BOT_API.md)** - Справочник Telegram Bot API 9.2
 - **[Фильтры игр](game_filters_guide.md)** - Фильтры для CS:GO, Dota 2, TF2, Rust
 - **[API Documentation](API_DOCUMENTATION.md)** - Детальная документация API
-- **[AnyTool Integration](ANYTOOL_INTEGRATION_GUIDE.md)** - 🆕 Интеграция с MCP Server для AI инструментов
+- **[AnyTool Integration](ANYTOOL_INTEGRATION_GUIDE.md)** - Интеграция с MCP Server для AI инструментов
 
 ### Разработка и инфраструктура
 
@@ -142,10 +142,18 @@ pytest --cov=src --cov-report=html
 DMarket-Telegram-Bot/
 ├── src/
 │   ├── dmarket/             # DMarket API клиент
+│   │   ├── api/             # Модульный API
+│   │   ├── scanner/         # Сканер арбитража
+│   │   └── targets/         # Управление таргетами
 │   ├── telegram_bot/        # Telegram бот
-│   ├── models/              # Модели данных
+│   │   ├── commands/        # Обработчики команд
+│   │   ├── handlers/        # Callback handlers
+│   │   └── notifications/   # Система уведомлений
+│   ├── analytics/           # Аналитика
+│   ├── portfolio/           # Управление портфелем
+│   ├── models/              # Модели данных (SQLAlchemy)
 │   └── utils/               # Утилиты
-├── tests/                   # Тесты (pytest)
+├── tests/                   # Тесты (372 файла)
 ├── docs/                    # Документация
 └── config/                  # Конфигурация
 ```
@@ -331,8 +339,8 @@ logger.info(
 ## 📞 Поддержка
 
 - 📖 **Документация**: [docs/](.)
-- 🐛 **Issues**: [GitHub Issues](https://github.com/your-username/dmarket-telegram-bot/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/your-username/dmarket-telegram-bot/discussions)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/Dykij/DMarket-Telegram-Bot/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/Dykij/DMarket-Telegram-Bot/discussions)
 
 ---
 
@@ -342,4 +350,4 @@ logger.info(
 
 ---
 
-**Последнее обновление**: 19 декабря 2025 г.
+**Последнее обновление**: 28 декабря 2025 г.

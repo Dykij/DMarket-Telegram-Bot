@@ -9,21 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Portfolio management system with P&L tracking and risk analysis
-- Backtesting framework for trading strategies
-- High-frequency trading mode with balance-stop mechanism
-- Discord webhook integration for notifications
-- Auto-seller with dynamic pricing and stop-loss
+- Documentation update with current dates and version information
+- Improved README.md with better project overview
+- Updated all docs/ files with consistent versioning
 
 ### Changed
-- Refactored large modules into smaller, maintainable packages
-- Improved type hints and MyPy coverage
-- Enhanced error handling and retry logic
-
-### Fixed
-- All test failures resolved (2348/2348 tests passing)
-- Rate limiting and circuit breaker improvements
-- API client stability enhancements
+- Updated documentation dates to December 28, 2025
+- Standardized version numbering across all documents
 
 ## [1.0.0] - 2025-12-14
 
@@ -38,7 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - API key encryption and security
 - Rate limiting and circuit breaker
 - Sentry integration for monitoring
-- Comprehensive test suite (2348 tests)
+- Comprehensive test suite (372 test files)
+- Portfolio management system with P&L tracking
+- Backtesting framework for trading strategies
+- High-frequency trading mode with balance-stop mechanism
+- Discord webhook integration for notifications
+- Auto-seller with dynamic pricing and stop-loss
 
 ### Security
 - API key encryption for user credentials

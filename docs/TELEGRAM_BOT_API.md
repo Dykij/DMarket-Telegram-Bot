@@ -2,7 +2,7 @@
 
 **Версия Bot API**: 9.2 (обновление от 15 августа 2025 г.)
 **Базовый URL**: `https://api.telegram.org/bot<token>/METHOD_NAME`
-**Дата документа**: 17 декабря 2025 г.
+**Дата документа**: 28 декабря 2025 г.
 **Официальная документация**: [https://core.telegram.org/bots/api](https://core.telegram.org/bots/api)
 
 > **Ключевые возможности Bot API 9.2:**
