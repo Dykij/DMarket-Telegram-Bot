@@ -53,9 +53,11 @@ class TestEndpointsConstants:
         assert Endpoints.INVENTORY_SYNC == "/marketplace-api/v1/user-inventory/sync"
 
     def test_deprecated_endpoints(self):
-        """Test deprecated endpoints have warning."""
-        assert "DEPRECATED" in Endpoints.AGGREGATED_PRICES_DEPRECATED or \
-               Endpoints.AGGREGATED_PRICES_DEPRECATED == "/price-aggregator/v1/aggregated-prices"
+        """Test deprecated endpoints exist with correct path."""
+        # This endpoint is deprecated - use AGGREGATED_PRICES_POST instead
+        assert Endpoints.AGGREGATED_PRICES_DEPRECATED == "/price-aggregator/v1/aggregated-prices"
+        # Verify the recommended endpoint is different
+        assert Endpoints.AGGREGATED_PRICES_POST != Endpoints.AGGREGATED_PRICES_DEPRECATED
 
 
 class TestStatusConstants:
