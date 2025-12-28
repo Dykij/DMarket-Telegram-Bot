@@ -32,8 +32,7 @@ def start_bot_service() -> bool:
                 "Обнаружен файл блокировки. Бот уже запущен?",
             )
             try:
-                with open(lock_file, encoding="utf-8") as f:
-                    pid = f.read().strip()
+                pid = Path(lock_file).read_text(encoding="utf-8")
                 logger.info("PID запущенного бота: %s", pid)
             except OSError:
                 logger.exception("Ошибка при чтении файла блокировки")
@@ -64,8 +63,7 @@ def start_bot_service() -> bool:
 
         # Записываем PID в отдельный файл
         pid_file = project_dir / "bot_service_pid.txt"
-        with open(pid_file, "w", encoding="utf-8") as f:
-            f.write(str(process.pid))
+        Path(pid_file).write_text(str(process.pid), encoding="utf-8")
 
         return True
     except (OSError, subprocess.SubprocessError):

@@ -9,12 +9,15 @@ Tests cover:
 from __future__ import annotations
 
 import pytest
-from fastapi.testclient import TestClient
+
+# Skip all tests if fastapi is not installed
+fastapi = pytest.importorskip("fastapi")
+TestClient = pytest.importorskip("fastapi.testclient").TestClient
 
 from src.web_dashboard.app import app
 
 
-@pytest.fixture
+@pytest.fixture()
 def client():
     """Create test client for FastAPI app."""
     return TestClient(app)
