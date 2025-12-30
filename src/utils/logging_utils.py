@@ -5,20 +5,20 @@ for the DMarket Telegram Bot, including structured logging, file rotation,
 and integration with monitoring systems, including Sentry error tracking.
 """
 
-from datetime import datetime
 import json
 import logging
 import logging.handlers
 import os
-from pathlib import Path
 import sys
+from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 import sentry_sdk
+import structlog
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.httpx import HttpxIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
-import structlog
 
 
 class JSONFormatter(logging.Formatter):

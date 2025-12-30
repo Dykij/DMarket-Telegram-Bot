@@ -6,12 +6,12 @@ after crashes or restarts without losing progress.
 """
 
 import asyncio
-from collections.abc import Callable
-from datetime import UTC, datetime, timedelta
 import json
-from pathlib import Path
 import signal
 import sys
+from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any
 from uuid import UUID
 
@@ -23,7 +23,6 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.types import JSON
 
 from src.utils.logging_utils import get_logger
-
 
 logger = get_logger(__name__)
 
