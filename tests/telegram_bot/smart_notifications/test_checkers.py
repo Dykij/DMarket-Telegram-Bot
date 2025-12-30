@@ -2,14 +2,13 @@
 
 This module tests src/telegram_bot/smart_notifications/checkers.py covering:
 - check_price_alerts function
-- check_market_opportunities function  
+- check_market_opportunities function
 - start_notification_checker function
 
 Target: 20+ tests to achieve 70%+ coverage
 """
 
 import asyncio
-from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest

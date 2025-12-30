@@ -12,9 +12,10 @@ from __future__ import annotations
 
 import logging
 import os
-import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Generator
+import sys
+from typing import TYPE_CHECKING, Any
+from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -22,7 +23,6 @@ import pytest
 
 if TYPE_CHECKING:
     from _pytest.config import Config
-    from _pytest.fixtures import FixtureRequest
     from _pytest.logging import LogCaptureFixture
 
 # =============================================================================

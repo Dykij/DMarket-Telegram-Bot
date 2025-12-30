@@ -343,7 +343,7 @@ class TestSimpleArbitrageStrategy:
 
         # Target price: 10 * (1 + 0.08 + 0.07) = 11.50
         # We need to be AT or ABOVE this price
-        should_sell, price, quantity = strategy.should_sell(
+        should_sell, price, _quantity = strategy.should_sell(
             history,
             Decimal("11.60"),  # Slightly above target
             position,
@@ -358,7 +358,7 @@ class TestSimpleArbitrageStrategy:
         position = Position("Test Item", 1, Decimal(10), datetime.now(UTC))
 
         # Stop loss at -10%: 10 * 0.90 = 9.0
-        should_sell, price, quantity = strategy.should_sell(
+        should_sell, _price, _quantity = strategy.should_sell(
             history,
             Decimal("8.90"),
             position,

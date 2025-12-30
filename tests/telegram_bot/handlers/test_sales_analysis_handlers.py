@@ -1,6 +1,6 @@
 """Tests for sales_analysis_handlers module.
 
-Covers handle_sales_analysis, handle_arbitrage_with_sales, 
+Covers handle_sales_analysis, handle_arbitrage_with_sales,
 handle_liquidity_analysis, handle_sales_volume_stats, and utility functions.
 """
 
@@ -88,8 +88,8 @@ class TestGetLiquidityEmoji:
     """Tests for get_liquidity_emoji function."""
 
     @pytest.mark.parametrize(
-        "score,expected",
-        [
+        ("score", "expected"),
+        (
             (100, "💎"),
             (90, "💎"),
             (80, "💎"),
@@ -105,7 +105,7 @@ class TestGetLiquidityEmoji:
             (19, "❄️"),
             (10, "❄️"),
             (0, "❄️"),
-        ],
+        ),
     )
     def test_liquidity_emoji_for_score(self, score: float, expected: str) -> None:
         """Test liquidity emoji for various scores."""
@@ -128,7 +128,7 @@ class TestGetLiquidityEmoji:
 class TestHandleSalesAnalysis:
     """Tests for handle_sales_analysis function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_if_no_message(self) -> None:
         """Test returns early when update has no message."""
         update = create_mock_update(has_message=False)
@@ -138,7 +138,7 @@ class TestHandleSalesAnalysis:
 
         # No exception should be raised
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_if_no_text(self) -> None:
         """Test returns early when message has no text."""
         update = create_mock_update(text=None)
@@ -149,7 +149,7 @@ class TestHandleSalesAnalysis:
         # Should not call reply_text for error
         # (returns early before that check)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_error_without_item_name(self) -> None:
         """Test shows error when no item name is provided."""
         update = create_mock_update(text="/sales_analysis")
@@ -161,7 +161,7 @@ class TestHandleSalesAnalysis:
         call_args = update.message.reply_text.call_args
         assert "Необходимо указать название предмета" in call_args[0][0]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_successful_analysis(self) -> None:
         """Test successful sales analysis."""
         update = create_mock_update(text="/sales_analysis AWP | Asiimov")
@@ -192,7 +192,7 @@ class TestHandleSalesAnalysis:
 
         mock_reply.edit_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_api_error(self) -> None:
         """Test handles APIError gracefully."""
         update = create_mock_update(text="/sales_analysis AWP | Asiimov")
@@ -215,7 +215,7 @@ class TestHandleSalesAnalysis:
         error_text = call_args[0][0] if call_args[0] else call_args[1].get("text", "")
         assert "Ошибка" in error_text
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_generic_exception(self) -> None:
         """Test handles generic exception gracefully."""
         update = create_mock_update(text="/sales_analysis AWP | Asiimov")
@@ -247,7 +247,7 @@ class TestHandleSalesAnalysis:
 class TestHandleArbitrageWithSales:
     """Tests for handle_arbitrage_with_sales function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_if_no_message(self) -> None:
         """Test returns early when update has no message."""
         update = create_mock_update(has_message=False)
@@ -257,7 +257,7 @@ class TestHandleArbitrageWithSales:
 
         # No exception should be raised
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_uses_default_game_csgo(self) -> None:
         """Test uses default game csgo when not in user_data."""
         update = create_mock_update(text="/arbitrage_sales")
@@ -283,7 +283,7 @@ class TestHandleArbitrageWithSales:
         # Should use csgo as default
         update.message.reply_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_uses_game_from_context(self) -> None:
         """Test uses game from context user_data."""
         update = create_mock_update(text="/arbitrage_sales")
@@ -308,7 +308,7 @@ class TestHandleArbitrageWithSales:
 
         mock_search.assert_called_once_with(game="dota2", min_profit=1.0)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_api_error(self) -> None:
         """Test handles APIError gracefully."""
         update = create_mock_update(text="/arbitrage_sales")
@@ -338,7 +338,7 @@ class TestHandleArbitrageWithSales:
 class TestHandleLiquidityAnalysis:
     """Tests for handle_liquidity_analysis function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_if_no_message(self) -> None:
         """Test returns early when update has no message."""
         update = create_mock_update(has_message=False)
@@ -346,7 +346,7 @@ class TestHandleLiquidityAnalysis:
 
         await handle_liquidity_analysis(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_if_no_text(self) -> None:
         """Test returns early when message has no text."""
         update = create_mock_update(text=None)
@@ -354,7 +354,7 @@ class TestHandleLiquidityAnalysis:
 
         await handle_liquidity_analysis(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_error_without_item_name(self) -> None:
         """Test shows error when no item name is provided."""
         update = create_mock_update(text="/liquidity")
@@ -366,7 +366,7 @@ class TestHandleLiquidityAnalysis:
         call_args = update.message.reply_text.call_args
         assert "Необходимо указать название предмета" in call_args[0][0]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_successful_analysis(self) -> None:
         """Test successful liquidity analysis."""
         update = create_mock_update(text="/liquidity AWP | Asiimov")
@@ -396,7 +396,7 @@ class TestHandleLiquidityAnalysis:
 
         mock_reply.edit_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_api_error(self) -> None:
         """Test handles APIError gracefully."""
         update = create_mock_update(text="/liquidity AWP | Asiimov")
@@ -424,7 +424,7 @@ class TestHandleLiquidityAnalysis:
 class TestHandleSalesVolumeStats:
     """Tests for handle_sales_volume_stats function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_if_no_message(self) -> None:
         """Test returns early when update has no message."""
         update = create_mock_update(has_message=False)
@@ -432,7 +432,7 @@ class TestHandleSalesVolumeStats:
 
         await handle_sales_volume_stats(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_uses_default_game_csgo(self) -> None:
         """Test uses default game csgo when not in user_data."""
         update = create_mock_update(text="/sales_volume")
@@ -457,7 +457,7 @@ class TestHandleSalesVolumeStats:
 
         update.message.reply_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_uses_game_from_context(self) -> None:
         """Test uses game from context user_data."""
         update = create_mock_update(text="/sales_volume")
@@ -482,7 +482,7 @@ class TestHandleSalesVolumeStats:
 
         mock_stats.assert_called_once_with(game="rust")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_api_error(self) -> None:
         """Test handles APIError gracefully."""
         update = create_mock_update(text="/sales_volume")
@@ -501,7 +501,7 @@ class TestHandleSalesVolumeStats:
 
         mock_reply.edit_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_generic_exception(self) -> None:
         """Test handles generic exception gracefully."""
         update = create_mock_update(text="/sales_volume")

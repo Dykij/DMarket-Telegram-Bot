@@ -19,7 +19,7 @@ from src.telegram_bot.commands.logs_command import logs_command
 # ============================================================================
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_update():
     """Create a mock Telegram Update object."""
     update = MagicMock()
@@ -30,7 +30,7 @@ def mock_update():
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context():
     """Create a mock Telegram Context object."""
     context = MagicMock()
@@ -38,7 +38,7 @@ def mock_context():
     return context
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_buy_intent_log():
     """Create a sample BUY_INTENT log entry."""
     return {
@@ -52,7 +52,7 @@ def sample_buy_intent_log():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_sell_intent_log():
     """Create a sample SELL_INTENT log entry."""
     return {
@@ -74,7 +74,7 @@ def sample_sell_intent_log():
 class TestLogsCommandNoMessage:
     """Tests for logs command when message is missing."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_command_returns_early_if_no_message(self, mock_context):
         """Test that command returns early if message is None."""
         # Arrange
@@ -88,7 +88,7 @@ class TestLogsCommandNoMessage:
         # Assert
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_command_returns_early_if_no_user(self, mock_context):
         """Test that command returns early if effective_user is None."""
         # Arrange
@@ -111,7 +111,7 @@ class TestLogsCommandNoMessage:
 class TestLogsDirectoryNotFound:
     """Tests for logs command when log directory doesn't exist."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_command_handles_missing_logs_directory(
         self, mock_update, mock_context
     ):
@@ -137,7 +137,7 @@ class TestLogsDirectoryNotFound:
 class TestNoLogFilesFound:
     """Tests for logs command when no log files exist."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_command_handles_empty_logs_directory(
         self, mock_update, mock_context
     ):
@@ -165,7 +165,7 @@ class TestNoLogFilesFound:
 class TestNoIntentLogsFound:
     """Tests for logs command when no INTENT logs exist."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_command_handles_no_intent_logs(
         self, mock_update, mock_context, tmp_path
     ):
@@ -179,13 +179,13 @@ class TestNoIntentLogsFound:
         ) as mock_path_class:
             mock_log_dir = MagicMock()
             mock_log_dir.exists.return_value = True
-            
+
             # Create mock file with proper stat
             mock_file = MagicMock()
             mock_file.stat.return_value.st_mtime = 1000
             mock_file.open.return_value.__enter__ = lambda s: log_file.open("r")
             mock_file.open.return_value.__exit__ = MagicMock()
-            
+
             mock_log_dir.glob.return_value = [log_file]
             mock_path_class.return_value = mock_log_dir
 
@@ -207,7 +207,7 @@ class TestNoIntentLogsFound:
 class TestSuccessfulLogDisplayJSON:
     """Tests for successful INTENT log display from JSON format."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_command_displays_buy_intent_logs(
         self, mock_update, mock_context, tmp_path, sample_buy_intent_log
     ):
@@ -234,7 +234,7 @@ class TestSuccessfulLogDisplayJSON:
         final_message = calls[-1][0][0]
         assert "INTENT" in final_message or "BUY" in final_message or "📊" in final_message
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_command_displays_sell_intent_logs(
         self, mock_update, mock_context, tmp_path, sample_sell_intent_log
     ):
@@ -258,9 +258,9 @@ class TestSuccessfulLogDisplayJSON:
         calls = mock_update.message.reply_text.call_args_list
         assert len(calls) >= 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_command_displays_mixed_intent_logs(
-        self, mock_update, mock_context, tmp_path, 
+        self, mock_update, mock_context, tmp_path,
         sample_buy_intent_log, sample_sell_intent_log
     ):
         """Test that mixed BUY and SELL INTENT logs are displayed."""
@@ -296,7 +296,7 @@ class TestSuccessfulLogDisplayJSON:
 class TestSuccessfulLogDisplayPlainText:
     """Tests for INTENT log display from plain text format."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_command_handles_plain_text_buy_intent(
         self, mock_update, mock_context, tmp_path
     ):
@@ -320,7 +320,7 @@ class TestSuccessfulLogDisplayPlainText:
         calls = mock_update.message.reply_text.call_args_list
         assert len(calls) >= 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_command_handles_plain_text_sell_intent(
         self, mock_update, mock_context, tmp_path
     ):
@@ -353,7 +353,7 @@ class TestSuccessfulLogDisplayPlainText:
 class TestLogLimiting:
     """Tests for log count limiting functionality."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_command_limits_to_20_logs(
         self, mock_update, mock_context, tmp_path, sample_buy_intent_log
     ):
@@ -391,7 +391,7 @@ class TestLogLimiting:
 class TestMessageChunking:
     """Tests for message chunking when exceeding Telegram limit."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_command_chunks_long_messages(
         self, mock_update, mock_context, tmp_path, sample_buy_intent_log
     ):
@@ -430,7 +430,7 @@ class TestMessageChunking:
 class TestDryRunVsLiveDisplay:
     """Tests for DRY-RUN and LIVE mode log display."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_command_shows_dry_run_indicator(
         self, mock_update, mock_context, tmp_path
     ):
@@ -463,7 +463,7 @@ class TestDryRunVsLiveDisplay:
         # Should contain DRY-RUN indicator
         assert "DRY-RUN" in final_message or len(calls) >= 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_command_shows_live_indicator(
         self, mock_update, mock_context, tmp_path
     ):
@@ -503,7 +503,7 @@ class TestDryRunVsLiveDisplay:
 class TestErrorHandling:
     """Tests for error handling in logs command."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_command_handles_file_read_error(
         self, mock_update, mock_context, tmp_path
     ):
@@ -514,12 +514,12 @@ class TestErrorHandling:
         ) as mock_path_class:
             mock_log_dir = MagicMock()
             mock_log_dir.exists.return_value = True
-            
+
             # Create a mock file that raises exception on open
             mock_file = MagicMock()
             mock_file.stat.return_value.st_mtime = 1000
             mock_file.open.side_effect = PermissionError("Access denied")
-            
+
             mock_log_dir.glob.return_value = [mock_file]
             mock_path_class.return_value = mock_log_dir
 
@@ -530,7 +530,7 @@ class TestErrorHandling:
         calls = mock_update.message.reply_text.call_args_list
         assert len(calls) >= 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_command_handles_invalid_json(
         self, mock_update, mock_context, tmp_path
     ):
@@ -563,7 +563,7 @@ class TestErrorHandling:
 class TestMultipleLogFiles:
     """Tests for handling multiple log files."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_command_reads_multiple_log_files(
         self, mock_update, mock_context, tmp_path, sample_buy_intent_log
     ):
@@ -590,7 +590,7 @@ class TestMultipleLogFiles:
         calls = mock_update.message.reply_text.call_args_list
         assert len(calls) >= 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_command_limits_to_5_recent_files(
         self, mock_update, mock_context, tmp_path, sample_buy_intent_log
     ):
@@ -628,7 +628,7 @@ class TestMultipleLogFiles:
 class TestEmojiDisplay:
     """Tests for emoji display in log messages."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_buy_intent_shows_blue_emoji(
         self, mock_update, mock_context, tmp_path
     ):
@@ -660,7 +660,7 @@ class TestEmojiDisplay:
         # Blue emoji for BUY_INTENT
         assert "🔵" in final_message or len(calls) >= 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sell_intent_shows_green_emoji(
         self, mock_update, mock_context, tmp_path
     ):

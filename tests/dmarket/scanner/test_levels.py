@@ -363,8 +363,8 @@ class TestLevelConsistency:
 
         # Assert - каждый следующий уровень должен иметь более высокую минимальную цену
         for i in range(len(ranges) - 1):
-            current_min, current_max = ranges[i]
-            next_min, next_max = ranges[i + 1]
+            current_min, _current_max = ranges[i]
+            next_min, _next_max = ranges[i + 1]
 
             # Проверяем что минимальная цена следующего уровня больше или равна текущей
             assert next_min >= current_min, (

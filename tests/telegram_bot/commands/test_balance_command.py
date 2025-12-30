@@ -380,7 +380,8 @@ class TestSuccessfulBalanceRetrieval:
             final_call = mock_callback_query.edit_message_text.call_args_list[-1]
             final_text = final_call.kwargs["text"]
 
-            assert "✅" in final_text and "Достаточно для арбитража" in final_text
+            assert "✅" in final_text
+            assert "Достаточно для арбитража" in final_text
 
     @pytest.mark.asyncio()
     async def test_balance_status_low_but_usable(
@@ -442,7 +443,8 @@ class TestSuccessfulBalanceRetrieval:
             final_call = mock_callback_query.edit_message_text.call_args_list[-1]
             final_text = final_call.kwargs["text"]
 
-            assert "❌" in final_text and "Недостаточно для арбитража" in final_text
+            assert "❌" in final_text
+            assert "Недостаточно для арбитража" in final_text
 
 
 # ============================================================================
@@ -798,15 +800,15 @@ class TestCurrencyFormatting:
     """Tests for currency formatting."""
 
     @pytest.mark.parametrize(
-        "balance,expected_format",
-        [
+        ("balance", "expected_format"),
+        (
             (0.01, "$0.01"),
             (1.5, "$1.50"),
             (10.99, "$10.99"),
             (100.0, "$100.00"),
             (1234.56, "$1234.56"),
             (9999.99, "$9999.99"),
-        ],
+        ),
     )
     @pytest.mark.asyncio()
     async def test_formats_balance_correctly(

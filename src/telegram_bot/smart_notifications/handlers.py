@@ -169,11 +169,11 @@ def register_notification_handlers(
     notification_queue = application.bot_data.get("notification_queue")
 
     if api:
-        _checker_task = asyncio.create_task(
+        checker_task = asyncio.create_task(
             start_notification_checker(
                 api, application.bot, interval=300, notification_queue=notification_queue
             ),
         )
-        logger.info("Started notification checker (task: %s)", _checker_task.get_name())
+        logger.info("Started notification checker (task: %s)", checker_task.get_name())
     else:
         logger.error("Could not start notification checker: DMarketAPI not found in bot_data")

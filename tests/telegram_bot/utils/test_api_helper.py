@@ -6,8 +6,6 @@ Tests for DMarket API client creation helper functions.
 import os
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 
 class TestCreateDmarketApiClient:
     """Tests for create_dmarket_api_client function."""
@@ -43,17 +41,16 @@ class TestCreateDmarketApiClient:
                 "DMARKET_PUBLIC_KEY": "env_public_key",
                 "DMARKET_SECRET_KEY": "env_secret_key",
             },
-        ):
-            with patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
-                mock_instance = MagicMock()
-                mock_api.return_value = mock_instance
+        ), patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
+            mock_instance = MagicMock()
+            mock_api.return_value = mock_instance
 
-                result = create_dmarket_api_client(None)
+            result = create_dmarket_api_client(None)
 
-                assert result == mock_instance
-                call_kwargs = mock_api.call_args[1]
-                assert call_kwargs["public_key"] == "env_public_key"
-                assert call_kwargs["secret_key"] == "env_secret_key"
+            assert result == mock_instance
+            call_kwargs = mock_api.call_args[1]
+            assert call_kwargs["public_key"] == "env_public_key"
+            assert call_kwargs["secret_key"] == "env_secret_key"
 
     def test_create_dmarket_api_client_prefers_context_over_env(self):
         """Test create_dmarket_api_client prefers context keys over env."""
@@ -71,15 +68,14 @@ class TestCreateDmarketApiClient:
                 "DMARKET_PUBLIC_KEY": "env_public",
                 "DMARKET_SECRET_KEY": "env_secret",
             },
-        ):
-            with patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
-                mock_api.return_value = MagicMock()
+        ), patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
+            mock_api.return_value = MagicMock()
 
-                create_dmarket_api_client(mock_context)
+            create_dmarket_api_client(mock_context)
 
-                call_kwargs = mock_api.call_args[1]
-                assert call_kwargs["public_key"] == "context_public"
-                assert call_kwargs["secret_key"] == "context_secret"
+            call_kwargs = mock_api.call_args[1]
+            assert call_kwargs["public_key"] == "context_public"
+            assert call_kwargs["secret_key"] == "context_secret"
 
     def test_create_dmarket_api_client_falls_back_to_env_for_missing_context_keys(self):
         """Test create_dmarket_api_client falls back to env when context keys missing."""
@@ -94,15 +90,14 @@ class TestCreateDmarketApiClient:
                 "DMARKET_PUBLIC_KEY": "env_public",
                 "DMARKET_SECRET_KEY": "env_secret",
             },
-        ):
-            with patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
-                mock_api.return_value = MagicMock()
+        ), patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
+            mock_api.return_value = MagicMock()
 
-                create_dmarket_api_client(mock_context)
+            create_dmarket_api_client(mock_context)
 
-                call_kwargs = mock_api.call_args[1]
-                assert call_kwargs["public_key"] == "env_public"
-                assert call_kwargs["secret_key"] == "env_secret"
+            call_kwargs = mock_api.call_args[1]
+            assert call_kwargs["public_key"] == "env_public"
+            assert call_kwargs["secret_key"] == "env_secret"
 
     def test_create_dmarket_api_client_handles_missing_public_key(self):
         """Test create_dmarket_api_client handles missing public key."""
@@ -112,14 +107,13 @@ class TestCreateDmarketApiClient:
             os.environ,
             {"DMARKET_SECRET_KEY": "secret_key"},
             clear=True,
-        ):
-            with patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
-                mock_api.return_value = MagicMock()
+        ), patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
+            mock_api.return_value = MagicMock()
 
-                create_dmarket_api_client(None)
+            create_dmarket_api_client(None)
 
-                call_kwargs = mock_api.call_args[1]
-                assert call_kwargs["public_key"] == ""
+            call_kwargs = mock_api.call_args[1]
+            assert call_kwargs["public_key"] == ""
 
     def test_create_dmarket_api_client_handles_missing_secret_key(self):
         """Test create_dmarket_api_client handles missing secret key."""
@@ -129,14 +123,13 @@ class TestCreateDmarketApiClient:
             os.environ,
             {"DMARKET_PUBLIC_KEY": "public_key"},
             clear=True,
-        ):
-            with patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
-                mock_api.return_value = MagicMock()
+        ), patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
+            mock_api.return_value = MagicMock()
 
-                create_dmarket_api_client(None)
+            create_dmarket_api_client(None)
 
-                call_kwargs = mock_api.call_args[1]
-                assert call_kwargs["secret_key"] == ""
+            call_kwargs = mock_api.call_args[1]
+            assert call_kwargs["secret_key"] == ""
 
     def test_create_dmarket_api_client_handles_missing_both_keys(self):
         """Test create_dmarket_api_client handles missing both keys."""
@@ -164,15 +157,14 @@ class TestCreateDmarketApiClient:
                 "DMARKET_PUBLIC_KEY": "env_public",
                 "DMARKET_SECRET_KEY": "env_secret",
             },
-        ):
-            with patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
-                mock_api.return_value = MagicMock()
+        ), patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
+            mock_api.return_value = MagicMock()
 
-                create_dmarket_api_client(mock_context)
+            create_dmarket_api_client(mock_context)
 
-                call_kwargs = mock_api.call_args[1]
-                assert call_kwargs["public_key"] == "env_public"
-                assert call_kwargs["secret_key"] == "env_secret"
+            call_kwargs = mock_api.call_args[1]
+            assert call_kwargs["public_key"] == "env_public"
+            assert call_kwargs["secret_key"] == "env_secret"
 
     def test_create_dmarket_api_client_logs_key_prefix_suffix(self):
         """Test create_dmarket_api_client logs key prefix and suffix."""
@@ -184,15 +176,14 @@ class TestCreateDmarketApiClient:
                 "DMARKET_PUBLIC_KEY": "abcd1234efgh",
                 "DMARKET_SECRET_KEY": "secretkey123",
             },
-        ):
-            with patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
-                mock_api.return_value = MagicMock()
+        ), patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
+            mock_api.return_value = MagicMock()
 
-                with patch("src.telegram_bot.utils.api_helper.logger") as mock_logger:
-                    create_dmarket_api_client(None)
+            with patch("src.telegram_bot.utils.api_helper.logger") as mock_logger:
+                create_dmarket_api_client(None)
 
-                    # Should log something about the key
-                    assert mock_logger.debug.called or mock_logger.warning.called
+                # Should log something about the key
+                assert mock_logger.debug.called or mock_logger.warning.called
 
     def test_create_dmarket_api_client_returns_dmarket_api_instance(self):
         """Test create_dmarket_api_client returns DMarketAPI instance."""
@@ -204,14 +195,13 @@ class TestCreateDmarketApiClient:
                 "DMARKET_PUBLIC_KEY": "public",
                 "DMARKET_SECRET_KEY": "secret",
             },
-        ):
-            with patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
-                expected_instance = MagicMock()
-                mock_api.return_value = expected_instance
+        ), patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
+            expected_instance = MagicMock()
+            mock_api.return_value = expected_instance
 
-                result = create_dmarket_api_client(None)
+            result = create_dmarket_api_client(None)
 
-                assert result is expected_instance
+            assert result is expected_instance
 
     def test_create_dmarket_api_client_with_partial_context_keys(self):
         """Test create_dmarket_api_client with only public key in context."""
@@ -228,15 +218,14 @@ class TestCreateDmarketApiClient:
             {
                 "DMARKET_SECRET_KEY": "env_secret",
             },
-        ):
-            with patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
-                mock_api.return_value = MagicMock()
+        ), patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
+            mock_api.return_value = MagicMock()
 
-                create_dmarket_api_client(mock_context)
+            create_dmarket_api_client(mock_context)
 
-                call_kwargs = mock_api.call_args[1]
-                assert call_kwargs["public_key"] == "context_public"
-                assert call_kwargs["secret_key"] == "env_secret"
+            call_kwargs = mock_api.call_args[1]
+            assert call_kwargs["public_key"] == "context_public"
+            assert call_kwargs["secret_key"] == "env_secret"
 
 
 class TestLogging:
@@ -264,15 +253,14 @@ class TestLogging:
             os.environ,
             {"DMARKET_PUBLIC_KEY": "public"},
             clear=True,
-        ):
-            with patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
-                mock_api.return_value = MagicMock()
+        ), patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
+            mock_api.return_value = MagicMock()
 
-                with patch("src.telegram_bot.utils.api_helper.logger") as mock_logger:
-                    create_dmarket_api_client(None)
+            with patch("src.telegram_bot.utils.api_helper.logger") as mock_logger:
+                create_dmarket_api_client(None)
 
-                    # Should log warning about missing secret key
-                    assert mock_logger.warning.called
+                # Should log warning about missing secret key
+                assert mock_logger.warning.called
 
     def test_logs_debug_when_public_key_present(self):
         """Test logs debug when public key is present."""
@@ -284,15 +272,14 @@ class TestLogging:
                 "DMARKET_PUBLIC_KEY": "abcd1234efgh",
                 "DMARKET_SECRET_KEY": "secret",
             },
-        ):
-            with patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
-                mock_api.return_value = MagicMock()
+        ), patch("src.telegram_bot.utils.api_helper.DMarketAPI") as mock_api:
+            mock_api.return_value = MagicMock()
 
-                with patch("src.telegram_bot.utils.api_helper.logger") as mock_logger:
-                    create_dmarket_api_client(None)
+            with patch("src.telegram_bot.utils.api_helper.logger") as mock_logger:
+                create_dmarket_api_client(None)
 
-                    # Should log debug about the key
-                    assert mock_logger.debug.called
+                # Should log debug about the key
+                assert mock_logger.debug.called
 
 
 class TestModuleIntegration:

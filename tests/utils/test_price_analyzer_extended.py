@@ -8,9 +8,7 @@ Tests for advanced price analysis functions:
 - get_investment_reason
 """
 
-import time
-from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -25,7 +23,7 @@ from src.utils.price_analyzer import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_api():
     """Fixture for mocked DMarket API."""
     api = MagicMock(spec=DMarketAPI)
@@ -45,7 +43,7 @@ def clear_cache():
 class TestCalculatePriceTrend:
     """Tests for calculate_price_trend function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trend_upward(self, mock_api):
         """Test detection of upward trend."""
         # Mock price history showing upward trend
@@ -64,7 +62,7 @@ class TestCalculatePriceTrend:
         assert result["change_percent"] > 0
         assert result["confidence"] > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trend_downward(self, mock_api):
         """Test detection of downward trend."""
         mock_api._request.return_value = {
@@ -81,7 +79,7 @@ class TestCalculatePriceTrend:
         assert result["trend"] == "downward"
         assert result["change_percent"] < 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trend_stable(self, mock_api):
         """Test detection of stable trend."""
         mock_api._request.return_value = {
@@ -96,10 +94,10 @@ class TestCalculatePriceTrend:
         result = await calculate_price_trend(mock_api, "item123", days=7)
 
         # Stable trend with small variations
-        assert result["trend"] in ["stable", "upward", "downward"]
+        assert result["trend"] in {"stable", "upward", "downward"}
         assert abs(result["change_percent"]) < 20  # Small change
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trend_no_data(self, mock_api):
         """Test trend calculation with no data."""
         mock_api._request.return_value = {"sales": []}
@@ -109,7 +107,7 @@ class TestCalculatePriceTrend:
         assert result["trend"] == "unknown"
         assert result["confidence"] == 0.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trend_single_data_point(self, mock_api):
         """Test trend calculation with single data point."""
         mock_api._request.return_value = {
@@ -121,7 +119,7 @@ class TestCalculatePriceTrend:
         assert result["trend"] == "stable"
         assert result["confidence"] == 0.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trend_returns_period_prices(self, mock_api):
         """Test that trend calculation returns period prices."""
         mock_api._request.return_value = {
@@ -139,7 +137,7 @@ class TestCalculatePriceTrend:
         assert isinstance(result["period_prices"], list)
         assert len(result["period_prices"]) > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trend_absolute_change(self, mock_api):
         """Test that trend calculation returns absolute change."""
         mock_api._request.return_value = {
@@ -154,7 +152,7 @@ class TestCalculatePriceTrend:
         assert "absolute_change" in result
         assert isinstance(result["absolute_change"], (int, float))
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trend_high_confidence(self, mock_api):
         """Test high confidence with large price change."""
         # 40% increase - should have high confidence
@@ -173,7 +171,7 @@ class TestCalculatePriceTrend:
 class TestFindUndervaluedItems:
     """Tests for find_undervalued_items function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_undervalued_success(self, mock_api):
         """Test finding undervalued items."""
         mock_api.get_market_items.return_value = {
@@ -196,7 +194,7 @@ class TestFindUndervaluedItems:
 
         assert isinstance(result, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_undervalued_no_items(self, mock_api):
         """Test finding undervalued items with no results."""
         mock_api.get_market_items.return_value = {"objects": []}
@@ -205,7 +203,7 @@ class TestFindUndervaluedItems:
 
         assert result == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_undervalued_api_error(self, mock_api):
         """Test handling of API error."""
         mock_api.get_market_items.side_effect = Exception("API Error")
@@ -214,7 +212,7 @@ class TestFindUndervaluedItems:
 
         assert result == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_undervalued_empty_response(self, mock_api):
         """Test handling of empty API response."""
         mock_api.get_market_items.return_value = {}
@@ -223,7 +221,7 @@ class TestFindUndervaluedItems:
 
         assert result == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_undervalued_respects_max_results(self, mock_api):
         """Test that max_results is respected."""
         # Mock many undervalued items
@@ -241,7 +239,7 @@ class TestFindUndervaluedItems:
 
         assert len(result) <= 5
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_undervalued_sorted_by_discount(self, mock_api):
         """Test that results are sorted by discount."""
         mock_api.get_market_items.return_value = {
@@ -265,7 +263,7 @@ class TestFindUndervaluedItems:
 class TestAnalyzeSupplyDemand:
     """Tests for analyze_supply_demand function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_high_liquidity(self, mock_api):
         """Test analysis of high liquidity item."""
         mock_api._request.return_value = {
@@ -275,11 +273,11 @@ class TestAnalyzeSupplyDemand:
 
         result = await analyze_supply_demand(mock_api, "item123")
 
-        assert result["liquidity"] in ["high", "medium"]
+        assert result["liquidity"] in {"high", "medium"}
         assert result["supply_count"] > 0
         assert result["demand_count"] > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_low_liquidity(self, mock_api):
         """Test analysis of low liquidity item."""
         mock_api._request.return_value = {
@@ -293,7 +291,7 @@ class TestAnalyzeSupplyDemand:
         assert result["supply_count"] == 1
         assert result["demand_count"] == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_no_offers(self, mock_api):
         """Test analysis with no offers."""
         mock_api._request.return_value = None
@@ -304,7 +302,7 @@ class TestAnalyzeSupplyDemand:
         assert result["supply_count"] == 0
         assert result["demand_count"] == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_spread_calculation(self, mock_api):
         """Test spread calculation."""
         mock_api._request.return_value = {
@@ -317,7 +315,7 @@ class TestAnalyzeSupplyDemand:
         assert result["spread"] == 2.0  # $10 - $8 = $2
         assert result["spread_percent"] == 20.0  # 2/10 * 100
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_api_error(self, mock_api):
         """Test handling of API error."""
         mock_api._request.side_effect = Exception("API Error")
@@ -329,7 +327,7 @@ class TestAnalyzeSupplyDemand:
         assert result["demand_count"] == 0
         assert result["spread"] == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_empty_offers(self, mock_api):
         """Test analysis with empty offers list."""
         mock_api._request.return_value = {"offers": [], "targets": []}
@@ -343,7 +341,7 @@ class TestAnalyzeSupplyDemand:
 class TestGetInvestmentRecommendations:
     """Tests for get_investment_recommendations function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_recommendations_low_risk(self, mock_api):
         """Test recommendations with low risk level."""
         mock_api.get_market_items.return_value = {"objects": []}
@@ -354,7 +352,7 @@ class TestGetInvestmentRecommendations:
 
         assert isinstance(result, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_recommendations_medium_risk(self, mock_api):
         """Test recommendations with medium risk level."""
         mock_api.get_market_items.return_value = {"objects": []}
@@ -365,7 +363,7 @@ class TestGetInvestmentRecommendations:
 
         assert isinstance(result, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_recommendations_high_risk(self, mock_api):
         """Test recommendations with high risk level."""
         mock_api.get_market_items.return_value = {"objects": []}
@@ -376,7 +374,7 @@ class TestGetInvestmentRecommendations:
 
         assert isinstance(result, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_recommendations_max_results(self, mock_api):
         """Test that recommendations return max 10 items."""
         mock_api.get_market_items.return_value = {"objects": []}
@@ -385,7 +383,7 @@ class TestGetInvestmentRecommendations:
 
         assert len(result) <= 10
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_recommendations_with_investment_score(self, mock_api):
         """Test that recommendations include investment score."""
         mock_api.get_market_items.return_value = {
@@ -571,7 +569,7 @@ class TestGetInvestmentReason:
 class TestEdgeCases:
     """Tests for edge cases in price analyzer."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_zero_price_history(self, mock_api):
         """Test handling of zero prices in history."""
         mock_api._request.return_value = {
@@ -583,7 +581,7 @@ class TestEdgeCases:
         assert result is not None
         assert "trend" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_very_large_price_values(self, mock_api):
         """Test handling of very large prices."""
         mock_api._request.return_value = {
@@ -597,7 +595,7 @@ class TestEdgeCases:
 
         assert result is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_negative_discount(self, mock_api):
         """Test handling when current price is higher than average (no discount)."""
         mock_api.get_market_items.return_value = {
@@ -627,7 +625,7 @@ class TestEdgeCases:
 
         assert isinstance(reason, str)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_cache_access(self, mock_api):
         """Test concurrent access to price history cache."""
         import asyncio

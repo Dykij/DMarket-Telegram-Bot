@@ -10,7 +10,6 @@ This module contains additional tests for src/utils/reactive_websocket.py coveri
 Target: 30+ additional tests to achieve 70%+ coverage
 """
 
-import asyncio
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -60,7 +59,7 @@ class TestSubscriptionInit:
     def test_subscription_default_params(self):
         """Test Subscription with default params."""
         sub = Subscription(topic="test:topic")
-        
+
         assert sub.topic == "test:topic"
         assert sub.params == {}
         assert sub.state == SubscriptionState.IDLE
@@ -72,7 +71,7 @@ class TestSubscriptionInit:
         """Test Subscription with custom params."""
         params = {"key": "value", "number": 42}
         sub = Subscription(topic="test:topic", params=params)
-        
+
         assert sub.params == params
 
     def test_subscription_created_at_is_set(self):
@@ -80,7 +79,7 @@ class TestSubscriptionInit:
         before = datetime.now(UTC)
         sub = Subscription(topic="test:topic")
         after = datetime.now(UTC)
-        
+
         assert before <= sub.created_at <= after
 
 
@@ -90,33 +89,33 @@ class TestSubscriptionUpdateState:
     def test_update_state_to_subscribing(self):
         """Test state update to SUBSCRIBING."""
         sub = Subscription(topic="test")
-        
+
         sub.update_state(SubscriptionState.SUBSCRIBING)
-        
+
         assert sub.state == SubscriptionState.SUBSCRIBING
 
     def test_update_state_to_active(self):
         """Test state update to ACTIVE."""
         sub = Subscription(topic="test")
-        
+
         sub.update_state(SubscriptionState.ACTIVE)
-        
+
         assert sub.state == SubscriptionState.ACTIVE
 
     def test_update_state_to_error(self):
         """Test state update to ERROR."""
         sub = Subscription(topic="test")
-        
+
         sub.update_state(SubscriptionState.ERROR)
-        
+
         assert sub.state == SubscriptionState.ERROR
 
     def test_update_state_to_unsubscribing(self):
         """Test state update to UNSUBSCRIBING."""
         sub = Subscription(topic="test")
-        
+
         sub.update_state(SubscriptionState.UNSUBSCRIBING)
-        
+
         assert sub.state == SubscriptionState.UNSUBSCRIBING
 
 
@@ -126,27 +125,27 @@ class TestSubscriptionRecordEvent:
     def test_record_event_increments_count(self):
         """Test that record_event increments event_count."""
         sub = Subscription(topic="test")
-        
+
         sub.record_event()
-        
+
         assert sub.event_count == 1
 
     def test_record_event_updates_last_event_at(self):
         """Test that record_event updates last_event_at."""
         sub = Subscription(topic="test")
         assert sub.last_event_at is None
-        
+
         sub.record_event()
-        
+
         assert sub.last_event_at is not None
 
     def test_record_event_multiple_times(self):
         """Test recording multiple events."""
         sub = Subscription(topic="test")
-        
+
         for _ in range(5):
             sub.record_event()
-        
+
         assert sub.event_count == 5
 
 
@@ -156,18 +155,18 @@ class TestSubscriptionRecordError:
     def test_record_error_increments_count(self):
         """Test that record_error increments error_count."""
         sub = Subscription(topic="test")
-        
+
         sub.record_error()
-        
+
         assert sub.error_count == 1
 
     def test_record_error_multiple_times(self):
         """Test recording multiple errors."""
         sub = Subscription(topic="test")
-        
+
         for _ in range(3):
             sub.record_error()
-        
+
         assert sub.error_count == 3
 
 
@@ -184,9 +183,9 @@ class TestObservableClear:
         observable = Observable()
         observer = MagicMock()
         observable.subscribe(observer)
-        
+
         observable.clear()
-        
+
         assert len(observable._observers) == 0
 
     def test_clear_removes_async_observers(self):
@@ -194,9 +193,9 @@ class TestObservableClear:
         observable = Observable()
         async_observer = AsyncMock()
         observable.subscribe_async(async_observer)
-        
+
         observable.clear()
-        
+
         assert len(observable._async_observers) == 0
 
     def test_clear_removes_all_observers(self):
@@ -205,9 +204,9 @@ class TestObservableClear:
         observable.subscribe(MagicMock())
         observable.subscribe(MagicMock())
         observable.subscribe_async(AsyncMock())
-        
+
         observable.clear()
-        
+
         assert len(observable._observers) == 0
         assert len(observable._async_observers) == 0
 
@@ -223,7 +222,7 @@ class TestReactiveDMarketWebSocketInit:
     def test_init_with_defaults(self, mock_api_client):
         """Test initialization with default values."""
         ws = ReactiveDMarketWebSocket(api_client=mock_api_client)
-        
+
         assert ws.api_client == mock_api_client
         assert ws.auto_reconnect is True
         assert ws.max_reconnect_attempts == 10
@@ -237,14 +236,14 @@ class TestReactiveDMarketWebSocketInit:
             auto_reconnect=False,
             max_reconnect_attempts=5,
         )
-        
+
         assert ws.auto_reconnect is False
         assert ws.max_reconnect_attempts == 5
 
     def test_init_creates_observables_for_all_event_types(self, mock_api_client):
         """Test that init creates observables for all event types."""
         ws = ReactiveDMarketWebSocket(api_client=mock_api_client)
-        
+
         for event_type in EventType:
             assert event_type in ws.observables
             assert isinstance(ws.observables[event_type], Observable)
@@ -252,19 +251,19 @@ class TestReactiveDMarketWebSocketInit:
     def test_init_creates_all_events_observable(self, mock_api_client):
         """Test that init creates all_events observable."""
         ws = ReactiveDMarketWebSocket(api_client=mock_api_client)
-        
+
         assert isinstance(ws.all_events, Observable)
 
     def test_init_creates_connection_state_observable(self, mock_api_client):
         """Test that init creates connection_state observable."""
         ws = ReactiveDMarketWebSocket(api_client=mock_api_client)
-        
+
         assert isinstance(ws.connection_state, Observable)
 
     def test_init_empty_subscriptions(self, mock_api_client):
         """Test that init creates empty subscriptions dict."""
         ws = ReactiveDMarketWebSocket(api_client=mock_api_client)
-        
+
         assert ws.subscriptions == {}
 
 
@@ -280,9 +279,9 @@ class TestReactiveDMarketWebSocketConnection:
     async def test_connect_when_already_connected(self, reactive_ws):
         """Test connect returns True when already connected."""
         reactive_ws.is_connected = True
-        
+
         result = await reactive_ws.connect()
-        
+
         assert result is True
 
     @pytest.mark.asyncio()
@@ -290,7 +289,7 @@ class TestReactiveDMarketWebSocketConnection:
         """Test disconnect when not connected."""
         # Should not raise
         await reactive_ws.disconnect()
-        
+
         assert reactive_ws.is_connected is False
 
 
@@ -306,14 +305,14 @@ class TestReactiveDMarketWebSocketSubscription:
     async def test_subscribe_when_not_connected(self, reactive_ws):
         """Test subscribe_to when not connected."""
         subscription = await reactive_ws.subscribe_to("test:topic")
-        
+
         assert subscription.state == SubscriptionState.ERROR
 
     @pytest.mark.asyncio()
     async def test_unsubscribe_when_not_subscribed(self, reactive_ws):
         """Test unsubscribe_from when not subscribed."""
         result = await reactive_ws.unsubscribe_from("test:topic")
-        
+
         assert result is False
 
     @pytest.mark.asyncio()
@@ -321,9 +320,9 @@ class TestReactiveDMarketWebSocketSubscription:
         """Test unsubscribe_from when not connected."""
         # Add a subscription manually
         reactive_ws.subscriptions["test:topic"] = Subscription("test:topic")
-        
+
         result = await reactive_ws.unsubscribe_from("test:topic")
-        
+
         assert result is False
 
 
@@ -338,7 +337,7 @@ class TestReactiveDMarketWebSocketStats:
     def test_get_subscription_stats_empty(self, reactive_ws):
         """Test stats with no subscriptions."""
         stats = reactive_ws.get_subscription_stats()
-        
+
         assert stats["total_subscriptions"] == 0
         assert stats["subscriptions"] == []
 
@@ -349,9 +348,9 @@ class TestReactiveDMarketWebSocketStats:
         sub.record_event()
         sub.record_error()
         reactive_ws.subscriptions["test:topic"] = sub
-        
+
         stats = reactive_ws.get_subscription_stats()
-        
+
         assert stats["total_subscriptions"] == 1
         assert len(stats["subscriptions"]) == 1
         assert stats["subscriptions"][0]["topic"] == "test:topic"
@@ -371,7 +370,7 @@ class TestReactiveDMarketWebSocketConvenienceMethods:
     async def test_subscribe_to_balance_updates_not_connected(self, reactive_ws):
         """Test subscribe_to_balance_updates when not connected."""
         subscription = await reactive_ws.subscribe_to_balance_updates()
-        
+
         assert subscription.topic == "balance:updates"
         assert subscription.state == SubscriptionState.ERROR
 
@@ -379,7 +378,7 @@ class TestReactiveDMarketWebSocketConvenienceMethods:
     async def test_subscribe_to_order_events_not_connected(self, reactive_ws):
         """Test subscribe_to_order_events when not connected."""
         subscription = await reactive_ws.subscribe_to_order_events()
-        
+
         assert subscription.topic == "orders:*"
         assert subscription.state == SubscriptionState.ERROR
 
@@ -387,7 +386,7 @@ class TestReactiveDMarketWebSocketConvenienceMethods:
     async def test_subscribe_to_market_prices_not_connected(self, reactive_ws):
         """Test subscribe_to_market_prices when not connected."""
         subscription = await reactive_ws.subscribe_to_market_prices()
-        
+
         assert subscription.topic == "market:prices"
         assert subscription.params["gameId"] == "csgo"
 
@@ -398,7 +397,7 @@ class TestReactiveDMarketWebSocketConvenienceMethods:
         subscription = await reactive_ws.subscribe_to_market_prices(
             game="dota2", items=items
         )
-        
+
         assert subscription.params["gameId"] == "dota2"
         assert subscription.params["itemIds"] == items
 
@@ -406,7 +405,7 @@ class TestReactiveDMarketWebSocketConvenienceMethods:
     async def test_subscribe_to_target_matches_not_connected(self, reactive_ws):
         """Test subscribe_to_target_matches when not connected."""
         subscription = await reactive_ws.subscribe_to_target_matches()
-        
+
         assert subscription.topic == "targets:matched"
         assert subscription.state == SubscriptionState.ERROR
 
@@ -423,12 +422,12 @@ class TestObservableErrorHandling:
     async def test_emit_catches_sync_observer_error(self):
         """Test that emit catches errors from sync observers."""
         observable = Observable()
-        
+
         def bad_observer(data):
             raise ValueError("Test error")
-        
+
         observable.subscribe(bad_observer)
-        
+
         # Should not raise
         await observable.emit("test_data")
 
@@ -437,15 +436,15 @@ class TestObservableErrorHandling:
         """Test that emit continues to other observers after error."""
         observable = Observable()
         good_observer = MagicMock()
-        
+
         def bad_observer(data):
             raise ValueError("Test error")
-        
+
         observable.subscribe(bad_observer)
         observable.subscribe(good_observer)
-        
+
         await observable.emit("test_data")
-        
+
         good_observer.assert_called_once_with("test_data")
 
 
@@ -468,7 +467,7 @@ class TestReactiveDMarketWebSocketHandleMessage:
         """Test handling of message without type."""
         import json
         message = json.dumps({"data": "test"})
-        
+
         # Should not raise
         await reactive_ws._handle_message(message)
 
@@ -476,34 +475,34 @@ class TestReactiveDMarketWebSocketHandleMessage:
     async def test_handle_message_with_known_event_type(self, reactive_ws):
         """Test handling of message with known event type."""
         import json
-        
+
         observer = MagicMock()
         reactive_ws.observables[EventType.BALANCE_UPDATE].subscribe(observer)
-        
+
         message = json.dumps({
             "type": "balance:update",
             "data": {"balance": 100}
         })
-        
+
         await reactive_ws._handle_message(message)
-        
+
         observer.assert_called_once()
 
     @pytest.mark.asyncio()
     async def test_handle_message_with_unknown_event_type(self, reactive_ws):
         """Test handling of message with unknown event type."""
         import json
-        
+
         all_events_observer = MagicMock()
         reactive_ws.all_events.subscribe(all_events_observer)
-        
+
         message = json.dumps({
             "type": "unknown:event",
             "data": {}
         })
-        
+
         await reactive_ws._handle_message(message)
-        
+
         # Should still emit to all_events
         all_events_observer.assert_called_once()
 
@@ -511,19 +510,19 @@ class TestReactiveDMarketWebSocketHandleMessage:
     async def test_handle_message_updates_subscription_stats(self, reactive_ws):
         """Test that handling message updates subscription stats."""
         import json
-        
+
         # Add a subscription
         sub = Subscription("test:topic")
         reactive_ws.subscriptions["test:topic"] = sub
-        
+
         message = json.dumps({
             "type": "balance:update",
             "topic": "test:topic",
             "data": {}
         })
-        
+
         await reactive_ws._handle_message(message)
-        
+
         assert sub.event_count == 1
 
 
@@ -544,9 +543,9 @@ class TestReactiveDMarketWebSocketReconnect:
             max_reconnect_attempts=3,
         )
         ws.reconnect_attempts = 3
-        
+
         # Should not attempt to connect
-        with patch.object(ws, 'connect', new_callable=AsyncMock) as mock_connect:
+        with patch.object(ws, "connect", new_callable=AsyncMock) as mock_connect:
             await ws._attempt_reconnect()
             mock_connect.assert_not_called()
 
@@ -564,7 +563,7 @@ class TestReactiveDMarketWebSocketAuthenticate:
         """Test authenticate when not connected."""
         reactive_ws.is_connected = False
         reactive_ws.ws_connection = None
-        
+
         # Should not raise
         await reactive_ws._authenticate()
 

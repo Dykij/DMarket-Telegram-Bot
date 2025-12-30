@@ -11,18 +11,17 @@ This module contains tests for src/utils/exceptions.py covering:
 Target: 70+ tests to achieve 85%+ coverage
 """
 
-import asyncio
 import logging
 
 import pytest
 
 from src.utils.exceptions import (
+    DMARKET_ERROR_MAPPING,
     APIError,
     AuthenticationError,
     BadRequestError,
     BaseAppException,
     BusinessLogicError,
-    DMARKET_ERROR_MAPPING,
     DMarketSpecificError,
     ErrorCode,
     ForbiddenError,
@@ -786,7 +785,7 @@ class TestHandleApiError:
 class TestRetryAsync:
     """Tests for retry_async decorator."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_successful_first_try(self):
         """Test function succeeds on first try."""
         call_count = 0
@@ -801,7 +800,7 @@ class TestRetryAsync:
         assert result == "success"
         assert call_count == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_succeeds_after_failures(self):
         """Test function succeeds after initial failures."""
         call_count = 0
@@ -818,7 +817,7 @@ class TestRetryAsync:
         assert result == "success"
         assert call_count == 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_exhausted(self):
         """Test all retries exhausted."""
 
@@ -829,7 +828,7 @@ class TestRetryAsync:
         with pytest.raises(APIError):
             await always_fails()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_linear_backoff(self):
         """Test linear backoff strategy."""
         call_count = 0
@@ -849,7 +848,7 @@ class TestRetryAsync:
         result = await linear_test()
         assert result == "done"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_fixed_delay(self):
         """Test fixed delay strategy."""
         call_count = 0
@@ -876,7 +875,7 @@ class TestRetryAsync:
 class TestHandleExceptions:
     """Tests for handle_exceptions decorator."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_async_function_success(self):
         """Test successful async function."""
 
@@ -887,7 +886,7 @@ class TestHandleExceptions:
         result = await successful_async()
         assert result == "success"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_async_function_reraise(self):
         """Test async function with reraise=True."""
 

@@ -290,8 +290,8 @@ class Timer:
 
     def __exit__(
         self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: object,
+        exc_type: type[BaseException] | None,  # noqa: ARG002
+        exc_val: BaseException | None,  # noqa: ARG002
+        exc_tb: object,  # noqa: ARG002
     ) -> None:
         self.elapsed = time.perf_counter() - self.start_time

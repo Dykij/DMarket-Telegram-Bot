@@ -6,12 +6,13 @@ after crashes or restarts without losing progress.
 """
 
 import asyncio
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 import json
 from pathlib import Path
 import signal
 import sys
-from typing import Any, Callable
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -546,7 +547,7 @@ class LocalStateManager:
                 status = data.get("status", "in_progress")
 
                 is_old = timestamp < cutoff_time
-                is_done = status in ["completed", "failed"]
+                is_done = status in {"completed", "failed"}
                 if is_old and is_done:
                     checkpoint_file.unlink()
                     count += 1

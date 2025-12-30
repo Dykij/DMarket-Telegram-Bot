@@ -12,7 +12,7 @@ Target: 100% coverage
 """
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -65,12 +65,12 @@ class TestSimpleBatchProcessorInitPhase4:
 class TestProcessInBatchesPhase4:
     """Phase 4 extended tests for process_in_batches method."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def processor(self):
         """Create a SimpleBatchProcessor instance."""
         return SimpleBatchProcessor(batch_size=3, delay_between_batches=0.001)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_process_with_error_no_callback_raises(self, processor):
         """Test that error is raised when no error callback provided."""
         items = [1, 2, 3]
@@ -81,7 +81,7 @@ class TestProcessInBatchesPhase4:
         with pytest.raises(ValueError, match="Test error"):
             await processor.process_in_batches(items, process_fn)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_process_batch_logs_info_start(self, processor):
         """Test that processing logs info at start."""
         items = [1, 2, 3]
@@ -94,7 +94,7 @@ class TestProcessInBatchesPhase4:
             # Should log at start
             mock_logger.info.assert_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_process_batch_logs_debug_per_batch(self, processor):
         """Test that processing logs debug per batch."""
         items = [1, 2, 3, 4, 5]
@@ -107,7 +107,7 @@ class TestProcessInBatchesPhase4:
             # Should have debug logs for batches
             assert mock_logger.debug.call_count >= 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_process_batch_logs_exception_on_error(self, processor):
         """Test that processing logs exception on error."""
         items = [1, 2, 3]
@@ -122,7 +122,7 @@ class TestProcessInBatchesPhase4:
             )
             mock_logger.exception.assert_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_process_batch_logs_completion(self, processor):
         """Test that processing logs completion."""
         items = [1, 2, 3]
@@ -135,7 +135,7 @@ class TestProcessInBatchesPhase4:
             # Check info was called (for completion)
             assert mock_logger.info.call_count >= 2  # start and completion
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_process_correct_batch_number_calculation(self):
         """Test that batch numbers are calculated correctly."""
         processor = SimpleBatchProcessor(batch_size=2, delay_between_batches=0.001)
@@ -150,7 +150,7 @@ class TestProcessInBatchesPhase4:
             # Should have 3 batches: [1,2], [3,4], [5]
             assert mock_logger.debug.call_count == 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_process_extends_list_results(self, processor):
         """Test that list results are extended properly."""
         items = [1, 2, 3]
@@ -161,7 +161,7 @@ class TestProcessInBatchesPhase4:
         results = await processor.process_in_batches(items, process_fn)
         assert results == [10, 20, 30]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_process_appends_non_list_results(self, processor):
         """Test that non-list results are appended properly."""
         items = [1, 2, 3]
@@ -173,7 +173,7 @@ class TestProcessInBatchesPhase4:
         assert len(results) == 1
         assert results[0] == {"sum": 6}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_process_progress_callback_called_correctly(self):
         """Test progress callback receives correct values."""
         processor = SimpleBatchProcessor(batch_size=2, delay_between_batches=0.001)
@@ -195,7 +195,7 @@ class TestProcessInBatchesPhase4:
         # Last call should show all processed
         assert progress_calls[-1][0] == 5
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_process_error_callback_receives_batch(self, processor):
         """Test error callback receives the failed batch."""
         items = [1, 2, 3]
@@ -223,12 +223,12 @@ class TestProcessInBatchesPhase4:
 class TestProcessWithConcurrencyPhase4:
     """Phase 4 extended tests for process_with_concurrency method."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def processor(self):
         """Create a SimpleBatchProcessor instance."""
         return SimpleBatchProcessor(batch_size=10, delay_between_batches=0.01)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_logs_info_start(self, processor):
         """Test that concurrent processing logs info at start."""
         items = [1, 2, 3]
@@ -238,7 +238,7 @@ class TestProcessWithConcurrencyPhase4:
             await processor.process_with_concurrency(items, process_fn)
             mock_logger.info.assert_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_logs_info_completion(self, processor):
         """Test that concurrent processing logs info at completion."""
         items = [1, 2, 3]
@@ -249,7 +249,7 @@ class TestProcessWithConcurrencyPhase4:
             # Should log at least twice (start and completion)
             assert mock_logger.info.call_count >= 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_logs_exception_on_item_error(self, processor):
         """Test that concurrent processing logs exception on item error."""
         items = [1, 2, 3]
@@ -263,7 +263,7 @@ class TestProcessWithConcurrencyPhase4:
             await processor.process_with_concurrency(items, process_with_error)
             mock_logger.exception.assert_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_semaphore_limits_concurrent_tasks(self, processor):
         """Test that semaphore properly limits concurrent tasks."""
         items = list(range(10))
@@ -276,8 +276,7 @@ class TestProcessWithConcurrencyPhase4:
             nonlocal concurrent_count, max_observed_concurrent
             async with lock:
                 concurrent_count += 1
-                if concurrent_count > max_observed_concurrent:
-                    max_observed_concurrent = concurrent_count
+                max_observed_concurrent = max(max_observed_concurrent, concurrent_count)
 
             await asyncio.sleep(0.05)
 
@@ -293,7 +292,7 @@ class TestProcessWithConcurrencyPhase4:
         # Max observed should not exceed max_concurrent
         assert max_observed_concurrent <= max_concurrent
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_progress_callback_count_correct(self, processor):
         """Test that progress callback is called correct number of times."""
         items = [1, 2, 3, 4, 5]
@@ -307,7 +306,7 @@ class TestProcessWithConcurrencyPhase4:
         # Should be called once per item
         assert progress_callback.call_count == 5
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_none_filtered_from_results(self, processor):
         """Test that None values are filtered from results."""
         items = [1, 2, 3, 4, 5]
@@ -321,7 +320,7 @@ class TestProcessWithConcurrencyPhase4:
         assert len(results) == 3
         assert sorted(results) == [10, 30, 50]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_with_string_item_truncation(self, processor):
         """Test that long item strings are truncated in logs."""
         long_string = "x" * 200
@@ -335,7 +334,7 @@ class TestProcessWithConcurrencyPhase4:
             # Check exception log was called
             mock_logger.exception.assert_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_gather_preserves_order_in_tasks(self, processor):
         """Test that asyncio.gather is called correctly."""
         items = [1, 2, 3]
@@ -345,7 +344,7 @@ class TestProcessWithConcurrencyPhase4:
 
         assert len(results) == 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_default_max_concurrent(self, processor):
         """Test with default max_concurrent value (5)."""
         items = list(range(10))
@@ -458,7 +457,7 @@ class TestProgressTrackerPhase4:
 class TestChunkedApiCallsPhase4:
     """Phase 4 extended tests for chunked_api_calls function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_chunked_logs_debug_per_chunk(self):
         """Test that chunked_api_calls logs debug per chunk."""
         items = [1, 2, 3, 4, 5, 6]
@@ -469,7 +468,7 @@ class TestChunkedApiCallsPhase4:
             # Should have 3 debug logs
             assert mock_logger.debug.call_count == 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_chunked_logs_exception_on_error(self):
         """Test that chunked_api_calls logs exception on error."""
         items = [1, 2, 3]
@@ -480,7 +479,7 @@ class TestChunkedApiCallsPhase4:
                 await chunked_api_calls(items, api_call_fn, chunk_size=10)
             mock_logger.exception.assert_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_chunked_delay_called_between_chunks(self):
         """Test that delay is called between chunks."""
         items = [1, 2, 3, 4]
@@ -491,7 +490,7 @@ class TestChunkedApiCallsPhase4:
             # Should have delay between 2 chunks
             mock_sleep.assert_called_with(0.5)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_chunked_no_delay_for_last_chunk(self):
         """Test that no delay after last chunk."""
         items = [1, 2]
@@ -502,7 +501,7 @@ class TestChunkedApiCallsPhase4:
             # Should NOT call sleep (only one chunk)
             mock_sleep.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_chunked_extends_list_results(self):
         """Test that list results are extended."""
         items = [1, 2, 3, 4]
@@ -512,7 +511,7 @@ class TestChunkedApiCallsPhase4:
 
         assert results == [10, 20, 30, 40]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_chunked_appends_non_list_results(self):
         """Test that non-list results are appended."""
         items = [1, 2, 3, 4]
@@ -524,7 +523,7 @@ class TestChunkedApiCallsPhase4:
         assert {"chunk": 1} in results
         assert {"chunk": 2} in results
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_chunked_total_chunks_calculation(self):
         """Test total chunks calculation is correct."""
         items = [1, 2, 3, 4, 5]  # 5 items, chunk_size 2 = 3 chunks
@@ -534,7 +533,7 @@ class TestChunkedApiCallsPhase4:
             await chunked_api_calls(items, api_call_fn, chunk_size=2, delay=0.001)
             assert mock_logger.debug.call_count == 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_chunked_chunk_number_in_log(self):
         """Test that chunk number is in log message."""
         items = [1, 2, 3]
@@ -554,7 +553,7 @@ class TestChunkedApiCallsPhase4:
 class TestBatchProcessorEdgeCasesPhase4:
     """Phase 4 edge case tests for batch processor module."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_process_unicode_items(self):
         """Test processing unicode items."""
         processor = SimpleBatchProcessor(batch_size=2, delay_between_batches=0.001)
@@ -568,7 +567,7 @@ class TestBatchProcessorEdgeCasesPhase4:
         assert len(results) == 4
         assert "processed_привет" in results
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_process_with_very_long_strings(self):
         """Test processing very long string items."""
         processor = SimpleBatchProcessor(batch_size=2, delay_between_batches=0.001)
@@ -582,7 +581,7 @@ class TestBatchProcessorEdgeCasesPhase4:
 
         assert results == [10000, 5]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_process_with_complex_objects(self):
         """Test processing complex nested objects."""
         processor = SimpleBatchProcessor(batch_size=2, delay_between_batches=0.001)
@@ -598,7 +597,7 @@ class TestBatchProcessorEdgeCasesPhase4:
 
         assert results == ["a", "b"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_with_zero_items(self):
         """Test concurrent processing with zero items."""
         processor = SimpleBatchProcessor(batch_size=10, delay_between_batches=0.01)
@@ -610,7 +609,7 @@ class TestBatchProcessorEdgeCasesPhase4:
         assert results == []
         process_fn.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_with_large_max_concurrent(self):
         """Test concurrent processing with max_concurrent larger than items."""
         processor = SimpleBatchProcessor(batch_size=10, delay_between_batches=0.01)
@@ -623,7 +622,7 @@ class TestBatchProcessorEdgeCasesPhase4:
 
         assert len(results) == 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_progress_tracker_with_tiny_total(self):
         """Test progress tracker with total of 1."""
         tracker = ProgressTracker(total=1, update_interval=1)
@@ -643,7 +642,7 @@ class TestBatchProcessorEdgeCasesPhase4:
         # Should handle gracefully
         assert "-10/100" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_chunked_with_single_item(self):
         """Test chunked_api_calls with single item."""
         items = [1]
@@ -663,7 +662,7 @@ class TestBatchProcessorEdgeCasesPhase4:
 class TestBatchProcessorIntegrationPhase4:
     """Phase 4 integration tests for batch processor module."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_full_workflow_with_errors_and_progress(self):
         """Test complete workflow with errors and progress tracking."""
         processor = SimpleBatchProcessor(batch_size=3, delay_between_batches=0.001)
@@ -694,7 +693,7 @@ class TestBatchProcessorIntegrationPhase4:
         # Should have captured the error
         assert len(errors) == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_with_progress_tracker(self):
         """Test concurrent processing integrated with progress tracker."""
         processor = SimpleBatchProcessor(batch_size=10, delay_between_batches=0.01)
@@ -719,7 +718,7 @@ class TestBatchProcessorIntegrationPhase4:
         # Should have some progress updates
         assert len(progress_results) > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_chunked_with_mixed_result_types(self):
         """Test chunked_api_calls with mixed result types across calls."""
         items = [1, 2, 3, 4, 5, 6]
@@ -736,7 +735,7 @@ class TestBatchProcessorIntegrationPhase4:
         assert 20 in results
         assert {"status": "ok"} in results
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_nested_batch_processing(self):
         """Test nested batch processing - batches within batches."""
         outer_processor = SimpleBatchProcessor(batch_size=2, delay_between_batches=0.001)
@@ -762,7 +761,7 @@ class TestBatchProcessorIntegrationPhase4:
             # Expected to have issues with nested coroutines, that's okay
             pass
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_memory_efficiency_large_dataset(self):
         """Test memory efficiency with larger dataset."""
         processor = SimpleBatchProcessor(batch_size=100, delay_between_batches=0.001)
@@ -786,7 +785,7 @@ class TestBatchProcessorIntegrationPhase4:
 class TestConcurrencyTimingPhase4:
     """Phase 4 timing tests for concurrent processing."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_faster_than_sequential(self):
         """Test that concurrent processing is faster than sequential."""
         import time
@@ -816,7 +815,7 @@ class TestConcurrencyTimingPhase4:
         assert concurrent_time < sequential_time
         assert sorted(results_concurrent) == sorted(results_sequential)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_batch_delay_accumulates(self):
         """Test that batch delays accumulate correctly."""
         import time

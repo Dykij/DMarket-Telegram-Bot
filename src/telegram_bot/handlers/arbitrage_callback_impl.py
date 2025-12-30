@@ -236,7 +236,7 @@ async def handle_dmarket_arbitrage_impl(
     else:
         # Если результатов нет, показываем соответствующее сообщение
         # Передаем пустой словарь как валидный результат для форматирования
-        formatted_text = format_dmarket_results(results if results else {}, mode)
+        formatted_text = format_dmarket_results(results or {}, mode)
         keyboard = get_arbitrage_keyboard()
 
         await query.edit_message_text(

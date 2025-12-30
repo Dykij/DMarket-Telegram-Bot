@@ -35,7 +35,7 @@ def load_user_preferences() -> None:
 
     try:
         if SMART_ALERTS_FILE.exists():
-            with open(SMART_ALERTS_FILE) as f:
+            with open(SMART_ALERTS_FILE, encoding="utf-8") as f:
                 data = json.load(f)
                 _user_preferences = data.get("user_preferences", {})
                 _active_alerts = data.get("active_alerts", {})
@@ -56,7 +56,7 @@ def save_user_preferences() -> None:
         if not DATA_DIR.exists():
             DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-        with open(SMART_ALERTS_FILE, "w") as f:
+        with open(SMART_ALERTS_FILE, "w", encoding="utf-8") as f:
             json.dump(
                 {
                     "user_preferences": _user_preferences,

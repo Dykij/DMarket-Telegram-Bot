@@ -7,16 +7,16 @@ Tests for API validation utilities including:
 """
 
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
-import pytest
 from pydantic import BaseModel, ValidationError
+import pytest
 
 
 class TestSendApiChangeNotification:
     """Tests for send_api_change_notification function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sends_notification_with_notifier(self):
         """Test that notification is sent when notifier is provided."""
         from src.dmarket.api_validator import send_api_change_notification
@@ -47,7 +47,7 @@ class TestSendApiChangeNotification:
         assert call_args.kwargs["priority"] == "critical"
         assert call_args.kwargs["category"] == "system"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_critical_without_notifier(self):
         """Test that critical log is written when no notifier is provided."""
         from src.dmarket.api_validator import send_api_change_notification
@@ -70,7 +70,7 @@ class TestSendApiChangeNotification:
 
             mock_logger.critical.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_notifier_exception(self):
         """Test that exceptions from notifier are handled gracefully."""
         from src.dmarket.api_validator import send_api_change_notification
@@ -94,7 +94,7 @@ class TestSendApiChangeNotification:
             notifier=mock_notifier,
         )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_formats_multiple_errors(self):
         """Test formatting when there are multiple validation errors."""
         from src.dmarket.api_validator import send_api_change_notification
@@ -129,7 +129,7 @@ class TestSendApiChangeNotification:
 class TestValidateResponseDecorator:
     """Tests for validate_response decorator."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_passes_valid_response_through(self):
         """Test that valid responses pass through successfully."""
         from src.dmarket.api_validator import validate_response
@@ -145,7 +145,7 @@ class TestValidateResponseDecorator:
         result = await test_func()
         assert result == {"status": "ok", "value": 42}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_error_response_without_validation(self):
         """Test that error responses are returned without validation."""
         from src.dmarket.api_validator import validate_response
@@ -161,7 +161,7 @@ class TestValidateResponseDecorator:
         result = await test_func()
         assert result == {"error": "Something went wrong"}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_unvalidated_data_on_validation_error(self):
         """Test that unvalidated data is returned when validation fails."""
         from src.dmarket.api_validator import validate_response
@@ -179,7 +179,7 @@ class TestValidateResponseDecorator:
             # Should return original data for backward compatibility
             assert result == {"status": 123, "value": "invalid"}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_logs_validation_success(self):
         """Test that successful validation is logged."""
         from src.dmarket.api_validator import validate_response
@@ -195,7 +195,7 @@ class TestValidateResponseDecorator:
             await test_func()
             mock_logger.debug.assert_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_gets_notifier_from_instance(self):
         """Test that notifier is obtained from instance if available."""
         from src.dmarket.api_validator import validate_response
@@ -221,7 +221,7 @@ class TestValidateResponseDecorator:
             call_args = mock_notify.call_args
             assert call_args.kwargs["notifier"] is obj.notifier
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_notification_failure(self):
         """Test that notification failures don't break the function."""
         from src.dmarket.api_validator import validate_response
@@ -335,7 +335,7 @@ class TestValidateAndLog:
 class TestValidationEdgeCases:
     """Tests for edge cases in validation."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_empty_response(self):
         """Test handling of empty response."""
         from src.dmarket.api_validator import validate_response
@@ -350,7 +350,7 @@ class TestValidationEdgeCases:
         result = await test_func()
         assert result == {}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_none_response(self):
         """Test handling of None response fields."""
         from src.dmarket.api_validator import validate_response
@@ -423,7 +423,7 @@ class TestValidationEdgeCases:
 class TestDecoratorPreservesFunction:
     """Tests that decorator preserves function metadata."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_preserves_function_name(self):
         """Test that decorated function preserves its name."""
         from src.dmarket.api_validator import validate_response
@@ -438,7 +438,7 @@ class TestDecoratorPreservesFunction:
 
         assert my_special_function.__name__ == "my_special_function"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_preserves_function_docstring(self):
         """Test that decorated function preserves its docstring."""
         from src.dmarket.api_validator import validate_response
@@ -453,7 +453,7 @@ class TestDecoratorPreservesFunction:
 
         assert my_special_function.__doc__ == "My docstring."
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_passes_arguments_correctly(self):
         """Test that decorator passes arguments to wrapped function."""
         from src.dmarket.api_validator import validate_response

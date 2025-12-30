@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 # ==================== ENUMS ====================
 
 
-class OfferStatus(str, Enum):
+class OfferStatus(StrEnum):
     """Статусы предложений согласно DMarket API."""
 
     DEFAULT = "OfferStatusDefault"
@@ -29,14 +29,14 @@ class OfferStatus(str, Enum):
     IN_TRANSFER = "OfferStatusIn_transfer"
 
 
-class TargetStatus(str, Enum):
+class TargetStatus(StrEnum):
     """Статусы таргетов (buy orders) согласно DMarket API."""
 
     ACTIVE = "TargetStatusActive"
     INACTIVE = "TargetStatusInactive"
 
 
-class TransferStatus(str, Enum):
+class TransferStatus(StrEnum):
     """Статусы трансфера согласно DMarket API."""
 
     PENDING = "TransferStatusPending"
@@ -44,7 +44,7 @@ class TransferStatus(str, Enum):
     FAILED = "TransferStatusFailed"
 
 
-class TradeStatus(str, Enum):
+class TradeStatus(StrEnum):
     """Статусы сделок согласно DMarket API."""
 
     SUCCESSFUL = "successful"

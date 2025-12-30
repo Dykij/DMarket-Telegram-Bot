@@ -9,11 +9,13 @@ This module contains tests for src/models/base.py covering:
 Target: 25+ tests to achieve 85%+ coverage
 """
 
-import pytest
-from uuid import UUID, uuid4
+import math
 from unittest.mock import MagicMock
+from uuid import UUID, uuid4
 
-from src.models.base import SQLiteUUID, UUIDType, Base
+import pytest
+
+from src.models.base import Base, SQLiteUUID, UUIDType
 
 
 # ==============================================================================
@@ -187,7 +189,7 @@ class TestBaseModel:
     def test_base_has_to_dict_method(self):
         """Test that Base has to_dict method."""
         assert hasattr(Base, "to_dict")
-        assert callable(getattr(Base, "to_dict"))
+        assert callable(Base.to_dict)
 
 
 # ==============================================================================
@@ -202,7 +204,7 @@ class TestToDictMethod:
         """Test to_dict method with mock model."""
         # Create a mock model that simulates Base inheritance
         mock_model = MagicMock()
-        
+
         # Setup mock table columns
         col1 = MagicMock()
         col1.name = "id"
@@ -210,18 +212,18 @@ class TestToDictMethod:
         col2.name = "name"
         col3 = MagicMock()
         col3.name = "value"
-        
+
         mock_model.__table__ = MagicMock()
         mock_model.__table__.columns = [col1, col2, col3]
-        
+
         # Setup attribute values
         mock_model.id = 1
         mock_model.name = "test"
         mock_model.value = 42
-        
+
         # Manually call to_dict logic (since MagicMock doesn't inherit Base)
         result = {c.name: getattr(mock_model, c.name) for c in mock_model.__table__.columns}
-        
+
         # Assert
         assert result == {"id": 1, "name": "test", "value": 42}
 
@@ -233,15 +235,15 @@ class TestToDictMethod:
         col1.name = "id"
         col2 = MagicMock()
         col2.name = "optional_field"
-        
+
         mock_model.__table__ = MagicMock()
         mock_model.__table__.columns = [col1, col2]
         mock_model.id = 1
         mock_model.optional_field = None
-        
+
         # Act
         result = {c.name: getattr(mock_model, c.name) for c in mock_model.__table__.columns}
-        
+
         # Assert
         assert result["optional_field"] is None
 
@@ -250,29 +252,29 @@ class TestToDictMethod:
         # Setup mock
         mock_model = MagicMock()
         columns = []
-        
+
         for name in ["int_col", "str_col", "float_col", "bool_col", "uuid_col"]:
             col = MagicMock()
             col.name = name
             columns.append(col)
-        
+
         mock_model.__table__ = MagicMock()
         mock_model.__table__.columns = columns
-        
+
         test_uuid = uuid4()
         mock_model.int_col = 42
         mock_model.str_col = "hello"
-        mock_model.float_col = 3.14
+        mock_model.float_col = math.pi
         mock_model.bool_col = True
         mock_model.uuid_col = test_uuid
-        
+
         # Act
         result = {c.name: getattr(mock_model, c.name) for c in mock_model.__table__.columns}
-        
+
         # Assert
         assert result["int_col"] == 42
         assert result["str_col"] == "hello"
-        assert result["float_col"] == 3.14
+        assert result["float_col"] == math.pi
         assert result["bool_col"] is True
         assert result["uuid_col"] == test_uuid
 
@@ -289,7 +291,7 @@ class TestBaseEdgeCases:
         """Test that empty string raises ValueError."""
         sqlite_uuid = SQLiteUUID()
         mock_dialect = MagicMock()
-        
+
         # Empty string is not a valid UUID
         with pytest.raises(ValueError):
             sqlite_uuid.process_result_value("", mock_dialect)
@@ -298,7 +300,7 @@ class TestBaseEdgeCases:
         """Test that invalid UUID string raises ValueError."""
         sqlite_uuid = SQLiteUUID()
         mock_dialect = MagicMock()
-        
+
         with pytest.raises(ValueError):
             sqlite_uuid.process_result_value("not-a-valid-uuid", mock_dialect)
 
@@ -306,7 +308,7 @@ class TestBaseEdgeCases:
         """Test that too short UUID string raises ValueError."""
         sqlite_uuid = SQLiteUUID()
         mock_dialect = MagicMock()
-        
+
         with pytest.raises(ValueError):
             sqlite_uuid.process_result_value("550e8400-e29b-41d4", mock_dialect)
 
@@ -315,10 +317,10 @@ class TestBaseEdgeCases:
         mock_model = MagicMock()
         mock_model.__table__ = MagicMock()
         mock_model.__table__.columns = []
-        
+
         # Act
         result = {c.name: getattr(mock_model, c.name) for c in mock_model.__table__.columns}
-        
+
         # Assert
         assert result == {}
 

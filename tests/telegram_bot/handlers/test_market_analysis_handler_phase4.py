@@ -14,7 +14,7 @@ from telegram import CallbackQuery, InlineKeyboardMarkup, Message, Update, User
 # ======================== Test Fixtures ========================
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_user():
     """Create mock User object."""
     user = MagicMock(spec=User)
@@ -25,7 +25,7 @@ def mock_user():
     return user
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_message(mock_user):
     """Create mock Message object."""
     message = MagicMock(spec=Message)
@@ -36,7 +36,7 @@ def mock_message(mock_user):
     return message
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_callback_query(mock_user):
     """Create mock CallbackQuery object."""
     query = MagicMock(spec=CallbackQuery)
@@ -48,7 +48,7 @@ def mock_callback_query(mock_user):
     return query
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_update(mock_callback_query, mock_message):
     """Create mock Update object."""
     update = MagicMock(spec=Update)
@@ -58,7 +58,7 @@ def mock_update(mock_callback_query, mock_message):
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context():
     """Create mock context with user data."""
     context = MagicMock()
@@ -73,7 +73,7 @@ def mock_context():
     return context
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context_empty():
     """Create mock context without user data."""
     context = MagicMock()
@@ -87,7 +87,7 @@ def mock_context_empty():
 class TestGameSelection:
     """Tests for game selection functionality."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_select_game_csgo(self, mock_update, mock_context):
         """Test selecting CS:GO game."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -104,7 +104,7 @@ class TestGameSelection:
 
         assert mock_context.user_data["market_analysis"]["current_game"] == "csgo"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_select_game_dota2(self, mock_update, mock_context):
         """Test selecting Dota 2 game."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -121,7 +121,7 @@ class TestGameSelection:
 
         assert mock_context.user_data["market_analysis"]["current_game"] == "dota2"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_select_game_tf2(self, mock_update, mock_context):
         """Test selecting TF2 game."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -138,7 +138,7 @@ class TestGameSelection:
 
         assert mock_context.user_data["market_analysis"]["current_game"] == "tf2"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_select_game_rust(self, mock_update, mock_context):
         """Test selecting Rust game."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -155,7 +155,7 @@ class TestGameSelection:
 
         assert mock_context.user_data["market_analysis"]["current_game"] == "rust"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_select_game_updates_message(self, mock_update, mock_context):
         """Test that selecting game updates the message."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -179,7 +179,7 @@ class TestGameSelection:
 class TestAnalysisTypes:
     """Tests for different analysis types."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_price_changes_analysis(self, mock_update, mock_context):
         """Test price changes analysis action."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -213,7 +213,7 @@ class TestAnalysisTypes:
             await market_analysis_callback(mock_update, mock_context)
             mock_show.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trending_analysis(self, mock_update, mock_context):
         """Test trending items analysis action."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -247,7 +247,7 @@ class TestAnalysisTypes:
             await market_analysis_callback(mock_update, mock_context)
             mock_show.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_volatility_analysis(self, mock_update, mock_context):
         """Test volatility analysis action."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -281,7 +281,7 @@ class TestAnalysisTypes:
             await market_analysis_callback(mock_update, mock_context)
             mock_show.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_market_report_analysis(self, mock_update, mock_context):
         """Test full market report action."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -315,7 +315,7 @@ class TestAnalysisTypes:
             await market_analysis_callback(mock_update, mock_context)
             mock_show.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_undervalued_items_analysis(self, mock_update, mock_context):
         """Test undervalued items analysis action."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -349,7 +349,7 @@ class TestAnalysisTypes:
             await market_analysis_callback(mock_update, mock_context)
             mock_show.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_recommendations_analysis(self, mock_update, mock_context):
         """Test investment recommendations analysis action."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -390,7 +390,7 @@ class TestAnalysisTypes:
 class TestPagination:
     """Tests for pagination functionality."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pagination_next_page(self, mock_update, mock_context):
         """Test next page navigation."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -411,7 +411,7 @@ class TestPagination:
             await handle_pagination_analysis(mock_update, mock_context)
             mock_pagination.next_page.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pagination_prev_page(self, mock_update, mock_context):
         """Test previous page navigation."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -432,7 +432,7 @@ class TestPagination:
             await handle_pagination_analysis(mock_update, mock_context)
             mock_pagination.prev_page.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pagination_trending(self, mock_update, mock_context):
         """Test pagination for trending analysis."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -453,7 +453,7 @@ class TestPagination:
             await handle_pagination_analysis(mock_update, mock_context)
             mock_show.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pagination_volatility(self, mock_update, mock_context):
         """Test pagination for volatility analysis."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -474,7 +474,7 @@ class TestPagination:
             await handle_pagination_analysis(mock_update, mock_context)
             mock_show.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pagination_undervalued(self, mock_update, mock_context):
         """Test pagination for undervalued items."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -495,7 +495,7 @@ class TestPagination:
             await handle_pagination_analysis(mock_update, mock_context)
             mock_show.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pagination_recommendations(self, mock_update, mock_context):
         """Test pagination for recommendations."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -523,7 +523,7 @@ class TestPagination:
 class TestErrorHandling:
     """Tests for error handling in market analysis."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_api_client_none(self, mock_update, mock_context):
         """Test handling when API client is None."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -550,7 +550,7 @@ class TestErrorHandling:
             # Should show error message
             mock_update.callback_query.edit_message_text.assert_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analysis_exception(self, mock_update, mock_context):
         """Test handling of analysis exceptions."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -584,7 +584,7 @@ class TestErrorHandling:
             # Should show error message
             mock_update.callback_query.edit_message_text.assert_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_missing_callback_query(self, mock_update, mock_context):
         """Test handling when callback query is missing."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -596,7 +596,7 @@ class TestErrorHandling:
         await market_analysis_callback(mock_update, mock_context)
         # Should return early without error
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_missing_callback_data(self, mock_update, mock_context):
         """Test handling when callback data is missing."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -608,7 +608,7 @@ class TestErrorHandling:
         await market_analysis_callback(mock_update, mock_context)
         # Should return early without error
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_invalid_callback_data_parts(self, mock_update, mock_context):
         """Test handling when callback data has too few parts."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -620,7 +620,7 @@ class TestErrorHandling:
         await market_analysis_callback(mock_update, mock_context)
         # Should return early without error
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_user_data_none(self, mock_update):
         """Test handling when user_data is None."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -641,7 +641,7 @@ class TestErrorHandling:
 class TestPeriodAndRiskSettings:
     """Tests for period and risk level settings."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_period_change_1h(self, mock_update, mock_context):
         """Test changing period to 1 hour."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -654,7 +654,7 @@ class TestPeriodAndRiskSettings:
 
         assert mock_context.user_data["market_analysis"]["period"] == "1h"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_period_change_24h(self, mock_update, mock_context):
         """Test changing period to 24 hours."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -667,7 +667,7 @@ class TestPeriodAndRiskSettings:
 
         assert mock_context.user_data["market_analysis"]["period"] == "24h"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_period_change_7d(self, mock_update, mock_context):
         """Test changing period to 7 days."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -680,7 +680,7 @@ class TestPeriodAndRiskSettings:
 
         assert mock_context.user_data["market_analysis"]["period"] == "7d"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_risk_level_change_low(self, mock_update, mock_context):
         """Test changing risk level to low."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -695,7 +695,7 @@ class TestPeriodAndRiskSettings:
         ):
             await handle_risk_level_change(mock_update, mock_context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_risk_level_change_medium(self, mock_update, mock_context):
         """Test changing risk level to medium."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -710,7 +710,7 @@ class TestPeriodAndRiskSettings:
         ):
             await handle_risk_level_change(mock_update, mock_context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_risk_level_change_high(self, mock_update, mock_context):
         """Test changing risk level to high."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -732,7 +732,7 @@ class TestPeriodAndRiskSettings:
 class TestMarketAnalysisCommand:
     """Tests for market analysis command."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_market_analysis_command_creates_keyboard(
         self, mock_update, mock_context
     ):
@@ -753,7 +753,7 @@ class TestMarketAnalysisCommand:
 
         mock_update.message.reply_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_market_analysis_command_no_message(self, mock_update, mock_context):
         """Test command when message is None."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -822,7 +822,7 @@ class TestKeyboardGeneration:
 class TestResultDisplay:
     """Tests for result display functions."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_show_price_changes_results_empty(self, mock_callback_query, mock_context):
         """Test showing price changes with empty results."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -838,7 +838,7 @@ class TestResultDisplay:
 
             await show_price_changes_results(mock_callback_query, mock_context, "csgo")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_show_trending_items_results_empty(self, mock_callback_query, mock_context):
         """Test showing trending items with empty results."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -854,7 +854,7 @@ class TestResultDisplay:
 
             await show_trending_items_results(mock_callback_query, mock_context, "csgo")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_show_volatility_results_empty(self, mock_callback_query, mock_context):
         """Test showing volatility with empty results."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -870,7 +870,7 @@ class TestResultDisplay:
 
             await show_volatility_results(mock_callback_query, mock_context, "csgo")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_show_undervalued_items_results_empty(
         self, mock_callback_query, mock_context
     ):
@@ -890,7 +890,7 @@ class TestResultDisplay:
                 mock_callback_query, mock_context, "csgo"
             )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_show_investment_recommendations_empty(
         self, mock_callback_query, mock_context
     ):
@@ -917,7 +917,7 @@ class TestResultDisplay:
 class TestEdgeCases:
     """Tests for edge cases in market analysis."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_empty_games_dict(self, mock_update, mock_context):
         """Test handling of empty games dictionary."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -932,7 +932,7 @@ class TestEdgeCases:
         ):
             await market_analysis_callback(mock_update, mock_context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_unknown_game_code(self, mock_update, mock_context):
         """Test handling of unknown game code."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -947,7 +947,7 @@ class TestEdgeCases:
         ):
             await market_analysis_callback(mock_update, mock_context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_unknown_analysis_action(self, mock_update, mock_context):
         """Test handling of unknown analysis action."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -971,7 +971,7 @@ class TestEdgeCases:
             # Should not crash with unknown action
             await market_analysis_callback(mock_update, mock_context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_user_data_initialization(self, mock_update, mock_context_empty):
         """Test initialization of user data when empty."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -1006,7 +1006,7 @@ class TestEdgeCases:
         # User data should be initialized
         assert "market_analysis" in mock_context_empty.user_data
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_api_client_close_on_exception(self, mock_update, mock_context):
         """Test API client is closed even on exception."""
         from src.telegram_bot.handlers.market_analysis_handler import (
@@ -1039,7 +1039,7 @@ class TestEdgeCases:
         ):
             await market_analysis_callback(mock_update, mock_context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_default_game_when_not_in_callback_data(
         self, mock_update, mock_context
     ):

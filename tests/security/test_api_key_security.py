@@ -10,8 +10,6 @@ Tests for ensuring API keys are properly protected:
 import json
 import logging
 import re
-from io import StringIO
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -27,7 +25,7 @@ class TestAPIKeyNotLogged:
         # Simulate logging with key
         with caplog.at_level(logging.INFO):
             logging.info("Processing request for user")
-            logging.info(f"Request params: game=csgo, limit=10")
+            logging.info("Request params: game=csgo, limit=10")
 
         # Check that keys are not in logs
         log_text = caplog.text
@@ -155,13 +153,13 @@ class TestInputValidation:
 
     @pytest.mark.parametrize(
         "malicious_input",
-        [
+        (
             "'; DROP TABLE users;--",
             "1 OR 1=1",
             "admin'--",  # Common SQL injection
             "; DELETE FROM orders WHERE 1=1;--",
             "UNION SELECT * FROM users--",
-        ],
+        ),
     )
     def test_sql_injection_prevention(self, malicious_input: str):
         """SQL injection attempts should be rejected."""
@@ -190,12 +188,12 @@ class TestInputValidation:
         assert result is None, f"Malicious input should be rejected: {malicious_input}"
 
     @pytest.mark.parametrize(
-        "malicious_input,expected_safe",
-        [
+        ("malicious_input", "expected_safe"),
+        (
             ("<script>alert('xss')</script>", "&lt;script&gt;alert('xss')&lt;/script&gt;"),
             ("<img src=x onerror=alert('xss')>", "&lt;img src=x onerror=alert('xss')&gt;"),
             ("javascript:alert('xss')", "javascript:alert('xss')"),  # No HTML tags
-        ],
+        ),
     )
     def test_xss_prevention(self, malicious_input: str, expected_safe: str):
         """XSS attempts should be sanitized."""

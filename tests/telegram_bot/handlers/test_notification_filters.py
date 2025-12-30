@@ -7,11 +7,6 @@ Tests for notification filters including:
 - Telegram handlers for filter configuration
 """
 
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock
-
-import pytest
-
 
 class TestNotificationFiltersConstants:
     """Tests for notification filter constants."""
@@ -62,10 +57,10 @@ class TestNotificationFiltersClass:
     def test_get_user_filters_new_user(self):
         """Test getting filters for new user returns defaults."""
         from src.telegram_bot.handlers.notification_filters_handler import (
-            NotificationFilters,
-            SUPPORTED_GAMES,
             ARBITRAGE_LEVELS,
             NOTIFICATION_TYPES,
+            SUPPORTED_GAMES,
+            NotificationFilters,
         )
 
         filters = NotificationFilters()
@@ -145,8 +140,8 @@ class TestNotificationFiltersClass:
     def test_reset_user_filters(self):
         """Test resetting user filters to defaults."""
         from src.telegram_bot.handlers.notification_filters_handler import (
-            NotificationFilters,
             SUPPORTED_GAMES,
+            NotificationFilters,
         )
 
         filters = NotificationFilters()
@@ -289,10 +284,10 @@ class TestNotificationFiltersDefaultFilters:
     def test_default_filters_values(self):
         """Test default filter values are correct."""
         from src.telegram_bot.handlers.notification_filters_handler import (
-            NotificationFilters,
-            SUPPORTED_GAMES,
             ARBITRAGE_LEVELS,
             NOTIFICATION_TYPES,
+            SUPPORTED_GAMES,
+            NotificationFilters,
         )
 
         filters = NotificationFilters()

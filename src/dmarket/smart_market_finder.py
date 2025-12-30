@@ -13,8 +13,9 @@
 """
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 import logging
+import operator
 from typing import Any
 
 from src.dmarket.dmarket_api import DMarketAPI
@@ -23,7 +24,7 @@ from src.dmarket.dmarket_api import DMarketAPI
 logger = logging.getLogger(__name__)
 
 
-class MarketOpportunityType(str, Enum):
+class MarketOpportunityType(StrEnum):
     """Типы рыночных возможностей."""
 
     UNDERPRICED = "underpriced"  # Заниженная цена относительно среднего
@@ -418,7 +419,7 @@ class SmartMarketFinder:
 
             # Сортируем по прибыльности и уверенности
             opportunities.sort(
-                key=lambda x: (x["confidence_score"], x["profit_percent"]),
+                key=operator.itemgetter("confidence_score", "profit_percent"),
                 reverse=True,
             )
 

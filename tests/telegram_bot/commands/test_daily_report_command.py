@@ -307,7 +307,7 @@ class TestDaysParameterValidation:
         assert "❌" in call_text
         assert "формат" in call_text.lower()
 
-    @pytest.mark.parametrize("days", ["1", "15", "30"])
+    @pytest.mark.parametrize("days", ("1", "15", "30"))
     @pytest.mark.asyncio()
     async def test_accepts_boundary_days_values(
         self, mock_update, mock_context, mock_scheduler, days

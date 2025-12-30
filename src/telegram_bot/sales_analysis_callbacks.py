@@ -21,6 +21,7 @@ from src.telegram_bot.handlers.sales_analysis_handlers import (
 )
 from src.utils.exceptions import APIError
 
+
 # Настройка логирования
 logger = logging.getLogger(__name__)
 
@@ -215,7 +216,7 @@ async def handle_liquidity_callback(update: Update, context: ContextTypes.DEFAUL
         )
 
         # Добавляем рекомендацию по арбитражу
-        if analysis["liquidity_category"] in ["Очень высокая", "Высокая"]:
+        if analysis["liquidity_category"] in {"Очень высокая", "Высокая"}:
             formatted_message += "✅ *Рекомендация*: Отлично подходит для арбитража!\n"
         elif analysis["liquidity_category"] == "Средняя":
             formatted_message += (

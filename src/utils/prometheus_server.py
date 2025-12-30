@@ -14,13 +14,24 @@ logger = structlog.get_logger(__name__)
 class PrometheusServer:
     """HTTP сервер для Prometheus метрик."""
 
-    def __init__(self, port: int = 8000) -> None:
+    def __init__(
+        self,
+        host: str = "127.0.0.1",  # По умолчанию localhost для безопасности
+        port: int = 9090,
+    ) -> None:
         """
         Инициализация сервера.
 
         Args:
+            host: Хост для биндинга (default: 127.0.0.1 для безопасности)
             port: Порт для HTTP сервера
+
+        Security:
+            - Default host is 127.0.0.1 (localhost) to prevent external access
+            - In production, set host to "0.0.0.0" only behind reverse proxy/firewall
+            - Use PROMETHEUS_HOST environment variable to configure
         """
+        self.host = host
         self.port = port
         self.app = web.Application()
         self.runner: web.AppRunner | None = None
@@ -44,10 +55,10 @@ class PrometheusServer:
         self.runner = web.AppRunner(self.app)
         await self.runner.setup()
 
-        self.site = web.TCPSite(self.runner, "0.0.0.0", self.port)  # noqa: S104
+        self.site = web.TCPSite(self.runner, self.host, self.port)
         await self.site.start()
 
-        logger.info("prometheus_server_started", port=self.port)
+        logger.info("prometheus_server_started", host=self.host, port=self.port)
 
     async def stop(self) -> None:
         """Остановить сервер."""

@@ -63,8 +63,7 @@ def mock_update(mock_user, mock_message, mock_chat):
 @pytest.fixture()
 def mock_context():
     """Create a mock context."""
-    context = MagicMock(spec=ContextTypes.DEFAULT_TYPE)
-    return context
+    return MagicMock(spec=ContextTypes.DEFAULT_TYPE)
 
 
 class TestStartCommand:

@@ -319,7 +319,7 @@ class TestBalanceParsing:
         """Тест парсинга баланса из legacy формата."""
         response = {"usdAvailableToWithdraw": "1500"}
 
-        usd_amount, usd_available, usd_total = dmarket_api._parse_balance_from_response(response)
+        _usd_amount, usd_available, _usd_total = dmarket_api._parse_balance_from_response(response)
 
         assert usd_available == 150000.0  # 1500 * 100
         # usd_amount и usd_total должны быть 0 или равны available в этом формате
@@ -328,7 +328,7 @@ class TestBalanceParsing:
         """Тест парсинга баланса со знаком доллара в строке."""
         response = {"usdAvailableToWithdraw": "$25.50"}
 
-        usd_amount, usd_available, usd_total = dmarket_api._parse_balance_from_response(response)
+        _usd_amount, usd_available, _usd_total = dmarket_api._parse_balance_from_response(response)
 
         assert usd_available == 2550.0
 

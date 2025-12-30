@@ -254,7 +254,7 @@ async def test_find_trending_items_upward_trend(mock_dmarket_api):
 
     # Проверяем наличие трендов
     if results:
-        assert results[0]["trend"] in ["upward", "recovery"]
+        assert results[0]["trend"] in {"upward", "recovery"}
 
 
 @pytest.mark.asyncio()
@@ -301,7 +301,7 @@ async def test_find_trending_items_recovery_trend(mock_dmarket_api):
     )
 
     if results:
-        assert results[0]["trend"] in ["upward", "recovery"]
+        assert results[0]["trend"] in {"upward", "recovery"}
 
 
 @pytest.mark.asyncio()

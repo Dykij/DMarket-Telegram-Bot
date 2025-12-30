@@ -14,15 +14,12 @@ This module contains comprehensive tests for src/utils/state_manager.py covering
 Target: 65+ tests to achieve 95%+ coverage
 """
 
-import asyncio
+from datetime import UTC, datetime, timedelta
 import json
-import signal
-import sys
-from datetime import datetime, timedelta, UTC
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest.mock import AsyncMock, MagicMock, patch, call
-from uuid import UUID, uuid4
+from unittest.mock import AsyncMock, MagicMock, patch
+from uuid import uuid4
 
 import pytest
 
@@ -31,7 +28,6 @@ from src.utils.state_manager import (
     LocalStateManager,
     ScanCheckpoint,
     StateManager,
-    StateManagerBase,
 )
 
 
@@ -214,7 +210,7 @@ class TestScanCheckpointExtended:
 class TestStateManagerCreateCheckpoint:
     """Tests for StateManager.create_checkpoint method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_checkpoint_success(self):
         """Test successful checkpoint creation."""
         # Arrange
@@ -235,7 +231,7 @@ class TestStateManagerCreateCheckpoint:
         mock_session.add.assert_called_once()
         mock_session.commit.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_checkpoint_with_cursor(self):
         """Test checkpoint creation with cursor."""
         # Arrange
@@ -254,7 +250,7 @@ class TestStateManagerCreateCheckpoint:
         # Assert
         assert result.cursor == "next_page_token"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_checkpoint_with_extra_data(self):
         """Test checkpoint creation with extra_data."""
         # Arrange
@@ -274,7 +270,7 @@ class TestStateManagerCreateCheckpoint:
         # Assert
         assert result.extra_data == extra
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_checkpoint_with_total_items(self):
         """Test checkpoint creation with total_items."""
         # Arrange
@@ -297,7 +293,7 @@ class TestStateManagerCreateCheckpoint:
 class TestStateManagerSaveCheckpoint:
     """Tests for StateManager.save_checkpoint method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_save_checkpoint_updates_existing(self):
         """Test save_checkpoint updates existing checkpoint."""
         # Arrange
@@ -328,7 +324,7 @@ class TestStateManagerSaveCheckpoint:
         assert mock_checkpoint.total_items == 500
         mock_session.commit.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_save_checkpoint_not_found(self):
         """Test save_checkpoint when checkpoint not found."""
         # Arrange
@@ -351,7 +347,7 @@ class TestStateManagerSaveCheckpoint:
         # Assert - should log warning and return without commit
         mock_session.commit.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_save_checkpoint_updates_extra_data(self):
         """Test save_checkpoint updates extra_data."""
         # Arrange
@@ -377,7 +373,7 @@ class TestStateManagerSaveCheckpoint:
         # Assert - verify update was called
         mock_extra_data.update.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_save_checkpoint_completed_status(self):
         """Test save_checkpoint with completed status."""
         # Arrange
@@ -405,7 +401,7 @@ class TestStateManagerSaveCheckpoint:
 class TestStateManagerLoadCheckpoint:
     """Tests for StateManager.load_checkpoint method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_load_checkpoint_success(self):
         """Test successful checkpoint loading."""
         # Arrange
@@ -436,7 +432,7 @@ class TestStateManagerLoadCheckpoint:
         assert result.cursor == "cursor_123"
         assert result.processed_items == 50
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_load_checkpoint_not_found(self):
         """Test load_checkpoint when not found."""
         # Arrange
@@ -455,7 +451,7 @@ class TestStateManagerLoadCheckpoint:
         # Assert
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_load_checkpoint_with_null_extra_data(self):
         """Test load_checkpoint handles null extra_data."""
         # Arrange
@@ -488,7 +484,7 @@ class TestStateManagerLoadCheckpoint:
 class TestStateManagerGetActiveCheckpoints:
     """Tests for StateManager.get_active_checkpoints method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_active_checkpoints_success(self):
         """Test get_active_checkpoints returns active checkpoints."""
         # Arrange
@@ -526,7 +522,7 @@ class TestStateManagerGetActiveCheckpoints:
         assert result[0].processed_items == 50
         assert result[1].processed_items == 75
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_active_checkpoints_empty(self):
         """Test get_active_checkpoints with no active checkpoints."""
         # Arrange
@@ -544,7 +540,7 @@ class TestStateManagerGetActiveCheckpoints:
         # Assert
         assert result == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_active_checkpoints_with_operation_type_filter(self):
         """Test get_active_checkpoints with operation_type filter."""
         # Arrange
@@ -578,7 +574,7 @@ class TestStateManagerGetActiveCheckpoints:
 class TestStateManagerCleanupOldCheckpoints:
     """Tests for StateManager.cleanup_old_checkpoints method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_cleanup_old_checkpoints_deletes_old(self):
         """Test cleanup_old_checkpoints deletes old checkpoints."""
         # Arrange
@@ -601,7 +597,7 @@ class TestStateManagerCleanupOldCheckpoints:
         assert mock_session.delete.call_count == 2
         mock_session.commit.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_cleanup_old_checkpoints_no_old_checkpoints(self):
         """Test cleanup_old_checkpoints with no old checkpoints."""
         # Arrange
@@ -619,7 +615,7 @@ class TestStateManagerCleanupOldCheckpoints:
         # Assert
         assert count == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_cleanup_old_checkpoints_custom_days(self):
         """Test cleanup_old_checkpoints with custom days parameter."""
         # Arrange
@@ -642,7 +638,7 @@ class TestStateManagerCleanupOldCheckpoints:
 class TestStateManagerMarkCheckpointCompleted:
     """Tests for StateManager.mark_checkpoint_completed method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mark_checkpoint_completed(self):
         """Test mark_checkpoint_completed sets status to completed."""
         # Arrange
@@ -667,7 +663,7 @@ class TestStateManagerMarkCheckpointCompleted:
 class TestStateManagerMarkCheckpointFailed:
     """Tests for StateManager.mark_checkpoint_failed method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mark_checkpoint_failed_with_error(self):
         """Test mark_checkpoint_failed with error message."""
         # Arrange
@@ -694,7 +690,7 @@ class TestStateManagerMarkCheckpointFailed:
         assert mock_checkpoint.status == "failed"
         mock_extra_data.update.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mark_checkpoint_failed_without_error(self):
         """Test mark_checkpoint_failed without error message."""
         # Arrange
@@ -764,7 +760,7 @@ class TestStateManagerRegisterShutdownHandlers:
 class TestStateManagerEmergencyShutdown:
     """Tests for StateManager.trigger_emergency_shutdown method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trigger_emergency_shutdown(self):
         """Test trigger_emergency_shutdown pauses operations."""
         # Arrange
@@ -777,7 +773,7 @@ class TestStateManagerEmergencyShutdown:
         # Assert
         assert manager._is_paused is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trigger_emergency_shutdown_calls_callback(self):
         """Test trigger_emergency_shutdown calls registered callback."""
         # Arrange
@@ -792,7 +788,7 @@ class TestStateManagerEmergencyShutdown:
         # Assert
         mock_callback.assert_called_once_with("API failure")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trigger_emergency_shutdown_with_async_callback(self):
         """Test trigger_emergency_shutdown with async callback."""
         # Arrange
@@ -808,7 +804,7 @@ class TestStateManagerEmergencyShutdown:
         # Assert
         async_callback.assert_called_once_with("Rate limit exceeded")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trigger_emergency_shutdown_callback_error_handled(self):
         """Test trigger_emergency_shutdown handles callback errors."""
         # Arrange
@@ -867,7 +863,7 @@ class TestLocalStateManagerInit:
 class TestLocalStateManagerSaveCheckpoint:
     """Tests for LocalStateManager.save_checkpoint method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_save_checkpoint_creates_file(self):
         """Test save_checkpoint creates checkpoint file."""
         # Arrange
@@ -886,7 +882,7 @@ class TestLocalStateManagerSaveCheckpoint:
             checkpoint_file = Path(tmpdir) / f"{scan_id}.json"
             assert checkpoint_file.exists()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_save_checkpoint_content(self):
         """Test save_checkpoint saves correct content."""
         # Arrange
@@ -912,7 +908,7 @@ class TestLocalStateManagerSaveCheckpoint:
             assert data["total_items"] == 100
             assert data["extra_data"]["game"] == "csgo"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_save_checkpoint_overwrites_existing(self):
         """Test save_checkpoint overwrites existing file."""
         # Arrange
@@ -939,7 +935,7 @@ class TestLocalStateManagerSaveCheckpoint:
 class TestLocalStateManagerLoadCheckpoint:
     """Tests for LocalStateManager.load_checkpoint method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_load_checkpoint_success(self):
         """Test successful checkpoint loading."""
         # Arrange
@@ -964,7 +960,7 @@ class TestLocalStateManagerLoadCheckpoint:
             assert result.cursor == "cursor_abc"
             assert result.processed_items == 75
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_load_checkpoint_not_found(self):
         """Test load_checkpoint when file not found."""
         # Arrange
@@ -978,7 +974,7 @@ class TestLocalStateManagerLoadCheckpoint:
             # Assert
             assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_load_checkpoint_invalid_json(self):
         """Test load_checkpoint handles invalid JSON."""
         # Arrange
@@ -996,7 +992,7 @@ class TestLocalStateManagerLoadCheckpoint:
             # Assert
             assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_load_checkpoint_missing_fields(self):
         """Test load_checkpoint handles missing fields."""
         # Arrange
@@ -1021,7 +1017,7 @@ class TestLocalStateManagerLoadCheckpoint:
 class TestLocalStateManagerCleanupOldCheckpoints:
     """Tests for LocalStateManager.cleanup_old_checkpoints method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_cleanup_old_checkpoints_deletes_old_completed(self):
         """Test cleanup deletes old completed checkpoints."""
         # Arrange
@@ -1048,7 +1044,7 @@ class TestLocalStateManagerCleanupOldCheckpoints:
             assert count == 1
             assert not checkpoint_file.exists()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_cleanup_old_checkpoints_keeps_in_progress(self):
         """Test cleanup keeps in_progress checkpoints."""
         # Arrange
@@ -1075,7 +1071,7 @@ class TestLocalStateManagerCleanupOldCheckpoints:
             assert count == 0
             assert checkpoint_file.exists()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_cleanup_old_checkpoints_keeps_recent(self):
         """Test cleanup keeps recent completed checkpoints."""
         # Arrange
@@ -1192,7 +1188,7 @@ class TestLocalStateManagerEdgeCases:
             # Assert
             assert path == Path(tmpdir) / f"{scan_id}.json"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_cleanup_handles_corrupted_files(self):
         """Test cleanup handles corrupted checkpoint files."""
         # Arrange
@@ -1218,7 +1214,7 @@ class TestLocalStateManagerEdgeCases:
 class TestStateManagerIntegration:
     """Integration tests for StateManager."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_full_checkpoint_lifecycle(self):
         """Test full checkpoint lifecycle: create, update, complete."""
         # Arrange
@@ -1278,7 +1274,7 @@ class TestStateManagerIntegration:
 class TestLocalStateManagerIntegration:
     """Integration tests for LocalStateManager."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_full_checkpoint_lifecycle(self):
         """Test full checkpoint lifecycle with file storage."""
         # Arrange
@@ -1313,7 +1309,7 @@ class TestLocalStateManagerIntegration:
             assert checkpoint.processed_items == 50
             assert checkpoint.cursor == "page_2"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_multiple_checkpoints(self):
         """Test managing multiple checkpoints."""
         # Arrange

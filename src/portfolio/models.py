@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 import logging
 from typing import Any
 
@@ -16,7 +16,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-class ItemCategory(str, Enum):
+class ItemCategory(StrEnum):
     """Category of item for diversification analysis."""
 
     WEAPON = "weapon"
@@ -33,7 +33,7 @@ class ItemCategory(str, Enum):
     OTHER = "other"
 
 
-class ItemRarity(str, Enum):
+class ItemRarity(StrEnum):
     """Rarity tier of item."""
 
     CONSUMER = "consumer"

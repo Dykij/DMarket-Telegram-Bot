@@ -5,7 +5,7 @@ technical indicators, trading signals, and price prediction functionality.
 """
 
 from datetime import UTC, datetime, timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -51,7 +51,7 @@ class TestTrendDirectionExtended:
     def test_trend_direction_str_enum_properties(self) -> None:
         """Test that TrendDirection behaves as str enum."""
         assert TrendDirection.BULLISH == "bullish"
-        assert "bullish" == TrendDirection.BULLISH
+        assert TrendDirection.BULLISH == "bullish"
         assert len(TrendDirection.BEARISH) == 7
 
 
@@ -87,7 +87,7 @@ class TestSignalTypeExtended:
     def test_signal_type_str_enum_properties(self) -> None:
         """Test that SignalType behaves as str enum."""
         assert SignalType.BUY == "buy"
-        assert "sell" == SignalType.SELL
+        assert SignalType.SELL == "sell"
         assert len(SignalType.HOLD) == 4
 
 
@@ -428,7 +428,7 @@ class TestMarketAnalyzerInitPhase4:
 class TestMarketAnalyzerFairPricePhase4:
     """Phase 4 extended tests for fair price calculation."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self) -> MarketAnalyzer:
         """Create market analyzer."""
         return MarketAnalyzer(min_data_points=5)
@@ -501,7 +501,7 @@ class TestMarketAnalyzerFairPricePhase4:
 class TestMarketAnalyzerDetectTrendPhase4:
     """Phase 4 extended tests for trend detection."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self) -> MarketAnalyzer:
         """Create market analyzer."""
         return MarketAnalyzer(min_data_points=5)
@@ -519,7 +519,7 @@ class TestMarketAnalyzerDetectTrendPhase4:
         trend = analyzer.detect_trend(history)
 
         # Should be classified
-        assert trend in [TrendDirection.BULLISH, TrendDirection.NEUTRAL]
+        assert trend in {TrendDirection.BULLISH, TrendDirection.NEUTRAL}
 
     def test_detect_trend_exactly_2_percent_below(
         self, analyzer: MarketAnalyzer
@@ -534,7 +534,7 @@ class TestMarketAnalyzerDetectTrendPhase4:
         trend = analyzer.detect_trend(history)
 
         # Should be classified
-        assert trend in [TrendDirection.BEARISH, TrendDirection.NEUTRAL]
+        assert trend in {TrendDirection.BEARISH, TrendDirection.NEUTRAL}
 
     def test_detect_trend_logs_info(self, analyzer: MarketAnalyzer) -> None:
         """Test that trend detection logs info."""
@@ -572,7 +572,7 @@ class TestMarketAnalyzerDetectTrendPhase4:
 class TestMarketAnalyzerPredictPriceDropPhase4:
     """Phase 4 extended tests for price drop prediction."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self) -> MarketAnalyzer:
         """Create market analyzer."""
         return MarketAnalyzer(min_data_points=5)
@@ -655,7 +655,7 @@ class TestMarketAnalyzerPredictPriceDropPhase4:
         ]
         result = analyzer.predict_price_drop(history)
 
-        assert result["recommendation"] in ["BUY", "SELL", "HOLD"]
+        assert result["recommendation"] in {"BUY", "SELL", "HOLD"}
 
 
 # ==============================================================================
@@ -666,7 +666,7 @@ class TestMarketAnalyzerPredictPriceDropPhase4:
 class TestMarketAnalyzerSupportResistancePhase4:
     """Phase 4 extended tests for support/resistance calculation."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self) -> MarketAnalyzer:
         """Create market analyzer."""
         return MarketAnalyzer(min_data_points=5)
@@ -736,7 +736,7 @@ class TestMarketAnalyzerSupportResistancePhase4:
 class TestMarketAnalyzerLiquidityPhase4:
     """Phase 4 extended tests for liquidity analysis."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self) -> MarketAnalyzer:
         """Create market analyzer."""
         return MarketAnalyzer(min_data_points=5)
@@ -805,7 +805,7 @@ class TestMarketAnalyzerLiquidityPhase4:
         result = analyzer.analyze_liquidity(history, recent_period=10)
 
         # Should detect increasing volume trend
-        assert result["volume_trend"] in [TrendDirection.BULLISH, TrendDirection.NEUTRAL]
+        assert result["volume_trend"] in {TrendDirection.BULLISH, TrendDirection.NEUTRAL}
 
 
 # ==============================================================================
@@ -816,7 +816,7 @@ class TestMarketAnalyzerLiquidityPhase4:
 class TestMarketAnalyzerInsightsPhase4:
     """Phase 4 extended tests for trading insights generation."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self) -> MarketAnalyzer:
         """Create market analyzer."""
         return MarketAnalyzer(min_data_points=10)
@@ -831,7 +831,7 @@ class TestMarketAnalyzerInsightsPhase4:
         ]
         result = analyzer.generate_trading_insights(history, current_price=80.0)
 
-        assert result["overall"]["score"] > 0 or result["overall"]["recommendation"] in ["BUY", "STRONG BUY"]
+        assert result["overall"]["score"] > 0 or result["overall"]["recommendation"] in {"BUY", "STRONG BUY"}
 
     def test_insights_overall_score_negative(self, analyzer: MarketAnalyzer) -> None:
         """Test insights overall score can be negative."""

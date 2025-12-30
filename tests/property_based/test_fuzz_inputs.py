@@ -8,11 +8,12 @@ Uses Hypothesis for property-based fuzzing with structured inputs.
 
 import pytest
 
+
 # Skip all tests if hypothesis is not installed
 pytest.importorskip("hypothesis")
 
-from hypothesis import assume, given, settings, strategies as st
-from hypothesis import HealthCheck
+from hypothesis import HealthCheck, assume, given, settings, strategies as st
+
 
 # Mark all tests in this module as property-based
 pytestmark = pytest.mark.asyncio
@@ -78,7 +79,7 @@ class TestPriceParsingFuzz:
         assume(abs(dollars) < 1e12)
 
         def dollars_to_cents(d: float) -> int:
-            return int(round(d * 100))
+            return round(d * 100)
 
         def cents_to_dollars(c: int) -> float:
             return c / 100
@@ -115,9 +116,7 @@ class TestItemDataFuzz:
                 price_data = item.get("price", {})
                 if isinstance(price_data, dict):
                     usd_value = price_data.get("USD", 0)
-                    if isinstance(usd_value, str):
-                        return float(usd_value) / 100
-                    elif isinstance(usd_value, (int, float)):
+                    if isinstance(usd_value, (str, int, float)):
                         return float(usd_value) / 100
                 return 0.0
             except (ValueError, TypeError, AttributeError):
@@ -142,9 +141,7 @@ class TestItemDataFuzz:
             if not title or not title.strip():
                 return False
             # Check reasonable length
-            if len(title) > 256:
-                return False
-            return True
+            return not len(title) > 256
 
         result = validate_title(item_title)
         assert isinstance(result, bool)
@@ -450,7 +447,7 @@ class TestFilterExpressionFuzz:
                     if key and value:
                         result[key.strip()] = value.strip()
 
-            return result if result else None
+            return result or None
 
         result = parse_filter(filter_str)
         assert result is None or isinstance(result, dict)

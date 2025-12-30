@@ -5,8 +5,9 @@ caching across multiple bot instances, with TTL support and async operations.
 """
 
 import logging
-import pickle
 from typing import Any, cast
+
+import orjson
 
 
 try:
@@ -134,7 +135,7 @@ class RedisCache:
                 value = await self._redis.get(key)
                 if value is not None:
                     self._hits += 1
-                    return pickle.loads(value)  # noqa: S301
+                    return orjson.loads(value)
                 self._misses += 1
                 return None
             except Exception:
@@ -175,7 +176,7 @@ class RedisCache:
         # Try Redis first
         if self._connected and self._redis:
             try:
-                serialized = pickle.dumps(value)
+                serialized = orjson.dumps(value)
                 await self._redis.setex(key, ttl, serialized)
                 return True
             except Exception:

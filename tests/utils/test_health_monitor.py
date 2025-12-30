@@ -493,7 +493,7 @@ class TestHealthMonitorIntegration:
 
         # Summary should be available
         summary = monitor.get_status_summary()
-        assert summary["overall_status"] in ["healthy", "degraded", "unhealthy", "unknown"]
+        assert summary["overall_status"] in {"healthy", "degraded", "unhealthy", "unknown"}
 
 
 class TestHealthMonitorExtended:

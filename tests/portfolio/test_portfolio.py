@@ -451,7 +451,7 @@ class TestPortfolioAnalyzer:
         """Test risk analysis."""
         report = analyzer.analyze_risk(sample_portfolio)
 
-        assert report.risk_level in ["low", "medium", "high", "critical"]
+        assert report.risk_level in {"low", "medium", "high", "critical"}
         assert 0 <= report.overall_risk_score <= 100
         assert 0 <= report.volatility_score <= 100
         assert 0 <= report.liquidity_score <= 100

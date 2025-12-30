@@ -17,7 +17,7 @@ Example:
 import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 import logging
 from typing import Any
 
@@ -27,7 +27,7 @@ from src.dmarket.arbitrage_scanner import ArbitrageScanner
 logger = logging.getLogger(__name__)
 
 
-class HFTStatus(str, Enum):
+class HFTStatus(StrEnum):
     """HFT trader status."""
 
     STOPPED = "stopped"

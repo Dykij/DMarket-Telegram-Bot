@@ -27,11 +27,12 @@ Usage:
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 import logging
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import httpx
 
@@ -43,7 +44,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class ServiceStatus(str, Enum):
+class ServiceStatus(StrEnum):
     """Service health status."""
 
     HEALTHY = "healthy"

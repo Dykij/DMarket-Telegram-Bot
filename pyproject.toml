@@ -32,6 +32,7 @@ dependencies = [
     "httpx>=0.28.0",                # Latest with HTTP/2 support
     "psutil>=7.0.0",                # System monitoring
     "circuitbreaker>=2.1.0",        # Circuit breaker pattern
+    "pynacl (>=1.6.1,<2.0.0)",
 ]
 
 [project.optional-dependencies]

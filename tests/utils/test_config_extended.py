@@ -5,7 +5,6 @@
 
 import os
 import tempfile
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -35,7 +34,7 @@ class TestConfigValidation:
             if len(parts) != 2:
                 return False
             return parts[0].isdigit() and len(parts[1]) > 20
-        
+
         # Валидный формат
         assert validate_telegram_token("123456789:ABCdefGHIjklMNOpqrSTUvwxYZ") is True
         # Невалидные форматы
@@ -49,7 +48,7 @@ class TestConfigValidation:
             if not key:
                 return False
             return len(key) >= 20 and key.isalnum()
-        
+
         # Валидный ключ
         assert validate_api_key("a" * 30) is True
         # Невалидные ключи
@@ -62,7 +61,7 @@ class TestConfigValidation:
         def validate_database_url(url: str) -> bool:
             valid_prefixes = ["postgresql://", "sqlite://", "mysql://"]
             return any(url.startswith(prefix) for prefix in valid_prefixes)
-        
+
         assert validate_database_url("postgresql://localhost:5432/db") is True
         assert validate_database_url("sqlite:///data.db") is True
         assert validate_database_url("mysql://localhost/db") is True
@@ -71,8 +70,8 @@ class TestConfigValidation:
     def test_validate_redis_url(self) -> None:
         """Тест валидации URL Redis."""
         def validate_redis_url(url: str) -> bool:
-            return url.startswith("redis://") or url.startswith("rediss://")
-        
+            return url.startswith(("redis://", "rediss://"))
+
         assert validate_redis_url("redis://localhost:6379") is True
         assert validate_redis_url("rediss://secure.redis.io:6380") is True
         assert validate_redis_url("http://localhost") is False
@@ -116,14 +115,14 @@ class TestEnvironmentVariables:
         """Тест получения булевой переменной."""
         def get_bool_env(name: str, default: bool = False) -> bool:
             value = os.environ.get(name, str(default)).lower()
-            return value in ("true", "1", "yes", "on")
-        
+            return value in {"true", "1", "yes", "on"}
+
         with patch.dict(os.environ, {"TEST_BOOL": "true"}):
             assert get_bool_env("TEST_BOOL") is True
-        
+
         with patch.dict(os.environ, {"TEST_BOOL": "false"}):
             assert get_bool_env("TEST_BOOL") is False
-        
+
         assert get_bool_env("NON_EXISTENT") is False
         assert get_bool_env("NON_EXISTENT", True) is True
 
@@ -134,13 +133,13 @@ class TestEnvironmentVariables:
                 return int(os.environ.get(name, str(default)))
             except ValueError:
                 return default
-        
+
         with patch.dict(os.environ, {"TEST_INT": "42"}):
             assert get_int_env("TEST_INT") == 42
-        
+
         with patch.dict(os.environ, {"TEST_INT": "invalid"}):
             assert get_int_env("TEST_INT", 10) == 10
-        
+
         assert get_int_env("NON_EXISTENT", 100) == 100
 
     def test_get_env_list(self) -> None:
@@ -150,11 +149,11 @@ class TestEnvironmentVariables:
             if not value:
                 return default or []
             return [item.strip() for item in value.split(",")]
-        
+
         with patch.dict(os.environ, {"TEST_LIST": "a, b, c"}):
             result = get_list_env("TEST_LIST")
             assert result == ["a", "b", "c"]
-        
+
         assert get_list_env("NON_EXISTENT") == []
         assert get_list_env("NON_EXISTENT", ["default"]) == ["default"]
 
@@ -178,10 +177,10 @@ class TestConfigMerging:
                 else:
                     result[key] = value
             return result
-        
+
         base = {"a": 1, "b": {"c": 2, "d": 3}}
         override = {"b": {"c": 10}, "e": 5}
-        
+
         result = merge_configs(base, override)
         assert result["a"] == 1
         assert result["b"]["c"] == 10
@@ -195,11 +194,11 @@ class TestConfigMerging:
             {"level": "DEBUG"},  # config file
             {"debug": True},  # env vars
         ]
-        
+
         result = {}
         for config in configs:
             result.update(config)
-        
+
         assert result["level"] == "DEBUG"
         assert result["debug"] is True
 
@@ -214,7 +213,7 @@ class TestConfigSections:
             "admin_ids": [123, 456],
             "parse_mode": "HTML",
         }
-        
+
         assert "token" in telegram_config
         assert "admin_ids" in telegram_config
         assert isinstance(telegram_config["admin_ids"], list)
@@ -227,7 +226,7 @@ class TestConfigSections:
             "base_url": "https://api.dmarket.com",
             "timeout": 30,
         }
-        
+
         assert "public_key" in dmarket_config
         assert "secret_key" in dmarket_config
         assert dmarket_config["timeout"] > 0
@@ -240,7 +239,7 @@ class TestConfigSections:
             "max_overflow": 20,
             "echo": False,
         }
-        
+
         assert "url" in database_config
         assert database_config["pool_size"] > 0
 
@@ -251,7 +250,7 @@ class TestConfigSections:
             "default_ttl": 300,
             "max_size": 10000,
         }
-        
+
         assert "redis_url" in cache_config
         assert cache_config["default_ttl"] > 0
 
@@ -267,13 +266,13 @@ class TestSecurityConfig:
                 if key in masked:
                     masked[key] = "***MASKED***"
             return masked
-        
+
         config = {
             "api_key": "secret123",
             "password": "mypass",
             "public_data": "visible",
         }
-        
+
         masked = mask_sensitive(config, ["api_key", "password"])
         assert masked["api_key"] == "***MASKED***"
         assert masked["password"] == "***MASKED***"
@@ -282,9 +281,9 @@ class TestSecurityConfig:
     def test_no_secrets_in_logs(self) -> None:
         """Тест что секреты не попадают в логи."""
         secret_patterns = ["token", "password", "secret", "key", "credential"]
-        
+
         log_message = "Config loaded: debug=True, level=INFO"
-        
+
         # Проверяем что в сообщении нет секретных паттернов со значениями
         for pattern in secret_patterns:
             assert f"{pattern}=" not in log_message.lower() or (
@@ -464,7 +463,7 @@ dmarket:
 database:
   url: "sqlite:///test.db"
 """
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
             f.write(yaml_content)
             f.flush()
             try:

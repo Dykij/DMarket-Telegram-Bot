@@ -9,8 +9,7 @@ This module contains tests for src/utils/batch_processor.py covering:
 Target: 15+ tests to achieve 70%+ coverage
 """
 
-import asyncio
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 

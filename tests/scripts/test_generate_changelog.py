@@ -153,8 +153,8 @@ class TestChangelogGenerator:
             assert "No changes found" in changelog
 
     @pytest.mark.parametrize(
-        "commit_type,expected_category",
-        [
+        ("commit_type", "expected_category"),
+        (
             ("feat", "Added"),
             ("fix", "Fixed"),
             ("docs", "Documentation"),
@@ -162,7 +162,7 @@ class TestChangelogGenerator:
             ("perf", "Performance"),
             ("test", "Tests"),
             ("chore", "Chores"),
-        ],
+        ),
     )
     def test_commit_type_mapping(self, commit_type, expected_category):
         """Тест маппинга типов коммитов на категории."""

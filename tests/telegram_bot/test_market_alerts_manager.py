@@ -23,7 +23,7 @@ from src.telegram_bot.market_alerts import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_bot():
     """Create mock Telegram bot."""
     bot = MagicMock()
@@ -31,7 +31,7 @@ def mock_bot():
     return bot
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_dmarket_api():
     """Create mock DMarket API client."""
     api = MagicMock()
@@ -39,7 +39,7 @@ def mock_dmarket_api():
     return api
 
 
-@pytest.fixture
+@pytest.fixture()
 def manager(mock_bot, mock_dmarket_api):
     """Create MarketAlertsManager instance."""
     return MarketAlertsManager(bot=mock_bot, dmarket_api=mock_dmarket_api)
@@ -409,7 +409,7 @@ class TestMarketAlertsManagerClearOldAlerts:
 class TestMarketAlertsManagerStartStopMonitoring:
     """Tests for start_monitoring and stop_monitoring methods."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_monitoring_sets_running_flag(self, manager):
         """Test that start_monitoring sets running flag."""
         # Start and immediately stop to avoid infinite loop
@@ -426,7 +426,7 @@ class TestMarketAlertsManagerStartStopMonitoring:
         # After stopping, running should be False
         assert manager.running is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_monitoring_when_already_running(self, manager):
         """Test that start_monitoring does nothing when already running."""
         manager.running = True
@@ -437,7 +437,7 @@ class TestMarketAlertsManagerStartStopMonitoring:
         # running should still be True
         assert manager.running is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_monitoring_sets_running_flag_false(self, manager):
         """Test that stop_monitoring sets running flag to False."""
         manager.running = True
@@ -447,7 +447,7 @@ class TestMarketAlertsManagerStartStopMonitoring:
 
         assert manager.running is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_monitoring_when_not_running(self, manager):
         """Test that stop_monitoring does nothing when not running."""
         manager.running = False
@@ -460,13 +460,13 @@ class TestMarketAlertsManagerStartStopMonitoring:
 class TestMarketAlertsManagerCheckPriceChanges:
     """Tests for _check_price_changes method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_price_changes_no_subscribers(self, manager):
         """Test _check_price_changes with no subscribers."""
         # Should complete without error
         await manager._check_price_changes()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_price_changes_with_no_changes(self, manager, mock_bot):
         """Test _check_price_changes when no price changes found."""
         manager.subscribe(123, "price_changes")
@@ -481,7 +481,7 @@ class TestMarketAlertsManagerCheckPriceChanges:
         # No messages should be sent
         mock_bot.send_message.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_price_changes_sends_notification(self, manager, mock_bot):
         """Test _check_price_changes sends notification for changes."""
         manager.subscribe(123, "price_changes")
@@ -507,7 +507,7 @@ class TestMarketAlertsManagerCheckPriceChanges:
 
         mock_bot.send_message.assert_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_price_changes_handles_exception(self, manager):
         """Test _check_price_changes handles exceptions gracefully."""
         manager.subscribe(123, "price_changes")
@@ -524,12 +524,12 @@ class TestMarketAlertsManagerCheckPriceChanges:
 class TestMarketAlertsManagerCheckTrendingItems:
     """Tests for _check_trending_items method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_trending_items_no_subscribers(self, manager):
         """Test _check_trending_items with no subscribers."""
         await manager._check_trending_items()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_trending_items_with_no_trends(self, manager, mock_bot):
         """Test _check_trending_items when no trending items found."""
         manager.subscribe(123, "trending")
@@ -543,7 +543,7 @@ class TestMarketAlertsManagerCheckTrendingItems:
 
         mock_bot.send_message.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_trending_items_sends_notification(self, manager, mock_bot):
         """Test _check_trending_items sends notification for trending items."""
         manager.subscribe(123, "trending")
@@ -572,12 +572,12 @@ class TestMarketAlertsManagerCheckTrendingItems:
 class TestMarketAlertsManagerCheckVolatility:
     """Tests for _check_volatility method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_volatility_no_subscribers(self, manager):
         """Test _check_volatility with no subscribers."""
         await manager._check_volatility()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_volatility_with_no_volatile_items(self, manager, mock_bot):
         """Test _check_volatility when no volatile items found."""
         manager.subscribe(123, "volatility")
@@ -591,7 +591,7 @@ class TestMarketAlertsManagerCheckVolatility:
 
         mock_bot.send_message.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_volatility_sends_notification(self, manager, mock_bot):
         """Test _check_volatility sends notification for volatile items."""
         manager.subscribe(123, "volatility")
@@ -617,12 +617,12 @@ class TestMarketAlertsManagerCheckVolatility:
 class TestMarketAlertsManagerCheckArbitrage:
     """Tests for _check_arbitrage method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_arbitrage_no_subscribers(self, manager):
         """Test _check_arbitrage with no subscribers."""
         await manager._check_arbitrage()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_arbitrage_handles_exception(self, manager):
         """Test _check_arbitrage handles exceptions gracefully."""
         manager.subscribe(123, "arbitrage")
@@ -769,7 +769,7 @@ class TestMarketAlertsManagerEdgeCases:
         result = manager.get_subscription_count()
         assert result == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_price_changes_limits_notifications(self, manager, mock_bot):
         """Test that _check_price_changes limits notifications to 3 per user."""
         manager.subscribe(123, "price_changes")

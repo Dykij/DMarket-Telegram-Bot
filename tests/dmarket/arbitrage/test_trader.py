@@ -14,7 +14,7 @@ Tests for:
 from __future__ import annotations
 
 import time
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -40,7 +40,7 @@ class TestArbitrageTraderInit:
 
     def test_init_with_credentials(self):
         """Test initialization with public/secret keys.
-        
+
         This test verifies that trader can be initialized with credentials.
         Note: Full test requires pydantic dependency for DMarketAPI.
         """
@@ -49,7 +49,7 @@ class TestArbitrageTraderInit:
         # Create trader with mock API client to avoid dependency issues
         mock_api = MagicMock()
         trader = ArbitrageTrader(api_client=mock_api)
-        
+
         # Verify initialization
         assert trader.api is mock_api
         assert trader.public_key is None
@@ -104,7 +104,7 @@ class TestArbitrageTraderInit:
 class TestCheckBalance:
     """Test check_balance method."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def trader(self):
         """Create a trader instance with mocked API."""
         from src.dmarket.arbitrage.trader import ArbitrageTrader
@@ -112,10 +112,9 @@ class TestCheckBalance:
         mock_api = MagicMock()
         mock_api.__aenter__ = AsyncMock(return_value=mock_api)
         mock_api.__aexit__ = AsyncMock(return_value=None)
-        trader = ArbitrageTrader(api_client=mock_api)
-        return trader
+        return ArbitrageTrader(api_client=mock_api)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_balance_sufficient(self, trader):
         """Test check_balance with sufficient funds."""
         trader.api.get_balance = AsyncMock(return_value={"usd": 10000})  # $100
@@ -125,7 +124,7 @@ class TestCheckBalance:
         assert has_funds is True
         assert balance == 100.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_balance_insufficient(self, trader):
         """Test check_balance with insufficient funds."""
         trader.api.get_balance = AsyncMock(return_value={"usd": 50})  # $0.50
@@ -135,7 +134,7 @@ class TestCheckBalance:
         assert has_funds is False
         assert balance == 0.5
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_balance_handles_exception(self, trader):
         """Test check_balance handles exceptions."""
         trader.api.get_balance = AsyncMock(side_effect=Exception("API Error"))
@@ -154,32 +153,31 @@ class TestCheckBalance:
 class TestTradingLimits:
     """Test trading limits functionality."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def trader(self):
         """Create a trader instance."""
         from src.dmarket.arbitrage.trader import ArbitrageTrader
 
         mock_api = MagicMock()
-        trader = ArbitrageTrader(
+        return ArbitrageTrader(
             api_client=mock_api,
             max_trade_value=50.0,
             daily_limit=200.0,
         )
-        return trader
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_limits_allows_valid_trade(self, trader):
         """Test that valid trades are allowed."""
         result = await trader._check_trading_limits(30.0)
         assert result is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_limits_rejects_over_max(self, trader):
         """Test that trades over max_trade_value are rejected."""
         result = await trader._check_trading_limits(100.0)  # Over $50 max
         assert result is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_limits_rejects_over_daily(self, trader):
         """Test that trades over daily limit are rejected."""
         trader.daily_traded = 180.0
@@ -218,7 +216,7 @@ class TestTradingLimits:
 class TestErrorHandling:
     """Test error handling and pause functionality."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def trader(self):
         """Create a trader instance."""
         from src.dmarket.arbitrage.trader import ArbitrageTrader
@@ -226,14 +224,14 @@ class TestErrorHandling:
         mock_api = MagicMock()
         return ArbitrageTrader(api_client=mock_api)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_error_increments_count(self, trader):
         """Test that error count is incremented."""
         assert trader.error_count == 0
         await trader._handle_trading_error()
         assert trader.error_count == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_error_pauses_after_3(self, trader):
         """Test 15-minute pause after 3 errors."""
         trader.error_count = 2
@@ -243,7 +241,7 @@ class TestErrorHandling:
         assert trader.error_count == 3
         assert trader.pause_until > time.time()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_error_long_pause_after_10(self, trader):
         """Test 1-hour pause after 10 errors."""
         trader.error_count = 9
@@ -254,7 +252,7 @@ class TestErrorHandling:
         assert trader.error_count == 0
         assert trader.pause_until > time.time()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_can_trade_now_when_paused(self, trader):
         """Test can_trade_now returns False when paused."""
         trader.pause_until = time.time() + 600  # Paused for 10 more minutes
@@ -263,13 +261,13 @@ class TestErrorHandling:
 
         assert result is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_can_trade_now_when_not_paused(self, trader):
         """Test can_trade_now returns True when not paused."""
         result = await trader._can_trade_now()
         assert result is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_can_trade_now_resets_after_pause(self, trader):
         """Test that pause is reset after it expires."""
         trader.pause_until = time.time() - 10  # Expired 10 seconds ago
@@ -290,7 +288,7 @@ class TestErrorHandling:
 class TestFindProfitableItems:
     """Test find_profitable_items method."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def trader(self):
         """Create a trader instance with mocked API."""
         from src.dmarket.arbitrage.trader import ArbitrageTrader
@@ -298,10 +296,9 @@ class TestFindProfitableItems:
         mock_api = MagicMock()
         mock_api.__aenter__ = AsyncMock(return_value=mock_api)
         mock_api.__aexit__ = AsyncMock(return_value=None)
-        trader = ArbitrageTrader(api_client=mock_api)
-        return trader
+        return ArbitrageTrader(api_client=mock_api)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_finds_profitable_items(self, trader):
         """Test finding profitable items."""
         mock_items = [
@@ -327,7 +324,7 @@ class TestFindProfitableItems:
         assert isinstance(results, list)
         trader.api.get_all_market_items.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_empty_market_items(self, trader):
         """Test with no market items."""
         trader.api.get_all_market_items = AsyncMock(return_value=[])
@@ -336,7 +333,7 @@ class TestFindProfitableItems:
 
         assert results == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_exception(self, trader):
         """Test exception handling."""
         trader.api.get_all_market_items = AsyncMock(side_effect=Exception("API Error"))
@@ -354,7 +351,7 @@ class TestFindProfitableItems:
 class TestAutoTrading:
     """Test auto-trading functionality."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def trader(self):
         """Create a trader instance."""
         from src.dmarket.arbitrage.trader import ArbitrageTrader
@@ -362,10 +359,9 @@ class TestAutoTrading:
         mock_api = MagicMock()
         mock_api.__aenter__ = AsyncMock(return_value=mock_api)
         mock_api.__aexit__ = AsyncMock(return_value=None)
-        trader = ArbitrageTrader(api_client=mock_api)
-        return trader
+        return ArbitrageTrader(api_client=mock_api)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_auto_trading_success(self, trader):
         """Test starting auto-trading."""
         trader.api.get_balance = AsyncMock(return_value={"usd": 10000})
@@ -379,7 +375,7 @@ class TestAutoTrading:
         assert len(message) > 0  # Message should not be empty
         assert trader.active is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_auto_trading_already_active(self, trader):
         """Test starting when already active."""
         trader.active = True
@@ -389,7 +385,7 @@ class TestAutoTrading:
         assert success is False
         assert len(message) > 0  # Error message should not be empty
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_auto_trading_insufficient_funds(self, trader):
         """Test starting with insufficient funds."""
         trader.api.get_balance = AsyncMock(return_value={"usd": 50})
@@ -399,7 +395,7 @@ class TestAutoTrading:
         assert success is False
         assert len(message) > 0  # Error message should not be empty
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_auto_trading(self, trader):
         """Test stopping auto-trading."""
         trader.active = True
@@ -410,12 +406,12 @@ class TestAutoTrading:
         assert len(message) > 0  # Message should not be empty
         assert trader.active is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_auto_trading_not_active(self, trader):
         """Test stopping when not active."""
         trader.active = False
 
-        success, message = await trader.stop_auto_trading()
+        success, _message = await trader.stop_auto_trading()
 
         assert success is False
 
@@ -428,7 +424,7 @@ class TestAutoTrading:
 class TestGetStatus:
     """Test get_status method."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def trader(self):
         """Create a trader instance."""
         from src.dmarket.arbitrage.trader import ArbitrageTrader
@@ -488,7 +484,7 @@ class TestGetStatus:
 class TestTransactionHistory:
     """Test transaction history functionality."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def trader(self):
         """Create a trader instance."""
         from src.dmarket.arbitrage.trader import ArbitrageTrader
@@ -522,7 +518,7 @@ class TestTransactionHistory:
 class TestPurchaseItem:
     """Test purchase_item method."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def trader(self):
         """Create a trader instance with mocked API."""
         from src.dmarket.arbitrage.trader import ArbitrageTrader
@@ -530,10 +526,9 @@ class TestPurchaseItem:
         mock_api = MagicMock()
         mock_api.__aenter__ = AsyncMock(return_value=mock_api)
         mock_api.__aexit__ = AsyncMock(return_value=None)
-        trader = ArbitrageTrader(api_client=mock_api)
-        return trader
+        return ArbitrageTrader(api_client=mock_api)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_purchase_item_success(self, trader):
         """Test successful item purchase."""
         trader.api._request = AsyncMock(
@@ -547,7 +542,7 @@ class TestPurchaseItem:
         assert result["success"] is True
         assert result["new_item_id"] == "new_item_123"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_purchase_item_error_response(self, trader):
         """Test purchase with error response."""
         trader.api._request = AsyncMock(
@@ -561,7 +556,7 @@ class TestPurchaseItem:
         assert result["success"] is False
         assert "not available" in result["error"].lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_purchase_item_exception(self, trader):
         """Test purchase with exception."""
         trader.api._request = AsyncMock(side_effect=Exception("Network error"))
@@ -580,7 +575,7 @@ class TestPurchaseItem:
 class TestListItemForSale:
     """Test list_item_for_sale method."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def trader(self):
         """Create a trader instance with mocked API."""
         from src.dmarket.arbitrage.trader import ArbitrageTrader
@@ -588,10 +583,9 @@ class TestListItemForSale:
         mock_api = MagicMock()
         mock_api.__aenter__ = AsyncMock(return_value=mock_api)
         mock_api.__aexit__ = AsyncMock(return_value=None)
-        trader = ArbitrageTrader(api_client=mock_api)
-        return trader
+        return ArbitrageTrader(api_client=mock_api)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_item_success(self, trader):
         """Test successful item listing."""
         trader.api._request = AsyncMock(return_value={"status": "ok"})
@@ -601,7 +595,7 @@ class TestListItemForSale:
         assert result["success"] is True
         assert result["price"] == 15.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_item_error_response(self, trader):
         """Test listing with error response."""
         trader.api._request = AsyncMock(
@@ -614,7 +608,7 @@ class TestListItemForSale:
 
         assert result["success"] is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_item_exception(self, trader):
         """Test listing with exception."""
         trader.api._request = AsyncMock(side_effect=Exception("API Error"))
@@ -632,7 +626,7 @@ class TestListItemForSale:
 class TestExecuteArbitrageTrade:
     """Test execute_arbitrage_trade method."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def trader(self):
         """Create a trader instance with mocked API."""
         from src.dmarket.arbitrage.trader import ArbitrageTrader
@@ -640,10 +634,9 @@ class TestExecuteArbitrageTrade:
         mock_api = MagicMock()
         mock_api.__aenter__ = AsyncMock(return_value=mock_api)
         mock_api.__aexit__ = AsyncMock(return_value=None)
-        trader = ArbitrageTrader(api_client=mock_api)
-        return trader
+        return ArbitrageTrader(api_client=mock_api)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_trade_success(self, trader):
         """Test successful trade execution."""
         # Mock balance check
@@ -673,7 +666,7 @@ class TestExecuteArbitrageTrade:
         assert result["profit"] == 4.0
         assert len(trader.transaction_history) == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_trade_insufficient_balance(self, trader):
         """Test trade with insufficient balance."""
         trader.api.get_balance = AsyncMock(return_value={"usd": 100})  # $1
@@ -691,7 +684,7 @@ class TestExecuteArbitrageTrade:
         assert result["success"] is False
         assert len(result["errors"]) > 0  # Should have at least one error
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_trade_purchase_fails(self, trader):
         """Test trade when purchase fails."""
         trader.api.get_balance = AsyncMock(return_value={"usd": 10000})

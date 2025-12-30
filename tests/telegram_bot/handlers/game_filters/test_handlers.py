@@ -17,7 +17,7 @@ Coverage Target: 85%+
 Estimated Tests: 50+ tests
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from telegram import CallbackQuery, Chat, InlineKeyboardMarkup, Message, Update, User
@@ -41,7 +41,7 @@ from src.telegram_bot.handlers.game_filters.handlers import (
 # ============================================================================
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_user():
     """Create a mock Telegram user."""
     user = MagicMock(spec=User)
@@ -50,7 +50,7 @@ def mock_user():
     return user
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_chat():
     """Create a mock Telegram chat."""
     chat = MagicMock(spec=Chat)
@@ -59,7 +59,7 @@ def mock_chat():
     return chat
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_message(mock_user, mock_chat):
     """Create a mock Message object."""
     message = AsyncMock(spec=Message)
@@ -69,7 +69,7 @@ def mock_message(mock_user, mock_chat):
     return message
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_callback_query(mock_user, mock_message):
     """Create a mock CallbackQuery object."""
     callback = AsyncMock(spec=CallbackQuery)
@@ -81,7 +81,7 @@ def mock_callback_query(mock_user, mock_message):
     return callback
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_update(mock_message, mock_callback_query):
     """Create a mock Update object."""
     update = MagicMock(spec=Update)
@@ -90,7 +90,7 @@ def mock_update(mock_message, mock_callback_query):
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context():
     """Create a mock context."""
     context = MagicMock(spec=ContextTypes.DEFAULT_TYPE)
@@ -107,7 +107,7 @@ def mock_context():
 class TestHandleGameFilters:
     """Tests for handle_game_filters handler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sends_game_selection_keyboard(self, mock_update, mock_context):
         """Test that handler sends game selection keyboard."""
         # Arrange - ensure message exists
@@ -123,7 +123,7 @@ class TestHandleGameFilters:
         assert "reply_markup" in call_args.kwargs
         assert isinstance(call_args.kwargs["reply_markup"], InlineKeyboardMarkup)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_keyboard_contains_all_games(self, mock_update, mock_context):
         """Test that keyboard contains all supported games."""
         # Arrange
@@ -136,11 +136,11 @@ class TestHandleGameFilters:
         # Assert
         call_args = mock_update.message.reply_text.call_args
         text = call_args.args[0] if call_args.args else call_args.kwargs.get("text", "")
-        
+
         # Check text mentions filters
         assert "фильтр" in text.lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_if_no_message(self, mock_context):
         """Test that handler returns early if no message."""
         # Arrange
@@ -162,7 +162,7 @@ class TestHandleGameFilters:
 class TestHandleSelectGameFilterCallback:
     """Tests for handle_select_game_filter_callback handler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_filter_menu_for_csgo(self, mock_update, mock_context):
         """Test showing filter menu for CS:GO."""
         # Arrange
@@ -175,7 +175,7 @@ class TestHandleSelectGameFilterCallback:
         mock_update.callback_query.answer.assert_called_once()
         mock_update.callback_query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_filter_menu_for_dota2(self, mock_update, mock_context):
         """Test showing filter menu for Dota 2."""
         # Arrange
@@ -188,7 +188,7 @@ class TestHandleSelectGameFilterCallback:
         mock_update.callback_query.answer.assert_called_once()
         mock_update.callback_query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_filter_menu_for_tf2(self, mock_update, mock_context):
         """Test showing filter menu for TF2."""
         # Arrange
@@ -200,7 +200,7 @@ class TestHandleSelectGameFilterCallback:
         # Assert
         mock_update.callback_query.answer.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_filter_menu_for_rust(self, mock_update, mock_context):
         """Test showing filter menu for Rust."""
         # Arrange
@@ -212,7 +212,7 @@ class TestHandleSelectGameFilterCallback:
         # Assert
         mock_update.callback_query.answer.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_includes_current_filters_in_message(self, mock_update, mock_context):
         """Test that current filters are included in message."""
         # Arrange
@@ -227,7 +227,7 @@ class TestHandleSelectGameFilterCallback:
         text = call_args.kwargs.get("text", "")
         assert "фильтр" in text.lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_if_no_callback_query(self, mock_context):
         """Test early return if no callback query."""
         # Arrange
@@ -240,7 +240,7 @@ class TestHandleSelectGameFilterCallback:
         # Assert
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_if_no_callback_data(self, mock_update, mock_context):
         """Test early return if no callback data."""
         # Arrange
@@ -261,7 +261,7 @@ class TestHandleSelectGameFilterCallback:
 class TestHandlePriceRangeCallback:
     """Tests for handle_price_range_callback handler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_price_range_options(self, mock_update, mock_context):
         """Test showing price range options."""
         # Arrange
@@ -277,7 +277,7 @@ class TestHandlePriceRangeCallback:
         text = call_args.kwargs.get("text", "")
         assert "цен" in text.lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_current_price_range(self, mock_update, mock_context):
         """Test showing current price range."""
         # Arrange
@@ -293,7 +293,7 @@ class TestHandlePriceRangeCallback:
         assert "$10.00" in text
         assert "$50.00" in text
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_if_no_callback_query(self, mock_context):
         """Test early return if no callback query."""
         # Arrange
@@ -315,7 +315,7 @@ class TestHandlePriceRangeCallback:
 class TestHandleFloatRangeCallback:
     """Tests for handle_float_range_callback handler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_float_options_for_csgo(self, mock_update, mock_context):
         """Test showing float options for CS:GO."""
         # Arrange
@@ -331,7 +331,7 @@ class TestHandleFloatRangeCallback:
         text = call_args.kwargs.get("text", "")
         assert "Float" in text
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_rejects_float_for_non_csgo(self, mock_update, mock_context):
         """Test rejecting float for non-CS:GO games."""
         # Arrange
@@ -346,7 +346,7 @@ class TestHandleFloatRangeCallback:
         assert "Float" in text
         assert "CS2" in text
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_if_no_callback_query(self, mock_context):
         """Test early return if no callback query."""
         # Arrange
@@ -368,7 +368,7 @@ class TestHandleFloatRangeCallback:
 class TestHandleSetCategoryCallback:
     """Tests for handle_set_category_callback handler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_category_options_for_csgo(self, mock_update, mock_context):
         """Test showing category options for CS:GO."""
         # Arrange
@@ -384,7 +384,7 @@ class TestHandleSetCategoryCallback:
         text = call_args.kwargs.get("text", "")
         assert "категор" in text.lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_category_options_for_rust(self, mock_update, mock_context):
         """Test showing category options for Rust."""
         # Arrange
@@ -396,7 +396,7 @@ class TestHandleSetCategoryCallback:
         # Assert
         mock_update.callback_query.answer.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_if_no_callback_query(self, mock_context):
         """Test early return if no callback query."""
         # Arrange
@@ -418,7 +418,7 @@ class TestHandleSetCategoryCallback:
 class TestHandleSetRarityCallback:
     """Tests for handle_set_rarity_callback handler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_rarity_options_for_csgo(self, mock_update, mock_context):
         """Test showing rarity options for CS:GO."""
         # Arrange
@@ -431,7 +431,7 @@ class TestHandleSetRarityCallback:
         mock_update.callback_query.answer.assert_called_once()
         mock_update.callback_query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_rarity_options_for_dota2(self, mock_update, mock_context):
         """Test showing rarity options for Dota 2."""
         # Arrange
@@ -443,7 +443,7 @@ class TestHandleSetRarityCallback:
         # Assert
         mock_update.callback_query.answer.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_if_no_callback_query(self, mock_context):
         """Test early return if no callback query."""
         # Arrange
@@ -465,7 +465,7 @@ class TestHandleSetRarityCallback:
 class TestHandleSetExteriorCallback:
     """Tests for handle_set_exterior_callback handler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_exterior_options_for_csgo(self, mock_update, mock_context):
         """Test showing exterior options for CS:GO."""
         # Arrange
@@ -478,7 +478,7 @@ class TestHandleSetExteriorCallback:
         mock_update.callback_query.answer.assert_called_once()
         mock_update.callback_query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_if_no_callback_query(self, mock_context):
         """Test early return if no callback query."""
         # Arrange
@@ -500,7 +500,7 @@ class TestHandleSetExteriorCallback:
 class TestHandleSetHeroCallback:
     """Tests for handle_set_hero_callback handler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_hero_options_for_dota2(self, mock_update, mock_context):
         """Test showing hero options for Dota 2."""
         # Arrange
@@ -513,7 +513,7 @@ class TestHandleSetHeroCallback:
         mock_update.callback_query.answer.assert_called_once()
         mock_update.callback_query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_if_no_callback_query(self, mock_context):
         """Test early return if no callback query."""
         # Arrange
@@ -535,7 +535,7 @@ class TestHandleSetHeroCallback:
 class TestHandleSetClassCallback:
     """Tests for handle_set_class_callback handler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_class_options_for_tf2(self, mock_update, mock_context):
         """Test showing class options for TF2."""
         # Arrange
@@ -548,7 +548,7 @@ class TestHandleSetClassCallback:
         mock_update.callback_query.answer.assert_called_once()
         mock_update.callback_query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_if_no_callback_query(self, mock_context):
         """Test early return if no callback query."""
         # Arrange

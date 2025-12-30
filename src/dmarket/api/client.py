@@ -138,8 +138,8 @@ class DMarketAPIClient:
     async def __aexit__(
         self,
         exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: object | None,
+        exc_val: BaseException | None,  # noqa: ARG002
+        exc_tb: object | None,  # noqa: ARG002
     ) -> None:
         """Context manager exit."""
         await self._close_client()
@@ -238,7 +238,7 @@ class DMarketAPIClient:
                     return cached_data
 
         # Build request body for POST/PUT/PATCH
-        if data and method.upper() in ("POST", "PUT", "PATCH"):
+        if data and method.upper() in {"POST", "PUT", "PATCH"}:
             body_json = json.dumps(data)
 
         # Generate headers with signature
@@ -392,7 +392,7 @@ class DMarketAPIClient:
                     "description": error_description,
                 }
 
-                if status_code in [400, 404]:
+                if status_code in {400, 404}:
                     return error_data
 
                 last_error = Exception(

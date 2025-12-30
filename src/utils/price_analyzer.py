@@ -9,6 +9,7 @@
 
 from datetime import datetime
 import logging
+import operator
 import statistics
 import time
 from typing import Any
@@ -178,7 +179,7 @@ async def calculate_price_trend(
         return {"trend": "unknown", "confidence": 0.0}
 
     # Сортируем по дате (от старых к новым)
-    price_history.sort(key=lambda x: x["date"])
+    price_history.sort(key=operator.itemgetter("date"))
 
     # Разбиваем на периоды для анализа тренда
     periods = min(len(price_history), 4)  # Используем до 4 периодов
@@ -323,7 +324,7 @@ async def find_undervalued_items(
                 )
 
         # Сортируем по размеру скидки (от большей к меньшей)
-        undervalued_items.sort(key=lambda x: x["discount"], reverse=True)
+        undervalued_items.sort(key=operator.itemgetter("discount"), reverse=True)
 
         return undervalued_items[:max_results]
 
@@ -483,7 +484,7 @@ async def get_investment_recommendations(
             )
 
     # Сортируем по инвестиционной оценке
-    recommendations.sort(key=lambda x: x["investment_score"], reverse=True)
+    recommendations.sort(key=operator.itemgetter("investment_score"), reverse=True)
 
     return recommendations[:10]  # Возвращаем топ-10 рекомендаций
 

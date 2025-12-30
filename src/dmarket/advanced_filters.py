@@ -27,7 +27,7 @@ Usage:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 import logging
 import math
 from typing import TYPE_CHECKING, Any
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class FilterResult(str, Enum):
+class FilterResult(StrEnum):
     """Result of filter evaluation."""
 
     PASS = "pass"

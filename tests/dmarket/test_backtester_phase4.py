@@ -6,7 +6,6 @@ covering strategies, trade simulation, metrics calculation, and edge cases.
 """
 
 from datetime import UTC, datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -18,14 +17,13 @@ from src.dmarket.backtester import (
     SimulatedTrade,
     TradeAction,
     TradeStatus,
-    TradingStrategy,
 )
 
 
 # ======================== Test Fixtures ========================
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_price_point():
     """Create a sample price point."""
     return PricePoint(
@@ -40,7 +38,7 @@ def sample_price_point():
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_price_history():
     """Create sample price history."""
     base_time = datetime.now(UTC)
@@ -56,7 +54,7 @@ def sample_price_history():
     ]
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_trade():
     """Create a sample simulated trade."""
     return SimulatedTrade(
@@ -72,7 +70,7 @@ def sample_trade():
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_backtest_results():
     """Create sample backtest results."""
     return BacktestResults(
@@ -515,7 +513,7 @@ class TestSimpleArbitrageStrategy:
             price=90.0,
         )
 
-        action, price, reason = strategy.evaluate(
+        action, price, _reason = strategy.evaluate(
             current_price=current,
             historical_prices=history,
             open_positions=[],
@@ -546,7 +544,7 @@ class TestSimpleArbitrageStrategy:
             price=90.0,  # 10% below avg
         )
 
-        action, price, reason = strategy.evaluate(
+        action, _price, reason = strategy.evaluate(
             current_price=current,
             historical_prices=history,
             open_positions=[],
@@ -577,7 +575,7 @@ class TestSimpleArbitrageStrategy:
             price=97.0,  # Only 3% below avg
         )
 
-        action, price, reason = strategy.evaluate(
+        action, _price, _reason = strategy.evaluate(
             current_price=current,
             historical_prices=history,
             open_positions=[],
@@ -632,7 +630,7 @@ class TestSimpleArbitrageStrategy:
             price=52.0,  # 4% above buy price
         )
 
-        should_close, reason = strategy.should_close_position(sample_trade, current)
+        should_close, _reason = strategy.should_close_position(sample_trade, current)
 
         assert should_close is False
 
@@ -704,7 +702,7 @@ class TestMomentumStrategy:
 
         history = [sample_price_point] * 5
 
-        action, price, reason = strategy.evaluate(
+        action, _price, _reason = strategy.evaluate(
             current_price=sample_price_point,
             historical_prices=history,
             open_positions=[],
@@ -735,7 +733,7 @@ class TestMomentumStrategy:
             price=105.0,
         )
 
-        action, price, reason = strategy.evaluate(
+        action, _price, _reason = strategy.evaluate(
             current_price=current,
             historical_prices=history,
             open_positions=[],
@@ -743,7 +741,7 @@ class TestMomentumStrategy:
         )
 
         # Should consider buying on momentum
-        assert action in [TradeAction.BUY, TradeAction.HOLD]
+        assert action in {TradeAction.BUY, TradeAction.HOLD}
 
     def test_momentum_should_close_position(self, sample_trade):
         """Test momentum strategy close position logic."""
@@ -756,7 +754,7 @@ class TestMomentumStrategy:
             price=55.0,  # 10% profit on 50
         )
 
-        should_close, reason = strategy.should_close_position(sample_trade, current)
+        should_close, _reason = strategy.should_close_position(sample_trade, current)
 
         # Should close at profit target
         assert should_close is True
@@ -902,7 +900,7 @@ class TestBacktesterIntegration:
 
         history = [sample_price_point] * 15
 
-        action, price, reason = strategy.evaluate(
+        action, _price, _reason = strategy.evaluate(
             current_price=sample_price_point,
             historical_prices=history,
             open_positions=[sample_trade],
@@ -910,7 +908,7 @@ class TestBacktesterIntegration:
         )
 
         # Should return an action
-        assert action in [TradeAction.BUY, TradeAction.SELL, TradeAction.HOLD]
+        assert action in {TradeAction.BUY, TradeAction.SELL, TradeAction.HOLD}
 
     def test_full_trade_lifecycle(self):
         """Test complete trade lifecycle."""

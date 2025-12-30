@@ -22,15 +22,14 @@ class TestSetupApiClient:
                 "DMARKET_PUBLIC_KEY": "test_public_key",
                 "DMARKET_SECRET_KEY": "test_secret_key",
             },
-        ):
-            with patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
-                mock_instance = MagicMock()
-                mock_api.return_value = mock_instance
+        ), patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
+            mock_instance = MagicMock()
+            mock_api.return_value = mock_instance
 
-                result = setup_api_client()
+            result = setup_api_client()
 
-                assert result == mock_instance
-                mock_api.assert_called_once()
+            assert result == mock_instance
+            mock_api.assert_called_once()
 
     def test_setup_api_client_without_public_key(self):
         """Test setup_api_client returns None without public key."""
@@ -78,14 +77,13 @@ class TestSetupApiClient:
                 "DMARKET_SECRET_KEY": "test_secret",
                 "DMARKET_API_URL": "https://custom.api.url",
             },
-        ):
-            with patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
-                mock_api.return_value = MagicMock()
+        ), patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
+            mock_api.return_value = MagicMock()
 
-                setup_api_client()
+            setup_api_client()
 
-                call_kwargs = mock_api.call_args[1]
-                assert call_kwargs["api_url"] == "https://custom.api.url"
+            call_kwargs = mock_api.call_args[1]
+            assert call_kwargs["api_url"] == "https://custom.api.url"
 
     def test_setup_api_client_uses_default_api_url(self):
         """Test setup_api_client uses default API URL when not specified."""
@@ -97,14 +95,13 @@ class TestSetupApiClient:
                 "DMARKET_PUBLIC_KEY": "test_public",
                 "DMARKET_SECRET_KEY": "test_secret",
             },
-        ):
-            with patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
-                mock_api.return_value = MagicMock()
+        ), patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
+            mock_api.return_value = MagicMock()
 
-                setup_api_client()
+            setup_api_client()
 
-                call_kwargs = mock_api.call_args[1]
-                assert call_kwargs["api_url"] == "https://api.dmarket.com"
+            call_kwargs = mock_api.call_args[1]
+            assert call_kwargs["api_url"] == "https://api.dmarket.com"
 
     def test_setup_api_client_sets_max_retries(self):
         """Test setup_api_client sets max_retries parameter."""
@@ -116,14 +113,13 @@ class TestSetupApiClient:
                 "DMARKET_PUBLIC_KEY": "test_public",
                 "DMARKET_SECRET_KEY": "test_secret",
             },
-        ):
-            with patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
-                mock_api.return_value = MagicMock()
+        ), patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
+            mock_api.return_value = MagicMock()
 
-                setup_api_client()
+            setup_api_client()
 
-                call_kwargs = mock_api.call_args[1]
-                assert call_kwargs["max_retries"] == 3
+            call_kwargs = mock_api.call_args[1]
+            assert call_kwargs["max_retries"] == 3
 
     def test_setup_api_client_sets_connection_timeout(self):
         """Test setup_api_client sets connection_timeout parameter."""
@@ -135,14 +131,13 @@ class TestSetupApiClient:
                 "DMARKET_PUBLIC_KEY": "test_public",
                 "DMARKET_SECRET_KEY": "test_secret",
             },
-        ):
-            with patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
-                mock_api.return_value = MagicMock()
+        ), patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
+            mock_api.return_value = MagicMock()
 
-                setup_api_client()
+            setup_api_client()
 
-                call_kwargs = mock_api.call_args[1]
-                assert call_kwargs["connection_timeout"] == 30.0
+            call_kwargs = mock_api.call_args[1]
+            assert call_kwargs["connection_timeout"] == 30.0
 
     def test_setup_api_client_enables_cache(self):
         """Test setup_api_client enables caching."""
@@ -154,14 +149,13 @@ class TestSetupApiClient:
                 "DMARKET_PUBLIC_KEY": "test_public",
                 "DMARKET_SECRET_KEY": "test_secret",
             },
-        ):
-            with patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
-                mock_api.return_value = MagicMock()
+        ), patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
+            mock_api.return_value = MagicMock()
 
-                setup_api_client()
+            setup_api_client()
 
-                call_kwargs = mock_api.call_args[1]
-                assert call_kwargs["enable_cache"] is True
+            call_kwargs = mock_api.call_args[1]
+            assert call_kwargs["enable_cache"] is True
 
     def test_setup_api_client_handles_exception(self):
         """Test setup_api_client handles exceptions during creation."""
@@ -173,13 +167,12 @@ class TestSetupApiClient:
                 "DMARKET_PUBLIC_KEY": "test_public",
                 "DMARKET_SECRET_KEY": "test_secret",
             },
-        ):
-            with patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
-                mock_api.side_effect = Exception("Creation failed")
+        ), patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
+            mock_api.side_effect = Exception("Creation failed")
 
-                result = setup_api_client()
+            result = setup_api_client()
 
-                assert result is None
+            assert result is None
 
 
 class TestSetupApiClientWithKeys:
@@ -251,20 +244,19 @@ class TestSetupApiClientWithKeys:
         with patch.dict(
             os.environ,
             {"DMARKET_API_URL": "https://custom.url"},
-        ):
-            with patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
-                mock_api.return_value = MagicMock()
+        ), patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
+            mock_api.return_value = MagicMock()
 
-                setup_api_client_with_keys("public", "secret")
+            setup_api_client_with_keys("public", "secret")
 
-                call_kwargs = mock_api.call_args[1]
-                assert call_kwargs["api_url"] == "https://custom.url"
+            call_kwargs = mock_api.call_args[1]
+            assert call_kwargs["api_url"] == "https://custom.url"
 
 
 class TestValidateApiKeys:
     """Tests for validate_api_keys function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_validate_api_keys_with_valid_keys(self):
         """Test validate_api_keys returns True for valid keys."""
         from src.telegram_bot.utils.api_client import validate_api_keys
@@ -283,7 +275,7 @@ class TestValidateApiKeys:
             assert success is True
             assert "валидны" in message
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_validate_api_keys_with_api_error_response(self):
         """Test validate_api_keys returns False when API returns error."""
         from src.telegram_bot.utils.api_client import validate_api_keys
@@ -304,7 +296,7 @@ class TestValidateApiKeys:
             assert success is False
             assert "Invalid key" in message
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_validate_api_keys_with_client_creation_failure(self):
         """Test validate_api_keys returns False when client creation fails."""
         from src.telegram_bot.utils.api_client import validate_api_keys
@@ -319,7 +311,7 @@ class TestValidateApiKeys:
             assert success is False
             assert "Не удалось создать клиент" in message
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_validate_api_keys_handles_exception(self):
         """Test validate_api_keys handles exceptions."""
         from src.telegram_bot.utils.api_client import validate_api_keys

@@ -4,30 +4,23 @@ This module provides comprehensive tests for all formatting functions
 in the Telegram bot formatters module.
 """
 
-import pytest
-from unittest.mock import patch
-from datetime import datetime
 
 from src.telegram_bot.utils.formatters import (
     MAX_MESSAGE_LENGTH,
+    format_arbitrage_with_sales,
     format_balance,
+    format_best_opportunities,
+    format_dmarket_results,
+    format_error_message,
+    format_liquidity_analysis,
     format_market_item,
     format_market_items,
     format_opportunities,
-    format_error_message,
-    format_sales_history,
     format_sales_analysis,
-    format_liquidity_analysis,
-    get_trend_emoji,
+    format_sales_history,
     format_sales_volume_stats,
-    format_arbitrage_with_sales,
-    format_dmarket_results,
-    format_best_opportunities,
+    get_trend_emoji,
     split_long_message,
-    format_target_item,
-    format_target_competition_analysis,
-    format_aggregated_prices,
-    format_market_depth,
 )
 
 
@@ -181,10 +174,10 @@ class TestFormatMarketItems:
     def test_format_market_items_pagination(self):
         """Test pagination."""
         items = [{"title": f"Item {i}", "price": {"USD": i * 100}} for i in range(1, 20)]
-        
+
         result_page1 = format_market_items(items, page=0, items_per_page=5)
         result_page2 = format_market_items(items, page=1, items_per_page=5)
-        
+
         assert "Item 1" in result_page1
         assert "Item 6" in result_page2
 
@@ -505,7 +498,7 @@ class TestFormatSalesVolumeStats:
     def test_format_sales_volume_stats_games(self):
         """Test different game names."""
         stats = {"items": [{"item_name": "Test", "sales_per_day": 10, "avg_price": 5, "price_trend": "stable"}], "count": 1, "summary": {}}
-        
+
         for game, display in [("csgo", "CS2"), ("dota2", "Dota 2"), ("tf2", "Team Fortress 2"), ("rust", "Rust")]:
             result = format_sales_volume_stats(stats, game)
             assert display in result

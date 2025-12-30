@@ -60,7 +60,7 @@ class TestTargetManagerInit:
 class TestCreateTarget:
     """Tests for create_target method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_target_success(self) -> None:
         """Test creating a target successfully."""
         manager, mock_api = create_manager()
@@ -73,7 +73,7 @@ class TestCreateTarget:
         assert result["id"] == "target123"
         assert result["status"] == "active"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_target_with_amount(self) -> None:
         """Test creating a target with custom amount."""
         manager, mock_api = create_manager()
@@ -85,7 +85,7 @@ class TestCreateTarget:
         call_args = mock_api.create_target.call_args[0][0]
         assert call_args["amount"] == "5"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_target_empty_title_raises_error(self) -> None:
         """Test that empty title raises ValueError."""
         manager, _ = create_manager()
@@ -93,7 +93,7 @@ class TestCreateTarget:
         with pytest.raises(ValueError, match="Название предмета не может быть пустым"):
             await manager.create_target(game="csgo", title="", price=10.0)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_target_zero_price_raises_error(self) -> None:
         """Test that zero price raises ValueError."""
         manager, _ = create_manager()
@@ -101,7 +101,7 @@ class TestCreateTarget:
         with pytest.raises(ValueError, match="Цена должна быть больше 0"):
             await manager.create_target(game="csgo", title="AK-47", price=0)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_target_negative_price_raises_error(self) -> None:
         """Test that negative price raises ValueError."""
         manager, _ = create_manager()
@@ -109,7 +109,7 @@ class TestCreateTarget:
         with pytest.raises(ValueError, match="Цена должна быть больше 0"):
             await manager.create_target(game="csgo", title="AK-47", price=-5.0)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_target_invalid_amount_too_low(self) -> None:
         """Test that amount < 1 raises ValueError."""
         manager, _ = create_manager()
@@ -117,7 +117,7 @@ class TestCreateTarget:
         with pytest.raises(ValueError, match="Количество должно быть от 1 до 100"):
             await manager.create_target(game="csgo", title="AK-47", price=10.0, amount=0)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_target_invalid_amount_too_high(self) -> None:
         """Test that amount > 100 raises ValueError."""
         manager, _ = create_manager()
@@ -125,7 +125,7 @@ class TestCreateTarget:
         with pytest.raises(ValueError, match="Количество должно быть от 1 до 100"):
             await manager.create_target(game="csgo", title="AK-47", price=10.0, amount=101)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_target_converts_price_to_cents(self) -> None:
         """Test that price is converted to cents."""
         manager, mock_api = create_manager()
@@ -135,7 +135,7 @@ class TestCreateTarget:
         call_args = mock_api.create_target.call_args[0][0]
         assert call_args["price"] == "1050"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_target_with_game_id(self) -> None:
         """Test that game code is converted to gameId."""
         manager, mock_api = create_manager()
@@ -145,7 +145,7 @@ class TestCreateTarget:
         call_args = mock_api.create_target.call_args[0][0]
         assert "gameId" in call_args
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_target_api_error(self) -> None:
         """Test handling API error during target creation."""
         manager, mock_api = create_manager()
@@ -158,7 +158,7 @@ class TestCreateTarget:
 class TestGetUserTargets:
     """Tests for get_user_targets method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_user_targets_returns_list(self) -> None:
         """Test get_user_targets returns a list."""
         manager, mock_api = create_manager()
@@ -171,7 +171,7 @@ class TestGetUserTargets:
         assert isinstance(result, list)
         assert len(result) == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_user_targets_with_game_filter(self) -> None:
         """Test get_user_targets with game filter."""
         manager, mock_api = create_manager()
@@ -181,7 +181,7 @@ class TestGetUserTargets:
         call_args = mock_api.get_user_targets.call_args[0][0]
         assert "gameId" in call_args
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_user_targets_with_status_filter(self) -> None:
         """Test get_user_targets with status filter."""
         manager, mock_api = create_manager()
@@ -191,7 +191,7 @@ class TestGetUserTargets:
         call_args = mock_api.get_user_targets.call_args[0][0]
         assert call_args["status"] == "inactive"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_user_targets_all_status(self) -> None:
         """Test get_user_targets with 'all' status doesn't add status param."""
         manager, mock_api = create_manager()
@@ -201,7 +201,7 @@ class TestGetUserTargets:
         call_args = mock_api.get_user_targets.call_args[0][0]
         assert "status" not in call_args
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_user_targets_api_error_returns_empty_list(self) -> None:
         """Test get_user_targets returns empty list on API error."""
         manager, mock_api = create_manager()
@@ -215,7 +215,7 @@ class TestGetUserTargets:
 class TestDeleteTarget:
     """Tests for delete_target method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_delete_target_success(self) -> None:
         """Test successful target deletion."""
         manager, mock_api = create_manager()
@@ -225,7 +225,7 @@ class TestDeleteTarget:
         assert result is True
         mock_api.delete_target.assert_called_once_with("target123")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_delete_target_failure(self) -> None:
         """Test failed target deletion."""
         manager, mock_api = create_manager()
@@ -239,7 +239,7 @@ class TestDeleteTarget:
 class TestDeleteAllTargets:
     """Tests for delete_all_targets method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_delete_all_targets_dry_run(self) -> None:
         """Test dry run mode returns preview."""
         manager, mock_api = create_manager()
@@ -253,7 +253,7 @@ class TestDeleteAllTargets:
         assert result["would_delete"] == 3
         mock_api.delete_target.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_delete_all_targets_actual_delete(self) -> None:
         """Test actual deletion of all targets."""
         manager, mock_api = create_manager()
@@ -271,7 +271,7 @@ class TestDeleteAllTargets:
 class TestGetTargetsByTitle:
     """Tests for get_targets_by_title method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_targets_by_title_returns_list(self) -> None:
         """Test get_targets_by_title returns a list."""
         manager, mock_api = create_manager()
@@ -284,7 +284,7 @@ class TestGetTargetsByTitle:
         assert isinstance(result, list)
         assert len(result) == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_targets_by_title_api_error_returns_empty_list(self) -> None:
         """Test returns empty list on API error."""
         manager, mock_api = create_manager()
@@ -298,10 +298,10 @@ class TestGetTargetsByTitle:
 class TestCreateSmartTargets:
     """Tests for create_smart_targets method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_smart_targets_without_competition_check(self) -> None:
         """Test creating targets without competition check."""
-        manager, mock_api = create_manager()
+        manager, _mock_api = create_manager()
         items = [{"title": "AK-47", "price": 10.0}]
 
         with patch.object(manager, "_delay", new_callable=AsyncMock):
@@ -311,10 +311,10 @@ class TestCreateSmartTargets:
 
         assert results[0]["status"] == "created"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_smart_targets_respects_max_targets(self) -> None:
         """Test that max_targets limit is respected."""
-        manager, mock_api = create_manager()
+        manager, _mock_api = create_manager()
         items = [{"title": f"Item {i}", "price": 10.0} for i in range(20)]
 
         with patch.object(manager, "_delay", new_callable=AsyncMock):
@@ -324,10 +324,10 @@ class TestCreateSmartTargets:
 
         assert len(results) == 5
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_smart_targets_skips_invalid_items(self) -> None:
         """Test that items without title or price are skipped."""
-        manager, mock_api = create_manager()
+        manager, _mock_api = create_manager()
         items = [
             {"title": "", "price": 10.0},
             {"title": "Valid Item", "price": 0},
@@ -341,7 +341,7 @@ class TestCreateSmartTargets:
 
         assert len(results) == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_smart_targets_handles_api_error(self) -> None:
         """Test handling API errors during creation."""
         manager, mock_api = create_manager()
@@ -360,7 +360,7 @@ class TestCreateSmartTargets:
 class TestGetClosedTargets:
     """Tests for get_closed_targets method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_closed_targets_returns_list(self) -> None:
         """Test get_closed_targets returns formatted list."""
         manager, mock_api = create_manager()
@@ -383,7 +383,7 @@ class TestGetClosedTargets:
         assert result[0]["id"] == "t1"
         assert result[0]["price"] == 10.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_closed_targets_api_error_returns_empty(self) -> None:
         """Test returns empty list on API error."""
         manager, mock_api = create_manager()
@@ -397,7 +397,7 @@ class TestGetClosedTargets:
 class TestGetTargetStatistics:
     """Tests for get_target_statistics method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_target_statistics_basic(self) -> None:
         """Test basic statistics calculation."""
         manager, mock_api = create_manager()
@@ -418,7 +418,7 @@ class TestGetTargetStatistics:
         assert result["active_count"] == 2
         assert result["closed_count"] == 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_target_statistics_empty_targets(self) -> None:
         """Test statistics with no targets."""
         manager, mock_api = create_manager()
@@ -435,7 +435,7 @@ class TestGetTargetStatistics:
 class TestAnalyzeTargetCompetition:
     """Tests for analyze_target_competition method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_target_competition_calls_module(self) -> None:
         """Test that it delegates to competition module."""
         manager, _ = create_manager()
@@ -454,7 +454,7 @@ class TestAnalyzeTargetCompetition:
 class TestAssessCompetition:
     """Tests for assess_competition method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_assess_competition_calls_module(self) -> None:
         """Test that it delegates to competition module."""
         manager, _ = create_manager()
@@ -474,7 +474,7 @@ class TestAssessCompetition:
 class TestFilterLowCompetitionItems:
     """Tests for filter_low_competition_items method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_filter_low_competition_items_calls_module(self) -> None:
         """Test that it delegates to competition module."""
         manager, _ = create_manager()
@@ -496,7 +496,7 @@ class TestFilterLowCompetitionItems:
 class TestDelay:
     """Tests for _delay method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_delay_sleeps(self) -> None:
         """Test that _delay calls asyncio.sleep."""
         manager, _ = create_manager()

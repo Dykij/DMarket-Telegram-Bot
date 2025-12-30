@@ -9,9 +9,6 @@ This module contains tests for src/dmarket/api/cache.py covering:
 Target: 20+ tests to achieve 70%+ coverage of cache.py
 """
 
-import time
-
-import pytest
 
 from src.dmarket.api.cache import (
     CACHE_TTL,

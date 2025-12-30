@@ -205,7 +205,7 @@ def vcr_cassette_async(request: pytest.FixtureRequest, vcr_cassette_dir: str):
     Works with aiohttp and httpx async clients.
 
     Usage:
-        @pytest.mark.asyncio
+        @pytest.mark.asyncio()
         async def test_async_api(vcr_cassette_async):
             async with httpx.AsyncClient() as client:
                 response = await client.get("https://api.example.com")

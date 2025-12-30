@@ -165,12 +165,12 @@ class TestRiskAnalysis:
         risk = await portfolio_manager.analyze_risk(sample_snapshot)
 
         assert isinstance(risk, RiskAnalysis)
-        assert risk.overall_risk in [
+        assert risk.overall_risk in {
             RiskLevel.LOW,
             RiskLevel.MEDIUM,
             RiskLevel.HIGH,
             RiskLevel.CRITICAL,
-        ]
+        }
 
     @pytest.mark.asyncio()
     async def test_analyze_risk_with_empty_portfolio(self, portfolio_manager):

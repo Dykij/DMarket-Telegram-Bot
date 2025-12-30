@@ -17,7 +17,7 @@ Tests cover:
 
 from datetime import UTC, datetime, timedelta
 import io
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock
 
 import pandas as pd
 from PIL import Image
@@ -31,19 +31,19 @@ from src.utils.market_visualizer import MarketVisualizer
 # ============================================================================
 
 
-@pytest.fixture
+@pytest.fixture()
 def visualizer_dark():
     """Create a dark theme visualizer."""
     return MarketVisualizer(theme="dark")
 
 
-@pytest.fixture
+@pytest.fixture()
 def visualizer_light():
     """Create a light theme visualizer."""
     return MarketVisualizer(theme="light")
 
 
-@pytest.fixture
+@pytest.fixture()
 def basic_price_history():
     """Basic price history with minimal data."""
     now = datetime.now(UTC)
@@ -54,7 +54,7 @@ def basic_price_history():
     ]
 
 
-@pytest.fixture
+@pytest.fixture()
 def extended_price_history():
     """Extended price history for support/resistance testing."""
     now = datetime.now(UTC)
@@ -77,7 +77,7 @@ def extended_price_history():
     ]
 
 
-@pytest.fixture
+@pytest.fixture()
 def price_history_with_volume():
     """Price history with volume data."""
     now = datetime.now(UTC)
@@ -92,7 +92,7 @@ def price_history_with_volume():
     ]
 
 
-@pytest.fixture
+@pytest.fixture()
 def price_history_dict_format():
     """Price history with dict format prices."""
     now = datetime.now(UTC)
@@ -103,7 +103,7 @@ def price_history_dict_format():
     ]
 
 
-@pytest.fixture
+@pytest.fixture()
 def price_history_string_format():
     """Price history with string format prices and timestamps."""
     now = datetime.now(UTC)
@@ -113,7 +113,7 @@ def price_history_string_format():
     ]
 
 
-@pytest.fixture
+@pytest.fixture()
 def mixed_patterns():
     """Various pattern types for testing."""
     return [
@@ -126,7 +126,7 @@ def mixed_patterns():
     ]
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_item_data():
     """Sample item data."""
     return {
@@ -137,7 +137,7 @@ def sample_item_data():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_analysis():
     """Sample analysis data."""
     return {
@@ -210,7 +210,7 @@ class TestMarketVisualizerInit:
 # ============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestCreatePriceChart:
     """Tests for create_price_chart method."""
 
@@ -306,7 +306,7 @@ class TestCreatePriceChart:
 # ============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestCreateMarketComparisonChart:
     """Tests for create_market_comparison_chart method."""
 
@@ -410,7 +410,7 @@ class TestCreateMarketComparisonChart:
 # ============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestCreatePatternVisualization:
     """Tests for create_pattern_visualization method."""
 
@@ -521,7 +521,7 @@ class TestCreatePatternVisualization:
 # ============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestCreateMarketSummaryImage:
     """Tests for create_market_summary_image method."""
 
@@ -895,7 +895,7 @@ class TestAddSupportResistance:
 # ============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestEdgeCases:
     """Tests for edge cases and error handling."""
 
@@ -1015,7 +1015,7 @@ class TestEdgeCases:
 # ============================================================================
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestIntegration:
     """Integration tests for MarketVisualizer."""
 

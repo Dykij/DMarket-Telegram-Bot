@@ -100,8 +100,7 @@ class TestArbitrageScanWorkflow:
         api.get_sales_history_aggregated = AsyncMock(return_value={"objects": []})
         api.get_market_best_offers = AsyncMock(return_value={"objects": []})
 
-        scanner = ArbitrageScanner(api_client=api)
-        return scanner
+        return ArbitrageScanner(api_client=api)
 
     async def test_scan_level_returns_opportunities(self, mock_scanner):
         """Test that scan level returns arbitrage opportunities."""

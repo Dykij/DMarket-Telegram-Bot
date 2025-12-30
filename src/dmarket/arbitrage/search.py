@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+import operator
 import time
 from typing import TYPE_CHECKING, Any
 
@@ -255,7 +256,7 @@ async def find_arbitrage_opportunities_advanced(
         )
 
         # Сортируем возможности по проценту прибыли (от большего к меньшему)
-        opportunities.sort(key=lambda x: x["profit_percent"], reverse=True)
+        opportunities.sort(key=operator.itemgetter("profit_percent"), reverse=True)
 
         # Логируем статистику поиска
         elapsed_time = time.time() - start_time

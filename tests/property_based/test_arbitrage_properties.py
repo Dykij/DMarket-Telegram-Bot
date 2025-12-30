@@ -126,7 +126,7 @@ class TestProfitCalculation:
         profit_percent = (profit / buy_price) * 100
 
         # Процент прибыли должен быть числом (не NaN, не Inf)
-        assert not (profit_percent != profit_percent), "Процент не должен быть NaN"
+        assert profit_percent == profit_percent, "Процент не должен быть NaN"
         assert profit_percent < float("inf"), "Процент не должен быть бесконечным"
 
         # При достаточно высоком multiplier и низкой комиссии должна быть прибыль

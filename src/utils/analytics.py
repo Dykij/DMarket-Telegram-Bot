@@ -179,7 +179,7 @@ class ChartGenerator:
             ax.set_yticklabels(item_names)
 
             # Add value labels on bars
-            for _i, bar in enumerate(bars):
+            for bar in bars:
                 width = bar.get_width()
                 ax.text(
                     width,
@@ -238,7 +238,7 @@ class ChartGenerator:
             ax1.set_xlabel("Opportunity Index", fontsize=12)
 
             # Add value labels
-            for _i, bar in enumerate(bars1):
+            for bar in bars1:
                 height = bar.get_height()
                 ax1.text(
                     bar.get_x() + bar.get_width() / 2.0,
@@ -256,7 +256,7 @@ class ChartGenerator:
             ax2.set_xlabel("Opportunity Index", fontsize=12)
 
             # Add percentage labels
-            for _i, bar in enumerate(bars2):
+            for bar in bars2:
                 height = bar.get_height()
                 ax2.text(
                     bar.get_x() + bar.get_width() / 2.0,

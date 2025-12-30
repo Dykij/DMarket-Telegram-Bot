@@ -7,9 +7,7 @@
 - Кэширование
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 
 class TestArbitrageScannerInit:
@@ -216,7 +214,7 @@ class TestArbitrageScannerMethods:
         scanner = ArbitrageScanner()
 
         assert hasattr(scanner, "scan_game")
-        assert callable(getattr(scanner, "scan_game"))
+        assert callable(scanner.scan_game)
 
     def test_scanner_get_cache_key(self):
         """Тест генерации ключа кэша."""

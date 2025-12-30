@@ -121,8 +121,9 @@ class TestApplicationSignalHandlers:
 
     def test_setup_signal_handlers(self):
         """Test signal handlers setup."""
-        from src.main import Application
         import signal
+
+        from src.main import Application
 
         app = Application()
 
@@ -220,7 +221,6 @@ class TestMainFunction:
     @pytest.mark.asyncio()
     async def test_main_with_debug_flag(self):
         """Test main function with debug flag sets environment."""
-        import os
 
         with patch("sys.argv", ["main.py", "--debug"]):
             with patch("src.main.Application") as MockApp:
@@ -234,7 +234,7 @@ class TestMainFunction:
                 # Run briefly
                 try:
                     await asyncio.wait_for(main(), timeout=0.1)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     pass
                 except Exception:
                     pass
@@ -262,12 +262,10 @@ class TestApplicationInitialize:
         mock_config.dmarket.secret_key = "test"
         mock_config.dmarket.api_url = "https://api.dmarket.com"
 
-        with patch.object(app, "config", mock_config):
-            with patch(
-                "src.main.Config.load", return_value=mock_config
-            ):
-                with pytest.raises(ValueError, match="token"):
-                    await app.initialize()
+        with patch.object(app, "config", mock_config), patch(
+            "src.main.Config.load", return_value=mock_config
+        ), pytest.raises(ValueError, match="token"):
+            await app.initialize()
 
 
 class TestApplicationRunLoop:

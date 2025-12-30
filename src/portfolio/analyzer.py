@@ -8,9 +8,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from decimal import Decimal
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from .models import Portfolio, PortfolioItem
+
+if TYPE_CHECKING:
+    from .models import Portfolio, PortfolioItem
 
 
 logger = logging.getLogger(__name__)
@@ -421,7 +423,7 @@ class PortfolioAnalyzer:
             sum(
                 item.current_value
                 for item in portfolio.items
-                if item.rarity.value in ["covert", "contraband", "extraordinary"]
+                if item.rarity.value in {"covert", "contraband", "extraordinary"}
             )
             / total_value
         )

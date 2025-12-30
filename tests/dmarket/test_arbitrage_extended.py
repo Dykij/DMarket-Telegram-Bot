@@ -452,7 +452,7 @@ class TestArbitrageTrader:
         trader = ArbitrageTrader(api_client=mock_api)
         trader.active = True
 
-        success, message = await trader.stop_auto_trading()
+        success, _message = await trader.stop_auto_trading()
 
         assert success is True
         assert trader.active is False

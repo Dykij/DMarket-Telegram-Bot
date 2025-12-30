@@ -118,7 +118,7 @@ class TestConstants:
             "Covert",
             "Contraband",
         ]
-        assert CS2_RARITIES == expected_order
+        assert expected_order == CS2_RARITIES
 
     def test_cs2_exteriors_count(self):
         """CS2 внешний вид должен содержать 5 вариантов."""
@@ -127,7 +127,7 @@ class TestConstants:
     def test_cs2_exteriors_contains_expected(self):
         """CS2 внешний вид должен содержать ожидаемые элементы."""
         expected = ["Factory New", "Minimal Wear", "Field-Tested", "Well-Worn", "Battle-Scarred"]
-        assert CS2_EXTERIORS == expected
+        assert expected == CS2_EXTERIORS
 
     def test_dota2_heroes_not_empty(self):
         """Dota 2 герои должны быть непустыми."""
@@ -142,7 +142,7 @@ class TestConstants:
     def test_dota2_rarities_hierarchy(self):
         """Dota 2 редкости должны быть в иерархии."""
         expected = ["Common", "Uncommon", "Rare", "Mythical", "Legendary", "Immortal", "Arcana"]
-        assert DOTA2_RARITIES == expected
+        assert expected == DOTA2_RARITIES
 
     def test_dota2_slots_not_empty(self):
         """Dota 2 слоты должны быть непустыми."""
@@ -178,7 +178,7 @@ class TestConstants:
     def test_rust_rarities_hierarchy(self):
         """Rust редкости должны быть в иерархии."""
         expected = ["Common", "Uncommon", "Rare", "Epic", "Legendary"]
-        assert RUST_RARITIES == expected
+        assert expected == RUST_RARITIES
 
 
 class TestDefaultFilters:
@@ -445,20 +445,20 @@ class TestBuildApiParamsForGame:
 class TestHandleGameFilters:
     """Тесты для функции handle_game_filters."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_none_if_no_message(self, mock_update, mock_context):
         """Должен возвращать None если нет сообщения."""
         mock_update.message = None
         result = await handle_game_filters(mock_update, mock_context)
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sends_game_selection_keyboard(self, mock_update, mock_context):
         """Должен отправлять клавиатуру выбора игры."""
         await handle_game_filters(mock_update, mock_context)
         mock_update.message.reply_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_keyboard_contains_all_games(self, mock_update, mock_context):
         """Клавиатура должна содержать все игры."""
         await handle_game_filters(mock_update, mock_context)
@@ -472,7 +472,7 @@ class TestHandleGameFilters:
         assert "🎮 TF2" in button_texts
         assert "🎮 Rust" in button_texts
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_keyboard_contains_back_button(self, mock_update, mock_context):
         """Клавиатура должна содержать кнопку назад."""
         await handle_game_filters(mock_update, mock_context)
@@ -490,21 +490,21 @@ class TestHandleGameFilters:
 class TestHandleSelectGameFilterCallback:
     """Тесты для функции handle_select_game_filter_callback."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_none_if_no_query(self, mock_update, mock_context):
         """Должен возвращать None если нет callback_query."""
         mock_update.callback_query = None
         result = await handle_select_game_filter_callback(mock_update, mock_context)
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_none_if_no_query_data(self, mock_update, mock_context):
         """Должен возвращать None если нет данных в callback_query."""
         mock_update.callback_query.data = None
         result = await handle_select_game_filter_callback(mock_update, mock_context)
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_answers_callback_query(self, mock_update, mock_context):
         """Должен отвечать на callback_query."""
         mock_update.callback_query.data = "select_game_filter:csgo"
@@ -517,7 +517,7 @@ class TestHandleSelectGameFilterCallback:
 
             mock_update.callback_query.answer.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_edits_message_with_filter_keyboard(self, mock_update, mock_context):
         """Должен редактировать сообщение с клавиатурой фильтров."""
         mock_update.callback_query.data = "select_game_filter:csgo"
@@ -530,7 +530,7 @@ class TestHandleSelectGameFilterCallback:
 
             mock_update.callback_query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_extracts_game_from_callback_data(self, mock_update, mock_context):
         """Должен извлекать игру из callback_data."""
         mock_update.callback_query.data = "select_game_filter:dota2"
@@ -544,7 +544,7 @@ class TestHandleSelectGameFilterCallback:
             # Проверяем что FilterFactory вызван с правильной игрой
             mock_factory.get_filter.assert_called_with("dota2")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_uses_html_parse_mode(self, mock_update, mock_context):
         """Должен использовать HTML parse mode."""
         mock_update.callback_query.data = "select_game_filter:csgo"
@@ -565,35 +565,35 @@ class TestHandleSelectGameFilterCallback:
 class TestHandlePriceRangeCallback:
     """Тесты для функции handle_price_range_callback."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_none_if_no_query(self, mock_update, mock_context):
         """Должен возвращать None если нет callback_query."""
         mock_update.callback_query = None
         result = await handle_price_range_callback(mock_update, mock_context)
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_none_if_no_query_data(self, mock_update, mock_context):
         """Должен возвращать None если нет данных в callback_query."""
         mock_update.callback_query.data = None
         result = await handle_price_range_callback(mock_update, mock_context)
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_answers_callback_query(self, mock_update, mock_context):
         """Должен отвечать на callback_query."""
         mock_update.callback_query.data = "price_range:csgo"
         await handle_price_range_callback(mock_update, mock_context)
         mock_update.callback_query.answer.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_edits_message_with_price_keyboard(self, mock_update, mock_context):
         """Должен редактировать сообщение с клавиатурой цен."""
         mock_update.callback_query.data = "price_range:csgo"
         await handle_price_range_callback(mock_update, mock_context)
         mock_update.callback_query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_keyboard_has_price_ranges(self, mock_update, mock_context):
         """Клавиатура должна иметь диапазоны цен."""
         mock_update.callback_query.data = "price_range:csgo"
@@ -636,7 +636,7 @@ class TestEdgeCases:
 
     def test_default_filters_values_are_numbers(self):
         """Числовые значения фильтров по умолчанию должны быть числами."""
-        for game, filters in DEFAULT_FILTERS.items():
+        for filters in DEFAULT_FILTERS.values():
             assert isinstance(filters["min_price"], (int, float))
             assert isinstance(filters["max_price"], (int, float))
 

@@ -615,7 +615,7 @@ async def test_find_best_opportunities_min_level(scanner):
 
     # Не должно быть предметов из boost и standard
     for item in result:
-        assert item["item"] not in ["boost1", "std1"]
+        assert item["item"] not in {"boost1", "std1"}
 
 
 @pytest.mark.asyncio()
@@ -636,7 +636,7 @@ async def test_find_best_opportunities_max_level(scanner):
 
     # Не должно быть предметов из advanced и pro
     for item in result:
-        assert item["item"] not in ["adv1", "pro1"]
+        assert item["item"] not in {"adv1", "pro1"}
 
 
 # ============================================================================

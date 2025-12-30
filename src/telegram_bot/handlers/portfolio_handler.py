@@ -10,6 +10,7 @@ Provides commands for viewing and managing portfolio:
 from __future__ import annotations
 
 import logging
+import operator
 from typing import TYPE_CHECKING
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
@@ -333,7 +334,7 @@ class PortfolioHandler:
             lines.append(f"  {game.upper()}: {pct:.1f}%")
 
         lines.append("\n*By Category:*")
-        for cat, pct in sorted(report.by_category.items(), key=lambda x: x[1], reverse=True)[:5]:
+        for cat, pct in sorted(report.by_category.items(), key=operator.itemgetter(1), reverse=True)[:5]:
             lines.append(f"  {cat}: {pct:.1f}%")
 
         lines.append("\n*Recommendations:*")

@@ -5,16 +5,12 @@ for logging utilities including formatters, Sentry integration,
 structlog configuration, and BotLogger methods.
 """
 
-import io
 import json
 import logging
 import logging.handlers
 import os
-import sys
 import tempfile
-from datetime import datetime
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, call, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -37,7 +33,7 @@ from src.utils.logging_utils import (
 class TestJSONFormatterPhase4:
     """Phase 4 extended tests for JSONFormatter class."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def formatter(self):
         """Create a JSONFormatter instance."""
         return JSONFormatter()
@@ -613,7 +609,7 @@ class TestSetupStructlogPhase4:
 
         # Last processor should be JSONRenderer for JSON format
         # Check that it was added
-        processor_types = [type(p).__name__ for p in processors if hasattr(p, '__class__')]
+        processor_types = [type(p).__name__ for p in processors if hasattr(p, "__class__")]
         # At least some processors should exist
         assert len(processors) > 0
 
@@ -889,7 +885,7 @@ class TestGetLoggerPhase4:
     def test_get_logger_with_empty_string(self):
         """Test get_logger with empty string name."""
         logger = get_logger("")
-        assert logger.name == "root" or logger.name == ""
+        assert logger.name in {"root", ""}
 
     def test_get_logger_hierarchy(self):
         """Test get_logger respects logger hierarchy."""
@@ -1049,7 +1045,7 @@ class TestLoggingUtilsIntegration:
                 handler.flush()
 
             # Verify file output
-            with open(log_file) as f:
+            with open(log_file, encoding="utf-8") as f:
                 content = f.read()
                 # File should contain log entries
                 assert len(content) > 0

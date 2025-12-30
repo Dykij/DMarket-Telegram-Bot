@@ -7,6 +7,7 @@ opportunities in DMarket prices, volumes, and sales history.
 from datetime import datetime
 import logging
 import math
+import operator
 from typing import Any
 
 import numpy as np
@@ -88,7 +89,7 @@ class MarketAnalyzer:
 
         # Sort by timestamp if needed
         if not all(timestamps[i] <= timestamps[i + 1] for i in range(len(timestamps) - 1)):
-            combined = sorted(zip(timestamps, prices, strict=False), key=lambda x: x[0])
+            combined = sorted(zip(timestamps, prices, strict=False), key=operator.itemgetter(0))
             timestamps, prices = zip(*combined, strict=False)
             prices = list(prices)
             timestamps = list(timestamps)
@@ -365,7 +366,7 @@ class MarketAnalyzer:
         prev_trend = self._analyze_trend(prices[:-2])[0]
         current_trend = self._analyze_trend(prices[-5:])[0]
 
-        return prev_trend not in (current_trend, TREND_STABLE)
+        return prev_trend not in {current_trend, TREND_STABLE}
 
     def _is_fomo(self, prices: list[float]) -> bool:
         """Check if there's a FOMO pattern (rapid rise)."""
@@ -470,17 +471,17 @@ class MarketAnalyzer:
                 )
                 confidence *= min(1 + breakout_strength, 1.5)
 
-        elif pattern_type in [PATTERN_FOMO, PATTERN_PANIC]:
+        elif pattern_type in {PATTERN_FOMO, PATTERN_PANIC}:
             # Higher confidence for more extreme moves
             change_rate = abs((prices[-1] - prices[-3]) / prices[-3]) if prices[-3] > 0 else 0
             confidence *= min(1 + change_rate, 1.5)
 
-        elif pattern_type in [PATTERN_BOTTOMING, PATTERN_TOPPING]:
+        elif pattern_type in {PATTERN_BOTTOMING, PATTERN_TOPPING}:
             # Higher confidence for clearer formations
             volatility = (
                 np.std(prices[-5:]) / np.mean(prices[-5:]) if np.mean(prices[-5:]) > 0 else 0
             )
-            confidence *= max(1 - volatility * 2, 0.6)
+            confidence *= max(float(1 - volatility * 2), 0.6)
 
         # Cap confidence at 1.0
         return min(confidence, 1.0)
@@ -722,6 +723,6 @@ async def batch_analyze_items(
             logger.exception(f"Error analyzing item {item_id}: {e}")
 
     # Sort by opportunity score, highest first
-    results.sort(key=lambda x: x["opportunity_score"], reverse=True)
+    results.sort(key=operator.itemgetter("opportunity_score"), reverse=True)
 
     return results

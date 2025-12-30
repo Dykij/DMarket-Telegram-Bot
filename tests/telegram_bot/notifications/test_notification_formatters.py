@@ -5,20 +5,19 @@ Tests for notification message formatting functions.
 
 from __future__ import annotations
 
-from typing import Any
-
 import pytest
+
 
 # Import module components
 try:
     from src.telegram_bot.notifications.formatters import (
-        format_price,
-        format_profit,
-        format_item_brief,
+        NOTIFICATION_TYPES,
         format_alert_message,
         format_alerts_list,
+        format_item_brief,
+        format_price,
+        format_profit,
         format_user_settings,
-        NOTIFICATION_TYPES,
     )
 except ImportError:
     # Create mocks for testing if import fails
@@ -39,7 +38,7 @@ class TestFormatPrice:
         """Test that None price returns 'N/A'."""
         if format_price is None:
             pytest.skip("Function not available")
-        
+
         result = format_price(None)
         assert result == "N/A"
 
@@ -47,7 +46,7 @@ class TestFormatPrice:
         """Test formatting of zero price."""
         if format_price is None:
             pytest.skip("Function not available")
-        
+
         result = format_price(0)
         assert result == "$0.00"
 
@@ -55,7 +54,7 @@ class TestFormatPrice:
         """Test formatting of small price in cents."""
         if format_price is None:
             pytest.skip("Function not available")
-        
+
         result = format_price(50)
         assert result == "$0.50"
 
@@ -63,7 +62,7 @@ class TestFormatPrice:
         """Test formatting of standard price."""
         if format_price is None:
             pytest.skip("Function not available")
-        
+
         result = format_price(1250)
         assert result == "$12.50"
 
@@ -71,7 +70,7 @@ class TestFormatPrice:
         """Test formatting of large price."""
         if format_price is None:
             pytest.skip("Function not available")
-        
+
         result = format_price(100000)
         assert result == "$1000.00"
 
@@ -79,7 +78,7 @@ class TestFormatPrice:
         """Test formatting with non-USD currency."""
         if format_price is None:
             pytest.skip("Function not available")
-        
+
         result = format_price(1500, currency="EUR")
         assert "15.00" in result
         assert "EUR" in result
@@ -88,7 +87,7 @@ class TestFormatPrice:
         """Test formatting preserves two decimal places."""
         if format_price is None:
             pytest.skip("Function not available")
-        
+
         result = format_price(1299)
         assert result == "$12.99"
 
@@ -96,7 +95,7 @@ class TestFormatPrice:
         """Test formatting of negative price."""
         if format_price is None:
             pytest.skip("Function not available")
-        
+
         result = format_price(-500)
         assert "-$5.00" in result or "$-5.00" in result
 
@@ -109,7 +108,7 @@ class TestFormatProfit:
         """Test formatting of positive profit."""
         if format_profit is None:
             pytest.skip("Function not available")
-        
+
         result = format_profit(10.0, 15.0)
         assert "$5.00" in result
         assert "📈" in result
@@ -118,7 +117,7 @@ class TestFormatProfit:
         """Test formatting of negative profit (loss)."""
         if format_profit is None:
             pytest.skip("Function not available")
-        
+
         result = format_profit(15.0, 10.0)
         assert "📉" in result
 
@@ -126,7 +125,7 @@ class TestFormatProfit:
         """Test formatting of zero profit."""
         if format_profit is None:
             pytest.skip("Function not available")
-        
+
         result = format_profit(10.0, 10.0)
         assert "$0.00" in result
 
@@ -134,7 +133,7 @@ class TestFormatProfit:
         """Test that profit includes percentage."""
         if format_profit is None:
             pytest.skip("Function not available")
-        
+
         result = format_profit(10.0, 15.0, include_percent=True)
         assert "%" in result
 
@@ -142,7 +141,7 @@ class TestFormatProfit:
         """Test profit without percentage."""
         if format_profit is None:
             pytest.skip("Function not available")
-        
+
         result = format_profit(10.0, 15.0, include_percent=False)
         assert "%" not in result
 
@@ -150,7 +149,7 @@ class TestFormatProfit:
         """Test that no percentage is shown when buy price is zero."""
         if format_profit is None:
             pytest.skip("Function not available")
-        
+
         result = format_profit(0, 10.0, include_percent=True)
         # Should not crash, might not show percentage
         assert "$10.00" in result
@@ -164,14 +163,14 @@ class TestFormatItemBrief:
         """Test formatting of basic item."""
         if format_item_brief is None:
             pytest.skip("Function not available")
-        
+
         item = {
             "title": "AK-47 | Redline",
             "price": {"USD": 1500},
             "gameId": "csgo",
         }
         result = format_item_brief(item)
-        
+
         assert "AK-47 | Redline" in result
         assert "$15.00" in result
         assert "CSGO" in result
@@ -180,26 +179,26 @@ class TestFormatItemBrief:
         """Test formatting item with missing title."""
         if format_item_brief is None:
             pytest.skip("Function not available")
-        
+
         item = {
             "price": {"USD": 1000},
             "gameId": "csgo",
         }
         result = format_item_brief(item)
-        
+
         assert "Unknown" in result
 
     def test_format_item_with_missing_price(self) -> None:
         """Test formatting item with missing price."""
         if format_item_brief is None:
             pytest.skip("Function not available")
-        
+
         item = {
             "title": "Test Item",
             "gameId": "csgo",
         }
         result = format_item_brief(item)
-        
+
         assert "Test Item" in result
         assert "$0.00" in result
 
@@ -207,14 +206,14 @@ class TestFormatItemBrief:
         """Test formatting item with 'game' field instead of 'gameId'."""
         if format_item_brief is None:
             pytest.skip("Function not available")
-        
+
         item = {
             "title": "Test Item",
             "price": {"USD": 500},
             "game": "dota2",
         }
         result = format_item_brief(item)
-        
+
         assert "DOTA2" in result
 
 
@@ -226,7 +225,7 @@ class TestFormatAlertMessage:
         """Test formatting of basic alert."""
         if format_alert_message is None:
             pytest.skip("Function not available")
-        
+
         alert = {
             "type": "price_drop",
             "title": "AK-47 | Redline",
@@ -234,7 +233,7 @@ class TestFormatAlertMessage:
             "game": "csgo",
         }
         result = format_alert_message(alert)
-        
+
         assert "AK-47 | Redline" in result
         assert "$10.00" in result
 
@@ -242,7 +241,7 @@ class TestFormatAlertMessage:
         """Test alert formatting with current price."""
         if format_alert_message is None:
             pytest.skip("Function not available")
-        
+
         alert = {
             "type": "price_drop",
             "title": "Test Item",
@@ -250,14 +249,14 @@ class TestFormatAlertMessage:
             "game": "csgo",
         }
         result = format_alert_message(alert, current_price=8.0)
-        
+
         assert "$8.00" in result
 
     def test_format_triggered_alert(self) -> None:
         """Test formatting of triggered alert."""
         if format_alert_message is None:
             pytest.skip("Function not available")
-        
+
         alert = {
             "type": "price_drop",
             "title": "Test Item",
@@ -265,14 +264,14 @@ class TestFormatAlertMessage:
             "game": "csgo",
         }
         result = format_alert_message(alert, triggered=True)
-        
+
         assert "сработал" in result.lower()
 
     def test_format_alert_price_drop_reached(self) -> None:
         """Test price drop alert when target is reached."""
         if format_alert_message is None:
             pytest.skip("Function not available")
-        
+
         alert = {
             "type": "price_drop",
             "title": "Test Item",
@@ -280,14 +279,14 @@ class TestFormatAlertMessage:
             "game": "csgo",
         }
         result = format_alert_message(alert, current_price=9.0)
-        
+
         assert "достигла" in result.lower() or "цели" in result.lower()
 
     def test_format_alert_price_above(self) -> None:
         """Test price above alert."""
         if format_alert_message is None:
             pytest.skip("Function not available")
-        
+
         alert = {
             "type": "price_above",
             "title": "Test Item",
@@ -295,14 +294,14 @@ class TestFormatAlertMessage:
             "game": "csgo",
         }
         result = format_alert_message(alert, current_price=15.0)
-        
+
         assert "выше" in result.lower()
 
     def test_format_alert_with_item_name_field(self) -> None:
         """Test alert with 'item_name' field."""
         if format_alert_message is None:
             pytest.skip("Function not available")
-        
+
         alert = {
             "type": "price_drop",
             "item_name": "Test Item",
@@ -310,21 +309,21 @@ class TestFormatAlertMessage:
             "game": "csgo",
         }
         result = format_alert_message(alert)
-        
+
         assert "Test Item" in result
 
     def test_format_alert_icons_by_type(self) -> None:
         """Test that different alert types have different icons."""
         if format_alert_message is None:
             pytest.skip("Function not available")
-        
+
         types_and_icons = [
             ("price_drop", "📉"),
             ("price_above", "📈"),
             ("good_deal", "💎"),
             ("target_executed", "🎯"),
         ]
-        
+
         for alert_type, expected_icon in types_and_icons:
             alert = {
                 "type": alert_type,
@@ -344,16 +343,16 @@ class TestFormatAlertsList:
         """Test formatting empty alerts list."""
         if format_alerts_list is None:
             pytest.skip("Function not available")
-        
+
         result = format_alerts_list([])
-        
+
         assert "нет" in result.lower()
 
     def test_format_single_alert(self) -> None:
         """Test formatting single alert."""
         if format_alerts_list is None:
             pytest.skip("Function not available")
-        
+
         alerts = [
             {
                 "item_name": "Test Item",
@@ -363,7 +362,7 @@ class TestFormatAlertsList:
             }
         ]
         result = format_alerts_list(alerts)
-        
+
         assert "Test Item" in result
         assert "(1)" in result or "1." in result
 
@@ -371,7 +370,7 @@ class TestFormatAlertsList:
         """Test formatting multiple alerts."""
         if format_alerts_list is None:
             pytest.skip("Function not available")
-        
+
         alerts = [
             {
                 "item_name": "Item 1",
@@ -387,7 +386,7 @@ class TestFormatAlertsList:
             },
         ]
         result = format_alerts_list(alerts)
-        
+
         assert "Item 1" in result
         assert "Item 2" in result
         assert "(2)" in result
@@ -396,13 +395,13 @@ class TestFormatAlertsList:
         """Test that alerts count is shown."""
         if format_alerts_list is None:
             pytest.skip("Function not available")
-        
+
         alerts = [
             {"item_name": f"Item {i}", "target_price": 10.0, "type": "price_drop", "game": "csgo"}
             for i in range(5)
         ]
         result = format_alerts_list(alerts)
-        
+
         assert "(5)" in result
 
 
@@ -414,7 +413,7 @@ class TestFormatUserSettings:
         """Test formatting when notifications are enabled."""
         if format_user_settings is None:
             pytest.skip("Function not available")
-        
+
         settings = {
             "notifications_enabled": True,
             "daily_limit": 50,
@@ -422,7 +421,7 @@ class TestFormatUserSettings:
             "min_profit_percent": 5.0,
         }
         result = format_user_settings(settings)
-        
+
         assert "Включены" in result
         assert "50" in result
 
@@ -430,7 +429,7 @@ class TestFormatUserSettings:
         """Test formatting when notifications are disabled."""
         if format_user_settings is None:
             pytest.skip("Function not available")
-        
+
         settings = {
             "notifications_enabled": False,
             "daily_limit": 50,
@@ -438,14 +437,14 @@ class TestFormatUserSettings:
             "min_profit_percent": 5.0,
         }
         result = format_user_settings(settings)
-        
+
         assert "Отключены" in result
 
     def test_format_settings_with_quiet_hours(self) -> None:
         """Test formatting with quiet hours enabled."""
         if format_user_settings is None:
             pytest.skip("Function not available")
-        
+
         settings = {
             "notifications_enabled": True,
             "daily_limit": 50,
@@ -453,7 +452,7 @@ class TestFormatUserSettings:
             "min_profit_percent": 5.0,
         }
         result = format_user_settings(settings)
-        
+
         assert "23:00" in result
         assert "7:00" in result
 
@@ -461,7 +460,7 @@ class TestFormatUserSettings:
         """Test formatting with quiet hours disabled."""
         if format_user_settings is None:
             pytest.skip("Function not available")
-        
+
         settings = {
             "notifications_enabled": True,
             "daily_limit": 50,
@@ -469,14 +468,14 @@ class TestFormatUserSettings:
             "min_profit_percent": 5.0,
         }
         result = format_user_settings(settings)
-        
+
         assert "отключены" in result.lower()
 
     def test_format_settings_shows_min_profit(self) -> None:
         """Test that minimum profit percentage is shown."""
         if format_user_settings is None:
             pytest.skip("Function not available")
-        
+
         settings = {
             "notifications_enabled": True,
             "daily_limit": 50,
@@ -484,7 +483,7 @@ class TestFormatUserSettings:
             "min_profit_percent": 7.5,
         }
         result = format_user_settings(settings)
-        
+
         assert "7.5%" in result
 
 
@@ -496,21 +495,21 @@ class TestNotificationTypes:
         """Test that NOTIFICATION_TYPES constant exists."""
         if NOTIFICATION_TYPES is None:
             pytest.skip("Constant not available")
-        
+
         assert isinstance(NOTIFICATION_TYPES, dict)
 
     def test_notification_types_has_common_types(self) -> None:
         """Test that common notification types are defined."""
         if NOTIFICATION_TYPES is None:
             pytest.skip("Constant not available")
-        
+
         expected_types = [
             "price_drop",
             "price_rise",
             "good_deal",
             "arbitrage",
         ]
-        
+
         for t in expected_types:
             assert t in NOTIFICATION_TYPES, f"Expected {t} in NOTIFICATION_TYPES"
 
@@ -518,7 +517,7 @@ class TestNotificationTypes:
         """Test that all values are non-empty strings."""
         if NOTIFICATION_TYPES is None:
             pytest.skip("Constant not available")
-        
+
         for key, value in NOTIFICATION_TYPES.items():
             assert isinstance(value, str), f"Expected string value for {key}"
             assert len(value) > 0, f"Expected non-empty value for {key}"

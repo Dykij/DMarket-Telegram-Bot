@@ -114,7 +114,7 @@ class TestTechnicalIndicatorsExtended:
 class TestMarketAnalyzerFairPrice:
     """Extended tests for fair price calculation."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self) -> MarketAnalyzer:
         """Create market analyzer."""
         return MarketAnalyzer(min_data_points=10)
@@ -160,7 +160,7 @@ class TestMarketAnalyzerFairPrice:
 class TestMarketAnalyzerTrend:
     """Extended tests for trend detection."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self) -> MarketAnalyzer:
         """Create market analyzer."""
         return MarketAnalyzer(min_data_points=10)
@@ -195,17 +195,17 @@ class TestMarketAnalyzerTrend:
             for i in range(50)
         ]
         trend = analyzer.detect_trend(history, short_period=10, long_period=40)
-        assert trend in [
+        assert trend in {
             TrendDirection.BULLISH,
             TrendDirection.BEARISH,
             TrendDirection.NEUTRAL,
-        ]
+        }
 
 
 class TestMarketAnalyzerPrediction:
     """Extended tests for price prediction."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self) -> MarketAnalyzer:
         """Create market analyzer."""
         return MarketAnalyzer(min_data_points=10)
@@ -243,7 +243,7 @@ class TestMarketAnalyzerPrediction:
         assert "signals" in result
         if "rsi" in result["signals"]:
             rsi_signal = result["signals"]["rsi"]
-            assert rsi_signal["signal"] in [SignalType.BUY, SignalType.SELL, SignalType.HOLD]
+            assert rsi_signal["signal"] in {SignalType.BUY, SignalType.SELL, SignalType.HOLD}
 
     def test_predict_price_drop_with_high_threshold(
         self, analyzer: MarketAnalyzer
@@ -264,7 +264,7 @@ class TestMarketAnalyzerPrediction:
 class TestMarketAnalyzerSupportResistance:
     """Extended tests for support/resistance calculation."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self) -> MarketAnalyzer:
         """Create market analyzer."""
         return MarketAnalyzer(min_data_points=10)
@@ -316,7 +316,7 @@ class TestMarketAnalyzerSupportResistance:
 class TestMarketAnalyzerLiquidity:
     """Extended tests for liquidity analysis."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self) -> MarketAnalyzer:
         """Create market analyzer."""
         return MarketAnalyzer(min_data_points=10)
@@ -348,10 +348,10 @@ class TestMarketAnalyzerLiquidity:
         result = analyzer.analyze_liquidity(history, recent_period=10)
 
         # Volume trend should be bearish
-        assert result["volume_trend"] in [
+        assert result["volume_trend"] in {
             TrendDirection.BEARISH,
             TrendDirection.NEUTRAL,
-        ]
+        }
 
     def test_analyze_liquidity_with_inconsistent_volume(
         self, analyzer: MarketAnalyzer
@@ -387,7 +387,7 @@ class TestMarketAnalyzerLiquidity:
 class TestMarketAnalyzerInsights:
     """Extended tests for trading insights generation."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self) -> MarketAnalyzer:
         """Create market analyzer."""
         return MarketAnalyzer(min_data_points=10)
@@ -553,11 +553,11 @@ class TestEdgeCasesAndBoundaries:
         trend = analyzer.detect_trend(history)
 
         # Should be classified as one of the three
-        assert trend in [
+        assert trend in {
             TrendDirection.BULLISH,
             TrendDirection.BEARISH,
             TrendDirection.NEUTRAL,
-        ]
+        }
 
 
 class TestSignalTypeEnum:

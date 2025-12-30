@@ -8,7 +8,6 @@ This module tests src/telegram_bot/smart_notifications/senders.py covering:
 Target: 15+ tests to achieve 70%+ coverage
 """
 
-from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest

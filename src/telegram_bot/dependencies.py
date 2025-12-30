@@ -239,7 +239,7 @@ def inject_dependencies(handler_func: Any) -> Any:
         sig = inspect.signature(handler_func)
 
         for param_name in sig.parameters:
-            if param_name in ("update", "context"):
+            if param_name in {"update", "context"}:
                 continue
 
             # Пропускаем если значение уже передано

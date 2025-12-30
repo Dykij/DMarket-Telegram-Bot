@@ -4,31 +4,28 @@ This module provides comprehensive Phase 4 tests targeting 100% coverage
 for the Telegram bot formatters module.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
 from datetime import datetime
-import time
 
 from src.telegram_bot.utils.formatters import (
     MAX_MESSAGE_LENGTH,
+    format_aggregated_prices,
+    format_arbitrage_with_sales,
     format_balance,
+    format_best_opportunities,
+    format_dmarket_results,
+    format_error_message,
+    format_liquidity_analysis,
+    format_market_depth,
     format_market_item,
     format_market_items,
     format_opportunities,
-    format_error_message,
-    format_sales_history,
     format_sales_analysis,
-    format_liquidity_analysis,
-    get_trend_emoji,
+    format_sales_history,
     format_sales_volume_stats,
-    format_arbitrage_with_sales,
-    format_dmarket_results,
-    format_best_opportunities,
-    split_long_message,
-    format_target_item,
     format_target_competition_analysis,
-    format_aggregated_prices,
-    format_market_depth,
+    format_target_item,
+    get_trend_emoji,
+    split_long_message,
 )
 
 
@@ -229,7 +226,7 @@ class TestFormatMarketItemsPhase4:
     def test_format_market_items_page_calculation(self):
         """Test page calculation with various sizes."""
         items = [{"title": f"Item {i}", "price": {"USD": 100}} for i in range(12)]
-        
+
         # 12 items, 5 per page = 3 pages
         result = format_market_items(items, page=0, items_per_page=5)
         assert "Страница 1/3" in result
@@ -237,7 +234,7 @@ class TestFormatMarketItemsPhase4:
     def test_format_market_items_exact_page_boundary(self):
         """Test when items exactly fill pages."""
         items = [{"title": f"Item {i}", "price": {"USD": 100}} for i in range(10)]
-        
+
         # 10 items, 5 per page = 2 pages exactly
         result = format_market_items(items, page=1, items_per_page=5)
         assert "Страница 2/2" in result
@@ -889,7 +886,7 @@ class TestSplitLongMessagePhase4:
         lines = [f"Line {i}" for i in range(20)]
         message = "\n".join(lines)
         result = split_long_message(message, max_length=50)
-        
+
         # Each part should end with newline (except possibly last)
         for part in result[:-1]:
             assert part.endswith("\n")
@@ -1237,14 +1234,14 @@ class TestFormattersIntegrationPhase4:
             {"title": f"Item {i}", "price": {"USD": i * 100}}
             for i in range(50)
         ]
-        
+
         all_content = []
         total_pages = (len(items) + 4) // 5  # items_per_page=5
-        
+
         for page in range(total_pages):
             result = format_market_items(items, page=page, items_per_page=5)
             all_content.append(result)
-        
+
         # Verify all pages have content
         assert all(len(content) > 0 for content in all_content)
 
@@ -1259,7 +1256,7 @@ class TestFormattersIntegrationPhase4:
                 "profit_percent": 50.0,
             }
         ]
-        
+
         sales_analysis = {
             "has_data": True,
             "avg_price": 12.50,
@@ -1270,10 +1267,10 @@ class TestFormattersIntegrationPhase4:
             "sales_per_day": 10.0,
             "period_days": 7,
         }
-        
+
         result1 = format_opportunities(opportunities)
         result2 = format_sales_analysis(sales_analysis, "Combo Item")
-        
+
         # Both should format without error
         assert "Combo Item" in result1
         assert "Combo Item" in result2
@@ -1281,14 +1278,14 @@ class TestFormattersIntegrationPhase4:
     def test_concurrent_formatting(self):
         """Test concurrent formatting calls."""
         import concurrent.futures
-        
+
         def format_item(i):
             item = {"title": f"Item {i}", "price": {"USD": i * 100}}
             return format_market_item(item)
-        
+
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             futures = [executor.submit(format_item, i) for i in range(100)]
             results = [f.result() for f in concurrent.futures.as_completed(futures)]
-        
+
         assert len(results) == 100
         assert all(isinstance(r, str) for r in results)

@@ -13,25 +13,21 @@ This module tests the AlertStorage class and storage functions:
 from __future__ import annotations
 
 import json
-import tempfile
-import time
 from pathlib import Path
-from typing import TYPE_CHECKING
-from unittest.mock import MagicMock, patch, mock_open
+import time
+
 import pytest
 
 from src.telegram_bot.notifications.storage import (
     AlertStorage,
     get_storage,
-    load_user_alerts,
-    save_user_alerts,
 )
 
 
 # =============================================================================
 # Fixtures
 # =============================================================================
-@pytest.fixture
+@pytest.fixture()
 def reset_singleton():
     """Reset AlertStorage singleton before and after each test."""
     AlertStorage._instance = None
@@ -41,7 +37,7 @@ def reset_singleton():
     AlertStorage._initialized = False
 
 
-@pytest.fixture
+@pytest.fixture()
 def temp_alerts_file(tmp_path):
     """Create a temporary alerts file."""
     alerts_file = tmp_path / "user_alerts.json"
@@ -49,7 +45,7 @@ def temp_alerts_file(tmp_path):
     return alerts_file
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_user_data():
     """Sample user data for testing."""
     return {
@@ -89,23 +85,23 @@ class TestAlertStorageSingleton:
         """Test that AlertStorage returns the same instance."""
         storage1 = AlertStorage()
         storage2 = AlertStorage()
-        
+
         assert storage1 is storage2
 
     def test_singleton_initialized_once(self, reset_singleton):
         """Test that AlertStorage is initialized only once."""
         storage1 = AlertStorage()
         original_alerts = storage1._user_alerts
-        
+
         storage2 = AlertStorage()
-        
+
         assert storage2._user_alerts is original_alerts
 
     def test_get_storage_returns_singleton(self, reset_singleton):
         """Test that get_storage returns AlertStorage singleton."""
         storage1 = get_storage()
         storage2 = get_storage()
-        
+
         assert storage1 is storage2
         assert isinstance(storage1, AlertStorage)
 
@@ -119,20 +115,20 @@ class TestAlertStorageInit:
     def test_init_creates_empty_user_alerts(self, reset_singleton):
         """Test that initialization creates empty user_alerts dict."""
         storage = AlertStorage()
-        
+
         assert storage._user_alerts == {}
 
     def test_init_sets_alerts_file_path(self, reset_singleton):
         """Test that initialization sets alerts file path."""
         storage = AlertStorage()
-        
+
         assert isinstance(storage._alerts_file, Path)
         assert "user_alerts.json" in str(storage._alerts_file)
 
     def test_init_creates_empty_prices_cache(self, reset_singleton):
         """Test that initialization creates empty prices cache."""
         storage = AlertStorage()
-        
+
         assert storage._current_prices_cache == {}
 
 
@@ -146,20 +142,20 @@ class TestAlertStorageProperties:
         """Test user_alerts property returns correct dict."""
         storage = AlertStorage()
         storage._user_alerts = {"test": "data"}
-        
+
         assert storage.user_alerts == {"test": "data"}
 
     def test_alerts_file_property(self, reset_singleton):
         """Test alerts_file property returns correct path."""
         storage = AlertStorage()
-        
+
         assert storage.alerts_file == storage._alerts_file
 
     def test_prices_cache_property(self, reset_singleton):
         """Test prices_cache property returns correct dict."""
         storage = AlertStorage()
         storage._current_prices_cache = {"item1": {"price": 10.0}}
-        
+
         assert storage.prices_cache == {"item1": {"price": 10.0}}
 
 
@@ -173,12 +169,12 @@ class TestLoadUserAlerts:
         """Test loading alerts from existing file."""
         storage = AlertStorage()
         storage._alerts_file = tmp_path / "user_alerts.json"
-        
+
         # Write sample data
         storage._alerts_file.write_text(json.dumps(sample_user_data))
-        
+
         storage.load_user_alerts()
-        
+
         assert "12345" in storage._user_alerts
         assert len(storage._user_alerts["12345"]["alerts"]) == 1
 
@@ -186,9 +182,9 @@ class TestLoadUserAlerts:
         """Test loading when file doesn't exist."""
         storage = AlertStorage()
         storage._alerts_file = tmp_path / "nonexistent.json"
-        
+
         storage.load_user_alerts()
-        
+
         # Should not raise error, alerts should remain empty
         assert storage._user_alerts == {}
 
@@ -197,10 +193,10 @@ class TestLoadUserAlerts:
         storage = AlertStorage()
         storage._alerts_file = tmp_path / "user_alerts.json"
         storage._alerts_file.write_text(json.dumps(sample_user_data))
-        
+
         original_ref = storage._user_alerts
         storage.load_user_alerts()
-        
+
         # Should update in place, preserving reference
         assert storage._user_alerts is original_ref
 
@@ -209,7 +205,7 @@ class TestLoadUserAlerts:
         storage = AlertStorage()
         storage._alerts_file = tmp_path / "invalid.json"
         storage._alerts_file.write_text("{ invalid json }")
-        
+
         # Should handle error gracefully
         try:
             storage.load_user_alerts()
@@ -228,12 +224,12 @@ class TestSaveUserAlerts:
         storage = AlertStorage()
         storage._alerts_file = tmp_path / "new_alerts.json"
         storage._user_alerts = {"12345": {"alerts": []}}
-        
+
         # Ensure parent directory exists
         storage._alerts_file.parent.mkdir(parents=True, exist_ok=True)
-        
+
         storage.save_user_alerts()
-        
+
         assert storage._alerts_file.exists()
 
     def test_save_writes_correct_data(self, reset_singleton, sample_user_data, tmp_path):
@@ -241,10 +237,10 @@ class TestSaveUserAlerts:
         storage = AlertStorage()
         storage._alerts_file = tmp_path / "alerts.json"
         storage._user_alerts = sample_user_data
-        
+
         storage._alerts_file.parent.mkdir(parents=True, exist_ok=True)
         storage.save_user_alerts()
-        
+
         # Read back and verify
         saved_data = json.loads(storage._alerts_file.read_text())
         assert saved_data == sample_user_data
@@ -261,10 +257,10 @@ class TestSaveUserAlerts:
                 }]
             }
         }
-        
+
         storage._alerts_file.parent.mkdir(parents=True, exist_ok=True)
         storage.save_user_alerts()
-        
+
         # Read back and verify
         saved_data = json.loads(storage._alerts_file.read_text(encoding="utf-8"))
         assert "Тестовый предмет" in saved_data["12345"]["alerts"][0]["title"]
@@ -280,9 +276,9 @@ class TestGetUserData:
         """Test getting data for existing user."""
         storage = AlertStorage()
         storage._user_alerts = sample_user_data
-        
+
         user_data = storage.get_user_data(12345)
-        
+
         assert user_data is not None
         assert len(user_data["alerts"]) == 1
         assert user_data["settings"]["enabled"] is True
@@ -291,9 +287,9 @@ class TestGetUserData:
         """Test that getting non-existent user creates default data."""
         storage = AlertStorage()
         storage._user_alerts = {}
-        
+
         user_data = storage.get_user_data(99999)
-        
+
         # Should create default user data
         assert user_data is not None
         assert "alerts" in user_data
@@ -303,10 +299,10 @@ class TestGetUserData:
         """Test that get_user_data returns reference (not copy)."""
         storage = AlertStorage()
         storage._user_alerts = sample_user_data
-        
+
         user_data = storage.get_user_data(12345)
         user_data["alerts"].append({"id": "new_alert"})
-        
+
         # Should modify original
         assert len(storage._user_alerts["12345"]["alerts"]) == 2
 
@@ -326,9 +322,9 @@ class TestPriceCache:
                 "timestamp": time.time(),
             }
         }
-        
+
         cached = storage.get_cached_price("csgo:item1")
-        
+
         assert cached is not None
         assert cached["price"] == 10.0
 
@@ -336,18 +332,18 @@ class TestPriceCache:
         """Test getting non-existent cached price."""
         storage = AlertStorage()
         storage._current_prices_cache = {}
-        
+
         cached = storage.get_cached_price("csgo:nonexistent")
-        
+
         assert cached is None
 
     def test_set_cached_price(self, reset_singleton):
         """Test setting cached price."""
         storage = AlertStorage()
         storage._current_prices_cache = {}
-        
+
         storage.set_cached_price("csgo:item1", 15.50)
-        
+
         assert "csgo:item1" in storage._current_prices_cache
         assert storage._current_prices_cache["csgo:item1"]["price"] == 15.50
         assert "timestamp" in storage._current_prices_cache["csgo:item1"]
@@ -361,9 +357,9 @@ class TestPriceCache:
                 "timestamp": time.time() - 100,
             }
         }
-        
+
         storage.set_cached_price("csgo:item1", 12.0)
-        
+
         assert storage._current_prices_cache["csgo:item1"]["price"] == 12.0
 
 
@@ -378,7 +374,7 @@ class TestStorageEdgeCases:
         storage = AlertStorage()
         storage._alerts_file = tmp_path / "empty.json"
         storage._alerts_file.write_text("")
-        
+
         try:
             storage.load_user_alerts()
         except json.JSONDecodeError:
@@ -388,7 +384,7 @@ class TestStorageEdgeCases:
         """Test handling large user data."""
         storage = AlertStorage()
         storage._alerts_file = tmp_path / "large.json"
-        
+
         # Create large dataset
         large_data = {}
         for i in range(1000):
@@ -396,50 +392,50 @@ class TestStorageEdgeCases:
                 "alerts": [{"id": f"alert_{j}"} for j in range(10)],
                 "settings": {"enabled": True}
             }
-        
+
         storage._user_alerts = large_data
         storage._alerts_file.parent.mkdir(parents=True, exist_ok=True)
         storage.save_user_alerts()
-        
+
         # Load back
         storage2 = AlertStorage()
         storage2._alerts_file = storage._alerts_file
         storage2.load_user_alerts()
-        
+
         assert len(storage2._user_alerts) == 1000
 
     def test_concurrent_access(self, reset_singleton):
         """Test that singleton handles concurrent access."""
         import threading
-        
+
         instances = []
-        
+
         def get_instance():
             instances.append(AlertStorage())
-        
+
         threads = [threading.Thread(target=get_instance) for _ in range(10)]
         for t in threads:
             t.start()
         for t in threads:
             t.join()
-        
+
         # All instances should be the same
         assert all(inst is instances[0] for inst in instances)
 
     def test_special_characters_in_user_id(self, reset_singleton):
         """Test handling special characters in user ID."""
         storage = AlertStorage()
-        
+
         # User ID with string representation
         user_data = storage.get_user_data(-123)  # Negative user ID
-        
+
         assert user_data is not None
 
     def test_nested_data_structure(self, reset_singleton, tmp_path):
         """Test handling deeply nested data."""
         storage = AlertStorage()
         storage._alerts_file = tmp_path / "nested.json"
-        
+
         nested_data = {
             "12345": {
                 "alerts": [{
@@ -455,14 +451,14 @@ class TestStorageEdgeCases:
                 "settings": {}
             }
         }
-        
+
         storage._user_alerts = nested_data
         storage._alerts_file.parent.mkdir(parents=True, exist_ok=True)
         storage.save_user_alerts()
-        
+
         # Load back
         storage.load_user_alerts()
-        
+
         assert storage._user_alerts["12345"]["alerts"][0]["metadata"]["nested"]["deep"]["value"] == 42
 
 
@@ -477,7 +473,7 @@ class TestStorageIntegration:
         storage = AlertStorage()
         storage._alerts_file = tmp_path / "lifecycle.json"
         storage._alerts_file.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Create
         user_data = storage.get_user_data(12345)
         user_data["alerts"].append({
@@ -486,24 +482,24 @@ class TestStorageIntegration:
             "type": "price_drop",
         })
         storage.save_user_alerts()
-        
+
         # Read
         storage.load_user_alerts()
         loaded_data = storage.get_user_data(12345)
         assert len(loaded_data["alerts"]) >= 1
-        
+
         # Update
         loaded_data["alerts"][0]["type"] = "price_rise"
         storage.save_user_alerts()
-        
+
         storage.load_user_alerts()
         updated_data = storage.get_user_data(12345)
         assert updated_data["alerts"][0]["type"] == "price_rise"
-        
+
         # Delete
         updated_data["alerts"] = []
         storage.save_user_alerts()
-        
+
         storage.load_user_alerts()
         deleted_data = storage.get_user_data(12345)
         assert len(deleted_data["alerts"]) == 0
@@ -513,17 +509,17 @@ class TestStorageIntegration:
         storage = AlertStorage()
         storage._alerts_file = tmp_path / "multi_user.json"
         storage._alerts_file.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Create data for multiple users
         user1_data = storage.get_user_data(111)
         user1_data["alerts"].append({"id": "user1_alert"})
-        
+
         user2_data = storage.get_user_data(222)
         user2_data["alerts"].append({"id": "user2_alert"})
-        
+
         storage.save_user_alerts()
         storage.load_user_alerts()
-        
+
         # Verify isolation
         assert storage.get_user_data(111)["alerts"][0]["id"] == "user1_alert"
         assert storage.get_user_data(222)["alerts"][0]["id"] == "user2_alert"
@@ -533,20 +529,20 @@ class TestStorageIntegration:
         storage = AlertStorage()
         storage._alerts_file = tmp_path / "coexist.json"
         storage._alerts_file.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Set up alerts
         user_data = storage.get_user_data(12345)
         user_data["alerts"].append({"id": "alert1"})
         storage.save_user_alerts()
-        
+
         # Set up cache
         storage.set_cached_price("csgo:item1", 10.0)
         storage.set_cached_price("csgo:item2", 20.0)
-        
+
         # Both should work independently
         assert len(storage.get_user_data(12345)["alerts"]) >= 1
         assert storage.get_cached_price("csgo:item1")["price"] == 10.0
-        
+
         # Alerts save shouldn't affect cache
         storage.save_user_alerts()
         assert storage.get_cached_price("csgo:item1")["price"] == 10.0

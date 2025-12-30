@@ -62,7 +62,7 @@ class ItemFilters:
                 self.config = self._get_default_config()
                 return
 
-            with open(self.config_path) as f:
+            with open(self.config_path, encoding="utf-8") as f:
                 self.config = yaml.safe_load(f) or {}
 
             # Compile regex patterns

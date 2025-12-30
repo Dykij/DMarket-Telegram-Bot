@@ -19,6 +19,7 @@ import matplotlib as mpl
 
 mpl.use("Agg")  # Non-interactive backend for server use
 import contextlib
+import operator
 
 import matplotlib.dates as mdates
 from matplotlib.patches import Rectangle
@@ -815,7 +816,7 @@ class MarketVisualizer:
                 return []
 
             # Sort by price
-            points.sort(key=lambda x: x[1])
+            points.sort(key=operator.itemgetter(1))
 
             # Group points that are close in price
             groups = [[points[0]]]
@@ -836,7 +837,7 @@ class MarketVisualizer:
             for group in groups:
                 if len(group) > 0:
                     # Sort by date and take the most recent
-                    group.sort(key=lambda x: x[0])
+                    group.sort(key=operator.itemgetter(0))
                     result.append(group[-1])
 
             return result

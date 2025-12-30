@@ -210,12 +210,12 @@ class TestTechnicalIndicatorsEMA:
 class TestMarketAnalyzer:
     """Tests for MarketAnalyzer class."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self) -> MarketAnalyzer:
         """Create market analyzer."""
         return MarketAnalyzer(min_data_points=10)
 
-    @pytest.fixture
+    @pytest.fixture()
     def price_history(self) -> list[PricePoint]:
         """Create sample price history."""
         now = datetime.now(UTC)
@@ -283,7 +283,7 @@ class TestMarketAnalyzer:
         now = datetime.now(UTC)
         # Strong upward trend - prices increasing over time (most recent is highest)
         history = [
-            PricePoint(now - timedelta(days=30-i), price=100 + i * 2, volume=100)
+            PricePoint(now - timedelta(days=30 - i), price=100 + i * 2, volume=100)
             for i in range(31)
         ]
         trend = analyzer.detect_trend(history)
@@ -294,7 +294,7 @@ class TestMarketAnalyzer:
         now = datetime.now(UTC)
         # Strong downward trend - prices decreasing over time (most recent is lowest)
         history = [
-            PricePoint(now - timedelta(days=30-i), price=200 - i * 2, volume=100)
+            PricePoint(now - timedelta(days=30 - i), price=200 - i * 2, volume=100)
             for i in range(31)
         ]
         trend = analyzer.detect_trend(history)
@@ -378,16 +378,16 @@ class TestMarketAnalyzer:
         now = datetime.now(UTC)
         # Volume increasing over time - most recent has highest volume
         history = [
-            PricePoint(now - timedelta(days=9-i), price=100, volume=100 + i * 50)
+            PricePoint(now - timedelta(days=9 - i), price=100, volume=100 + i * 50)
             for i in range(10)
         ]
         result = analyzer.analyze_liquidity(history, recent_period=10)
 
         # Volume trend should be bullish or neutral
-        assert result["volume_trend"] in [
+        assert result["volume_trend"] in {
             TrendDirection.BULLISH,
             TrendDirection.NEUTRAL,
-        ]
+        }
 
     def test_generate_trading_insights(
         self, analyzer: MarketAnalyzer, price_history: list[PricePoint]

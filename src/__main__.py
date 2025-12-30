@@ -49,8 +49,7 @@ def main() -> None:
         if lock_file.exists():
             try:
                 # Read PID from lock file
-                with open(lock_file) as f:
-                    pid = int(f.read().strip())
+                pid = Path(lock_file).read_text(encoding="utf-8")
 
                 # Check if process with PID exists
                 import psutil
@@ -64,8 +63,7 @@ def main() -> None:
                 logger.exception("Error reading lock file: %s", e)
 
         # Create lock file with current PID
-        with open(lock_file, "w") as f:
-            f.write(str(os.getpid()))
+        Path(lock_file).write_text(str(os.getpid()), encoding="utf-8")
 
         # Register handler to remove lock file on exit
         import atexit

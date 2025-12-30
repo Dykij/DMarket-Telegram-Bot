@@ -12,18 +12,18 @@ This module contains tests for src/interfaces.py covering:
 Target: 35+ tests to achieve 85%+ coverage
 """
 
-import pytest
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
 
 # Import interfaces
 from src.interfaces import (
-    IDMarketAPI,
-    ICache,
     IArbitrageScanner,
-    ITargetManager,
+    ICache,
     IDatabase,
+    IDMarketAPI,
+    ITargetManager,
 )
 
 
@@ -65,7 +65,7 @@ class TestIDMarketAPIProtocol:
         assert hasattr(mock_api, "get_aggregated_prices_bulk")
         assert hasattr(mock_api, "get_user_inventory")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_get_balance(self):
         """Test mock get_balance method."""
         # Arrange
@@ -79,7 +79,7 @@ class TestIDMarketAPIProtocol:
         assert result["balance"] == 150.50
         mock_api.get_balance.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_get_market_items(self):
         """Test mock get_market_items method."""
         # Arrange
@@ -96,7 +96,7 @@ class TestIDMarketAPIProtocol:
         assert len(result["objects"]) == 1
         mock_api.get_market_items.assert_called_once_with("csgo", limit=10, offset=0)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_buy_item(self):
         """Test mock buy_item method."""
         # Arrange
@@ -110,7 +110,7 @@ class TestIDMarketAPIProtocol:
         assert result["success"] is True
         mock_api.buy_item.assert_called_once_with("item_123", 25.50)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_sell_item(self):
         """Test mock sell_item method."""
         # Arrange
@@ -124,7 +124,7 @@ class TestIDMarketAPIProtocol:
         assert result["success"] is True
         mock_api.sell_item.assert_called_once_with("asset_123", 30.00)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_create_targets(self):
         """Test mock create_targets method."""
         # Arrange
@@ -139,7 +139,7 @@ class TestIDMarketAPIProtocol:
         assert result["created"] == 1
         mock_api.create_targets.assert_called_once_with(targets)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_get_user_targets(self):
         """Test mock get_user_targets method."""
         # Arrange
@@ -155,7 +155,7 @@ class TestIDMarketAPIProtocol:
         assert len(result["targets"]) == 1
         mock_api.get_user_targets.assert_called_once_with(game_id="csgo")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_get_sales_history(self):
         """Test mock get_sales_history method."""
         # Arrange
@@ -171,7 +171,7 @@ class TestIDMarketAPIProtocol:
         assert len(result["sales"]) == 1
         mock_api.get_sales_history.assert_called_once_with("csgo", "AK-47 | Redline", limit=50)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_get_user_inventory(self):
         """Test mock get_user_inventory method."""
         # Arrange
@@ -215,7 +215,7 @@ class TestICacheProtocol:
         assert hasattr(mock_cache, "delete")
         assert hasattr(mock_cache, "clear")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_cache_get(self):
         """Test mock cache get method."""
         # Arrange
@@ -229,7 +229,7 @@ class TestICacheProtocol:
         assert result == {"data": "cached_value"}
         mock_cache.get.assert_called_once_with("test_key")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_cache_get_miss(self):
         """Test mock cache get with miss."""
         # Arrange
@@ -242,7 +242,7 @@ class TestICacheProtocol:
         # Assert
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_cache_set(self):
         """Test mock cache set method."""
         # Arrange
@@ -255,7 +255,7 @@ class TestICacheProtocol:
         # Assert
         mock_cache.set.assert_called_once_with("key", "value", ttl=300)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_cache_delete(self):
         """Test mock cache delete method."""
         # Arrange
@@ -269,7 +269,7 @@ class TestICacheProtocol:
         assert result is True
         mock_cache.delete.assert_called_once_with("key_to_delete")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_cache_clear(self):
         """Test mock cache clear method."""
         # Arrange
@@ -307,7 +307,7 @@ class TestIArbitrageScannerProtocol:
         assert hasattr(mock_scanner, "scan_game")
         assert hasattr(mock_scanner, "find_opportunities")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_scan_game(self):
         """Test mock scan_game method."""
         # Arrange
@@ -324,7 +324,7 @@ class TestIArbitrageScannerProtocol:
         assert result[0]["profit"] == 5.0
         mock_scanner.scan_game.assert_called_once_with("csgo", "standard", max_results=10)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_find_opportunities(self):
         """Test mock find_opportunities method."""
         # Arrange
@@ -369,7 +369,7 @@ class TestITargetManagerProtocol:
         assert hasattr(mock_manager, "delete_targets")
         assert hasattr(mock_manager, "get_active_targets")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_create_target(self):
         """Test mock create_target method."""
         # Arrange
@@ -392,7 +392,7 @@ class TestITargetManagerProtocol:
         assert result["success"] is True
         assert result["target_id"] == "target_123"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_delete_targets(self):
         """Test mock delete_targets method."""
         # Arrange
@@ -405,7 +405,7 @@ class TestITargetManagerProtocol:
         # Assert
         assert result["deleted"] == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_get_active_targets(self):
         """Test mock get_active_targets method."""
         # Arrange
@@ -447,7 +447,7 @@ class TestIDatabaseProtocol:
         assert hasattr(mock_db, "get_async_session")
         assert hasattr(mock_db, "close")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_init_database(self):
         """Test mock init_database method."""
         # Arrange
@@ -474,7 +474,7 @@ class TestIDatabaseProtocol:
         assert result == mock_session
         mock_db.get_async_session.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_close(self):
         """Test mock close method."""
         # Arrange
@@ -605,7 +605,7 @@ class TestProtocolRuntimeChecking:
 class TestInterfaceEdgeCases:
     """Tests for edge cases in interfaces."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_api_with_empty_responses(self):
         """Test API methods returning empty responses."""
         # Arrange
@@ -624,7 +624,7 @@ class TestInterfaceEdgeCases:
         inventory = await mock_api.get_user_inventory()
         assert inventory["objects"] == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_cache_with_none_values(self):
         """Test cache methods with None values."""
         # Arrange
@@ -640,7 +640,7 @@ class TestInterfaceEdgeCases:
         assert result is None
         mock_cache.set.assert_called_with("key", None, ttl=None)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_scanner_with_no_results(self):
         """Test scanner methods with no results."""
         # Arrange
@@ -656,7 +656,7 @@ class TestInterfaceEdgeCases:
         assert scan_result == []
         assert opportunities == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_target_manager_with_empty_lists(self):
         """Test target manager with empty lists."""
         # Arrange

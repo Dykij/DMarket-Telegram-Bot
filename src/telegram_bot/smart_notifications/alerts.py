@@ -39,12 +39,12 @@ async def create_alert(
     Returns:
         Alert ID
     """
-    _active_alerts = get_active_alerts()
-    _user_preferences = get_user_preferences()
+    active_alerts = get_active_alerts()
+    user_preferences = get_user_preferences()
     user_id_str = str(user_id)
 
     # Register if not already registered
-    if user_id_str not in _user_preferences:
+    if user_id_str not in user_preferences:
         await register_user(user_id)
 
     # Generate alert ID
@@ -67,10 +67,10 @@ async def create_alert(
     }
 
     # Add to active alerts
-    if user_id_str not in _active_alerts:
-        _active_alerts[user_id_str] = []
+    if user_id_str not in active_alerts:
+        active_alerts[user_id_str] = []
 
-    _active_alerts[user_id_str].append(alert_data)
+    active_alerts[user_id_str].append(alert_data)
 
     save_user_preferences()
     logger.info(
@@ -90,13 +90,13 @@ async def deactivate_alert(user_id: int, alert_id: str) -> bool:
     Returns:
         True if successful, False otherwise
     """
-    _active_alerts = get_active_alerts()
+    active_alerts = get_active_alerts()
     user_id_str = str(user_id)
 
-    if user_id_str not in _active_alerts:
+    if user_id_str not in active_alerts:
         return False
 
-    for alert in _active_alerts[user_id_str]:
+    for alert in active_alerts[user_id_str]:
         if alert["id"] == alert_id:
             alert["active"] = False
             save_user_preferences()
@@ -115,10 +115,10 @@ async def get_user_alerts(user_id: int) -> list[dict[str, Any]]:
     Returns:
         List of active alerts
     """
-    _active_alerts = get_active_alerts()
+    active_alerts = get_active_alerts()
     user_id_str = str(user_id)
 
-    if user_id_str not in _active_alerts:
+    if user_id_str not in active_alerts:
         return []
 
-    return [alert for alert in _active_alerts[user_id_str] if alert["active"]]
+    return [alert for alert in active_alerts[user_id_str] if alert["active"]]

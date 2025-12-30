@@ -15,7 +15,6 @@ import time
 import traceback
 from typing import Any
 
-import nacl.encoding
 import nacl.signing
 
 from src.utils.api_circuit_breaker import call_with_circuit_breaker

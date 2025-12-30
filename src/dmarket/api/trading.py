@@ -65,7 +65,7 @@ class TradingOperationsMixin:
 
         bot_logger = BotLogger(__name__)
 
-        profit_usd = profit if profit else (sell_price - price if sell_price else None)
+        profit_usd = profit or (sell_price - price if sell_price else None)
         profit_percent = (profit_usd / price * 100) if profit_usd and price > 0 else None
 
         add_trading_breadcrumb(

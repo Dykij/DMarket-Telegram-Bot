@@ -170,14 +170,7 @@ def create_price_alerts_keyboard(
         keyboard.append(nav_row)
 
     # Основные действия
-    keyboard.append(
-        [
-            InlineKeyboardButton(text="➕ Создать", callback_data="alert_create"),
-            InlineKeyboardButton(text="🗑️ Удалить все", callback_data="alert_delete_all"),
-        ]
-    )
-
-    keyboard.append([InlineKeyboardButton(text="◀️ Назад", callback_data=CB_BACK)])
+    keyboard.extend(([InlineKeyboardButton(text="➕ Создать", callback_data="alert_create"), InlineKeyboardButton(text="🗑️ Удалить все", callback_data="alert_delete_all")], [InlineKeyboardButton(text="◀️ Назад", callback_data=CB_BACK)]))
 
     return InlineKeyboardMarkup(keyboard)
 

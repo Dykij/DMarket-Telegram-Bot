@@ -9,6 +9,7 @@
 from datetime import datetime
 import json
 import logging
+import operator
 import os
 from pathlib import Path
 import time
@@ -146,7 +147,7 @@ async def get_item_sales_history(
             )
 
         # Сортируем по времени (от новых к старым)
-        sales_history.sort(key=lambda x: x["timestamp"], reverse=True)
+        sales_history.sort(key=operator.itemgetter("timestamp"), reverse=True)
 
         # Сохраняем в кеш
         if use_cache:
@@ -240,7 +241,7 @@ async def detect_price_anomalies(
             anomalies.append(anomaly)
 
     # Сортируем аномалии по размеру отклонения (по убыванию)
-    anomalies.sort(key=lambda x: x["deviation_percent"], reverse=True)
+    anomalies.sort(key=operator.itemgetter("deviation_percent"), reverse=True)
 
     return {
         "anomalies": anomalies,
@@ -293,7 +294,7 @@ async def calculate_price_trend(
         }
 
     # Сортируем по времени (от старых к новым)
-    sales_history.sort(key=lambda x: x["timestamp"])
+    sales_history.sort(key=operator.itemgetter("timestamp"))
 
     # Получаем цены в начале и конце периода
     start_price = sales_history[0]["price"]
@@ -417,8 +418,8 @@ async def get_market_trend_overview(
                 stable_items.append(trend_info)
 
         # Сортируем списки по проценту изменения
-        up_trending.sort(key=lambda x: x["change_percent"], reverse=True)
-        down_trending.sort(key=lambda x: x["change_percent"])
+        up_trending.sort(key=operator.itemgetter("change_percent"), reverse=True)
+        down_trending.sort(key=operator.itemgetter("change_percent"))
 
         # Определяем общий тренд рынка
         avg_change = sum(all_changes) / len(all_changes) if all_changes else 0

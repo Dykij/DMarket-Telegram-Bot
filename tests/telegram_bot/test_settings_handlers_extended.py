@@ -22,7 +22,7 @@ from src.telegram_bot.handlers.settings_handlers import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_update():
     """Create a mock Update object for testing."""
     mock_user = MagicMock(spec=User)
@@ -40,7 +40,7 @@ def mock_update():
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context():
     """Create a mock CallbackContext object for testing."""
     context = MagicMock(spec=CallbackContext)
@@ -180,7 +180,7 @@ class TestGetLocalizedTextEdgeCases:
 class TestSettingsCommandEdgeCases:
     """Edge case tests for settings_command function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_settings_command_no_effective_user(self, mock_context):
         """Test settings_command when effective_user is None."""
         update = MagicMock(spec=Update)
@@ -191,7 +191,7 @@ class TestSettingsCommandEdgeCases:
         await settings_command(update, mock_context)
         update.message.reply_text.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_settings_command_no_message(self, mock_context):
         """Test settings_command when message is None."""
         mock_user = MagicMock(spec=User)
@@ -208,7 +208,7 @@ class TestSettingsCommandEdgeCases:
 class TestSettingsCallbackEdgeCases:
     """Edge case tests for settings_callback function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_settings_callback_no_callback_query(self, mock_context):
         """Test settings_callback when callback_query is None."""
         update = MagicMock(spec=Update)
@@ -217,7 +217,7 @@ class TestSettingsCallbackEdgeCases:
         # Should return early without error
         await settings_callback(update, mock_context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_settings_callback_empty_data(self, mock_update, mock_context):
         """Test settings_callback with empty data."""
         mock_update.callback_query.data = None
@@ -227,7 +227,7 @@ class TestSettingsCallbackEdgeCases:
         # When data is None, function returns early before answer()
         # So we just verify no error occurred
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.get_back_to_settings_keyboard")
     async def test_settings_callback_api_keys_empty(
@@ -257,7 +257,7 @@ class TestSettingsCallbackEdgeCases:
 
         assert "Не установлен" in message_text or "Not set" in message_text.lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.get_risk_profile_keyboard")
     async def test_settings_callback_limits_missing_trade_settings(
@@ -276,7 +276,7 @@ class TestSettingsCallbackEdgeCases:
         # Should use default values
         mock_get_risk_keyboard.assert_called_once_with("medium")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.save_user_profiles")
     @patch("src.telegram_bot.handlers.settings_handlers.get_back_to_settings_keyboard")
@@ -302,7 +302,7 @@ class TestSettingsCallbackEdgeCases:
         assert "trade_settings" in mock_profile
         assert mock_profile["trade_settings"]["risk_level"] == "medium"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.save_user_profiles")
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
@@ -339,7 +339,7 @@ class TestSettingsCallbackEdgeCases:
 class TestSetupCommandEdgeCases:
     """Edge case tests for setup_command function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_setup_command_no_effective_user(self, mock_context):
         """Test setup_command when effective_user is None."""
         update = MagicMock(spec=Update)
@@ -349,7 +349,7 @@ class TestSetupCommandEdgeCases:
         await setup_command(update, mock_context)
         update.message.reply_text.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_setup_command_no_message(self, mock_context):
         """Test setup_command when message is None."""
         mock_user = MagicMock(spec=User)
@@ -361,7 +361,7 @@ class TestSetupCommandEdgeCases:
 
         await setup_command(update, mock_context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     async def test_setup_command_with_none_user_data(
         self, mock_get_localized_text, mock_update
@@ -380,7 +380,7 @@ class TestSetupCommandEdgeCases:
 class TestHandleSetupInputEdgeCases:
     """Edge case tests for handle_setup_input function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_setup_input_no_effective_user(self, mock_context):
         """Test handle_setup_input when effective_user is None."""
         update = MagicMock(spec=Update)
@@ -391,7 +391,7 @@ class TestHandleSetupInputEdgeCases:
         await handle_setup_input(update, mock_context)
         update.message.reply_text.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_setup_input_no_message(self, mock_context):
         """Test handle_setup_input when message is None."""
         mock_user = MagicMock(spec=User)
@@ -403,7 +403,7 @@ class TestHandleSetupInputEdgeCases:
 
         await handle_setup_input(update, mock_context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_setup_input_no_text(self, mock_update, mock_context):
         """Test handle_setup_input when text is None."""
         mock_update.message.text = None
@@ -412,7 +412,7 @@ class TestHandleSetupInputEdgeCases:
         await handle_setup_input(mock_update, mock_context)
         mock_update.message.reply_text.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_setup_input_none_user_data(self, mock_update):
         """Test handle_setup_input when user_data is None."""
         context = MagicMock(spec=CallbackContext)
@@ -470,7 +470,7 @@ class TestSaveUserProfilesEdgeCases:
         save_user_profiles()
 
         mock_json_dump.assert_called_once()
-        args, kwargs = mock_json_dump.call_args
+        args, _kwargs = mock_json_dump.call_args
         assert args[0] == {}
 
     @patch(
@@ -492,14 +492,14 @@ class TestSaveUserProfilesEdgeCases:
         save_user_profiles()
 
         mock_json_dump.assert_called_once()
-        args, kwargs = mock_json_dump.call_args
+        args, _kwargs = mock_json_dump.call_args
         assert len(args[0]) == 2
 
 
 class TestAutoTradingToggle:
     """Tests for auto trading toggle functionality."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.save_user_profiles")
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
@@ -529,7 +529,7 @@ class TestAutoTradingToggle:
         assert mock_profile["auto_trading_enabled"] is True
         mock_save_profiles.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.save_user_profiles")
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")

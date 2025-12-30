@@ -12,7 +12,6 @@ Coverage Target: 85%+
 Estimated Tests: 20+ tests
 """
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -32,7 +31,7 @@ from src.utils.exceptions import APIError, NetworkError
 # ============================================================================
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_api():
     """Create a mock DMarketAPI instance."""
     api = MagicMock()
@@ -40,7 +39,7 @@ def mock_api():
     return api
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_market_items():
     """Sample market items response."""
     return {
@@ -64,7 +63,7 @@ def sample_market_items():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_price_history():
     """Sample price history response."""
     return {
@@ -84,7 +83,7 @@ def sample_price_history():
 class TestGetMarketDataForItems:
     """Tests for get_market_data_for_items function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_indexed_items_by_id(self, mock_api, sample_market_items):
         """Test that items are correctly indexed by itemId."""
         # Arrange
@@ -100,7 +99,7 @@ class TestGetMarketDataForItems:
         assert result["item_001"]["title"] == "AK-47 | Redline"
         assert result["item_002"]["title"] == "AWP | Asiimov"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_empty_item_ids_list(self, mock_api):
         """Test handling of empty item IDs list."""
         # Arrange
@@ -113,7 +112,7 @@ class TestGetMarketDataForItems:
         assert result == {}
         mock_api._request.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_api_error(self, mock_api):
         """Test handling of APIError exception."""
         # Arrange
@@ -126,7 +125,7 @@ class TestGetMarketDataForItems:
         # Assert
         assert result == {}  # Returns empty dict on error
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_network_error(self, mock_api):
         """Test handling of NetworkError exception."""
         # Arrange
@@ -139,7 +138,7 @@ class TestGetMarketDataForItems:
         # Assert
         assert result == {}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_generic_exception(self, mock_api):
         """Test handling of generic exception."""
         # Arrange
@@ -152,7 +151,7 @@ class TestGetMarketDataForItems:
         # Assert
         assert result == {}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_batches_requests_correctly(self, mock_api, sample_market_items):
         """Test that requests are batched correctly for large item lists."""
         # Arrange
@@ -167,7 +166,7 @@ class TestGetMarketDataForItems:
         # Assert
         assert mock_api._request.call_count == 2  # Two batches
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_uses_correct_api_parameters(self, mock_api, sample_market_items):
         """Test that correct API parameters are passed."""
         # Arrange
@@ -186,7 +185,7 @@ class TestGetMarketDataForItems:
         assert params["gameId"] == "dota2"
         assert params["currency"] == "USD"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_skips_items_without_item_id(self, mock_api):
         """Test that items without itemId are skipped."""
         # Arrange
@@ -215,7 +214,7 @@ class TestGetMarketDataForItems:
 class TestGetItemById:
     """Tests for get_item_by_id function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_item_when_found(self, mock_api):
         """Test returning item when found."""
         # Arrange
@@ -231,7 +230,7 @@ class TestGetItemById:
         assert result["itemId"] == "item_001"
         assert result["title"] == "Test Item"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_none_when_not_found(self, mock_api):
         """Test returning None when item not found."""
         # Arrange
@@ -243,7 +242,7 @@ class TestGetItemById:
         # Assert
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_api_error(self, mock_api):
         """Test handling of APIError."""
         # Arrange
@@ -255,7 +254,7 @@ class TestGetItemById:
         # Assert
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_network_error(self, mock_api):
         """Test handling of NetworkError."""
         # Arrange
@@ -267,7 +266,7 @@ class TestGetItemById:
         # Assert
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_generic_exception(self, mock_api):
         """Test handling of generic exception."""
         # Arrange
@@ -279,7 +278,7 @@ class TestGetItemById:
         # Assert
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_uses_correct_api_parameters(self, mock_api):
         """Test that correct API parameters are passed."""
         # Arrange
@@ -305,7 +304,7 @@ class TestGetItemById:
 class TestGetMarketItemsForGame:
     """Tests for get_market_items_for_game function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_items_list(self, mock_api, sample_market_items):
         """Test returning items list."""
         # Arrange
@@ -318,7 +317,7 @@ class TestGetMarketItemsForGame:
         assert len(result) == 3
         assert result[0]["title"] == "AK-47 | Redline"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_empty_list_on_api_error(self, mock_api):
         """Test returning empty list on APIError."""
         # Arrange
@@ -330,7 +329,7 @@ class TestGetMarketItemsForGame:
         # Assert
         assert result == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_empty_list_on_network_error(self, mock_api):
         """Test returning empty list on NetworkError."""
         # Arrange
@@ -342,7 +341,7 @@ class TestGetMarketItemsForGame:
         # Assert
         assert result == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_empty_list_on_generic_error(self, mock_api):
         """Test returning empty list on generic error."""
         # Arrange
@@ -354,7 +353,7 @@ class TestGetMarketItemsForGame:
         # Assert
         assert result == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_uses_default_limit(self, mock_api, sample_market_items):
         """Test that default limit is used."""
         # Arrange
@@ -368,7 +367,7 @@ class TestGetMarketItemsForGame:
         params = call_args[1]["params"]
         assert params["limit"] == 100
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_uses_custom_limit(self, mock_api, sample_market_items):
         """Test using custom limit."""
         # Arrange
@@ -382,7 +381,7 @@ class TestGetMarketItemsForGame:
         params = call_args[1]["params"]
         assert params["limit"] == 50
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_uses_correct_api_parameters(self, mock_api, sample_market_items):
         """Test that correct API parameters are passed."""
         # Arrange
@@ -410,7 +409,7 @@ class TestGetMarketItemsForGame:
 class TestGetPriceHistoryForItems:
     """Tests for get_price_history_for_items function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_price_history_dict(self, mock_api, sample_price_history):
         """Test returning price history dictionary."""
         # Arrange
@@ -425,7 +424,7 @@ class TestGetPriceHistoryForItems:
         assert "item_001" in result
         assert len(result["item_001"]) == 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_multiple_items(self, mock_api, sample_price_history):
         """Test handling multiple items."""
         # Arrange
@@ -441,7 +440,7 @@ class TestGetPriceHistoryForItems:
         assert "item_002" in result
         assert mock_api._request.call_count == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_skips_items_with_empty_history(self, mock_api):
         """Test that items with empty history are skipped."""
         # Arrange
@@ -455,7 +454,7 @@ class TestGetPriceHistoryForItems:
         # Assert
         assert "item_001" not in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_api_error(self, mock_api):
         """Test handling of APIError."""
         # Arrange
@@ -468,7 +467,7 @@ class TestGetPriceHistoryForItems:
         # Assert
         assert result == {}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_network_error(self, mock_api):
         """Test handling of NetworkError."""
         # Arrange
@@ -481,7 +480,7 @@ class TestGetPriceHistoryForItems:
         # Assert
         assert result == {}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_generic_exception(self, mock_api):
         """Test handling of generic exception."""
         # Arrange
@@ -494,7 +493,7 @@ class TestGetPriceHistoryForItems:
         # Assert
         assert result == {}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_uses_correct_api_parameters(self, mock_api, sample_price_history):
         """Test that correct API parameters are passed."""
         # Arrange
@@ -515,7 +514,7 @@ class TestGetPriceHistoryForItems:
         assert params["currency"] == "USD"
         assert params["period"] == "last_month"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_empty_item_ids(self, mock_api):
         """Test handling empty item IDs list."""
         # Arrange
@@ -604,14 +603,14 @@ class TestGetItemPrice:
         assert result == 0.0
 
     @pytest.mark.parametrize(
-        "price_cents,expected_usd",
-        [
+        ("price_cents", "expected_usd"),
+        (
             (100, 1.0),  # $1.00
             (150, 1.5),  # $1.50
             (9999, 99.99),  # $99.99
             (1, 0.01),  # $0.01
             (0, 0.0),  # $0.00
-        ],
+        ),
     )
     def test_converts_cents_to_usd_correctly(self, price_cents, expected_usd):
         """Test correct conversion from cents to USD."""

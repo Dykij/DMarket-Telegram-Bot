@@ -13,8 +13,6 @@ Target: 30+ tests to achieve 80%+ coverage
 
 from decimal import Decimal
 
-import pytest
-
 from src.dmarket.schemas import (
     AttributesModel,
     CreateTargetRequest,

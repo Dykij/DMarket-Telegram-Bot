@@ -1,10 +1,8 @@
 """Tests for src/models/market.py module."""
 
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from uuid import UUID, uuid4
-
-import pytest
 
 
 class TestMarketDataModel:
@@ -204,7 +202,7 @@ class TestMarketDataCacheModel:
         cache = MagicMock()
         cache.__repr__ = MagicMock(return_value=expected_repr)
 
-        repr_result = cache.__repr__()
+        repr_result = repr(cache)
 
         assert "MarketDataCache" in repr_result
         assert cache_key in repr_result

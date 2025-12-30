@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.utils.price_sanity_checker import PriceSanityCheckFailed, PriceSanityChecker
+from src.utils.price_sanity_checker import PriceSanityChecker, PriceSanityCheckFailed
 
 
 class TestPriceSanityCheckFailedException:
@@ -104,7 +104,7 @@ class TestPriceSanityCheckerEnableDisable:
 class TestPriceSanityCheckerCheckPriceSanity:
     """Tests for check_price_sanity method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_when_disabled(self):
         """Test check returns passed when disabled."""
         checker = PriceSanityChecker()
@@ -118,7 +118,7 @@ class TestPriceSanityCheckerCheckPriceSanity:
         assert result["passed"] is True
         assert result["reason"] == "Disabled"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_insufficient_history(self):
         """Test check with insufficient history."""
         db = MagicMock()
@@ -138,7 +138,7 @@ class TestPriceSanityCheckerCheckPriceSanity:
         assert "Insufficient history" in result["reason"]
         assert result.get("warning") is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_no_database(self):
         """Test check when no database is available."""
         checker = PriceSanityChecker()
@@ -151,7 +151,7 @@ class TestPriceSanityCheckerCheckPriceSanity:
         assert result["passed"] is True
         assert result.get("warning") is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_price_within_limit(self):
         """Test check passes when price is within limit."""
         db = MagicMock()
@@ -174,7 +174,7 @@ class TestPriceSanityCheckerCheckPriceSanity:
         assert "max_allowed_price" in result
         assert "price_deviation_percent" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_price_exceeds_limit(self):
         """Test check fails when price exceeds limit."""
         db = MagicMock()
@@ -197,7 +197,7 @@ class TestPriceSanityCheckerCheckPriceSanity:
         assert exc.current_price == Decimal("200.00")
         assert exc.average_price == Decimal("100.0")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_sends_critical_alert(self):
         """Test that critical alert is sent on failure."""
         db = MagicMock()
@@ -222,7 +222,7 @@ class TestPriceSanityCheckerCheckPriceSanity:
         call_args = notifier.send_message.call_args
         assert "КРИТИЧЕСКИЙ АЛЕРТ" in call_args.kwargs.get("message", "")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_handles_database_error(self):
         """Test check handles database errors gracefully by returning insufficient history."""
         db = MagicMock()
@@ -244,7 +244,7 @@ class TestPriceSanityCheckerCheckPriceSanity:
 class TestPriceSanityCheckerGetPriceHistory:
     """Tests for _get_price_history method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_history_no_database(self):
         """Test getting history without database returns empty list."""
         checker = PriceSanityChecker()
@@ -257,7 +257,7 @@ class TestPriceSanityCheckerGetPriceHistory:
 
         assert result == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_history_success(self):
         """Test successful history retrieval."""
         db = MagicMock()
@@ -278,7 +278,7 @@ class TestPriceSanityCheckerGetPriceHistory:
         assert result == expected_history
         db.get_price_history.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_history_method_not_implemented(self):
         """Test handling when get_price_history method is missing."""
         db = MagicMock(spec=[])  # No methods
@@ -293,7 +293,7 @@ class TestPriceSanityCheckerGetPriceHistory:
 
         assert result == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_history_database_error(self):
         """Test handling database errors."""
         db = MagicMock()
@@ -313,7 +313,7 @@ class TestPriceSanityCheckerGetPriceHistory:
 class TestPriceSanityCheckerSendCriticalAlert:
     """Tests for _send_critical_alert method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_send_alert_no_notifier(self):
         """Test alert does nothing without notifier."""
         checker = PriceSanityChecker()
@@ -327,7 +327,7 @@ class TestPriceSanityCheckerSendCriticalAlert:
             deviation_percent=100.0,
         )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_send_alert_success(self):
         """Test successful alert sending."""
         notifier = MagicMock()
@@ -352,7 +352,7 @@ class TestPriceSanityCheckerSendCriticalAlert:
         assert "$50.00" in message
         assert "+100.0%" in message
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_send_alert_handles_error(self):
         """Test alert handles send errors gracefully."""
         notifier = MagicMock()
@@ -373,7 +373,7 @@ class TestPriceSanityCheckerSendCriticalAlert:
 class TestPriceSanityCheckerEdgeCases:
     """Tests for edge cases."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_zero_price_history(self):
         """Test handling zero values in price history."""
         db = MagicMock()
@@ -392,7 +392,7 @@ class TestPriceSanityCheckerEdgeCases:
 
         assert result["passed"] is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_boundary_price(self):
         """Test price exactly at boundary (50% above average)."""
         db = MagicMock()
@@ -412,7 +412,7 @@ class TestPriceSanityCheckerEdgeCases:
 
         assert result["passed"] is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_custom_game(self):
         """Test with custom game parameter."""
         db = MagicMock()

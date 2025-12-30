@@ -140,7 +140,7 @@ class TestCategoryFilter:
     def test_bad_category_graffiti(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test that graffiti is filtered out."""
         item = {"title": "Sealed Graffiti | Piggles", "price": {"USD": 50}}
-        result, reason = filter_instance._check_category(item["title"], item)
+        result, _reason = filter_instance._check_category(item["title"], item)
 
         assert result == FilterResult.FAIL
 
@@ -151,7 +151,7 @@ class TestCategoryFilter:
             "price": {"USD": 1500},
             "type": "Rifle",
         }
-        result, reason = filter_instance._check_category(item["title"], item)
+        result, _reason = filter_instance._check_category(item["title"], item)
 
         assert result == FilterResult.PASS
 
@@ -215,7 +215,7 @@ class TestLiquidityFilter:
     def test_liquidity_pass(self, filter_instance: AdvancedArbitrageFilter) -> None:
         """Test item with good liquidity passes."""
         item = {"offersCount": 50, "liquidityScore": 75}
-        result, reason = filter_instance._check_liquidity(item)
+        result, _reason = filter_instance._check_liquidity(item)
         assert result == FilterResult.PASS
 
     def test_liquidity_no_offers(self, filter_instance: AdvancedArbitrageFilter) -> None:
@@ -269,7 +269,7 @@ class TestSalesHistoryFilter:
         mock_api_client: MagicMock,
     ) -> None:
         """Test item with good sales history passes."""
-        result, reason = await filter_instance._check_sales_history(
+        result, _reason = await filter_instance._check_sales_history(
             item_name="AK-47 | Redline",
             current_price=10.50,  # Close to average
             api_client=mock_api_client,
@@ -287,7 +287,7 @@ class TestSalesHistoryFilter:
         mock_client = MagicMock()
         mock_client.get_item_price_history = AsyncMock(return_value=[])
 
-        result, reason = await filter_instance._check_sales_history(
+        result, _reason = await filter_instance._check_sales_history(
             item_name="Rare Item",
             current_price=100.0,
             api_client=mock_client,
@@ -343,7 +343,7 @@ class TestOutlierDetection:
         """Test normal price passes outlier check."""
         mock_client = MagicMock()
 
-        result, reason = await filter_instance._check_outlier(
+        result, _reason = await filter_instance._check_outlier(
             item_name="Test Item",
             current_price=10.5,  # Within 1 std dev
             api_client=mock_client,
@@ -372,7 +372,7 @@ class TestOutlierDetection:
         """Test low outlier price fails."""
         mock_client = MagicMock()
 
-        result, reason = await filter_instance._check_outlier(
+        result, _reason = await filter_instance._check_outlier(
             item_name="Test Item",
             current_price=5.0,  # 5 std devs below mean
             api_client=mock_client,
@@ -403,7 +403,7 @@ class TestFullEvaluation:
             "offersCount": 100,
         }
 
-        passed, reasons = await filter_instance.evaluate_item(item)
+        passed, _reasons = await filter_instance.evaluate_item(item)
 
         assert passed is True
         assert filter_instance.statistics.passed == 1
@@ -417,7 +417,7 @@ class TestFullEvaluation:
             "offersCount": 50,
         }
 
-        passed, reasons = await filter_instance.evaluate_item(item)
+        passed, _reasons = await filter_instance.evaluate_item(item)
 
         assert passed is False
         assert filter_instance.statistics.failed_category == 1
@@ -431,7 +431,7 @@ class TestFullEvaluation:
             "offersCount": 100,
         }
 
-        passed, reasons = await filter_instance.evaluate_item(item)
+        passed, _reasons = await filter_instance.evaluate_item(item)
 
         assert passed is False
         assert filter_instance.statistics.failed_price == 1

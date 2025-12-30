@@ -7,9 +7,10 @@ Note: This file implements BDD-style tests using plain pytest with structured
 step functions, as pytest-bdd may not be installed in all environments.
 """
 
+import operator
+from unittest.mock import AsyncMock
+
 import pytest
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
 
 
 # ============================================================================
@@ -17,7 +18,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 # ============================================================================
 
 
-@pytest.fixture
+@pytest.fixture()
 def trading_system():
     """Initialize the trading system."""
     return {
@@ -30,7 +31,7 @@ def trading_system():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def authenticated_user():
     """Create an authenticated user context."""
     return {
@@ -43,7 +44,7 @@ def authenticated_user():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_api():
     """Mock API client."""
     api = AsyncMock()
@@ -65,7 +66,7 @@ class TestArbitrageScanningFeature:
     def test_successful_scan_on_standard_level(self, trading_system, mock_api):
         """
         Scenario: Successful arbitrage scan on standard level
-        
+
         Given I have valid API credentials
         And I select "csgo" game
         When I scan "standard" level for opportunities
@@ -76,21 +77,21 @@ class TestArbitrageScanningFeature:
         trading_system["credentials"] = {"public_key": "test", "secret_key": "test"}
         trading_system["api_connected"] = True
         trading_system["game"] = "csgo"
-        
+
         # When: scan standard level
         mock_opportunities = [
             {"item": "AK-47", "buy_price": 10.0, "sell_price": 12.0, "profit_percent": 8.0},
             {"item": "M4A4", "buy_price": 15.0, "sell_price": 18.0, "profit_percent": 7.5},
         ]
-        
+
         def mock_scan(level: str, game: str) -> list:
             if level == "standard" and game == "csgo":
                 return mock_opportunities
             return []
-        
+
         # Act
         results = mock_scan("standard", "csgo")
-        
+
         # Then: verify results
         assert len(results) > 0, "Should find opportunities"
         for opp in results:
@@ -101,7 +102,7 @@ class TestArbitrageScanningFeature:
     def test_no_opportunities_on_boost_level(self, trading_system, mock_api):
         """
         Scenario: No opportunities found on boost level
-        
+
         Given I have valid API credentials
         And market conditions are unfavorable
         When I scan "boost" level for opportunities
@@ -111,13 +112,13 @@ class TestArbitrageScanningFeature:
         # Given: unfavorable market
         trading_system["credentials"] = {"public_key": "test", "secret_key": "test"}
         trading_system["api_connected"] = True
-        
+
         def mock_scan_empty(level: str, game: str) -> tuple[list, str]:
             return [], "No opportunities found"
-        
+
         # When
         results, message = mock_scan_empty("boost", "csgo")
-        
+
         # Then
         assert len(results) == 0, "Should return empty list"
         assert message == "No opportunities found"
@@ -125,7 +126,7 @@ class TestArbitrageScanningFeature:
     def test_scan_multiple_games(self, trading_system, mock_api):
         """
         Scenario: Scan multiple games simultaneously
-        
+
         Given I have valid API credentials
         When I scan "standard" level for games: csgo, dota2, rust
         Then I should see combined opportunities from all games
@@ -134,21 +135,21 @@ class TestArbitrageScanningFeature:
         # Given
         trading_system["credentials"] = {"public_key": "test", "secret_key": "test"}
         games = ["csgo", "dota2", "rust"]
-        
+
         # Mock opportunities per game
         all_opportunities = [
             {"game": "csgo", "item": "AK-47", "profit_percent": 10.0},
             {"game": "dota2", "item": "Hook", "profit_percent": 15.0},
             {"game": "rust", "item": "Rust Skin", "profit_percent": 8.0},
         ]
-        
+
         # When: combine and sort
         sorted_opportunities = sorted(
-            all_opportunities, 
-            key=lambda x: x["profit_percent"], 
+            all_opportunities,
+            key=operator.itemgetter("profit_percent"),
             reverse=True
         )
-        
+
         # Then
         assert len(sorted_opportunities) == 3
         assert sorted_opportunities[0]["profit_percent"] == 15.0  # Highest profit first
@@ -157,7 +158,7 @@ class TestArbitrageScanningFeature:
     def test_filter_by_minimum_profit(self, trading_system):
         """
         Scenario: Filter opportunities by minimum profit
-        
+
         Given I have valid API credentials
         And I set minimum profit threshold to 10%
         When I scan "standard" level for opportunities
@@ -171,10 +172,10 @@ class TestArbitrageScanningFeature:
             {"item": "C", "profit_percent": 12.0},
             {"item": "D", "profit_percent": 5.0},  # Should be filtered
         ]
-        
+
         # When: apply filter
         filtered = [o for o in all_opportunities if o["profit_percent"] >= min_profit]
-        
+
         # Then
         assert len(filtered) == 2
         for opp in filtered:
@@ -183,7 +184,7 @@ class TestArbitrageScanningFeature:
     def test_filter_by_price_range(self, trading_system):
         """
         Scenario: Scan with price range filter
-        
+
         Given I have valid API credentials
         And I set price range from $1.00 to $50.00
         When I scan "standard" level for opportunities
@@ -195,15 +196,15 @@ class TestArbitrageScanningFeature:
             {"item": "A", "buy_price": 10.0},
             {"item": "B", "buy_price": 0.5},   # Should be filtered
             {"item": "C", "buy_price": 45.0},
-            {"item": "D", "buy_price": 100.0}, # Should be filtered
+            {"item": "D", "buy_price": 100.0},  # Should be filtered
         ]
-        
+
         # When: apply filter
         filtered = [
-            o for o in all_opportunities 
+            o for o in all_opportunities
             if min_price <= o["buy_price"] <= max_price
         ]
-        
+
         # Then
         assert len(filtered) == 2
         for opp in filtered:
@@ -221,7 +222,7 @@ class TestBalanceManagementFeature:
     def test_check_balance_successfully(self, authenticated_user, mock_api):
         """
         Scenario: Check balance successfully
-        
+
         Given I have $100.50 USD balance
         And I have 250 DMC balance
         When I execute the /balance command
@@ -230,16 +231,16 @@ class TestBalanceManagementFeature:
         """
         # Given
         authenticated_user["balance"] = {"usd": 100.50, "dmc": 250}
-        
+
         # When: format balance
         def format_balance(balance: dict) -> dict:
             return {
                 "usd_display": f"${balance['usd']:.2f}",
-                "dmc_display": str(balance['dmc']),
+                "dmc_display": str(balance["dmc"]),
             }
-        
+
         result = format_balance(authenticated_user["balance"])
-        
+
         # Then
         assert result["usd_display"] == "$100.50"
         assert result["dmc_display"] == "250"
@@ -247,7 +248,7 @@ class TestBalanceManagementFeature:
     def test_check_balance_with_zero_funds(self, authenticated_user):
         """
         Scenario: Check balance with zero funds
-        
+
         Given I have $0.00 USD balance
         And I have 0 DMC balance
         When I execute the /balance command
@@ -256,15 +257,15 @@ class TestBalanceManagementFeature:
         """
         # Given
         authenticated_user["balance"] = {"usd": 0.0, "dmc": 0}
-        
+
         # When
         def check_balance(balance: dict) -> tuple[str, str]:
             is_zero = balance["usd"] == 0 and balance["dmc"] == 0
             suggestion = "Please deposit funds to start trading" if is_zero else ""
             return f"${balance['usd']:.2f}", suggestion
-        
+
         usd_display, suggestion = check_balance(authenticated_user["balance"])
-        
+
         # Then
         assert usd_display == "$0.00"
         assert "deposit" in suggestion.lower()
@@ -272,7 +273,7 @@ class TestBalanceManagementFeature:
     def test_handle_api_error_gracefully(self, authenticated_user, mock_api):
         """
         Scenario: Handle API error gracefully
-        
+
         Given the API is temporarily unavailable
         When I execute the /balance command
         Then I should see an error message
@@ -280,7 +281,7 @@ class TestBalanceManagementFeature:
         """
         # Given: API error
         mock_api.get_balance = AsyncMock(side_effect=Exception("API unavailable"))
-        
+
         # When
         def get_balance_with_error_handling(api) -> tuple[str, bool]:
             try:
@@ -288,9 +289,9 @@ class TestBalanceManagementFeature:
                 raise Exception("API unavailable")
             except Exception as e:
                 return f"Error: {e}. Please try again later.", False
-        
+
         message, success = get_balance_with_error_handling(mock_api)
-        
+
         # Then
         assert not success
         assert "error" in message.lower()
@@ -299,7 +300,7 @@ class TestBalanceManagementFeature:
     def test_balance_updates_after_purchase(self, authenticated_user):
         """
         Scenario: Balance updates after purchase
-        
+
         Given I have $100.00 USD balance
         And I purchase an item for $10.00
         When I execute the /balance command
@@ -308,14 +309,14 @@ class TestBalanceManagementFeature:
         # Given
         authenticated_user["balance"] = {"usd": 100.0, "dmc": 0}
         purchase_amount = 10.0
-        
+
         # When: simulate purchase
         def make_purchase(user: dict, amount: float) -> dict:
             user["balance"]["usd"] -= amount
             return user["balance"]
-        
+
         new_balance = make_purchase(authenticated_user, purchase_amount)
-        
+
         # Then
         assert new_balance["usd"] == 90.0
 
@@ -331,7 +332,7 @@ class TestTradingOperationsFeature:
     def test_successful_item_purchase(self, authenticated_user, mock_api):
         """
         Scenario: Successful item purchase
-        
+
         Given an item "AK-47 | Redline" is available for $15.00
         And I have $20.00 USD balance
         When I purchase the item
@@ -342,16 +343,16 @@ class TestTradingOperationsFeature:
         # Given
         authenticated_user["balance"] = {"usd": 20.0, "dmc": 0}
         item = {"name": "AK-47 | Redline", "price": 15.0}
-        
+
         # When
         def purchase_item(user: dict, item: dict) -> tuple[bool, str, dict]:
             if user["balance"]["usd"] >= item["price"]:
                 user["balance"]["usd"] -= item["price"]
                 return True, f"Successfully purchased {item['name']}", user["balance"]
             return False, "Insufficient balance", user["balance"]
-        
+
         success, message, new_balance = purchase_item(authenticated_user, item)
-        
+
         # Then
         assert success
         assert "Successfully" in message
@@ -360,7 +361,7 @@ class TestTradingOperationsFeature:
     def test_purchase_fails_insufficient_balance(self, authenticated_user):
         """
         Scenario: Purchase fails due to insufficient balance
-        
+
         Given an item "AWP | Dragon Lore" is available for $2000.00
         And I have $100.00 USD balance
         When I attempt to purchase the item
@@ -372,16 +373,16 @@ class TestTradingOperationsFeature:
         initial_balance = 100.0
         authenticated_user["balance"] = {"usd": initial_balance, "dmc": 0}
         item = {"name": "AWP | Dragon Lore", "price": 2000.0}
-        
+
         # When
         def purchase_item(user: dict, item: dict) -> tuple[bool, str]:
             if user["balance"]["usd"] >= item["price"]:
                 user["balance"]["usd"] -= item["price"]
                 return True, "Success"
             return False, "Insufficient balance"
-        
+
         success, message = purchase_item(authenticated_user, item)
-        
+
         # Then
         assert not success
         assert "Insufficient balance" in message
@@ -390,7 +391,7 @@ class TestTradingOperationsFeature:
     def test_successful_item_listing(self, authenticated_user):
         """
         Scenario: Successful item listing
-        
+
         Given I own an item "M4A4 | Howl"
         And I want to sell it for $1500.00
         When I list the item for sale
@@ -401,18 +402,18 @@ class TestTradingOperationsFeature:
         owned_item = {"name": "M4A4 | Howl", "id": "item_123"}
         authenticated_user["inventory"] = [owned_item]
         listing_price = 1500.0
-        
+
         # When
         def create_listing(user: dict, item: dict, price: float) -> tuple[bool, str, dict]:
             if item in user["inventory"]:
                 listing = {"item": item, "price": price, "status": "active"}
                 return True, f"Listed {item['name']} for ${price:.2f}", listing
             return False, "Item not in inventory", None
-        
+
         success, message, listing = create_listing(
             authenticated_user, owned_item, listing_price
         )
-        
+
         # Then
         assert success
         assert "Listed" in message
@@ -422,7 +423,7 @@ class TestTradingOperationsFeature:
     def test_cancel_active_listing(self, authenticated_user):
         """
         Scenario: Cancel active listing
-        
+
         Given I have an active listing for "Glock-18 | Fade" at $300.00
         When I cancel the listing
         Then the listing should be removed
@@ -432,15 +433,15 @@ class TestTradingOperationsFeature:
         item = {"name": "Glock-18 | Fade", "id": "item_456"}
         authenticated_user["inventory"] = []  # Item is listed, not in inventory
         active_listing = {"item": item, "price": 300.0, "status": "active"}
-        
+
         # When
         def cancel_listing(user: dict, listing: dict) -> tuple[bool, str]:
             listing["status"] = "cancelled"
             user["inventory"].append(listing["item"])
             return True, f"Cancelled listing for {listing['item']['name']}"
-        
-        success, message = cancel_listing(authenticated_user, active_listing)
-        
+
+        success, _message = cancel_listing(authenticated_user, active_listing)
+
         # Then
         assert success
         assert active_listing["status"] == "cancelled"
@@ -458,7 +459,7 @@ class TestNotificationManagementFeature:
     def test_enable_price_alert_notifications(self, authenticated_user):
         """
         Scenario: Enable price alert notifications
-        
+
         Given I have price alerts disabled
         When I enable price alert notifications
         Then I should receive a confirmation
@@ -466,14 +467,14 @@ class TestNotificationManagementFeature:
         """
         # Given
         authenticated_user["notifications"]["price_alerts"] = False
-        
+
         # When
         def enable_price_alerts(user: dict) -> tuple[str, dict]:
             user["notifications"]["price_alerts"] = True
             return "Price alerts enabled", user["notifications"]
-        
+
         message, settings = enable_price_alerts(authenticated_user)
-        
+
         # Then
         assert "enabled" in message.lower()
         assert settings["price_alerts"]
@@ -481,7 +482,7 @@ class TestNotificationManagementFeature:
     def test_set_price_drop_alert(self, authenticated_user):
         """
         Scenario: Set price drop alert
-        
+
         Given I am watching item "AK-47 | Vulcan"
         And the current price is $50.00
         When I set a price alert for when it drops below $40.00
@@ -491,7 +492,7 @@ class TestNotificationManagementFeature:
         # Given
         item = {"name": "AK-47 | Vulcan", "current_price": 50.0}
         target_price = 40.0
-        
+
         # When
         def set_price_alert(user: dict, item: dict, target: float) -> tuple[bool, str, dict]:
             alert = {
@@ -501,9 +502,9 @@ class TestNotificationManagementFeature:
                 "type": "price_drop",
             }
             return True, f"Alert set for {item['name']} at ${target:.2f}", alert
-        
+
         success, message, alert = set_price_alert(authenticated_user, item, target_price)
-        
+
         # Then
         assert success
         assert "Alert set" in message
@@ -512,7 +513,7 @@ class TestNotificationManagementFeature:
     def test_receive_notification_on_price_drop(self, authenticated_user):
         """
         Scenario: Receive notification when price drops
-        
+
         Given I have a price alert set for "AWP | Asiimov" at $30.00
         And the item price drops to $28.00
         When the price check runs
@@ -525,7 +526,7 @@ class TestNotificationManagementFeature:
             "current_price": 35.0,
         }
         new_price = 28.0
-        
+
         # When
         def check_price_alert(alert: dict, new_price: float) -> tuple[bool, str]:
             if new_price <= alert["target_price"]:
@@ -534,9 +535,9 @@ class TestNotificationManagementFeature:
                     f"(was ${alert['current_price']:.2f})"
                 )
             return False, ""
-        
+
         triggered, notification = check_price_alert(alert, new_price)
-        
+
         # Then
         assert triggered
         assert "dropped" in notification.lower()
@@ -545,7 +546,7 @@ class TestNotificationManagementFeature:
     def test_disable_all_notifications(self, authenticated_user):
         """
         Scenario: Disable all notifications
-        
+
         Given I have various notifications enabled
         When I disable all notifications
         Then I should receive a confirmation
@@ -557,7 +558,7 @@ class TestNotificationManagementFeature:
             "digest": "daily",
             "market_updates": True,
         }
-        
+
         # When
         def disable_all_notifications(user: dict) -> tuple[str, dict]:
             for key in user["notifications"]:
@@ -566,9 +567,9 @@ class TestNotificationManagementFeature:
                 else:
                     user["notifications"][key] = "disabled"
             return "All notifications disabled", user["notifications"]
-        
+
         message, settings = disable_all_notifications(authenticated_user)
-        
+
         # Then
         assert "disabled" in message.lower()
         assert not settings["price_alerts"]
@@ -577,7 +578,7 @@ class TestNotificationManagementFeature:
     def test_configure_digest_frequency(self, authenticated_user):
         """
         Scenario: Configure digest frequency
-        
+
         Given I want daily digest notifications
         When I set digest frequency to "daily"
         Then my digest preference should be saved
@@ -585,7 +586,7 @@ class TestNotificationManagementFeature:
         """
         # Given
         authenticated_user["notifications"]["digest"] = "disabled"
-        
+
         # When
         def set_digest_frequency(user: dict, frequency: str) -> tuple[str, str]:
             valid_frequencies = ["disabled", "daily", "weekly", "monthly"]
@@ -593,9 +594,9 @@ class TestNotificationManagementFeature:
                 user["notifications"]["digest"] = frequency
                 return f"Digest frequency set to {frequency}", frequency
             return "Invalid frequency", user["notifications"]["digest"]
-        
+
         message, new_frequency = set_digest_frequency(authenticated_user, "daily")
-        
+
         # Then
         assert "daily" in message
         assert new_frequency == "daily"

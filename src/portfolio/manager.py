@@ -375,7 +375,7 @@ class PortfolioManager:
             return
 
         try:
-            with open(self._storage_path) as f:
+            with open(self._storage_path, encoding="utf-8") as f:
                 data = json.load(f)
 
             for user_id_str, portfolio_data in data.items():
@@ -400,7 +400,7 @@ class PortfolioManager:
                 str(user_id): portfolio.to_dict() for user_id, portfolio in self._portfolios.items()
             }
 
-            with open(self._storage_path, "w") as f:
+            with open(self._storage_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
 
         except Exception as e:

@@ -92,13 +92,11 @@ class UserProfileManager:
         """
         if ENCRYPTION_KEY_FILE.exists():
             # Загружаем существующий ключ
-            with open(ENCRYPTION_KEY_FILE, "rb") as f:
-                self._encryption_key = f.read()
+            Path(ENCRYPTION_KEY_FILE).read_bytes()
         else:
             # Создаем новый ключ
             self._encryption_key = Fernet.generate_key()
-            with open(ENCRYPTION_KEY_FILE, "wb") as f:
-                f.write(self._encryption_key)
+            Path(ENCRYPTION_KEY_FILE).write_bytes(self._encryption_key)
 
             # Устанавливаем ограничения доступа к файлу ключа
             try:

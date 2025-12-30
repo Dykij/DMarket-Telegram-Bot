@@ -234,7 +234,7 @@ async def handle_dmarket_api_error(
     elif error_code == 429:
         user_message = "Превышен лимит запросов к DMarket API. Пожалуйста, попробуйте позже."
         logger.warning("Превышен лимит запросов к DMarket API: %s", dmarket_error)
-    elif error_code in (500, 502, 503, 504):
+    elif error_code in {500, 502, 503, 504}:
         user_message = "Сервис DMarket временно недоступен. Пожалуйста, попробуйте позже."
         logger.error("Ошибка сервера DMarket: %s", dmarket_error)
     else:

@@ -6,7 +6,6 @@ This module tests the DatabaseManager class including:
 - Database initialization
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -107,7 +106,7 @@ class TestDatabaseManagerURLConversion:
 class TestDatabaseManagerStatus:
     """Tests for database status methods."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_db_status_not_initialized(self):
         """Test get_db_status when engine not initialized."""
         manager = DatabaseManager(database_url="sqlite:///:memory:")
@@ -117,7 +116,7 @@ class TestDatabaseManagerStatus:
         assert status["max_overflow"] == 10
         assert status["async_engine"] == "Not initialized"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_db_status_initialized(self):
         """Test get_db_status when engine is initialized."""
         manager = DatabaseManager(database_url="sqlite:///:memory:")
@@ -134,7 +133,7 @@ class TestDatabaseManagerStatus:
 class TestDatabaseManagerClose:
     """Tests for closing database connections."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_close_when_initialized(self):
         """Test closing database connections."""
         manager = DatabaseManager(database_url="sqlite:///:memory:")
@@ -143,7 +142,7 @@ class TestDatabaseManagerClose:
         await manager.close()
         # Should not raise any errors
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_close_when_not_initialized(self):
         """Test closing when engine not initialized."""
         manager = DatabaseManager(database_url="sqlite:///:memory:")
@@ -154,7 +153,7 @@ class TestDatabaseManagerClose:
 class TestDatabaseManagerInit:
     """Tests for database initialization."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_init_database(self):
         """Test database initialization."""
         manager = DatabaseManager(database_url="sqlite:///:memory:")

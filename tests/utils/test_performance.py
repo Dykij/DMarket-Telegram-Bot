@@ -420,7 +420,7 @@ class TestCachedDecorator:
         assert result2 == 10
         assert call_count == 1  # Функция не вызвана повторно
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_cached_async_function(self):
         """Тест кеширования асинхронной функции."""
         call_count = 0
@@ -509,7 +509,7 @@ class TestProfilePerformanceDecorator:
         result = sync_func(5)
         assert result == 10
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_profile_async_function(self):
         """Тест профилирования асинхронной функции."""
 
@@ -535,7 +535,7 @@ class TestProfilePerformanceDecorator:
             assert result == "done"
             mock_logger.info.assert_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_profile_async_logs_execution_time(self):
         """Тест логирования времени выполнения async функции."""
         with patch("src.utils.performance.logger") as mock_logger:
@@ -573,21 +573,21 @@ class TestProfilePerformanceDecorator:
 class TestAsyncBatch:
     """Тесты для класса AsyncBatch."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_init_default_values(self):
         """Тест инициализации с дефолтными значениями."""
         batch = AsyncBatch()
         assert batch.max_concurrent == 5
         assert batch.delay == 0.1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_init_custom_values(self):
         """Тест инициализации с кастомными значениями."""
         batch = AsyncBatch(max_concurrent=10, delay_between_batches=0.5)
         assert batch.max_concurrent == 10
         assert batch.delay == 0.5
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_single_task(self):
         """Тест выполнения одной задачи."""
         batch = AsyncBatch()
@@ -598,7 +598,7 @@ class TestAsyncBatch:
         results = await batch.execute([task()])
         assert results == [42]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_multiple_tasks(self):
         """Тест выполнения нескольких задач."""
         batch = AsyncBatch(max_concurrent=5)
@@ -611,7 +611,7 @@ class TestAsyncBatch:
 
         assert results == [0, 2, 4, 6, 8]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_preserves_order(self):
         """Результаты должны сохранять порядок задач."""
         batch = AsyncBatch(max_concurrent=3)
@@ -625,14 +625,14 @@ class TestAsyncBatch:
 
         assert results == [0, 1, 2, 3, 4]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_empty_list(self):
         """Тест выполнения пустого списка задач."""
         batch = AsyncBatch()
         results = await batch.execute([])
         assert results == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_respects_concurrency_limit(self):
         """Тест соблюдения лимита параллельности."""
         batch = AsyncBatch(max_concurrent=2)
@@ -652,7 +652,7 @@ class TestAsyncBatch:
 
         assert max_concurrent_observed <= 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_with_exception(self):
         """Тест обработки исключений в задачах."""
         batch = AsyncBatch()

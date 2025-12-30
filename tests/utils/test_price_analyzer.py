@@ -3,8 +3,8 @@
 Проверяет функции анализа цен и истории продаж.
 """
 
-import time
 from datetime import datetime
+import time
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -391,7 +391,6 @@ class TestEdgeCases:
 # ============================================================================
 
 
-
 class TestCalculatePriceTrend:
     """Tests for calculate_price_trend function."""
 
@@ -465,7 +464,7 @@ class TestCalculatePriceTrend:
         result = await calculate_price_trend(mock_api, "item123", days=7)
 
         # Assert - trend should be stable or show minimal change
-        assert result["trend"] in ["stable", "upward", "downward"]
+        assert result["trend"] in {"stable", "upward", "downward"}
         assert abs(result["change_percent"]) < 10  # Less than 10% change indicates stable
 
     @pytest.mark.asyncio()

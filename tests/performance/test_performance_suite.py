@@ -17,6 +17,7 @@ from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.memory_cache import TTLCache
 from src.utils.redis_cache import RedisCache
 
+
 # ============================================================================
 # PART 1: LOAD TESTING (10 tests)
 # ============================================================================
@@ -157,7 +158,7 @@ async def test_recovery_after_failure():
     """Test system recovery after failure."""
     # Simulate retry mechanism
     call_count = 0
-    
+
     async def operation_with_retry():
         nonlocal call_count
         for _ in range(5):
@@ -171,9 +172,9 @@ async def test_recovery_after_failure():
                     raise
                 await asyncio.sleep(0.01)
         return None
-    
+
     result = await operation_with_retry()
-    
+
     assert result is not None
     assert call_count >= 3, f"Should have retried, call_count={call_count}"
 
@@ -184,12 +185,12 @@ async def test_graceful_shutdown_under_load():
     async def slow_operation():
         await asyncio.sleep(2.0)
         return "complete"
-    
+
     start_time = time.perf_counter()
-    
+
     # Create tasks
     tasks = [asyncio.create_task(slow_operation()) for _ in range(50)]
-    
+
     # Cancel all tasks after 0.5 second
     await asyncio.sleep(0.5)
     cancelled_count = 0
@@ -197,10 +198,10 @@ async def test_graceful_shutdown_under_load():
         if not task.done():
             task.cancel()
             cancelled_count += 1
-    
+
     results = await asyncio.gather(*tasks, return_exceptions=True)
     elapsed = time.perf_counter() - start_time
-    
+
     cancelled = sum(1 for r in results if isinstance(r, asyncio.CancelledError))
     assert cancelled > 0 or cancelled_count > 0, "Some tasks should be cancelled"
     assert elapsed < 2.0, f"Should shutdown quickly, took {elapsed:.2f}s"

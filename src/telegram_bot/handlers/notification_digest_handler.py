@@ -12,7 +12,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -46,7 +46,7 @@ DIGEST_RESET = "digest_reset"
 DIGEST_BACK = "digest_back"
 
 
-class DigestFrequency(str, Enum):
+class DigestFrequency(StrEnum):
     """Частота отправки дайджестов."""
 
     DISABLED = "disabled"
@@ -57,7 +57,7 @@ class DigestFrequency(str, Enum):
     WEEKLY = "weekly"
 
 
-class GroupingMode(str, Enum):
+class GroupingMode(StrEnum):
     """Режим группировки уведомлений в дайджесте."""
 
     BY_TYPE = "by_type"  # По типу (arbitrage, price_drop, etc.)

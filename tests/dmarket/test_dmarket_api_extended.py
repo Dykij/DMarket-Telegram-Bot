@@ -62,7 +62,7 @@ def dmarket_api_live(api_keys):
 class TestDepositOperations:
     """Tests for deposit-related methods."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_deposit_assets_success(self, dmarket_api):
         """Test successful asset deposit."""
         mock_response = {"DepositID": "deposit_123"}
@@ -75,7 +75,7 @@ class TestDepositOperations:
             assert result["DepositID"] == "deposit_123"
             dmarket_api._request.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_deposit_assets_empty_list(self, dmarket_api):
         """Test deposit with empty asset list."""
         mock_response = {"DepositID": "deposit_empty"}
@@ -87,7 +87,7 @@ class TestDepositOperations:
 
             assert result["DepositID"] == "deposit_empty"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_deposit_assets_single_item(self, dmarket_api):
         """Test deposit with single asset."""
         mock_response = {"DepositID": "deposit_single"}
@@ -99,7 +99,7 @@ class TestDepositOperations:
 
             assert "DepositID" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_deposit_status_pending(self, dmarket_api):
         """Test getting pending deposit status."""
         mock_response = {
@@ -115,7 +115,7 @@ class TestDepositOperations:
 
             assert result["Status"] == "TransferStatusPending"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_deposit_status_completed(self, dmarket_api):
         """Test getting completed deposit status."""
         mock_response = {
@@ -132,7 +132,7 @@ class TestDepositOperations:
             assert result["Status"] == "TransferStatusCompleted"
             assert len(result["Assets"]) == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_deposit_status_failed(self, dmarket_api):
         """Test getting failed deposit status."""
         mock_response = {
@@ -149,7 +149,7 @@ class TestDepositOperations:
             assert result["Status"] == "TransferStatusFailed"
             assert "Error" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_withdraw_assets_success(self, dmarket_api):
         """Test successful asset withdrawal."""
         mock_response = {"success": True, "WithdrawID": "withdraw_123"}
@@ -161,7 +161,7 @@ class TestDepositOperations:
 
             assert result["success"] is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_withdraw_assets_empty_list(self, dmarket_api):
         """Test withdrawal with empty list."""
         mock_response = {"success": True}
@@ -182,7 +182,7 @@ class TestDepositOperations:
 class TestInventoryOperations:
     """Tests for inventory-related methods."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sync_inventory_success(self, dmarket_api):
         """Test successful inventory sync."""
         mock_response = {"success": True, "syncedItems": 10}
@@ -195,7 +195,7 @@ class TestInventoryOperations:
             assert result["success"] is True
             dmarket_api._request.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sync_inventory_default_game(self, dmarket_api):
         """Test sync with default game ID."""
         mock_response = {"success": True}
@@ -207,7 +207,7 @@ class TestInventoryOperations:
 
             assert result["success"] is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_user_inventory_success(self, dmarket_api):
         """Test listing user inventory."""
         mock_response = {
@@ -228,7 +228,7 @@ class TestInventoryOperations:
             assert len(result["items"]) == 2
             assert result["total"] == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_user_inventory_with_pagination(self, dmarket_api):
         """Test inventory listing with pagination."""
         mock_response = {"items": [], "total": 200}
@@ -243,7 +243,7 @@ class TestInventoryOperations:
             dmarket_api._request.assert_called_once()
             assert "items" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_user_inventory_empty(self, dmarket_api):
         """Test listing empty inventory."""
         mock_response = {"items": [], "total": 0}
@@ -265,7 +265,7 @@ class TestInventoryOperations:
 class TestMarketOperations:
     """Tests for market-related methods."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_market_items_success(self, dmarket_api):
         """Test listing market items."""
         mock_response = {
@@ -285,7 +285,7 @@ class TestMarketOperations:
 
             assert len(result["objects"]) == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_market_items_with_ordering(self, dmarket_api):
         """Test market items with ordering."""
         mock_response = {"objects": [], "total": 0}
@@ -299,7 +299,7 @@ class TestMarketOperations:
 
             assert "objects" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_offers_by_title_success(self, dmarket_api):
         """Test listing offers by title."""
         mock_response = {
@@ -318,7 +318,7 @@ class TestMarketOperations:
 
             assert len(result["offers"]) == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_offers_by_title_empty(self, dmarket_api):
         """Test listing offers for non-existent item."""
         mock_response = {"offers": []}
@@ -332,7 +332,7 @@ class TestMarketOperations:
 
             assert result["offers"] == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_buy_offers_success(self, dmarket_api_live):
         """Test buying offers."""
         mock_response = {"success": True, "offersProcessed": 2}
@@ -349,7 +349,7 @@ class TestMarketOperations:
 
             assert result["success"] is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_market_best_offers_success(self, dmarket_api):
         """Test getting best market offers."""
         mock_response = {
@@ -368,7 +368,7 @@ class TestMarketOperations:
 
             assert len(result["offers"]) == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_market_meta_success(self, dmarket_api):
         """Test getting market metadata."""
         mock_response = {
@@ -392,7 +392,7 @@ class TestMarketOperations:
 class TestPriceAndSalesHistory:
     """Tests for price and sales history methods."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_aggregated_prices_success(self, dmarket_api):
         """Test getting aggregated prices."""
         mock_response = {
@@ -410,7 +410,7 @@ class TestPriceAndSalesHistory:
 
             assert "aggregatedPrices" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_aggregated_prices_bulk_success(self, dmarket_api):
         """Test getting aggregated prices in bulk."""
         mock_response = {
@@ -429,7 +429,7 @@ class TestPriceAndSalesHistory:
 
             assert "prices" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_market_aggregated_prices_success(self, dmarket_api):
         """Test getting market aggregated prices."""
         mock_response = {
@@ -447,7 +447,7 @@ class TestPriceAndSalesHistory:
 
             assert "items" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_sales_history_success(self, dmarket_api):
         """Test getting sales history."""
         mock_response = {
@@ -466,7 +466,7 @@ class TestPriceAndSalesHistory:
 
             assert len(result["sales"]) == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_sales_history_empty(self, dmarket_api):
         """Test sales history for item with no sales."""
         mock_response = {"sales": []}
@@ -480,7 +480,7 @@ class TestPriceAndSalesHistory:
 
             assert result["sales"] == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_item_price_history_success(self, dmarket_api):
         """Test getting item price history."""
         mock_response = {
@@ -499,7 +499,7 @@ class TestPriceAndSalesHistory:
 
             assert len(result["history"]) == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_sales_history_aggregator_success(self, dmarket_api):
         """Test getting aggregated sales history."""
         mock_response = {
@@ -527,7 +527,7 @@ class TestPriceAndSalesHistory:
 class TestOfferManagement:
     """Tests for offer management methods."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_edit_offer_success(self, dmarket_api_live):
         """Test editing an offer."""
         mock_response = {"success": True, "offerId": "offer_123"}
@@ -541,7 +541,7 @@ class TestOfferManagement:
 
             assert result["success"] is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_edit_offer_price_conversion(self, dmarket_api_live):
         """Test that price is converted to cents."""
         with patch.object(
@@ -555,7 +555,7 @@ class TestOfferManagement:
             call_args = mock_request.call_args
             assert call_args is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_delete_offer_success(self, dmarket_api_live):
         """Test deleting an offer."""
         mock_response = {"success": True}
@@ -567,7 +567,7 @@ class TestOfferManagement:
 
             assert result["success"] is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_active_offers_success(self, dmarket_api):
         """Test getting active offers."""
         mock_response = {
@@ -587,7 +587,7 @@ class TestOfferManagement:
 
             assert len(result["offers"]) == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_active_offers_empty(self, dmarket_api):
         """Test getting offers when none exist."""
         mock_response = {"offers": [], "total": 0}
@@ -599,7 +599,7 @@ class TestOfferManagement:
 
             assert result["offers"] == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_active_offers_with_status_filter(self, dmarket_api):
         """Test getting offers with status filter."""
         mock_response = {"offers": [], "total": 0}
@@ -622,7 +622,7 @@ class TestOfferManagement:
 class TestTargetOperations:
     """Tests for target/buy order methods."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_targets_success(self, dmarket_api_live):
         """Test creating targets."""
         mock_response = {
@@ -647,7 +647,7 @@ class TestTargetOperations:
 
             assert len(result["Targets"]) == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_targets_multiple(self, dmarket_api_live):
         """Test creating multiple targets."""
         mock_response = {
@@ -670,7 +670,7 @@ class TestTargetOperations:
 
             assert len(result["Targets"]) == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_user_targets_success(self, dmarket_api):
         """Test getting user targets."""
         mock_response = {
@@ -687,7 +687,7 @@ class TestTargetOperations:
 
             assert len(result["Targets"]) == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_user_targets_with_status(self, dmarket_api):
         """Test getting targets with status filter."""
         mock_response = {"Targets": [], "Total": 0}
@@ -701,7 +701,7 @@ class TestTargetOperations:
 
             assert "Targets" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_delete_targets_success(self, dmarket_api_live):
         """Test deleting targets."""
         mock_response = {"success": True, "deleted": 2}
@@ -715,7 +715,7 @@ class TestTargetOperations:
 
             assert result["success"] is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_targets_by_title_success(self, dmarket_api):
         """Test getting targets by title."""
         mock_response = {
@@ -733,7 +733,7 @@ class TestTargetOperations:
 
             assert len(result["orders"]) == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_buy_orders_competition_success(self, dmarket_api):
         """Test getting buy orders competition."""
         mock_response = {
@@ -753,7 +753,7 @@ class TestTargetOperations:
 
             assert "competition_level" in result or "orders" in result or "title" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_closed_targets_success(self, dmarket_api):
         """Test getting closed targets."""
         mock_response = {
@@ -778,7 +778,7 @@ class TestTargetOperations:
 class TestUtilityMethods:
     """Tests for utility methods."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_supported_games_success(self, dmarket_api):
         """Test getting supported games."""
         mock_response = [
@@ -795,7 +795,7 @@ class TestUtilityMethods:
 
             assert len(result) == 4
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_direct_balance_request_success(self, dmarket_api):
         """Test direct balance request."""
         mock_response = {
@@ -823,7 +823,7 @@ class TestUtilityMethods:
 class TestErrorHandling:
     """Tests for error handling in various scenarios."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_deposit_assets_api_error(self, dmarket_api):
         """Test deposit with API error."""
         with patch.object(
@@ -832,31 +832,28 @@ class TestErrorHandling:
             new=AsyncMock(side_effect=httpx.HTTPStatusError(
                 "Error", request=MagicMock(), response=MagicMock(status_code=500)
             )),
-        ):
-            with pytest.raises(httpx.HTTPStatusError):
-                await dmarket_api.deposit_assets(["asset_1"])
+        ), pytest.raises(httpx.HTTPStatusError):
+            await dmarket_api.deposit_assets(["asset_1"])
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sync_inventory_timeout(self, dmarket_api):
         """Test inventory sync with timeout."""
         with patch.object(
             dmarket_api,
             "_request",
             new=AsyncMock(side_effect=httpx.TimeoutException("Timeout")),
-        ):
-            with pytest.raises(httpx.TimeoutException):
-                await dmarket_api.sync_inventory()
+        ), pytest.raises(httpx.TimeoutException):
+            await dmarket_api.sync_inventory()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_targets_connection_error(self, dmarket_api):
         """Test targets request with connection error."""
         with patch.object(
             dmarket_api,
             "_request",
             new=AsyncMock(side_effect=httpx.ConnectError("Connection failed")),
-        ):
-            with pytest.raises(httpx.ConnectError):
-                await dmarket_api.get_user_targets(game_id="a8db")
+        ), pytest.raises(httpx.ConnectError):
+            await dmarket_api.get_user_targets(game_id="a8db")
 
 
 # ============================================================================
@@ -867,7 +864,7 @@ class TestErrorHandling:
 class TestEdgeCases:
     """Tests for edge cases and boundary conditions."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_inventory_large_offset(self, dmarket_api):
         """Test inventory listing with large offset."""
         mock_response = {"items": [], "total": 0}
@@ -881,7 +878,7 @@ class TestEdgeCases:
 
             assert result["items"] == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_targets_empty_list(self, dmarket_api_live):
         """Test creating empty targets list."""
         mock_response = {"Targets": []}
@@ -895,7 +892,7 @@ class TestEdgeCases:
 
             assert result["Targets"] == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_offers_max_limit(self, dmarket_api):
         """Test getting offers with max limit."""
         mock_response = {"offers": [{"id": i} for i in range(100)], "total": 100}
@@ -907,7 +904,7 @@ class TestEdgeCases:
 
             assert len(result["offers"]) == 100
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sales_history_long_period(self, dmarket_api):
         """Test sales history for long period."""
         mock_response = {"sales": [{"date": f"2024-01-{i:02d}"} for i in range(1, 31)]}
@@ -921,7 +918,7 @@ class TestEdgeCases:
 
             assert len(result["sales"]) == 30
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_unicode_title_handling(self, dmarket_api):
         """Test handling of Unicode characters in titles."""
         mock_response = {"offers": [{"title": "АК-47 | Кровавый"}]}
@@ -935,7 +932,7 @@ class TestEdgeCases:
 
             assert len(result["offers"]) == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_special_characters_in_title(self, dmarket_api):
         """Test handling of special characters in titles."""
         mock_response = {"offers": []}

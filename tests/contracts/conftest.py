@@ -5,7 +5,7 @@ using Pact. It configures the Pact mock server and provides helpers for
 creating contract expectations.
 
 Usage:
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_balance(pact: Pact):
         # Setup expectation
         (pact

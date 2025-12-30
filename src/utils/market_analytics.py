@@ -6,7 +6,7 @@ for DMarket trading. Implements RSI, MACD, and fair price calculation.
 
 from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 import statistics
 from typing import Any
 
@@ -19,7 +19,7 @@ from src.utils.logging_utils import get_logger
 logger = get_logger(__name__)
 
 
-class TrendDirection(str, Enum):
+class TrendDirection(StrEnum):
     """Trend direction indicators."""
 
     BULLISH = "bullish"  # Восходящий тренд
@@ -27,7 +27,7 @@ class TrendDirection(str, Enum):
     NEUTRAL = "neutral"  # Боковой тренд
 
 
-class SignalType(str, Enum):
+class SignalType(StrEnum):
     """Trading signal types."""
 
     BUY = "buy"  # Сигнал на покупку

@@ -9,7 +9,6 @@
 - utils.py - утилиты клавиатур
 """
 
-import pytest
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 

@@ -13,15 +13,13 @@ Tests cover:
 
 from __future__ import annotations
 
-import pytest
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
-    KeyboardButton,
     ReplyKeyboardMarkup,
-    WebAppInfo,
 )
 
+from src.telegram_bot.keyboards.utils import CB_BACK, CB_CANCEL
 from src.telegram_bot.keyboards.webapp import (
     get_api_key_input_keyboard,
     get_combined_web_app_keyboard,
@@ -33,7 +31,6 @@ from src.telegram_bot.keyboards.webapp import (
     get_webapp_button,
     get_webapp_keyboard,
 )
-from src.telegram_bot.keyboards.utils import CB_BACK, CB_CANCEL
 
 
 # ============================================================================

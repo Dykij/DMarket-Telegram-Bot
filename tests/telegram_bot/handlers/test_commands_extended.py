@@ -11,10 +11,10 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from telegram import Update, Chat, Message, User
+from telegram import Chat, Message, Update, User
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_update():
     """Создаёт мок объекта Update."""
     update = MagicMock(spec=Update)
@@ -31,7 +31,7 @@ def mock_update():
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context():
     """Создаёт мок объекта Context."""
     context = MagicMock()
@@ -44,7 +44,7 @@ def mock_context():
 class TestStartCommand:
     """Тесты для команды /start."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_command_sends_welcome_message(
         self, mock_update, mock_context
     ):
@@ -58,7 +58,7 @@ class TestStartCommand:
         # Проверяем что было как минимум 2 вызова (welcome + keyboard)
         assert mock_update.message.reply_text.call_count >= 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_command_sets_keyboard_enabled(
         self, mock_update, mock_context
     ):
@@ -70,7 +70,7 @@ class TestStartCommand:
         # Проверяем что флаг установлен
         assert mock_context.user_data.get("keyboard_enabled") is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_command_returns_early_without_message(
         self, mock_context
     ):
@@ -87,7 +87,7 @@ class TestStartCommand:
 class TestHelpCommand:
     """Тесты для команды /help."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_help_command_sends_help_text(
         self, mock_update, mock_context
     ):
@@ -102,7 +102,7 @@ class TestHelpCommand:
         # Проверяем что в тексте есть справка
         assert "команды" in call_args[0][0].lower() or "команды" in str(call_args)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_help_command_returns_early_without_message(
         self, mock_context
     ):
@@ -118,7 +118,7 @@ class TestHelpCommand:
 class TestWebappCommand:
     """Тесты для команды /webapp."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_webapp_command_sends_webapp_link(
         self, mock_update, mock_context
     ):
@@ -129,7 +129,7 @@ class TestWebappCommand:
 
         assert mock_update.message.reply_text.called
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_webapp_command_returns_early_without_message(
         self, mock_context
     ):
@@ -145,7 +145,7 @@ class TestWebappCommand:
 class TestArbitrageCommand:
     """Тесты для команды /arbitrage."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_arbitrage_command_shows_menu(
         self, mock_update, mock_context
     ):
@@ -156,7 +156,7 @@ class TestArbitrageCommand:
 
         assert mock_update.message.reply_text.called
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_arbitrage_command_returns_early_without_message(
         self, mock_context
     ):
@@ -172,7 +172,7 @@ class TestArbitrageCommand:
 class TestDashboardCommand:
     """Тесты для команды dashboard."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_dashboard_command_shows_dashboard(
         self, mock_update, mock_context
     ):
@@ -188,7 +188,7 @@ class TestDashboardCommand:
 class TestMarketsCommand:
     """Тесты для команды markets."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_markets_command_shows_markets(
         self, mock_update, mock_context
     ):
@@ -199,7 +199,7 @@ class TestMarketsCommand:
 
         assert mock_update.message.reply_text.called
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_markets_command_returns_early_without_message(
         self, mock_context
     ):
@@ -215,7 +215,7 @@ class TestMarketsCommand:
 class TestDmarketStatusCommand:
     """Тесты для команды dmarket_status."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_dmarket_status_command_shows_status(
         self, mock_update, mock_context
     ):
@@ -231,7 +231,7 @@ class TestDmarketStatusCommand:
 class TestHandleTextButtons:
     """Тесты для обработчика текстовых кнопок."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_text_buttons_arbitrage(
         self, mock_update, mock_context
     ):
@@ -242,7 +242,7 @@ class TestHandleTextButtons:
 
         await handle_text_buttons(mock_update, mock_context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_text_buttons_targets(
         self, mock_update, mock_context
     ):
@@ -253,7 +253,7 @@ class TestHandleTextButtons:
 
         await handle_text_buttons(mock_update, mock_context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_text_buttons_settings(
         self, mock_update, mock_context
     ):
@@ -268,7 +268,7 @@ class TestHandleTextButtons:
 class TestCommandErrorHandling:
     """Тесты обработки ошибок в командах."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_command_handles_exception(
         self, mock_update, mock_context
     ):
@@ -284,7 +284,7 @@ class TestCommandErrorHandling:
             # Ожидается что исключение может быть либо обработано, либо выброшено
             pass
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_help_command_handles_exception(
         self, mock_update, mock_context
     ):

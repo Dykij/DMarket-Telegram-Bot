@@ -7,7 +7,6 @@ This module tests src/telegram_bot/smart_notifications/handlers.py covering:
 Target: 18+ tests to achieve 70%+ coverage
 """
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -118,9 +117,9 @@ class TestHandleNotificationCallback:
         )
 
         mock_update.callback_query.data = "unknown_action"
-        
+
         await handle_notification_callback(mock_update, mock_context)
-        
+
         mock_update.callback_query.answer.assert_called_once()
 
     @pytest.mark.asyncio()
@@ -131,10 +130,10 @@ class TestHandleNotificationCallback:
         )
 
         mock_update.callback_query.data = "disable_alert:alert_123"
-        
+
         with patch(f"{HANDLERS_MODULE}.deactivate_alert", new=AsyncMock(return_value=True)):
             await handle_notification_callback(mock_update, mock_context)
-        
+
         mock_update.callback_query.answer.assert_called_once()
         mock_update.callback_query.edit_message_text.assert_called_once()
         call_args = mock_update.callback_query.edit_message_text.call_args
@@ -148,10 +147,10 @@ class TestHandleNotificationCallback:
         )
 
         mock_update.callback_query.data = "disable_alert:alert_123"
-        
+
         with patch(f"{HANDLERS_MODULE}.deactivate_alert", new=AsyncMock(return_value=False)):
             await handle_notification_callback(mock_update, mock_context)
-        
+
         mock_update.callback_query.answer.assert_called_once()
         mock_update.callback_query.edit_message_reply_markup.assert_called_once()
 
@@ -164,9 +163,9 @@ class TestHandleNotificationCallback:
 
         mock_update.callback_query.data = "track_item:item_123:csgo"
         mock_context.bot_data = {}  # No dmarket_api
-        
+
         await handle_notification_callback(mock_update, mock_context)
-        
+
         mock_update.callback_query.edit_message_text.assert_called_once()
         call_args = mock_update.callback_query.edit_message_text.call_args
         assert "API not available" in call_args.kwargs.get("text", "")
@@ -180,10 +179,10 @@ class TestHandleNotificationCallback:
 
         mock_update.callback_query.data = "track_item:item_123:csgo"
         mock_context.bot_data = {"dmarket_api": mock_api}
-        
+
         with patch(f"{HANDLERS_MODULE}.get_item_by_id", new=AsyncMock(return_value=None)):
             await handle_notification_callback(mock_update, mock_context)
-        
+
         mock_update.callback_query.edit_message_text.assert_called_once()
         call_args = mock_update.callback_query.edit_message_text.call_args
         assert "Item not found" in call_args.kwargs.get("text", "")
@@ -197,12 +196,12 @@ class TestHandleNotificationCallback:
 
         mock_update.callback_query.data = "track_item:item_abc:csgo"
         mock_context.bot_data = {"dmarket_api": mock_api}
-        
+
         with patch(f"{HANDLERS_MODULE}.get_item_by_id", new=AsyncMock(return_value=sample_item_data)), \
              patch(f"{HANDLERS_MODULE}.get_item_price", return_value=20.0), \
              patch(f"{HANDLERS_MODULE}.create_alert", new=AsyncMock(return_value="alert_id")):
             await handle_notification_callback(mock_update, mock_context)
-        
+
         mock_update.callback_query.edit_message_text.assert_called_once()
         call_args = mock_update.callback_query.edit_message_text.call_args
         assert "Alerts created" in call_args.kwargs.get("text", "")
@@ -216,10 +215,10 @@ class TestHandleNotificationCallback:
 
         mock_update.callback_query.data = "track_item:item_123:csgo"
         mock_context.bot_data = {"dmarket_api": mock_api}
-        
+
         with patch(f"{HANDLERS_MODULE}.get_item_by_id", new=AsyncMock(side_effect=Exception("API Error"))):
             await handle_notification_callback(mock_update, mock_context)
-        
+
         mock_update.callback_query.edit_message_text.assert_called_once()
         call_args = mock_update.callback_query.edit_message_text.call_args
         assert "Error creating alert" in call_args.kwargs.get("text", "")
@@ -233,12 +232,12 @@ class TestHandleNotificationCallback:
 
         mock_update.callback_query.data = "track_item:item_abc"  # No game specified
         mock_context.bot_data = {"dmarket_api": mock_api}
-        
+
         with patch(f"{HANDLERS_MODULE}.get_item_by_id", new=AsyncMock(return_value=sample_item_data)), \
              patch(f"{HANDLERS_MODULE}.get_item_price", return_value=20.0), \
              patch(f"{HANDLERS_MODULE}.create_alert", new=AsyncMock(return_value="alert_id")):
             await handle_notification_callback(mock_update, mock_context)
-        
+
         mock_update.callback_query.edit_message_text.assert_called_once()
 
     @pytest.mark.asyncio()
@@ -255,10 +254,10 @@ class TestHandleNotificationCallback:
         update.callback_query.from_user.id = 12345
         update.callback_query.message.text = None
         update.callback_query.edit_message_text = AsyncMock()
-        
+
         with patch(f"{HANDLERS_MODULE}.deactivate_alert", new=AsyncMock(return_value=True)):
             await handle_notification_callback(update, mock_context)
-        
+
         update.callback_query.edit_message_text.assert_called_once()
 
 
@@ -277,11 +276,11 @@ class TestRegisterNotificationHandlers:
         )
 
         mock_application.bot_data = {"dmarket_api": mock_api}
-        
+
         with patch(f"{HANDLERS_MODULE}.asyncio.create_task") as mock_create_task, \
              patch(f"{HANDLERS_MODULE}.start_notification_checker", new=AsyncMock()):
             register_notification_handlers(mock_application)
-        
+
         mock_application.add_handler.assert_called_once()
         mock_create_task.assert_called_once()
 
@@ -292,10 +291,10 @@ class TestRegisterNotificationHandlers:
         )
 
         mock_application.bot_data = {}  # No dmarket_api
-        
+
         with patch(f"{HANDLERS_MODULE}.asyncio.create_task") as mock_create_task:
             register_notification_handlers(mock_application)
-        
+
         mock_application.add_handler.assert_called_once()
         mock_create_task.assert_not_called()
 
@@ -310,11 +309,11 @@ class TestRegisterNotificationHandlers:
             "dmarket_api": mock_api,
             "notification_queue": notification_queue,
         }
-        
+
         with patch(f"{HANDLERS_MODULE}.asyncio.create_task") as mock_create_task, \
              patch(f"{HANDLERS_MODULE}.start_notification_checker", new=AsyncMock()):
             register_notification_handlers(mock_application)
-        
+
         mock_application.add_handler.assert_called_once()
         mock_create_task.assert_called_once()
 
@@ -325,9 +324,9 @@ class TestRegisterNotificationHandlers:
         )
 
         mock_application.bot_data = {}
-        
+
         register_notification_handlers(mock_application)
-        
+
         mock_application.add_handler.assert_called_once()
         call_args = mock_application.add_handler.call_args
         handler = call_args[0][0]
@@ -357,7 +356,7 @@ class TestHandlerEdgeCases:
         update.callback_query.from_user.id = 12345
         update.callback_query.message = MagicMock(spec=[])  # No text attribute
         update.callback_query.edit_message_text = AsyncMock()
-        
+
         with patch(f"{HANDLERS_MODULE}.deactivate_alert", new=AsyncMock(return_value=True)):
             await handle_notification_callback(update, mock_context)
 
@@ -370,6 +369,6 @@ class TestHandlerEdgeCases:
 
         mock_update.callback_query.data = "track_item:item_abc-123_!@#:csgo"
         mock_context.bot_data = {"dmarket_api": mock_api}
-        
+
         with patch(f"{HANDLERS_MODULE}.get_item_by_id", new=AsyncMock(return_value=None)):
             await handle_notification_callback(mock_update, mock_context)

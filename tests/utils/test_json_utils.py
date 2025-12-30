@@ -8,6 +8,7 @@
 from datetime import datetime
 import io
 import json as stdlib_json
+import math
 from unittest.mock import patch
 
 import pytest
@@ -387,7 +388,7 @@ class TestEdgeCases:
     def test_dumps_number_types(self):
         """Тест сериализации различных числовых типов."""
         # Arrange
-        data = {"int": 42, "float": 3.14, "negative": -10, "zero": 0}
+        data = {"int": 42, "float": math.pi, "negative": -10, "zero": 0}
 
         # Act
         result = json_utils.dumps(data)
@@ -395,6 +396,6 @@ class TestEdgeCases:
         # Assert
         parsed = json_utils.loads(result)
         assert parsed["int"] == 42
-        assert abs(parsed["float"] - 3.14) < 0.01
+        assert abs(parsed["float"] - math.pi) < 0.01
         assert parsed["negative"] == -10
         assert parsed["zero"] == 0

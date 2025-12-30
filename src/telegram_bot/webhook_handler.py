@@ -53,7 +53,7 @@ class WebhookHandler:
     def __init__(
         self,
         bot_app: Application,  # type: ignore[type-arg]
-        host: str = "0.0.0.0",  # noqa: S104
+        host: str = "127.0.0.1",  # По умолчанию localhost для безопасности
         port: int = 8443,
         webhook_path: str = "/webhook",
         health_path: str = "/health",
@@ -62,10 +62,15 @@ class WebhookHandler:
 
         Args:
             bot_app: Telegram Application instance
-            host: Host to bind to
+            host: Host to bind to (default: 127.0.0.1 for security)
             port: Port to listen on
             webhook_path: Path for webhook endpoint
             health_path: Path for health endpoint
+
+        Security:
+            - Default host is 127.0.0.1 (localhost) to prevent external access
+            - In production, set host to "0.0.0.0" only behind reverse proxy/firewall
+            - Use WEBHOOK_HOST environment variable to configure
         """
         self.bot_app = bot_app
         self.host = host

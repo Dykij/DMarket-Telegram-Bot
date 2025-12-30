@@ -10,7 +10,7 @@ Features:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 import logging
 from typing import Any
 
@@ -20,7 +20,7 @@ import httpx
 logger = logging.getLogger(__name__)
 
 
-class NotificationLevel(str, Enum):
+class NotificationLevel(StrEnum):
     """Notification severity level."""
 
     INFO = "info"
@@ -339,7 +339,7 @@ class DiscordNotifier:
                     json=payload,
                 )
 
-                if response.status_code in (200, 204):
+                if response.status_code in {200, 204}:
                     logger.info(
                         "discord_notification_sent",
                         extra={"title": embed.title},

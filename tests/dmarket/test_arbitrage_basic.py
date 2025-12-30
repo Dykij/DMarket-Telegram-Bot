@@ -97,11 +97,11 @@ class TestConstants:
 
     def test_price_ranges_ascending(self):
         """Тест что ценовые диапазоны возрастают."""
-        boost_min, boost_max = PRICE_RANGES["boost"]
+        _boost_min, boost_max = PRICE_RANGES["boost"]
         low_min, low_max = PRICE_RANGES["low"]
         medium_min, medium_max = PRICE_RANGES["medium"]
         high_min, high_max = PRICE_RANGES["high"]
-        pro_min, pro_max = PRICE_RANGES["pro"]
+        pro_min, _pro_max = PRICE_RANGES["pro"]
 
         assert boost_max <= low_min
         assert low_max <= medium_min
@@ -245,7 +245,7 @@ class TestGameConfiguration:
 
     def test_game_keys_lowercase(self):
         """Тест что ключи игр в нижнем регистре."""
-        for game_key in GAMES.keys():
+        for game_key in GAMES:
             assert game_key == game_key.lower()
 
 

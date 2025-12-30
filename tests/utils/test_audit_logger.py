@@ -369,7 +369,7 @@ class TestAuditLoggerExtended:
     @pytest.mark.asyncio()
     async def test_search_logs_with_date_range(self, audit_logger, mock_session):
         """Test search_logs with date range."""
-        from datetime import datetime, timedelta, UTC
+        from datetime import UTC, datetime, timedelta
 
         mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = []

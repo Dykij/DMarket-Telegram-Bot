@@ -736,17 +736,7 @@ async def handle_set_category_callback(
             row = []
 
     # Добавляем кнопку сброса и возврата
-    keyboard.append(
-        [
-            InlineKeyboardButton(
-                "Сбросить",
-                callback_data=f"filter:category:reset:{game}",
-            ),
-        ],
-    )
-    keyboard.append(
-        [InlineKeyboardButton("⬅️ Назад", callback_data=f"select_game_filter:{game}")],
-    )
+    keyboard.extend(([InlineKeyboardButton("Сбросить", callback_data=f"filter:category:reset:{game}")], [InlineKeyboardButton("⬅️ Назад", callback_data=f"select_game_filter:{game}")]))
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -808,12 +798,7 @@ async def handle_set_rarity_callback(update: Update, context: ContextTypes.DEFAU
             row = []
 
     # Добавляем кнопку сброса и возврата
-    keyboard.append(
-        [InlineKeyboardButton("Сбросить", callback_data=f"filter:rarity:reset:{game}")],
-    )
-    keyboard.append(
-        [InlineKeyboardButton("⬅️ Назад", callback_data=f"select_game_filter:{game}")],
-    )
+    keyboard.extend(([InlineKeyboardButton("Сбросить", callback_data=f"filter:rarity:reset:{game}")], [InlineKeyboardButton("⬅️ Назад", callback_data=f"select_game_filter:{game}")]))
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -871,17 +856,7 @@ async def handle_set_exterior_callback(
         )
 
     # Добавляем кнопку сброса и возврата
-    keyboard.append(
-        [
-            InlineKeyboardButton(
-                "Сбросить",
-                callback_data=f"filter:exterior:reset:{game}",
-            ),
-        ],
-    )
-    keyboard.append(
-        [InlineKeyboardButton("⬅️ Назад", callback_data=f"select_game_filter:{game}")],
-    )
+    keyboard.extend(([InlineKeyboardButton("Сбросить", callback_data=f"filter:exterior:reset:{game}")], [InlineKeyboardButton("⬅️ Назад", callback_data=f"select_game_filter:{game}")]))
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -937,12 +912,7 @@ async def handle_set_hero_callback(update: Update, context: ContextTypes.DEFAULT
             row = []
 
     # Добавляем кнопку сброса и возврата
-    keyboard.append(
-        [InlineKeyboardButton("Сбросить", callback_data=f"filter:hero:reset:{game}")],
-    )
-    keyboard.append(
-        [InlineKeyboardButton("⬅️ Назад", callback_data=f"select_game_filter:{game}")],
-    )
+    keyboard.extend(([InlineKeyboardButton("Сбросить", callback_data=f"filter:hero:reset:{game}")], [InlineKeyboardButton("⬅️ Назад", callback_data=f"select_game_filter:{game}")]))
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -997,12 +967,7 @@ async def handle_set_class_callback(update: Update, context: ContextTypes.DEFAUL
         )
 
     # Добавляем кнопку сброса и возврата
-    keyboard.append(
-        [InlineKeyboardButton("Сбросить", callback_data=f"filter:class:reset:{game}")],
-    )
-    keyboard.append(
-        [InlineKeyboardButton("⬅️ Назад", callback_data=f"select_game_filter:{game}")],
-    )
+    keyboard.extend(([InlineKeyboardButton("Сбросить", callback_data=f"filter:class:reset:{game}")], [InlineKeyboardButton("⬅️ Назад", callback_data=f"select_game_filter:{game}")]))
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -1132,7 +1097,7 @@ async def handle_filter_callback(update: Update, context: ContextTypes.DEFAULT_T
             filters["class"] = filter_value
 
     # Булевы фильтры (вкл/выкл)
-    elif filter_type in ["stattrak", "souvenir", "tradable", "australium"]:
+    elif filter_type in {"stattrak", "souvenir", "tradable", "australium"}:
         # Переключаем значение фильтра
         filters[filter_type] = not filters.get(filter_type, False)
 

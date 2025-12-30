@@ -271,7 +271,7 @@ class TestMetricsCollector:
 class TestMeasureTimeDecorator:
     """Tests for measure_time decorator."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_measure_time_basic(self) -> None:
         """Test measure_time decorator basic functionality."""
         mock_histogram = MagicMock()
@@ -288,7 +288,7 @@ class TestMeasureTimeDecorator:
         assert result == "result"
         mock_histogram.observe.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_measure_time_with_labels(self) -> None:
         """Test measure_time decorator with labels."""
         mock_histogram = MagicMock()
@@ -307,7 +307,7 @@ class TestMeasureTimeDecorator:
         mock_histogram.labels.assert_called_once_with(**labels)
         mock_histogram.labels.return_value.observe.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_measure_time_with_exception(self) -> None:
         """Test measure_time decorator records time even on exception."""
         mock_histogram = MagicMock()

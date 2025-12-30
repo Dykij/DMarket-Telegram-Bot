@@ -35,7 +35,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class AssetType(str, Enum):
+class AssetType(StrEnum):
     """Type of asset in portfolio."""
 
     INVENTORY = "inventory"  # Items in user's inventory (not listed)
@@ -56,7 +56,7 @@ class AssetType(str, Enum):
     CASH = "cash"  # USD balance
 
 
-class RiskLevel(str, Enum):
+class RiskLevel(StrEnum):
     """Risk level classification."""
 
     LOW = "low"
@@ -65,7 +65,7 @@ class RiskLevel(str, Enum):
     CRITICAL = "critical"
 
 
-class RebalanceAction(str, Enum):
+class RebalanceAction(StrEnum):
     """Recommended rebalancing action."""
 
     SELL = "sell"
@@ -298,7 +298,7 @@ class PortfolioManager:
                 targets = targets_data.get("Items", [])
 
             except Exception as e:
-                logger.error("Error fetching portfolio data: %s", e)
+                logger.exception("Error fetching portfolio data: %s", e)
 
         # Build portfolio assets
         assets: list[PortfolioAsset] = []
@@ -563,7 +563,7 @@ class PortfolioManager:
         illiquid_value = sum(
             a.total_value
             for a in snapshot.assets
-            if a.category in ["Sticker", "Graffiti", "Case", "Key", "Music Kit", "Patch"]
+            if a.category in {"Sticker", "Graffiti", "Case", "Key", "Music Kit", "Patch"}
         )
         illiquidity_risk = (illiquid_value / total_value) * 100
 
@@ -749,7 +749,7 @@ class PortfolioManager:
             sellable = [
                 a
                 for a in snapshot.assets
-                if a.asset_type in (AssetType.INVENTORY, AssetType.LISTED)
+                if a.asset_type in {AssetType.INVENTORY, AssetType.LISTED}
                 and a.profit_loss_percent >= 0  # Only profitable items
             ]
             sellable.sort(key=lambda x: x.total_value)  # Sort by value, sell smallest first
@@ -875,8 +875,7 @@ class PortfolioManager:
 
         # Game distribution
         if snapshot.game_distribution:
-            lines.append("")
-            lines.append("🎮 *By Game:*")
+            lines.extend(("", "🎮 *By Game:*"))
             for game, value in sorted(snapshot.game_distribution.items(), key=lambda x: -x[1]):
                 percent = (
                     (value / snapshot.total_value_usd * 100) if snapshot.total_value_usd > 0 else 0
@@ -900,15 +899,13 @@ class PortfolioManager:
 
         # Risk factors
         if risk.risk_factors:
-            lines.append("")
-            lines.append("⚠️ *Risk Factors:*")
+            lines.extend(("", "⚠️ *Risk Factors:*"))
             for factor in risk.risk_factors[:3]:
                 lines.append(f"  • {factor}")
 
         # Recommendations
         if risk.recommendations:
-            lines.append("")
-            lines.append("💡 *Recommendations:*")
+            lines.extend(("", "💡 *Recommendations:*"))
             for rec in risk.recommendations[:3]:
                 lines.append(f"  • {rec}")
 

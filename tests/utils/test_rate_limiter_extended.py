@@ -9,11 +9,8 @@ This module contains tests for src/utils/rate_limiter.py covering:
 Target: 25+ tests to achieve 70%+ coverage
 """
 
-import asyncio
 import time
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 from src.utils.rate_limiter import (
     BASE_RETRY_DELAY,

@@ -223,21 +223,21 @@ class TestSaveUserProfiles:
 class TestSettingsCommand:
     """Тесты для функции settings_command."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_none_if_no_effective_user(self, mock_update, mock_context):
         """Должен возвращать None если нет effective_user."""
         mock_update.effective_user = None
         result = await settings_command(mock_update, mock_context)
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_none_if_no_message(self, mock_update, mock_context):
         """Должен возвращать None если нет message."""
         mock_update.message = None
         result = await settings_command(mock_update, mock_context)
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     @patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
     async def test_sends_settings_message(self, mock_keyboard, mock_localized, mock_update, mock_context):
@@ -249,7 +249,7 @@ class TestSettingsCommand:
 
         mock_update.message.reply_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     @patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
     async def test_uses_localized_text(self, mock_keyboard, mock_localized, mock_update, mock_context):
@@ -263,7 +263,7 @@ class TestSettingsCommand:
         call_args = mock_update.message.reply_text.call_args
         assert call_args[0][0] == "Текст настроек"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     @patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
     async def test_includes_keyboard(self, mock_keyboard, mock_localized, mock_update, mock_context):
@@ -284,14 +284,14 @@ class TestSettingsCommand:
 class TestSettingsCallback:
     """Тесты для функции settings_callback."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_none_if_no_callback_query(self, mock_update, mock_context):
         """Должен возвращать None если нет callback_query."""
         mock_update.callback_query = None
         result = await settings_callback(mock_update, mock_context)
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     @patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
     async def test_answers_callback_query(self, mock_keyboard, mock_localized, mock_update, mock_context):
@@ -304,14 +304,14 @@ class TestSettingsCallback:
 
         mock_update.callback_query.answer.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_none_if_no_data(self, mock_update, mock_context):
         """Должен возвращать None если нет data."""
         mock_update.callback_query.data = None
         await settings_callback(mock_update, mock_context)
         mock_update.callback_query.edit_message_text.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     @patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
     async def test_handles_settings_callback(self, mock_keyboard, mock_localized, mock_update, mock_context):
@@ -324,7 +324,7 @@ class TestSettingsCallback:
 
         mock_update.callback_query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     @patch("src.telegram_bot.handlers.settings_handlers.get_language_keyboard")
@@ -342,7 +342,7 @@ class TestSettingsCallback:
 
         mock_update.callback_query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.save_user_profiles")
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
@@ -361,7 +361,7 @@ class TestSettingsCallback:
 
         mock_save.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.get_back_to_settings_keyboard")
     async def test_handles_settings_api_keys_callback(self, mock_keyboard, mock_profile, mock_update, mock_context):
@@ -376,7 +376,7 @@ class TestSettingsCallback:
         message = call_args.kwargs.get("text", "")
         assert "API" in message
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.get_back_to_settings_keyboard")
     async def test_api_key_is_masked(self, mock_keyboard, mock_profile, mock_update, mock_context):
@@ -392,7 +392,7 @@ class TestSettingsCallback:
         assert "pk_1234567890abcdef" not in message  # Полный ключ не должен отображаться
         assert "..." in message  # Должен быть скрыт
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.save_user_profiles")
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
@@ -412,7 +412,7 @@ class TestSettingsCallback:
         assert profile["auto_trading_enabled"] is True
         mock_save.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.get_risk_profile_keyboard")
     async def test_handles_settings_limits_callback(self, mock_keyboard, mock_profile, mock_update, mock_context):
@@ -446,7 +446,7 @@ class TestEdgeCases:
 
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.get_back_to_settings_keyboard")
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_empty_api_key_displayed_correctly(self, mock_keyboard, mock_profile, mock_update, mock_context):
         """Пустой API ключ должен отображаться как 'Не установлен'."""
         mock_profile.return_value = {"api_key": "", "api_secret": ""}
@@ -461,7 +461,7 @@ class TestEdgeCases:
 
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.get_risk_profile_keyboard")
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_missing_trade_settings(self, mock_keyboard, mock_profile, mock_update, mock_context):
         """Должен обрабатывать отсутствующие настройки торговли."""
         mock_profile.return_value = {}
@@ -476,7 +476,7 @@ class TestEdgeCases:
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.get_language_keyboard")
     @patch("src.telegram_bot.handlers.settings_handlers.LANGUAGES", {})
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_unsupported_language(self, mock_keyboard, mock_profile, mock_update, mock_context):
         """Должен обрабатывать неподдерживаемый язык."""
         mock_profile.return_value = {"language": "unsupported"}
@@ -493,7 +493,7 @@ class TestEdgeCases:
     @patch("src.telegram_bot.handlers.settings_handlers.save_user_profiles")
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     @patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_toggle_trading_off(
         self, mock_keyboard, mock_localized, mock_save, mock_profile, mock_update, mock_context
     ):
@@ -521,7 +521,7 @@ class TestEdgeCases:
 class TestIntegration:
     """Интеграционные тесты."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     @patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
     async def test_full_settings_flow(self, mock_keyboard, mock_localized, mock_update, mock_context):
@@ -538,7 +538,7 @@ class TestIntegration:
         await settings_callback(mock_update, mock_context)
         mock_update.callback_query.edit_message_text.assert_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.save_user_profiles")
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")

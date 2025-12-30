@@ -347,39 +347,38 @@ class TestHandleIntramarketCallback:
         # Создаем мок для pagination_manager и API client
         with patch(
             "src.telegram_bot.handlers.intramarket_arbitrage_handler.pagination_manager",
-        ) as mock_pagination:
-            with patch(
-                "src.telegram_bot.handlers.intramarket_arbitrage_handler.create_api_client_from_env",
-                return_value=AsyncMock(),
-            ):
-                # Настраиваем возврат get_page для пагинации
-                mock_pagination.get_page.return_value = (
-                    mock_rare.return_value,
-                    1,
-                    1,
-                )
-                mock_pagination.get_items_per_page.return_value = 5
+        ) as mock_pagination, patch(
+            "src.telegram_bot.handlers.intramarket_arbitrage_handler.create_api_client_from_env",
+            return_value=AsyncMock(),
+        ):
+            # Настраиваем возврат get_page для пагинации
+            mock_pagination.get_page.return_value = (
+                mock_rare.return_value,
+                1,
+                1,
+            )
+            mock_pagination.get_items_per_page.return_value = 5
 
-                # Вызываем тестируемую функцию
-                await handle_intramarket_callback(update, context)
+            # Вызываем тестируемую функцию
+            await handle_intramarket_callback(update, context)
 
-                # Проверяем, что ответ на callback был отправлен
-                update.callback_query.answer.assert_awaited_once()
+            # Проверяем, что ответ на callback был отправлен
+            update.callback_query.answer.assert_awaited_once()
 
-                # Проверяем, что find_mispriced_rare_items была вызвана
-                assert mock_rare.await_count == 1
-                call_kwargs = mock_rare.call_args[1]
-                assert call_kwargs["game"] == "csgo"
-                assert call_kwargs["max_results"] == 50
+            # Проверяем, что find_mispriced_rare_items была вызвана
+            assert mock_rare.await_count == 1
+            call_kwargs = mock_rare.call_args[1]
+            assert call_kwargs["game"] == "csgo"
+            assert call_kwargs["max_results"] == 50
 
-                # Проверяем, что pagination_manager был использован
-                mock_pagination.add_items_for_user.assert_called_once()
+            # Проверяем, что pagination_manager был использован
+            mock_pagination.add_items_for_user.assert_called_once()
 
-                # Проверяем отправленное сообщение
-                edit_calls = update.callback_query.edit_message_text.mock_calls
-                last_call_kwargs = edit_calls[-1][2]
-                # Результаты отформатированы
-                assert "reply_markup" in last_call_kwargs
+            # Проверяем отправленное сообщение
+            edit_calls = update.callback_query.edit_message_text.mock_calls
+            last_call_kwargs = edit_calls[-1][2]
+            # Результаты отформатированы
+            assert "reply_markup" in last_call_kwargs
 
     async def test_handle_invalid_callback(self, update, context):
         """Тест обработки некорректного callback-запроса."""

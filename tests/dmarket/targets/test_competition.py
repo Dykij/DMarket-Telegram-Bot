@@ -3,8 +3,7 @@
 Tests for target competition analysis and filtering functions.
 """
 
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -12,7 +11,7 @@ import pytest
 class TestAnalyzeTargetCompetition:
     """Tests for analyze_target_competition function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_competition_returns_analysis_dict(self):
         """Test analyze_target_competition returns proper analysis dict."""
         from src.dmarket.targets.competition import analyze_target_competition
@@ -33,7 +32,7 @@ class TestAnalyzeTargetCompetition:
         assert result["title"] == "AK-47 | Redline"
         assert result["game"] == "csgo"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_competition_with_no_competitors(self):
         """Test analyze_target_competition when no competitors exist."""
         from src.dmarket.targets.competition import analyze_target_competition
@@ -50,7 +49,7 @@ class TestAnalyzeTargetCompetition:
         assert result["best_price"] == 0.0
         assert result["competition_level"] == "low"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_competition_with_few_competitors(self):
         """Test analyze_target_competition with few competitors (low competition)."""
         from src.dmarket.targets.competition import analyze_target_competition
@@ -70,7 +69,7 @@ class TestAnalyzeTargetCompetition:
         assert result["total_orders"] == 3
         assert result["competition_level"] == "low"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_competition_with_medium_competition(self):
         """Test analyze_target_competition with medium competition."""
         from src.dmarket.targets.competition import analyze_target_competition
@@ -89,7 +88,7 @@ class TestAnalyzeTargetCompetition:
         assert result["total_orders"] == 10
         assert result["competition_level"] == "medium"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_competition_with_high_competition(self):
         """Test analyze_target_competition with high competition."""
         from src.dmarket.targets.competition import analyze_target_competition
@@ -108,7 +107,7 @@ class TestAnalyzeTargetCompetition:
         assert result["total_orders"] == 20
         assert result["competition_level"] == "high"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_competition_calculates_best_price(self):
         """Test analyze_target_competition calculates best price correctly."""
         from src.dmarket.targets.competition import analyze_target_competition
@@ -127,7 +126,7 @@ class TestAnalyzeTargetCompetition:
 
         assert result["best_price"] == 300.0  # Max of [100, 200, 300]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_competition_calculates_average_price(self):
         """Test analyze_target_competition calculates average price."""
         from src.dmarket.targets.competition import analyze_target_competition
@@ -146,7 +145,7 @@ class TestAnalyzeTargetCompetition:
 
         assert result["average_price"] == 200.0  # (100 + 200 + 300) / 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_competition_handles_api_error(self):
         """Test analyze_target_competition handles API errors."""
         from src.dmarket.targets.competition import analyze_target_competition
@@ -159,7 +158,7 @@ class TestAnalyzeTargetCompetition:
         assert "error" in result
         assert result["title"] == "Test Item"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_competition_uses_game_id_mapping(self):
         """Test analyze_target_competition uses correct game ID."""
         from src.dmarket.targets.competition import analyze_target_competition
@@ -175,7 +174,7 @@ class TestAnalyzeTargetCompetition:
         call_kwargs = mock_api.get_targets_by_title.call_args
         assert call_kwargs[1]["game"] == "a8db"  # csgo -> a8db
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_competition_calculates_recommended_price(self):
         """Test analyze_target_competition calculates recommended price."""
         from src.dmarket.targets.competition import analyze_target_competition
@@ -197,7 +196,7 @@ class TestAnalyzeTargetCompetition:
 class TestAssessCompetition:
     """Tests for assess_competition function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_assess_competition_returns_assessment_dict(self):
         """Test assess_competition returns proper assessment dict."""
         from src.dmarket.targets.competition import assess_competition
@@ -220,7 +219,7 @@ class TestAssessCompetition:
         assert "total_orders" in result
         assert "recommendation" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_assess_competition_recommends_proceed_with_low_competition(self):
         """Test assess_competition recommends proceeding with low competition."""
         from src.dmarket.targets.competition import assess_competition
@@ -238,7 +237,7 @@ class TestAssessCompetition:
 
         assert result["should_proceed"] is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_assess_competition_not_proceed_with_high_competition(self):
         """Test assess_competition does not recommend proceeding with high competition."""
         from src.dmarket.targets.competition import assess_competition
@@ -256,7 +255,7 @@ class TestAssessCompetition:
 
         assert result["should_proceed"] is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_assess_competition_with_zero_competitors(self):
         """Test assess_competition with zero competitors."""
         from src.dmarket.targets.competition import assess_competition
@@ -276,7 +275,7 @@ class TestAssessCompetition:
         assert "Нет конкурентов" in result["recommendation"]
         assert result["suggested_price"] is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_assess_competition_suggests_price(self):
         """Test assess_competition suggests price above best competitor."""
         from src.dmarket.targets.competition import assess_competition
@@ -296,7 +295,7 @@ class TestAssessCompetition:
         assert result["suggested_price"] is not None
         assert result["suggested_price"] > 10.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_assess_competition_handles_api_error(self):
         """Test assess_competition handles API errors."""
         from src.dmarket.targets.competition import assess_competition
@@ -310,7 +309,7 @@ class TestAssessCompetition:
         assert "error" in result
         assert "Ошибка" in result["recommendation"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_assess_competition_uses_price_threshold(self):
         """Test assess_competition passes price threshold to API."""
         from src.dmarket.targets.competition import assess_competition
@@ -330,7 +329,7 @@ class TestAssessCompetition:
         call_kwargs = mock_api.get_buy_orders_competition.call_args[1]
         assert call_kwargs["price_threshold"] == 100.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_assess_competition_includes_raw_data(self):
         """Test assess_competition includes raw API data."""
         from src.dmarket.targets.competition import assess_competition
@@ -354,7 +353,7 @@ class TestAssessCompetition:
 class TestFilterLowCompetitionItems:
     """Tests for filter_low_competition_items function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_filter_returns_low_competition_items(self):
         """Test filter_low_competition_items returns only low competition items."""
         from src.dmarket.targets.competition import filter_low_competition_items
@@ -397,7 +396,7 @@ class TestFilterLowCompetitionItems:
         # Only odd items (1, 3) should pass (low competition)
         assert len(result) == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_filter_skips_items_without_title(self):
         """Test filter_low_competition_items skips items without title."""
         from src.dmarket.targets.competition import filter_low_competition_items
@@ -424,7 +423,7 @@ class TestFilterLowCompetitionItems:
         # Only items with titles should be processed
         assert all("title" in item for item in result)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_filter_adds_competition_data_to_items(self):
         """Test filter_low_competition_items adds competition data to filtered items."""
         from src.dmarket.targets.competition import filter_low_competition_items
@@ -449,7 +448,7 @@ class TestFilterLowCompetitionItems:
         assert result[0]["title"] == "Test Item"
         assert result[0]["price"] == 100
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_filter_respects_request_delay(self):
         """Test filter_low_competition_items respects request delay."""
         from src.dmarket.targets.competition import filter_low_competition_items
@@ -475,7 +474,7 @@ class TestFilterLowCompetitionItems:
             # Sleep should be called between requests
             assert mock_sleep.call_count == 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_filter_with_empty_items_list(self):
         """Test filter_low_competition_items with empty items list."""
         from src.dmarket.targets.competition import filter_low_competition_items
@@ -489,7 +488,7 @@ class TestFilterLowCompetitionItems:
         assert result == []
         mock_api.get_buy_orders_competition.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_filter_uses_max_competition_threshold(self):
         """Test filter_low_competition_items uses custom max_competition."""
         from src.dmarket.targets.competition import filter_low_competition_items

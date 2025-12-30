@@ -36,7 +36,7 @@ class TestPrometheusServer:
         assert "/metrics" in routes
         assert "/health" in routes
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_metrics_handler(self) -> None:
         """Test metrics handler returns metrics."""
         server = PrometheusServer()
@@ -52,7 +52,7 @@ class TestPrometheusServer:
             # content_type includes charset for text/plain
             assert "text/plain" in response.content_type
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_health_handler(self) -> None:
         """Test health handler returns OK status."""
         server = PrometheusServer()
@@ -63,7 +63,7 @@ class TestPrometheusServer:
         assert response.status == 200
         assert response.content_type == "application/json"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_server(self) -> None:
         """Test starting the server."""
         server = PrometheusServer(port=18000)
@@ -87,7 +87,7 @@ class TestPrometheusServer:
             assert server.runner == mock_runner
             assert server.site == mock_site
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_server(self) -> None:
         """Test stopping the server."""
         server = PrometheusServer()
@@ -101,7 +101,7 @@ class TestPrometheusServer:
         server.site.stop.assert_called_once()
         server.runner.cleanup.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_server_when_not_started(self) -> None:
         """Test stopping server that was never started."""
         server = PrometheusServer()
@@ -109,7 +109,7 @@ class TestPrometheusServer:
         # Should not raise exception
         await server.stop()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_server_with_only_runner(self) -> None:
         """Test stopping server with only runner set."""
         server = PrometheusServer()
@@ -125,7 +125,7 @@ class TestPrometheusServer:
 class TestRunPrometheusServer:
     """Tests for run_prometheus_server function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_run_prometheus_server_cancellation(self) -> None:
         """Test run_prometheus_server handles cancellation."""
         with (
@@ -147,7 +147,7 @@ class TestRunPrometheusServer:
             mock_start.assert_called_once()
             mock_stop.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_run_prometheus_server_custom_port(self) -> None:
         """Test run_prometheus_server with custom port."""
         with (
@@ -167,7 +167,7 @@ class TestRunPrometheusServer:
 class TestPrometheusServerIntegration:
     """Integration-style tests for PrometheusServer."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_full_lifecycle(self) -> None:
         """Test full server lifecycle: init -> start -> stop."""
         with (
@@ -196,7 +196,7 @@ class TestPrometheusServerIntegration:
             mock_site.stop.assert_called_once()
             mock_runner.cleanup.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_metrics_handler_returns_bytes(self) -> None:
         """Test that metrics handler can return bytes content."""
         server = PrometheusServer()
@@ -212,7 +212,7 @@ class TestPrometheusServerIntegration:
             assert response.body == test_metrics
             assert response.status == 200
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_health_handler_json_structure(self) -> None:
         """Test that health handler returns proper JSON structure."""
         server = PrometheusServer()
@@ -235,7 +235,7 @@ class TestPrometheusServerEdgeCases:
         assert server1.port != server2.port
         assert server1.app is not server2.app
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_idempotent(self) -> None:
         """Test that stop can be called multiple times safely."""
         server = PrometheusServer()
@@ -251,4 +251,4 @@ class TestPrometheusServerEdgeCases:
 
         for route in server.app.router.routes():
             # Both /metrics and /health should be GET or HEAD
-            assert route.method in ("GET", "HEAD", "*")
+            assert route.method in {"GET", "HEAD", "*"}

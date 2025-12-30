@@ -77,16 +77,16 @@ async def test_sentry_command(update: Update, context: ContextTypes.DEFAULT_TYPE
     await update.message.reply_text(f"🧪 Запуск Sentry тестов: {test_type}")
 
     try:
-        if test_type in ("breadcrumbs", "all"):
+        if test_type in {"breadcrumbs", "all"}:
             await _test_breadcrumbs(update, user_id)
 
-        if test_type in ("error", "all"):
+        if test_type in {"error", "all"}:
             await _test_simple_error(update)
 
-        if test_type in ("api_error", "all"):
+        if test_type in {"api_error", "all"}:
             await _test_api_error(update, user_id)
 
-        if test_type in ("division", "all"):
+        if test_type in {"division", "all"}:
             await _test_division_error(update)
 
         if test_type == "all":

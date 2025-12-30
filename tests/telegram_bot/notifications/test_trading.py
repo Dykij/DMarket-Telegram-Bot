@@ -13,7 +13,7 @@ Coverage Target: 90%+
 Tests: 30+ tests
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from telegram import InlineKeyboardMarkup
@@ -33,7 +33,7 @@ from src.telegram_bot.notifications.trading import (
 # ============================================================================
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_bot():
     """Create a mock Telegram bot."""
     bot = AsyncMock()
@@ -41,7 +41,7 @@ def mock_bot():
     return bot
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_item():
     """Create a sample item dictionary."""
     return {
@@ -52,7 +52,7 @@ def sample_item():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_item_no_price():
     """Create a sample item without price."""
     return {
@@ -69,12 +69,12 @@ def sample_item_no_price():
 class TestSendBuyIntentNotification:
     """Tests for send_buy_intent_notification function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sends_notification_successfully(self, mock_bot, sample_item):
         """Test successful buy intent notification."""
         # Arrange
         user_id = 123456789
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.can_send_notification",
             return_value=True,
@@ -87,12 +87,12 @@ class TestSendBuyIntentNotification:
                 user_id=user_id,
                 item=sample_item,
             )
-            
+
             # Assert
             assert result is True
             mock_bot.send_message.assert_called_once()
             mock_increment.assert_called_once_with(user_id)
-            
+
             # Check message content
             call_kwargs = mock_bot.send_message.call_args.kwargs
             assert call_kwargs["chat_id"] == user_id
@@ -101,13 +101,13 @@ class TestSendBuyIntentNotification:
             assert "CSGO" in call_kwargs["text"]
             assert call_kwargs["parse_mode"] == "HTML"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_includes_reason_when_provided(self, mock_bot, sample_item):
         """Test that reason is included in notification."""
         # Arrange
         user_id = 123456789
         reason = "Price dropped 20% below average"
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.can_send_notification",
             return_value=True,
@@ -121,14 +121,14 @@ class TestSendBuyIntentNotification:
                 item=sample_item,
                 reason=reason,
             )
-            
+
             # Assert
             assert result is True
             call_kwargs = mock_bot.send_message.call_args.kwargs
             assert reason in call_kwargs["text"]
             assert "Причина" in call_kwargs["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_includes_keyboard_when_callback_data_provided(
         self, mock_bot, sample_item
     ):
@@ -136,7 +136,7 @@ class TestSendBuyIntentNotification:
         # Arrange
         user_id = 123456789
         callback_data = "item_123"
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.can_send_notification",
             return_value=True,
@@ -150,19 +150,19 @@ class TestSendBuyIntentNotification:
                 item=sample_item,
                 callback_data=callback_data,
             )
-            
+
             # Assert
             assert result is True
             call_kwargs = mock_bot.send_message.call_args.kwargs
             assert call_kwargs["reply_markup"] is not None
             assert isinstance(call_kwargs["reply_markup"], InlineKeyboardMarkup)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_keyboard_without_callback_data(self, mock_bot, sample_item):
         """Test that no keyboard when callback_data is None."""
         # Arrange
         user_id = 123456789
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.can_send_notification",
             return_value=True,
@@ -176,18 +176,18 @@ class TestSendBuyIntentNotification:
                 item=sample_item,
                 callback_data=None,
             )
-            
+
             # Assert
             assert result is True
             call_kwargs = mock_bot.send_message.call_args.kwargs
             assert call_kwargs["reply_markup"] is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_false_when_rate_limited(self, mock_bot, sample_item):
         """Test returns False when user is rate limited."""
         # Arrange
         user_id = 123456789
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.can_send_notification",
             return_value=False,
@@ -198,17 +198,17 @@ class TestSendBuyIntentNotification:
                 user_id=user_id,
                 item=sample_item,
             )
-            
+
             # Assert
             assert result is False
             mock_bot.send_message.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_missing_item_fields(self, mock_bot, sample_item_no_price):
         """Test handles item with missing fields gracefully."""
         # Arrange
         user_id = 123456789
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.can_send_notification",
             return_value=True,
@@ -221,20 +221,20 @@ class TestSendBuyIntentNotification:
                 user_id=user_id,
                 item=sample_item_no_price,
             )
-            
+
             # Assert
             assert result is True
             call_kwargs = mock_bot.send_message.call_args.kwargs
             assert "Test Item" in call_kwargs["text"]
             assert "$0.00" in call_kwargs["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_send_exception(self, mock_bot, sample_item):
         """Test handles exception when sending message fails."""
         # Arrange
         user_id = 123456789
         mock_bot.send_message.side_effect = Exception("Network error")
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.can_send_notification",
             return_value=True,
@@ -245,16 +245,16 @@ class TestSendBuyIntentNotification:
                 user_id=user_id,
                 item=sample_item,
             )
-            
+
             # Assert
             assert result is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_empty_item_dict(self, mock_bot):
         """Test handles empty item dictionary."""
         # Arrange
         user_id = 123456789
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.can_send_notification",
             return_value=True,
@@ -267,7 +267,7 @@ class TestSendBuyIntentNotification:
                 user_id=user_id,
                 item={},
             )
-            
+
             # Assert
             assert result is True
             call_kwargs = mock_bot.send_message.call_args.kwargs
@@ -282,13 +282,13 @@ class TestSendBuyIntentNotification:
 class TestSendBuySuccessNotification:
     """Tests for send_buy_success_notification function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sends_notification_successfully(self, mock_bot, sample_item):
         """Test successful buy success notification."""
         # Arrange
         user_id = 123456789
         buy_price = 15.00
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.increment_notification_count"
         ) as mock_increment:
@@ -299,26 +299,26 @@ class TestSendBuySuccessNotification:
                 item=sample_item,
                 buy_price=buy_price,
             )
-            
+
             # Assert
             assert result is True
             mock_bot.send_message.assert_called_once()
             mock_increment.assert_called_once_with(user_id)
-            
+
             call_kwargs = mock_bot.send_message.call_args.kwargs
             assert "AK-47 | Redline" in call_kwargs["text"]
             assert "$15.00" in call_kwargs["text"]
             assert "Покупка выполнена" in call_kwargs["text"]
             assert "✅" in call_kwargs["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_includes_order_id_when_provided(self, mock_bot, sample_item):
         """Test that order ID is included when provided."""
         # Arrange
         user_id = 123456789
         buy_price = 15.00
         order_id = "order_abc123"
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.increment_notification_count"
         ):
@@ -330,20 +330,20 @@ class TestSendBuySuccessNotification:
                 buy_price=buy_price,
                 order_id=order_id,
             )
-            
+
             # Assert
             assert result is True
             call_kwargs = mock_bot.send_message.call_args.kwargs
             assert order_id in call_kwargs["text"]
             assert "ID заказа" in call_kwargs["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_order_id_when_not_provided(self, mock_bot, sample_item):
         """Test no order ID line when not provided."""
         # Arrange
         user_id = 123456789
         buy_price = 15.00
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.increment_notification_count"
         ):
@@ -354,19 +354,19 @@ class TestSendBuySuccessNotification:
                 item=sample_item,
                 buy_price=buy_price,
             )
-            
+
             # Assert
             assert result is True
             call_kwargs = mock_bot.send_message.call_args.kwargs
             assert "ID заказа" not in call_kwargs["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_send_exception(self, mock_bot, sample_item):
         """Test handles exception when sending message fails."""
         # Arrange
         user_id = 123456789
         mock_bot.send_message.side_effect = Exception("Network error")
-        
+
         # Act
         result = await send_buy_success_notification(
             bot=mock_bot,
@@ -374,7 +374,7 @@ class TestSendBuySuccessNotification:
             item=sample_item,
             buy_price=15.00,
         )
-        
+
         # Assert
         assert result is False
 
@@ -387,13 +387,13 @@ class TestSendBuySuccessNotification:
 class TestSendBuyFailedNotification:
     """Tests for send_buy_failed_notification function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sends_notification_successfully(self, mock_bot, sample_item):
         """Test successful buy failed notification."""
         # Arrange
         user_id = 123456789
         error = "Insufficient funds"
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.increment_notification_count"
         ) as mock_increment:
@@ -404,25 +404,25 @@ class TestSendBuyFailedNotification:
                 item=sample_item,
                 error=error,
             )
-            
+
             # Assert
             assert result is True
             mock_bot.send_message.assert_called_once()
             mock_increment.assert_called_once_with(user_id)
-            
+
             call_kwargs = mock_bot.send_message.call_args.kwargs
             assert "AK-47 | Redline" in call_kwargs["text"]
             assert error in call_kwargs["text"]
             assert "❌" in call_kwargs["text"]
             assert "Ошибка покупки" in call_kwargs["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_includes_price_from_item(self, mock_bot, sample_item):
         """Test that price is extracted from item."""
         # Arrange
         user_id = 123456789
         error = "Item already sold"
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.increment_notification_count"
         ):
@@ -433,19 +433,19 @@ class TestSendBuyFailedNotification:
                 item=sample_item,
                 error=error,
             )
-            
+
             # Assert
             assert result is True
             call_kwargs = mock_bot.send_message.call_args.kwargs
             assert "$15.00" in call_kwargs["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_send_exception(self, mock_bot, sample_item):
         """Test handles exception when sending message fails."""
         # Arrange
         user_id = 123456789
         mock_bot.send_message.side_effect = Exception("Network error")
-        
+
         # Act
         result = await send_buy_failed_notification(
             bot=mock_bot,
@@ -453,7 +453,7 @@ class TestSendBuyFailedNotification:
             item=sample_item,
             error="Test error",
         )
-        
+
         # Assert
         assert result is False
 
@@ -466,13 +466,13 @@ class TestSendBuyFailedNotification:
 class TestSendSellSuccessNotification:
     """Tests for send_sell_success_notification function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sends_notification_successfully(self, mock_bot, sample_item):
         """Test successful sell notification."""
         # Arrange
         user_id = 123456789
         sell_price = 20.00
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.increment_notification_count"
         ) as mock_increment:
@@ -483,19 +483,19 @@ class TestSendSellSuccessNotification:
                 item=sample_item,
                 sell_price=sell_price,
             )
-            
+
             # Assert
             assert result is True
             mock_bot.send_message.assert_called_once()
             mock_increment.assert_called_once_with(user_id)
-            
+
             call_kwargs = mock_bot.send_message.call_args.kwargs
             assert "AK-47 | Redline" in call_kwargs["text"]
             assert "$20.00" in call_kwargs["text"]
             assert "Продажа выполнена" in call_kwargs["text"]
             assert "💰" in call_kwargs["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_calculates_positive_profit(self, mock_bot, sample_item):
         """Test profit calculation with positive profit."""
         # Arrange
@@ -503,7 +503,7 @@ class TestSendSellSuccessNotification:
         sell_price = 20.00
         buy_price = 15.00
         expected_profit = 5.00
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.increment_notification_count"
         ):
@@ -515,21 +515,21 @@ class TestSendSellSuccessNotification:
                 sell_price=sell_price,
                 buy_price=buy_price,
             )
-            
+
             # Assert
             assert result is True
             call_kwargs = mock_bot.send_message.call_args.kwargs
             assert "$5.00" in call_kwargs["text"]
             assert "📈" in call_kwargs["text"]  # Positive profit emoji
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_calculates_negative_profit(self, mock_bot, sample_item):
         """Test profit calculation with negative profit (loss)."""
         # Arrange
         user_id = 123456789
         sell_price = 10.00
         buy_price = 15.00
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.increment_notification_count"
         ):
@@ -541,20 +541,20 @@ class TestSendSellSuccessNotification:
                 sell_price=sell_price,
                 buy_price=buy_price,
             )
-            
+
             # Assert
             assert result is True
             call_kwargs = mock_bot.send_message.call_args.kwargs
             assert "📉" in call_kwargs["text"]  # Negative profit emoji
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_includes_offer_id_when_provided(self, mock_bot, sample_item):
         """Test that offer ID is included when provided."""
         # Arrange
         user_id = 123456789
         sell_price = 20.00
         offer_id = "offer_xyz789"
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.increment_notification_count"
         ):
@@ -566,21 +566,21 @@ class TestSendSellSuccessNotification:
                 sell_price=sell_price,
                 offer_id=offer_id,
             )
-            
+
             # Assert
             assert result is True
             call_kwargs = mock_bot.send_message.call_args.kwargs
             assert offer_id in call_kwargs["text"]
             assert "ID предложения" in call_kwargs["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_zero_buy_price(self, mock_bot, sample_item):
         """Test handles zero buy price gracefully."""
         # Arrange
         user_id = 123456789
         sell_price = 20.00
         buy_price = 0.0
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.increment_notification_count"
         ):
@@ -592,18 +592,18 @@ class TestSendSellSuccessNotification:
                 sell_price=sell_price,
                 buy_price=buy_price,
             )
-            
+
             # Assert
             assert result is True
             # Should handle division by zero gracefully
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_send_exception(self, mock_bot, sample_item):
         """Test handles exception when sending message fails."""
         # Arrange
         user_id = 123456789
         mock_bot.send_message.side_effect = Exception("Network error")
-        
+
         # Act
         result = await send_sell_success_notification(
             bot=mock_bot,
@@ -611,7 +611,7 @@ class TestSendSellSuccessNotification:
             item=sample_item,
             sell_price=20.00,
         )
-        
+
         # Assert
         assert result is False
 
@@ -624,30 +624,30 @@ class TestSendSellSuccessNotification:
 class TestSendCriticalShutdownNotification:
     """Tests for send_critical_shutdown_notification function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sends_notification_successfully(self, mock_bot):
         """Test successful critical shutdown notification."""
         # Arrange
         user_id = 123456789
         reason = "API rate limit exceeded"
-        
+
         # Act
         result = await send_critical_shutdown_notification(
             bot=mock_bot,
             user_id=user_id,
             reason=reason,
         )
-        
+
         # Assert
         assert result is True
         mock_bot.send_message.assert_called_once()
-        
+
         call_kwargs = mock_bot.send_message.call_args.kwargs
         assert "КРИТИЧЕСКОЕ ОТКЛЮЧЕНИЕ" in call_kwargs["text"]
         assert reason in call_kwargs["text"]
         assert "🚨" in call_kwargs["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_includes_details_when_provided(self, mock_bot):
         """Test that details are included when provided."""
         # Arrange
@@ -658,7 +658,7 @@ class TestSendCriticalShutdownNotification:
             "timestamp": "2025-12-25 10:00:00",
             "module": "arbitrage",
         }
-        
+
         # Act
         result = await send_critical_shutdown_notification(
             bot=mock_bot,
@@ -666,7 +666,7 @@ class TestSendCriticalShutdownNotification:
             reason=reason,
             details=details,
         )
-        
+
         # Assert
         assert result is True
         call_kwargs = mock_bot.send_message.call_args.kwargs
@@ -674,13 +674,13 @@ class TestSendCriticalShutdownNotification:
         assert "arbitrage" in call_kwargs["text"]
         assert "Детали" in call_kwargs["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_details_section_when_not_provided(self, mock_bot):
         """Test no details section when details is None."""
         # Arrange
         user_id = 123456789
         reason = "Test shutdown"
-        
+
         # Act
         result = await send_critical_shutdown_notification(
             bot=mock_bot,
@@ -688,27 +688,27 @@ class TestSendCriticalShutdownNotification:
             reason=reason,
             details=None,
         )
-        
+
         # Assert
         assert result is True
         call_kwargs = mock_bot.send_message.call_args.kwargs
         # Should not have details section header when no details
         assert "Детали:" not in call_kwargs["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_send_exception(self, mock_bot):
         """Test handles exception when sending message fails."""
         # Arrange
         user_id = 123456789
         mock_bot.send_message.side_effect = Exception("Network error")
-        
+
         # Act
         result = await send_critical_shutdown_notification(
             bot=mock_bot,
             user_id=user_id,
             reason="Test",
         )
-        
+
         # Assert
         assert result is False
 
@@ -721,14 +721,14 @@ class TestSendCriticalShutdownNotification:
 class TestSendCrashNotification:
     """Tests for send_crash_notification function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sends_notification_successfully(self, mock_bot):
         """Test successful crash notification."""
         # Arrange
         user_id = 123456789
         error_type = "ValueError"
         error_message = "Invalid price format"
-        
+
         # Act
         result = await send_crash_notification(
             bot=mock_bot,
@@ -736,18 +736,18 @@ class TestSendCrashNotification:
             error_type=error_type,
             error_message=error_message,
         )
-        
+
         # Assert
         assert result is True
         mock_bot.send_message.assert_called_once()
-        
+
         call_kwargs = mock_bot.send_message.call_args.kwargs
         assert "CRASH REPORT" in call_kwargs["text"]
         assert error_type in call_kwargs["text"]
         assert error_message in call_kwargs["text"]
         assert "💥" in call_kwargs["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_includes_traceback_when_provided(self, mock_bot):
         """Test that traceback is included when provided."""
         # Arrange
@@ -755,7 +755,7 @@ class TestSendCrashNotification:
         error_type = "RuntimeError"
         error_message = "Unexpected state"
         traceback_str = "File 'main.py', line 42, in func\n  raise RuntimeError()"
-        
+
         # Act
         result = await send_crash_notification(
             bot=mock_bot,
@@ -764,14 +764,14 @@ class TestSendCrashNotification:
             error_message=error_message,
             traceback_str=traceback_str,
         )
-        
+
         # Assert
         assert result is True
         call_kwargs = mock_bot.send_message.call_args.kwargs
         assert "Traceback" in call_kwargs["text"]
         assert "main.py" in call_kwargs["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_truncates_long_traceback(self, mock_bot):
         """Test that long traceback is truncated."""
         # Arrange
@@ -780,7 +780,7 @@ class TestSendCrashNotification:
         error_message = "Error"
         # Create a very long traceback
         traceback_str = "x" * 2000
-        
+
         # Act
         result = await send_crash_notification(
             bot=mock_bot,
@@ -789,18 +789,18 @@ class TestSendCrashNotification:
             error_message=error_message,
             traceback_str=traceback_str,
         )
-        
+
         # Assert
         assert result is True
         call_kwargs = mock_bot.send_message.call_args.kwargs
         assert "[truncated]" in call_kwargs["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_traceback_section_when_not_provided(self, mock_bot):
         """Test no traceback section when traceback_str is None."""
         # Arrange
         user_id = 123456789
-        
+
         # Act
         result = await send_crash_notification(
             bot=mock_bot,
@@ -809,19 +809,19 @@ class TestSendCrashNotification:
             error_message="Test error",
             traceback_str=None,
         )
-        
+
         # Assert
         assert result is True
         call_kwargs = mock_bot.send_message.call_args.kwargs
         assert "Traceback" not in call_kwargs["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_send_exception(self, mock_bot):
         """Test handles exception when sending message fails."""
         # Arrange
         user_id = 123456789
         mock_bot.send_message.side_effect = Exception("Network error")
-        
+
         # Act
         result = await send_crash_notification(
             bot=mock_bot,
@@ -829,7 +829,7 @@ class TestSendCrashNotification:
             error_type="Error",
             error_message="Test",
         )
-        
+
         # Assert
         assert result is False
 
@@ -842,7 +842,7 @@ class TestSendCrashNotification:
 class TestEdgeCases:
     """Tests for edge cases and error scenarios."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_unicode_in_item_title(self, mock_bot):
         """Test handles unicode characters in item title."""
         # Arrange
@@ -852,7 +852,7 @@ class TestEdgeCases:
             "price": {"USD": 1000},
             "game": "csgo",
         }
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.can_send_notification",
             return_value=True,
@@ -865,13 +865,13 @@ class TestEdgeCases:
                 user_id=user_id,
                 item=item,
             )
-            
+
             # Assert
             assert result is True
             call_kwargs = mock_bot.send_message.call_args.kwargs
             assert "АК-47 | Красная линия" in call_kwargs["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_special_html_characters(self, mock_bot):
         """Test handles HTML special characters in content."""
         # Arrange
@@ -881,7 +881,7 @@ class TestEdgeCases:
             "price": {"USD": 500},
             "game": "csgo",
         }
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.can_send_notification",
             return_value=True,
@@ -894,11 +894,11 @@ class TestEdgeCases:
                 user_id=user_id,
                 item=item,
             )
-            
+
             # Assert
             assert result is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_very_large_price(self, mock_bot):
         """Test handles very large price values."""
         # Arrange
@@ -908,7 +908,7 @@ class TestEdgeCases:
             "price": {"USD": 999999900},  # $9,999,999.00
             "game": "csgo",
         }
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.can_send_notification",
             return_value=True,
@@ -921,11 +921,11 @@ class TestEdgeCases:
                 user_id=user_id,
                 item=item,
             )
-            
+
             # Assert
             assert result is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_very_small_price(self, mock_bot):
         """Test handles very small price values."""
         # Arrange
@@ -935,7 +935,7 @@ class TestEdgeCases:
             "price": {"USD": 1},  # $0.01
             "game": "csgo",
         }
-        
+
         with patch(
             "src.telegram_bot.notifications.trading.can_send_notification",
             return_value=True,
@@ -948,7 +948,7 @@ class TestEdgeCases:
                 user_id=user_id,
                 item=item,
             )
-            
+
             # Assert
             assert result is True
             call_kwargs = mock_bot.send_message.call_args.kwargs

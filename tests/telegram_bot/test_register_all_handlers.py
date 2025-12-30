@@ -8,9 +8,7 @@ This module tests:
 - Optional handlers registration with ImportError handling
 """
 
-import pytest
-from unittest.mock import MagicMock, patch, call
-import logging
+from unittest.mock import MagicMock, patch
 
 
 class TestRegisterAllHandlers:
@@ -83,7 +81,7 @@ class TestRegisterAllHandlers:
         register_all_handlers(mock_app)
         assert mock_app.add_handler.called
 
-    @patch('src.telegram_bot.register_all_handlers.logger')
+    @patch("src.telegram_bot.register_all_handlers.logger")
     def test_register_all_handlers_logs_registration(self, mock_logger):
         """Test that registration is logged."""
         from src.telegram_bot.register_all_handlers import register_all_handlers
@@ -131,7 +129,6 @@ class TestRegisterAllHandlersIntegration:
     def test_handler_types_registered(self):
         """Test that different handler types are registered."""
         from src.telegram_bot.register_all_handlers import register_all_handlers
-        from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler
 
         mock_app = MagicMock()
         mock_app.bot_data = {}
@@ -149,8 +146,9 @@ class TestRegisterAllHandlersIntegration:
 
     def test_start_command_registered(self):
         """Test that /start command is registered."""
-        from src.telegram_bot.register_all_handlers import register_all_handlers
         from telegram.ext import CommandHandler
+
+        from src.telegram_bot.register_all_handlers import register_all_handlers
 
         mock_app = MagicMock()
         mock_app.bot_data = {}
@@ -168,8 +166,9 @@ class TestRegisterAllHandlersIntegration:
 
     def test_help_command_registered(self):
         """Test that /help command is registered."""
-        from src.telegram_bot.register_all_handlers import register_all_handlers
         from telegram.ext import CommandHandler
+
+        from src.telegram_bot.register_all_handlers import register_all_handlers
 
         mock_app = MagicMock()
         mock_app.bot_data = {}
@@ -187,8 +186,9 @@ class TestRegisterAllHandlersIntegration:
 
     def test_dashboard_command_registered(self):
         """Test that /dashboard command is registered."""
-        from src.telegram_bot.register_all_handlers import register_all_handlers
         from telegram.ext import CommandHandler
+
+        from src.telegram_bot.register_all_handlers import register_all_handlers
 
         mock_app = MagicMock()
         mock_app.bot_data = {}
@@ -205,8 +205,9 @@ class TestRegisterAllHandlersIntegration:
 
     def test_arbitrage_command_registered(self):
         """Test that /arbitrage command is registered."""
-        from src.telegram_bot.register_all_handlers import register_all_handlers
         from telegram.ext import CommandHandler
+
+        from src.telegram_bot.register_all_handlers import register_all_handlers
 
         mock_app = MagicMock()
         mock_app.bot_data = {}
@@ -223,8 +224,9 @@ class TestRegisterAllHandlersIntegration:
 
     def test_logs_command_registered(self):
         """Test that /logs command is registered."""
-        from src.telegram_bot.register_all_handlers import register_all_handlers
         from telegram.ext import CommandHandler
+
+        from src.telegram_bot.register_all_handlers import register_all_handlers
 
         mock_app = MagicMock()
         mock_app.bot_data = {}
@@ -241,8 +243,9 @@ class TestRegisterAllHandlersIntegration:
 
     def test_sentry_commands_registered(self):
         """Test that sentry test commands are registered."""
-        from src.telegram_bot.register_all_handlers import register_all_handlers
         from telegram.ext import CommandHandler
+
+        from src.telegram_bot.register_all_handlers import register_all_handlers
 
         mock_app = MagicMock()
         mock_app.bot_data = {}
@@ -262,7 +265,7 @@ class TestRegisterAllHandlersIntegration:
 class TestOptionalHandlerRegistration:
     """Tests for optional handler registration."""
 
-    @patch('src.telegram_bot.register_all_handlers.logger')
+    @patch("src.telegram_bot.register_all_handlers.logger")
     def test_scanner_handlers_import_error(self, mock_logger):
         """Test handling of scanner handlers import error."""
         from src.telegram_bot.register_all_handlers import register_all_handlers
@@ -273,7 +276,7 @@ class TestOptionalHandlerRegistration:
         # Should complete without raising
         register_all_handlers(mock_app)
 
-    @patch('src.telegram_bot.register_all_handlers.logger')
+    @patch("src.telegram_bot.register_all_handlers.logger")
     def test_market_alerts_handlers_import_error(self, mock_logger):
         """Test handling of market alerts handlers import error."""
         from src.telegram_bot.register_all_handlers import register_all_handlers
@@ -283,7 +286,7 @@ class TestOptionalHandlerRegistration:
 
         register_all_handlers(mock_app)
 
-    @patch('src.telegram_bot.register_all_handlers.logger')
+    @patch("src.telegram_bot.register_all_handlers.logger")
     def test_game_filter_handlers_import_error(self, mock_logger):
         """Test handling of game filter handlers import error."""
         from src.telegram_bot.register_all_handlers import register_all_handlers

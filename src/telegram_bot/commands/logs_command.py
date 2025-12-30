@@ -64,10 +64,10 @@ async def logs_command(
                     try:
                         log_entry = json.loads(line.strip())
                         # Check if it's an INTENT log
-                        if "intent_type" in log_entry and log_entry["intent_type"] in [
+                        if "intent_type" in log_entry and log_entry["intent_type"] in {
                             "BUY_INTENT",
                             "SELL_INTENT",
-                        ]:
+                        }:
                             intent_logs.append(log_entry)
                     except json.JSONDecodeError:
                         # Not JSON format, try to find INTENT in plain text

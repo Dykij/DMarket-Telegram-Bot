@@ -14,7 +14,7 @@ from src.utils.telegram_error_handlers import BaseHandler, telegram_error_bounda
 class TestTelegramErrorBoundary:
     """Tests for telegram_error_boundary decorator."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_update(self) -> MagicMock:
         """Create mock Telegram update."""
         update = MagicMock()
@@ -27,12 +27,12 @@ class TestTelegramErrorBoundary:
         update.callback_query = None
         return update
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_context(self) -> MagicMock:
         """Create mock Telegram context."""
         return MagicMock()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_successful_handler_execution(
         self, mock_update: MagicMock, mock_context: MagicMock
     ) -> None:
@@ -49,7 +49,7 @@ class TestTelegramErrorBoundary:
             result = await test_handler(mock_update, mock_context)
             assert result == "success"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_validation_error_handling(
         self, mock_update: MagicMock, mock_context: MagicMock
     ) -> None:
@@ -68,7 +68,7 @@ class TestTelegramErrorBoundary:
             call_args = mock_update.message.reply_text.call_args[0][0]
             assert "валидации" in call_args.lower() or "validation" in call_args.lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_authentication_error_handling(
         self, mock_update: MagicMock, mock_context: MagicMock
     ) -> None:
@@ -87,7 +87,7 @@ class TestTelegramErrorBoundary:
             mock_update.message.reply_text.assert_called_once()
             mock_capture.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_rate_limit_error_handling(
         self, mock_update: MagicMock, mock_context: MagicMock
     ) -> None:
@@ -108,7 +108,7 @@ class TestTelegramErrorBoundary:
             call_args = mock_update.message.reply_text.call_args[0][0]
             assert "лимит" in call_args.lower() or "limit" in call_args.lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_api_error_handling(
         self, mock_update: MagicMock, mock_context: MagicMock
     ) -> None:
@@ -129,7 +129,7 @@ class TestTelegramErrorBoundary:
             mock_update.message.reply_text.assert_called_once()
             mock_capture.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_unexpected_error_handling(
         self, mock_update: MagicMock, mock_context: MagicMock
     ) -> None:
@@ -148,7 +148,7 @@ class TestTelegramErrorBoundary:
             mock_update.message.reply_text.assert_called_once_with("Custom error message")
             mock_capture.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_callback_query_error_handling(
         self, mock_context: MagicMock
     ) -> None:
@@ -173,7 +173,7 @@ class TestTelegramErrorBoundary:
             await test_handler(mock_update, mock_context)
             mock_update.callback_query.answer.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_effective_user(self, mock_context: MagicMock) -> None:
         """Test handling when no effective user."""
         mock_update = MagicMock()
@@ -194,7 +194,7 @@ class TestTelegramErrorBoundary:
             result = await test_handler(mock_update, mock_context)
             assert result == "success"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_log_context_disabled(
         self, mock_update: MagicMock, mock_context: MagicMock
     ) -> None:
@@ -212,19 +212,19 @@ class TestTelegramErrorBoundary:
             result = await test_handler(mock_update, mock_context)
             assert result == "success"
             # Logger should not be called for info logs when log_context=False
-            info_calls = [c for c in mock_logger.info.call_args_list]
+            info_calls = list(mock_logger.info.call_args_list)
             assert len(info_calls) == 0
 
 
 class TestBaseHandler:
     """Tests for BaseHandler class."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def handler(self) -> BaseHandler:
         """Create BaseHandler instance."""
         return BaseHandler()
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_update(self) -> MagicMock:
         """Create mock Telegram update."""
         update = MagicMock()
@@ -245,7 +245,7 @@ class TestBaseHandler:
         handler = BaseHandler(logger_name="custom_logger")
         assert handler.logger.name == "custom_logger"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_error_with_message(
         self, handler: BaseHandler, mock_update: MagicMock
     ) -> None:
@@ -257,7 +257,7 @@ class TestBaseHandler:
 
         mock_update.message.reply_text.assert_called_once_with("Custom error message")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_error_with_callback(self, handler: BaseHandler) -> None:
         """Test handle_error with callback query update."""
         mock_update = MagicMock()
@@ -274,7 +274,7 @@ class TestBaseHandler:
 
         mock_update.callback_query.answer.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_error_no_effective_user(self, handler: BaseHandler) -> None:
         """Test handle_error when no effective user."""
         mock_update = MagicMock()
@@ -290,7 +290,7 @@ class TestBaseHandler:
 
         mock_update.message.reply_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_validate_user_valid(
         self, handler: BaseHandler, mock_update: MagicMock
     ) -> None:
@@ -298,7 +298,7 @@ class TestBaseHandler:
         result = await handler.validate_user(mock_update)
         assert result is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_validate_user_no_user(self, handler: BaseHandler) -> None:
         """Test validate_user with no effective user."""
         mock_update = MagicMock()
@@ -307,7 +307,7 @@ class TestBaseHandler:
         result = await handler.validate_user(mock_update)
         assert result is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_safe_reply_with_message(
         self, handler: BaseHandler, mock_update: MagicMock
     ) -> None:
@@ -315,7 +315,7 @@ class TestBaseHandler:
         await handler.safe_reply(mock_update, "Test message")
         mock_update.message.reply_text.assert_called_once_with("Test message")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_safe_reply_with_callback(self, handler: BaseHandler) -> None:
         """Test safe_reply with callback query update."""
         mock_update = MagicMock()
@@ -330,7 +330,7 @@ class TestBaseHandler:
         mock_update.callback_query.message.reply_text.assert_called_once_with("Test message")
         mock_update.callback_query.answer.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_safe_reply_with_kwargs(
         self, handler: BaseHandler, mock_update: MagicMock
     ) -> None:
@@ -338,7 +338,7 @@ class TestBaseHandler:
         await handler.safe_reply(mock_update, "Test message", parse_mode="HTML")
         mock_update.message.reply_text.assert_called_once_with("Test message", parse_mode="HTML")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_safe_reply_exception_handling(
         self, handler: BaseHandler, mock_update: MagicMock
     ) -> None:
@@ -352,7 +352,7 @@ class TestBaseHandler:
 class TestErrorBoundaryWithAdditionalArgs:
     """Tests for error boundary with additional arguments."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_update(self) -> MagicMock:
         """Create mock Telegram update."""
         update = MagicMock()
@@ -365,12 +365,12 @@ class TestErrorBoundaryWithAdditionalArgs:
         update.callback_query = None
         return update
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_context(self) -> MagicMock:
         """Create mock Telegram context."""
         return MagicMock()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handler_with_args(
         self, mock_update: MagicMock, mock_context: MagicMock
     ) -> None:
@@ -387,7 +387,7 @@ class TestErrorBoundaryWithAdditionalArgs:
             result = await test_handler(mock_update, mock_context, "extra_value")
             assert result == "extra_value"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handler_with_kwargs(
         self, mock_update: MagicMock, mock_context: MagicMock
     ) -> None:
@@ -404,7 +404,7 @@ class TestErrorBoundaryWithAdditionalArgs:
             result = await test_handler(mock_update, mock_context, key="value")
             assert result == "value"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handler_preserves_function_name(
         self, mock_update: MagicMock, mock_context: MagicMock
     ) -> None:

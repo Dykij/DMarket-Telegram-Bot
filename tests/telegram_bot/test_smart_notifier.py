@@ -1,9 +1,6 @@
 """Tests for telegram_bot smart_notifier module (facade)."""
 
 import warnings
-from unittest.mock import MagicMock, patch
-
-import pytest
 
 
 class TestSmartNotifierImports:
@@ -21,7 +18,6 @@ class TestSmartNotifierImports:
             warnings.simplefilter("always")
 
             # Import the module
-            from src.telegram_bot import smart_notifier
 
             # Verify deprecation warning was issued
             assert len(w) >= 1

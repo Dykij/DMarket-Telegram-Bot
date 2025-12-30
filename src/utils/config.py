@@ -5,13 +5,14 @@ from various sources including environment variables, YAML files, and defaults.
 """
 
 import contextlib
+from dataclasses import dataclass, field
 import logging
 import os
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 import yaml
+
 
 # Load environment variables from .env file
 try:
@@ -42,6 +43,8 @@ class BotConfig:
     username: str = "dmarket_bot"
     webhook_url: str = ""
     webhook_secret: str = ""
+    webhook_host: str = "127.0.0.1"  # По умолчанию localhost для безопасности
+    webhook_port: int = 8443
 
 
 @dataclass
@@ -116,6 +119,15 @@ class DailyReportConfig:
 
 
 @dataclass
+class MonitoringConfig:
+    """Monitoring and metrics configuration."""
+
+    prometheus_host: str = "127.0.0.1"  # По умолчанию localhost для безопасности
+    prometheus_port: int = 9090
+    enabled: bool = True
+
+
+@dataclass
 class Config:
     """Main application configuration."""
 
@@ -127,9 +139,11 @@ class Config:
     trading_safety: TradingSafetyConfig = field(default_factory=TradingSafetyConfig)
     rate_limit: RateLimitConfig = field(default_factory=RateLimitConfig)
     daily_report: DailyReportConfig = field(default_factory=DailyReportConfig)
+    monitoring: MonitoringConfig = field(default_factory=MonitoringConfig)
     debug: bool = False
     testing: bool = False
     dry_run: bool = True  # По умолчанию True для защиты
+    environment: str = "development"  # development, staging, production
 
     @classmethod
     def load(cls, config_path: str | None = None) -> "Config":
@@ -147,7 +161,7 @@ class Config:
         # Load from YAML file if provided
         if config_path and Path(config_path).exists():
             try:
-                with open(config_path) as f:
+                with open(config_path, encoding="utf-8") as f:
                     yaml_config = yaml.safe_load(f)
                 config._update_from_dict(yaml_config)
                 logger.info(f"Configuration loaded from {config_path}")
@@ -301,6 +315,27 @@ class Config:
         self.bot.username = os.getenv("BOT_USERNAME", self.bot.username)
         self.bot.webhook_url = os.getenv("WEBHOOK_URL", self.bot.webhook_url)
         self.bot.webhook_secret = os.getenv("WEBHOOK_SECRET", self.bot.webhook_secret)
+        self.bot.webhook_host = os.getenv("WEBHOOK_HOST", self.bot.webhook_host)
+        webhook_port = os.getenv("WEBHOOK_PORT")
+        if webhook_port:
+            with contextlib.suppress(ValueError):
+                self.bot.webhook_port = int(webhook_port)
+
+        # Environment
+        self.environment = os.getenv("ENVIRONMENT", self.environment)
+
+        # Monitoring configuration
+        self.monitoring.prometheus_host = os.getenv(
+            "PROMETHEUS_HOST", self.monitoring.prometheus_host
+        )
+        prometheus_port = os.getenv("PROMETHEUS_PORT")
+        if prometheus_port:
+            with contextlib.suppress(ValueError):
+                self.monitoring.prometheus_port = int(prometheus_port)
+
+        monitoring_enabled = os.getenv("MONITORING_ENABLED")
+        if monitoring_enabled:
+            self.monitoring.enabled = monitoring_enabled.lower() == "true"
 
         # DMarket configuration
         self.dmarket.api_url = os.getenv("DMARKET_API_URL", self.dmarket.api_url)

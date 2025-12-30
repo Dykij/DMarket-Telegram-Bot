@@ -5,10 +5,7 @@ including price changes analysis, trending items, volatility analysis,
 market depth analysis, and market report generation.
 """
 
-import asyncio
-import time
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -373,7 +370,7 @@ class TestGenerateMarketRecommendations:
 class TestAnalyzePriceChangesUnit:
     """Unit tests for analyze_price_changes function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_price_changes_empty_response(self):
         """Test price changes analysis with empty API response."""
         from src.dmarket.market_analysis import analyze_price_changes
@@ -388,7 +385,7 @@ class TestAnalyzePriceChangesUnit:
             )
             assert result == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_price_changes_no_items_key(self):
         """Test price changes analysis when response has no items key."""
         from src.dmarket.market_analysis import analyze_price_changes
@@ -407,7 +404,7 @@ class TestAnalyzePriceChangesUnit:
 class TestFindTrendingItemsUnit:
     """Unit tests for find_trending_items function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_trending_items_empty_response(self):
         """Test trending items with empty API response."""
         from src.dmarket.market_analysis import find_trending_items
@@ -422,7 +419,7 @@ class TestFindTrendingItemsUnit:
             )
             assert result == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_trending_items_no_items_key(self):
         """Test trending items when response has no items key."""
         from src.dmarket.market_analysis import find_trending_items
@@ -441,7 +438,7 @@ class TestFindTrendingItemsUnit:
 class TestAnalyzeMarketVolatilityUnit:
     """Unit tests for analyze_market_volatility function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_analyze_volatility_empty_response(self):
         """Test volatility analysis with empty response."""
         from src.dmarket.market_analysis import analyze_market_volatility
@@ -461,7 +458,7 @@ class TestAnalyzeMarketVolatilityUnit:
 class TestAnalyzeMarketDepthUnit:
     """Unit tests for analyze_market_depth function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_market_depth_empty_items_list(self):
         """Test market depth with empty items list after fetching."""
         from src.dmarket.market_analysis import analyze_market_depth
@@ -478,7 +475,7 @@ class TestAnalyzeMarketDepthUnit:
             assert result["items_analyzed"] == 0
             assert result["market_depth"] == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_market_depth_no_aggregated_prices(self):
         """Test market depth when aggregated prices API returns empty."""
         from src.dmarket.market_analysis import analyze_market_depth
@@ -498,7 +495,7 @@ class TestAnalyzeMarketDepthUnit:
 class TestGenerateMarketReportUnit:
     """Unit tests for generate_market_report function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_generate_report_error_handling(self):
         """Test market report error handling."""
         from src.dmarket.market_analysis import generate_market_report
@@ -518,7 +515,7 @@ class TestGenerateMarketReportUnit:
 class TestGetHistoricalPricesUnit:
     """Unit tests for _get_historical_prices helper function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_historical_prices_empty_response(self):
         """Test historical prices with empty API response."""
         from src.dmarket.market_analysis import _get_historical_prices
@@ -534,7 +531,7 @@ class TestGetHistoricalPricesUnit:
             )
             assert result == {}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_historical_prices_no_items_key(self):
         """Test historical prices when response has no items key."""
         from src.dmarket.market_analysis import _get_historical_prices
@@ -637,7 +634,7 @@ class TestEdgeCases:
         price_changes = [{"direction": "up"}]
         result = _get_market_direction(price_changes)
         # Single item cannot be 1.5x more than 0, so should be stable
-        assert result in ["up", "stable"]
+        assert result in {"up", "stable"}
 
     def test_volatility_boundary_10(self):
         """Test volatility at boundary of 10."""
@@ -662,11 +659,11 @@ class TestIntegration:
     def test_full_helper_flow(self):
         """Test full analysis flow with all helper functions."""
         from src.dmarket.market_analysis import (
-            _extract_price_from_item,
-            _calculate_popularity_score,
-            _get_market_direction,
             _calculate_market_volatility_level,
+            _calculate_popularity_score,
+            _extract_price_from_item,
             _extract_trending_categories,
+            _get_market_direction,
         )
 
         # Create sample data
@@ -696,7 +693,7 @@ class TestIntegration:
         assert direction == "up"
 
         volatility = _calculate_market_volatility_level(volatile_items)
-        assert volatility in ["low", "medium", "high"]
+        assert volatility in {"low", "medium", "high"}
 
         categories = _extract_trending_categories(trending_items)
         assert len(categories) > 0

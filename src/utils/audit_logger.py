@@ -18,7 +18,7 @@ from src.models.base import Base
 logger = structlog.get_logger(__name__)
 
 
-class AuditEventType(str, enum.Enum):
+class AuditEventType(enum.StrEnum):
     """Типы аудит событий."""
 
     # User actions
@@ -62,7 +62,7 @@ class AuditEventType(str, enum.Enum):
     SECURITY_VIOLATION = "security_violation"
 
 
-class AuditSeverity(str, enum.Enum):
+class AuditSeverity(enum.StrEnum):
     """Уровень важности события."""
 
     DEBUG = "debug"

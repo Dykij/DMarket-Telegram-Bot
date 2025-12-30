@@ -10,7 +10,6 @@ Tests for:
 
 from __future__ import annotations
 
-from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -73,7 +72,7 @@ class TestGroupItemsByName:
 class TestFindArbitrageItems:
     """Test find_arbitrage_items function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_boost_mode(self):
         """Test find_arbitrage_items with boost mode."""
         from src.dmarket.arbitrage.search import find_arbitrage_items
@@ -92,7 +91,7 @@ class TestFindArbitrageItems:
             mock_boost.assert_called_once()
             assert len(results) == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_low_mode_uses_boost(self):
         """Test that 'low' mode uses boost function."""
         from src.dmarket.arbitrage.search import find_arbitrage_items
@@ -104,7 +103,7 @@ class TestFindArbitrageItems:
             await find_arbitrage_items(game="csgo", mode="low")
             mock_boost.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mid_mode(self):
         """Test find_arbitrage_items with mid mode."""
         from src.dmarket.arbitrage.search import find_arbitrage_items
@@ -116,7 +115,7 @@ class TestFindArbitrageItems:
             await find_arbitrage_items(game="csgo", mode="mid")
             mock_mid.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pro_mode(self):
         """Test find_arbitrage_items with pro mode."""
         from src.dmarket.arbitrage.search import find_arbitrage_items
@@ -128,7 +127,7 @@ class TestFindArbitrageItems:
             await find_arbitrage_items(game="csgo", mode="pro")
             mock_pro.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_default_mode(self):
         """Test find_arbitrage_items with unknown mode uses mid."""
         from src.dmarket.arbitrage.search import find_arbitrage_items
@@ -140,7 +139,7 @@ class TestFindArbitrageItems:
             await find_arbitrage_items(game="csgo", mode="unknown_mode")
             mock_mid.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_converts_tuple_results(self):
         """Test that tuple results are converted to dictionaries."""
         from src.dmarket.arbitrage.search import find_arbitrage_items
@@ -162,7 +161,7 @@ class TestFindArbitrageItems:
             assert results[0]["profit"] == 5.0
             assert results[0]["profit_percent"] == 50.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_passes_dict_results_through(self):
         """Test that dictionary results are passed through unchanged."""
         from src.dmarket.arbitrage.search import find_arbitrage_items
@@ -189,14 +188,14 @@ class TestFindArbitrageItems:
 class TestFindArbitrageOpportunitiesAdvanced:
     """Test find_arbitrage_opportunities_advanced function."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_api_client(self):
         """Create a mock API client."""
         client = MagicMock()
         client.get_all_market_items = AsyncMock(return_value=[])
         return client
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_uses_cache(self, mock_api_client):
         """Test that function uses cached results."""
         from src.dmarket.arbitrage.search import find_arbitrage_opportunities_advanced
@@ -215,7 +214,7 @@ class TestFindArbitrageOpportunitiesAdvanced:
             assert results == cached
             mock_api_client.get_all_market_items.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_fallback_to_csgo(self, mock_api_client):
         """Test fallback to csgo for unknown game."""
         from src.dmarket.arbitrage.search import find_arbitrage_opportunities_advanced
@@ -234,7 +233,7 @@ class TestFindArbitrageOpportunitiesAdvanced:
             call_args = mock_api_client.get_all_market_items.call_args
             assert call_args.kwargs["game"] == "csgo"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_game_from_mode(self, mock_api_client):
         """Test extracting game from mode parameter."""
         from src.dmarket.arbitrage.search import find_arbitrage_opportunities_advanced
@@ -252,7 +251,7 @@ class TestFindArbitrageOpportunitiesAdvanced:
             call_args = mock_api_client.get_all_market_items.call_args
             assert call_args.kwargs["game"] == "dota2"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mode_normalization(self, mock_api_client):
         """Test mode normalization (normal -> medium, best -> high)."""
         from src.dmarket.arbitrage.search import find_arbitrage_opportunities_advanced
@@ -260,15 +259,14 @@ class TestFindArbitrageOpportunitiesAdvanced:
         with patch(
             "src.dmarket.arbitrage.search.get_arbitrage_cache",
             return_value=None,
-        ):
-            with patch("src.dmarket.arbitrage.search.save_arbitrage_cache"):
-                # Should internally convert "normal" to "medium"
-                await find_arbitrage_opportunities_advanced(
-                    api_client=mock_api_client,
-                    mode="normal",
-                )
+        ), patch("src.dmarket.arbitrage.search.save_arbitrage_cache"):
+            # Should internally convert "normal" to "medium"
+            await find_arbitrage_opportunities_advanced(
+                api_client=mock_api_client,
+                mode="normal",
+            )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_empty_for_no_items(self, mock_api_client):
         """Test returns empty list when no market items found."""
         from src.dmarket.arbitrage.search import find_arbitrage_opportunities_advanced
@@ -285,7 +283,7 @@ class TestFindArbitrageOpportunitiesAdvanced:
 
             assert results == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_api_exception(self, mock_api_client):
         """Test handles API exceptions gracefully."""
         from src.dmarket.arbitrage.search import find_arbitrage_opportunities_advanced
@@ -304,7 +302,7 @@ class TestFindArbitrageOpportunitiesAdvanced:
 
             assert results == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_price_range_from_mode(self, mock_api_client):
         """Test that price range is determined from mode."""
         from src.dmarket.arbitrage.search import find_arbitrage_opportunities_advanced

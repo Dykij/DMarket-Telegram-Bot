@@ -5,7 +5,6 @@
 """
 
 import asyncio
-import time
 from collections import defaultdict
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -255,7 +254,7 @@ class TestRealtimePriceWatcherInit:
 class TestRealtimePriceWatcherStart:
     """Тесты метода start."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_success(self):
         """Тест успешного запуска."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -280,7 +279,7 @@ class TestRealtimePriceWatcherStart:
         assert watcher.is_running is True
         assert watcher.ws_task is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_already_running(self):
         """Тест запуска при уже работающем наблюдателе."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -292,7 +291,7 @@ class TestRealtimePriceWatcherStart:
         result = await watcher.start()
         assert result is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_connection_failed(self):
         """Тест неудачного подключения."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -312,7 +311,7 @@ class TestRealtimePriceWatcherStart:
 class TestRealtimePriceWatcherStop:
     """Тесты метода stop."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_running(self):
         """Тест остановки работающего наблюдателя."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -335,7 +334,7 @@ class TestRealtimePriceWatcherStop:
 
         # Мокаем await для отменённых задач
         async def mock_await():
-            raise asyncio.CancelledError()
+            raise asyncio.CancelledError
 
         watcher.ws_task.__await__ = lambda self: mock_await().__await__()
         watcher.price_update_task.__await__ = lambda self: mock_await().__await__()
@@ -343,7 +342,7 @@ class TestRealtimePriceWatcherStop:
         await watcher.stop()
         assert watcher.is_running is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_not_running(self):
         """Тест остановки не работающего наблюдателя."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -359,7 +358,7 @@ class TestRealtimePriceWatcherStop:
 class TestHandleMarketUpdate:
     """Тесты метода _handle_market_update."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_market_update_valid(self):
         """Тест обработки валидного сообщения."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -382,7 +381,7 @@ class TestHandleMarketUpdate:
         await watcher._handle_market_update(message)
         assert watcher.price_cache.get("item123") == 50.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_market_update_empty_data(self):
         """Тест обработки пустого сообщения."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -394,7 +393,7 @@ class TestHandleMarketUpdate:
         await watcher._handle_market_update(message)
         assert watcher.price_cache == {}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_market_update_no_item_id(self):
         """Тест обработки сообщения без item_id."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -414,7 +413,7 @@ class TestHandleMarketUpdate:
         await watcher._handle_market_update(message)
         assert watcher.price_cache == {}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_market_update_no_price(self):
         """Тест обработки сообщения без цены."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -434,7 +433,7 @@ class TestHandleMarketUpdate:
         await watcher._handle_market_update(message)
         assert watcher.price_cache == {}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_market_update_invalid_price(self):
         """Тест обработки сообщения с невалидной ценой."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -456,7 +455,7 @@ class TestHandleMarketUpdate:
         await watcher._handle_market_update(message)
         assert watcher.price_cache.get("item123") is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_market_update_item_not_watched(self):
         """Тест обработки сообщения для не отслеживаемого предмета."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -481,7 +480,7 @@ class TestHandleMarketUpdate:
 class TestHandleItemsUpdate:
     """Тесты метода _handle_items_update."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_items_update_valid(self):
         """Тест обработки валидного сообщения."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -508,7 +507,7 @@ class TestHandleItemsUpdate:
         assert watcher.item_metadata.get("item123") is not None
         assert watcher.item_metadata.get("item123")["title"] == "Test Item"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_items_update_with_metadata(self):
         """Тест сохранения метаданных."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -572,7 +571,7 @@ class TestAddToPriceHistory:
 class TestPeriodicPriceUpdates:
     """Тесты метода _periodic_price_updates."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_periodic_updates_cancelled(self):
         """Тест отмены периодических обновлений."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -583,7 +582,7 @@ class TestPeriodicPriceUpdates:
         watcher.price_update_interval = 0.01
 
         async def mock_update():
-            raise asyncio.CancelledError()
+            raise asyncio.CancelledError
 
         with patch.object(
             watcher, "_update_watched_items_prices", side_effect=mock_update
@@ -594,7 +593,7 @@ class TestPeriodicPriceUpdates:
 class TestUpdateWatchedItemsPrices:
     """Тесты метода _update_watched_items_prices."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_update_prices_no_items(self):
         """Тест обновления без отслеживаемых предметов."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -605,7 +604,7 @@ class TestUpdateWatchedItemsPrices:
         await watcher._update_watched_items_prices()
         # Не должно быть ошибок
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_update_prices_with_items(self):
         """Тест обновления с предметами."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -629,7 +628,7 @@ class TestUpdateWatchedItemsPrices:
         await watcher._update_watched_items_prices()
         assert watcher.price_cache.get("item123") == 50.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_update_prices_api_error(self):
         """Тест обновления при ошибке API."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -647,7 +646,7 @@ class TestUpdateWatchedItemsPrices:
 class TestProcessPriceChange:
     """Тесты метода _process_price_change."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_process_price_change_same_price(self):
         """Тест при одинаковых ценах."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -665,7 +664,7 @@ class TestProcessPriceChange:
         await watcher._process_price_change("item123", 50.0, 50.0)
         assert handler_called is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_process_price_change_with_handler(self):
         """Тест с обработчиком."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -683,7 +682,7 @@ class TestProcessPriceChange:
         assert len(results) == 1
         assert results[0] == ("item123", 45.0, 50.0)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_process_price_change_global_handler(self):
         """Тест с глобальным обработчиком."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -701,7 +700,7 @@ class TestProcessPriceChange:
         assert len(results) == 1
         assert results[0][0] == "global"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_process_price_change_handler_exception(self):
         """Тест при исключении в обработчике."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -720,7 +719,7 @@ class TestProcessPriceChange:
 class TestCheckAlerts:
     """Тесты метода _check_alerts."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_alerts_triggered(self):
         """Тест срабатывания оповещения."""
         from src.dmarket.realtime_price_watcher import PriceAlert, RealtimePriceWatcher
@@ -747,7 +746,7 @@ class TestCheckAlerts:
         assert len(triggered_alerts) == 1
         assert alert.is_triggered is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_alerts_not_triggered(self):
         """Тест не срабатывания оповещения."""
         from src.dmarket.realtime_price_watcher import PriceAlert, RealtimePriceWatcher
@@ -766,7 +765,7 @@ class TestCheckAlerts:
         await watcher._check_alerts("item123", 55.0)
         assert alert.is_triggered is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_alerts_already_triggered(self):
         """Тест уже сработавшего оповещения."""
         from src.dmarket.realtime_price_watcher import PriceAlert, RealtimePriceWatcher
@@ -798,7 +797,7 @@ class TestCheckAlerts:
 class TestSubscribeToItem:
     """Тесты метода subscribe_to_item."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_subscribe_not_running(self):
         """Тест подписки без запуска."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -810,7 +809,7 @@ class TestSubscribeToItem:
         result = await watcher.subscribe_to_item("item123")
         assert result is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_subscribe_success(self):
         """Тест успешной подписки."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -841,7 +840,7 @@ class TestSubscribeToItem:
 class TestSubscribeToMarketUpdates:
     """Тесты метода subscribe_to_market_updates."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_subscribe_market_not_running(self):
         """Тест подписки на рынок без запуска."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -853,7 +852,7 @@ class TestSubscribeToMarketUpdates:
         result = await watcher.subscribe_to_market_updates("csgo")
         assert result is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_subscribe_market_success(self):
         """Тест успешной подписки на рынок."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -871,7 +870,7 @@ class TestSubscribeToMarketUpdates:
 class TestFetchItemPrice:
     """Тесты метода _fetch_item_price."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_fetch_price_success(self):
         """Тест успешного получения цены."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -893,7 +892,7 @@ class TestFetchItemPrice:
         price = await watcher._fetch_item_price("item123", "csgo")
         assert price == 50.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_fetch_price_no_items(self):
         """Тест при отсутствии предметов."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -905,7 +904,7 @@ class TestFetchItemPrice:
         price = await watcher._fetch_item_price("item123", "csgo")
         assert price is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_fetch_price_error(self):
         """Тест при ошибке API."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -1289,7 +1288,7 @@ class TestEdgeCases:
 class TestIntegration:
     """Интеграционные тесты."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_full_alert_workflow(self):
         """Тест полного рабочего процесса с оповещениями."""
         from src.dmarket.realtime_price_watcher import PriceAlert, RealtimePriceWatcher
@@ -1322,7 +1321,7 @@ class TestIntegration:
         assert len(triggered_alerts) == 1
         assert triggered_alerts[0][1] == 45.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_full_price_watch_workflow(self):
         """Тест полного рабочего процесса отслеживания цен."""
         from src.dmarket.realtime_price_watcher import RealtimePriceWatcher
@@ -1350,7 +1349,7 @@ class TestIntegration:
         history = watcher.get_price_history("item123")
         assert len(history) == 1  # Только начальная цена
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_multiple_items_and_alerts(self):
         """Тест с несколькими предметами и оповещениями."""
         from src.dmarket.realtime_price_watcher import PriceAlert, RealtimePriceWatcher

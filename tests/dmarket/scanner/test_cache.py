@@ -15,7 +15,6 @@ Tests: 30+ tests
 """
 
 import time
-from unittest.mock import patch
 
 import pytest
 
@@ -27,25 +26,25 @@ from src.dmarket.scanner.cache import ScannerCache, generate_cache_key
 # ============================================================================
 
 
-@pytest.fixture
+@pytest.fixture()
 def cache():
     """Create a fresh ScannerCache instance."""
     return ScannerCache(ttl=300, max_size=1000)
 
 
-@pytest.fixture
+@pytest.fixture()
 def small_cache():
     """Create a small cache for eviction testing."""
     return ScannerCache(ttl=300, max_size=3)
 
 
-@pytest.fixture
+@pytest.fixture()
 def short_ttl_cache():
     """Create a cache with short TTL for expiration testing."""
     return ScannerCache(ttl=1, max_size=100)
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_items():
     """Create sample cache items."""
     return [

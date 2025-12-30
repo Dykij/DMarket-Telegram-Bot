@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import operator
 import time
 from typing import TYPE_CHECKING, Any
 
@@ -319,7 +320,7 @@ class ArbitrageTrader:
                         break  # Берем только лучшую цену для продажи
 
             # Сортируем по прибыльности
-            opportunities.sort(key=lambda x: x["profit_percentage"], reverse=True)
+            opportunities.sort(key=operator.itemgetter("profit_percentage"), reverse=True)
             logger.info(f"Найдено {len(opportunities)} выгодных возможностей")
 
             return opportunities

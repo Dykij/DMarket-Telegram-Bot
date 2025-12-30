@@ -11,8 +11,6 @@ Tests for ChartGenerator and MarketAnalyzer classes including:
 """
 
 import io
-from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -284,13 +282,13 @@ class TestMarketAnalyzerTrendDetection:
         result = MarketAnalyzer.detect_price_trends(price_data, window=3)
 
         # The trend might be upward or sideways depending on moving averages
-        assert result["trend"] in ["upward", "sideways"]
+        assert result["trend"] in {"upward", "sideways"}
         assert result["confidence"] >= 0
         assert "price_change_percent" in result
 
     def test_detect_price_trends_downward(self):
         """Test detecting downward trend."""
-        # Create stronger downward trend  
+        # Create stronger downward trend
         price_data = [
             {"date": f"2024-01-{i:02d}", "price": 100.0 - i * 5}
             for i in range(1, 15)
@@ -299,7 +297,7 @@ class TestMarketAnalyzerTrendDetection:
         result = MarketAnalyzer.detect_price_trends(price_data, window=3)
 
         # The trend might be downward or sideways depending on moving averages
-        assert result["trend"] in ["downward", "sideways"]
+        assert result["trend"] in {"downward", "sideways"}
         assert "price_change_percent" in result
 
     def test_detect_price_trends_sideways(self):

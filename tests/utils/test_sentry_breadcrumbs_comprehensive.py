@@ -5,10 +5,7 @@ Tests for all breadcrumb functions and context management.
 
 from __future__ import annotations
 
-from typing import Any
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 
 class TestAddTradingBreadcrumb:

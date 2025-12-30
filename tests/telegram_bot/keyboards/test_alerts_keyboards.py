@@ -10,8 +10,7 @@ Tests cover:
 
 from __future__ import annotations
 
-import pytest
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardMarkup
 
 from src.telegram_bot.keyboards.alerts import (
     create_price_alerts_keyboard,
@@ -306,7 +305,7 @@ class TestCreatePriceAlertsKeyboard:
             if btn.callback_data and btn.callback_data.startswith("alert_view_")
         ]
         assert len(alert_buttons) == 1
-        assert "alert_view_alert1" == alert_buttons[0].callback_data
+        assert alert_buttons[0].callback_data == "alert_view_alert1"
 
     def test_alert_shows_item_name(self):
         """Test that alert button shows truncated item name."""

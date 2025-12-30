@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import pytest
 
+
 # Skip all tests if fastapi is not installed
 fastapi = pytest.importorskip("fastapi")
 TestClient = pytest.importorskip("fastapi.testclient").TestClient

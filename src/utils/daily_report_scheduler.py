@@ -6,6 +6,7 @@ and other key metrics.
 """
 
 from datetime import datetime, time, timedelta
+import operator
 from typing import Any
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -291,7 +292,7 @@ class DailyReportScheduler:
             if api_errors:
                 for error_type, count in sorted(
                     api_errors.items(),
-                    key=lambda x: x[1],
+                    key=operator.itemgetter(1),
                     reverse=True,
                 ):
                     lines.append(f"  • {error_type}: {count}")

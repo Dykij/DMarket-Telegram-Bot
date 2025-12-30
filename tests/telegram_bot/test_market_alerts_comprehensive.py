@@ -11,7 +11,6 @@ This module tests the MarketAlertsManager class including:
 Coverage target: 70%+
 """
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -27,7 +26,7 @@ from src.telegram_bot.market_alerts import (
 # ============================================================================
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_bot():
     """Create a mock Telegram bot."""
     bot = AsyncMock()
@@ -35,7 +34,7 @@ def mock_bot():
     return bot
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_dmarket_api():
     """Create a mock DMarket API client."""
     api = AsyncMock()
@@ -43,7 +42,7 @@ def mock_dmarket_api():
     return api
 
 
-@pytest.fixture
+@pytest.fixture()
 def alerts_manager(mock_bot, mock_dmarket_api):
     """Create a MarketAlertsManager instance for testing."""
     return MarketAlertsManager(bot=mock_bot, dmarket_api=mock_dmarket_api)
@@ -404,7 +403,7 @@ class TestClearAlerts:
 class TestMonitoringControl:
     """Tests for monitoring start/stop functionality."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_monitoring(self, alerts_manager):
         """Test starting the monitoring process."""
         await alerts_manager.start_monitoring()
@@ -415,7 +414,7 @@ class TestMonitoringControl:
         # Cleanup
         await alerts_manager.stop_monitoring()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_monitoring_already_running(self, alerts_manager):
         """Test starting monitoring when already running logs warning."""
         await alerts_manager.start_monitoring()
@@ -429,7 +428,7 @@ class TestMonitoringControl:
         # Cleanup
         await alerts_manager.stop_monitoring()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_monitoring(self, alerts_manager):
         """Test stopping the monitoring process."""
         await alerts_manager.start_monitoring()
@@ -437,7 +436,7 @@ class TestMonitoringControl:
 
         assert alerts_manager.running is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_monitoring_not_running(self, alerts_manager):
         """Test stopping monitoring when not running logs warning."""
         # Should not raise any exception
@@ -454,7 +453,7 @@ class TestMonitoringControl:
 class TestPriceChangesCheck:
     """Tests for price changes notification checking."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_price_changes_no_changes(self, alerts_manager):
         """Test checking price changes when none found."""
         with patch(
@@ -467,7 +466,7 @@ class TestPriceChangesCheck:
 
             mock_analyze.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_price_changes_with_subscribers(self, alerts_manager, mock_bot):
         """Test checking price changes with subscribers."""
         alerts_manager.subscribe(12345, "price_changes")
@@ -494,7 +493,7 @@ class TestPriceChangesCheck:
 
             mock_bot.send_message.assert_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_price_changes_handles_api_error(self, alerts_manager):
         """Test that price changes check handles API errors gracefully."""
         with patch(
@@ -515,7 +514,7 @@ class TestPriceChangesCheck:
 class TestTrendingItemsCheck:
     """Tests for trending items notification checking."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_trending_items_no_items(self, alerts_manager):
         """Test checking trending items when none found."""
         with patch(
@@ -528,7 +527,7 @@ class TestTrendingItemsCheck:
 
             mock_find.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_trending_items_below_threshold(self, alerts_manager):
         """Test trending items below popularity threshold are filtered."""
         mock_items = [
@@ -552,7 +551,7 @@ class TestTrendingItemsCheck:
             # No notifications should be sent
             alerts_manager.bot.send_message.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_trending_items_handles_error(self, alerts_manager):
         """Test that trending items check handles errors gracefully."""
         with patch(
@@ -573,7 +572,7 @@ class TestTrendingItemsCheck:
 class TestVolatilityCheck:
     """Tests for volatility notification checking."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_volatility_no_items(self, alerts_manager):
         """Test checking volatility when no volatile items."""
         with patch(
@@ -586,7 +585,7 @@ class TestVolatilityCheck:
 
             mock_analyze.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_volatility_with_subscribers(self, alerts_manager, mock_bot):
         """Test checking volatility with subscribers."""
         alerts_manager.subscribe(12345, "volatility")
@@ -609,7 +608,7 @@ class TestVolatilityCheck:
 
             mock_bot.send_message.assert_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_volatility_handles_error(self, alerts_manager):
         """Test that volatility check handles errors gracefully."""
         with patch(
@@ -630,7 +629,7 @@ class TestVolatilityCheck:
 class TestArbitrageCheck:
     """Tests for arbitrage notification checking."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_arbitrage_handles_error(self, alerts_manager):
         """Test that arbitrage check handles errors gracefully."""
         with patch(

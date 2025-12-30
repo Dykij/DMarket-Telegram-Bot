@@ -9,10 +9,10 @@ Tests for logging utilities including:
 - BotLogger
 """
 
+from datetime import datetime
 import json
 import logging
 import os
-from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -261,8 +261,9 @@ class TestSetupStructlog:
 
     def test_setup_structlog_console(self):
         """Test structlog setup for console."""
-        from src.utils.logging_utils import setup_structlog
         import structlog
+
+        from src.utils.logging_utils import setup_structlog
 
         setup_structlog(json_format=False)
 
@@ -272,8 +273,9 @@ class TestSetupStructlog:
 
     def test_setup_structlog_json(self):
         """Test structlog setup for JSON."""
-        from src.utils.logging_utils import setup_structlog
         import structlog
+
+        from src.utils.logging_utils import setup_structlog
 
         setup_structlog(json_format=True)
 

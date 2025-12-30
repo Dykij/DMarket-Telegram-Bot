@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import operator
 import os
 from typing import TYPE_CHECKING, Any
 
@@ -401,7 +402,7 @@ async def find_arbitrage_opportunities_async(
         # Сортируем по проценту прибыли (по убыванию)
         sorted_opportunities = sorted(
             opportunities,
-            key=lambda x: x["profit_percentage"],
+            key=operator.itemgetter("profit_percentage"),
             reverse=True,
         )
 

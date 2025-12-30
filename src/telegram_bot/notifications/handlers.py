@@ -245,11 +245,11 @@ async def list_alerts_command(
         message += f"{i}. *{alert['title']}*\n"
         message += f"   Тип: {NOTIFICATION_TYPES.get(alert['type'], alert['type'])}\n"
 
-        if alert["type"] in ("price_drop", "price_rise"):
+        if alert["type"] in {"price_drop", "price_rise"}:
             message += f"   Порог: ${alert['threshold']:.2f}\n"
         elif alert["type"] == "volume_increase":
             message += f"   Порог: {int(alert['threshold'])}\n"
-        elif alert["type"] in ("good_deal", "trend_change"):
+        elif alert["type"] in {"good_deal", "trend_change"}:
             message += f"   Порог: {alert['threshold']:.2f}%\n"
 
         message += "\n"
@@ -347,10 +347,10 @@ async def settings_command(
 
     # Get storage and ensure user exists
     storage = get_storage()
-    _user_alerts = storage._alerts
+    user_alerts = storage._alerts
 
-    if user_id_str not in _user_alerts:
-        _user_alerts[user_id_str] = {
+    if user_id_str not in user_alerts:
+        user_alerts[user_id_str] = {
             "alerts": [],
             "settings": {
                 "enabled": True,
@@ -365,7 +365,7 @@ async def settings_command(
         }
 
     # Get current settings
-    settings = _user_alerts[user_id_str]["settings"]
+    settings = user_alerts[user_id_str]["settings"]
 
     # Process arguments if provided
     if context.args:

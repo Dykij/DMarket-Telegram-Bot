@@ -3,6 +3,7 @@
 import asyncio
 from datetime import datetime
 import logging
+import operator
 from typing import Any
 
 from telegram import Bot
@@ -45,17 +46,17 @@ async def check_price_alerts(
         bot: Telegram Bot instance
         notification_queue: Notification queue instance
     """
-    _active_alerts = get_active_alerts()
-    _user_preferences = get_user_preferences()
+    active_alerts_ = get_active_alerts()
+    user_preferences = get_user_preferences()
 
-    for user_id_str, alerts in _active_alerts.items():
+    for user_id_str, alerts in active_alerts_.items():
         # Skip if no active alerts
         active_alerts = [a for a in alerts if a["active"] and a["type"] == "price_alert"]
         if not active_alerts:
             continue
 
         # Get user preferences
-        user_prefs = _user_preferences.get(user_id_str, {})
+        user_prefs = user_preferences.get(user_id_str, {})
         if not user_prefs.get("enabled", True):
             continue
 
@@ -137,12 +138,12 @@ async def check_market_opportunities(
         bot: Telegram Bot instance
         notification_queue: Notification queue instance
     """
-    _user_preferences = get_user_preferences()
+    user_preferences = get_user_preferences()
 
     # Get users interested in market opportunities
     interested_users = {
         user_id: prefs
-        for user_id, prefs in _user_preferences.items()
+        for user_id, prefs in user_preferences.items()
         if prefs.get("enabled", True)
         and prefs.get("notifications", {}).get("market_opportunity", True)
     }
@@ -200,7 +201,7 @@ async def check_market_opportunities(
                     logger.exception(f"Unexpected error analyzing item {item_id}: {e}")
 
             # Sort opportunities by score
-            opportunities.sort(key=lambda x: x["opportunity_score"], reverse=True)
+            opportunities.sort(key=operator.itemgetter("opportunity_score"), reverse=True)
 
             # Send notifications to interested users
             for user_id, prefs in interested_users.items():

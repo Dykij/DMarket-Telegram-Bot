@@ -1,10 +1,8 @@
 """Tests for src/models/alert.py module."""
 
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from uuid import UUID, uuid4
-
-import pytest
 
 
 class TestPriceAlertModel:
@@ -95,8 +93,8 @@ class TestPriceAlertModel:
         alert_mock = MagicMock()
         alert_mock.__repr__ = MagicMock(return_value=expected_repr)
 
-        assert "PriceAlert" in str(alert_mock.__repr__())
-        assert "Test Item" in str(alert_mock.__repr__())
+        assert "PriceAlert" in str(repr(alert_mock))
+        assert "Test Item" in str(repr(alert_mock))
 
     def test_price_alert_to_dict_all_fields(self):
         """Test PriceAlert to_dict method with all fields."""

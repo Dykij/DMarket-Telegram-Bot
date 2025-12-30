@@ -154,8 +154,8 @@ class TestDatabaseModels:
         assert user.last_name == user_data["last_name"]
         assert user.language_code == user_data["language_code"]
         # Note: SQLAlchemy defaults only apply on commit, so is_active may be None
-        assert user.is_active in (True, None)
-        assert user.is_admin in (False, None)
+        assert user.is_active in {True, None}
+        assert user.is_admin in {False, None}
 
     def test_market_data_model_creation(self):
         """Test MarketData model creation."""

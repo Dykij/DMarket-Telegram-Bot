@@ -132,7 +132,7 @@ class TestConfigLoading:
             },
         }
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
             yaml.dump(test_config, f)
             temp_path = f.name
 
@@ -307,7 +307,7 @@ class TestConfigEnvironmentVariables:
             "bot": {"token": file_token},
         }
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
             yaml.dump(test_config, f)
             temp_path = f.name
 
@@ -325,7 +325,7 @@ class TestConfigPaths:
 
     def test_config_file_path_exists(self):
         """Тест проверки существования файла конфигурации."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
             f.write("test: value")
             temp_path = f.name
 

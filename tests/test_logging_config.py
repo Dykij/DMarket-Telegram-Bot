@@ -4,7 +4,7 @@
 """
 
 import logging
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -49,7 +49,7 @@ class TestLoggingFixtures:
         mock_logger.warning("test")
         mock_logger.error("test")
         mock_logger.critical("test")
-        mock_logger.exception("test")
+        mock_logger.error("test")
 
         assert mock_logger.info.called
         assert mock_logger.debug.called
@@ -192,7 +192,7 @@ class TestMockSentry:
 class TestLoggingMarkers:
     """Тесты для pytest маркеров логирования."""
 
-    @pytest.mark.quiet_logs
+    @pytest.mark.quiet_logs()
     def test_quiet_logs_marker(self, caplog: pytest.LogCaptureFixture) -> None:
         """Проверяет работу маркера quiet_logs."""
         logger = logging.getLogger("test")

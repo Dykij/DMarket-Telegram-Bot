@@ -17,7 +17,7 @@ from src.telegram_bot.commands.resume_command import resume_command
 # ============================================================================
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_update():
     """Create a mock Telegram Update object."""
     update = MagicMock()
@@ -28,7 +28,7 @@ def mock_update():
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context():
     """Create a mock Telegram Context object."""
     context = MagicMock()
@@ -36,7 +36,7 @@ def mock_context():
     return context
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_state_manager():
     """Create a mock StateManager object."""
     state_manager = MagicMock()
@@ -46,7 +46,7 @@ def mock_state_manager():
     return state_manager
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_config_with_admins():
     """Create a mock Config object with admin users."""
     config = MagicMock()
@@ -63,7 +63,7 @@ def mock_config_with_admins():
 class TestResumeCommandEarlyReturn:
     """Tests for resume command returning early on missing data."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_resume_command_returns_early_if_no_message(self, mock_context):
         """Test that command returns early if message is None."""
         # Arrange
@@ -77,7 +77,7 @@ class TestResumeCommandEarlyReturn:
         # Assert
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_resume_command_returns_early_if_no_user(self, mock_context):
         """Test that command returns early if effective_user is None."""
         # Arrange
@@ -100,7 +100,7 @@ class TestResumeCommandEarlyReturn:
 class TestStateManagerNotAvailable:
     """Tests for resume command when state manager is missing."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_resume_command_handles_missing_state_manager(
         self, mock_update, mock_context
     ):
@@ -116,7 +116,7 @@ class TestStateManagerNotAvailable:
         call_args = mock_update.message.reply_text.call_args[0][0]
         assert "недоступна" in call_args or "❌" in call_args
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_resume_command_handles_none_state_manager(
         self, mock_update, mock_context
     ):
@@ -141,7 +141,7 @@ class TestStateManagerNotAvailable:
 class TestBotNotPaused:
     """Tests for resume command when bot is not paused."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_resume_command_shows_info_when_not_paused(
         self, mock_update, mock_context, mock_state_manager
     ):
@@ -159,7 +159,7 @@ class TestBotNotPaused:
         call_args = mock_update.message.reply_text.call_args[0][0]
         assert "не находится на паузе" in call_args or "ℹ️" in call_args
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_resume_command_shows_error_count_when_not_paused(
         self, mock_update, mock_context, mock_state_manager
     ):
@@ -186,7 +186,7 @@ class TestBotNotPaused:
 class TestAdminAuthorization:
     """Tests for admin authorization in resume command."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_resume_command_rejects_non_admin_user(
         self, mock_update, mock_context, mock_state_manager, mock_config_with_admins
     ):
@@ -207,7 +207,7 @@ class TestAdminAuthorization:
         call_args = mock_update.message.reply_text.call_args[0][0]
         assert "администратор" in call_args.lower() or "⛔" in call_args
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_resume_command_accepts_admin_user(
         self, mock_update, mock_context, mock_state_manager, mock_config_with_admins
     ):
@@ -238,7 +238,7 @@ class TestAdminAuthorization:
 class TestSuccessfulResume:
     """Tests for successful resume operation."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_resume_command_calls_resume_operations(
         self, mock_update, mock_context, mock_state_manager
     ):
@@ -253,7 +253,7 @@ class TestSuccessfulResume:
         # Assert
         mock_state_manager.resume_operations.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_resume_command_shows_success_message(
         self, mock_update, mock_context, mock_state_manager
     ):
@@ -271,7 +271,7 @@ class TestSuccessfulResume:
         call_args = mock_update.message.reply_text.call_args[0][0]
         assert "✅" in call_args or "возобновлена" in call_args
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_resume_command_shows_reset_error_count(
         self, mock_update, mock_context, mock_state_manager
     ):
@@ -298,7 +298,7 @@ class TestSuccessfulResume:
 class TestConfigWithoutAdminUsers:
     """Tests for config without admin user restrictions."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_resume_command_allows_any_user_without_admin_config(
         self, mock_update, mock_context, mock_state_manager
     ):
@@ -314,7 +314,7 @@ class TestConfigWithoutAdminUsers:
         # Assert
         mock_state_manager.resume_operations.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_resume_command_allows_user_when_admin_list_empty(
         self, mock_update, mock_context, mock_state_manager
     ):
@@ -335,7 +335,7 @@ class TestConfigWithoutAdminUsers:
         # Assert
         mock_state_manager.resume_operations.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_resume_command_allows_user_when_no_security_attr(
         self, mock_update, mock_context, mock_state_manager
     ):
@@ -365,7 +365,7 @@ class TestConfigWithoutAdminUsers:
 class TestEdgeCases:
     """Tests for edge cases in resume command."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_resume_command_with_zero_consecutive_errors(
         self, mock_update, mock_context, mock_state_manager
     ):
@@ -383,7 +383,7 @@ class TestEdgeCases:
         call_args = mock_update.message.reply_text.call_args[0][0]
         assert "0" in call_args or "Сброшено" in call_args
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_resume_command_with_large_error_count(
         self, mock_update, mock_context, mock_state_manager
     ):

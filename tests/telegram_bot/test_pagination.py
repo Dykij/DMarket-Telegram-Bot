@@ -9,6 +9,8 @@
 - Очистка данных пользователя
 """
 
+import operator
+
 import pytest
 
 from src.telegram_bot.pagination import PaginationManager
@@ -252,7 +254,7 @@ def test_sort_items(pagination_manager, sample_items):
     pagination_manager.add_items_for_user(user_id, sample_items[:10][::-1])
 
     # Сортируем по id (метод принимает key_func)
-    pagination_manager.sort_items(user_id, key_func=lambda item: item["id"])
+    pagination_manager.sort_items(user_id, key_func=operator.itemgetter("id"))
 
     items, _current_page, _total_pages = pagination_manager.get_page(user_id)
 

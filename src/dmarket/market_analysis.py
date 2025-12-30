@@ -6,6 +6,7 @@
 
 import asyncio
 import logging
+import operator
 import os
 import time
 from typing import Any
@@ -278,7 +279,7 @@ async def find_trending_items(
             )
 
         # Сортируем по показателю популярности
-        trending_items.sort(key=lambda x: x["popularity_score"], reverse=True)
+        trending_items.sort(key=operator.itemgetter("popularity_score"), reverse=True)
 
         return trending_items[:limit]
 
@@ -396,7 +397,7 @@ async def analyze_market_volatility(
             )
 
         # Сортируем по волатильности
-        volatility_items.sort(key=lambda x: x["volatility_score"], reverse=True)
+        volatility_items.sort(key=operator.itemgetter("volatility_score"), reverse=True)
 
         return volatility_items[:limit]
 
@@ -611,24 +612,22 @@ async def analyze_market_depth(
                 market_balance = "balanced"
                 balance_description = "Сбалансированный рынок"
 
-            depth_analysis.append(
-                {
-                    "title": title,
-                    "order_count": order_count,
-                    "offer_count": offer_count,
-                    "total_volume": total_volume,
-                    "order_price": order_price,
-                    "offer_price": offer_price,
-                    "spread": spread,
-                    "spread_percent": spread_percent,
-                    "buy_pressure": buy_pressure,
-                    "sell_pressure": sell_pressure,
-                    "liquidity_score": liquidity_score,
-                    "market_balance": market_balance,
-                    "balance_description": balance_description,
-                    "arbitrage_potential": spread_percent > 5.0,
-                }
-            )
+            depth_analysis.append({
+                "title": title,
+                "order_count": order_count,
+                "offer_count": offer_count,
+                "total_volume": total_volume,
+                "order_price": order_price,
+                "offer_price": offer_price,
+                "spread": spread,
+                "spread_percent": spread_percent,
+                "buy_pressure": buy_pressure,
+                "sell_pressure": sell_pressure,
+                "liquidity_score": liquidity_score,
+                "market_balance": market_balance,
+                "balance_description": balance_description,
+                "arbitrage_potential": spread_percent > 5.0,
+            })
 
         # Рассчитываем сводные показатели
         if depth_analysis:
@@ -657,7 +656,9 @@ async def analyze_market_depth(
                     else (
                         "good"
                         if avg_liquidity >= 50
-                        else "moderate" if avg_liquidity >= 25 else "poor"
+                        else "moderate"
+                        if avg_liquidity >= 25
+                        else "poor"
                     )
                 ),
             }
@@ -743,7 +744,8 @@ async def _get_historical_prices(
             continue
 
         # Симулируем историческую цену с отклонением -20% до +20%
-        variation = random.uniform(-0.2, 0.2)
+        # Non-cryptographic use - just for simulation/testing
+        variation = random.uniform(-0.2, 0.2)  # noqa: S311
         historical_price = current_price * (1 + variation)
 
         historical_prices[market_hash_name] = historical_price
@@ -899,7 +901,7 @@ def _extract_trending_categories(trending_items: list[dict[str, Any]]) -> list[s
     # Сортируем категории по количеству предметов
     sorted_categories = sorted(
         category_counts.items(),
-        key=lambda x: x[1],
+        key=operator.itemgetter(1),
         reverse=True,
     )
 

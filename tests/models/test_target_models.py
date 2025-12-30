@@ -388,7 +388,7 @@ class TestModelTimestamps:
 class TestStrategyValues:
     """Tests for valid strategy values."""
 
-    @pytest.mark.parametrize("strategy", ["conservative", "balanced", "aggressive"])
+    @pytest.mark.parametrize("strategy", ("conservative", "balanced", "aggressive"))
     def test_valid_strategies(self, strategy):
         """Test valid strategy values are accepted."""
         settings = TradingSettings(
@@ -408,7 +408,7 @@ class TestStrategyValues:
 class TestGameCodes:
     """Tests for valid game codes."""
 
-    @pytest.mark.parametrize("game", ["csgo", "dota2", "tf2", "rust"])
+    @pytest.mark.parametrize("game", ("csgo", "dota2", "tf2", "rust"))
     def test_valid_game_codes_in_target(self, game):
         """Test valid game codes in Target model."""
         target = Target(
@@ -422,7 +422,7 @@ class TestGameCodes:
         assert target.game == game
         assert target.to_dict()["game"] == game
 
-    @pytest.mark.parametrize("game", ["csgo", "dota2", "tf2", "rust"])
+    @pytest.mark.parametrize("game", ("csgo", "dota2", "tf2", "rust"))
     def test_valid_game_codes_in_trade_history(self, game):
         """Test valid game codes in TradeHistory model."""
         trade = TradeHistory(

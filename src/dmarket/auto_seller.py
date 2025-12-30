@@ -35,7 +35,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class SaleStatus(str, Enum):
+class SaleStatus(StrEnum):
     """Status of a scheduled sale."""
 
     PENDING = "pending"  # Waiting to be listed
@@ -59,7 +59,7 @@ class SaleStatus(str, Enum):
     FAILED = "failed"  # Failed to list/sell
 
 
-class PricingStrategy(str, Enum):
+class PricingStrategy(StrEnum):
     """Available pricing strategies."""
 
     UNDERCUT = "undercut"  # Undercut best offer by X cents
@@ -463,7 +463,7 @@ class AutoSeller:
                 # Reduce price by 1% per day after first 24 hours
                 days_over = (hours_listed - 24) / 24
                 reduction = min(0.05, days_over * 0.01)  # Max 5% reduction
-                base_price = base_price * (1 - reduction)
+                base_price *= (1 - reduction)
 
         return self._apply_minimum_margin(sale, base_price)
 

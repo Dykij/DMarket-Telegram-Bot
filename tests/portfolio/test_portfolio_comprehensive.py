@@ -9,12 +9,9 @@ Coverage improvement tests for:
 
 from __future__ import annotations
 
-import json
-from datetime import UTC, datetime
 from decimal import Decimal
-from pathlib import Path
 from typing import TYPE_CHECKING
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -30,9 +27,11 @@ from src.portfolio.models import (
     ItemRarity,
     Portfolio,
     PortfolioItem,
-    PortfolioMetrics,
-    PortfolioSnapshot,
 )
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class TestPortfolioManagerSetAPI:
@@ -42,22 +41,22 @@ class TestPortfolioManagerSetAPI:
         """Test setting API client."""
         storage_path = tmp_path / "portfolios.json"
         manager = PortfolioManager(api=None, storage_path=storage_path)
-        
+
         mock_api = MagicMock()
         manager.set_api(mock_api)
-        
+
         assert manager.api is mock_api
 
 
 class TestPortfolioManagerGetItems:
     """Tests for PortfolioManager.get_items method."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def manager_with_items(self, tmp_path: Path) -> PortfolioManager:
         """Create manager with test items."""
         storage_path = tmp_path / "portfolios.json"
         manager = PortfolioManager(api=None, storage_path=storage_path)
-        
+
         # Add items from different games and categories
         manager.add_item(
             user_id=123,
@@ -83,7 +82,7 @@ class TestPortfolioManagerGetItems:
             buy_price=200.00,
             category="other",
         )
-        
+
         return manager
 
     def test_get_items_all(self, manager_with_items: PortfolioManager) -> None:
@@ -117,7 +116,7 @@ class TestPortfolioManagerTakeSnapshot:
         """Test taking a portfolio snapshot."""
         storage_path = tmp_path / "portfolios.json"
         manager = PortfolioManager(api=None, storage_path=storage_path)
-        
+
         manager.add_item(
             user_id=123,
             item_id="test",
@@ -125,9 +124,9 @@ class TestPortfolioManagerTakeSnapshot:
             game="csgo",
             buy_price=10.00,
         )
-        
+
         manager.take_snapshot(user_id=123)
-        
+
         portfolio = manager.get_portfolio(123)
         assert len(portfolio.snapshots) == 1
 
@@ -135,7 +134,7 @@ class TestPortfolioManagerTakeSnapshot:
 class TestPortfolioManagerDetectCategory:
     """Tests for PortfolioManager._detect_category method."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def manager(self, tmp_path: Path) -> PortfolioManager:
         """Create manager instance."""
         storage_path = tmp_path / "portfolios.json"
@@ -227,7 +226,7 @@ class TestPortfolioManagerPersistence:
     def test_save_and_load_portfolios(self, tmp_path: Path) -> None:
         """Test saving and loading portfolios."""
         storage_path = tmp_path / "portfolios.json"
-        
+
         # Create manager and add items
         manager1 = PortfolioManager(api=None, storage_path=storage_path)
         manager1.add_item(
@@ -237,10 +236,10 @@ class TestPortfolioManagerPersistence:
             game="csgo",
             buy_price=10.00,
         )
-        
+
         # Create new manager that loads from file
         manager2 = PortfolioManager(api=None, storage_path=storage_path)
-        
+
         portfolio = manager2.get_portfolio(123)
         assert len(portfolio.items) == 1
         assert portfolio.items[0].title == "Test Item"
@@ -249,7 +248,7 @@ class TestPortfolioManagerPersistence:
         """Test loading when file doesn't exist."""
         storage_path = tmp_path / "nonexistent.json"
         manager = PortfolioManager(api=None, storage_path=storage_path)
-        
+
         # Should not raise, just have empty portfolios
         assert manager.get_portfolio(123).items == []
 
@@ -257,7 +256,7 @@ class TestPortfolioManagerPersistence:
         """Test loading corrupted JSON file."""
         storage_path = tmp_path / "corrupted.json"
         storage_path.write_text("not valid json{")
-        
+
         # Should not raise, just log warning
         manager = PortfolioManager(api=None, storage_path=storage_path)
         assert manager.get_portfolio(123).items == []
@@ -265,7 +264,7 @@ class TestPortfolioManagerPersistence:
     def test_save_creates_directory(self, tmp_path: Path) -> None:
         """Test that save creates parent directories."""
         storage_path = tmp_path / "nested" / "dir" / "portfolios.json"
-        
+
         manager = PortfolioManager(api=None, storage_path=storage_path)
         manager.add_item(
             user_id=123,
@@ -274,40 +273,40 @@ class TestPortfolioManagerPersistence:
             game="csgo",
             buy_price=10.00,
         )
-        
+
         assert storage_path.exists()
 
 
 class TestPortfolioManagerSyncWithInventory:
     """Tests for PortfolioManager.sync_with_inventory method."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def manager_with_api(self, tmp_path: Path) -> PortfolioManager:
         """Create manager with mock API."""
         storage_path = tmp_path / "portfolios.json"
         mock_api = AsyncMock()
         return PortfolioManager(api=mock_api, storage_path=storage_path)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sync_without_api(self, tmp_path: Path) -> None:
         """Test sync returns 0 when no API."""
         storage_path = tmp_path / "portfolios.json"
         manager = PortfolioManager(api=None, storage_path=storage_path)
-        
+
         result = await manager.sync_with_inventory(user_id=123)
-        
+
         assert result == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sync_empty_inventory(self, manager_with_api: PortfolioManager) -> None:
         """Test syncing empty inventory."""
         manager_with_api.api.get_user_inventory.return_value = {"objects": []}
-        
+
         result = await manager_with_api.sync_with_inventory(user_id=123)
-        
+
         assert result == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sync_with_items(self, manager_with_api: PortfolioManager) -> None:
         """Test syncing inventory with items."""
         manager_with_api.api.get_user_inventory.return_value = {
@@ -326,14 +325,14 @@ class TestPortfolioManagerSyncWithInventory:
                 },
             ]
         }
-        
+
         result = await manager_with_api.sync_with_inventory(user_id=123)
-        
+
         assert result == 2
         portfolio = manager_with_api.get_portfolio(123)
         assert len(portfolio.items) == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sync_skips_existing_items(self, manager_with_api: PortfolioManager) -> None:
         """Test that sync skips items already in portfolio."""
         # Add existing item
@@ -344,7 +343,7 @@ class TestPortfolioManagerSyncWithInventory:
             game="csgo",
             buy_price=25.00,
         )
-        
+
         manager_with_api.api.get_user_inventory.return_value = {
             "objects": [
                 {
@@ -355,21 +354,21 @@ class TestPortfolioManagerSyncWithInventory:
                 },
             ]
         }
-        
+
         result = await manager_with_api.sync_with_inventory(user_id=123)
-        
+
         assert result == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sync_handles_api_error(self, manager_with_api: PortfolioManager) -> None:
         """Test that sync handles API errors gracefully."""
         manager_with_api.api.get_user_inventory.side_effect = Exception("API Error")
-        
+
         result = await manager_with_api.sync_with_inventory(user_id=123)
-        
+
         assert result == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sync_with_offer_id(self, manager_with_api: PortfolioManager) -> None:
         """Test sync extracts item ID from extra.offerId."""
         manager_with_api.api.get_user_inventory.return_value = {
@@ -382,9 +381,9 @@ class TestPortfolioManagerSyncWithInventory:
                 },
             ]
         }
-        
+
         result = await manager_with_api.sync_with_inventory(user_id=123)
-        
+
         assert result == 1
         portfolio = manager_with_api.get_portfolio(123)
         assert portfolio.items[0].item_id == "offer123"
@@ -393,13 +392,13 @@ class TestPortfolioManagerSyncWithInventory:
 class TestPortfolioManagerUpdatePrices:
     """Tests for PortfolioManager.update_prices method."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def manager_with_items_and_api(self, tmp_path: Path) -> PortfolioManager:
         """Create manager with items and mock API."""
         storage_path = tmp_path / "portfolios.json"
         mock_api = AsyncMock()
         manager = PortfolioManager(api=mock_api, storage_path=storage_path)
-        
+
         manager.add_item(
             user_id=123,
             item_id="ak",
@@ -414,10 +413,10 @@ class TestPortfolioManagerUpdatePrices:
             game="csgo",
             buy_price=50.00,
         )
-        
+
         return manager
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_update_without_api(self, tmp_path: Path) -> None:
         """Test update returns 0 when no API."""
         storage_path = tmp_path / "portfolios.json"
@@ -429,24 +428,24 @@ class TestPortfolioManagerUpdatePrices:
             game="csgo",
             buy_price=10.00,
         )
-        
+
         result = await manager.update_prices(user_id=123)
-        
+
         assert result == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_update_empty_portfolio(self, tmp_path: Path) -> None:
         """Test updating empty portfolio."""
         storage_path = tmp_path / "portfolios.json"
         mock_api = AsyncMock()
         manager = PortfolioManager(api=mock_api, storage_path=storage_path)
-        
+
         result = await manager.update_prices(user_id=123)
-        
+
         assert result == 0
         mock_api.get_aggregated_prices_bulk.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_update_prices_success(self, manager_with_items_and_api: PortfolioManager) -> None:
         """Test successful price update."""
         manager_with_items_and_api.api.get_aggregated_prices_bulk.return_value = {
@@ -455,9 +454,9 @@ class TestPortfolioManagerUpdatePrices:
                 {"title": "AWP | Asiimov", "offerBestPrice": 6000},
             ]
         }
-        
+
         result = await manager_with_items_and_api.update_prices(user_id=123)
-        
+
         assert result == 2
         portfolio = manager_with_items_and_api.get_portfolio(123)
         ak = portfolio.get_item("ak")
@@ -465,18 +464,18 @@ class TestPortfolioManagerUpdatePrices:
         assert ak.current_price == Decimal("30.00")
         assert awp.current_price == Decimal("60.00")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_update_prices_handles_api_error(
         self, manager_with_items_and_api: PortfolioManager
     ) -> None:
         """Test that update handles API errors gracefully."""
         manager_with_items_and_api.api.get_aggregated_prices_bulk.side_effect = Exception("API Error")
-        
+
         result = await manager_with_items_and_api.update_prices(user_id=123)
-        
+
         assert result == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_update_prices_skips_zero_price(
         self, manager_with_items_and_api: PortfolioManager
     ) -> None:
@@ -486,19 +485,19 @@ class TestPortfolioManagerUpdatePrices:
                 {"title": "AK-47 | Redline", "offerBestPrice": 0},
             ]
         }
-        
+
         result = await manager_with_items_and_api.update_prices(user_id=123)
-        
+
         # AK has 0 price, should not be updated
         assert result == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_update_prices_multiple_games(self, tmp_path: Path) -> None:
         """Test updating prices for multiple games."""
         storage_path = tmp_path / "portfolios.json"
         mock_api = AsyncMock()
         manager = PortfolioManager(api=mock_api, storage_path=storage_path)
-        
+
         # Add items from different games
         manager.add_item(
             user_id=123,
@@ -514,21 +513,21 @@ class TestPortfolioManagerUpdatePrices:
             game="dota2",
             buy_price=200.00,
         )
-        
+
         mock_api.get_aggregated_prices_bulk.side_effect = [
             {"aggregatedPrices": [{"title": "AK-47", "offerBestPrice": 3000}]},
             {"aggregatedPrices": [{"title": "Dragon Claw", "offerBestPrice": 25000}]},
         ]
-        
+
         result = await manager.update_prices(user_id=123)
-        
+
         assert result == 2
 
 
 class TestPortfolioAnalyzerEdgeCases:
     """Tests for PortfolioAnalyzer edge cases."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self) -> PortfolioAnalyzer:
         """Create analyzer instance."""
         return PortfolioAnalyzer()
@@ -541,13 +540,13 @@ class TestPortfolioAnalyzerEdgeCases:
                 item_id="test",
                 title="Test",
                 game="csgo",
-                buy_price=Decimal("0"),
-                current_price=Decimal("0"),
+                buy_price=Decimal(0),
+                current_price=Decimal(0),
             )
         )
-        
+
         report = analyzer.analyze_diversification(portfolio)
-        
+
         assert report.diversification_score == 0
 
     def test_analyze_risk_zero_value(self, analyzer: PortfolioAnalyzer) -> None:
@@ -558,13 +557,13 @@ class TestPortfolioAnalyzerEdgeCases:
                 item_id="test",
                 title="Test",
                 game="csgo",
-                buy_price=Decimal("0"),
-                current_price=Decimal("0"),
+                buy_price=Decimal(0),
+                current_price=Decimal(0),
             )
         )
-        
+
         report = analyzer.analyze_risk(portfolio)
-        
+
         assert report.overall_risk_score == 0
 
     def test_analyze_risk_critical_level(self, analyzer: PortfolioAnalyzer) -> None:
@@ -576,17 +575,17 @@ class TestPortfolioAnalyzerEdgeCases:
                 item_id="expensive",
                 title="Expensive Item",
                 game="csgo",
-                buy_price=Decimal("1000"),
-                current_price=Decimal("500"),  # -50% loss
+                buy_price=Decimal(1000),
+                current_price=Decimal(500),  # -50% loss
                 category=ItemCategory.KNIFE,
                 rarity=ItemRarity.CONTRABAND,
             )
         )
-        
+
         report = analyzer.analyze_risk(portfolio)
-        
+
         # Single expensive item should have high risk
-        assert report.risk_level in ["high", "critical"]
+        assert report.risk_level in {"high", "critical"}
 
     def test_calculate_volatility_single_item(self, analyzer: PortfolioAnalyzer) -> None:
         """Test volatility calculation with single item."""
@@ -596,13 +595,13 @@ class TestPortfolioAnalyzerEdgeCases:
                 item_id="test",
                 title="Test",
                 game="csgo",
-                buy_price=Decimal("10"),
-                current_price=Decimal("15"),  # +50% P&L
+                buy_price=Decimal(10),
+                current_price=Decimal(15),  # +50% P&L
             )
         )
-        
+
         volatility = analyzer._calculate_volatility_score(portfolio)
-        
+
         assert volatility == 50.0  # abs(50%)
 
     def test_calculate_liquidity_high_value_items(self, analyzer: PortfolioAnalyzer) -> None:
@@ -613,13 +612,13 @@ class TestPortfolioAnalyzerEdgeCases:
                 item_id="expensive",
                 title="Expensive Knife",
                 game="csgo",
-                buy_price=Decimal("200"),
-                current_price=Decimal("200"),
+                buy_price=Decimal(200),
+                current_price=Decimal(200),
             )
         )
-        
+
         liquidity = analyzer._calculate_liquidity_score(portfolio)
-        
+
         # High value item should reduce liquidity
         assert liquidity < 100
 
@@ -631,14 +630,14 @@ class TestPortfolioAnalyzerEdgeCases:
                 item_id="rare",
                 title="Rare Item",
                 game="csgo",
-                buy_price=Decimal("50"),
-                current_price=Decimal("50"),
+                buy_price=Decimal(50),
+                current_price=Decimal(50),
                 rarity=ItemRarity.CONTRABAND,
             )
         )
-        
+
         liquidity = analyzer._calculate_liquidity_score(portfolio)
-        
+
         # Rare items should reduce liquidity
         assert liquidity < 100
 
@@ -649,16 +648,16 @@ class TestPortfolioAnalyzerEdgeCases:
             item_id="loser",
             title="Losing Item",
             game="csgo",
-            buy_price=Decimal("100"),
-            current_price=Decimal("50"),  # -50% loss
+            buy_price=Decimal(100),
+            current_price=Decimal(50),  # -50% loss
         )
         portfolio.add_item(item)
-        
+
         high_risk = analyzer._find_high_risk_items(
             portfolio.items,
-            Decimal("50"),  # total value
+            Decimal(50),  # total value
         )
-        
+
         assert any("Losing Item" in risk for risk in high_risk)
 
     def test_find_high_risk_items_expensive(self, analyzer: PortfolioAnalyzer) -> None:
@@ -668,29 +667,29 @@ class TestPortfolioAnalyzerEdgeCases:
             item_id="expensive",
             title="Very Expensive",
             game="csgo",
-            buy_price=Decimal("600"),
-            current_price=Decimal("600"),
+            buy_price=Decimal(600),
+            current_price=Decimal(600),
         )
         portfolio.add_item(item)
-        
+
         high_risk = analyzer._find_high_risk_items(
             portfolio.items,
-            Decimal("1000"),  # total value
+            Decimal(1000),  # total value
         )
-        
+
         assert any("Very Expensive" in risk for risk in high_risk)
 
     def test_concentration_risk_to_dict(self) -> None:
         """Test ConcentrationRisk.to_dict method."""
         risk = ConcentrationRisk(
             item_title="Test Item",
-            value=Decimal("100"),
+            value=Decimal(100),
             percentage=50.0,
             risk_level="high",
         )
-        
+
         data = risk.to_dict()
-        
+
         assert data["item_title"] == "Test Item"
         assert data["value"] == 100.0
         assert data["percentage"] == 50.0
@@ -706,9 +705,9 @@ class TestPortfolioAnalyzerEdgeCases:
             diversification_score=75.0,
             recommendations=["Test recommendation"],
         )
-        
+
         data = report.to_dict()
-        
+
         assert data["by_game"] == {"csgo": 100.0}
         assert data["diversification_score"] == 75.0
         assert "Test recommendation" in data["recommendations"]
@@ -724,9 +723,9 @@ class TestPortfolioAnalyzerEdgeCases:
             high_risk_items=["Item1"],
             recommendations=["Reduce concentration"],
         )
-        
+
         data = report.to_dict()
-        
+
         assert data["volatility_score"] == 30.0
         assert data["risk_level"] == "medium"
         assert "Item1" in data["high_risk_items"]
@@ -735,7 +734,7 @@ class TestPortfolioAnalyzerEdgeCases:
 class TestPortfolioAnalyzerRecommendations:
     """Tests for recommendation generation."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self) -> PortfolioAnalyzer:
         """Create analyzer instance."""
         return PortfolioAnalyzer()
@@ -748,7 +747,7 @@ class TestPortfolioAnalyzerRecommendations:
             concentration_risks=[],
             score=20.0,
         )
-        
+
         assert any("concentrated" in r.lower() for r in recommendations)
 
     def test_diversification_recommendations_single_game(self, analyzer: PortfolioAnalyzer) -> None:
@@ -759,7 +758,7 @@ class TestPortfolioAnalyzerRecommendations:
             concentration_risks=[],
             score=60.0,
         )
-        
+
         assert any("multiple games" in r.lower() for r in recommendations)
 
     def test_diversification_recommendations_few_categories(self, analyzer: PortfolioAnalyzer) -> None:
@@ -770,7 +769,7 @@ class TestPortfolioAnalyzerRecommendations:
             concentration_risks=[],
             score=60.0,
         )
-        
+
         assert any("categories" in r.lower() for r in recommendations)
 
     def test_diversification_recommendations_critical_concentration(
@@ -783,14 +782,14 @@ class TestPortfolioAnalyzerRecommendations:
             concentration_risks=[
                 ConcentrationRisk(
                     item_title="Critical Item",
-                    value=Decimal("1000"),
+                    value=Decimal(1000),
                     percentage=80.0,
                     risk_level="critical",
                 )
             ],
             score=40.0,
         )
-        
+
         assert any("Critical" in r for r in recommendations)
 
     def test_diversification_recommendations_well_diversified(
@@ -803,7 +802,7 @@ class TestPortfolioAnalyzerRecommendations:
             concentration_risks=[],
             score=85.0,
         )
-        
+
         assert any("well diversified" in r.lower() for r in recommendations)
 
     def test_risk_recommendations_high_volatility(self, analyzer: PortfolioAnalyzer) -> None:
@@ -814,7 +813,7 @@ class TestPortfolioAnalyzerRecommendations:
             concentration=30.0,
             high_risk_items=[],
         )
-        
+
         assert any("volatile" in r.lower() for r in recommendations)
 
     def test_risk_recommendations_low_liquidity(self, analyzer: PortfolioAnalyzer) -> None:
@@ -825,7 +824,7 @@ class TestPortfolioAnalyzerRecommendations:
             concentration=30.0,
             high_risk_items=[],
         )
-        
+
         assert any("illiquid" in r.lower() for r in recommendations)
 
     def test_risk_recommendations_high_concentration(self, analyzer: PortfolioAnalyzer) -> None:
@@ -836,7 +835,7 @@ class TestPortfolioAnalyzerRecommendations:
             concentration=60.0,
             high_risk_items=[],
         )
-        
+
         assert any("concentration" in r.lower() for r in recommendations)
 
     def test_risk_recommendations_manageable(self, analyzer: PortfolioAnalyzer) -> None:
@@ -847,5 +846,5 @@ class TestPortfolioAnalyzerRecommendations:
             concentration=30.0,
             high_risk_items=[],
         )
-        
+
         assert any("manageable" in r.lower() for r in recommendations)

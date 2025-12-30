@@ -13,7 +13,7 @@ from src.utils.trading_notifier import TradingNotifier, buy_with_notifications
 class TestTradingNotifier:
     """Tests for TradingNotifier class."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_api_client(self) -> MagicMock:
         """Create mock API client."""
         client = MagicMock()
@@ -21,17 +21,17 @@ class TestTradingNotifier:
         client.sell_item = AsyncMock(return_value={"success": True, "orderId": "sell-order-456"})
         return client
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_bot(self) -> MagicMock:
         """Create mock Telegram bot."""
         return MagicMock()
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_notification_queue(self) -> MagicMock:
         """Create mock notification queue."""
         return MagicMock()
 
-    @pytest.fixture
+    @pytest.fixture()
     def notifier(
         self, mock_api_client: MagicMock, mock_bot: MagicMock, mock_notification_queue: MagicMock
     ) -> TradingNotifier:
@@ -84,7 +84,7 @@ class TestTradingNotifier:
         assert item["price"]["USD"] == 2500
         assert item["game"] == "dota2"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_buy_item_with_notifications_success(
         self, notifier: TradingNotifier, mock_api_client: MagicMock
     ) -> None:
@@ -113,7 +113,7 @@ class TestTradingNotifier:
                 item_id="item-123", price=15.50, game="csgo"
             )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_buy_item_with_notifications_api_failure(
         self, notifier: TradingNotifier, mock_api_client: MagicMock
     ) -> None:
@@ -141,7 +141,7 @@ class TestTradingNotifier:
             mock_intent.assert_called_once()
             mock_failed.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_buy_item_with_notifications_exception(
         self, notifier: TradingNotifier, mock_api_client: MagicMock
     ) -> None:
@@ -166,7 +166,7 @@ class TestTradingNotifier:
 
             mock_failed.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_buy_item_without_bot(self, mock_api_client: MagicMock) -> None:
         """Test buy when bot is not configured."""
         notifier = TradingNotifier(api_client=mock_api_client)
@@ -181,7 +181,7 @@ class TestTradingNotifier:
         assert result["success"] is True
         mock_api_client.buy_item.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sell_item_with_notifications_success(
         self, notifier: TradingNotifier, mock_api_client: MagicMock
     ) -> None:
@@ -203,7 +203,7 @@ class TestTradingNotifier:
                 item_id="item-123", price=20.00, game="csgo"
             )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sell_item_with_notifications_failure(
         self, notifier: TradingNotifier, mock_api_client: MagicMock
     ) -> None:
@@ -221,7 +221,7 @@ class TestTradingNotifier:
 
         assert result["success"] is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sell_item_with_notifications_exception(
         self, notifier: TradingNotifier, mock_api_client: MagicMock
     ) -> None:
@@ -236,7 +236,7 @@ class TestTradingNotifier:
                 sell_price=20.00,
             )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sell_item_without_bot(self, mock_api_client: MagicMock) -> None:
         """Test sell when bot is not configured."""
         notifier = TradingNotifier(api_client=mock_api_client)
@@ -255,19 +255,19 @@ class TestTradingNotifier:
 class TestBuyWithNotifications:
     """Tests for buy_with_notifications helper function."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_api_client(self) -> MagicMock:
         """Create mock API client."""
         client = MagicMock()
         client.buy_item = AsyncMock(return_value={"success": True, "orderId": "test-order-123"})
         return client
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_bot(self) -> MagicMock:
         """Create mock Telegram bot."""
         return MagicMock()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_buy_with_notifications_success(
         self, mock_api_client: MagicMock, mock_bot: MagicMock
     ) -> None:
@@ -294,7 +294,7 @@ class TestBuyWithNotifications:
 
             assert result["success"] is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_buy_with_notifications_with_queue(
         self, mock_api_client: MagicMock, mock_bot: MagicMock
     ) -> None:
@@ -326,19 +326,19 @@ class TestBuyWithNotifications:
 class TestTradingNotifierProfitCalculation:
     """Tests for profit calculation in notifications."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_api_client(self) -> MagicMock:
         """Create mock API client."""
         client = MagicMock()
         client.buy_item = AsyncMock(return_value={"success": True, "orderId": "test-order-123"})
         return client
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_bot(self) -> MagicMock:
         """Create mock Telegram bot."""
         return MagicMock()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_profit_calculation_in_notification(
         self, mock_api_client: MagicMock, mock_bot: MagicMock
     ) -> None:

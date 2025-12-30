@@ -7,8 +7,9 @@ This module provides methods for finding arbitrage opportunities within DMarket 
 - Detection of mispriced rare items
 """
 
-from enum import Enum
+from enum import StrEnum
 import logging
+import operator
 from typing import Any
 
 # DMarket API
@@ -19,7 +20,7 @@ from src.dmarket.dmarket_api import DMarketAPI
 logger = logging.getLogger(__name__)
 
 
-class PriceAnomalyType(str, Enum):
+class PriceAnomalyType(StrEnum):
     """Types of price anomalies that can be detected."""
 
     UNDERPRICED = "underpriced"
@@ -155,7 +156,7 @@ async def find_price_anomalies(
                 continue
 
             # Sort by price
-            items_list.sort(key=lambda x: x["price"])
+            items_list.sort(key=operator.itemgetter("price"))
 
             # Compare each item with others to find price differences
             for i in range(len(items_list)):
@@ -194,7 +195,7 @@ async def find_price_anomalies(
                             )
 
         # Sort by profit percentage in descending order
-        anomalies.sort(key=lambda x: x["profit_percentage"], reverse=True)
+        anomalies.sort(key=operator.itemgetter("profit_percentage"), reverse=True)
 
         # Return top results
         return anomalies[:max_results]
@@ -381,7 +382,7 @@ async def find_trending_items(
                     )
 
         # Sort by potential profit percentage
-        trending_items.sort(key=lambda x: x["potential_profit_percent"], reverse=True)
+        trending_items.sort(key=operator.itemgetter("potential_profit_percent"), reverse=True)
 
         return trending_items[:max_results]
 
@@ -575,7 +576,7 @@ async def find_mispriced_rare_items(
                     )
 
         # Sort by price difference percentage
-        scored_items.sort(key=lambda x: x["price_difference_percent"], reverse=True)
+        scored_items.sort(key=operator.itemgetter("price_difference_percent"), reverse=True)
 
         return scored_items[:max_results]
 

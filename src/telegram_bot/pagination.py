@@ -454,7 +454,7 @@ def format_paginated_results(
 
     """
     # Для обратной совместимости используем существующие форматтеры
-    if mode in ["arbitrage", "auto_arbitrage"]:
+    if mode in {"arbitrage", "auto_arbitrage"}:
         return format_opportunities(items, current_page, 5)
 
     # Базовое форматирование для других типов данных

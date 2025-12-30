@@ -94,7 +94,7 @@ class TestSalesAnalyzer:
             days=7,
         )
 
-        assert result["volume_category"] in ["high", "very_high"]
+        assert result["volume_category"] in {"high", "very_high"}
         assert result["sales_count"] == 50
         assert result["sales_per_day"] > 5
 
@@ -116,7 +116,7 @@ class TestSalesAnalyzer:
             days=7,
         )
 
-        assert result["volume_category"] in ["medium", "high", "very_high"]
+        assert result["volume_category"] in {"medium", "high", "very_high"}
         assert result["sales_count"] == 20
 
     @pytest.mark.asyncio()
@@ -158,7 +158,7 @@ class TestSalesAnalyzer:
         )
 
         assert result["estimated_days"] is not None
-        assert result["confidence"] in ["high", "medium", "low", "very_low"]
+        assert result["confidence"] in {"high", "medium", "low", "very_low"}
 
     @pytest.mark.asyncio()
     async def test_estimate_time_to_sell_slow(self, analyzer, mock_api):
@@ -175,7 +175,7 @@ class TestSalesAnalyzer:
         )
 
         # При недостатке данных вернется низкая уверенность
-        assert result["confidence"] in ["low", "very_low"]
+        assert result["confidence"] in {"low", "very_low"}
 
     @pytest.mark.asyncio()
     async def test_analyze_price_trends_rising(self, analyzer):
@@ -197,7 +197,7 @@ class TestSalesAnalyzer:
 
         result = await analyzer.analyze_price_trends(item_name="Trending Item", game="csgo", days=7)
 
-        assert result["trend"] in ["rising", "upward", "strong_upward", "unknown"]
+        assert result["trend"] in {"rising", "upward", "strong_upward", "unknown"}
 
     @pytest.mark.asyncio()
     async def test_analyze_price_trends_falling(self, analyzer):
@@ -221,12 +221,12 @@ class TestSalesAnalyzer:
             item_name="Declining Item", game="csgo", days=7
         )
 
-        assert result["trend"] in [
+        assert result["trend"] in {
             "falling",
             "downward",
             "strong_downward",
             "unknown",
-        ]
+        }
 
     @pytest.mark.asyncio()
     async def test_analyze_price_trends_stable(self, analyzer):
@@ -248,7 +248,7 @@ class TestSalesAnalyzer:
 
         result = await analyzer.analyze_price_trends(item_name="Stable Item", game="csgo", days=7)
 
-        assert result["trend"] in ["stable", "sideways", "unknown"]
+        assert result["trend"] in {"stable", "sideways", "unknown"}
 
     @pytest.mark.asyncio()
     async def test_evaluate_arbitrage_potential_excellent(self, analyzer):
@@ -273,7 +273,7 @@ class TestSalesAnalyzer:
         assert "rating" in result
         assert isinstance(result["rating"], int)
         assert 0 <= result["rating"] <= 10
-        assert result["risk_level"] in ["low", "medium", "high"]
+        assert result["risk_level"] in {"low", "medium", "high"}
 
     @pytest.mark.asyncio()
     async def test_evaluate_arbitrage_potential_poor(self, analyzer):
@@ -298,7 +298,7 @@ class TestSalesAnalyzer:
         assert "rating" in result
         assert isinstance(result["rating"], int)
         assert 0 <= result["rating"] <= 10
-        assert result["risk_level"] in ["low", "medium", "high"]
+        assert result["risk_level"] in {"low", "medium", "high"}
 
     @pytest.mark.asyncio()
     async def test_caching_works(self, analyzer, mock_api):

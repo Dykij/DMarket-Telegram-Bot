@@ -9,7 +9,6 @@ This module contains tests for src/telegram_bot/localization.py covering:
 Target: 20+ tests to achieve 70%+ coverage
 """
 
-import pytest
 
 from src.telegram_bot.localization import LANGUAGES, LOCALIZATIONS
 

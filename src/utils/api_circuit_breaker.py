@@ -1,4 +1,5 @@
-from typing import Any, Awaitable, Callable, TypeVar
+from collections.abc import Awaitable, Callable
+from typing import Any, TypeVar
 
 from circuitbreaker import CircuitBreaker, CircuitBreakerError  # type: ignore
 import httpx

@@ -17,7 +17,7 @@ from __future__ import annotations
 import asyncio
 from datetime import UTC, datetime, timedelta
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -37,7 +37,7 @@ from src.dmarket.auto_seller import (
 # ============================================================================
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_api() -> AsyncMock:
     """Create a mock DMarket API client."""
     api = AsyncMock()
@@ -51,7 +51,7 @@ def mock_api() -> AsyncMock:
     return api
 
 
-@pytest.fixture
+@pytest.fixture()
 def sale_config() -> SaleConfig:
     """Create a test sale configuration."""
     return SaleConfig(
@@ -70,13 +70,13 @@ def sale_config() -> SaleConfig:
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def auto_seller(mock_api: AsyncMock, sale_config: SaleConfig) -> AutoSeller:
     """Create an AutoSeller instance with mocked API."""
     return AutoSeller(api=mock_api, config=sale_config)
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_sale() -> ScheduledSale:
     """Create a sample scheduled sale."""
     return ScheduledSale(
@@ -360,7 +360,7 @@ class TestScheduledSaleEdgeCases:
         )
         sale.status = SaleStatus.LISTED
         sale.listed_at = datetime.now(UTC) - timedelta(hours=25)
-        
+
         assert sale.is_stale(24) is True
         assert sale.is_stale(48) is False
         assert sale.is_stale(12) is True
@@ -374,7 +374,7 @@ class TestScheduledSaleEdgeCases:
 class TestAutoSellerListItem:
     """Tests for _list_item method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_item_success(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
@@ -385,7 +385,7 @@ class TestAutoSellerListItem:
         assert sample_sale.offer_id == "offer_123"
         assert sample_sale.listed_at is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_item_no_optimal_price(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
@@ -397,7 +397,7 @@ class TestAutoSellerListItem:
             assert result is False
             assert sample_sale.status == SaleStatus.FAILED
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_item_api_error(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
@@ -408,7 +408,7 @@ class TestAutoSellerListItem:
         assert sample_sale.status == SaleStatus.FAILED
         assert auto_seller._stats.failed_count == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_item_alternative_offer_id_key(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
@@ -421,7 +421,7 @@ class TestAutoSellerListItem:
         assert result is True
         assert sample_sale.offer_id == "offer_456"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_item_updates_stats(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
@@ -439,25 +439,25 @@ class TestAutoSellerListItem:
 class TestAutoSellerDelayedList:
     """Tests for _delayed_list method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_delayed_list_with_delay(
         self, mock_api: AsyncMock, sale_config: SaleConfig
     ) -> None:
         """Test delayed listing with short delay."""
         sale_config.delay_before_list_seconds = 1
         seller = AutoSeller(api=mock_api, config=sale_config)
-        
+
         sale = ScheduledSale(
             item_id="item_delay",
             item_name="Delayed Item",
             buy_price=10.00,
             target_margin=0.08,
         )
-        
+
         await seller._delayed_list(sale)
         assert sale.status == SaleStatus.LISTED
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_delayed_list_already_listed(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
@@ -476,7 +476,7 @@ class TestAutoSellerDelayedList:
 class TestAutoSellerCalculateOptimalPrice:
     """Tests for _calculate_optimal_price method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_calculate_optimal_price_match_strategy(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
@@ -486,19 +486,19 @@ class TestAutoSellerCalculateOptimalPrice:
         assert price is not None
         auto_seller.api.get_best_offers.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_calculate_optimal_price_match_no_top_price(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
         """Test match strategy falls back when no top price."""
         auto_seller.config.pricing_strategy = PricingStrategy.MATCH
         auto_seller.api.get_best_offers.return_value = {"objects": []}
-        
+
         price = await auto_seller._calculate_optimal_price(sample_sale)
         # Should fall back to fixed margin
         assert price == 11.61
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_calculate_optimal_price_dynamic_strategy(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
@@ -507,7 +507,7 @@ class TestAutoSellerCalculateOptimalPrice:
         price = await auto_seller._calculate_optimal_price(sample_sale)
         assert price is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_calculate_optimal_price_unknown_strategy(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
@@ -527,7 +527,7 @@ class TestAutoSellerCalculateOptimalPrice:
 class TestAutoSellerCalculateDynamicPrice:
     """Tests for _calculate_dynamic_price method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_calculate_dynamic_price_basic(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
@@ -536,32 +536,32 @@ class TestAutoSellerCalculateDynamicPrice:
         assert price is not None
         assert price > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_calculate_dynamic_price_with_adjustments(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
         """Test dynamic price when item has been adjusted multiple times."""
         sample_sale.listed_at = datetime.now(UTC) - timedelta(hours=30)
         sample_sale.adjustments_count = 5
-        
+
         price = await auto_seller._calculate_dynamic_price(sample_sale)
         assert price is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_calculate_dynamic_price_old_listing(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
         """Test dynamic price reduction for old listings."""
         sample_sale.listed_at = datetime.now(UTC) - timedelta(hours=72)  # 3 days
         sample_sale.adjustments_count = 5
-        
+
         price_old = await auto_seller._calculate_dynamic_price(sample_sale)
-        
+
         # Compare with fresh listing
         sample_sale.listed_at = datetime.now(UTC)
         sample_sale.adjustments_count = 0
         price_new = await auto_seller._calculate_dynamic_price(sample_sale)
-        
+
         # Old listing should have lower price (within minimum margin)
         assert price_old <= price_new
 
@@ -574,7 +574,7 @@ class TestAutoSellerCalculateDynamicPrice:
 class TestAutoSellerGetTopOfferPrice:
     """Tests for _get_top_offer_price method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_top_offer_price_success(
         self, auto_seller: AutoSeller
     ) -> None:
@@ -582,7 +582,7 @@ class TestAutoSellerGetTopOfferPrice:
         price = await auto_seller._get_top_offer_price("item_123", "csgo")
         assert price == 12.00  # 1200 cents / 100
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_top_offer_price_empty_objects(
         self, auto_seller: AutoSeller
     ) -> None:
@@ -591,7 +591,7 @@ class TestAutoSellerGetTopOfferPrice:
         price = await auto_seller._get_top_offer_price("item_123", "csgo")
         assert price is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_top_offer_price_no_objects_key(
         self, auto_seller: AutoSeller
     ) -> None:
@@ -600,7 +600,7 @@ class TestAutoSellerGetTopOfferPrice:
         price = await auto_seller._get_top_offer_price("item_123", "csgo")
         assert price is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_top_offer_price_api_error(
         self, auto_seller: AutoSeller
     ) -> None:
@@ -609,7 +609,7 @@ class TestAutoSellerGetTopOfferPrice:
         price = await auto_seller._get_top_offer_price("item_123", "csgo")
         assert price is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_top_offer_price_int_price(
         self, auto_seller: AutoSeller
     ) -> None:
@@ -620,7 +620,7 @@ class TestAutoSellerGetTopOfferPrice:
         price = await auto_seller._get_top_offer_price("item_123", "csgo")
         assert price == 15.00
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_top_offer_price_different_games(
         self, auto_seller: AutoSeller
     ) -> None:
@@ -640,18 +640,18 @@ class TestAutoSellerGetTopOfferPrice:
 class TestAutoSellerAdjustPriceEdgeCases:
     """Tests for adjust_price edge cases."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_adjust_price_no_offer_id(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
         """Test that adjustment fails without offer_id."""
         sample_sale.status = SaleStatus.LISTED
         sample_sale.offer_id = None
-        
+
         result = await auto_seller.adjust_price(sample_sale, 11.50)
         assert result is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_adjust_price_api_error(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
@@ -661,13 +661,13 @@ class TestAutoSellerAdjustPriceEdgeCases:
         sample_sale.current_price = 12.00
         auto_seller.scheduled_sales[sample_sale.item_id] = sample_sale
         auto_seller.api.update_offer_prices.side_effect = Exception("API Error")
-        
+
         result = await auto_seller.adjust_price(sample_sale, 11.50)
         assert result is False
         # Status should be restored
         assert sample_sale.status == SaleStatus.LISTED
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_adjust_price_auto_calculate(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
@@ -676,7 +676,7 @@ class TestAutoSellerAdjustPriceEdgeCases:
         sample_sale.offer_id = "offer_123"
         sample_sale.current_price = 15.00  # Different from optimal
         auto_seller.scheduled_sales[sample_sale.item_id] = sample_sale
-        
+
         result = await auto_seller.adjust_price(sample_sale, None)
         assert result is True
         assert sample_sale.adjustments_count == 1
@@ -690,7 +690,7 @@ class TestAutoSellerAdjustPriceEdgeCases:
 class TestAutoSellerCancelSaleEdgeCases:
     """Tests for cancel_sale edge cases."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_cancel_sale_not_found(
         self, auto_seller: AutoSeller
     ) -> None:
@@ -698,7 +698,7 @@ class TestAutoSellerCancelSaleEdgeCases:
         result = await auto_seller.cancel_sale("nonexistent_item")
         assert result is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_cancel_sale_api_error(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
@@ -707,7 +707,7 @@ class TestAutoSellerCancelSaleEdgeCases:
         sample_sale.offer_id = "offer_123"
         auto_seller.scheduled_sales[sample_sale.item_id] = sample_sale
         auto_seller.api.remove_offers.side_effect = Exception("API Error")
-        
+
         result = await auto_seller.cancel_sale(sample_sale.item_id)
         assert result is False
         # Sale should still exist
@@ -722,7 +722,7 @@ class TestAutoSellerCancelSaleEdgeCases:
 class TestAutoSellerPriceMonitorLoop:
     """Tests for _price_monitor_loop and _check_and_adjust_prices."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_and_adjust_prices_no_listed(
         self, auto_seller: AutoSeller
     ) -> None:
@@ -731,7 +731,7 @@ class TestAutoSellerPriceMonitorLoop:
         # Should not raise any errors
         auto_seller.api.update_offer_prices.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_and_adjust_prices_triggers_stop_loss(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
@@ -741,13 +741,13 @@ class TestAutoSellerPriceMonitorLoop:
         sample_sale.current_price = 12.00
         sample_sale.listed_at = datetime.now(UTC) - timedelta(hours=50)
         auto_seller.scheduled_sales[sample_sale.item_id] = sample_sale
-        
+
         await auto_seller._check_and_adjust_prices()
-        
+
         # Should have triggered stop-loss
         assert sample_sale.status == SaleStatus.STOP_LOSS
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_and_adjust_prices_adjusts_price(
         self, auto_seller: AutoSeller, sample_sale: ScheduledSale
     ) -> None:
@@ -757,19 +757,19 @@ class TestAutoSellerPriceMonitorLoop:
         sample_sale.current_price = 15.00  # Higher than optimal
         sample_sale.listed_at = datetime.now(UTC)
         auto_seller.scheduled_sales[sample_sale.item_id] = sample_sale
-        
+
         await auto_seller._check_and_adjust_prices()
-        
+
         # Should have called adjust_price
         assert sample_sale.adjustments_count >= 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_price_monitor_loop_handles_error(
         self, auto_seller: AutoSeller
     ) -> None:
         """Test that monitor loop handles errors gracefully."""
         auto_seller._running = True
-        
+
         with patch.object(
             auto_seller,
             "_check_and_adjust_prices",
@@ -783,13 +783,13 @@ class TestAutoSellerPriceMonitorLoop:
                         auto_seller._price_monitor_loop(),
                         timeout=0.1,
                     )
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     pass
                 except asyncio.CancelledError:
                     pass
                 finally:
                     auto_seller._running = False
-            
+
             # Should not raise
             await run_one_iteration()
 
@@ -841,10 +841,10 @@ class TestAutoSellerStatisticsExtended:
             target_margin=0.08,
             status=SaleStatus.LISTED,
         )
-        
+
         auto_seller.scheduled_sales["pending_1"] = pending_sale
         auto_seller.scheduled_sales["listed_1"] = listed_sale
-        
+
         stats = auto_seller.get_statistics()
         assert stats["active_sales"] == 2
         assert stats["pending"] == 1
@@ -865,11 +865,11 @@ class TestAutoSellerStatisticsExtended:
         sample_sale.current_price = 11.50
         sample_sale.listed_at = datetime.now(UTC)
         auto_seller.scheduled_sales[sample_sale.item_id] = sample_sale
-        
+
         active = auto_seller.get_active_sales()
         assert len(active) == 1
         sale_data = active[0]
-        
+
         assert sale_data["item_id"] == sample_sale.item_id
         assert sale_data["item_name"] == sample_sale.item_name
         assert sale_data["buy_price"] == sample_sale.buy_price
@@ -896,7 +896,7 @@ class TestAutoSellerStatsExtended:
         stats.listed_count += 1
         stats.sold_count += 1
         stats.total_profit += 1.50
-        
+
         assert stats.scheduled_count == 1
         assert stats.listed_count == 1
         assert stats.sold_count == 1
@@ -905,21 +905,21 @@ class TestAutoSellerStatsExtended:
     def test_stats_accumulation(self) -> None:
         """Test accumulating stats over multiple operations."""
         stats = AutoSellerStats()
-        
+
         for _ in range(10):
             stats.scheduled_count += 1
-        
+
         for _ in range(8):
             stats.listed_count += 1
-        
+
         for _ in range(5):
             stats.sold_count += 1
             stats.total_profit += 1.00
-        
+
         stats.failed_count += 2
         stats.stop_loss_count += 1
         stats.adjustments_count += 15
-        
+
         assert stats.scheduled_count == 10
         assert stats.listed_count == 8
         assert stats.sold_count == 5
@@ -947,7 +947,7 @@ auto_sell:
   min_margin_percent: 6.0
 """
         )
-        
+
         config = load_sale_config(str(config_file))
         assert config.enabled is True
         assert config.min_margin_percent == 6.0
@@ -964,7 +964,7 @@ other_section:
   key: value
 """
         )
-        
+
         config = load_sale_config(str(config_file))
         # Should use all defaults
         assert config.enabled is True
@@ -979,8 +979,8 @@ other_section:
             PricingStrategy.FIXED_MARGIN,
             PricingStrategy.DYNAMIC,
         ]
-        
-        for strategy, expected_strategy in zip(strategies, expected):
+
+        for strategy, expected_strategy in zip(strategies, expected, strict=False):
             config_file = tmp_path / f"config_{strategy}.yaml"
             config_file.write_text(
                 f"""
@@ -988,7 +988,7 @@ auto_sell:
   pricing_strategy: {strategy}
 """
             )
-            
+
             config = load_sale_config(str(config_file))
             assert config.pricing_strategy == expected_strategy
 
@@ -996,7 +996,7 @@ auto_sell:
         """Test loading invalid YAML returns defaults."""
         config_file = tmp_path / "invalid.yaml"
         config_file.write_text("invalid: yaml: content: [")
-        
+
         config = load_sale_config(str(config_file))
         # Should return defaults
         assert config.enabled is True
@@ -1010,7 +1010,7 @@ auto_sell:
 class TestAutoSellerEdgeCases:
     """Edge case tests for AutoSeller."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_schedule_sale_unicode_name(
         self, auto_seller: AutoSeller
     ) -> None:
@@ -1023,7 +1023,7 @@ class TestAutoSellerEdgeCases:
         )
         assert sale.item_name == "AK-47 | 红线 (Redline)"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_schedule_sale_special_characters(
         self, auto_seller: AutoSeller
     ) -> None:
@@ -1036,7 +1036,7 @@ class TestAutoSellerEdgeCases:
         )
         assert "™" in sale.item_name
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_schedule_sale_very_low_price(
         self, auto_seller: AutoSeller
     ) -> None:
@@ -1049,7 +1049,7 @@ class TestAutoSellerEdgeCases:
         )
         assert sale.buy_price == 0.01
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_schedule_sale_very_high_price(
         self, auto_seller: AutoSeller
     ) -> None:
@@ -1066,7 +1066,7 @@ class TestAutoSellerEdgeCases:
 class TestAutoSellerIntegration:
     """Integration tests for AutoSeller."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_full_sale_lifecycle(
         self, auto_seller: AutoSeller
     ) -> None:
@@ -1078,19 +1078,19 @@ class TestAutoSellerIntegration:
             buy_price=10.00,
             immediate=True,
         )
-        
+
         assert sale.status == SaleStatus.LISTED
         assert auto_seller._stats.scheduled_count == 1
         assert auto_seller._stats.listed_count == 1
-        
+
         # Mark as sold
         auto_seller.mark_sold("lifecycle_item", 11.50)
-        
+
         assert auto_seller._stats.sold_count == 1
         assert auto_seller._stats.total_profit == 1.50
         assert "lifecycle_item" not in auto_seller.scheduled_sales
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_multiple_sales_concurrent(
         self, auto_seller: AutoSeller
     ) -> None:
@@ -1104,13 +1104,13 @@ class TestAutoSellerIntegration:
                 immediate=True,
             )
             tasks.append(task)
-        
+
         await asyncio.gather(*tasks)
-        
+
         assert len(auto_seller.scheduled_sales) == 5
         assert auto_seller._stats.scheduled_count == 5
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_cancel_then_reschedule(
         self, auto_seller: AutoSeller
     ) -> None:
@@ -1122,11 +1122,11 @@ class TestAutoSellerIntegration:
             buy_price=10.00,
             immediate=True,
         )
-        
+
         # Cancel it
         await auto_seller.cancel_sale("reschedule_item")
         assert "reschedule_item" not in auto_seller.scheduled_sales
-        
+
         # Reschedule
         sale = await auto_seller.schedule_sale(
             item_id="reschedule_item",
@@ -1134,6 +1134,6 @@ class TestAutoSellerIntegration:
             buy_price=11.00,  # Different price
             immediate=True,
         )
-        
+
         assert sale.buy_price == 11.00
         assert "reschedule_item" in auto_seller.scheduled_sales

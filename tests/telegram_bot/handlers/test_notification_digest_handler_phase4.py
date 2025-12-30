@@ -14,51 +14,50 @@ including:
 Total: 82 tests
 """
 
-import pytest
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+
 from src.telegram_bot.handlers.notification_digest_handler import (
-    DigestFrequency,
-    GroupingMode,
-    NotificationItem,
-    DigestSettings,
-    NotificationDigestManager,
-    get_digest_manager,
-    show_digest_menu,
-    toggle_digest,
-    show_frequency_menu,
-    set_frequency,
-    show_grouping_menu,
-    set_grouping_mode,
-    show_min_items_menu,
-    set_min_items,
-    reset_digest_settings,
-    digest_command,
-    register_notification_digest_handlers,
-    DIGEST_MENU,
-    DIGEST_TOGGLE,
-    DIGEST_FREQUENCY,
-    DIGEST_SET_FREQ,
-    DIGEST_GROUP_BY,
-    DIGEST_SET_GROUP,
-    DIGEST_MIN_ITEMS,
-    DIGEST_SET_MIN,
-    DIGEST_RESET,
     DIGEST_BACK,
+    DIGEST_FREQUENCY,
+    DIGEST_GROUP_BY,
+    DIGEST_MENU,
+    DIGEST_MIN_ITEMS,
+    DIGEST_RESET,
+    DIGEST_SET_FREQ,
+    DIGEST_SET_GROUP,
+    DIGEST_SET_MIN,
+    DIGEST_TOGGLE,
+    DigestFrequency,
+    DigestSettings,
+    GroupingMode,
+    NotificationDigestManager,
+    NotificationItem,
+    digest_command,
+    get_digest_manager,
+    register_notification_digest_handlers,
+    reset_digest_settings,
+    set_frequency,
+    set_grouping_mode,
+    set_min_items,
+    show_digest_menu,
+    show_frequency_menu,
+    toggle_digest,
 )
 
 
 # === Fixtures ===
 
 
-@pytest.fixture
+@pytest.fixture()
 def manager():
     """Create a fresh NotificationDigestManager instance."""
     return NotificationDigestManager()
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_notification():
     """Create a sample notification item."""
     return NotificationItem(
@@ -73,7 +72,7 @@ def sample_notification():
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_update():
     """Create a mock Update object."""
     update = MagicMock()
@@ -88,7 +87,7 @@ def mock_update():
     return update
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_context():
     """Create a mock Context object."""
     context = MagicMock()
@@ -777,7 +776,7 @@ class TestFormatGroup:
 class TestShowDigestMenu:
     """Tests for show_digest_menu handler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_menu_for_callback_query(self, mock_update, mock_context):
         """Test shows menu when called from callback query."""
         with patch("src.telegram_bot.handlers.notification_digest_handler.get_digest_manager") as mock_get_manager:
@@ -791,7 +790,7 @@ class TestShowDigestMenu:
             mock_update.callback_query.answer.assert_called_once()
             mock_update.callback_query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_menu_for_message(self, mock_update, mock_context):
         """Test shows menu when called from message."""
         mock_update.callback_query = None
@@ -806,7 +805,7 @@ class TestShowDigestMenu:
 
             mock_update.message.reply_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_without_user(self, mock_update, mock_context):
         """Test returns early when no effective user."""
         mock_update.effective_user = None
@@ -820,7 +819,7 @@ class TestShowDigestMenu:
 class TestToggleDigest:
     """Tests for toggle_digest handler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_toggles_enabled_status(self, mock_update, mock_context):
         """Test toggles enabled status."""
         with patch("src.telegram_bot.handlers.notification_digest_handler.get_digest_manager") as mock_get_manager:
@@ -834,7 +833,7 @@ class TestToggleDigest:
 
             mock_manager.update_user_settings.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_without_query(self, mock_update, mock_context):
         """Test returns early without callback query."""
         mock_update.callback_query = None
@@ -847,7 +846,7 @@ class TestToggleDigest:
 class TestShowFrequencyMenu:
     """Tests for show_frequency_menu handler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_frequency_options(self, mock_update, mock_context):
         """Test shows frequency options menu."""
         with patch("src.telegram_bot.handlers.notification_digest_handler.get_digest_manager") as mock_get_manager:
@@ -864,7 +863,7 @@ class TestShowFrequencyMenu:
 class TestSetFrequency:
     """Tests for set_frequency handler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sets_frequency(self, mock_update, mock_context):
         """Test sets frequency from callback data."""
         mock_update.callback_query.data = "digest_set_freq_hourly"
@@ -886,7 +885,7 @@ class TestSetFrequency:
 class TestSetGroupingMode:
     """Tests for set_grouping_mode handler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sets_grouping_mode(self, mock_update, mock_context):
         """Test sets grouping mode from callback data."""
         mock_update.callback_query.data = "digest_set_group_by_game"
@@ -908,7 +907,7 @@ class TestSetGroupingMode:
 class TestSetMinItems:
     """Tests for set_min_items handler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sets_min_items(self, mock_update, mock_context):
         """Test sets min items from callback data."""
         mock_update.callback_query.data = "digest_set_min_10"
@@ -930,7 +929,7 @@ class TestSetMinItems:
 class TestResetDigestSettings:
     """Tests for reset_digest_settings handler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_resets_settings(self, mock_update, mock_context):
         """Test resets settings to defaults."""
         with patch("src.telegram_bot.handlers.notification_digest_handler.get_digest_manager") as mock_get_manager:
@@ -948,14 +947,14 @@ class TestResetDigestSettings:
 class TestDigestCommand:
     """Tests for digest_command handler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_calls_show_digest_menu(self, mock_update, mock_context):
         """Test digest command calls show_digest_menu."""
         with patch("src.telegram_bot.handlers.notification_digest_handler.show_digest_menu", new_callable=AsyncMock) as mock_show:
             await digest_command(mock_update, mock_context)
             mock_show.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_early_without_user(self, mock_update, mock_context):
         """Test returns early without effective user."""
         mock_update.effective_user = None

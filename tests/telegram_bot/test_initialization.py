@@ -3,7 +3,6 @@
 Tests for bot initialization, configuration, signal handling, and handler registration.
 """
 
-import asyncio
 import logging
 import os
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -107,7 +106,7 @@ class TestSetupLogging:
 class TestInitializeBot:
     """Tests for initialize_bot function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_initialize_bot_raises_without_token(self):
         """Test initialize_bot raises ValueError when token is empty."""
         from src.telegram_bot.initialization import initialize_bot
@@ -115,7 +114,7 @@ class TestInitializeBot:
         with pytest.raises(ValueError, match="Не указан токен"):
             await initialize_bot("")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_initialize_bot_raises_with_none_token(self):
         """Test initialize_bot raises ValueError when token is None."""
         from src.telegram_bot.initialization import initialize_bot
@@ -123,7 +122,7 @@ class TestInitializeBot:
         with pytest.raises((ValueError, TypeError)):
             await initialize_bot(None)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_initialize_bot_with_valid_token(self):
         """Test initialize_bot creates application with valid token."""
         from src.telegram_bot.initialization import initialize_bot
@@ -147,7 +146,7 @@ class TestInitializeBot:
             assert result == mock_app
             mock_builder.return_value.token.assert_called_once_with("test_token")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_initialize_bot_with_persistence(self):
         """Test initialize_bot creates persistence when enabled."""
         from src.telegram_bot.initialization import initialize_bot
@@ -177,7 +176,7 @@ class TestInitializeBot:
 
             mock_persistence.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_initialize_bot_uses_admin_ids_from_profiles(self):
         """Test initialize_bot gets admin IDs from profile manager."""
         from src.telegram_bot.initialization import initialize_bot
@@ -207,7 +206,7 @@ class TestInitializeBot:
 class TestSetupBotCommands:
     """Tests for setup_bot_commands function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_setup_bot_commands_registers_english_commands(self):
         """Test setup_bot_commands registers English commands."""
         from src.telegram_bot.initialization import setup_bot_commands
@@ -221,7 +220,7 @@ class TestSetupBotCommands:
                  if call[1].get("language_code") == "en"]
         assert len(calls) == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_setup_bot_commands_registers_russian_commands(self):
         """Test setup_bot_commands registers Russian commands."""
         from src.telegram_bot.initialization import setup_bot_commands
@@ -235,7 +234,7 @@ class TestSetupBotCommands:
                  if call[1].get("language_code") == "ru"]
         assert len(calls) == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_setup_bot_commands_registers_default_commands(self):
         """Test setup_bot_commands registers default commands."""
         from src.telegram_bot.initialization import setup_bot_commands
@@ -247,7 +246,7 @@ class TestSetupBotCommands:
         # Should also call without language_code for default
         assert mock_bot.set_my_commands.call_count >= 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_setup_bot_commands_handles_api_error(self):
         """Test setup_bot_commands handles API errors gracefully."""
         from src.telegram_bot.initialization import setup_bot_commands
@@ -258,7 +257,7 @@ class TestSetupBotCommands:
         # Should not raise
         await setup_bot_commands(mock_bot)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_setup_bot_commands_includes_standard_commands(self):
         """Test setup_bot_commands includes standard bot commands."""
         from src.telegram_bot.initialization import setup_bot_commands
@@ -368,8 +367,9 @@ class TestRegisterHandlers:
 
     def test_register_handlers_registers_message_handlers(self):
         """Test register_handlers registers message handlers."""
-        from src.telegram_bot.initialization import register_handlers
         from telegram.ext import filters
+
+        from src.telegram_bot.initialization import register_handlers
 
         mock_application = MagicMock()
         mock_handler = MagicMock()
@@ -395,8 +395,9 @@ class TestRegisterHandlers:
 
     def test_register_handlers_with_all_handler_types(self):
         """Test register_handlers registers all handler types."""
-        from src.telegram_bot.initialization import register_handlers
         from telegram.ext import filters
+
+        from src.telegram_bot.initialization import register_handlers
 
         mock_application = MagicMock()
         command_handlers = {"start": MagicMock()}
@@ -428,7 +429,7 @@ class TestRegisterHandlers:
 class TestInitializeServices:
     """Tests for initialize_services function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_initialize_services_creates_api_client(self):
         """Test initialize_services creates DMarket API client."""
         from src.telegram_bot.initialization import initialize_services
@@ -446,7 +447,7 @@ class TestInitializeServices:
 
             assert mock_application.bot_data["dmarket_api"] == mock_api
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_initialize_services_handles_api_creation_error(self):
         """Test initialize_services handles API creation error."""
         from src.telegram_bot.initialization import initialize_services
@@ -493,7 +494,7 @@ class TestGetBotToken:
 class TestSetupAndRunBot:
     """Tests for setup_and_run_bot function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_setup_and_run_bot_creates_log_directory(self, tmp_path):
         """Test setup_and_run_bot creates logs directory."""
         from src.telegram_bot.initialization import setup_and_run_bot
@@ -521,7 +522,7 @@ class TestSetupAndRunBot:
 
             mock_makedirs.assert_called_once_with("logs", exist_ok=True)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_setup_and_run_bot_uses_provided_token(self):
         """Test setup_and_run_bot uses provided token."""
         from src.telegram_bot.initialization import setup_and_run_bot
@@ -544,7 +545,7 @@ class TestSetupAndRunBot:
             mock_init.assert_called_once()
             assert mock_init.call_args[0][0] == "custom_token"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_setup_and_run_bot_gets_token_from_env_when_none(self):
         """Test setup_and_run_bot gets token from environment when None."""
         from src.telegram_bot.initialization import setup_and_run_bot

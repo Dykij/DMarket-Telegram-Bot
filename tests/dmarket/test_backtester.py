@@ -6,7 +6,7 @@ Tests the backtesting system for trading strategies.
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from typing import Sequence
+from collections.abc import Sequence
 
 import pytest
 
@@ -242,7 +242,7 @@ class TestSimpleArbitrageStrategy:
             price=10.0,
         )
 
-        action, price, reason = strategy.evaluate(
+        action, _price, reason = strategy.evaluate(
             current_price=current_price,
             historical_prices=[current_price] * 5,  # Only 5 points
             open_positions=[],
@@ -311,7 +311,7 @@ class TestSimpleArbitrageStrategy:
             price=10.0,
         )
 
-        action, price, reason = strategy.evaluate(
+        action, _price, reason = strategy.evaluate(
             current_price=current_price,
             historical_prices=history,
             open_positions=[],
@@ -411,7 +411,7 @@ class TestMomentumStrategy:
             price=15.0,  # Much higher
         )
 
-        action, price, reason = strategy.evaluate(
+        action, _price, reason = strategy.evaluate(
             current_price=current_price,
             historical_prices=history,
             open_positions=[],
@@ -461,7 +461,7 @@ class TestMeanReversionStrategy:
             price=8.0,  # Well below mean of ~10
         )
 
-        action, price, reason = strategy.evaluate(
+        action, _price, reason = strategy.evaluate(
             current_price=current_price,
             historical_prices=history,
             open_positions=[],

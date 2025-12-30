@@ -8,7 +8,6 @@ This module tests:
 - Item filtering with blacklist/whitelist
 """
 
-import pytest
 from unittest.mock import MagicMock
 
 from src.dmarket.scanner.filters import (

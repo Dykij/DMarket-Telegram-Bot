@@ -33,7 +33,6 @@ from typing import TYPE_CHECKING, Any
 
 from circuitbreaker import CircuitBreakerError  # type: ignore[import-untyped]
 import httpx
-import nacl.encoding
 import nacl.signing
 
 from src.dmarket.api_validator import validate_response
@@ -231,8 +230,8 @@ class DMarketAPI:
     async def __aexit__(
         self,
         exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: object | None,
+        exc_val: BaseException | None,  # noqa: ARG002
+        exc_tb: object | None,  # noqa: ARG002
     ) -> None:
         """Close client when exiting context manager."""
         await self._close_client()
@@ -616,7 +615,7 @@ class DMarketAPI:
                     return cached_data
 
         # Формируем тело запроса для POST/PUT/PATCH
-        if data and method.upper() in ("POST", "PUT", "PATCH"):
+        if data and method.upper() in {"POST", "PUT", "PATCH"}:
             body_json = json.dumps(data)
 
         # Генерируем заголовки с подписью
@@ -788,7 +787,7 @@ class DMarketAPI:
                 }
 
                 # Для некоторых ошибок возвращаем структурированный ответ вместо исключения
-                if status_code in [400, 404]:
+                if status_code in {400, 404}:
                     return error_data
 
                 last_error = Exception(
@@ -1413,7 +1412,7 @@ class DMarketAPI:
         bot_logger = BotLogger(__name__)
 
         # Рассчитываем профит если возможно
-        profit_usd = profit if profit else (sell_price - price if sell_price else None)
+        profit_usd = profit or (sell_price - price if sell_price else None)
         profit_percent = (profit_usd / price * 100) if profit_usd and price > 0 else None
 
         # Добавляем breadcrumb для Sentry

@@ -2,8 +2,9 @@
 Декоратор для применения rate limiting к командам бота.
 """
 
+from collections.abc import Callable
 import functools
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from telegram import Update

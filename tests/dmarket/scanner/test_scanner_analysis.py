@@ -11,7 +11,6 @@ This module tests:
 - _extract_price and _parse_price helper functions
 """
 
-import pytest
 from src.dmarket.scanner.analysis import (
     DMARKET_COMMISSION,
     MIN_PROFIT_THRESHOLDS,

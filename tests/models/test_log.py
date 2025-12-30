@@ -1,10 +1,8 @@
 """Tests for src/models/log.py module."""
 
-from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
+from datetime import datetime
+from unittest.mock import MagicMock
 from uuid import UUID, uuid4
-
-import pytest
 
 
 class TestCommandLogModel:

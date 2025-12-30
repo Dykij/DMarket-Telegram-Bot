@@ -36,7 +36,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -50,7 +50,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class TradeAction(str, Enum):
+class TradeAction(StrEnum):
     """Trade action type."""
 
     BUY = "buy"
@@ -58,7 +58,7 @@ class TradeAction(str, Enum):
     HOLD = "hold"
 
 
-class TradeStatus(str, Enum):
+class TradeStatus(StrEnum):
     """Status of a simulated trade."""
 
     OPEN = "open"
@@ -775,8 +775,7 @@ class Backtester:
         all_timestamps: set[datetime] = set()
         for item in items_to_test:
             if item in self.data:
-                for price in self.data[item].prices:
-                    all_timestamps.add(price.timestamp)
+                all_timestamps.update(price.timestamp for price in self.data[item].prices)
 
         sorted_timestamps = sorted(all_timestamps)
         if not sorted_timestamps:

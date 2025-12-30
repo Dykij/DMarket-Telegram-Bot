@@ -9,9 +9,6 @@ This module contains tests for src/telegram_bot/pagination.py covering:
 Target: 25+ tests to achieve 70%+ coverage
 """
 
-from unittest.mock import MagicMock
-
-import pytest
 
 from src.telegram_bot.pagination import PaginationManager
 
@@ -263,7 +260,7 @@ class TestPageNavigation:
         manager.current_page_by_user[user_id] = 0
 
         # Act
-        page_items, current_page, total_pages = manager.next_page(user_id)
+        _page_items, current_page, _total_pages = manager.next_page(user_id)
 
         # Assert
         assert current_page == 1
@@ -278,7 +275,7 @@ class TestPageNavigation:
         manager.current_page_by_user[user_id] = 2
 
         # Act
-        page_items, current_page, total_pages = manager.prev_page(user_id)
+        _page_items, current_page, _total_pages = manager.prev_page(user_id)
 
         # Assert
         assert current_page == 1
@@ -292,7 +289,7 @@ class TestPageNavigation:
         manager.current_page_by_user[user_id] = 0
 
         # Act
-        page_items, current_page, total_pages = manager.prev_page(user_id)
+        _page_items, current_page, _total_pages = manager.prev_page(user_id)
 
         # Assert
         assert current_page == 0
@@ -306,7 +303,7 @@ class TestPageNavigation:
         manager.current_page_by_user[user_id] = 1  # Last page
 
         # Act
-        page_items, current_page, total_pages = manager.next_page(user_id)
+        _page_items, current_page, _total_pages = manager.next_page(user_id)
 
         # Assert
         assert current_page == 1
@@ -352,7 +349,7 @@ class TestPaginationEdgeCases:
         manager.current_page_by_user[user_id] = 1
 
         # Act
-        page_items, current_page, total_pages = manager.get_page(user_id)
+        page_items, _current_page, _total_pages = manager.get_page(user_id)
 
         # Assert
         assert len(page_items) == 3

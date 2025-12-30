@@ -14,6 +14,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+
 # Mock MCP imports before importing the module
 with patch.dict("sys.modules", {
     "mcp": MagicMock(),
@@ -45,7 +46,7 @@ class TestMCPAvailability:
 
     def test_mcp_available_constant(self) -> None:
         """Test MCP_AVAILABLE constant exists."""
-        # Since we may not have all dependencies installed, 
+        # Since we may not have all dependencies installed,
         # we test the constant value exists in some form
         # The constant should be either True or False
         try:
@@ -65,7 +66,7 @@ class TestMCPAvailability:
 class TestDMarketMCPServerMocked:
     """Tests for DMarketMCPServer with mocked MCP."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_api_client(self) -> MagicMock:
         """Create a mock DMarket API client."""
         client = AsyncMock()
@@ -93,7 +94,7 @@ class TestDMarketMCPServerMocked:
 class TestGetBalance:
     """Tests for _get_balance method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_balance_success(self) -> None:
         """Test successful balance retrieval."""
         mock_client = AsyncMock()
@@ -112,7 +113,7 @@ class TestGetBalance:
         assert result["balance"]["usd"] == "10000"
         assert result["balance"]["dmc"] == "5000"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_balance_api_error(self) -> None:
         """Test balance retrieval with API error."""
         mock_client = AsyncMock()
@@ -141,7 +142,7 @@ class TestGetBalance:
 class TestGetMarketItems:
     """Tests for _get_market_items method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_market_items_success(self) -> None:
         """Test successful market items retrieval."""
         mock_client = AsyncMock()
@@ -181,7 +182,7 @@ class TestGetMarketItems:
         assert result["count"] == 2
         assert len(result["items"]) == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_market_items_with_price_filter(self) -> None:
         """Test market items with price filter."""
         mock_client = AsyncMock()
@@ -197,7 +198,7 @@ class TestGetMarketItems:
             game="csgo", limit=10, price_from=100, price_to=2000
         )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_market_items_empty_result(self) -> None:
         """Test market items with empty result."""
         mock_client = AsyncMock()
@@ -227,7 +228,7 @@ class TestGetMarketItems:
 class TestScanArbitrage:
     """Tests for _scan_arbitrage method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_scan_arbitrage_success(self) -> None:
         """Test successful arbitrage scan."""
         mock_scanner = AsyncMock()
@@ -262,7 +263,7 @@ class TestScanArbitrage:
         assert result["game"] == "csgo"
         assert result["count"] == 2  # Filtered out one below threshold
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_scan_arbitrage_no_opportunities(self) -> None:
         """Test arbitrage scan with no opportunities."""
         mock_scanner = AsyncMock()
@@ -282,7 +283,7 @@ class TestScanArbitrage:
         assert result["success"] is True
         assert result["count"] == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_scan_arbitrage_limits_results(self) -> None:
         """Test that scan limits results to 20."""
         mock_scanner = AsyncMock()
@@ -314,7 +315,7 @@ class TestScanArbitrage:
 class TestGetItemDetails:
     """Tests for _get_item_details method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_item_details_success(self) -> None:
         """Test successful item details retrieval."""
         mock_client = AsyncMock()
@@ -335,7 +336,7 @@ class TestGetItemDetails:
         assert result["success"] is True
         assert result["item"]["title"] == "AK-47 | Redline"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_item_details_not_found(self) -> None:
         """Test item details when item not found."""
         mock_client = AsyncMock()
@@ -364,7 +365,7 @@ class TestGetItemDetails:
 class TestCreateTarget:
     """Tests for _create_target method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_target_success(self) -> None:
         """Test successful target creation."""
         mock_target_manager = AsyncMock()
@@ -391,7 +392,7 @@ class TestCreateTarget:
         assert result["success"] is True
         assert result["target"]["id"] == "target_123"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_target_with_amount(self) -> None:
         """Test target creation with custom amount."""
         mock_target_manager = AsyncMock()
@@ -426,7 +427,7 @@ class TestCreateTarget:
 class TestGetTargets:
     """Tests for _get_targets method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_targets_success(self) -> None:
         """Test successful targets retrieval."""
         mock_target_manager = AsyncMock()
@@ -447,7 +448,7 @@ class TestGetTargets:
         assert result["count"] == 2
         assert len(result["targets"]) == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_targets_empty(self) -> None:
         """Test targets retrieval when no targets exist."""
         mock_target_manager = AsyncMock()
@@ -510,7 +511,7 @@ class TestToolSchemas:
 class TestErrorHandling:
     """Tests for error handling in MCP server."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_unknown_tool_error(self) -> None:
         """Test handling of unknown tool call."""
         async def call_tool(name: str) -> dict:
@@ -524,7 +525,7 @@ class TestErrorHandling:
         assert "error" in result
         assert "Unknown tool" in result["error"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_api_exception_handling(self) -> None:
         """Test handling of API exceptions."""
         mock_client = AsyncMock()
@@ -554,7 +555,7 @@ class TestErrorHandling:
 class TestGameValidation:
     """Tests for game parameter validation."""
 
-    @pytest.mark.parametrize("game", ["csgo", "dota2", "rust", "tf2"])
+    @pytest.mark.parametrize("game", ("csgo", "dota2", "rust", "tf2"))
     def test_valid_games(self, game: str) -> None:
         """Test that valid game codes are accepted."""
         valid_games = ["csgo", "dota2", "rust", "tf2"]
@@ -576,7 +577,7 @@ class TestLevelValidation:
     """Tests for arbitrage level validation."""
 
     @pytest.mark.parametrize(
-        "level", ["boost", "standard", "medium", "advanced", "pro"]
+        "level", ("boost", "standard", "medium", "advanced", "pro")
     )
     def test_valid_levels(self, level: str) -> None:
         """Test that valid levels are accepted."""
@@ -597,7 +598,7 @@ class TestLevelValidation:
 class TestIntegrationScenarios:
     """Integration-like tests for MCP server functionality."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_full_arbitrage_workflow(self) -> None:
         """Test complete arbitrage workflow."""
         # 1. Check balance
@@ -613,7 +614,7 @@ class TestIntegrationScenarios:
         # 3. Check if profitable
         assert opportunities[0]["profit"] > 0.5
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_target_creation_workflow(self) -> None:
         """Test target creation workflow."""
         mock_target_manager = AsyncMock()

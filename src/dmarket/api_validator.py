@@ -5,9 +5,10 @@
 ответов API и отправки уведомлений при изменении формата API.
 """
 
+from collections.abc import Callable
 from functools import wraps
 import logging
-from typing import TYPE_CHECKING, Any, Callable, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from pydantic import BaseModel, ValidationError
 

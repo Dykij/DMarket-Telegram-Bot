@@ -43,8 +43,7 @@ def mock_auto_seller():
 @pytest.fixture()
 def handler(mock_auto_seller):
     """Create AutoSellHandler with mocked AutoSeller."""
-    handler = AutoSellHandler(auto_seller=mock_auto_seller)
-    return handler
+    return AutoSellHandler(auto_seller=mock_auto_seller)
 
 
 @pytest.fixture()

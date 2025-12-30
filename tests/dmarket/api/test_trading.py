@@ -10,7 +10,7 @@ This module contains tests for src/dmarket/api/trading.py covering:
 Target: 25+ tests to achieve 70%+ coverage of trading.py
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 

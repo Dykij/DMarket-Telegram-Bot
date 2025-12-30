@@ -17,19 +17,18 @@ This module contains comprehensive Phase 4 tests for src/utils/exceptions.py cov
 Target: 85+ tests to achieve 95%+ coverage
 """
 
-import asyncio
 import logging
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from src.utils.exceptions import (
+    DMARKET_ERROR_MAPPING,
     APIError,
     AuthenticationError,
     BadRequestError,
     BaseAppException,
     BusinessLogicError,
-    DMARKET_ERROR_MAPPING,
     DMarketSpecificError,
     ErrorCode,
     ForbiddenError,
@@ -475,7 +474,7 @@ class TestFormatErrorForUserExtended:
 class TestHandleExceptionsExtended:
     """Extended tests for handle_exceptions decorator."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_async_decorator_with_base_app_exception(self):
         """Test async decorator handling BaseAppException."""
 
@@ -486,7 +485,7 @@ class TestHandleExceptionsExtended:
         with pytest.raises(BaseAppException):
             await raises_base_exception()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_async_decorator_with_unexpected_exception(self):
         """Test async decorator handling unexpected exception."""
 
@@ -507,7 +506,7 @@ class TestHandleExceptionsExtended:
         with pytest.raises(TypeError):
             raises_unexpected()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_async_decorator_no_reraise(self):
         """Test async decorator with reraise=False."""
 
@@ -530,7 +529,7 @@ class TestHandleExceptionsExtended:
         result = raises_error()
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_decorator_with_logger_parameter(self):
         """Test decorator with logger_instance parameter."""
         custom_logger = logging.getLogger("custom_test")
@@ -551,7 +550,7 @@ class TestHandleExceptionsExtended:
 
         assert simple_func() == "result"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_async_decorator_without_parens(self):
         """Test async decorator without parentheses."""
 
@@ -580,7 +579,7 @@ class TestHandleExceptionsExtended:
 class TestRetryAsyncExtended:
     """Extended tests for retry_async decorator."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_with_non_retryable_exception(self):
         """Test retry does not retry non-matching exceptions."""
         call_count = 0
@@ -595,7 +594,7 @@ class TestRetryAsyncExtended:
             await raises_value_error()
         assert call_count == 1  # Should not retry
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_with_network_error(self):
         """Test retry handles NetworkError."""
         call_count = 0
@@ -612,7 +611,7 @@ class TestRetryAsyncExtended:
         assert result == "success"
         assert call_count == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_exponential_backoff_delay(self):
         """Test exponential backoff increases delay."""
         import time
@@ -639,7 +638,7 @@ class TestRetryAsyncExtended:
             # Second delay should be larger than first
             assert delay2 > delay1 * 0.5  # Allow some tolerance
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_preserves_function_name(self):
         """Test retry decorator preserves function name."""
 
@@ -649,7 +648,7 @@ class TestRetryAsyncExtended:
 
         assert named_retry_func.__name__ == "named_retry_func"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_with_custom_exceptions_tuple(self):
         """Test retry with custom exceptions tuple."""
         call_count = 0
@@ -718,7 +717,7 @@ class TestDMarketErrorMappingExtended:
 
     def test_all_mappings_are_exception_classes(self):
         """Test all mappings point to exception classes."""
-        for key, exc_class in DMARKET_ERROR_MAPPING.items():
+        for exc_class in DMARKET_ERROR_MAPPING.values():
             assert issubclass(exc_class, Exception)
 
     def test_mapping_keys_are_strings(self):
@@ -817,7 +816,7 @@ class TestRetryStrategyExtended:
 class TestIntegration:
     """Integration tests for exceptions module."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_full_error_handling_workflow(self):
         """Test complete error handling workflow."""
         # Create error
@@ -834,7 +833,7 @@ class TestIntegration:
         # Log
         handle_api_error(exc, context={"request_id": "123"})
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_retry_with_eventual_success(self):
         """Test retry mechanism with eventual success."""
         attempt = 0
@@ -851,7 +850,7 @@ class TestIntegration:
         assert result["status"] == "success"
         assert attempt == 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_exceptions_with_telegram_update_mock(self):
         """Test handle_exceptions with mocked Telegram update."""
         # Create mock update with message
@@ -870,7 +869,7 @@ class TestIntegration:
         # Should have tried to send error message
         mock_message.reply_text.assert_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_exceptions_with_callback_query_mock(self):
         """Test handle_exceptions with mocked callback query."""
         # Create mock callback query

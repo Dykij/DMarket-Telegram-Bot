@@ -9,17 +9,19 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from .historical_data import PriceHistory, PricePoint
+
+if TYPE_CHECKING:
+    from .historical_data import PriceHistory, PricePoint
 
 
 logger = logging.getLogger(__name__)
 
 
-class TradeType(str, Enum):
+class TradeType(StrEnum):
     """Type of trade."""
 
     BUY = "buy"

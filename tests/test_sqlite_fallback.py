@@ -9,8 +9,9 @@
 """
 
 import os
+import pathlib
 import tempfile
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 from uuid import uuid4
 
 import pytest
@@ -30,7 +31,7 @@ def sqlite_db_path() -> str:
     yield path
     # Cleanup
     if os.path.exists(path):
-        os.remove(path)
+        pathlib.Path(path).unlink()
 
 
 @pytest.fixture()

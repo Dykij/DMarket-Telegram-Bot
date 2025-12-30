@@ -15,6 +15,7 @@ Comprehensive test coverage for:
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 
 from src.dmarket.intramarket_arbitrage import (
@@ -31,7 +32,7 @@ from src.dmarket.intramarket_arbitrage import (
 # ======================== Fixtures ========================
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_api():
     """Create a mock DMarket API client."""
     api = MagicMock()
@@ -41,7 +42,7 @@ def mock_api():
     return api
 
 
-@pytest.fixture
+@pytest.fixture()
 def items_with_various_price_formats():
     """Items with different price format structures."""
     return {
@@ -65,7 +66,7 @@ def items_with_various_price_formats():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def items_with_suggested_prices():
     """Items with suggested prices for value comparison."""
     return {
@@ -157,7 +158,7 @@ class TestCacheConstants:
 class TestFindPriceAnomaliesExtended:
     """Extended tests for find_price_anomalies function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_empty_title_items_skipped(self, mock_api):
         """Test that items with empty titles are skipped."""
         mock_api.get_market_items.return_value = {
@@ -171,7 +172,7 @@ class TestFindPriceAnomaliesExtended:
 
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_graffiti_items_filtered_csgo(self, mock_api):
         """Test that graffiti items are filtered for CS:GO."""
         mock_api.get_market_items.return_value = {
@@ -195,7 +196,7 @@ class TestFindPriceAnomaliesExtended:
         for result in results:
             assert "graffiti" not in result.get("item_to_buy", {}).get("title", "").lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_patch_items_filtered_csgo(self, mock_api):
         """Test that patch items are filtered for CS:GO."""
         mock_api.get_market_items.return_value = {
@@ -214,7 +215,7 @@ class TestFindPriceAnomaliesExtended:
             "patch" not in r.get("item_to_buy", {}).get("title", "").lower() for r in results
         )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stattrak_items_grouped_separately(self, mock_api):
         """Test that StatTrak items are grouped separately from non-StatTrak."""
         mock_api.get_market_items.return_value = {
@@ -237,7 +238,7 @@ class TestFindPriceAnomaliesExtended:
         # StatTrak and non-StatTrak should not be compared as anomalies
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_souvenir_items_grouped_separately(self, mock_api):
         """Test that Souvenir items are grouped separately."""
         mock_api.get_market_items.return_value = {
@@ -259,7 +260,7 @@ class TestFindPriceAnomaliesExtended:
 
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_profit_after_fee_calculation(self, mock_api):
         """Test profit after fee is calculated correctly."""
         mock_api.get_market_items.return_value = {
@@ -286,7 +287,7 @@ class TestFindPriceAnomaliesExtended:
             expected_profit = 15.0 * 0.93 - 10.0
             assert abs(results[0]["profit_after_fee"] - expected_profit) < 0.01
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_max_results_limit(self, mock_api):
         """Test max_results parameter limits output."""
         # Create many items
@@ -308,7 +309,7 @@ class TestFindPriceAnomaliesExtended:
 
         assert len(results) <= 5
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_non_csgo_game_no_exterior_parsing(self, mock_api):
         """Test that non-CS:GO games don't parse exterior from title."""
         mock_api.get_market_items.return_value = {
@@ -330,7 +331,7 @@ class TestFindPriceAnomaliesExtended:
 
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_price_none_items_skipped(self, mock_api):
         """Test items with None price are skipped."""
         mock_api.get_market_items.return_value = {
@@ -348,7 +349,7 @@ class TestFindPriceAnomaliesExtended:
 
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_api_client_created_when_none(self, mock_api):
         """Test API client is created when not provided."""
         with patch(
@@ -360,7 +361,7 @@ class TestFindPriceAnomaliesExtended:
 
             mock_create.assert_called_once_with(None)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_api_client_closed_when_created(self, mock_api):
         """Test API client is closed when created internally."""
         with patch(
@@ -372,7 +373,7 @@ class TestFindPriceAnomaliesExtended:
 
             mock_api._close_client.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_similarity_threshold_parameter(self, mock_api):
         """Test similarity_threshold parameter is accepted."""
         mock_api.get_market_items.return_value = {"items": []}
@@ -382,7 +383,7 @@ class TestFindPriceAnomaliesExtended:
             game="csgo", dmarket_api=mock_api, similarity_threshold=0.95
         )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_api_exception_returns_empty_list(self, mock_api):
         """Test API exception returns empty list."""
         mock_api.get_market_items.side_effect = Exception("API Error")
@@ -398,7 +399,7 @@ class TestFindPriceAnomaliesExtended:
 class TestFindTrendingItemsExtended:
     """Extended tests for find_trending_items function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_items_in_market_data(self, mock_api):
         """Test when market data has no items key."""
         mock_api.get_sales_history.return_value = {"items": []}
@@ -408,7 +409,7 @@ class TestFindTrendingItemsExtended:
 
         assert results == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_price_extraction_dict_format(self, mock_api):
         """Test price extraction from dict format."""
         mock_api.get_market_items.return_value = {
@@ -426,7 +427,7 @@ class TestFindTrendingItemsExtended:
 
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_price_extraction_float_format(self, mock_api):
         """Test price extraction from float format."""
         mock_api.get_market_items.return_value = {
@@ -440,7 +441,7 @@ class TestFindTrendingItemsExtended:
 
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_suggested_price_dict_format(self, mock_api):
         """Test suggested price extraction from dict format."""
         mock_api.get_market_items.return_value = {
@@ -459,7 +460,7 @@ class TestFindTrendingItemsExtended:
 
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_suggested_price_float_format(self, mock_api):
         """Test suggested price extraction from float format."""
         mock_api.get_market_items.return_value = {
@@ -478,7 +479,7 @@ class TestFindTrendingItemsExtended:
 
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_upward_trend_conditions(self, mock_api):
         """Test upward trend detection conditions."""
         # Current price higher than last sold, with 2+ sales
@@ -502,9 +503,9 @@ class TestFindTrendingItemsExtended:
 
         # Should detect upward trend if price change > 5% and sales_count >= 2
         if results:
-            assert results[0]["trend"] in ["upward", "recovery"]
+            assert results[0]["trend"] in {"upward", "recovery"}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_recovery_trend_conditions(self, mock_api):
         """Test recovery trend detection conditions."""
         # Current price much lower than last sold, with 3+ sales
@@ -528,9 +529,9 @@ class TestFindTrendingItemsExtended:
         results = await find_trending_items(game="csgo", dmarket_api=mock_api)
 
         if results:
-            assert results[0]["trend"] in ["upward", "recovery"]
+            assert results[0]["trend"] in {"upward", "recovery"}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_price_below_min_skipped(self, mock_api):
         """Test items below min_price are skipped."""
         mock_api.get_market_items.return_value = {
@@ -547,7 +548,7 @@ class TestFindTrendingItemsExtended:
         # $1 item should be skipped (below $5 min)
         assert results == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_price_above_max_skipped(self, mock_api):
         """Test items above max_price are skipped."""
         mock_api.get_market_items.return_value = {
@@ -567,7 +568,7 @@ class TestFindTrendingItemsExtended:
 
         assert results == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_empty_title_items_skipped(self, mock_api):
         """Test items with empty titles are skipped."""
         mock_api.get_market_items.return_value = {
@@ -579,7 +580,7 @@ class TestFindTrendingItemsExtended:
 
         assert results == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sales_count_incrementing(self, mock_api):
         """Test sales count is incremented correctly for multiple sales."""
         mock_api.get_market_items.return_value = {
@@ -604,7 +605,7 @@ class TestFindTrendingItemsExtended:
         if results:
             assert results[0].get("sales_count", 0) >= 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_potential_profit_threshold(self, mock_api):
         """Test potential profit threshold for upward trend."""
         # Setup item where potential profit is below $0.50 threshold
@@ -629,7 +630,7 @@ class TestFindTrendingItemsExtended:
         # Potential profit too small, may not be included
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sort_by_potential_profit_percent(self, mock_api):
         """Test results are sorted by potential profit percentage."""
         mock_api.get_market_items.return_value = {
@@ -665,7 +666,7 @@ class TestFindTrendingItemsExtended:
                     >= results[i + 1]["potential_profit_percent"]
                 )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_api_exception_returns_empty(self, mock_api):
         """Test API exception returns empty list."""
         mock_api.get_sales_history.side_effect = Exception("API Error")
@@ -681,7 +682,7 @@ class TestFindTrendingItemsExtended:
 class TestFindMispricedRareItemsExtended:
     """Extended tests for find_mispriced_rare_items function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_csgo_knife_star_symbol(self, mock_api):
         """Test CS:GO knife detection with star symbol."""
         mock_api.get_market_items.return_value = {
@@ -701,7 +702,7 @@ class TestFindMispricedRareItemsExtended:
             # Star symbol should give high rarity score
             assert results[0]["rarity_score"] >= 100
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_csgo_gloves_detection(self, mock_api):
         """Test CS:GO gloves detection."""
         mock_api.get_market_items.return_value = {
@@ -721,7 +722,7 @@ class TestFindMispricedRareItemsExtended:
             # Gloves should have high rarity
             assert results[0]["rarity_score"] >= 90
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_float_value_extremely_low(self, mock_api):
         """Test extremely low float value detection."""
         mock_api.get_market_items.return_value = {
@@ -743,7 +744,7 @@ class TestFindMispricedRareItemsExtended:
             float_traits = [t for t in results[0]["rare_traits"] if "Float" in t]
             assert len(float_traits) > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_float_value_very_low(self, mock_api):
         """Test very low float value detection (0.01-0.07)."""
         mock_api.get_market_items.return_value = {
@@ -764,7 +765,7 @@ class TestFindMispricedRareItemsExtended:
             float_traits = [t for t in results[0]["rare_traits"] if "Float" in t]
             assert len(float_traits) > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_dota2_arcana_detection(self, mock_api):
         """Test Dota 2 Arcana detection."""
         mock_api.get_market_items.return_value = {
@@ -784,7 +785,7 @@ class TestFindMispricedRareItemsExtended:
             assert "Arcana" in results[0]["rare_traits"]
             assert results[0]["rarity_score"] >= 100
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_dota2_immortal_detection(self, mock_api):
         """Test Dota 2 Immortal detection."""
         mock_api.get_market_items.return_value = {
@@ -803,7 +804,7 @@ class TestFindMispricedRareItemsExtended:
         if results:
             assert "Immortal" in results[0]["rare_traits"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_tf2_unusual_detection(self, mock_api):
         """Test TF2 Unusual detection."""
         mock_api.get_market_items.return_value = {
@@ -823,7 +824,7 @@ class TestFindMispricedRareItemsExtended:
             # Unusual (100) + Team Captain (70) + Sunbeams (90)
             assert results[0]["rarity_score"] >= 100
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_tf2_australium_detection(self, mock_api):
         """Test TF2 Australium detection."""
         mock_api.get_market_items.return_value = {
@@ -842,7 +843,7 @@ class TestFindMispricedRareItemsExtended:
         if results:
             assert "Australium" in results[0]["rare_traits"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_rust_glowing_detection(self, mock_api):
         """Test Rust Glowing trait detection."""
         mock_api.get_market_items.return_value = {
@@ -861,7 +862,7 @@ class TestFindMispricedRareItemsExtended:
         if results:
             assert "Glowing" in results[0]["rare_traits"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_rust_limited_detection(self, mock_api):
         """Test Rust Limited trait detection."""
         mock_api.get_market_items.return_value = {
@@ -880,7 +881,7 @@ class TestFindMispricedRareItemsExtended:
         if results:
             assert "Limited" in results[0]["rare_traits"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_rarity_score_threshold(self, mock_api):
         """Test rarity score threshold of 30 is enforced."""
         mock_api.get_market_items.return_value = {
@@ -900,7 +901,7 @@ class TestFindMispricedRareItemsExtended:
         if results:
             assert all(r["rarity_score"] > 30 for r in results)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_estimated_value_calculation_no_suggested(self, mock_api):
         """Test estimated value when no suggested price available."""
         mock_api.get_market_items.return_value = {
@@ -919,7 +920,7 @@ class TestFindMispricedRareItemsExtended:
             # Should estimate value based on rarity score
             assert results[0]["estimated_value"] > results[0]["current_price"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_price_difference_threshold(self, mock_api):
         """Test price difference thresholds ($2 and 10%)."""
         mock_api.get_market_items.return_value = {
@@ -939,7 +940,7 @@ class TestFindMispricedRareItemsExtended:
         # But rarity estimation might still include it
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sort_by_price_difference_percent(self, mock_api):
         """Test results sorted by price_difference_percent."""
         mock_api.get_market_items.return_value = {
@@ -968,7 +969,7 @@ class TestFindMispricedRareItemsExtended:
                 >= results[1]["price_difference_percent"]
             )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_unknown_game_empty_traits(self, mock_api):
         """Test unknown game has empty rare traits dict."""
         mock_api.get_market_items.return_value = {
@@ -989,7 +990,7 @@ class TestFindMispricedRareItemsExtended:
         # Unknown game should have no rare traits detection
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_api_exception_returns_empty(self, mock_api):
         """Test API exception returns empty list."""
         mock_api.get_market_items.side_effect = Exception("API Error")
@@ -1005,7 +1006,7 @@ class TestFindMispricedRareItemsExtended:
 class TestScanForIntramarketOpportunitiesExtended:
     """Extended tests for scan_for_intramarket_opportunities function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_default_games_list(self, mock_api):
         """Test default games list is used when None."""
         mock_api.get_market_items.return_value = {"items": []}
@@ -1021,7 +1022,7 @@ class TestScanForIntramarketOpportunitiesExtended:
         assert "tf2" in results
         assert "rust" in results
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_include_anomalies_only(self, mock_api):
         """Test include_anomalies=True, others False."""
         mock_api.get_market_items.return_value = {"items": []}
@@ -1039,7 +1040,7 @@ class TestScanForIntramarketOpportunitiesExtended:
         assert results["csgo"]["trending_items"] == []
         assert results["csgo"]["rare_mispriced"] == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_include_trending_only(self, mock_api):
         """Test include_trending=True, others False."""
         mock_api.get_market_items.return_value = {"items": []}
@@ -1057,7 +1058,7 @@ class TestScanForIntramarketOpportunitiesExtended:
         assert "trending_items" in results["csgo"]
         assert results["csgo"]["rare_mispriced"] == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_include_rare_only(self, mock_api):
         """Test include_rare=True, others False."""
         mock_api.get_market_items.return_value = {"items": []}
@@ -1075,7 +1076,7 @@ class TestScanForIntramarketOpportunitiesExtended:
         assert results["csgo"]["trending_items"] == []
         assert "rare_mispriced" in results["csgo"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_all_categories_disabled(self, mock_api):
         """Test when all categories are disabled."""
         mock_api.get_market_items.return_value = {"items": []}
@@ -1093,7 +1094,7 @@ class TestScanForIntramarketOpportunitiesExtended:
         assert results["csgo"]["trending_items"] == []
         assert results["csgo"]["rare_mispriced"] == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_max_results_per_game_applied(self, mock_api):
         """Test max_results_per_game limits results."""
         mock_api.get_market_items.return_value = {"items": []}
@@ -1110,7 +1111,7 @@ class TestScanForIntramarketOpportunitiesExtended:
         assert len(results["csgo"]["trending_items"]) <= 3
         assert len(results["csgo"]["rare_mispriced"]) <= 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_error_in_one_category_doesnt_affect_others(self, mock_api):
         """Test error in one category doesn't affect others."""
         # Make anomalies fail but trending/rare succeed
@@ -1133,7 +1134,7 @@ class TestScanForIntramarketOpportunitiesExtended:
         # Should have empty lists for failed category, not crash
         assert isinstance(results["csgo"]["price_anomalies"], list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_exception_returns_empty_results_for_all_games(self, mock_api):
         """Test main exception returns empty results for all games."""
         mock_api.get_market_items.side_effect = Exception("API Error")
@@ -1149,7 +1150,7 @@ class TestScanForIntramarketOpportunitiesExtended:
             assert results[game]["trending_items"] == []
             assert results[game]["rare_mispriced"] == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_api_client_created_and_closed(self, mock_api):
         """Test API client is created and closed properly."""
         with patch(
@@ -1162,7 +1163,7 @@ class TestScanForIntramarketOpportunitiesExtended:
             mock_create.assert_called_once_with(None)
             mock_api._close_client.assert_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_single_game_scan(self, mock_api):
         """Test scanning single game."""
         mock_api.get_market_items.return_value = {"items": []}
@@ -1182,7 +1183,7 @@ class TestScanForIntramarketOpportunitiesExtended:
 class TestEdgeCases:
     """Edge case tests for intramarket_arbitrage module."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_unicode_item_titles(self, mock_api):
         """Test handling of unicode characters in item titles."""
         mock_api.get_market_items.return_value = {
@@ -1199,7 +1200,7 @@ class TestEdgeCases:
 
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_special_characters_in_titles(self, mock_api):
         """Test handling of special characters in titles."""
         mock_api.get_market_items.return_value = {
@@ -1216,7 +1217,7 @@ class TestEdgeCases:
 
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_very_large_price(self, mock_api):
         """Test handling of very large prices."""
         mock_api.get_market_items.return_value = {
@@ -1235,7 +1236,7 @@ class TestEdgeCases:
 
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_very_small_price(self, mock_api):
         """Test handling of very small prices."""
         mock_api.get_market_items.return_value = {
@@ -1254,7 +1255,7 @@ class TestEdgeCases:
 
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_zero_price(self, mock_api):
         """Test handling of zero price."""
         mock_api.get_market_items.return_value = {
@@ -1267,7 +1268,7 @@ class TestEdgeCases:
 
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_negative_price(self, mock_api):
         """Test handling of negative price."""
         mock_api.get_market_items.return_value = {
@@ -1285,7 +1286,7 @@ class TestEdgeCases:
         # Should handle gracefully
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_empty_items_key(self, mock_api):
         """Test empty items key in response."""
         mock_api.get_market_items.return_value = {"items": []}
@@ -1294,7 +1295,7 @@ class TestEdgeCases:
 
         assert results == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_missing_items_key(self, mock_api):
         """Test missing items key in response."""
         mock_api.get_market_items.return_value = {}
@@ -1303,7 +1304,7 @@ class TestEdgeCases:
 
         assert results == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_none_response(self, mock_api):
         """Test None response from API."""
         mock_api.get_market_items.return_value = None
@@ -1315,7 +1316,7 @@ class TestEdgeCases:
         except Exception:
             pass  # Exception is acceptable for None response
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_very_long_title(self, mock_api):
         """Test handling of very long item titles."""
         long_title = "A" * 1000  # 1000 character title
@@ -1336,7 +1337,7 @@ class TestEdgeCases:
 class TestIntegration:
     """Integration tests for intramarket_arbitrage module."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_full_anomaly_detection_workflow(self, mock_api):
         """Test complete anomaly detection workflow."""
         # Setup realistic market data
@@ -1376,7 +1377,7 @@ class TestIntegration:
             assert "profit_after_fee" in results[0]
             assert results[0]["profit_after_fee"] > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_full_trending_workflow(self, mock_api):
         """Test complete trending items workflow."""
         mock_api.get_market_items.return_value = {
@@ -1401,7 +1402,7 @@ class TestIntegration:
 
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_full_rare_items_workflow(self, mock_api):
         """Test complete rare items workflow."""
         mock_api.get_market_items.return_value = {
@@ -1425,7 +1426,7 @@ class TestIntegration:
             assert "rare_traits" in results[0]
             assert results[0]["rarity_score"] > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_comprehensive_scan_all_games(self, mock_api):
         """Test comprehensive scan across all games."""
         mock_api.get_market_items.return_value = {"items": []}
@@ -1446,7 +1447,7 @@ class TestIntegration:
             assert "trending_items" in results[game]
             assert "rare_mispriced" in results[game]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_fee_calculation_accuracy(self, mock_api):
         """Test fee calculation is accurate (7% DMarket fee)."""
         mock_api.get_market_items.return_value = {

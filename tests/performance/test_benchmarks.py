@@ -4,10 +4,11 @@ Uses pytest-benchmark for measuring execution time of critical operations.
 """
 
 import asyncio
+import operator
 import time
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+
 
 # Check if pytest-benchmark is available
 try:
@@ -74,6 +75,7 @@ class TestPriceCalculationPerformance:
         result = benchmark(calculate_profit_percent, 10.0, 15.0, 7.0)
         assert result > 0
 
+
 @needs_benchmark
 class TestCachePerformance:
     """Performance tests for caching operations."""
@@ -121,6 +123,7 @@ class TestCachePerformance:
 
         result = benchmark(calculate_hit_rate, hits, misses)
         assert result == 75.0
+
 
 @needs_benchmark
 class TestFilteringPerformance:
@@ -187,7 +190,7 @@ class TestSortingPerformance:
 
         def sort_by_profit(items: list[dict], descending: bool = True) -> list[dict]:
             """Sort items by profit."""
-            return sorted(items, key=lambda x: x["profit"], reverse=descending)
+            return sorted(items, key=operator.itemgetter("profit"), reverse=descending)
 
         results = benchmark(sort_by_profit, items.copy())
         assert results[0]["profit"] >= results[-1]["profit"]
@@ -328,7 +331,7 @@ class TestJSONPerformance:
 class TestAsyncPerformance:
     """Performance tests for async operations (without benchmark fixture)."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_async_gather_speed(self):
         """Test async gather performance."""
 
@@ -345,7 +348,7 @@ class TestAsyncPerformance:
         # Should be much faster than 100 * 1ms = 100ms due to concurrency
         assert elapsed < 0.5, f"Async gather took too long: {elapsed}s"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_batch_processing_speed(self):
         """Test concurrent batch processing performance."""
 

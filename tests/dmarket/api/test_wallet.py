@@ -446,8 +446,8 @@ class TestWalletGetBalance:
         # Assert
         assert result["error"] is True
         # When all endpoints fail, it may return 500 or 401 depending on error parsing
-        assert result["status_code"] in [401, 500]
-        assert result["code"] in ["UNAUTHORIZED", "REQUEST_FAILED"]
+        assert result["status_code"] in {401, 500}
+        assert result["code"] in {"UNAUTHORIZED", "REQUEST_FAILED"}
 
     @pytest.mark.asyncio()
     async def test_get_balance_tries_multiple_endpoints(self, wallet_client):
@@ -1301,7 +1301,7 @@ class TestWalletUserProfile:
         # Act & Assert
         with pytest.raises(Exception) as exc_info:
             await wallet_client.get_user_profile()
-        
+
         assert "API Error" in str(exc_info.value)
 
     @pytest.mark.asyncio()
@@ -1347,7 +1347,7 @@ class TestWalletAccountDetails:
         # Arrange
         import asyncio
         wallet_client._request = AsyncMock(
-            side_effect=asyncio.TimeoutError("Request timeout")
+            side_effect=TimeoutError("Request timeout")
         )
 
         # Act & Assert

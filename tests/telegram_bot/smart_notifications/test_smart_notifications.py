@@ -6,7 +6,6 @@ Tests for smart notification functionality including:
 - Throttling
 """
 
-from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -112,8 +111,8 @@ class TestSmartNotificationsPreferences:
     def test_get_user_preferences(self):
         """Test getting user preferences."""
         from src.telegram_bot.smart_notifications.preferences import (
-            get_user_preferences,
             _user_preferences,
+            get_user_preferences,
         )
 
         # Clear and set test data
@@ -128,8 +127,8 @@ class TestSmartNotificationsPreferences:
     def test_get_active_alerts(self):
         """Test getting active alerts."""
         from src.telegram_bot.smart_notifications.preferences import (
-            get_active_alerts,
             _active_alerts,
+            get_active_alerts,
         )
 
         # Clear and set test data
@@ -146,8 +145,8 @@ class TestSmartNotificationsPreferences:
     def test_save_user_preferences_no_args(self):
         """Test saving all user preferences."""
         from src.telegram_bot.smart_notifications.preferences import (
-            save_user_preferences,
             _user_preferences,
+            save_user_preferences,
         )
 
         _user_preferences.clear()
@@ -225,8 +224,8 @@ class TestSmartNotificationsSenders:
         }
         user_prefs = {"chat_id": 123456, "enabled": True}
 
-        with patch('src.telegram_bot.smart_notifications.senders.format_market_item', return_value="Item info"):
-            with patch('src.telegram_bot.smart_notifications.senders.record_notification'):
+        with patch("src.telegram_bot.smart_notifications.senders.format_market_item", return_value="Item info"):
+            with patch("src.telegram_bot.smart_notifications.senders.record_notification"):
                 await send_price_alert_notification(
                     mock_bot, 123456, alert, item_data, 12.0, user_prefs
                 )
@@ -249,8 +248,8 @@ class TestSmartNotificationsSenders:
         }
         user_prefs = {"chat_id": 789012, "enabled": True}
 
-        with patch('src.telegram_bot.smart_notifications.senders.format_opportunities', return_value="Opportunity"):
-            with patch('src.telegram_bot.smart_notifications.senders.record_notification'):
+        with patch("src.telegram_bot.smart_notifications.senders.format_opportunities", return_value="Opportunity"):
+            with patch("src.telegram_bot.smart_notifications.senders.record_notification"):
                 await send_market_opportunity_notification(
                     mock_bot, 789012, opportunity, user_prefs
                 )
@@ -375,8 +374,8 @@ class TestSmartNotificationsIntegration:
         from src.telegram_bot.smart_notifications.preferences import (
             _active_alerts,
             _user_preferences,
-            get_user_preferences,
             get_active_alerts,
+            get_user_preferences,
         )
 
         # Clear state

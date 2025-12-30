@@ -6,7 +6,6 @@ Tests for game filter handlers including:
 - Telegram callback handlers for filter configuration
 """
 
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -147,8 +146,8 @@ class TestGameFilterUtils:
 
     def test_get_current_filters_empty_context(self):
         """Test getting filters with empty context returns defaults."""
-        from src.telegram_bot.handlers.game_filters.utils import get_current_filters
         from src.telegram_bot.handlers.game_filters.constants import DEFAULT_FILTERS
+        from src.telegram_bot.handlers.game_filters.utils import get_current_filters
 
         context = MagicMock()
         context.user_data = None
@@ -180,8 +179,8 @@ class TestGameFilterUtils:
 
     def test_get_current_filters_different_game(self):
         """Test getting filters for different game returns defaults."""
-        from src.telegram_bot.handlers.game_filters.utils import get_current_filters
         from src.telegram_bot.handlers.game_filters.constants import DEFAULT_FILTERS
+        from src.telegram_bot.handlers.game_filters.utils import get_current_filters
 
         context = MagicMock()
         context.user_data = {

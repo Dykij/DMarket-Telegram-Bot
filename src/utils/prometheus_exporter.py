@@ -124,12 +124,12 @@ class MetricsCollector:
     """Коллектор метрик для бота."""
 
     @staticmethod
-    def record_command(command: str, user_id: int):
+    def record_command(command: str, user_id: int) -> None:
         """Записать выполнение команды."""
         commands_total.labels(command=command, user_id=str(user_id)).inc()
 
     @staticmethod
-    def record_api_request(endpoint: str, method: str, status: int, duration: float):
+    def record_api_request(endpoint: str, method: str, status: int, duration: float) -> None:
         """Записать API запрос."""
         api_requests_total.labels(
             endpoint=endpoint,
@@ -140,55 +140,55 @@ class MetricsCollector:
         api_request_duration_seconds.labels(endpoint=endpoint).observe(duration)
 
     @staticmethod
-    def record_error(error_type: str, module: str):
+    def record_error(error_type: str, module: str) -> None:
         """Записать ошибку."""
         errors_total.labels(error_type=error_type, module=module).inc()
 
     @staticmethod
-    def record_arbitrage_scan(level: str, game: str, duration: float, found: int):
+    def record_arbitrage_scan(level: str, game: str, duration: float, found: int) -> None:
         """Записать сканирование арбитража."""
         arbitrage_scans_total.labels(level=level, game=game).inc()
         arbitrage_opportunities_found.labels(level=level, game=game).inc(found)
         arbitrage_scan_duration_seconds.labels(level=level, game=game).observe(duration)
 
     @staticmethod
-    def record_target_created(game: str, user_id: int):
+    def record_target_created(game: str, user_id: int) -> None:
         """Записать создание таргета."""
         targets_created_total.labels(game=game, user_id=str(user_id)).inc()
 
     @staticmethod
-    def record_target_hit(game: str, user_id: int):
+    def record_target_hit(game: str, user_id: int) -> None:
         """Записать срабатывание таргета."""
         targets_hit_total.labels(game=game, user_id=str(user_id)).inc()
 
     @staticmethod
-    def record_trade(trade_type: str, game: str, amount_usd: float):
+    def record_trade(trade_type: str, game: str, amount_usd: float) -> None:
         """Записать сделку."""
         trades_total.labels(type=trade_type, game=game).inc()
         trade_volume_usd.labels(type=trade_type, game=game).inc(amount_usd)
 
     @staticmethod
-    def update_active_users(count: int):
+    def update_active_users(count: int) -> None:
         """Обновить количество активных пользователей."""
         active_users.set(count)
 
     @staticmethod
-    def update_active_targets(game: str, count: int):
+    def update_active_targets(game: str, count: int) -> None:
         """Обновить количество активных таргетов."""
         active_targets.labels(game=game).set(count)
 
     @staticmethod
-    def update_balance(user_id: int, balance: float):
+    def update_balance(user_id: int, balance: float) -> None:
         """Обновить баланс."""
         balance_usd.labels(user_id=str(user_id)).set(balance)
 
     @staticmethod
-    def update_cache_size(cache_type: str, size: int):
+    def update_cache_size(cache_type: str, size: int) -> None:
         """Обновить размер кэша."""
         cache_size.labels(cache_type=cache_type).set(size)
 
     @staticmethod
-    def update_rate_limit(user_id: int, remaining: int):
+    def update_rate_limit(user_id: int, remaining: int) -> None:
         """Обновить оставшиеся запросы."""
         rate_limit_remaining.labels(user_id=str(user_id)).set(remaining)
 
@@ -211,8 +211,7 @@ def measure_time(metric: Histogram, labels: dict[str, str] | None = None):
         async def wrapper(*args, **kwargs):
             start = time.time()
             try:
-                result = await func(*args, **kwargs)
-                return result
+                return await func(*args, **kwargs)
             finally:
                 duration = time.time() - start
                 if labels:

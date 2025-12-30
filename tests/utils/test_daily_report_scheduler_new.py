@@ -8,9 +8,8 @@ Tests for DailyReportScheduler including:
 - Sending reports to admins
 """
 
-import asyncio
 from datetime import datetime, time, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 

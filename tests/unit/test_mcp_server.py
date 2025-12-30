@@ -10,6 +10,7 @@ import pytest
 
 from src.dmarket.dmarket_api import DMarketAPI
 
+
 # Проверяем доступность MCP перед импортом
 try:
     from src.mcp_server.dmarket_mcp import MCP_AVAILABLE, DMarketMCPServer

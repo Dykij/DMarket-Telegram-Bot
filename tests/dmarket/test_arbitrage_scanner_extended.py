@@ -518,7 +518,7 @@ def test_get_level_by_price_range(scanner):
     # Проверяем что такой метод существует и работает
     if hasattr(scanner, "get_level_by_price"):
         level = scanner.get_level_by_price(5.0)
-        assert level in ["boost", "standard", "medium", "advanced", "pro"]
+        assert level in {"boost", "standard", "medium", "advanced", "pro"}
 
 
 # ============================================================================

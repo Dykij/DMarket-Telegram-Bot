@@ -126,7 +126,7 @@ async def send_price_alert_notification(
         await record_notification(user_id, "price_alert", alert.get("item_id"))
 
         # Update alert if one-time
-        if alert.get("one_time", False):
+        if alert.get("one_time"):
             # Mark as inactive
             alert["active"] = False
             save_user_preferences()

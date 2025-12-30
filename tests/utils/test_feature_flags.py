@@ -1,14 +1,13 @@
 """Тесты для feature_flags.py"""
 
-import tempfile
-from unittest.mock import AsyncMock, MagicMock, patch, mock_open
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from src.utils.feature_flags import (
     Feature,
-    FeatureFlagStatus,
     FeatureFlagsManager,
+    FeatureFlagStatus,
     get_feature_flags,
     init_feature_flags,
 )
@@ -488,7 +487,6 @@ class TestGlobalFeatureFlags:
 
     def test_get_feature_flags_after_init(self, tmp_path):
         """Test get_feature_flags after initialization."""
-        import src.utils.feature_flags as ff
 
         config_file = tmp_path / "global_flags2.yaml"
         config_file.write_text("features: {}")

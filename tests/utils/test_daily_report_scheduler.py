@@ -62,7 +62,7 @@ class TestDailyReportSchedulerInit:
 class TestDailyReportSchedulerStart:
     """Tests for DailyReportScheduler start method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_when_disabled(self):
         """Test that scheduler doesn't start when disabled."""
         scheduler = DailyReportScheduler(
@@ -76,7 +76,7 @@ class TestDailyReportSchedulerStart:
 
         assert scheduler._is_running is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_when_already_running(self):
         """Test that scheduler doesn't restart when already running."""
         scheduler = DailyReportScheduler(
@@ -90,7 +90,7 @@ class TestDailyReportSchedulerStart:
             await scheduler.start()
             mock_add.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_successfully(self):
         """Test successful scheduler start."""
         scheduler = DailyReportScheduler(
@@ -111,7 +111,7 @@ class TestDailyReportSchedulerStart:
 class TestDailyReportSchedulerStop:
     """Tests for DailyReportScheduler stop method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_when_not_running(self):
         """Test stop when scheduler is not running."""
         scheduler = DailyReportScheduler(
@@ -124,7 +124,7 @@ class TestDailyReportSchedulerStop:
             await scheduler.stop()
             mock_shutdown.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_when_running(self):
         """Test successful scheduler stop."""
         scheduler = DailyReportScheduler(
@@ -144,7 +144,7 @@ class TestDailyReportSchedulerStop:
 class TestDailyReportSchedulerManualReport:
     """Tests for send_manual_report method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_send_manual_report_default_days(self):
         """Test sending manual report with default days."""
         scheduler = DailyReportScheduler(
@@ -159,7 +159,7 @@ class TestDailyReportSchedulerManualReport:
             await scheduler.send_manual_report()
             mock_generate.assert_called_once_with(days=1)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_send_manual_report_custom_days(self):
         """Test sending manual report with custom days."""
         scheduler = DailyReportScheduler(
@@ -178,7 +178,7 @@ class TestDailyReportSchedulerManualReport:
 class TestDailyReportSchedulerGenerateReport:
     """Tests for _generate_and_send_report method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_generate_report_sends_to_all_admins(self):
         """Test that report is sent to all admin users."""
         bot = MagicMock()
@@ -211,7 +211,7 @@ class TestDailyReportSchedulerGenerateReport:
 
             assert bot.send_message.call_count == 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_generate_report_handles_send_error(self):
         """Test that report generation handles send errors gracefully."""
         bot = MagicMock()
@@ -236,7 +236,7 @@ class TestDailyReportSchedulerGenerateReport:
 class TestDailyReportSchedulerCollectStatistics:
     """Tests for _collect_statistics method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_statistics_returns_default_values(self):
         """Test that collect_statistics returns default values."""
         database = MagicMock()
@@ -259,7 +259,7 @@ class TestDailyReportSchedulerCollectStatistics:
         assert stats["successful_trades"] == 0
         assert stats["total_profit_usd"] == 0.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_statistics_with_data(self):
         """Test collect_statistics with actual data."""
         database = MagicMock()

@@ -13,6 +13,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+
 # Mark all tests in this module as smoke tests
 pytestmark = [pytest.mark.smoke, pytest.mark.asyncio]
 

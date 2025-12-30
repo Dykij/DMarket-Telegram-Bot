@@ -143,8 +143,7 @@ def mock_scanner(mock_dmarket_api):
     """
     from src.dmarket.arbitrage_scanner import ArbitrageScanner
 
-    scanner = ArbitrageScanner(api_client=mock_dmarket_api)
-    return scanner
+    return ArbitrageScanner(api_client=mock_dmarket_api)
 
 
 @pytest.fixture()
@@ -155,8 +154,7 @@ def mock_target_manager(mock_dmarket_api):
     """
     from src.dmarket.targets import TargetManager
 
-    manager = TargetManager(api_client=mock_dmarket_api)
-    return manager
+    return TargetManager(api_client=mock_dmarket_api)
 
 
 @pytest.fixture()

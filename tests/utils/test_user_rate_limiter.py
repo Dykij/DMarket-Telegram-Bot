@@ -35,7 +35,7 @@ class TestUserRateLimiter:
 
         # Отправить несколько запросов
         for _ in range(5):
-            allowed, info = await limiter.check_limit(user_id, "scan")
+            allowed, _info = await limiter.check_limit(user_id, "scan")
             assert allowed is True
 
     @pytest.mark.asyncio()
@@ -264,13 +264,13 @@ class TestUserRateLimiter:
         assert allowed is False
 
     @pytest.mark.parametrize(
-        "action,expected_limit",
-        [
+        ("action", "expected_limit"),
+        (
             ("scan", 10),
             ("target_create", 5),
             ("balance", 20),
             ("default", 30),
-        ],
+        ),
     )
     def test_default_limits(self, limiter, action, expected_limit):
         """Тест лимитов по умолчанию."""

@@ -22,7 +22,7 @@ def validate_attributes(game: str, attrs: dict[str, Any] | None) -> None:
         return
 
     # Валидация для CS:GO/CS2
-    if game in ("csgo", "a8db", "cs2"):
+    if game in {"csgo", "a8db", "cs2"}:
         # Проверка floatPartValue
         if "floatPartValue" in attrs:
             try:
@@ -63,7 +63,7 @@ def extract_attributes_from_title(game: str, title: str) -> dict[str, Any]:
     """
     attrs: dict[str, Any] = {}
 
-    if game in ("csgo", "a8db", "cs2"):
+    if game in {"csgo", "a8db", "cs2"}:
         # Извлечение фазы (Doppler)
         # Пример: "Karambit | Doppler (Factory New) Phase 2"
         phase_match = re.search(r"Phase\s+(\d+)", title, re.IGNORECASE)

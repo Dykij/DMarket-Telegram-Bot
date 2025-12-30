@@ -1,6 +1,5 @@
 """Tests for telegram_bot market_alerts module."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -56,8 +55,9 @@ class TestNotificationQueue:
 
     def test_notification_queue_initialization(self):
         """Test NotificationQueue can be instantiated with required args."""
-        from src.telegram_bot.notification_queue import NotificationQueue
         from unittest.mock import MagicMock
+
+        from src.telegram_bot.notification_queue import NotificationQueue
 
         bot = MagicMock()
         queue = NotificationQueue(bot=bot)
@@ -65,8 +65,9 @@ class TestNotificationQueue:
 
     def test_notification_queue_has_methods(self):
         """Test NotificationQueue has expected methods."""
-        from src.telegram_bot.notification_queue import NotificationQueue
         from unittest.mock import MagicMock
+
+        from src.telegram_bot.notification_queue import NotificationQueue
 
         bot = MagicMock()
         queue = NotificationQueue(bot=bot)

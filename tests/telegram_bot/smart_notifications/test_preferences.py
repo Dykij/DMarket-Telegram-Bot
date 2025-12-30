@@ -13,9 +13,7 @@ Target: 15+ tests to achieve 70%+ coverage
 """
 
 import json
-from datetime import datetime
-from pathlib import Path
-from unittest.mock import MagicMock, patch, mock_open
+from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
@@ -33,17 +31,17 @@ PREFERENCES_MODULE = "src.telegram_bot.smart_notifications.preferences"
 def reset_preferences():
     """Fixture to reset preferences state before and after each test."""
     import src.telegram_bot.smart_notifications.preferences as prefs_module
-    
+
     # Save original state
     original_user_prefs = prefs_module._user_preferences.copy()
     original_alerts = prefs_module._active_alerts.copy()
-    
+
     # Clear state for test
     prefs_module._user_preferences.clear()
     prefs_module._active_alerts.clear()
-    
+
     yield
-    
+
     # Restore original state
     prefs_module._user_preferences = original_user_prefs
     prefs_module._active_alerts = original_alerts
@@ -103,7 +101,7 @@ class TestGetUserPreferences:
         )
 
         prefs_module._user_preferences.update(sample_preferences)
-        
+
         result = get_user_preferences()
         assert result == sample_preferences
         assert "12345" in result
@@ -134,7 +132,7 @@ class TestGetActiveAlerts:
         )
 
         prefs_module._active_alerts.update(sample_alerts)
-        
+
         result = get_active_alerts()
         assert result == sample_alerts
         assert "12345" in result
@@ -151,15 +149,15 @@ class TestLoadUserPreferences:
     def test_load_preferences_file_not_exists(self, reset_preferences):
         """Test loading preferences when file doesn't exist."""
         from src.telegram_bot.smart_notifications.preferences import (
-            load_user_preferences,
-            get_user_preferences,
             get_active_alerts,
+            get_user_preferences,
+            load_user_preferences,
         )
 
         with patch(f"{PREFERENCES_MODULE}.SMART_ALERTS_FILE") as mock_file:
             mock_file.exists.return_value = False
             load_user_preferences()
-        
+
         # Should not crash and should keep empty state
         assert get_user_preferences() == {}
         assert get_active_alerts() == {}
@@ -167,37 +165,37 @@ class TestLoadUserPreferences:
     def test_load_preferences_success(self, reset_preferences, sample_preferences, sample_alerts):
         """Test successful preferences loading."""
         from src.telegram_bot.smart_notifications.preferences import (
-            load_user_preferences,
-            get_user_preferences,
             get_active_alerts,
+            get_user_preferences,
+            load_user_preferences,
         )
 
         data = {
             "user_preferences": sample_preferences,
             "active_alerts": sample_alerts,
         }
-        
+
         with patch(f"{PREFERENCES_MODULE}.SMART_ALERTS_FILE") as mock_file:
             mock_file.exists.return_value = True
             with patch("builtins.open", mock_open(read_data=json.dumps(data))):
                 load_user_preferences()
-        
+
         assert get_user_preferences() == sample_preferences
         assert get_active_alerts() == sample_alerts
 
     def test_load_preferences_json_decode_error(self, reset_preferences):
         """Test loading preferences with invalid JSON."""
         from src.telegram_bot.smart_notifications.preferences import (
-            load_user_preferences,
-            get_user_preferences,
             get_active_alerts,
+            get_user_preferences,
+            load_user_preferences,
         )
 
         with patch(f"{PREFERENCES_MODULE}.SMART_ALERTS_FILE") as mock_file:
             mock_file.exists.return_value = True
             with patch("builtins.open", mock_open(read_data="invalid json {")):
                 load_user_preferences()
-        
+
         # Should handle error and reset to empty state
         assert get_user_preferences() == {}
         assert get_active_alerts() == {}
@@ -205,15 +203,15 @@ class TestLoadUserPreferences:
     def test_load_preferences_os_error(self, reset_preferences):
         """Test loading preferences with OS error."""
         from src.telegram_bot.smart_notifications.preferences import (
-            load_user_preferences,
             get_user_preferences,
+            load_user_preferences,
         )
 
         with patch(f"{PREFERENCES_MODULE}.SMART_ALERTS_FILE") as mock_file:
             mock_file.exists.return_value = True
             with patch("builtins.open", side_effect=OSError("File not accessible")):
                 load_user_preferences()
-        
+
         # Should handle error
         assert get_user_preferences() == {}
 
@@ -234,10 +232,10 @@ class TestSaveUserPreferences:
         )
 
         prefs_module._user_preferences.update(sample_preferences)
-        
+
         mock_dir = MagicMock()
         mock_dir.exists.return_value = True
-        
+
         with patch(f"{PREFERENCES_MODULE}.DATA_DIR", mock_dir):
             with patch("builtins.open", mock_open()) as mocked_file:
                 with patch("json.dump") as mock_json_dump:
@@ -252,12 +250,12 @@ class TestSaveUserPreferences:
 
         mock_dir = MagicMock()
         mock_dir.exists.return_value = False
-        
+
         with patch(f"{PREFERENCES_MODULE}.DATA_DIR", mock_dir):
             with patch("builtins.open", mock_open()):
                 with patch("json.dump"):
                     save_user_preferences()
-        
+
         mock_dir.mkdir.assert_called_once_with(parents=True, exist_ok=True)
 
     def test_save_preferences_os_error(self, reset_preferences):
@@ -268,7 +266,7 @@ class TestSaveUserPreferences:
 
         mock_dir = MagicMock()
         mock_dir.exists.return_value = True
-        
+
         with patch(f"{PREFERENCES_MODULE}.DATA_DIR", mock_dir):
             with patch("builtins.open", side_effect=OSError("Cannot write")):
                 # Should not raise exception
@@ -287,13 +285,13 @@ class TestRegisterUser:
     async def test_register_new_user(self, reset_preferences):
         """Test registering a new user."""
         from src.telegram_bot.smart_notifications.preferences import (
-            register_user,
             get_user_preferences,
+            register_user,
         )
 
         with patch(f"{PREFERENCES_MODULE}.save_user_preferences"):
             await register_user(12345)
-        
+
         prefs = get_user_preferences()
         assert "12345" in prefs
         assert prefs["12345"]["chat_id"] == 12345
@@ -302,13 +300,13 @@ class TestRegisterUser:
     async def test_register_user_with_chat_id(self, reset_preferences):
         """Test registering a user with custom chat ID."""
         from src.telegram_bot.smart_notifications.preferences import (
-            register_user,
             get_user_preferences,
+            register_user,
         )
 
         with patch(f"{PREFERENCES_MODULE}.save_user_preferences"):
             await register_user(12345, chat_id=67890)
-        
+
         prefs = get_user_preferences()
         assert prefs["12345"]["chat_id"] == 67890
 
@@ -317,15 +315,15 @@ class TestRegisterUser:
         """Test that re-registering an existing user doesn't overwrite data."""
         import src.telegram_bot.smart_notifications.preferences as prefs_module
         from src.telegram_bot.smart_notifications.preferences import (
-            register_user,
             get_user_preferences,
+            register_user,
         )
 
         prefs_module._user_preferences.update(sample_preferences)
-        
+
         with patch(f"{PREFERENCES_MODULE}.save_user_preferences"):
             await register_user(12345)
-        
+
         prefs = get_user_preferences()
         # Should keep original data
         assert prefs["12345"] == sample_preferences["12345"]
@@ -344,15 +342,15 @@ class TestUpdateUserPreferences:
         """Test updating an existing user's preferences."""
         import src.telegram_bot.smart_notifications.preferences as prefs_module
         from src.telegram_bot.smart_notifications.preferences import (
-            update_user_preferences,
             get_user_preferences,
+            update_user_preferences,
         )
 
         prefs_module._user_preferences.update(sample_preferences)
-        
+
         with patch(f"{PREFERENCES_MODULE}.save_user_preferences"):
             await update_user_preferences(12345, {"digest_frequency": "weekly"})
-        
+
         prefs = get_user_preferences()
         assert prefs["12345"]["digest_frequency"] == "weekly"
 
@@ -360,13 +358,13 @@ class TestUpdateUserPreferences:
     async def test_update_new_user(self, reset_preferences):
         """Test updating preferences for a new user (auto-registers)."""
         from src.telegram_bot.smart_notifications.preferences import (
-            update_user_preferences,
             get_user_preferences,
+            update_user_preferences,
         )
 
         with patch(f"{PREFERENCES_MODULE}.save_user_preferences"):
             await update_user_preferences(99999, {"notifications_enabled": False})
-        
+
         prefs = get_user_preferences()
         assert "99999" in prefs
 
@@ -375,17 +373,17 @@ class TestUpdateUserPreferences:
         """Test updating nested dictionary preferences."""
         import src.telegram_bot.smart_notifications.preferences as prefs_module
         from src.telegram_bot.smart_notifications.preferences import (
-            update_user_preferences,
             get_user_preferences,
+            update_user_preferences,
         )
 
         # Add nested dict to preferences
         sample_preferences["12345"]["settings"] = {"theme": "dark"}
         prefs_module._user_preferences.update(sample_preferences)
-        
+
         with patch(f"{PREFERENCES_MODULE}.save_user_preferences"):
             await update_user_preferences(12345, {"settings": {"theme": "light"}})
-        
+
         prefs = get_user_preferences()
         assert prefs["12345"]["settings"]["theme"] == "light"
 
@@ -406,7 +404,7 @@ class TestGetUserPrefs:
         )
 
         prefs_module._user_preferences.update(sample_preferences)
-        
+
         result = get_user_prefs(12345)
         assert result == sample_preferences["12345"]
 
@@ -427,7 +425,7 @@ class TestGetUserPrefs:
         )
 
         prefs_module._user_preferences.update(sample_preferences)
-        
+
         # Test with int
         result1 = get_user_prefs(12345)
         assert result1 == sample_preferences["12345"]
@@ -455,7 +453,7 @@ class TestPreferencesEdgeCases:
             }
         }
         prefs_module._user_preferences.update(special_prefs)
-        
+
         result = get_user_preferences()
         assert result["12345"]["nickname"] == "User™ 日本語 🎮"
 
@@ -463,9 +461,10 @@ class TestPreferencesEdgeCases:
     async def test_concurrent_updates(self, reset_preferences):
         """Test handling of concurrent preference updates."""
         import asyncio
+
         from src.telegram_bot.smart_notifications.preferences import (
-            update_user_preferences,
             get_user_preferences,
+            update_user_preferences,
         )
 
         with patch(f"{PREFERENCES_MODULE}.save_user_preferences"):
@@ -474,7 +473,7 @@ class TestPreferencesEdgeCases:
                 update_user_preferences(12346, {"key2": "value2"}),
                 update_user_preferences(12347, {"key3": "value3"}),
             )
-        
+
         prefs = get_user_preferences()
         assert "12345" in prefs
         assert "12346" in prefs

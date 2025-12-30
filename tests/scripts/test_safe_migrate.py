@@ -256,8 +256,8 @@ class TestSafeMigrator:
             assert isinstance(pending, list)
 
     @pytest.mark.parametrize(
-        "integrity_checks,expected_pass",
-        [
+        ("integrity_checks", "expected_pass"),
+        (
             (
                 {
                     "no_orphaned_targets": True,
@@ -285,7 +285,7 @@ class TestSafeMigrator:
                 },
                 False,
             ),
-        ],
+        ),
     )
     def test_all_checks_passing(self, integrity_checks, expected_pass):
         """Тест проверки всех тестов целостности."""

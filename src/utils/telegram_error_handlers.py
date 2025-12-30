@@ -275,7 +275,7 @@ class BaseHandler:
         user_id = update.effective_user.id if update.effective_user else None
 
         # Log error
-        self.logger.exception(
+        self.logger.error(
             "Error occurred: %s",
             error,
             extra={

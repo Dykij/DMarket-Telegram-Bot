@@ -9,13 +9,11 @@ This module tests the notification system constants:
 
 from __future__ import annotations
 
-import pytest
-
 from src.telegram_bot.notifications.constants import (
-    NOTIFICATION_TYPES,
     _PRICE_CACHE_TTL,
     DEFAULT_USER_SETTINGS,
     NOTIFICATION_PRIORITIES,
+    NOTIFICATION_TYPES,
 )
 
 
@@ -104,7 +102,7 @@ class TestNotificationTypes:
             "sell_failed",
             "critical_shutdown",
         ]
-        
+
         for t in expected_types:
             assert t in NOTIFICATION_TYPES
 
@@ -116,7 +114,7 @@ class TestNotificationTypes:
 
     def test_notification_types_values_contain_emojis(self):
         """Test that all values contain emojis for visual feedback."""
-        for key, value in NOTIFICATION_TYPES.items():
+        for value in NOTIFICATION_TYPES.values():
             # All notification type descriptions should have some text
             assert len(value) > 0
 
@@ -174,7 +172,7 @@ class TestDefaultUserSettings:
         """Test that quiet_hours has start and end times."""
         assert "quiet_hours" in DEFAULT_USER_SETTINGS
         quiet_hours = DEFAULT_USER_SETTINGS["quiet_hours"]
-        
+
         assert "start" in quiet_hours
         assert "end" in quiet_hours
         assert quiet_hours["start"] == 23
@@ -189,7 +187,7 @@ class TestDefaultUserSettings:
     def test_quiet_hours_valid_range(self):
         """Test that quiet hours are valid hour values (0-23)."""
         quiet_hours = DEFAULT_USER_SETTINGS["quiet_hours"]
-        
+
         assert 0 <= quiet_hours["start"] <= 23
         assert 0 <= quiet_hours["end"] <= 23
 
@@ -208,7 +206,7 @@ class TestNotificationPriorities:
         """Test that critical_shutdown has highest priority."""
         assert "critical_shutdown" in NOTIFICATION_PRIORITIES
         assert NOTIFICATION_PRIORITIES["critical_shutdown"] == 100
-        
+
         # Should be highest
         max_priority = max(NOTIFICATION_PRIORITIES.values())
         assert NOTIFICATION_PRIORITIES["critical_shutdown"] == max_priority
@@ -282,16 +280,16 @@ class TestNotificationPriorities:
         """Test that priority ordering makes logical sense."""
         # Critical should be higher than trading
         assert NOTIFICATION_PRIORITIES["critical_shutdown"] > NOTIFICATION_PRIORITIES["buy_success"]
-        
+
         # Trading notifications should be higher than market alerts
         assert NOTIFICATION_PRIORITIES["buy_success"] > NOTIFICATION_PRIORITIES["arbitrage"]
-        
+
         # Arbitrage should be higher than simple price changes
         assert NOTIFICATION_PRIORITIES["arbitrage"] > NOTIFICATION_PRIORITIES["price_drop"]
 
     def test_priorities_match_notification_types(self):
         """Test that all notification types have priorities defined."""
-        for notification_type in NOTIFICATION_TYPES.keys():
+        for notification_type in NOTIFICATION_TYPES:
             assert notification_type in NOTIFICATION_PRIORITIES, \
                 f"{notification_type} should have a priority defined"
 
@@ -306,7 +304,7 @@ class TestConstantsIntegration:
         """Test that types and priorities are aligned."""
         type_keys = set(NOTIFICATION_TYPES.keys())
         priority_keys = set(NOTIFICATION_PRIORITIES.keys())
-        
+
         # All types should have priorities
         assert type_keys == priority_keys
 
@@ -314,33 +312,33 @@ class TestConstantsIntegration:
         """Test that default settings have valid value types."""
         # enabled should be bool
         assert isinstance(DEFAULT_USER_SETTINGS["enabled"], bool)
-        
+
         # language should be string
         assert isinstance(DEFAULT_USER_SETTINGS["language"], str)
-        
+
         # min_interval should be int
         assert isinstance(DEFAULT_USER_SETTINGS["min_interval"], int)
-        
+
         # quiet_hours should be dict
         assert isinstance(DEFAULT_USER_SETTINGS["quiet_hours"], dict)
-        
+
         # max_alerts_per_day should be int
         assert isinstance(DEFAULT_USER_SETTINGS["max_alerts_per_day"], int)
 
     def test_cache_ttl_shorter_than_min_interval(self):
         """Test that cache TTL is shorter than or equal to min notification interval."""
         # Cache should refresh at least as often as notifications can be sent
-        assert _PRICE_CACHE_TTL <= DEFAULT_USER_SETTINGS["min_interval"]
+        assert DEFAULT_USER_SETTINGS["min_interval"] >= _PRICE_CACHE_TTL
 
     def test_all_exports_available(self):
         """Test that all expected exports are available."""
         from src.telegram_bot.notifications.constants import (
+            _PRICE_CACHE_TTL,
             DEFAULT_USER_SETTINGS,
             NOTIFICATION_PRIORITIES,
             NOTIFICATION_TYPES,
-            _PRICE_CACHE_TTL,
         )
-        
+
         assert DEFAULT_USER_SETTINGS is not None
         assert NOTIFICATION_PRIORITIES is not None
         assert NOTIFICATION_TYPES is not None
@@ -358,7 +356,7 @@ class TestConstantsEdgeCases:
         # Note: Final is a type hint, not runtime enforcement
         # This test documents the intended behavior
         original_count = len(NOTIFICATION_TYPES)
-        
+
         # We shouldn't modify constants, but verify they exist as expected
         assert len(NOTIFICATION_TYPES) == original_count
 
@@ -372,13 +370,13 @@ class TestConstantsEdgeCases:
         quiet_hours = DEFAULT_USER_SETTINGS["quiet_hours"]
         start = quiet_hours["start"]
         end = quiet_hours["end"]
-        
+
         # Calculate span (handles overnight)
         if end > start:
             span = end - start
         else:
             span = (24 - start) + end
-        
+
         # Quiet hours should be reasonable (4-12 hours typically)
         assert 4 <= span <= 12
 
@@ -391,5 +389,5 @@ class TestConstantsEdgeCases:
         """Test that default language is a valid code."""
         language = DEFAULT_USER_SETTINGS["language"]
         valid_languages = ["ru", "en", "es", "de", "fr", "uk", "zh"]
-        
+
         assert language in valid_languages, f"Language {language} should be a valid code"

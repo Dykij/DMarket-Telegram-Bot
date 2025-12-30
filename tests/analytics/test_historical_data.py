@@ -5,10 +5,10 @@ Phase 3 tests for achieving 80% coverage.
 
 from __future__ import annotations
 
-from dataclasses import fields
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from src.analytics.historical_data import (
@@ -69,7 +69,7 @@ class TestPricePoint:
             source="aggregated",
         )
         result = pp.to_dict()
-        
+
         assert result["game"] == "csgo"
         assert result["title"] == "AWP | Asiimov"
         assert result["price"] == 45.99  # float conversion
@@ -89,7 +89,7 @@ class TestPricePoint:
             "source": "market",
         }
         pp = PricePoint.from_dict(data)
-        
+
         assert pp.game == "rust"
         assert pp.title == "AK47"
         assert pp.price == Decimal("25.5")
@@ -106,7 +106,7 @@ class TestPricePoint:
             "timestamp": now.isoformat(),
         }
         pp = PricePoint.from_dict(data)
-        
+
         assert pp.volume == 0  # default
         assert pp.source == "market"  # default
 
@@ -121,11 +121,11 @@ class TestPricePoint:
             volume=7,
             source="sales_history",
         )
-        
+
         # Roundtrip
         data = original.to_dict()
         restored = PricePoint.from_dict(data)
-        
+
         assert restored.game == original.game
         assert restored.title == original.title
         # Price comparison with float precision
@@ -145,7 +145,7 @@ class TestPriceHistory:
     def test_price_history_creation_empty(self):
         """Test empty PriceHistory creation."""
         ph = PriceHistory(game="csgo", title="Test Item")
-        
+
         assert ph.game == "csgo"
         assert ph.title == "Test Item"
         assert ph.points == []
@@ -158,7 +158,7 @@ class TestPriceHistory:
             PricePoint(game="csgo", title="Item", price=Decimal("10.00"), timestamp=now),
             PricePoint(game="csgo", title="Item", price=Decimal("12.00"), timestamp=now),
         ]
-        
+
         ph = PriceHistory(game="csgo", title="Item", points=points)
         assert len(ph.points) == 2
 
@@ -318,7 +318,7 @@ class TestPriceHistory:
 class TestHistoricalDataCollector:
     """Tests for HistoricalDataCollector class."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_api(self):
         """Create mock API client."""
         api = MagicMock()
@@ -326,7 +326,7 @@ class TestHistoricalDataCollector:
         api.get_aggregated_prices_bulk = AsyncMock(return_value={"aggregatedPrices": []})
         return api
 
-    @pytest.fixture
+    @pytest.fixture()
     def collector(self, mock_api):
         """Create HistoricalDataCollector with mock API."""
         return HistoricalDataCollector(api=mock_api)
@@ -343,17 +343,17 @@ class TestHistoricalDataCollector:
         collector = HistoricalDataCollector(api=mock_api, cache_ttl_minutes=30)
         assert collector._cache_ttl == timedelta(minutes=30)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_price_history_empty_result(self, collector, mock_api):
         """Test collecting price history with no data."""
         result = await collector.collect_price_history("csgo", "Test Item", days=30)
-        
+
         assert isinstance(result, PriceHistory)
         assert result.game == "csgo"
         assert result.title == "Test Item"
         assert len(result.points) == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_price_history_with_sales(self, collector, mock_api):
         """Test collecting price history with sales data."""
         now = datetime.now(UTC)
@@ -363,14 +363,14 @@ class TestHistoricalDataCollector:
                 {"price": {"USD": 1600}, "date": now.isoformat()},
             ]
         }
-        
+
         result = await collector.collect_price_history("csgo", "AK-47", days=30)
-        
+
         assert len(result.points) == 2
         assert result.points[0].price == Decimal("15.00")  # 1500 cents -> $15.00
         assert result.points[1].price == Decimal("16.00")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_price_history_with_aggregated(self, collector, mock_api):
         """Test collecting price history with aggregated data."""
         mock_api.get_aggregated_prices_bulk.return_value = {
@@ -382,51 +382,51 @@ class TestHistoricalDataCollector:
                 }
             ]
         }
-        
+
         result = await collector.collect_price_history("csgo", "AWP | Asiimov", days=30)
-        
+
         # Should have 2 points - one for offer, one for order
         assert len(result.points) == 2
         assert any(p.source == "aggregated_offer" for p in result.points)
         assert any(p.source == "aggregated_order" for p in result.points)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_price_history_cache_hit(self, collector, mock_api):
         """Test cache hit on second call."""
         # First call
         result1 = await collector.collect_price_history("csgo", "Item", days=30)
-        
+
         # Second call should use cache
         result2 = await collector.collect_price_history("csgo", "Item", days=30)
-        
+
         # API should only be called once
         assert mock_api.get_sales_history.call_count == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_price_history_cache_bypass(self, collector, mock_api):
         """Test bypassing cache."""
         # First call
         await collector.collect_price_history("csgo", "Item", days=30)
-        
+
         # Second call bypassing cache
         await collector.collect_price_history("csgo", "Item", days=30, use_cache=False)
-        
+
         # API should be called twice
         assert mock_api.get_sales_history.call_count == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_price_history_api_error(self, collector, mock_api):
         """Test handling API errors gracefully."""
         mock_api.get_sales_history.side_effect = Exception("API Error")
         mock_api.get_aggregated_prices_bulk.side_effect = Exception("API Error")
-        
+
         # Should not raise, returns empty history
         result = await collector.collect_price_history("csgo", "Item", days=30)
-        
+
         assert isinstance(result, PriceHistory)
         assert len(result.points) == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_from_sales_history_price_formats(self, collector, mock_api):
         """Test parsing different price formats from sales history."""
         now = datetime.now(UTC)
@@ -440,12 +440,12 @@ class TestHistoricalDataCollector:
                 {"price": 2500, "date": now.isoformat()},
             ]
         }
-        
+
         result = await collector.collect_price_history("csgo", "Item", days=30)
-        
+
         assert len(result.points) == 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_from_sales_history_timestamp_formats(self, collector, mock_api):
         """Test parsing different timestamp formats."""
         mock_api.get_sales_history.return_value = {
@@ -455,36 +455,36 @@ class TestHistoricalDataCollector:
                 {"price": 1000},  # No timestamp
             ]
         }
-        
+
         result = await collector.collect_price_history("csgo", "Item", days=30)
-        
+
         assert len(result.points) == 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_batch(self, collector, mock_api):
         """Test batch collection for multiple items."""
         titles = ["Item1", "Item2", "Item3"]
-        
+
         results = await collector.collect_batch("csgo", titles, days=30)
-        
+
         assert len(results) == 3
         assert "Item1" in results
         assert "Item2" in results
         assert "Item3" in results
         assert all(isinstance(v, PriceHistory) for v in results.values())
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_batch_with_errors(self, collector, mock_api):
         """Test batch collection handles individual errors."""
         def side_effect(game, title, period):
             if title == "BadItem":
                 raise Exception("Error")
             return {"sales": []}
-        
+
         mock_api.get_sales_history.side_effect = side_effect
-        
+
         results = await collector.collect_batch("csgo", ["Item1", "BadItem", "Item2"], days=30)
-        
+
         # Should have results for successful items
         assert "Item1" in results
         assert "Item2" in results
@@ -494,15 +494,15 @@ class TestHistoricalDataCollector:
         # Add something to cache
         collector._cache["test:key"] = (datetime.now(UTC), MagicMock())
         assert len(collector._cache) == 1
-        
+
         collector.clear_cache()
-        
+
         assert len(collector._cache) == 0
 
     def test_get_cache_stats_empty(self, collector):
         """Test cache stats with empty cache."""
         stats = collector.get_cache_stats()
-        
+
         assert stats["total_entries"] == 0
         assert stats["valid_entries"] == 0
         assert stats["ttl_minutes"] == 60.0
@@ -510,30 +510,30 @@ class TestHistoricalDataCollector:
     def test_get_cache_stats_with_entries(self, collector):
         """Test cache stats with entries."""
         now = datetime.now(UTC)
-        
+
         # Add valid entry
         collector._cache["valid:key"] = (now, MagicMock())
-        
+
         # Add expired entry
         old_time = now - timedelta(hours=2)
         collector._cache["expired:key"] = (old_time, MagicMock())
-        
+
         stats = collector.get_cache_stats()
-        
+
         assert stats["total_entries"] == 2
         assert stats["valid_entries"] == 1  # Only the recent one
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_from_aggregated_empty(self, collector, mock_api):
         """Test aggregated collection with empty response."""
         mock_api.get_aggregated_prices_bulk.return_value = {}
-        
+
         result = await collector.collect_price_history("csgo", "Item", days=30)
-        
+
         # Only sales history points (if any), no aggregated
         mock_api.get_aggregated_prices_bulk.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_from_aggregated_title_mismatch(self, collector, mock_api):
         """Test aggregated collection when title doesn't match."""
         mock_api.get_aggregated_prices_bulk.return_value = {
@@ -541,13 +541,13 @@ class TestHistoricalDataCollector:
                 {"title": "Different Item", "offerBestPrice": 5000}
             ]
         }
-        
+
         result = await collector.collect_price_history("csgo", "Target Item", days=30)
-        
+
         # Should not include mismatched items
         assert not any(p.source.startswith("aggregated") for p in result.points)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_from_aggregated_zero_prices(self, collector, mock_api):
         """Test aggregated collection with zero prices."""
         mock_api.get_aggregated_prices_bulk.return_value = {
@@ -559,9 +559,9 @@ class TestHistoricalDataCollector:
                 }
             ]
         }
-        
+
         result = await collector.collect_price_history("csgo", "Item", days=30)
-        
+
         # Should not include zero price points
         assert not any(p.source.startswith("aggregated") for p in result.points)
 
@@ -606,25 +606,25 @@ class TestHistoricalDataEdgeCases:
             )
             for i in range(1, 1001)
         ]
-        
+
         ph = PriceHistory(game="csgo", title="Item", points=points)
-        
+
         assert len(ph.points) == 1000
         assert ph.average_price == Decimal("500.5")  # Average of 1 to 1000
-        assert ph.min_price == Decimal("1")
-        assert ph.max_price == Decimal("1000")
+        assert ph.min_price == Decimal(1)
+        assert ph.max_price == Decimal(1000)
         assert ph.total_volume == 0  # Default volume
 
     def test_price_history_high_volatility(self):
         """Test PriceHistory with high volatility."""
         now = datetime.now(UTC)
         points = [
-            PricePoint(game="csgo", title="Item", price=Decimal("1"), timestamp=now),
-            PricePoint(game="csgo", title="Item", price=Decimal("100"), timestamp=now),
+            PricePoint(game="csgo", title="Item", price=Decimal(1), timestamp=now),
+            PricePoint(game="csgo", title="Item", price=Decimal(100), timestamp=now),
         ]
-        
+
         ph = PriceHistory(game="csgo", title="Item", points=points)
-        
+
         # High volatility expected
         volatility = ph.price_volatility
         assert volatility > 0.9  # Very high volatility
@@ -637,10 +637,10 @@ class TestHistoricalDataEdgeCases:
             price=Decimal("15.00"),
             timestamp=datetime.now(UTC),
         )
-        
+
         data = pp.to_dict()
         restored = PricePoint.from_dict(data)
-        
+
         assert restored.title == pp.title
 
     def test_unicode_in_title(self):
@@ -651,8 +651,8 @@ class TestHistoricalDataEdgeCases:
             price=Decimal("10.00"),
             timestamp=datetime.now(UTC),
         )
-        
+
         data = pp.to_dict()
         restored = PricePoint.from_dict(data)
-        
+
         assert restored.title == pp.title

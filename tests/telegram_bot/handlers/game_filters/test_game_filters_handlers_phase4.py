@@ -20,7 +20,7 @@ This module contains extended tests for:
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -28,7 +28,7 @@ import pytest
 class TestHandleGameFilters:
     """Tests for handle_game_filters function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_message(self) -> None:
         """Test returns early when no message."""
         from src.telegram_bot.handlers.game_filters.handlers import handle_game_filters
@@ -42,7 +42,7 @@ class TestHandleGameFilters:
         # Should not call any message methods
         assert update.message is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sends_game_selection_keyboard(self) -> None:
         """Test sends keyboard with game options."""
         from src.telegram_bot.handlers.game_filters.handlers import handle_game_filters
@@ -59,7 +59,7 @@ class TestHandleGameFilters:
         assert "Выберите игру для настройки фильтров" in call_args[0][0]
         assert "reply_markup" in call_args[1]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_keyboard_contains_all_games(self) -> None:
         """Test keyboard contains all game options."""
         from src.telegram_bot.handlers.game_filters.handlers import handle_game_filters
@@ -89,7 +89,7 @@ class TestHandleGameFilters:
 class TestHandleSelectGameFilterCallback:
     """Tests for handle_select_game_filter_callback function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_query(self) -> None:
         """Test returns early when no query."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -102,7 +102,7 @@ class TestHandleSelectGameFilterCallback:
 
         await handle_select_game_filter_callback(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_query_data(self) -> None:
         """Test returns early when no query data."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -116,7 +116,7 @@ class TestHandleSelectGameFilterCallback:
 
         await handle_select_game_filter_callback(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_selects_csgo_game(self) -> None:
         """Test selects CSGO game."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -140,7 +140,7 @@ class TestHandleSelectGameFilterCallback:
         call_args = query.edit_message_text.call_args
         assert "CS2" in call_args[1]["text"] or "CS" in call_args[1]["text"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_selects_dota2_game(self) -> None:
         """Test selects Dota 2 game."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -162,7 +162,7 @@ class TestHandleSelectGameFilterCallback:
         query.answer.assert_called_once()
         query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_selects_tf2_game(self) -> None:
         """Test selects TF2 game."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -184,7 +184,7 @@ class TestHandleSelectGameFilterCallback:
         query.answer.assert_called_once()
         query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_selects_rust_game(self) -> None:
         """Test selects Rust game."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -206,7 +206,7 @@ class TestHandleSelectGameFilterCallback:
         query.answer.assert_called_once()
         query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_default_game_when_missing(self) -> None:
         """Test defaults to csgo when game not specified."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -232,7 +232,7 @@ class TestHandleSelectGameFilterCallback:
 class TestHandlePriceRangeCallback:
     """Tests for handle_price_range_callback function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_query(self) -> None:
         """Test returns early when no query."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -245,7 +245,7 @@ class TestHandlePriceRangeCallback:
 
         await handle_price_range_callback(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_price_range_options(self) -> None:
         """Test shows price range options."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -273,7 +273,7 @@ class TestHandlePriceRangeCallback:
 class TestHandleFloatRangeCallback:
     """Tests for handle_float_range_callback function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_query(self) -> None:
         """Test returns early when no query."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -286,7 +286,7 @@ class TestHandleFloatRangeCallback:
 
         await handle_float_range_callback(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_float_range_for_csgo(self) -> None:
         """Test shows float range options for CSGO."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -310,7 +310,7 @@ class TestHandleFloatRangeCallback:
         call_args = query.edit_message_text.call_args
         assert "float" in call_args[1]["text"].lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_rejects_float_for_non_csgo(self) -> None:
         """Test rejects float range for non-CSGO games."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -336,7 +336,7 @@ class TestHandleFloatRangeCallback:
 class TestHandleSetCategoryCallback:
     """Tests for handle_set_category_callback function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_query(self) -> None:
         """Test returns early when no query."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -349,7 +349,7 @@ class TestHandleSetCategoryCallback:
 
         await handle_set_category_callback(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_csgo_categories(self) -> None:
         """Test shows CSGO categories."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -377,7 +377,7 @@ class TestHandleSetCategoryCallback:
 class TestHandleSetRarityCallback:
     """Tests for handle_set_rarity_callback function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_query(self) -> None:
         """Test returns early when no query."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -390,7 +390,7 @@ class TestHandleSetRarityCallback:
 
         await handle_set_rarity_callback(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_csgo_rarities(self) -> None:
         """Test shows CSGO rarities."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -416,7 +416,7 @@ class TestHandleSetRarityCallback:
 class TestHandleSetExteriorCallback:
     """Tests for handle_set_exterior_callback function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_query(self) -> None:
         """Test returns early when no query."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -429,7 +429,7 @@ class TestHandleSetExteriorCallback:
 
         await handle_set_exterior_callback(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_exterior_for_csgo(self) -> None:
         """Test shows exterior options for CSGO."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -451,7 +451,7 @@ class TestHandleSetExteriorCallback:
         query.answer.assert_called_once()
         query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_rejects_exterior_for_non_csgo(self) -> None:
         """Test rejects exterior for non-CSGO games."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -477,7 +477,7 @@ class TestHandleSetExteriorCallback:
 class TestHandleSetHeroCallback:
     """Tests for handle_set_hero_callback function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_query(self) -> None:
         """Test returns early when no query."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -490,7 +490,7 @@ class TestHandleSetHeroCallback:
 
         await handle_set_hero_callback(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_heroes_for_dota2(self) -> None:
         """Test shows hero options for Dota 2."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -512,7 +512,7 @@ class TestHandleSetHeroCallback:
         query.answer.assert_called_once()
         query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_rejects_hero_for_non_dota2(self) -> None:
         """Test rejects hero for non-Dota 2 games."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -538,7 +538,7 @@ class TestHandleSetHeroCallback:
 class TestHandleSetSlotCallback:
     """Tests for handle_set_slot_callback function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_query(self) -> None:
         """Test returns early when no query."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -551,7 +551,7 @@ class TestHandleSetSlotCallback:
 
         await handle_set_slot_callback(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_slots_for_dota2(self) -> None:
         """Test shows slot options for Dota 2."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -573,7 +573,7 @@ class TestHandleSetSlotCallback:
         query.answer.assert_called_once()
         query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_rejects_slot_for_non_dota2(self) -> None:
         """Test rejects slot for non-Dota 2 games."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -599,7 +599,7 @@ class TestHandleSetSlotCallback:
 class TestHandleSetClassCallback:
     """Tests for handle_set_class_callback function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_query(self) -> None:
         """Test returns early when no query."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -612,7 +612,7 @@ class TestHandleSetClassCallback:
 
         await handle_set_class_callback(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_classes_for_tf2(self) -> None:
         """Test shows class options for TF2."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -634,7 +634,7 @@ class TestHandleSetClassCallback:
         query.answer.assert_called_once()
         query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_rejects_class_for_non_tf2(self) -> None:
         """Test rejects class for non-TF2 games."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -660,7 +660,7 @@ class TestHandleSetClassCallback:
 class TestHandleSetTypeCallback:
     """Tests for handle_set_type_callback function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_query(self) -> None:
         """Test returns early when no query."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -673,7 +673,7 @@ class TestHandleSetTypeCallback:
 
         await handle_set_type_callback(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_types_for_tf2(self) -> None:
         """Test shows type options for TF2."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -695,7 +695,7 @@ class TestHandleSetTypeCallback:
         query.answer.assert_called_once()
         query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_types_for_rust(self) -> None:
         """Test shows type options for Rust."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -721,7 +721,7 @@ class TestHandleSetTypeCallback:
 class TestHandleSetQualityCallback:
     """Tests for handle_set_quality_callback function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_query(self) -> None:
         """Test returns early when no query."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -734,7 +734,7 @@ class TestHandleSetQualityCallback:
 
         await handle_set_quality_callback(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_shows_qualities_for_tf2(self) -> None:
         """Test shows quality options for TF2."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -756,7 +756,7 @@ class TestHandleSetQualityCallback:
         query.answer.assert_called_once()
         query.edit_message_text.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_rejects_quality_for_non_tf2(self) -> None:
         """Test rejects quality for non-TF2 games."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -782,7 +782,7 @@ class TestHandleSetQualityCallback:
 class TestHandleFilterValueCallback:
     """Tests for handle_filter_value_callback function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_query(self) -> None:
         """Test returns early when no query."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -795,7 +795,7 @@ class TestHandleFilterValueCallback:
 
         await handle_filter_value_callback(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_insufficient_data(self) -> None:
         """Test returns early when insufficient data."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -813,7 +813,7 @@ class TestHandleFilterValueCallback:
 
         await handle_filter_value_callback(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sets_price_range(self) -> None:
         """Test sets price range filter."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -838,7 +838,7 @@ class TestHandleFilterValueCallback:
         assert context.user_data.get("filters", {}).get("csgo", {}).get("min_price") == 10.0
         assert context.user_data.get("filters", {}).get("csgo", {}).get("max_price") == 50.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sets_category_filter(self) -> None:
         """Test sets category filter."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -861,7 +861,7 @@ class TestHandleFilterValueCallback:
         query.edit_message_text.assert_called_once()
         assert context.user_data.get("filters", {}).get("csgo", {}).get("category") == "Knife"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_resets_category_filter(self) -> None:
         """Test resets category filter."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -882,7 +882,7 @@ class TestHandleFilterValueCallback:
 
         assert context.user_data.get("filters", {}).get("csgo", {}).get("category") is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_toggles_stattrak_filter(self) -> None:
         """Test toggles StatTrak filter."""
         from src.telegram_bot.handlers.game_filters.handlers import (
@@ -907,7 +907,7 @@ class TestHandleFilterValueCallback:
 class TestEdgeCases:
     """Edge case tests for game_filters/handlers.py module."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_empty_user_data(self) -> None:
         """Test handles empty user_data."""
         from src.telegram_bot.handlers.game_filters.handlers import (

@@ -5,25 +5,21 @@ Phase 3 tests for achieving 80% coverage.
 
 from __future__ import annotations
 
-from dataclasses import fields
 from decimal import Decimal
-from enum import Enum
-from unittest.mock import MagicMock
+
 import pytest
-
-
-from src.portfolio.models import (
-    ItemCategory,
-    ItemRarity,
-    Portfolio,
-    PortfolioItem,
-)
 
 from src.portfolio.analyzer import (
     ConcentrationRisk,
     DiversificationReport,
     PortfolioAnalyzer,
     RiskReport,
+)
+from src.portfolio.models import (
+    ItemCategory,
+    ItemRarity,
+    Portfolio,
+    PortfolioItem,
 )
 
 
@@ -43,7 +39,7 @@ class TestConcentrationRisk:
             percentage=35.0,
             risk_level="high",
         )
-        
+
         assert risk.item_title == "AK-47 | Redline"
         assert risk.value == Decimal("500.00")
         assert risk.percentage == 35.0
@@ -57,9 +53,9 @@ class TestConcentrationRisk:
             percentage=25.5,
             risk_level="medium",
         )
-        
+
         result = risk.to_dict()
-        
+
         assert result["item_title"] == "Test Item"
         assert result["value"] == 100.0
         assert result["percentage"] == 25.5
@@ -77,7 +73,7 @@ class TestDiversificationReport:
     def test_diversification_report_defaults(self):
         """Test DiversificationReport default values."""
         report = DiversificationReport()
-        
+
         assert report.by_game == {}
         assert report.by_category == {}
         assert report.by_rarity == {}
@@ -89,11 +85,11 @@ class TestDiversificationReport:
         """Test DiversificationReport with data."""
         risk = ConcentrationRisk(
             item_title="Item",
-            value=Decimal("100"),
+            value=Decimal(100),
             percentage=50.0,
             risk_level="critical",
         )
-        
+
         report = DiversificationReport(
             by_game={"csgo": 60.0, "dota2": 40.0},
             by_category={"weapon": 70.0, "sticker": 30.0},
@@ -102,7 +98,7 @@ class TestDiversificationReport:
             diversification_score=65.0,
             recommendations=["Add more games"],
         )
-        
+
         assert report.by_game == {"csgo": 60.0, "dota2": 40.0}
         assert len(report.concentration_risks) == 1
         assert report.diversification_score == 65.0
@@ -111,20 +107,20 @@ class TestDiversificationReport:
         """Test DiversificationReport to_dict conversion."""
         risk = ConcentrationRisk(
             item_title="Item",
-            value=Decimal("100"),
+            value=Decimal(100),
             percentage=50.0,
             risk_level="high",
         )
-        
+
         report = DiversificationReport(
             by_game={"csgo": 100.0},
             concentration_risks=[risk],
             diversification_score=50.0,
             recommendations=["Diversify"],
         )
-        
+
         result = report.to_dict()
-        
+
         assert result["by_game"] == {"csgo": 100.0}
         assert len(result["concentration_risks"]) == 1
         assert result["diversification_score"] == 50.0
@@ -142,7 +138,7 @@ class TestRiskReport:
     def test_risk_report_defaults(self):
         """Test RiskReport default values."""
         report = RiskReport()
-        
+
         assert report.volatility_score == 0.0
         assert report.liquidity_score == 0.0
         assert report.concentration_score == 0.0
@@ -162,7 +158,7 @@ class TestRiskReport:
             high_risk_items=["Item1", "Item2"],
             recommendations=["Reduce volatility"],
         )
-        
+
         assert report.volatility_score == 45.0
         assert report.risk_level == "medium"
         assert len(report.high_risk_items) == 2
@@ -174,9 +170,9 @@ class TestRiskReport:
             overall_risk_score=50.0,
             risk_level="medium",
         )
-        
+
         result = report.to_dict()
-        
+
         assert result["volatility_score"] == 50.0
         assert result["overall_risk_score"] == 50.0
         assert result["risk_level"] == "medium"
@@ -190,17 +186,17 @@ class TestRiskReport:
 class TestPortfolioAnalyzerDiversification:
     """Tests for PortfolioAnalyzer diversification analysis."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self):
         """Create PortfolioAnalyzer instance."""
         return PortfolioAnalyzer()
 
-    @pytest.fixture
+    @pytest.fixture()
     def empty_portfolio(self):
         """Create empty portfolio."""
         return Portfolio(user_id=12345, items=[])
 
-    @pytest.fixture
+    @pytest.fixture()
     def single_item_portfolio(self):
         """Create portfolio with single item."""
         item = PortfolioItem(
@@ -215,7 +211,7 @@ class TestPortfolioAnalyzerDiversification:
         )
         return Portfolio(user_id=12345, items=[item])
 
-    @pytest.fixture
+    @pytest.fixture()
     def diversified_portfolio(self):
         """Create diversified portfolio."""
         items = [
@@ -255,7 +251,7 @@ class TestPortfolioAnalyzerDiversification:
     def test_analyze_diversification_empty_portfolio(self, analyzer, empty_portfolio):
         """Test diversification analysis on empty portfolio."""
         result = analyzer.analyze_diversification(empty_portfolio)
-        
+
         assert isinstance(result, DiversificationReport)
         assert result.diversification_score == 0
         assert "empty" in result.recommendations[0].lower()
@@ -263,7 +259,7 @@ class TestPortfolioAnalyzerDiversification:
     def test_analyze_diversification_single_item(self, analyzer, single_item_portfolio):
         """Test diversification analysis with single item."""
         result = analyzer.analyze_diversification(single_item_portfolio)
-        
+
         assert isinstance(result, DiversificationReport)
         assert result.by_game.get("csgo", 0) == 100.0
         assert len(result.concentration_risks) > 0  # Should flag concentration
@@ -271,7 +267,7 @@ class TestPortfolioAnalyzerDiversification:
     def test_analyze_diversification_diversified(self, analyzer, diversified_portfolio):
         """Test diversification analysis with diversified portfolio."""
         result = analyzer.analyze_diversification(diversified_portfolio)
-        
+
         assert isinstance(result, DiversificationReport)
         assert "csgo" in result.by_game
         assert "dota2" in result.by_game
@@ -302,9 +298,9 @@ class TestPortfolioAnalyzerDiversification:
             ),
         ]
         portfolio = Portfolio(user_id=12345, items=items)
-        
+
         result = analyzer.analyze_diversification(portfolio)
-        
+
         # Big Item is ~99% of portfolio, should be flagged
         assert any(r.item_title == "Big Item" for r in result.concentration_risks)
 
@@ -316,16 +312,16 @@ class TestPortfolioAnalyzerDiversification:
                 title="Free Item",
                 game="csgo",
                 quantity=1,
-                buy_price=Decimal("0"),
-                current_price=Decimal("0"),
+                buy_price=Decimal(0),
+                current_price=Decimal(0),
                 category=ItemCategory.WEAPON,
                 rarity=ItemRarity.CONSUMER,
             ),
         ]
         portfolio = Portfolio(user_id=12345, items=items)
-        
+
         result = analyzer.analyze_diversification(portfolio)
-        
+
         assert isinstance(result, DiversificationReport)
 
 
@@ -337,12 +333,12 @@ class TestPortfolioAnalyzerDiversification:
 class TestPortfolioAnalyzerRisk:
     """Tests for PortfolioAnalyzer risk analysis."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self):
         """Create PortfolioAnalyzer instance."""
         return PortfolioAnalyzer()
 
-    @pytest.fixture
+    @pytest.fixture()
     def empty_portfolio(self):
         """Create empty portfolio."""
         return Portfolio(user_id=12345, items=[])
@@ -350,7 +346,7 @@ class TestPortfolioAnalyzerRisk:
     def test_analyze_risk_empty_portfolio(self, analyzer, empty_portfolio):
         """Test risk analysis on empty portfolio."""
         result = analyzer.analyze_risk(empty_portfolio)
-        
+
         assert isinstance(result, RiskReport)
         assert result.risk_level == "unknown"
         assert "empty" in result.recommendations[0].lower()
@@ -371,10 +367,10 @@ class TestPortfolioAnalyzerRisk:
             for i in range(10)
         ]
         portfolio = Portfolio(user_id=12345, items=items)
-        
+
         result = analyzer.analyze_risk(portfolio)
-        
-        assert result.risk_level in ["low", "medium"]
+
+        assert result.risk_level in {"low", "medium"}
 
     def test_analyze_risk_high_volatility(self, analyzer):
         """Test risk analysis with high volatility items."""
@@ -401,9 +397,9 @@ class TestPortfolioAnalyzerRisk:
             ),
         ]
         portfolio = Portfolio(user_id=12345, items=items)
-        
+
         result = analyzer.analyze_risk(portfolio)
-        
+
         assert result.volatility_score > 50  # High volatility
 
     def test_analyze_risk_low_liquidity(self, analyzer):
@@ -421,9 +417,9 @@ class TestPortfolioAnalyzerRisk:
             ),
         ]
         portfolio = Portfolio(user_id=12345, items=items)
-        
+
         result = analyzer.analyze_risk(portfolio)
-        
+
         # Should have lower liquidity score
         assert result.liquidity_score < 100
 
@@ -452,9 +448,9 @@ class TestPortfolioAnalyzerRisk:
             ),
         ]
         portfolio = Portfolio(user_id=12345, items=items)
-        
+
         result = analyzer.analyze_risk(portfolio)
-        
+
         assert result.concentration_score > 50  # High concentration
 
     def test_analyze_risk_levels(self, analyzer):
@@ -475,7 +471,7 @@ class TestPortfolioAnalyzerRisk:
         ]
         low_portfolio = Portfolio(user_id=12345, items=low_items)
         low_result = analyzer.analyze_risk(low_portfolio)
-        
+
         # Result should be calculable
         assert low_result.overall_risk_score >= 0
 
@@ -487,16 +483,16 @@ class TestPortfolioAnalyzerRisk:
                 title="Zero Item",
                 game="csgo",
                 quantity=1,
-                buy_price=Decimal("0"),
-                current_price=Decimal("0"),
+                buy_price=Decimal(0),
+                current_price=Decimal(0),
                 category=ItemCategory.WEAPON,
                 rarity=ItemRarity.CONSUMER,
             ),
         ]
         portfolio = Portfolio(user_id=12345, items=items)
-        
+
         result = analyzer.analyze_risk(portfolio)
-        
+
         assert isinstance(result, RiskReport)
 
 
@@ -508,12 +504,12 @@ class TestPortfolioAnalyzerRisk:
 class TestPortfolioAnalyzerPerformers:
     """Tests for PortfolioAnalyzer performer analysis."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self):
         """Create PortfolioAnalyzer instance."""
         return PortfolioAnalyzer()
 
-    @pytest.fixture
+    @pytest.fixture()
     def mixed_portfolio(self):
         """Create portfolio with mixed performance."""
         items = [
@@ -553,38 +549,38 @@ class TestPortfolioAnalyzerPerformers:
     def test_get_top_performers(self, analyzer, mixed_portfolio):
         """Test getting top performers."""
         top = analyzer.get_top_performers(mixed_portfolio, limit=2)
-        
+
         assert len(top) == 2
         assert top[0].title == "Top Performer"
 
     def test_get_top_performers_limit(self, analyzer, mixed_portfolio):
         """Test top performers with limit."""
         top = analyzer.get_top_performers(mixed_portfolio, limit=1)
-        
+
         assert len(top) == 1
         assert top[0].title == "Top Performer"
 
     def test_get_worst_performers(self, analyzer, mixed_portfolio):
         """Test getting worst performers."""
         worst = analyzer.get_worst_performers(mixed_portfolio, limit=2)
-        
+
         assert len(worst) == 2
         assert worst[0].title == "Worst Performer"
 
     def test_get_worst_performers_limit(self, analyzer, mixed_portfolio):
         """Test worst performers with limit."""
         worst = analyzer.get_worst_performers(mixed_portfolio, limit=1)
-        
+
         assert len(worst) == 1
         assert worst[0].title == "Worst Performer"
 
     def test_performers_empty_portfolio(self, analyzer):
         """Test performers on empty portfolio."""
         portfolio = Portfolio(user_id=12345, items=[])
-        
+
         top = analyzer.get_top_performers(portfolio, limit=5)
         worst = analyzer.get_worst_performers(portfolio, limit=5)
-        
+
         assert len(top) == 0
         assert len(worst) == 0
 
@@ -597,7 +593,7 @@ class TestPortfolioAnalyzerPerformers:
 class TestPortfolioAnalyzerPrivateMethods:
     """Tests for PortfolioAnalyzer private methods."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self):
         """Create PortfolioAnalyzer instance."""
         return PortfolioAnalyzer()
@@ -626,20 +622,20 @@ class TestPortfolioAnalyzerPrivateMethods:
                 rarity=ItemRarity.CONSUMER,
             ),
         ]
-        
+
         distribution = analyzer._calculate_distribution(
             items, lambda x: x.game, Decimal("200.00")
         )
-        
+
         assert distribution["csgo"] == 50.0
         assert distribution["dota2"] == 50.0
 
     def test_calculate_volatility_score_empty(self, analyzer):
         """Test volatility score with empty portfolio."""
         portfolio = Portfolio(user_id=12345, items=[])
-        
+
         score = analyzer._calculate_volatility_score(portfolio)
-        
+
         assert score == 0.0
 
     def test_calculate_volatility_score_single_item(self, analyzer):
@@ -655,17 +651,17 @@ class TestPortfolioAnalyzerPrivateMethods:
             rarity=ItemRarity.CONSUMER,
         )
         portfolio = Portfolio(user_id=12345, items=[item])
-        
+
         score = analyzer._calculate_volatility_score(portfolio)
-        
+
         assert score == 50.0  # abs(pnl_percent)
 
     def test_calculate_liquidity_score_empty(self, analyzer):
         """Test liquidity score with empty portfolio."""
         portfolio = Portfolio(user_id=12345, items=[])
-        
+
         score = analyzer._calculate_liquidity_score(portfolio)
-        
+
         assert score == 100.0
 
     def test_calculate_liquidity_score_zero_value(self, analyzer):
@@ -675,21 +671,21 @@ class TestPortfolioAnalyzerPrivateMethods:
                 title="Item",
             game="csgo",
             quantity=1,
-            buy_price=Decimal("0"),
-            current_price=Decimal("0"),
+            buy_price=Decimal(0),
+            current_price=Decimal(0),
             category=ItemCategory.WEAPON,
             rarity=ItemRarity.CONSUMER,
         )
         portfolio = Portfolio(user_id=12345, items=[item])
-        
+
         score = analyzer._calculate_liquidity_score(portfolio)
-        
+
         assert score == 100.0
 
     def test_calculate_concentration_score_empty(self, analyzer):
         """Test concentration score with empty items."""
-        score = analyzer._calculate_concentration_score([], Decimal("0"))
-        
+        score = analyzer._calculate_concentration_score([], Decimal(0))
+
         assert score == 0.0
 
     def test_find_high_risk_items(self, analyzer):
@@ -726,9 +722,9 @@ class TestPortfolioAnalyzerPrivateMethods:
                 rarity=ItemRarity.COVERT,
             ),
         ]
-        
+
         high_risk = analyzer._find_high_risk_items(items, Decimal("1050.00"))
-        
+
         assert len(high_risk) > 0
 
     def test_generate_diversification_recommendations_single_game(self, analyzer):
@@ -737,11 +733,11 @@ class TestPortfolioAnalyzerPrivateMethods:
         by_category = {"weapon": 100.0}
         concentration_risks = []
         score = 25.0
-        
+
         recs = analyzer._generate_diversification_recommendations(
             by_game, by_category, concentration_risks, score
         )
-        
+
         assert any("diversifying" in r.lower() for r in recs)
 
     def test_generate_diversification_recommendations_good(self, analyzer):
@@ -750,11 +746,11 @@ class TestPortfolioAnalyzerPrivateMethods:
         by_category = {"weapon": 30.0, "sticker": 30.0, "case": 40.0}
         concentration_risks = []
         score = 85.0
-        
+
         recs = analyzer._generate_diversification_recommendations(
             by_game, by_category, concentration_risks, score
         )
-        
+
         assert any("well diversified" in r.lower() for r in recs)
 
     def test_generate_risk_recommendations_high_volatility(self, analyzer):
@@ -765,7 +761,7 @@ class TestPortfolioAnalyzerPrivateMethods:
             concentration=30.0,
             high_risk_items=[],
         )
-        
+
         assert any("volatile" in r.lower() for r in recs)
 
     def test_generate_risk_recommendations_low_liquidity(self, analyzer):
@@ -776,7 +772,7 @@ class TestPortfolioAnalyzerPrivateMethods:
             concentration=30.0,
             high_risk_items=[],
         )
-        
+
         assert any("illiquid" in r.lower() for r in recs)
 
     def test_generate_risk_recommendations_high_concentration(self, analyzer):
@@ -787,7 +783,7 @@ class TestPortfolioAnalyzerPrivateMethods:
             concentration=60.0,
             high_risk_items=[],
         )
-        
+
         assert any("concentration" in r.lower() for r in recs)
 
     def test_generate_risk_recommendations_good(self, analyzer):
@@ -798,7 +794,7 @@ class TestPortfolioAnalyzerPrivateMethods:
             concentration=30.0,
             high_risk_items=[],
         )
-        
+
         assert any("manageable" in r.lower() for r in recs)
 
 
@@ -810,7 +806,7 @@ class TestPortfolioAnalyzerPrivateMethods:
 class TestPortfolioAnalyzerEdgeCases:
     """Edge case tests for PortfolioAnalyzer."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def analyzer(self):
         """Create PortfolioAnalyzer instance."""
         return PortfolioAnalyzer()
@@ -831,10 +827,10 @@ class TestPortfolioAnalyzerEdgeCases:
             for i in range(1000)
         ]
         portfolio = Portfolio(user_id=12345, items=items)
-        
+
         div_result = analyzer.analyze_diversification(portfolio)
         risk_result = analyzer.analyze_risk(portfolio)
-        
+
         assert isinstance(div_result, DiversificationReport)
         assert isinstance(risk_result, RiskReport)
 
@@ -863,9 +859,9 @@ class TestPortfolioAnalyzerEdgeCases:
             ),
         ]
         portfolio = Portfolio(user_id=12345, items=items)
-        
+
         result = analyzer.analyze_diversification(portfolio)
-        
+
         # Should detect extreme concentration
         assert len(result.concentration_risks) > 0
 
@@ -885,9 +881,9 @@ class TestPortfolioAnalyzerEdgeCases:
             for i in range(5)
         ]
         portfolio = Portfolio(user_id=12345, items=items)
-        
+
         result = analyzer.analyze_diversification(portfolio)
-        
+
         assert result.by_game.get("csgo", 0) == 100.0
         assert "weapon" in result.by_category
 
@@ -907,8 +903,8 @@ class TestPortfolioAnalyzerEdgeCases:
             for i in range(5)
         ]
         portfolio = Portfolio(user_id=12345, items=items)
-        
+
         risk_result = analyzer.analyze_risk(portfolio)
-        
+
         # Should have high risk items (large losses)
         assert len(risk_result.high_risk_items) > 0

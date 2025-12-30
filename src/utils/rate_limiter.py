@@ -334,9 +334,10 @@ class RateLimiter:
             base_wait = BASE_RETRY_DELAY * (2 ** (current_attempts - 1))
 
             # Добавляем jitter (±10% случайное отклонение) для распределения нагрузки
+            # Non-cryptographic use - just for load distribution jitter
             import random
 
-            jitter_percent = random.uniform(-0.1, 0.1)
+            jitter_percent = random.uniform(-0.1, 0.1)  # noqa: S311
             jitter = base_wait * jitter_percent
             wait_time = base_wait + jitter
 
@@ -392,7 +393,7 @@ class RateLimiter:
         # Proveryaem standartnye limity
         if endpoint_type in self.rate_limits:
             # Dlya neavtorizovannyh polzovateley snizhaem limity
-            if not self.is_authorized and endpoint_type in ["market", "trade"]:
+            if not self.is_authorized and endpoint_type in {"market", "trade"}:
                 # 50% ot avtorizovannogo limita
                 return float(self.rate_limits[endpoint_type]) / 2.0
             return float(self.rate_limits[endpoint_type])

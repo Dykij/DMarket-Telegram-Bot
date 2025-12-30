@@ -10,8 +10,6 @@ Tests for AnyTool MCP integration including:
 """
 
 import json
-from pathlib import Path
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -143,7 +141,7 @@ class TestCallbackRegistration:
 class TestTriggerCallbacks:
     """Tests for _trigger_callbacks method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trigger_sync_callback(self):
         """Test triggering a synchronous callback."""
         from src.utils.anytool_integration import AnyToolClient
@@ -158,7 +156,7 @@ class TestTriggerCallbacks:
 
         callback.assert_called_once_with({"data": "test"})
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trigger_async_callback(self):
         """Test triggering an asynchronous callback."""
         from src.utils.anytool_integration import AnyToolClient
@@ -173,7 +171,7 @@ class TestTriggerCallbacks:
 
         callback.assert_called_once_with({"data": "test"})
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trigger_handles_callback_error(self):
         """Test that callback errors are handled gracefully."""
         from src.utils.anytool_integration import AnyToolClient
@@ -187,7 +185,7 @@ class TestTriggerCallbacks:
         # Should not raise exception
         await client._trigger_callbacks("test_event", {"data": "test"})
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_trigger_nonexistent_event(self):
         """Test triggering callbacks for an event with no callbacks."""
         from src.utils.anytool_integration import AnyToolClient
@@ -202,7 +200,7 @@ class TestTriggerCallbacks:
 class TestCallTool:
     """Tests for call_tool method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_tool_when_disabled(self):
         """Test that call_tool raises when integration is disabled."""
         from src.utils.anytool_integration import AnyToolClient, AnyToolConfig
@@ -214,7 +212,7 @@ class TestCallTool:
         with pytest.raises(ValueError, match="AnyTool integration is disabled"):
             await client.call_tool("get_balance", {})
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_tool_success(self):
         """Test successful tool call."""
         from src.utils.anytool_integration import AnyToolClient
@@ -229,7 +227,7 @@ class TestCallTool:
         assert result["success"] is True
         assert result["balance"] == {"usd": "1000", "dmc": "500"}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_tool_triggers_callback(self):
         """Test that call_tool triggers callbacks."""
         from src.utils.anytool_integration import AnyToolClient
@@ -248,7 +246,7 @@ class TestCallTool:
         call_args = callback.call_args[0][0]
         assert call_args["tool"] == "get_balance"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_tool_raises_on_error(self):
         """Test that call_tool raises on execution error."""
         from src.utils.anytool_integration import AnyToolClient
@@ -265,7 +263,7 @@ class TestCallTool:
 class TestExecuteTool:
     """Tests for _execute_tool method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_get_balance(self):
         """Test executing get_balance tool."""
         from src.utils.anytool_integration import AnyToolClient
@@ -280,7 +278,7 @@ class TestExecuteTool:
         assert result["success"] is True
         assert result["balance"]["usd"] == "1000"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_get_market_items(self):
         """Test executing get_market_items tool."""
         from src.utils.anytool_integration import AnyToolClient
@@ -300,7 +298,7 @@ class TestExecuteTool:
         assert result["success"] is True
         assert len(result["items"]) == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_scan_arbitrage(self):
         """Test executing scan_arbitrage tool."""
         from src.utils.anytool_integration import AnyToolClient
@@ -329,7 +327,7 @@ class TestExecuteTool:
             assert len(result["opportunities"]) == 1
             assert result["opportunities"][0]["profit"] == 1.5
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_get_item_details(self):
         """Test executing get_item_details tool."""
         from src.utils.anytool_integration import AnyToolClient
@@ -347,7 +345,7 @@ class TestExecuteTool:
         assert result["success"] is True
         assert result["item"]["id"] == "123"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_create_target(self):
         """Test executing create_target tool."""
         from src.utils.anytool_integration import AnyToolClient
@@ -369,7 +367,7 @@ class TestExecuteTool:
             assert result["success"] is True
             assert result["target"]["id"] == "target_123"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_get_targets(self):
         """Test executing get_targets tool."""
         from src.utils.anytool_integration import AnyToolClient
@@ -390,7 +388,7 @@ class TestExecuteTool:
             assert result["success"] is True
             assert len(result["targets"]) == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_unknown_tool(self):
         """Test executing an unknown tool raises error."""
         from src.utils.anytool_integration import AnyToolClient
@@ -405,7 +403,7 @@ class TestExecuteTool:
 class TestGetAvailableTools:
     """Tests for get_available_tools method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_returns_list_of_tools(self):
         """Test that get_available_tools returns a list."""
         from src.utils.anytool_integration import AnyToolClient
@@ -418,7 +416,7 @@ class TestGetAvailableTools:
         assert isinstance(tools, list)
         assert len(tools) > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_tools_have_required_fields(self):
         """Test that all tools have required fields."""
         from src.utils.anytool_integration import AnyToolClient
@@ -433,7 +431,7 @@ class TestGetAvailableTools:
             assert "description" in tool
             assert "parameters" in tool
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_contains_expected_tools(self):
         """Test that expected tools are in the list."""
         from src.utils.anytool_integration import AnyToolClient
@@ -509,7 +507,7 @@ class TestExportConfig:
 
             client.export_config(config_path)
 
-        with open(config_path) as f:
+        with open(config_path, encoding="utf-8") as f:
             config = json.load(f)
 
         assert "mcpServers" in config
@@ -526,10 +524,9 @@ class TestGlobalClientManagement:
                 mock_settings.dmarket.public_key = "test_public"
                 mock_settings.dmarket.secret_key = "test_secret"
 
-                from src.utils.anytool_integration import get_anytool_client
-
                 # Reset the global
                 import src.utils.anytool_integration
+                from src.utils.anytool_integration import get_anytool_client
 
                 src.utils.anytool_integration._anytool_client = None
 
@@ -538,7 +535,7 @@ class TestGlobalClientManagement:
 
                 assert client1 is client2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_initialize_anytool_returns_client(self):
         """Test that initialize_anytool returns a client."""
         with patch("src.utils.anytool_integration._anytool_client", None):
@@ -546,10 +543,9 @@ class TestGlobalClientManagement:
                 mock_settings.dmarket.public_key = "test_public"
                 mock_settings.dmarket.secret_key = "test_secret"
 
-                from src.utils.anytool_integration import initialize_anytool
-
                 # Reset the global
                 import src.utils.anytool_integration
+                from src.utils.anytool_integration import initialize_anytool
 
                 src.utils.anytool_integration._anytool_client = None
 
@@ -557,7 +553,7 @@ class TestGlobalClientManagement:
 
                 assert client is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_initialize_anytool_exports_config(self, tmp_path):
         """Test that initialize_anytool exports config when path is provided."""
         with patch("src.utils.anytool_integration._anytool_client", None):
@@ -567,10 +563,9 @@ class TestGlobalClientManagement:
                 mock_settings.dmarket_public_key = "test_public"
                 mock_settings.dmarket_secret_key = "test_secret"
 
-                from src.utils.anytool_integration import initialize_anytool
-
                 # Reset the global
                 import src.utils.anytool_integration
+                from src.utils.anytool_integration import initialize_anytool
 
                 src.utils.anytool_integration._anytool_client = None
 
@@ -583,7 +578,7 @@ class TestGlobalClientManagement:
 class TestToolArgumentHandling:
     """Tests for tool argument handling."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_market_items_with_optional_args(self):
         """Test get_market_items with optional arguments."""
         from src.utils.anytool_integration import AnyToolClient
@@ -610,7 +605,7 @@ class TestToolArgumentHandling:
             price_to=500,
         )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_market_items_with_defaults(self):
         """Test get_market_items uses default limit."""
         from src.utils.anytool_integration import AnyToolClient
@@ -632,7 +627,7 @@ class TestToolArgumentHandling:
             price_to=None,
         )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_scan_arbitrage_with_default_level(self):
         """Test scan_arbitrage uses default level."""
         from src.utils.anytool_integration import AnyToolClient
@@ -656,7 +651,7 @@ class TestToolArgumentHandling:
                 game="csgo",
             )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_create_target_with_default_amount(self):
         """Test create_target uses default amount."""
         from src.utils.anytool_integration import AnyToolClient

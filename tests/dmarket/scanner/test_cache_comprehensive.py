@@ -12,8 +12,6 @@ Coverage target: 80%+ (from 25.76%)
 """
 
 import time
-from typing import Any
-from unittest.mock import patch
 
 import pytest
 

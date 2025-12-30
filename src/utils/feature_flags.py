@@ -17,7 +17,7 @@ import yaml
 logger = structlog.get_logger(__name__)
 
 
-class FeatureFlagStatus(str, enum.Enum):
+class FeatureFlagStatus(enum.StrEnum):
     """Статус feature flag."""
 
     ENABLED = "enabled"
@@ -25,7 +25,7 @@ class FeatureFlagStatus(str, enum.Enum):
     CONDITIONAL = "conditional"
 
 
-class Feature(str, enum.Enum):
+class Feature(enum.StrEnum):
     """Перечисление доступных feature flags."""
 
     # Trading features
@@ -164,7 +164,8 @@ class FeatureFlagsManager:
                 result = hash_val < rollout
             else:
                 # Случайный rollout без user_id
-                result = random.randint(0, 99) < rollout
+                # Non-cryptographic use - just for feature flag distribution
+                result = random.randint(0, 99) < rollout  # noqa: S311
         # Проверить условия
         elif "conditions" in flag_config and context:
             result = self._check_conditions(flag_config["conditions"], context)

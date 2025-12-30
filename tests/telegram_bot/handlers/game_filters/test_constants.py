@@ -8,7 +8,6 @@ This module tests the constants used for game filters:
 - Default filters and game names
 """
 
-import pytest
 
 from src.telegram_bot.handlers.game_filters.constants import (
     CS2_CATEGORIES,
@@ -311,7 +310,7 @@ class TestModuleExports:
     def test_all_exports_are_importable(self):
         """Test that all exports are importable."""
         from src.telegram_bot.handlers.game_filters import constants
-        
+
         expected_exports = [
             "CS2_CATEGORIES",
             "CS2_EXTERIORS",
@@ -328,6 +327,6 @@ class TestModuleExports:
             "TF2_QUALITIES",
             "TF2_TYPES",
         ]
-        
+
         for name in expected_exports:
             assert hasattr(constants, name)

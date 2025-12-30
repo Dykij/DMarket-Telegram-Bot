@@ -13,8 +13,6 @@ Phase 4: Расширенные тесты для dmarket_api.py (Часть 2/3
 - Эндпоинты: 4 теста
 """
 
-import time
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
@@ -82,7 +80,7 @@ class TestContextManager:
                 raise ValueError("Test exception")
         except ValueError:
             pass  # Ожидаем это исключение
-        
+
         # Клиент должен быть закрыт даже при исключении
         if dmarket_api._client:
             assert dmarket_api._client.is_closed
@@ -92,10 +90,10 @@ class TestContextManager:
         """Тест что можно использовать context manager несколько раз."""
         async with dmarket_api as api1:
             assert api1 is not None
-        
+
         async with dmarket_api as api2:
             assert api2 is not None
-        
+
         assert api1 is api2  # Тот же объект
 
 
@@ -111,7 +109,7 @@ class TestClientManagement:
     async def test_get_client_creates_new_client(self, dmarket_api):
         """Тест создания нового клиента."""
         client = await dmarket_api._get_client()
-        
+
         assert client is not None
         assert isinstance(client, httpx.AsyncClient)
         assert not client.is_closed
@@ -121,7 +119,7 @@ class TestClientManagement:
         """Тест переиспользования существующего клиента."""
         client1 = await dmarket_api._get_client()
         client2 = await dmarket_api._get_client()
-        
+
         assert client1 is client2
 
     @pytest.mark.asyncio()
@@ -129,9 +127,9 @@ class TestClientManagement:
         """Тест закрытия клиента."""
         client = await dmarket_api._get_client()
         assert not client.is_closed
-        
+
         await dmarket_api._close_client()
-        
+
         assert client.is_closed
         assert dmarket_api._client is None
 
@@ -231,21 +229,20 @@ class TestEndpoints:
 
     def test_balance_endpoint_defined(self, dmarket_api):
         """Тест что эндпоинт баланса определен."""
-        assert hasattr(dmarket_api, 'ENDPOINT_BALANCE')
+        assert hasattr(dmarket_api, "ENDPOINT_BALANCE")
         assert dmarket_api.ENDPOINT_BALANCE == "/account/v1/balance"
 
     def test_market_items_endpoint_defined(self, dmarket_api):
         """Тест что эндпоинт маркета определен."""
-        assert hasattr(dmarket_api, 'ENDPOINT_MARKET_ITEMS')
+        assert hasattr(dmarket_api, "ENDPOINT_MARKET_ITEMS")
         assert "/market/items" in dmarket_api.ENDPOINT_MARKET_ITEMS
 
     def test_purchase_endpoint_defined(self, dmarket_api):
         """Тест что эндпоинт покупки определен."""
-        assert hasattr(dmarket_api, 'ENDPOINT_PURCHASE')
+        assert hasattr(dmarket_api, "ENDPOINT_PURCHASE")
         assert "/buy" in dmarket_api.ENDPOINT_PURCHASE
 
     def test_sell_endpoint_defined(self, dmarket_api):
         """Тест что эндпоинт продажи определен."""
-        assert hasattr(dmarket_api, 'ENDPOINT_SELL')
+        assert hasattr(dmarket_api, "ENDPOINT_SELL")
         assert "/sell" in dmarket_api.ENDPOINT_SELL
-

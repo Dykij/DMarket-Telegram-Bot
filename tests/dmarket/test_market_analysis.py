@@ -146,7 +146,7 @@ class TestCalculateMarketVolatilityLevel:
             {"volatility_score": 30},
         ]
         level = _calculate_market_volatility_level(volatile_items)
-        assert level in ["high", "medium", "low"]
+        assert level in {"high", "medium", "low"}
 
     def test_low_volatility(self):
         """Тест низкой волатильности."""
@@ -155,7 +155,7 @@ class TestCalculateMarketVolatilityLevel:
             {"volatility_score": 4},
         ]
         level = _calculate_market_volatility_level(volatile_items)
-        assert level in ["high", "medium", "low"]
+        assert level in {"high", "medium", "low"}
 
     def test_empty_list(self):
         """Тест с пустым списком."""

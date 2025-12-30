@@ -85,14 +85,14 @@ class TestCalculateCommission:
         assert commission <= 15.0
 
     @pytest.mark.parametrize(
-        "rarity,expected_higher",
-        [
+        ("rarity", "expected_higher"),
+        (
             ("covert", True),
             ("extraordinary", True),
             ("consumer", False),
             ("industrial", False),
             ("mil-spec", None),  # neutral
-        ],
+        ),
     )
     def test_calculate_commission_rarity_factors(
         self, rarity: str, expected_higher: bool | None
@@ -109,14 +109,14 @@ class TestCalculateCommission:
             assert test_commission < base_commission * 1.05
 
     @pytest.mark.parametrize(
-        "item_type,expected_higher",
-        [
+        ("item_type", "expected_higher"),
+        (
             ("knife", True),
             ("gloves", True),
             ("sticker", False),
             ("container", False),
             ("rifle", None),  # neutral
-        ],
+        ),
     )
     def test_calculate_commission_item_type_factors(
         self, item_type: str, expected_higher: bool | None
@@ -175,7 +175,7 @@ class TestCalculateProfit:
         """Test profit calculation with zero buy price."""
         from src.dmarket.arbitrage.calculations import calculate_profit
 
-        net_profit, profit_percent = calculate_profit(0.0, 10.0, 7.0)
+        _net_profit, profit_percent = calculate_profit(0.0, 10.0, 7.0)
         # When buy price is 0, profit percent should be 0
         assert profit_percent == 0.0
 
@@ -189,12 +189,12 @@ class TestCalculateProfit:
         assert profit_percent < 0
 
     @pytest.mark.parametrize(
-        "buy_price,sell_price,commission,expected_profit",
-        [
+        ("buy_price", "sell_price", "commission", "expected_profit"),
+        (
             (100.0, 110.0, 7.0, 2.3),  # 10% markup - 7.7% commission = ~2.3%
             (50.0, 60.0, 5.0, 7.0),  # 20% markup - 5% of sell = ~7%
             (1.0, 1.5, 10.0, 0.35),  # 50% markup - high commission
-        ],
+        ),
     )
     def test_calculate_profit_parametrized(
         self,
@@ -318,15 +318,15 @@ class TestGetFeeForLiquidity:
         assert fee == 0.10  # HIGH_FEE
 
     @pytest.mark.parametrize(
-        "liquidity,expected_fee",
-        [
+        ("liquidity", "expected_fee"),
+        (
             (1.0, 0.02),
             (0.85, 0.02),
             (0.79, 0.07),
             (0.5, 0.07),
             (0.49, 0.10),
             (0.1, 0.10),
-        ],
+        ),
     )
     def test_get_fee_parametrized(self, liquidity: float, expected_fee: float) -> None:
         """Test fee calculation for various liquidity levels."""
@@ -397,15 +397,15 @@ class TestCurrencyConversions:
         assert back_to_cents == original_cents
 
     @pytest.mark.parametrize(
-        "cents,usd",
-        [
+        ("cents", "usd"),
+        (
             (0, 0.0),
             (1, 0.01),
             (50, 0.5),
             (100, 1.0),
             (999, 9.99),
             (10000, 100.0),
-        ],
+        ),
     )
     def test_cents_usd_parametrized(self, cents: int, usd: float) -> None:
         """Test various currency conversions."""
@@ -518,7 +518,7 @@ class TestEdgeCases:
         # These values can cause floating point issues
         profit = calculate_profit_percent(0.1, 0.2, 7.0)
         assert isinstance(profit, float)
-        assert not (profit != profit)  # Check for NaN
+        assert profit == profit  # Check for NaN
 
     def test_unknown_game(self) -> None:
         """Test commission calculation with unknown game."""

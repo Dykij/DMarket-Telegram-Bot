@@ -10,20 +10,18 @@ This module provides tests for arbitrage analysis functionality including:
 
 from __future__ import annotations
 
-import pytest
-
 from src.dmarket.scanner.analysis import (
     DMARKET_COMMISSION,
     MIN_PROFIT_THRESHOLDS,
     AnalysisStats,
+    _extract_price,
+    _parse_price,
     aggregate_statistics,
     analyze_item,
     calculate_profit,
     calculate_roi,
     find_best_opportunities,
     score_opportunity,
-    _extract_price,
-    _parse_price,
 )
 
 
@@ -106,7 +104,7 @@ class TestCalculateProfit:
         buy_price = 100.0
         sell_price = 110.0
 
-        absolute_profit, profit_percent = calculate_profit(buy_price, sell_price)
+        absolute_profit, _profit_percent = calculate_profit(buy_price, sell_price)
 
         # Net sell = 110 * (1 - 0.07) = 102.3
         # Profit = 102.3 - 100 = 2.3

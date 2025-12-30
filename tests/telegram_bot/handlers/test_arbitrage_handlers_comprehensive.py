@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from telegram import CallbackQuery, Chat, Message, Update, User
-from telegram.constants import ChatAction, ParseMode
+from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
 from src.dmarket.intramarket_arbitrage import PriceAnomalyType
@@ -22,13 +22,13 @@ from src.dmarket.intramarket_arbitrage import PriceAnomalyType
 # =============================================================================
 
 
-@pytest.fixture
+@pytest.fixture()
 def user():
     """Create a mock Telegram user."""
     return User(id=123456789, first_name="Test", is_bot=False)
 
 
-@pytest.fixture
+@pytest.fixture()
 def chat():
     """Create a mock Telegram chat."""
     mock_chat = MagicMock(spec=Chat)
@@ -38,7 +38,7 @@ def chat():
     return mock_chat
 
 
-@pytest.fixture
+@pytest.fixture()
 def message(user, chat):
     """Create a mock Telegram message."""
     msg = MagicMock(spec=Message)
@@ -50,7 +50,7 @@ def message(user, chat):
     return msg
 
 
-@pytest.fixture
+@pytest.fixture()
 def callback_query(user, message):
     """Create a mock callback query."""
     query = MagicMock(spec=CallbackQuery)
@@ -65,7 +65,7 @@ def callback_query(user, message):
     return query
 
 
-@pytest.fixture
+@pytest.fixture()
 def update(callback_query, user, chat):
     """Create a mock Update object."""
     upd = MagicMock(spec=Update)
@@ -76,7 +76,7 @@ def update(callback_query, user, chat):
     return upd
 
 
-@pytest.fixture
+@pytest.fixture()
 def context():
     """Create a mock context."""
     ctx = MagicMock(spec=ContextTypes.DEFAULT_TYPE)
@@ -94,7 +94,7 @@ def context():
 class TestArbitrageCallbackImpl:
     """Tests for arbitrage_callback_impl.py module."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_arbitrage_callback_impl_basic(self, update, context):
         """Test basic arbitrage callback implementation."""
         from src.telegram_bot.handlers.arbitrage_callback_impl import (
@@ -116,7 +116,7 @@ class TestArbitrageCallbackImpl:
         assert "Выберите режим арбитража" in call_kwargs.get("text", "")
         assert call_kwargs.get("parse_mode") == ParseMode.HTML
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_arbitrage_callback_impl_no_query(self, update, context):
         """Test arbitrage callback when query is None."""
         from src.telegram_bot.handlers.arbitrage_callback_impl import (
@@ -132,7 +132,7 @@ class TestArbitrageCallbackImpl:
         # Verify
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_arbitrage_callback_impl_modern_ui(self, update, context):
         """Test arbitrage callback with modern UI enabled."""
         from src.telegram_bot.handlers.arbitrage_callback_impl import (
@@ -150,7 +150,7 @@ class TestArbitrageCallbackImpl:
         update.callback_query.answer.assert_awaited_once()
         update.callback_query.edit_message_text.assert_awaited_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_arbitrage_callback_impl_with_empty_user_data(self, update, context):
         """Test arbitrage callback with empty user_data."""
         from src.telegram_bot.handlers.arbitrage_callback_impl import (
@@ -171,7 +171,7 @@ class TestArbitrageCallbackImpl:
 class TestHandleDmarketArbitrageImpl:
     """Tests for handle_dmarket_arbitrage_impl function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_dmarket_arbitrage_boost_mode(self, callback_query, context):
         """Test DMarket arbitrage in boost mode."""
         from src.telegram_bot.handlers.arbitrage_callback_impl import (
@@ -217,7 +217,7 @@ class TestHandleDmarketArbitrageImpl:
                     mock_boost.assert_awaited_once_with("csgo")
                     mock_pagination.add_items_for_user.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_dmarket_arbitrage_mid_mode(self, callback_query, context):
         """Test DMarket arbitrage in mid mode."""
         from src.telegram_bot.handlers.arbitrage_callback_impl import (
@@ -232,18 +232,17 @@ class TestHandleDmarketArbitrageImpl:
             "src.dmarket.arbitrage.arbitrage_mid_async",
             new_callable=AsyncMock,
             return_value=[],
-        ) as mock_mid:
-            with patch(
-                "src.telegram_bot.handlers.arbitrage_callback_impl.format_dmarket_results",
-                return_value="No results",
-            ):
-                # Execute
-                await handle_dmarket_arbitrage_impl(callback_query, context, "mid")
+        ) as mock_mid, patch(
+            "src.telegram_bot.handlers.arbitrage_callback_impl.format_dmarket_results",
+            return_value="No results",
+        ):
+            # Execute
+            await handle_dmarket_arbitrage_impl(callback_query, context, "mid")
 
-                # Verify
-                mock_mid.assert_awaited_once_with("dota2")
+            # Verify
+            mock_mid.assert_awaited_once_with("dota2")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_dmarket_arbitrage_pro_mode(self, callback_query, context):
         """Test DMarket arbitrage in pro mode."""
         from src.telegram_bot.handlers.arbitrage_callback_impl import (
@@ -258,18 +257,17 @@ class TestHandleDmarketArbitrageImpl:
             "src.dmarket.arbitrage.arbitrage_pro_async",
             new_callable=AsyncMock,
             return_value=[],
-        ) as mock_pro:
-            with patch(
-                "src.telegram_bot.handlers.arbitrage_callback_impl.format_dmarket_results",
-                return_value="No results",
-            ):
-                # Execute
-                await handle_dmarket_arbitrage_impl(callback_query, context, "pro")
+        ) as mock_pro, patch(
+            "src.telegram_bot.handlers.arbitrage_callback_impl.format_dmarket_results",
+            return_value="No results",
+        ):
+            # Execute
+            await handle_dmarket_arbitrage_impl(callback_query, context, "pro")
 
-                # Verify
-                mock_pro.assert_awaited_once_with("tf2")
+            # Verify
+            mock_pro.assert_awaited_once_with("tf2")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_dmarket_arbitrage_default_game(self, callback_query, context):
         """Test DMarket arbitrage with default game (csgo)."""
         from src.telegram_bot.handlers.arbitrage_callback_impl import (
@@ -284,24 +282,23 @@ class TestHandleDmarketArbitrageImpl:
             "src.dmarket.arbitrage.arbitrage_boost_async",
             new_callable=AsyncMock,
             return_value=[],
-        ) as mock_boost:
-            with patch(
-                "src.telegram_bot.handlers.arbitrage_callback_impl.format_dmarket_results",
-                return_value="No results",
-            ):
-                # Execute
-                await handle_dmarket_arbitrage_impl(
-                    callback_query, context, "boost"
-                )
+        ) as mock_boost, patch(
+            "src.telegram_bot.handlers.arbitrage_callback_impl.format_dmarket_results",
+            return_value="No results",
+        ):
+            # Execute
+            await handle_dmarket_arbitrage_impl(
+                callback_query, context, "boost"
+            )
 
-                # Verify - should use default game csgo
-                mock_boost.assert_awaited_once_with("csgo")
+            # Verify - should use default game csgo
+            mock_boost.assert_awaited_once_with("csgo")
 
 
 class TestHandleBestOpportunitiesImpl:
     """Tests for handle_best_opportunities_impl function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_best_opportunities_basic(self, callback_query, context):
         """Test basic best opportunities handling."""
         from src.telegram_bot.handlers.arbitrage_callback_impl import (
@@ -322,22 +319,21 @@ class TestHandleBestOpportunitiesImpl:
             "src.dmarket.arbitrage_scanner.find_arbitrage_opportunities_async",
             new_callable=AsyncMock,
             return_value=mock_opportunities,
-        ) as mock_find:
-            with patch(
-                "src.telegram_bot.handlers.arbitrage_callback_impl.format_best_opportunities",
-                return_value="Best opportunities formatted",
-            ) as mock_format:
-                # Execute
-                await handle_best_opportunities_impl(callback_query, context)
+        ) as mock_find, patch(
+            "src.telegram_bot.handlers.arbitrage_callback_impl.format_best_opportunities",
+            return_value="Best opportunities formatted",
+        ) as mock_format:
+            # Execute
+            await handle_best_opportunities_impl(callback_query, context)
 
-                # Verify
-                mock_find.assert_awaited_once()
-                call_kwargs = mock_find.call_args.kwargs
-                assert call_kwargs["game"] == "csgo"
-                assert call_kwargs["max_items"] == 10
-                mock_format.assert_called_once()
+            # Verify
+            mock_find.assert_awaited_once()
+            call_kwargs = mock_find.call_args.kwargs
+            assert call_kwargs["game"] == "csgo"
+            assert call_kwargs["max_items"] == 10
+            mock_format.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_best_opportunities_empty_results(
         self, callback_query, context
     ):
@@ -354,22 +350,21 @@ class TestHandleBestOpportunitiesImpl:
             "src.dmarket.arbitrage_scanner.find_arbitrage_opportunities_async",
             new_callable=AsyncMock,
             return_value=[],
+        ), patch(
+            "src.telegram_bot.handlers.arbitrage_callback_impl.format_best_opportunities",
+            return_value="No opportunities found",
         ):
-            with patch(
-                "src.telegram_bot.handlers.arbitrage_callback_impl.format_best_opportunities",
-                return_value="No opportunities found",
-            ):
-                # Execute
-                await handle_best_opportunities_impl(callback_query, context)
+            # Execute
+            await handle_best_opportunities_impl(callback_query, context)
 
-                # Verify message was sent
-                callback_query.edit_message_text.assert_awaited()
+            # Verify message was sent
+            callback_query.edit_message_text.assert_awaited()
 
 
 class TestHandleGameSelectionImpl:
     """Tests for handle_game_selection_impl function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_game_selection_basic(self, callback_query, context):
         """Test basic game selection handling."""
         from src.telegram_bot.handlers.arbitrage_callback_impl import (
@@ -394,7 +389,7 @@ class TestHandleGameSelectionImpl:
 class TestHandleGameSelectedImpl:
     """Tests for handle_game_selected_impl function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_game_selected_csgo(self, callback_query, context):
         """Test game selection for CS:GO."""
         from src.telegram_bot.handlers.arbitrage_callback_impl import (
@@ -413,7 +408,7 @@ class TestHandleGameSelectedImpl:
         assert context.user_data.get("current_game") == "csgo"
         callback_query.edit_message_text.assert_awaited_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_game_selected_dota2(self, callback_query, context):
         """Test game selection for Dota 2."""
         from src.telegram_bot.handlers.arbitrage_callback_impl import (
@@ -430,7 +425,7 @@ class TestHandleGameSelectedImpl:
         # Verify
         assert context.user_data.get("current_game") == "dota2"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_game_selected_with_none_user_data(
         self, callback_query, context
     ):
@@ -453,7 +448,7 @@ class TestHandleGameSelectedImpl:
 class TestHandleMarketComparisonImpl:
     """Tests for handle_market_comparison_impl function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_market_comparison_basic(self, callback_query, context):
         """Test basic market comparison handling."""
         from src.telegram_bot.handlers.arbitrage_callback_impl import (
@@ -603,7 +598,7 @@ class TestFormatIntramarketItem:
 class TestDisplayResultsWithPagination:
     """Tests for display_results_with_pagination function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_display_empty_results(self, callback_query):
         """Test displaying empty results."""
         from src.telegram_bot.handlers.intramarket_arbitrage_handler import (
@@ -623,7 +618,7 @@ class TestDisplayResultsWithPagination:
         call_args = callback_query.edit_message_text.call_args
         assert "Возможности не найдены" in call_args[0][0]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_display_with_results(self, callback_query):
         """Test displaying results with pagination."""
         from src.telegram_bot.handlers.intramarket_arbitrage_handler import (
@@ -670,7 +665,7 @@ class TestDisplayResultsWithPagination:
 class TestHandleIntramarketPagination:
     """Tests for handle_intramarket_pagination function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pagination_next_page(self, update, context):
         """Test pagination next page."""
         from src.telegram_bot.handlers.intramarket_arbitrage_handler import (
@@ -694,7 +689,7 @@ class TestHandleIntramarketPagination:
 
                 mock_pagination.next_page.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pagination_prev_page(self, update, context):
         """Test pagination previous page."""
         from src.telegram_bot.handlers.intramarket_arbitrage_handler import (
@@ -718,7 +713,7 @@ class TestHandleIntramarketPagination:
 
                 mock_pagination.prev_page.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pagination_no_query(self, update, context):
         """Test pagination with no callback query."""
         from src.telegram_bot.handlers.intramarket_arbitrage_handler import (
@@ -731,7 +726,7 @@ class TestHandleIntramarketPagination:
         # Execute - should return early
         await handle_intramarket_pagination(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pagination_no_user(self, update, context):
         """Test pagination with no effective user."""
         from src.telegram_bot.handlers.intramarket_arbitrage_handler import (
@@ -744,7 +739,7 @@ class TestHandleIntramarketPagination:
         # Execute - should return early
         await handle_intramarket_pagination(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pagination_invalid_callback_data(self, update, context):
         """Test pagination with invalid callback data."""
         from src.telegram_bot.handlers.intramarket_arbitrage_handler import (
@@ -761,7 +756,7 @@ class TestHandleIntramarketPagination:
 class TestStartIntramarketArbitrageExtended:
     """Extended tests for start_intramarket_arbitrage function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_without_callback_query(self, update, context):
         """Test start without callback query."""
         from src.telegram_bot.handlers.intramarket_arbitrage_handler import (
@@ -776,7 +771,7 @@ class TestStartIntramarketArbitrageExtended:
 
         context.bot.send_message.assert_awaited_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_without_effective_user(self, update, context):
         """Test start without effective user."""
         from src.telegram_bot.handlers.intramarket_arbitrage_handler import (
@@ -793,7 +788,7 @@ class TestStartIntramarketArbitrageExtended:
 class TestHandleIntramarketCallbackExtended:
     """Extended tests for handle_intramarket_callback function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_callback_no_query(self, update, context):
         """Test callback handling with no query."""
         from src.telegram_bot.handlers.intramarket_arbitrage_handler import (
@@ -806,7 +801,7 @@ class TestHandleIntramarketCallbackExtended:
         # Execute - should return early
         await handle_intramarket_callback(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_callback_no_user(self, update, context):
         """Test callback handling with no user."""
         from src.telegram_bot.handlers.intramarket_arbitrage_handler import (
@@ -819,7 +814,7 @@ class TestHandleIntramarketCallbackExtended:
         # Execute - should return early
         await handle_intramarket_callback(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_callback_no_data(self, update, context):
         """Test callback handling with no data."""
         from src.telegram_bot.handlers.intramarket_arbitrage_handler import (
@@ -832,7 +827,7 @@ class TestHandleIntramarketCallbackExtended:
         # Execute - should return early
         await handle_intramarket_callback(update, context)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_callback_short_data(self, update, context):
         """Test callback handling with short data (invalid format)."""
         from src.telegram_bot.handlers.intramarket_arbitrage_handler import (
@@ -850,7 +845,7 @@ class TestHandleIntramarketCallbackExtended:
         call_args = update.callback_query.edit_message_text.call_args
         assert "Некорректные данные" in call_args[0][0]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_callback_api_client_none(self, update, context):
         """Test callback handling when API client is None."""
         from src.telegram_bot.handlers.intramarket_arbitrage_handler import (
@@ -905,7 +900,7 @@ class TestRegisterIntramarketHandlers:
 class TestErrorHandling:
     """Tests for error handling in arbitrage handlers."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_arbitrage_callback_exception_handling(self, update, context):
         """Test exception handling in arbitrage callback."""
         from src.telegram_bot.handlers.arbitrage_callback_impl import (
@@ -922,7 +917,7 @@ class TestErrorHandling:
         except Exception:
             pass  # Exception may be reraised depending on decorator config
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_dmarket_arbitrage_exception_handling(self, callback_query, context):
         """Test exception handling in DMarket arbitrage."""
         from src.telegram_bot.handlers.arbitrage_callback_impl import (

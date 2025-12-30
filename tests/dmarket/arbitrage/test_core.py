@@ -25,7 +25,7 @@ import pytest
 class TestFetchMarketItems:
     """Test fetch_market_items function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_fetch_market_items_with_api_client(self):
         """Test fetch_market_items with provided API client."""
         # Import is deferred to avoid DMarketAPI import errors
@@ -58,7 +58,7 @@ class TestFetchMarketItems:
             assert result[0]["title"] == "Item 1"
             mock_api.get_market_items.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_fetch_market_items_without_credentials(self):
         """Test fetch_market_items without API credentials returns empty list."""
         # When API is not configured and no dmarket_api provided,
@@ -74,7 +74,7 @@ class TestFetchMarketItems:
                 result = await fetch_market_items(game="csgo", limit=10)
                 assert result == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_fetch_market_items_with_price_range(self):
         """Test fetch_market_items with price range parameters."""
         mock_api = MagicMock()
@@ -103,7 +103,7 @@ class TestFetchMarketItems:
                 price_to=5000,   # Converted to cents
             )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_fetch_market_items_handles_exception(self):
         """Test fetch_market_items handles exceptions gracefully."""
         mock_api = MagicMock()
@@ -129,7 +129,7 @@ class TestFetchMarketItems:
 class TestFindArbitrageAsync:
     """Test _find_arbitrage_async function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_arbitrage_returns_opportunities(self):
         """Test _find_arbitrage_async returns profitable items."""
         from src.dmarket.arbitrage.core import _find_arbitrage_async
@@ -146,22 +146,20 @@ class TestFindArbitrageAsync:
         with patch(
             "src.dmarket.arbitrage.core.fetch_market_items",
             AsyncMock(return_value=mock_items),
-        ):
-            with patch(
-                "src.dmarket.arbitrage.core.get_cached_results",
-                return_value=None,
-            ):
-                with patch("src.dmarket.arbitrage.core.save_to_cache"):
-                    results = await _find_arbitrage_async(
-                        min_profit=1.0,
-                        max_profit=10.0,
-                        game="csgo",
-                    )
+        ), patch(
+            "src.dmarket.arbitrage.core.get_cached_results",
+            return_value=None,
+        ), patch("src.dmarket.arbitrage.core.save_to_cache"):
+            results = await _find_arbitrage_async(
+                min_profit=1.0,
+                max_profit=10.0,
+                game="csgo",
+            )
 
         # Check results structure (actual filtering depends on profit calculation)
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_arbitrage_uses_cache(self):
         """Test _find_arbitrage_async uses cached results."""
         from src.dmarket.arbitrage.core import _find_arbitrage_async
@@ -180,7 +178,7 @@ class TestFindArbitrageAsync:
 
         assert results == cached_data
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_arbitrage_empty_items(self):
         """Test _find_arbitrage_async with no items."""
         from src.dmarket.arbitrage.core import _find_arbitrage_async
@@ -188,17 +186,15 @@ class TestFindArbitrageAsync:
         with patch(
             "src.dmarket.arbitrage.core.fetch_market_items",
             AsyncMock(return_value=[]),
-        ):
-            with patch(
-                "src.dmarket.arbitrage.core.get_cached_results",
-                return_value=None,
-            ):
-                with patch("src.dmarket.arbitrage.core.save_to_cache"):
-                    results = await _find_arbitrage_async(
-                        min_profit=1.0,
-                        max_profit=5.0,
-                        game="csgo",
-                    )
+        ), patch(
+            "src.dmarket.arbitrage.core.get_cached_results",
+            return_value=None,
+        ), patch("src.dmarket.arbitrage.core.save_to_cache"):
+            results = await _find_arbitrage_async(
+                min_profit=1.0,
+                max_profit=5.0,
+                game="csgo",
+            )
 
         assert results == []
 
@@ -211,7 +207,7 @@ class TestFindArbitrageAsync:
 class TestArbitrageBoostAsync:
     """Test arbitrage_boost_async function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_boost_calls_find_arbitrage(self):
         """Test arbitrage_boost_async calls _find_arbitrage_async."""
         from src.dmarket.arbitrage.core import arbitrage_boost_async
@@ -224,7 +220,7 @@ class TestArbitrageBoostAsync:
 
             mock_find.assert_called_once_with(1, 5, "csgo", None, None)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_boost_with_price_range(self):
         """Test arbitrage_boost_async with price range."""
         from src.dmarket.arbitrage.core import arbitrage_boost_async
@@ -250,7 +246,7 @@ class TestArbitrageBoostAsync:
 class TestArbitrageMidAsync:
     """Test arbitrage_mid_async function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mid_calls_find_arbitrage(self):
         """Test arbitrage_mid_async calls _find_arbitrage_async."""
         from src.dmarket.arbitrage.core import arbitrage_mid_async
@@ -263,7 +259,7 @@ class TestArbitrageMidAsync:
 
             mock_find.assert_called_once_with(5, 20, "csgo", None, None)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mid_different_game(self):
         """Test arbitrage_mid_async with different game."""
         from src.dmarket.arbitrage.core import arbitrage_mid_async
@@ -285,7 +281,7 @@ class TestArbitrageMidAsync:
 class TestArbitrageProAsync:
     """Test arbitrage_pro_async function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pro_calls_find_arbitrage(self):
         """Test arbitrage_pro_async calls _find_arbitrage_async."""
         from src.dmarket.arbitrage.core import arbitrage_pro_async
@@ -298,7 +294,7 @@ class TestArbitrageProAsync:
 
             mock_find.assert_called_once_with(20, 100, "csgo", None, None)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pro_with_all_params(self):
         """Test arbitrage_pro_async with all parameters."""
         from src.dmarket.arbitrage.core import arbitrage_pro_async
@@ -325,7 +321,7 @@ class TestArbitrageProAsync:
 class TestFindArbitrageOpportunitiesAsync:
     """Test find_arbitrage_opportunities_async function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_finds_opportunities(self):
         """Test find_arbitrage_opportunities_async finds opportunities."""
         from src.dmarket.arbitrage.core import find_arbitrage_opportunities_async
@@ -343,21 +339,19 @@ class TestFindArbitrageOpportunitiesAsync:
         with patch(
             "src.dmarket.arbitrage.core.fetch_market_items",
             AsyncMock(return_value=mock_items),
-        ):
-            with patch(
-                "src.dmarket.arbitrage.core.get_cached_results",
-                return_value=None,
-            ):
-                with patch("src.dmarket.arbitrage.core.save_to_cache"):
-                    results = await find_arbitrage_opportunities_async(
-                        min_profit_percentage=5.0,
-                        max_results=10,
-                        game="csgo",
-                    )
+        ), patch(
+            "src.dmarket.arbitrage.core.get_cached_results",
+            return_value=None,
+        ), patch("src.dmarket.arbitrage.core.save_to_cache"):
+            results = await find_arbitrage_opportunities_async(
+                min_profit_percentage=5.0,
+                max_results=10,
+                game="csgo",
+            )
 
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_uses_cache(self):
         """Test find_arbitrage_opportunities_async uses cache."""
         from src.dmarket.arbitrage.core import find_arbitrage_opportunities_async
@@ -376,7 +370,7 @@ class TestFindArbitrageOpportunitiesAsync:
 
         assert results == cached_data[:5]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_exception(self):
         """Test find_arbitrage_opportunities_async handles exceptions."""
         from src.dmarket.arbitrage.core import find_arbitrage_opportunities_async
@@ -384,12 +378,11 @@ class TestFindArbitrageOpportunitiesAsync:
         with patch(
             "src.dmarket.arbitrage.core.fetch_market_items",
             AsyncMock(side_effect=Exception("API Error")),
+        ), patch(
+            "src.dmarket.arbitrage.core.get_cached_results",
+            return_value=None,
         ):
-            with patch(
-                "src.dmarket.arbitrage.core.get_cached_results",
-                return_value=None,
-            ):
-                results = await find_arbitrage_opportunities_async()
+            results = await find_arbitrage_opportunities_async()
 
         assert results == []
 
@@ -402,7 +395,7 @@ class TestFindArbitrageOpportunitiesAsync:
 class TestItemProcessing:
     """Test item processing logic."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_calculates_profit_with_suggested_price(self):
         """Test profit calculation when suggestedPrice is available."""
         from src.dmarket.arbitrage.core import _find_arbitrage_async
@@ -419,18 +412,16 @@ class TestItemProcessing:
         with patch(
             "src.dmarket.arbitrage.core.fetch_market_items",
             AsyncMock(return_value=mock_items),
-        ):
-            with patch(
-                "src.dmarket.arbitrage.core.get_cached_results",
-                return_value=None,
-            ):
-                with patch("src.dmarket.arbitrage.core.save_to_cache"):
-                    results = await _find_arbitrage_async(0.1, 10.0, "csgo")
+        ), patch(
+            "src.dmarket.arbitrage.core.get_cached_results",
+            return_value=None,
+        ), patch("src.dmarket.arbitrage.core.save_to_cache"):
+            results = await _find_arbitrage_async(0.1, 10.0, "csgo")
 
         # Results processing depends on actual profit calculation
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_missing_suggested_price(self):
         """Test handling items without suggestedPrice."""
         from src.dmarket.arbitrage.core import _find_arbitrage_async
@@ -446,17 +437,15 @@ class TestItemProcessing:
         with patch(
             "src.dmarket.arbitrage.core.fetch_market_items",
             AsyncMock(return_value=mock_items),
-        ):
-            with patch(
-                "src.dmarket.arbitrage.core.get_cached_results",
-                return_value=None,
-            ):
-                with patch("src.dmarket.arbitrage.core.save_to_cache"):
-                    results = await _find_arbitrage_async(0.1, 10.0, "csgo")
+        ), patch(
+            "src.dmarket.arbitrage.core.get_cached_results",
+            return_value=None,
+        ), patch("src.dmarket.arbitrage.core.save_to_cache"):
+            results = await _find_arbitrage_async(0.1, 10.0, "csgo")
 
         assert isinstance(results, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handles_popularity_data(self):
         """Test handling items with popularity data."""
         from src.dmarket.arbitrage.core import _find_arbitrage_async
@@ -479,13 +468,11 @@ class TestItemProcessing:
         with patch(
             "src.dmarket.arbitrage.core.fetch_market_items",
             AsyncMock(return_value=mock_items),
-        ):
-            with patch(
-                "src.dmarket.arbitrage.core.get_cached_results",
-                return_value=None,
-            ):
-                with patch("src.dmarket.arbitrage.core.save_to_cache"):
-                    results = await _find_arbitrage_async(0.1, 10.0, "csgo")
+        ), patch(
+            "src.dmarket.arbitrage.core.get_cached_results",
+            return_value=None,
+        ), patch("src.dmarket.arbitrage.core.save_to_cache"):
+            results = await _find_arbitrage_async(0.1, 10.0, "csgo")
 
         assert isinstance(results, list)
 
@@ -498,7 +485,7 @@ class TestItemProcessing:
 class TestResultSorting:
     """Test result sorting."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_results_sorted_by_profit(self):
         """Test that results are sorted by profit descending."""
         from src.dmarket.arbitrage.core import _find_arbitrage_async
@@ -521,13 +508,11 @@ class TestResultSorting:
         with patch(
             "src.dmarket.arbitrage.core.fetch_market_items",
             AsyncMock(return_value=mock_items),
-        ):
-            with patch(
-                "src.dmarket.arbitrage.core.get_cached_results",
-                return_value=None,
-            ):
-                with patch("src.dmarket.arbitrage.core.save_to_cache"):
-                    results = await _find_arbitrage_async(0.1, 100.0, "csgo")
+        ), patch(
+            "src.dmarket.arbitrage.core.get_cached_results",
+            return_value=None,
+        ), patch("src.dmarket.arbitrage.core.save_to_cache"):
+            results = await _find_arbitrage_async(0.1, 100.0, "csgo")
 
         # If there are results, they should be sorted
         if len(results) > 1:

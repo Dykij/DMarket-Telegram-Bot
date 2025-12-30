@@ -5,15 +5,17 @@ AnyTool Integration для DMarket Telegram Bot.
 """
 
 import asyncio
+from collections.abc import Callable
 import json
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
-import structlog
 from pydantic import BaseModel, Field
+import structlog
 
 from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.config import settings
+
 
 logger = structlog.get_logger(__name__)
 

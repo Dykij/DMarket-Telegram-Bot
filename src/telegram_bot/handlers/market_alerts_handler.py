@@ -73,12 +73,12 @@ async def alerts_command(
 
     # Кнопки для глобального мониторинга рынка
     for alert_type, alert_name in ALERT_TYPES.items():
-        if alert_type in [
+        if alert_type in {
             "price_changes",
             "trending",
             "volatility",
             "arbitrage",
-        ]:
+        }:
             if alert_type in user_subscriptions:
                 button_text = f"✅ {alert_name}"
             else:
@@ -93,20 +93,7 @@ async def alerts_command(
             )
 
     # Добавляем кнопки управления
-    keyboard.append(
-        [
-            InlineKeyboardButton("📊 Мои оповещения", callback_data="alerts:my_alerts"),
-        ],
-    )
-
-    keyboard.append(
-        [
-            InlineKeyboardButton(
-                "➕ Добавить оповещение",
-                callback_data="alerts:create_alert",
-            ),
-        ],
-    )
+    keyboard.extend(([InlineKeyboardButton("📊 Мои оповещения", callback_data="alerts:my_alerts")], [InlineKeyboardButton("➕ Добавить оповещение", callback_data="alerts:create_alert")]))
 
     # Добавляем кнопки управления
     control_row = []
@@ -193,8 +180,6 @@ async def alerts_command(
     reraise=False,
 )
 # ==================== Alert Action Handlers ====================
-
-
 async def _handle_toggle_alert(
     query,
     update: Update,
@@ -495,12 +480,12 @@ async def update_alerts_keyboard(query: CallbackQuery, alerts_manager: Any, user
 
     # Кнопки для глобального мониторинга рынка
     for alert_type, alert_name in ALERT_TYPES.items():
-        if alert_type in [
+        if alert_type in {
             "price_changes",
             "trending",
             "volatility",
             "arbitrage",
-        ]:
+        }:
             # Отмечаем активные подписки
             if alert_type in user_subscriptions:
                 button_text = f"✅ {alert_name}"
@@ -517,23 +502,7 @@ async def update_alerts_keyboard(query: CallbackQuery, alerts_manager: Any, user
             )
 
     # Кнопки для управления оповещениями о конкретных предметах
-    keyboard.append(
-        [
-            InlineKeyboardButton(
-                "📊 Мои оповещения",
-                callback_data="alerts:my_alerts",
-            ),
-        ],
-    )
-
-    keyboard.append(
-        [
-            InlineKeyboardButton(
-                "➕ Добавить оповещение",
-                callback_data="alerts:create_alert",
-            ),
-        ],
-    )
+    keyboard.extend(([InlineKeyboardButton("📊 Мои оповещения", callback_data="alerts:my_alerts")], [InlineKeyboardButton("➕ Добавить оповещение", callback_data="alerts:create_alert")]))
 
     # Добавляем кнопки управления
     control_row = []

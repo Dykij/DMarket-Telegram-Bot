@@ -169,7 +169,7 @@ class TestMarketAlertsManagerMonitoring:
     @pytest.mark.asyncio()
     async def test_start_monitoring_sets_running_flag(self, manager):
         """Test start_monitoring sets running flag."""
-        with patch.object(manager, '_monitor_market', return_value=AsyncMock()):
+        with patch.object(manager, "_monitor_market", return_value=AsyncMock()):
             await manager.start_monitoring()
 
             assert manager.running is True

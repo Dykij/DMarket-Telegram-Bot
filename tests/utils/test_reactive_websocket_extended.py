@@ -4,7 +4,6 @@ This module tests the Observable pattern and EventType/SubscriptionState
 enums for reactive WebSocket functionality.
 """
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -101,7 +100,7 @@ class TestObservableInit:
     def test_init_empty_observers(self):
         """Test Observable initializes with empty observer lists."""
         observable = Observable()
-        
+
         assert observable._observers == []
         assert observable._async_observers == []
 
@@ -113,19 +112,19 @@ class TestObservableSubscribe:
         """Test that subscribe adds an observer."""
         observable = Observable()
         observer = MagicMock()
-        
+
         observable.subscribe(observer)
-        
+
         assert observer in observable._observers
 
     def test_subscribe_prevents_duplicates(self):
         """Test that subscribe doesn't add duplicate observers."""
         observable = Observable()
         observer = MagicMock()
-        
+
         observable.subscribe(observer)
         observable.subscribe(observer)
-        
+
         assert observable._observers.count(observer) == 1
 
     def test_subscribe_multiple_observers(self):
@@ -133,10 +132,10 @@ class TestObservableSubscribe:
         observable = Observable()
         observer1 = MagicMock()
         observer2 = MagicMock()
-        
+
         observable.subscribe(observer1)
         observable.subscribe(observer2)
-        
+
         assert len(observable._observers) == 2
         assert observer1 in observable._observers
         assert observer2 in observable._observers
@@ -145,19 +144,19 @@ class TestObservableSubscribe:
         """Test that subscribe_async adds an async observer."""
         observable = Observable()
         async_observer = AsyncMock()
-        
+
         observable.subscribe_async(async_observer)
-        
+
         assert async_observer in observable._async_observers
 
     def test_subscribe_async_prevents_duplicates(self):
         """Test that subscribe_async doesn't add duplicates."""
         observable = Observable()
         async_observer = AsyncMock()
-        
+
         observable.subscribe_async(async_observer)
         observable.subscribe_async(async_observer)
-        
+
         assert observable._async_observers.count(async_observer) == 1
 
 
@@ -168,103 +167,103 @@ class TestObservableUnsubscribe:
         """Test that unsubscribe removes an observer."""
         observable = Observable()
         observer = MagicMock()
-        
+
         observable.subscribe(observer)
         observable.unsubscribe(observer)
-        
+
         assert observer not in observable._observers
 
     def test_unsubscribe_nonexistent_observer(self):
         """Test unsubscribing observer that doesn't exist."""
         observable = Observable()
         observer = MagicMock()
-        
+
         # Should not raise
         observable.unsubscribe(observer)
-        
+
         assert observer not in observable._observers
 
     def test_unsubscribe_async_removes_observer(self):
         """Test that unsubscribe_async removes an async observer."""
         observable = Observable()
         async_observer = AsyncMock()
-        
+
         observable.subscribe_async(async_observer)
         observable.unsubscribe_async(async_observer)
-        
+
         assert async_observer not in observable._async_observers
 
     def test_unsubscribe_async_nonexistent_observer(self):
         """Test unsubscribing async observer that doesn't exist."""
         observable = Observable()
         async_observer = AsyncMock()
-        
+
         # Should not raise
         observable.unsubscribe_async(async_observer)
-        
+
         assert async_observer not in observable._async_observers
 
 
 class TestObservableEmit:
     """Tests for Observable emit method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_emit_calls_sync_observers(self):
         """Test that emit calls synchronous observers."""
         observable = Observable()
         observer = MagicMock()
-        
+
         observable.subscribe(observer)
         await observable.emit("test_data")
-        
+
         observer.assert_called_once_with("test_data")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_emit_calls_async_observers(self):
         """Test that emit calls async observers."""
         observable = Observable()
         async_observer = AsyncMock()
-        
+
         observable.subscribe_async(async_observer)
         await observable.emit("test_data")
-        
+
         async_observer.assert_called_once_with("test_data")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_emit_calls_multiple_observers(self):
         """Test that emit calls all observers."""
         observable = Observable()
         observer1 = MagicMock()
         observer2 = MagicMock()
         async_observer = AsyncMock()
-        
+
         observable.subscribe(observer1)
         observable.subscribe(observer2)
         observable.subscribe_async(async_observer)
-        
+
         await observable.emit("data")
-        
+
         observer1.assert_called_once_with("data")
         observer2.assert_called_once_with("data")
         async_observer.assert_called_once_with("data")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_emit_with_dict_data(self):
         """Test emit with dictionary data."""
         observable = Observable()
         observer = MagicMock()
         test_data = {"key": "value", "number": 42}
-        
+
         observable.subscribe(observer)
         await observable.emit(test_data)
-        
+
         observer.assert_called_once_with(test_data)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_emit_with_no_observers(self):
         """Test emit with no observers does not raise."""
         observable = Observable()
-        
+
         # Should not raise
         await observable.emit("data")
 
@@ -277,11 +276,11 @@ class TestObservableClear:
         observable = Observable()
         observer1 = MagicMock()
         observer2 = MagicMock()
-        
+
         observable.subscribe(observer1)
         observable.subscribe(observer2)
         observable.clear()
-        
+
         assert len(observable._observers) == 0
 
     def test_clear_removes_all_async_observers(self):
@@ -289,11 +288,11 @@ class TestObservableClear:
         observable = Observable()
         async_observer1 = AsyncMock()
         async_observer2 = AsyncMock()
-        
+
         observable.subscribe_async(async_observer1)
         observable.subscribe_async(async_observer2)
         observable.clear()
-        
+
         assert len(observable._async_observers) == 0
 
     def test_clear_removes_mixed_observers(self):
@@ -301,11 +300,11 @@ class TestObservableClear:
         observable = Observable()
         sync_observer = MagicMock()
         async_observer = AsyncMock()
-        
+
         observable.subscribe(sync_observer)
         observable.subscribe_async(async_observer)
         observable.clear()
-        
+
         assert len(observable._observers) == 0
         assert len(observable._async_observers) == 0
 
@@ -313,38 +312,38 @@ class TestObservableClear:
 class TestObservableErrorHandling:
     """Tests for Observable error handling in emit."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_emit_continues_after_sync_observer_error(self):
         """Test that emit continues if a sync observer raises error."""
         observable = Observable()
         error_observer = MagicMock(side_effect=ValueError("Test error"))
         success_observer = MagicMock()
-        
+
         observable.subscribe(error_observer)
         observable.subscribe(success_observer)
-        
+
         # Should not raise, and should continue to next observer
         await observable.emit("data")
-        
+
         error_observer.assert_called_once_with("data")
         success_observer.assert_called_once_with("data")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_emit_handles_async_observer_error(self):
         """Test that emit handles async observer errors gracefully."""
         observable = Observable()
-        
+
         async def error_async_observer(data):
             raise ValueError("Async error")
-        
+
         success_observer = AsyncMock()
-        
+
         observable.subscribe_async(error_async_observer)
         observable.subscribe_async(success_observer)
-        
+
         # Should not raise
         await observable.emit("data")
-        
+
         success_observer.assert_called_once_with("data")
 
 
@@ -359,9 +358,9 @@ class TestSubscription:
     def test_subscription_init(self):
         """Test Subscription initialization."""
         from src.utils.reactive_websocket import Subscription, SubscriptionState
-        
+
         subscription = Subscription(topic="test:topic", params={"key": "value"})
-        
+
         assert subscription.topic == "test:topic"
         assert subscription.params == {"key": "value"}
         assert subscription.state == SubscriptionState.IDLE
@@ -373,67 +372,67 @@ class TestSubscription:
     def test_subscription_init_without_params(self):
         """Test Subscription initialization without params."""
         from src.utils.reactive_websocket import Subscription
-        
+
         subscription = Subscription(topic="test:topic")
-        
+
         assert subscription.params == {}
 
     def test_subscription_update_state(self):
         """Test updating subscription state."""
         from src.utils.reactive_websocket import Subscription, SubscriptionState
-        
+
         subscription = Subscription(topic="test:topic")
         subscription.update_state(SubscriptionState.ACTIVE)
-        
+
         assert subscription.state == SubscriptionState.ACTIVE
 
     def test_subscription_record_event(self):
         """Test recording events."""
         from src.utils.reactive_websocket import Subscription
-        
+
         subscription = Subscription(topic="test:topic")
-        
+
         assert subscription.event_count == 0
         assert subscription.last_event_at is None
-        
+
         subscription.record_event()
-        
+
         assert subscription.event_count == 1
         assert subscription.last_event_at is not None
 
     def test_subscription_record_multiple_events(self):
         """Test recording multiple events."""
         from src.utils.reactive_websocket import Subscription
-        
+
         subscription = Subscription(topic="test:topic")
-        
+
         subscription.record_event()
         subscription.record_event()
         subscription.record_event()
-        
+
         assert subscription.event_count == 3
 
     def test_subscription_record_error(self):
         """Test recording errors."""
         from src.utils.reactive_websocket import Subscription
-        
+
         subscription = Subscription(topic="test:topic")
-        
+
         assert subscription.error_count == 0
-        
+
         subscription.record_error()
-        
+
         assert subscription.error_count == 1
 
     def test_subscription_record_multiple_errors(self):
         """Test recording multiple errors."""
         from src.utils.reactive_websocket import Subscription
-        
+
         subscription = Subscription(topic="test:topic")
-        
+
         subscription.record_error()
         subscription.record_error()
-        
+
         assert subscription.error_count == 2
 
 
@@ -447,17 +446,17 @@ class TestReactiveDMarketWebSocketInit:
 
     def test_websocket_init(self):
         """Test ReactiveDMarketWebSocket initialization."""
-        from src.utils.reactive_websocket import ReactiveDMarketWebSocket, EventType
-        
+        from src.utils.reactive_websocket import EventType, ReactiveDMarketWebSocket
+
         mock_api_client = MagicMock()
         mock_api_client.public_key = "test_public_key"
-        
+
         ws = ReactiveDMarketWebSocket(
             api_client=mock_api_client,
             auto_reconnect=True,
             max_reconnect_attempts=5
         )
-        
+
         assert ws.api_client == mock_api_client
         assert ws.auto_reconnect is True
         assert ws.max_reconnect_attempts == 5
@@ -468,21 +467,21 @@ class TestReactiveDMarketWebSocketInit:
     def test_websocket_init_defaults(self):
         """Test ReactiveDMarketWebSocket initialization with defaults."""
         from src.utils.reactive_websocket import ReactiveDMarketWebSocket
-        
+
         mock_api_client = MagicMock()
-        
+
         ws = ReactiveDMarketWebSocket(api_client=mock_api_client)
-        
+
         assert ws.auto_reconnect is True
         assert ws.max_reconnect_attempts == 10
 
     def test_websocket_observables_created(self):
         """Test that observables are created for all event types."""
-        from src.utils.reactive_websocket import ReactiveDMarketWebSocket, EventType
-        
+        from src.utils.reactive_websocket import EventType, ReactiveDMarketWebSocket
+
         mock_api_client = MagicMock()
         ws = ReactiveDMarketWebSocket(api_client=mock_api_client)
-        
+
         for event_type in EventType:
             assert event_type in ws.observables
 
@@ -493,12 +492,12 @@ class TestReactiveDMarketWebSocketGetStats:
     def test_get_subscription_stats_empty(self):
         """Test getting stats with no subscriptions."""
         from src.utils.reactive_websocket import ReactiveDMarketWebSocket
-        
+
         mock_api_client = MagicMock()
         ws = ReactiveDMarketWebSocket(api_client=mock_api_client)
-        
+
         stats = ws.get_subscription_stats()
-        
+
         assert stats["total_subscriptions"] == 0
         assert stats["subscriptions"] == []
 
@@ -507,12 +506,12 @@ class TestReactiveDMarketWebSocketGetStats:
         from src.utils.reactive_websocket import (
             ReactiveDMarketWebSocket,
             Subscription,
-            SubscriptionState
+            SubscriptionState,
         )
-        
+
         mock_api_client = MagicMock()
         ws = ReactiveDMarketWebSocket(api_client=mock_api_client)
-        
+
         # Add a subscription manually
         sub = Subscription(topic="test:topic", params={"param": "value"})
         sub.update_state(SubscriptionState.ACTIVE)
@@ -520,12 +519,12 @@ class TestReactiveDMarketWebSocketGetStats:
         sub.record_event()
         sub.record_error()
         ws.subscriptions["test:topic"] = sub
-        
+
         stats = ws.get_subscription_stats()
-        
+
         assert stats["total_subscriptions"] == 1
         assert len(stats["subscriptions"]) == 1
-        
+
         sub_stats = stats["subscriptions"][0]
         assert sub_stats["topic"] == "test:topic"
         assert sub_stats["state"] == SubscriptionState.ACTIVE

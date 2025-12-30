@@ -152,7 +152,7 @@ class TestVCRAsync:
 
             async with httpx.AsyncClient() as client:
                 response = await client.get("https://api.dmarket.com/account/v1/balance")
-                assert response.status_code in [200, 401]
+                assert response.status_code in {200, 401}
 
 
 class TestVCRIntegrationPattern:
@@ -170,7 +170,7 @@ class TestVCRIntegrationPattern:
 
         ```python
         @pytest.mark.vcr
-        @pytest.mark.asyncio
+        @pytest.mark.asyncio()
         async def test_get_balance(vcr_cassette_async, dmarket_api):
             '''Test getting user balance.
 

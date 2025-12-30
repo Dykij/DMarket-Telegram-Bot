@@ -29,11 +29,11 @@ async def should_throttle_notification(
     Returns:
         True if notification should be throttled, False otherwise
     """
-    _user_preferences = get_user_preferences()
+    user_preferences = get_user_preferences()
     user_id_str = str(user_id)
 
     # Get user preferences
-    prefs = _user_preferences.get(user_id_str, {})
+    prefs = user_preferences.get(user_id_str, {})
     frequency = prefs.get("frequency", "normal")
 
     # Get history key
@@ -44,9 +44,9 @@ async def should_throttle_notification(
     cooldown: float = float(base_cooldown)
 
     if frequency == "low":
-        cooldown = cooldown * 2
+        cooldown *= 2
     elif frequency == "high":
-        cooldown = cooldown / 2
+        cooldown /= 2
 
     # Check quiet hours
     now = datetime.now()
@@ -74,20 +74,20 @@ async def record_notification(
         notification_type: Type of notification
         item_id: Optional item ID
     """
-    _user_preferences = get_user_preferences()
+    user_preferences = get_user_preferences()
     user_id_str = str(user_id)
 
-    if user_id_str not in _user_preferences:
+    if user_id_str not in user_preferences:
         return
 
     # Get history key
     history_key = f"{notification_type}:{item_id}" if item_id else notification_type
 
     # Update last notification time
-    if "last_notification" not in _user_preferences[user_id_str]:
-        _user_preferences[user_id_str]["last_notification"] = {}
+    if "last_notification" not in user_preferences[user_id_str]:
+        user_preferences[user_id_str]["last_notification"] = {}
 
-    _user_preferences[user_id_str]["last_notification"][history_key] = time.time()
+    user_preferences[user_id_str]["last_notification"][history_key] = time.time()
 
     # Save changes
     save_user_preferences()

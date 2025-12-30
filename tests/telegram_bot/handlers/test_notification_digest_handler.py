@@ -4,7 +4,7 @@ This module tests src/telegram_bot/handlers/notification_digest_handler.py cover
 - NotificationDigestManager class methods
 - DigestSettings and NotificationItem dataclasses
 - Digest menu display
-- Digest toggle functionality  
+- Digest toggle functionality
 - Frequency settings
 - Grouping mode settings
 - Minimum items configuration
@@ -15,10 +15,10 @@ Target: 40+ tests to achieve 70%+ coverage
 """
 
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from telegram import CallbackQuery, InlineKeyboardMarkup, Update
+from telegram import CallbackQuery, Update
 from telegram.ext import ContextTypes
 
 from src.telegram_bot.handlers.notification_digest_handler import (

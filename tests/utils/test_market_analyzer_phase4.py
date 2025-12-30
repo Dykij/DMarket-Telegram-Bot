@@ -4,7 +4,7 @@ This module contains extended tests for full coverage of market_analyzer.py
 """
 
 from datetime import UTC, datetime, timedelta
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -94,7 +94,7 @@ class TestMarketAnalyzerInit:
 class TestAnalyzePriceHistoryExtended:
     """Extended tests for analyze_price_history method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_empty_price_history(self):
         """Test with empty price history."""
         analyzer = MarketAnalyzer()
@@ -108,7 +108,7 @@ class TestAnalyzePriceHistoryExtended:
         assert result["resistance_level"] is None
         assert result["insufficient_data"] is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_single_data_point(self):
         """Test with single data point."""
         analyzer = MarketAnalyzer()
@@ -119,12 +119,12 @@ class TestAnalyzePriceHistoryExtended:
         assert result["insufficient_data"] is True
         assert result["avg_price"] == 0.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_exact_min_data_points(self):
         """Test with exactly min_data_points entries."""
         analyzer = MarketAnalyzer(min_data_points=5)
         history = [
-            {"price": float(10 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4-i)).timestamp()}
+            {"price": float(10 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
             for i in range(5)
         ]
         result = await analyzer.analyze_price_history(history)
@@ -132,7 +132,7 @@ class TestAnalyzePriceHistoryExtended:
         assert result["insufficient_data"] is False
         assert result["current_price"] == 14.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_unsorted_timestamps(self):
         """Test with unsorted timestamp data."""
         analyzer = MarketAnalyzer()
@@ -150,7 +150,7 @@ class TestAnalyzePriceHistoryExtended:
         assert result["current_price"] == 13.0
         assert result["insufficient_data"] is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_missing_price_key(self):
         """Test with missing price key."""
         analyzer = MarketAnalyzer()
@@ -164,7 +164,7 @@ class TestAnalyzePriceHistoryExtended:
         assert result["current_price"] == 0.0
         assert result["avg_price"] == 0.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_missing_timestamp_key(self):
         """Test with missing timestamp key."""
         analyzer = MarketAnalyzer()
@@ -174,7 +174,7 @@ class TestAnalyzePriceHistoryExtended:
         # Should still work with 0 timestamps
         assert result["insufficient_data"] is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_volume_data_present(self):
         """Test with volume data present."""
         analyzer = MarketAnalyzer()
@@ -189,7 +189,7 @@ class TestAnalyzePriceHistoryExtended:
 
         assert result["volume_change"] == 50.0  # (150-100)/100 * 100
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_volume_data_zero_initial(self):
         """Test with zero initial volume."""
         analyzer = MarketAnalyzer()
@@ -205,7 +205,7 @@ class TestAnalyzePriceHistoryExtended:
         result = await analyzer.analyze_price_history(history)
         assert "volume_change" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_high_volatility_detection(self):
         """Test high volatility detection."""
         analyzer = MarketAnalyzer()
@@ -224,7 +224,7 @@ class TestAnalyzePriceHistoryExtended:
         assert result["volatility"] == VOL_HIGH
         assert result["volatility_ratio"] > 0.1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_medium_volatility_detection(self):
         """Test medium volatility detection."""
         analyzer = MarketAnalyzer()
@@ -240,9 +240,9 @@ class TestAnalyzePriceHistoryExtended:
         ]
         result = await analyzer.analyze_price_history(history)
 
-        assert result["volatility"] in [VOL_LOW, VOL_MEDIUM]
+        assert result["volatility"] in {VOL_LOW, VOL_MEDIUM}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_price_statistics_calculation(self):
         """Test price statistics calculations."""
         analyzer = MarketAnalyzer()
@@ -295,7 +295,7 @@ class TestAnalyzeTrendExtended:
     def test_analyze_trend_perfectly_stable(self):
         """Test with perfectly stable prices."""
         analyzer = MarketAnalyzer()
-        trend, confidence = analyzer._analyze_trend([10.0, 10.0, 10.0, 10.0, 10.0])
+        trend, _confidence = analyzer._analyze_trend([10.0, 10.0, 10.0, 10.0, 10.0])
 
         assert trend == TREND_STABLE
         # Zero variance means correlation is 0
@@ -312,14 +312,14 @@ class TestAnalyzeTrendExtended:
     def test_analyze_trend_slightly_up(self):
         """Test with slight upward trend."""
         analyzer = MarketAnalyzer()
-        trend, confidence = analyzer._analyze_trend([10.0, 10.2, 10.5, 10.3, 10.6, 10.8])
+        trend, _confidence = analyzer._analyze_trend([10.0, 10.2, 10.5, 10.3, 10.6, 10.8])
 
         assert trend == TREND_UP
 
     def test_analyze_trend_slightly_down(self):
         """Test with slight downward trend."""
         analyzer = MarketAnalyzer()
-        trend, confidence = analyzer._analyze_trend([10.8, 10.6, 10.3, 10.5, 10.2, 10.0])
+        trend, _confidence = analyzer._analyze_trend([10.8, 10.6, 10.3, 10.5, 10.2, 10.0])
 
         assert trend == TREND_DOWN
 
@@ -598,7 +598,7 @@ class TestSupportResistanceExtended:
         analyzer = MarketAnalyzer()
         # Local minimum at 8.0, current price at 12.0
         prices = [10.0, 9.0, 8.0, 9.0, 10.0, 11.0, 12.0]
-        support, resistance = analyzer._find_support_resistance(prices)
+        support, _resistance = analyzer._find_support_resistance(prices)
 
         assert support is not None
         assert support < 12.0
@@ -608,7 +608,7 @@ class TestSupportResistanceExtended:
         analyzer = MarketAnalyzer()
         # Local maximum at 14.0, current price at 10.0
         prices = [12.0, 13.0, 14.0, 13.0, 12.0, 11.0, 10.0]
-        support, resistance = analyzer._find_support_resistance(prices)
+        _support, resistance = analyzer._find_support_resistance(prices)
 
         assert resistance is not None
         assert resistance > 10.0
@@ -620,7 +620,7 @@ class TestSupportResistanceExtended:
 class TestAnalyzeMarketOpportunityExtended:
     """Extended tests for analyze_market_opportunity function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_opportunity_with_dict_price(self):
         """Test with price as dictionary."""
         item_data = {
@@ -629,14 +629,14 @@ class TestAnalyzeMarketOpportunityExtended:
             "price": {"amount": 1000},
         }
         history = [
-            {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4-i)).timestamp()}
+            {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
 
         assert result["current_price"] == 10.0  # 1000/100
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_opportunity_with_numeric_price(self):
         """Test with price as number."""
         item_data = {
@@ -645,14 +645,14 @@ class TestAnalyzeMarketOpportunityExtended:
             "price": 15.0,
         }
         history = [
-            {"price": float(10 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4-i)).timestamp()}
+            {"price": float(10 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
 
         assert result["current_price"] == 15.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_opportunity_with_int_price(self):
         """Test with price as integer."""
         item_data = {
@@ -661,14 +661,14 @@ class TestAnalyzeMarketOpportunityExtended:
             "price": 20,
         }
         history = [
-            {"price": float(15 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4-i)).timestamp()}
+            {"price": float(15 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
 
         assert result["current_price"] == 20.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_opportunity_without_price_key(self):
         """Test without price key."""
         item_data = {
@@ -676,14 +676,14 @@ class TestAnalyzeMarketOpportunityExtended:
             "title": "Test Item",
         }
         history = [
-            {"price": float(10 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4-i)).timestamp()}
+            {"price": float(10 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
 
         assert result["current_price"] == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_opportunity_score_capped_at_100(self):
         """Test that opportunity score is capped at 100."""
         item_data = {
@@ -704,12 +704,12 @@ class TestAnalyzeMarketOpportunityExtended:
 
         assert result["opportunity_score"] <= 100
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_opportunity_with_uptrend(self):
         """Test opportunity analysis with upward trend."""
         item_data = {"itemId": "test-123", "title": "Test Item", "price": 15.0}
         history = [
-            {"price": float(10 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4-i)).timestamp()}
+            {"price": float(10 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -717,7 +717,7 @@ class TestAnalyzeMarketOpportunityExtended:
         assert result["market_analysis"]["trend"] == TREND_UP
         assert "Upward price trend" in result["reasons"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_opportunity_with_panic_pattern(self):
         """Test opportunity analysis with panic pattern."""
         item_data = {"itemId": "test-123", "title": "Test Item", "price": 5.0}
@@ -734,7 +734,7 @@ class TestAnalyzeMarketOpportunityExtended:
         if PATTERN_PANIC in pattern_types:
             assert any("panic" in r.lower() for r in result["reasons"])
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_opportunity_with_fomo_pattern(self):
         """Test opportunity analysis with FOMO pattern."""
         item_data = {"itemId": "test-123", "title": "Test Item", "price": 25.0}
@@ -751,7 +751,7 @@ class TestAnalyzeMarketOpportunityExtended:
         if PATTERN_FOMO in pattern_types:
             assert any("FOMO" in r for r in result["reasons"])
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_opportunity_near_support(self):
         """Test opportunity when price is near support level."""
         item_data = {"itemId": "test-123", "title": "Test Item", "price": 10.2}
@@ -769,7 +769,7 @@ class TestAnalyzeMarketOpportunityExtended:
         # Check support level detection
         assert result["market_analysis"]["support_level"] is not None or True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_opportunity_volume_increase(self):
         """Test opportunity with volume increase."""
         item_data = {"itemId": "test-123", "title": "Test Item", "price": 12.0}
@@ -785,12 +785,12 @@ class TestAnalyzeMarketOpportunityExtended:
         # Volume change should be detected
         assert result["market_analysis"]["volume_change"] > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_opportunity_csgo_case_bonus(self):
         """Test CS:GO case gets bonus score."""
         item_data = {"itemId": "test-123", "title": "Clutch Case", "price": 1.0}
         history = [
-            {"price": float(1 + i * 0.1), "timestamp": (datetime.now(UTC) - timedelta(days=4-i)).timestamp()}
+            {"price": float(1 + i * 0.1), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -798,24 +798,24 @@ class TestAnalyzeMarketOpportunityExtended:
         # Should have reason about cases
         assert any("case" in r.lower() for r in result["reasons"])
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_opportunity_csgo_collection_bonus(self):
         """Test CS:GO collection gets bonus score."""
         item_data = {"itemId": "test-123", "title": "2021 Collection Item", "price": 2.0}
         history = [
-            {"price": float(2 + i * 0.1), "timestamp": (datetime.now(UTC) - timedelta(days=4-i)).timestamp()}
+            {"price": float(2 + i * 0.1), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
 
         assert any("collection" in r.lower() for r in result["reasons"])
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_opportunity_different_games(self):
         """Test opportunity analysis for different games."""
         item_data = {"itemId": "test-123", "title": "Arcana Item", "price": 25.0}
         history = [
-            {"price": float(20 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4-i)).timestamp()}
+            {"price": float(20 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
             for i in range(5)
         ]
 
@@ -823,7 +823,7 @@ class TestAnalyzeMarketOpportunityExtended:
             result = await analyze_market_opportunity(item_data, history, game)
             assert result["game"] == game
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_opportunity_type_determination(self):
         """Test opportunity type determination."""
         item_data = {"itemId": "test-123", "title": "Test Item", "price": 5.0}
@@ -837,7 +837,7 @@ class TestAnalyzeMarketOpportunityExtended:
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
 
-        assert result["opportunity_type"] in ["buy", "sell", "neutral"]
+        assert result["opportunity_type"] in {"buy", "sell", "neutral"}
 
 
 # ==================== batch_analyze_items Tests ====================
@@ -846,13 +846,13 @@ class TestAnalyzeMarketOpportunityExtended:
 class TestBatchAnalyzeItemsExtended:
     """Extended tests for batch_analyze_items function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_batch_empty_items(self):
         """Test with empty items list."""
         results = await batch_analyze_items([], {}, "csgo")
         assert results == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_batch_items_without_item_id(self):
         """Test items without itemId are skipped."""
         items = [
@@ -861,7 +861,7 @@ class TestBatchAnalyzeItemsExtended:
         ]
         histories = {
             "test-123": [
-                {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4-i)).timestamp()}
+                {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
                 for i in range(5)
             ]
         }
@@ -870,7 +870,7 @@ class TestBatchAnalyzeItemsExtended:
         assert len(results) == 1
         assert results[0]["item_id"] == "test-123"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_batch_items_sorted_by_score(self):
         """Test results are sorted by opportunity score."""
         items = [
@@ -897,7 +897,7 @@ class TestBatchAnalyzeItemsExtended:
         # Results should be sorted by score descending
         assert results[0]["opportunity_score"] >= results[1]["opportunity_score"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_batch_items_missing_history(self):
         """Test items with missing price history."""
         items = [
@@ -906,7 +906,7 @@ class TestBatchAnalyzeItemsExtended:
         ]
         histories = {
             "has-history": [
-                {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4-i)).timestamp()}
+                {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
                 for i in range(5)
             ]
         }
@@ -914,7 +914,7 @@ class TestBatchAnalyzeItemsExtended:
 
         assert len(results) == 2  # Both items should be analyzed
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_batch_handles_exception(self):
         """Test batch handles exception for individual items."""
         items = [
@@ -922,7 +922,7 @@ class TestBatchAnalyzeItemsExtended:
         ]
         histories = {
             "test-123": [
-                {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4-i)).timestamp()}
+                {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
                 for i in range(5)
             ]
         }
@@ -934,7 +934,7 @@ class TestBatchAnalyzeItemsExtended:
         # Should return empty list due to exception
         assert results == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_batch_large_item_list(self):
         """Test with large number of items."""
         items = [
@@ -943,7 +943,7 @@ class TestBatchAnalyzeItemsExtended:
         ]
         histories = {
             f"item-{i}": [
-                {"price": float(8 + j), "timestamp": (datetime.now(UTC) - timedelta(days=4-j)).timestamp()}
+                {"price": float(8 + j), "timestamp": (datetime.now(UTC) - timedelta(days=4 - j)).timestamp()}
                 for j in range(5)
             ]
             for i in range(50)
@@ -959,7 +959,7 @@ class TestBatchAnalyzeItemsExtended:
 class TestEdgeCases:
     """Test edge cases and boundary conditions."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_unicode_item_title(self):
         """Test with unicode characters in title."""
         item_data = {
@@ -968,38 +968,38 @@ class TestEdgeCases:
             "price": 10.0,
         }
         history = [
-            {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4-i)).timestamp()}
+            {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
 
         assert result["item_name"] == "АК-47 | Красная линия"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_very_small_prices(self):
         """Test with very small price values."""
         item_data = {"itemId": "test-123", "title": "Cheap Item", "price": 0.01}
         history = [
-            {"price": 0.01 + i * 0.001, "timestamp": (datetime.now(UTC) - timedelta(days=4-i)).timestamp()}
+            {"price": 0.01 + i * 0.001, "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
 
         assert result["current_price"] == 0.01
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_very_large_prices(self):
         """Test with very large price values."""
         item_data = {"itemId": "test-123", "title": "Expensive Item", "price": 100000.0}
         history = [
-            {"price": float(90000 + i * 2000), "timestamp": (datetime.now(UTC) - timedelta(days=4-i)).timestamp()}
+            {"price": float(90000 + i * 2000), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
 
         assert result["current_price"] == 100000.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_zero_prices_in_history(self):
         """Test with zero prices in history."""
         analyzer = MarketAnalyzer()
@@ -1014,7 +1014,7 @@ class TestEdgeCases:
 
         assert result["avg_price"] == 0.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_negative_prices_in_history(self):
         """Test with negative prices in history (edge case)."""
         analyzer = MarketAnalyzer()
@@ -1030,24 +1030,24 @@ class TestEdgeCases:
         # Should handle negative prices without crashing
         assert "avg_price" in result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_missing_item_title(self):
         """Test with missing item title."""
         item_data = {"itemId": "test-123", "price": 10.0}
         history = [
-            {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4-i)).timestamp()}
+            {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
 
         assert result["item_name"] == "Unknown item"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_empty_item_id(self):
         """Test with empty item ID."""
         item_data = {"itemId": "", "title": "Test", "price": 10.0}
         history = [
-            {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4-i)).timestamp()}
+            {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -1060,7 +1060,7 @@ class TestEdgeCases:
         # All same values - zero variance
         trend, confidence = analyzer._analyze_trend([10.0, 10.0, 10.0, 10.0, 10.0])
 
-        assert trend in [TREND_STABLE, TREND_UP, TREND_DOWN]
+        assert trend in {TREND_STABLE, TREND_UP, TREND_DOWN}
         assert 0.0 <= confidence <= 1.0
 
 
@@ -1070,7 +1070,7 @@ class TestEdgeCases:
 class TestIntegration:
     """Integration tests for complete workflows."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_full_analysis_workflow(self):
         """Test complete analysis workflow."""
         # Create realistic market data
@@ -1089,7 +1089,7 @@ class TestIntegration:
             price = base_price + random.uniform(-1, 1.5)
             history.append({
                 "price": price,
-                "timestamp": (datetime.now(UTC) - timedelta(days=29-i)).timestamp(),
+                "timestamp": (datetime.now(UTC) - timedelta(days=29 - i)).timestamp(),
                 "volume": 100 + i * 5,
             })
 
@@ -1113,7 +1113,7 @@ class TestIntegration:
         assert "support_level" in analysis or analysis["support_level"] is None
         assert "resistance_level" in analysis or analysis["resistance_level"] is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_batch_analysis_workflow(self):
         """Test batch analysis workflow."""
         items = []
@@ -1127,7 +1127,7 @@ class TestIntegration:
                 "price": float(10 + i * 2),
             })
             histories[item_id] = [
-                {"price": float(8 + i + j * 0.5), "timestamp": (datetime.now(UTC) - timedelta(days=6-j)).timestamp()}
+                {"price": float(8 + i + j * 0.5), "timestamp": (datetime.now(UTC) - timedelta(days=6 - j)).timestamp()}
                 for j in range(7)
             ]
 
@@ -1138,7 +1138,7 @@ class TestIntegration:
         for i in range(len(results) - 1):
             assert results[i]["opportunity_score"] >= results[i + 1]["opportunity_score"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_multi_pattern_detection(self):
         """Test detection of multiple patterns simultaneously."""
         analyzer = MarketAnalyzer()

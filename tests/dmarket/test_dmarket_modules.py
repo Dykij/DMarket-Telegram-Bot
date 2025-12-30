@@ -1,9 +1,6 @@
 """Tests for DMarket modules with low coverage."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
-from decimal import Decimal
-
-import pytest
+from unittest.mock import MagicMock
 
 
 class TestLiquidityAnalyzer:
@@ -147,8 +144,9 @@ class TestAutoSeller:
 
     def test_auto_seller_initialization(self):
         """Test AutoSeller can be instantiated."""
-        from src.dmarket.auto_seller import AutoSeller
         import inspect
+
+        from src.dmarket.auto_seller import AutoSeller
 
         # Check __init__ signature to determine required params
         sig = inspect.signature(AutoSeller.__init__)

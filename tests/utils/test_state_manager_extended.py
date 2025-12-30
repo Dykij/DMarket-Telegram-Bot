@@ -22,9 +22,9 @@ class TestCheckpointData:
     def test_create_checkpoint_data_minimal(self):
         """Test creating CheckpointData with minimal fields."""
         scan_id = uuid4()
-        
+
         checkpoint = CheckpointData(scan_id=scan_id)
-        
+
         assert checkpoint.scan_id == scan_id
         assert checkpoint.cursor is None
         assert checkpoint.processed_items == 0
@@ -35,7 +35,7 @@ class TestCheckpointData:
         """Test creating CheckpointData with all fields."""
         scan_id = uuid4()
         timestamp = datetime.utcnow()
-        
+
         checkpoint = CheckpointData(
             scan_id=scan_id,
             cursor="next_page_token",
@@ -45,7 +45,7 @@ class TestCheckpointData:
             extra_data={"key": "value"},
             status="completed",
         )
-        
+
         assert checkpoint.scan_id == scan_id
         assert checkpoint.cursor == "next_page_token"
         assert checkpoint.processed_items == 50
@@ -57,20 +57,20 @@ class TestCheckpointData:
     def test_checkpoint_data_default_timestamp(self):
         """Test CheckpointData has default timestamp."""
         checkpoint = CheckpointData(scan_id=uuid4())
-        
+
         assert checkpoint.timestamp is not None
         assert isinstance(checkpoint.timestamp, datetime)
 
     def test_checkpoint_data_default_extra_data(self):
         """Test CheckpointData has default empty extra_data."""
         checkpoint = CheckpointData(scan_id=uuid4())
-        
+
         assert checkpoint.extra_data == {}
 
     def test_checkpoint_data_with_various_statuses(self):
         """Test CheckpointData with different status values."""
         statuses = ["in_progress", "completed", "failed"]
-        
+
         for status in statuses:
             checkpoint = CheckpointData(scan_id=uuid4(), status=status)
             assert checkpoint.status == status
@@ -86,7 +86,7 @@ class TestScanCheckpoint:
     def test_scan_checkpoint_columns(self):
         """Test ScanCheckpoint has required columns."""
         columns = [col.name for col in ScanCheckpoint.__table__.columns]
-        
+
         assert "id" in columns
         assert "scan_id" in columns
         assert "user_id" in columns
@@ -103,7 +103,7 @@ class TestScanCheckpoint:
     def test_scan_checkpoint_primary_key(self):
         """Test ScanCheckpoint has id as primary key."""
         pk_columns = [col.name for col in ScanCheckpoint.__table__.primary_key.columns]
-        
+
         assert "id" in pk_columns
 
 
@@ -126,9 +126,9 @@ class TestCheckpointDataSerialization:
             scan_id=scan_id,
             processed_items=10,
         )
-        
+
         data = checkpoint.model_dump()
-        
+
         assert data["scan_id"] == scan_id
         assert data["processed_items"] == 10
 
@@ -139,9 +139,9 @@ class TestCheckpointDataSerialization:
             scan_id=scan_id,
             processed_items=10,
         )
-        
+
         json_str = checkpoint.model_dump_json()
-        
+
         assert str(scan_id) in json_str
         assert "10" in json_str
 
@@ -158,19 +158,19 @@ class TestCheckpointDataValidation:
         """Test CheckpointData validates scan_id as UUID."""
         scan_id = uuid4()
         checkpoint = CheckpointData(scan_id=scan_id)
-        
+
         assert isinstance(checkpoint.scan_id, UUID)
 
     def test_checkpoint_data_processed_items_default(self):
         """Test CheckpointData processed_items defaults to 0."""
         checkpoint = CheckpointData(scan_id=uuid4())
-        
+
         assert checkpoint.processed_items == 0
 
     def test_checkpoint_data_accepts_string_uuid(self):
         """Test CheckpointData accepts string UUID."""
         scan_id = str(uuid4())
         checkpoint = CheckpointData(scan_id=scan_id)  # type: ignore
-        
+
         # Should convert to UUID
         assert isinstance(checkpoint.scan_id, UUID)

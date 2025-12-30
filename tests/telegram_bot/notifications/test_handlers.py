@@ -12,8 +12,6 @@ This module tests notification handlers:
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -26,7 +24,7 @@ import pytest
 class TestHandleBuyCancelCallback:
     """Tests for handle_buy_cancel_callback function."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_update(self) -> MagicMock:
         """Create mock update with callback query."""
         update = MagicMock()
@@ -36,7 +34,7 @@ class TestHandleBuyCancelCallback:
         update.callback_query.edit_message_text = AsyncMock()
         return update
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_buy_cancel_callback_success(
         self, mock_update: MagicMock
     ) -> None:
@@ -50,7 +48,7 @@ class TestHandleBuyCancelCallback:
         call_args = mock_update.callback_query.edit_message_text.call_args
         assert "отменена" in call_args[0][0].lower() or "item_123" in call_args[0][0]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_buy_cancel_no_query(self) -> None:
         """Test handle_buy_cancel_callback with no query."""
         update = MagicMock()
@@ -61,7 +59,7 @@ class TestHandleBuyCancelCallback:
         # Should return early without error
         await handle_buy_cancel_callback(update, MagicMock())
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_buy_cancel_wrong_prefix(self) -> None:
         """Test handle_buy_cancel_callback with wrong prefix."""
         update = MagicMock()
@@ -85,7 +83,7 @@ class TestHandleBuyCancelCallback:
 class TestHandleAlertCallback:
     """Tests for handle_alert_callback function."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_update(self) -> MagicMock:
         """Create mock update with callback query."""
         update = MagicMock()
@@ -97,7 +95,7 @@ class TestHandleAlertCallback:
         update.effective_user.id = 12345
         return update
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_alert_callback_success(
         self, mock_update: MagicMock
     ) -> None:
@@ -116,7 +114,7 @@ class TestHandleAlertCallback:
             call_args = mock_update.callback_query.edit_message_text.call_args
             assert "🔕" in call_args[0][0] or "отключено" in call_args[0][0].lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_alert_callback_not_found(
         self, mock_update: MagicMock
     ) -> None:
@@ -133,7 +131,7 @@ class TestHandleAlertCallback:
             call_args = mock_update.callback_query.edit_message_text.call_args
             assert "❌" in call_args[0][0] or "не удалось" in call_args[0][0].lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_alert_callback_no_query(self) -> None:
         """Test handle_alert_callback with no query."""
         update = MagicMock()
@@ -144,7 +142,7 @@ class TestHandleAlertCallback:
         # Should return early without error
         await handle_alert_callback(update, MagicMock())
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_alert_callback_no_user(self) -> None:
         """Test handle_alert_callback with no effective user."""
         update = MagicMock()
@@ -166,7 +164,7 @@ class TestHandleAlertCallback:
 class TestListAlertsCommand:
     """Tests for list_alerts_command function."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_update(self) -> MagicMock:
         """Create mock update for command."""
         update = MagicMock()
@@ -176,7 +174,7 @@ class TestListAlertsCommand:
         update.message.reply_text = AsyncMock()
         return update
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_alerts_command_with_alerts(
         self, mock_update: MagicMock
     ) -> None:
@@ -203,7 +201,7 @@ class TestListAlertsCommand:
             call_args = mock_update.message.reply_text.call_args
             assert "Test Item" in call_args[0][0]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_alerts_command_empty(
         self, mock_update: MagicMock
     ) -> None:
@@ -221,7 +219,7 @@ class TestListAlertsCommand:
             call_args = mock_update.message.reply_text.call_args
             assert "нет" in call_args[0][0].lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_alerts_command_no_user(self) -> None:
         """Test list_alerts_command with no effective user."""
         update = MagicMock()
@@ -241,7 +239,7 @@ class TestListAlertsCommand:
 class TestRemoveAlertCommand:
     """Tests for remove_alert_command function."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_update(self) -> MagicMock:
         """Create mock update for command."""
         update = MagicMock()
@@ -251,7 +249,7 @@ class TestRemoveAlertCommand:
         update.message.reply_text = AsyncMock()
         return update
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_remove_alert_command_success(
         self, mock_update: MagicMock
     ) -> None:
@@ -283,7 +281,7 @@ class TestRemoveAlertCommand:
             call_args = mock_update.message.reply_text.call_args
             assert "удалено" in call_args[0][0].lower() or "Test Item" in call_args[0][0]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_remove_alert_command_no_args(
         self, mock_update: MagicMock
     ) -> None:
@@ -299,7 +297,7 @@ class TestRemoveAlertCommand:
         call_args = mock_update.message.reply_text.call_args
         assert "формат" in call_args[0][0].lower() or "номер" in call_args[0][0].lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_remove_alert_command_invalid_number(
         self, mock_update: MagicMock
     ) -> None:
@@ -315,7 +313,7 @@ class TestRemoveAlertCommand:
         call_args = mock_update.message.reply_text.call_args
         assert "число" in call_args[0][0].lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_remove_alert_command_out_of_range(
         self, mock_update: MagicMock
     ) -> None:
@@ -348,7 +346,7 @@ class TestRemoveAlertCommand:
 class TestSettingsCommand:
     """Tests for settings_command function."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_update(self) -> MagicMock:
         """Create mock update for command."""
         update = MagicMock()
@@ -358,7 +356,7 @@ class TestSettingsCommand:
         update.message.reply_text = AsyncMock()
         return update
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_settings_command_show_settings(
         self, mock_update: MagicMock
     ) -> None:
@@ -392,7 +390,7 @@ class TestSettingsCommand:
             call_args = mock_update.message.reply_text.call_args
             assert "настройки" in call_args[0][0].lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_settings_command_update_settings(
         self, mock_update: MagicMock
     ) -> None:

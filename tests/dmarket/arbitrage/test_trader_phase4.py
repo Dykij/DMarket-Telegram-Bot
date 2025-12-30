@@ -31,23 +31,17 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.dmarket.arbitrage.trader import ArbitrageTrader
 from src.dmarket.arbitrage.constants import (
     DEFAULT_DAILY_LIMIT,
     DEFAULT_MAX_TRADE_VALUE,
     DEFAULT_MIN_BALANCE,
     DEFAULT_MIN_PROFIT_PERCENTAGE,
-    GAMES,
 )
-
-
-if TYPE_CHECKING:
-    pass
+from src.dmarket.arbitrage.trader import ArbitrageTrader
 
 
 # =============================================================================
@@ -55,7 +49,7 @@ if TYPE_CHECKING:
 # =============================================================================
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_api():
     """Create a mock DMarketAPI client."""
     api = AsyncMock()
@@ -67,7 +61,7 @@ def mock_api():
     return api
 
 
-@pytest.fixture
+@pytest.fixture()
 def trader(mock_api):
     """Create an ArbitrageTrader instance with mock API."""
     return ArbitrageTrader(api_client=mock_api)
@@ -164,7 +158,7 @@ class TestArbitrageTraderInit:
 class TestCheckBalance:
     """Tests for check_balance method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_balance_success(self, trader, mock_api):
         """Test successful balance check."""
         mock_api.get_balance.return_value = {"usd": "15000"}  # $150 in cents
@@ -174,7 +168,7 @@ class TestCheckBalance:
         assert has_funds is True
         assert balance == 150.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_balance_insufficient_funds(self, trader, mock_api):
         """Test balance check with insufficient funds."""
         mock_api.get_balance.return_value = {"usd": "500"}  # $5 in cents
@@ -184,7 +178,7 @@ class TestCheckBalance:
         assert has_funds is False
         assert balance == 5.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_balance_zero(self, trader, mock_api):
         """Test balance check with zero balance."""
         mock_api.get_balance.return_value = {"usd": "0"}
@@ -194,7 +188,7 @@ class TestCheckBalance:
         assert has_funds is False
         assert balance == 0.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_balance_api_error(self, trader, mock_api):
         """Test balance check handles API error."""
         mock_api.get_balance.side_effect = Exception("API Error")
@@ -204,7 +198,7 @@ class TestCheckBalance:
         assert has_funds is False
         assert balance == 0.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_balance_missing_usd_field(self, trader, mock_api):
         """Test balance check with missing usd field."""
         mock_api.get_balance.return_value = {}
@@ -214,7 +208,7 @@ class TestCheckBalance:
         assert has_funds is False
         assert balance == 0.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_balance_at_minimum(self, trader, mock_api):
         """Test balance check at minimum required balance."""
         mock_api.get_balance.return_value = {"usd": str(int(DEFAULT_MIN_BALANCE * 100))}
@@ -224,12 +218,12 @@ class TestCheckBalance:
         assert has_funds is True
         assert balance == DEFAULT_MIN_BALANCE
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_balance_below_minimum(self, trader, mock_api):
         """Test balance check just below minimum."""
         mock_api.get_balance.return_value = {"usd": str(int((DEFAULT_MIN_BALANCE - 0.01) * 100))}
 
-        has_funds, balance = await trader.check_balance()
+        has_funds, _balance = await trader.check_balance()
 
         assert has_funds is False
 
@@ -294,7 +288,7 @@ class TestResetDailyLimits:
 class TestCheckTradingLimits:
     """Tests for _check_trading_limits method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_trading_limits_within_limits(self, trader):
         """Test trade allowed within limits."""
         trader.max_trade_value = 100.0
@@ -305,7 +299,7 @@ class TestCheckTradingLimits:
 
         assert result is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_trading_limits_exceeds_max_trade(self, trader):
         """Test trade rejected when exceeding max trade value."""
         trader.max_trade_value = 50.0
@@ -316,7 +310,7 @@ class TestCheckTradingLimits:
 
         assert result is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_trading_limits_exceeds_daily_limit(self, trader):
         """Test trade rejected when exceeding daily limit."""
         trader.max_trade_value = 100.0
@@ -327,7 +321,7 @@ class TestCheckTradingLimits:
 
         assert result is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_trading_limits_at_daily_limit(self, trader):
         """Test trade at exact daily limit is rejected."""
         trader.max_trade_value = 100.0
@@ -338,7 +332,7 @@ class TestCheckTradingLimits:
 
         assert result is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_trading_limits_calls_reset(self, trader):
         """Test that _check_trading_limits calls _reset_daily_limits."""
         with patch.object(trader, "_reset_daily_limits") as mock_reset:
@@ -346,7 +340,7 @@ class TestCheckTradingLimits:
 
         mock_reset.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_trading_limits_zero_trade_value(self, trader):
         """Test checking zero trade value."""
         result = await trader._check_trading_limits(0.0)
@@ -361,7 +355,7 @@ class TestCheckTradingLimits:
 class TestHandleTradingError:
     """Tests for _handle_trading_error method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_error_increments_count(self, trader):
         """Test error count increments."""
         trader.error_count = 0
@@ -370,7 +364,7 @@ class TestHandleTradingError:
 
         assert trader.error_count == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_error_3_errors_short_pause(self, trader):
         """Test 3 errors triggers short pause."""
         trader.error_count = 2
@@ -384,7 +378,7 @@ class TestHandleTradingError:
         assert trader.pause_until >= expected_pause
         assert trader.pause_until <= after + 900
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_error_10_errors_long_pause(self, trader):
         """Test 10 errors triggers long pause and resets count."""
         trader.error_count = 9
@@ -398,7 +392,7 @@ class TestHandleTradingError:
         assert trader.pause_until >= expected_pause
         assert trader.pause_until <= after + 3600
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_error_between_thresholds(self, trader):
         """Test errors between 3 and 10."""
         trader.error_count = 5
@@ -408,7 +402,7 @@ class TestHandleTradingError:
         assert trader.error_count == 6
         # No pause set between 3 and 10 (pause only set at threshold)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_error_first_error_no_pause(self, trader):
         """Test first error doesn't trigger pause."""
         trader.error_count = 0
@@ -428,7 +422,7 @@ class TestHandleTradingError:
 class TestCanTradeNow:
     """Tests for _can_trade_now method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_can_trade_no_pause(self, trader):
         """Test trading allowed when no pause."""
         trader.pause_until = 0.0
@@ -437,7 +431,7 @@ class TestCanTradeNow:
 
         assert result is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_cannot_trade_during_pause(self, trader):
         """Test trading blocked during pause."""
         trader.pause_until = time.time() + 3600  # 1 hour in the future
@@ -446,7 +440,7 @@ class TestCanTradeNow:
 
         assert result is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_can_trade_after_pause_expires(self, trader):
         """Test trading allowed after pause expires."""
         trader.pause_until = time.time() - 1  # 1 second in the past
@@ -458,7 +452,7 @@ class TestCanTradeNow:
         assert trader.pause_until == 0
         assert trader.error_count == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_can_trade_resets_state_after_pause(self, trader):
         """Test state is reset after pause expires."""
         trader.pause_until = time.time() - 10
@@ -469,7 +463,7 @@ class TestCanTradeNow:
         assert trader.pause_until == 0
         assert trader.error_count == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_can_trade_pause_exactly_expired(self, trader):
         """Test trading at exact pause expiration time."""
         trader.pause_until = time.time()
@@ -487,7 +481,7 @@ class TestCanTradeNow:
 class TestFindProfitableItems:
     """Tests for find_profitable_items method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_profitable_items_empty_market(self, trader, mock_api):
         """Test with empty market response."""
         mock_api.get_all_market_items.return_value = []
@@ -496,7 +490,7 @@ class TestFindProfitableItems:
 
         assert result == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_profitable_items_no_opportunities(self, trader, mock_api):
         """Test when no profitable opportunities exist."""
         mock_api.get_all_market_items.return_value = [
@@ -507,7 +501,7 @@ class TestFindProfitableItems:
 
         assert result == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_profitable_items_with_opportunity(self, trader, mock_api):
         """Test finding profitable arbitrage opportunity."""
         mock_api.get_all_market_items.return_value = [
@@ -529,7 +523,7 @@ class TestFindProfitableItems:
 
         assert len(result) >= 0  # May or may not find based on commission calculation
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_profitable_items_api_error(self, trader, mock_api):
         """Test handling API error."""
         mock_api.get_all_market_items.side_effect = Exception("API Error")
@@ -538,7 +532,7 @@ class TestFindProfitableItems:
 
         assert result == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_profitable_items_custom_parameters(self, trader, mock_api):
         """Test with custom search parameters."""
         mock_api.get_all_market_items.return_value = []
@@ -559,7 +553,7 @@ class TestFindProfitableItems:
             sort="price",
         )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_profitable_items_uses_instance_min_profit(self, trader, mock_api):
         """Test that instance min_profit_percentage is used when not specified."""
         trader.min_profit_percentage = 8.0
@@ -569,7 +563,7 @@ class TestFindProfitableItems:
 
         # The min_profit should be 8.0 from instance
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_profitable_items_sorts_by_profit(self, trader, mock_api):
         """Test that results are sorted by profit percentage."""
         mock_api.get_all_market_items.return_value = [
@@ -585,7 +579,7 @@ class TestFindProfitableItems:
         if len(result) >= 2:
             assert result[0]["profit_percentage"] >= result[1]["profit_percentage"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_profitable_items_single_item_not_opportunity(self, trader, mock_api):
         """Test that single items are not considered opportunities."""
         mock_api.get_all_market_items.return_value = [
@@ -596,7 +590,7 @@ class TestFindProfitableItems:
 
         assert result == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_profitable_items_missing_title(self, trader, mock_api):
         """Test handling items with missing title."""
         mock_api.get_all_market_items.return_value = [
@@ -608,7 +602,7 @@ class TestFindProfitableItems:
 
         assert result == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_profitable_items_none_response(self, trader, mock_api):
         """Test handling None response."""
         mock_api.get_all_market_items.return_value = None
@@ -626,7 +620,7 @@ class TestFindProfitableItems:
 class TestExecuteArbitrageTrade:
     """Tests for execute_arbitrage_trade method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_trade_insufficient_balance(self, trader, mock_api):
         """Test trade fails with insufficient balance."""
         mock_api.get_balance.return_value = {"usd": "500"}  # $5
@@ -646,7 +640,7 @@ class TestExecuteArbitrageTrade:
         assert result["success"] is False
         assert "Недостаточно средств" in result["errors"][0]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_trade_exceeds_limits(self, trader, mock_api):
         """Test trade fails when exceeding limits."""
         mock_api.get_balance.return_value = {"usd": "50000"}
@@ -667,7 +661,7 @@ class TestExecuteArbitrageTrade:
         assert result["success"] is False
         assert "лимиты" in result["errors"][0].lower()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_trade_purchase_fails(self, trader, mock_api):
         """Test trade fails when purchase fails."""
         mock_api.get_balance.return_value = {"usd": "50000"}
@@ -689,7 +683,7 @@ class TestExecuteArbitrageTrade:
             assert result["success"] is False
             assert any("Ошибка покупки" in err for err in result["errors"])
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_trade_list_fails(self, trader, mock_api):
         """Test trade partial success when listing fails."""
         mock_api.get_balance.return_value = {"usd": "50000"}
@@ -712,7 +706,7 @@ class TestExecuteArbitrageTrade:
                 assert result["success"] is False
                 assert any("Ошибка выставления" in err for err in result["errors"])
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_trade_success(self, trader, mock_api):
         """Test successful trade execution."""
         mock_api.get_balance.return_value = {"usd": "50000"}
@@ -736,7 +730,7 @@ class TestExecuteArbitrageTrade:
                 assert result["profit"] == 3.0
                 assert result["new_item_id"] == "456"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_trade_updates_daily_traded(self, trader, mock_api):
         """Test that successful trade updates daily_traded."""
         mock_api.get_balance.return_value = {"usd": "50000"}
@@ -759,7 +753,7 @@ class TestExecuteArbitrageTrade:
 
                 assert trader.daily_traded == 25.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_trade_records_history(self, trader, mock_api):
         """Test that successful trade is recorded in history."""
         mock_api.get_balance.return_value = {"usd": "50000"}
@@ -783,7 +777,7 @@ class TestExecuteArbitrageTrade:
                 assert len(trader.transaction_history) == 1
                 assert trader.transaction_history[0]["item_name"] == "Test Item"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_trade_resets_error_count_on_success(self, trader, mock_api):
         """Test that error_count is reset on successful trade."""
         mock_api.get_balance.return_value = {"usd": "50000"}
@@ -806,7 +800,7 @@ class TestExecuteArbitrageTrade:
 
                 assert trader.error_count == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_trade_handles_exception(self, trader, mock_api):
         """Test that exceptions are handled gracefully."""
         mock_api.get_balance.side_effect = Exception("Unexpected error")
@@ -826,7 +820,7 @@ class TestExecuteArbitrageTrade:
         assert result["success"] is False
         assert len(result["errors"]) > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_trade_result_structure(self, trader, mock_api):
         """Test result structure from execute_arbitrage_trade."""
         mock_api.get_balance.return_value = {"usd": "100"}
@@ -858,7 +852,7 @@ class TestExecuteArbitrageTrade:
 class TestStartAutoTrading:
     """Tests for start_auto_trading method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_auto_trading_already_active(self, trader):
         """Test starting when already active."""
         trader.active = True
@@ -868,7 +862,7 @@ class TestStartAutoTrading:
         assert success is False
         assert "уже запущена" in message
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_auto_trading_insufficient_funds(self, trader, mock_api):
         """Test starting with insufficient funds."""
         mock_api.get_balance.return_value = {"usd": "0"}
@@ -878,13 +872,13 @@ class TestStartAutoTrading:
         assert success is False
         assert "Недостаточно средств" in message
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_auto_trading_success(self, trader, mock_api):
         """Test successful start."""
         mock_api.get_balance.return_value = {"usd": "50000"}
 
         with patch.object(trader, "_auto_trading_loop"):
-            success, message = await trader.start_auto_trading(
+            success, _message = await trader.start_auto_trading(
                 game="csgo",
                 min_profit_percentage=5.0,
             )
@@ -893,7 +887,7 @@ class TestStartAutoTrading:
         assert trader.active is True
         assert trader.current_game == "csgo"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_auto_trading_sets_parameters(self, trader, mock_api):
         """Test that parameters are set correctly."""
         mock_api.get_balance.return_value = {"usd": "50000"}
@@ -907,23 +901,23 @@ class TestStartAutoTrading:
         assert trader.current_game == "dota2"
         assert trader.min_profit_percentage == 10.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_auto_trading_message_includes_game(self, trader, mock_api):
         """Test that success message includes game name."""
         mock_api.get_balance.return_value = {"usd": "50000"}
 
         with patch.object(trader, "_auto_trading_loop"):
-            success, message = await trader.start_auto_trading(game="csgo")
+            _success, message = await trader.start_auto_trading(game="csgo")
 
         assert "CS2" in message or "csgo" in message
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_auto_trading_message_includes_profit(self, trader, mock_api):
         """Test that success message includes profit percentage."""
         mock_api.get_balance.return_value = {"usd": "50000"}
 
         with patch.object(trader, "_auto_trading_loop"):
-            success, message = await trader.start_auto_trading(
+            _success, message = await trader.start_auto_trading(
                 min_profit_percentage=7.5,
             )
 
@@ -938,7 +932,7 @@ class TestStartAutoTrading:
 class TestStopAutoTrading:
     """Tests for stop_auto_trading method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_auto_trading_not_active(self, trader):
         """Test stopping when not active."""
         trader.active = False
@@ -948,7 +942,7 @@ class TestStopAutoTrading:
         assert success is False
         assert "не запущена" in message
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_auto_trading_success(self, trader):
         """Test successful stop."""
         trader.active = True
@@ -959,7 +953,7 @@ class TestStopAutoTrading:
         assert trader.active is False
         assert "остановлена" in message
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_auto_trading_preserves_history(self, trader):
         """Test that stopping preserves transaction history."""
         trader.active = True
@@ -1126,7 +1120,7 @@ class TestGetStatus:
 class TestGetCurrentItemData:
     """Tests for get_current_item_data method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_current_item_data_success(self, trader, mock_api):
         """Test successful item data retrieval."""
         mock_api._request.return_value = {
@@ -1146,7 +1140,7 @@ class TestGetCurrentItemData:
         assert result["price"] == 25.0
         assert result["title"] == "Test Item"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_current_item_data_empty_response(self, trader, mock_api):
         """Test with empty response."""
         mock_api._request.return_value = {}
@@ -1155,7 +1149,7 @@ class TestGetCurrentItemData:
 
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_current_item_data_no_objects(self, trader, mock_api):
         """Test with no objects in response."""
         mock_api._request.return_value = {"objects": []}
@@ -1164,7 +1158,7 @@ class TestGetCurrentItemData:
 
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_current_item_data_api_error(self, trader, mock_api):
         """Test handling API error."""
         mock_api._request.side_effect = Exception("API Error")
@@ -1173,7 +1167,7 @@ class TestGetCurrentItemData:
 
         assert result is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_current_item_data_none_response(self, trader, mock_api):
         """Test handling None response."""
         mock_api._request.return_value = None
@@ -1191,7 +1185,7 @@ class TestGetCurrentItemData:
 class TestPurchaseItem:
     """Tests for purchase_item method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_purchase_item_success(self, trader, mock_api):
         """Test successful purchase."""
         mock_api._request.return_value = {
@@ -1204,7 +1198,7 @@ class TestPurchaseItem:
         assert result["new_item_id"] == "new_456"
         assert result["price"] == 25.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_purchase_item_error_in_response(self, trader, mock_api):
         """Test purchase with error in response."""
         mock_api._request.return_value = {
@@ -1216,7 +1210,7 @@ class TestPurchaseItem:
         assert result["success"] is False
         assert "Item already sold" in result["error"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_purchase_item_no_items_in_response(self, trader, mock_api):
         """Test purchase with no items in response."""
         mock_api._request.return_value = {}
@@ -1225,7 +1219,7 @@ class TestPurchaseItem:
 
         assert result["success"] is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_purchase_item_api_exception(self, trader, mock_api):
         """Test purchase with API exception."""
         mock_api._request.side_effect = Exception("Network error")
@@ -1235,7 +1229,7 @@ class TestPurchaseItem:
         assert result["success"] is False
         assert "Network error" in result["error"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_purchase_item_with_custom_api(self, trader):
         """Test purchase with custom API client."""
         custom_api = AsyncMock()
@@ -1248,7 +1242,7 @@ class TestPurchaseItem:
         assert result["success"] is True
         assert result["new_item_id"] == "custom_id"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_purchase_item_price_conversion(self, trader, mock_api):
         """Test that price is converted to cents correctly."""
         mock_api._request.return_value = {"items": [{"itemId": "456"}]}
@@ -1268,7 +1262,7 @@ class TestPurchaseItem:
 class TestListItemForSale:
     """Tests for list_item_for_sale method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_item_success(self, trader, mock_api):
         """Test successful listing."""
         mock_api._request.return_value = {"success": True}
@@ -1278,7 +1272,7 @@ class TestListItemForSale:
         assert result["success"] is True
         assert result["price"] == 30.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_item_error_in_response(self, trader, mock_api):
         """Test listing with error in response."""
         mock_api._request.return_value = {
@@ -1290,7 +1284,7 @@ class TestListItemForSale:
         assert result["success"] is False
         assert "Invalid item ID" in result["error"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_item_api_exception(self, trader, mock_api):
         """Test listing with API exception."""
         mock_api._request.side_effect = Exception("Connection timeout")
@@ -1300,7 +1294,7 @@ class TestListItemForSale:
         assert result["success"] is False
         assert "Connection timeout" in result["error"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_item_with_custom_api(self, trader):
         """Test listing with custom API client."""
         custom_api = AsyncMock()
@@ -1312,7 +1306,7 @@ class TestListItemForSale:
 
         assert result["success"] is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_item_price_conversion(self, trader, mock_api):
         """Test that price is converted to cents correctly."""
         mock_api._request.return_value = {}
@@ -1323,7 +1317,7 @@ class TestListItemForSale:
         data = call_args.kwargs.get("data") or call_args[1].get("data")
         assert data["price"]["amount"] == 3575
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_list_item_sell_data_included(self, trader, mock_api):
         """Test that sell_data is included in result."""
         mock_api._request.return_value = {"orderId": "order_123"}
@@ -1342,7 +1336,7 @@ class TestListItemForSale:
 class TestTraderEdgeCases:
     """Edge case tests for ArbitrageTrader."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_zero_max_trade_value(self, trader):
         """Test with zero max trade value."""
         trader.max_trade_value = 0.0
@@ -1351,7 +1345,7 @@ class TestTraderEdgeCases:
 
         assert result is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_negative_profit_item(self, trader, mock_api):
         """Test handling item with negative profit."""
         mock_api.get_balance.return_value = {"usd": "50000"}
@@ -1369,7 +1363,7 @@ class TestTraderEdgeCases:
         result = await trader.execute_arbitrage_trade(item)
         # Trade should still attempt (logic relies on pre-filtering)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_very_large_profit_percentage(self, trader, mock_api):
         """Test handling very large profit percentage."""
         mock_api.get_all_market_items.return_value = [
@@ -1390,7 +1384,7 @@ class TestTraderEdgeCases:
         assert status["current_game"] == "unknown_game"
         assert status["game_name"] == "unknown_game"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_unicode_item_name(self, trader, mock_api):
         """Test handling unicode in item names."""
         mock_api.get_all_market_items.return_value = [
@@ -1402,7 +1396,7 @@ class TestTraderEdgeCases:
 
         # Should handle unicode without errors
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_balance_checks(self, trader, mock_api):
         """Test concurrent balance check calls."""
         mock_api.get_balance.return_value = {"usd": "50000"}
@@ -1420,7 +1414,7 @@ class TestTraderEdgeCases:
 
         assert status["total_profit"] == 0.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_very_small_price(self, trader, mock_api):
         """Test handling very small prices."""
         mock_api.get_all_market_items.return_value = [
@@ -1432,16 +1426,16 @@ class TestTraderEdgeCases:
 
         # Should handle small prices
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_balance_as_string_conversion(self, trader, mock_api):
         """Test balance conversion from string."""
         mock_api.get_balance.return_value = {"usd": "12345"}
 
-        has_funds, balance = await trader.check_balance()
+        _has_funds, balance = await trader.check_balance()
 
         assert balance == 123.45
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pause_calculation_edge_case(self, trader):
         """Test pause calculation at boundary."""
         trader.pause_until = time.time() + 1  # 1 second in future
@@ -1459,7 +1453,7 @@ class TestTraderEdgeCases:
 class TestTraderIntegration:
     """Integration tests for ArbitrageTrader."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_full_trading_workflow(self, trader, mock_api):
         """Test complete trading workflow."""
         # Setup
@@ -1485,7 +1479,7 @@ class TestTraderIntegration:
                 assert len(trader.transaction_history) == 1
                 assert trader.daily_traded == 10.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_error_recovery_workflow(self, trader, mock_api):
         """Test error recovery workflow."""
         # Simulate multiple errors
@@ -1503,7 +1497,7 @@ class TestTraderIntegration:
         assert can_trade is True
         assert trader.error_count == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_daily_limit_reset_workflow(self, trader, mock_api):
         """Test daily limit reset workflow."""
         trader.daily_traded = 400.0
@@ -1514,7 +1508,7 @@ class TestTraderIntegration:
 
         assert trader.daily_traded == 0.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_status_reflects_state_changes(self, trader, mock_api):
         """Test that status reflects all state changes."""
         # Initial state
@@ -1536,7 +1530,7 @@ class TestTraderIntegration:
         assert status2["error_count"] == 2
         assert status2["daily_traded"] == 100.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_multi_game_support(self, trader, mock_api):
         """Test trading across multiple games."""
         mock_api.get_all_market_items.return_value = []
@@ -1557,7 +1551,7 @@ class TestTraderIntegration:
 class TestAutoTradingLoop:
     """Tests for _auto_trading_loop method."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_auto_trading_loop_stops_when_inactive(self, trader, mock_api):
         """Test that loop stops when trader becomes inactive."""
         trader.active = True
@@ -1575,7 +1569,7 @@ class TestAutoTradingLoop:
 
         assert trader.active is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_auto_trading_loop_handles_exception(self, trader, mock_api):
         """Test that loop handles exceptions gracefully."""
         trader.active = True
@@ -1595,7 +1589,7 @@ class TestAutoTradingLoop:
             with patch.object(trader, "_can_trade_now", return_value=True):
                 await trader._auto_trading_loop("csgo", 5.0, 1)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_auto_trading_loop_respects_pause(self, trader, mock_api):
         """Test that loop respects pause_until."""
         trader.active = True
@@ -1617,7 +1611,7 @@ class TestAutoTradingLoop:
 
         assert check_count >= 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_auto_trading_loop_insufficient_funds_wait(self, trader, mock_api):
         """Test loop waits when insufficient funds."""
         trader.active = True
@@ -1636,7 +1630,7 @@ class TestAutoTradingLoop:
             with patch.object(trader, "_can_trade_now", return_value=True):
                 await trader._auto_trading_loop("csgo", 5.0, 1)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_auto_trading_loop_executes_trades(self, trader, mock_api):
         """Test that loop executes trades when opportunities found."""
         trader.active = True

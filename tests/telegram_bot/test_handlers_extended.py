@@ -3,48 +3,47 @@
 Расширенные тесты для улучшения покрытия.
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from telegram import CallbackQuery, Message, Update, User
-from telegram.ext import ContextTypes
+from telegram import CallbackQuery, Update, User
 
 
 class TestNotifierModule:
     """Тесты для модуля уведомлений."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_bot(self) -> MagicMock:
         """Создать mock бота."""
         bot = MagicMock()
         bot.send_message = AsyncMock()
         return bot
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_send_notification_success(self, mock_bot: MagicMock) -> None:
         """Тест успешной отправки уведомления."""
         mock_bot.send_message.return_value = MagicMock()
-        
+
         await mock_bot.send_message(
             chat_id=123456,
             text="Test notification",
             parse_mode="HTML"
         )
-        
+
         mock_bot.send_message.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_send_notification_with_keyboard(self, mock_bot: MagicMock) -> None:
         """Тест отправки уведомления с клавиатурой."""
         mock_keyboard = MagicMock()
         mock_bot.send_message.return_value = MagicMock()
-        
+
         await mock_bot.send_message(
             chat_id=123456,
             text="Test",
             reply_markup=mock_keyboard
         )
-        
+
         call_args = mock_bot.send_message.call_args
         assert call_args[1]["reply_markup"] == mock_keyboard
 
@@ -60,7 +59,7 @@ class TestSmartNotifierModule:
             "medium": 3,
             "low": 4,
         }
-        
+
         assert priorities["critical"] < priorities["high"]
         assert priorities["high"] < priorities["medium"]
         assert priorities["medium"] < priorities["low"]
@@ -69,11 +68,11 @@ class TestSmartNotifierModule:
         """Тест создания ключа дедупликации."""
         def make_dedup_key(event_type: str, item_id: str) -> str:
             return f"{event_type}:{item_id}"
-        
+
         key1 = make_dedup_key("price_drop", "item_123")
         key2 = make_dedup_key("price_drop", "item_123")
         key3 = make_dedup_key("price_drop", "item_456")
-        
+
         assert key1 == key2
         assert key1 != key3
 
@@ -81,7 +80,7 @@ class TestSmartNotifierModule:
 class TestCallbackHandlers:
     """Тесты для обработчиков callback."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_callback_query(self) -> MagicMock:
         """Создать mock CallbackQuery."""
         query = MagicMock(spec=CallbackQuery)
@@ -92,7 +91,7 @@ class TestCallbackHandlers:
         query.from_user.id = 123456
         return query
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_update_with_callback(
         self, mock_callback_query: MagicMock
     ) -> MagicMock:
@@ -102,7 +101,7 @@ class TestCallbackHandlers:
         update.effective_user = mock_callback_query.from_user
         return update
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_callback_answer(
         self, mock_callback_query: MagicMock
     ) -> None:
@@ -110,7 +109,7 @@ class TestCallbackHandlers:
         await mock_callback_query.answer()
         mock_callback_query.answer.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_callback_answer_with_text(
         self, mock_callback_query: MagicMock
     ) -> None:
@@ -118,7 +117,7 @@ class TestCallbackHandlers:
         await mock_callback_query.answer(text="Done!")
         mock_callback_query.answer.assert_called_once_with(text="Done!")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_callback_edit_message(
         self, mock_callback_query: MagicMock
     ) -> None:
@@ -135,7 +134,7 @@ class TestSettingsHandlers:
     def test_language_codes(self) -> None:
         """Тест кодов языков."""
         supported_languages = ["ru", "en", "es", "de"]
-        
+
         assert "ru" in supported_languages
         assert "en" in supported_languages
         assert len(supported_languages) == 4
@@ -148,7 +147,7 @@ class TestSettingsHandlers:
             "daily_reports": True,
             "sound_enabled": True,
         }
-        
+
         assert all(isinstance(v, bool) for v in default_settings.values())
 
 
@@ -158,7 +157,7 @@ class TestDashboardHandler:
     def test_dashboard_sections(self) -> None:
         """Тест секций дашборда."""
         sections = ["overview", "arbitrage", "targets", "portfolio", "settings"]
-        
+
         assert len(sections) == 5
         assert "overview" in sections
         assert "arbitrage" in sections
@@ -169,7 +168,7 @@ class TestDashboardHandler:
             if currency == "USD":
                 return f"${amount:.2f}"
             return f"{amount:.2f} {currency}"
-        
+
         assert format_currency(10.5) == "$10.50"
         assert format_currency(100.0, "EUR") == "100.00 EUR"
 
@@ -178,7 +177,7 @@ class TestDashboardHandler:
         def format_percentage(value: float) -> str:
             sign = "+" if value > 0 else ""
             return f"{sign}{value:.2f}%"
-        
+
         assert format_percentage(5.5) == "+5.50%"
         assert format_percentage(-3.2) == "-3.20%"
         assert format_percentage(0.0) == "0.00%"
@@ -196,7 +195,7 @@ class TestPortfolioHandler:
             "quantity": 2,
             "profit_percent": 14.29,
         }
-        
+
         assert "name" in item
         assert "buy_price" in item
         assert "current_price" in item
@@ -208,7 +207,7 @@ class TestPortfolioHandler:
             {"current_price": 10.0, "quantity": 2},
             {"current_price": 20.0, "quantity": 1},
         ]
-        
+
         total = sum(item["current_price"] * item["quantity"] for item in items)
         assert total == 40.0
 
@@ -218,7 +217,7 @@ class TestPortfolioHandler:
             {"buy_price": 10.0, "current_price": 12.0, "quantity": 2},
             {"buy_price": 20.0, "current_price": 18.0, "quantity": 1},
         ]
-        
+
         profit = sum(
             (item["current_price"] - item["buy_price"]) * item["quantity"]
             for item in items
@@ -238,14 +237,14 @@ class TestScannerHandler:
             "advanced": {"min_price": 30.0, "max_price": 100.0},
             "pro": {"min_price": 100.0, "max_price": 500.0},
         }
-        
+
         assert len(levels) == 5
         assert levels["boost"]["min_price"] < levels["standard"]["min_price"]
 
     def test_scan_games(self) -> None:
         """Тест поддерживаемых игр."""
         games = ["csgo", "dota2", "tf2", "rust"]
-        
+
         assert "csgo" in games
         assert len(games) == 4
 
@@ -256,7 +255,7 @@ class TestMarketAlertsHandler:
     def test_alert_types(self) -> None:
         """Тест типов алертов."""
         alert_types = ["price_drop", "price_rise", "new_listing", "sold"]
-        
+
         assert "price_drop" in alert_types
         assert "price_rise" in alert_types
 
@@ -264,7 +263,7 @@ class TestMarketAlertsHandler:
         """Тест валидации порога алерта."""
         def validate_threshold(threshold: float) -> bool:
             return 0.01 <= threshold <= 100.0
-        
+
         assert validate_threshold(5.0) is True
         assert validate_threshold(0.001) is False
         assert validate_threshold(150.0) is False
@@ -281,8 +280,8 @@ class TestPriceAlertsHandler:
             "direction": "below",  # or "above"
             "active": True,
         }
-        
-        assert alert["direction"] in ["below", "above"]
+
+        assert alert["direction"] in {"below", "above"}
         assert isinstance(alert["active"], bool)
 
     def test_check_price_alert_triggered(self) -> None:
@@ -293,7 +292,7 @@ class TestPriceAlertsHandler:
             if direction == "below":
                 return current_price <= target_price
             return current_price >= target_price
-        
+
         assert check_alert(9.0, 10.0, "below") is True
         assert check_alert(11.0, 10.0, "below") is False
         assert check_alert(11.0, 10.0, "above") is True

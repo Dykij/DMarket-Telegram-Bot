@@ -84,7 +84,7 @@ class TestConfig:
             "logging": {"level": "DEBUG", "file": "test.log"},
         }
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
             yaml.dump(test_config, f)
             temp_path = f.name
 
@@ -225,7 +225,7 @@ class TestConfig:
         """Test loading config from malformed YAML file."""
         malformed_yaml = "bot:\n  token: test\n    invalid_indentation: value"
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
             f.write(malformed_yaml)
             temp_path = f.name
 
@@ -244,7 +244,7 @@ class TestConfig:
             # Missing other sections
         }
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
             yaml.dump(partial_config, f)
             temp_path = f.name
 
@@ -289,7 +289,7 @@ class TestConfig:
         """Test that environment variables take precedence over YAML."""
         yaml_config = {"bot": {"token": "yaml_token"}}
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
             yaml.dump(yaml_config, f)
             temp_path = f.name
 

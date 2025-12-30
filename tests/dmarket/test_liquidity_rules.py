@@ -25,7 +25,7 @@ class TestLiquidityRulesDataclass:
     def test_default_values(self):
         """Проверка значений по умолчанию."""
         rules = LiquidityRules()
-        
+
         assert rules.min_sales_per_week == 10.0
         assert rules.max_time_to_sell_days == 7.0
         assert rules.max_active_offers == 50
@@ -41,7 +41,7 @@ class TestLiquidityRulesDataclass:
             min_price_stability=0.95,
             min_liquidity_score=80.0,
         )
-        
+
         assert rules.min_sales_per_week == 20.0
         assert rules.max_time_to_sell_days == 3.0
         assert rules.max_active_offers == 100
@@ -51,7 +51,7 @@ class TestLiquidityRulesDataclass:
     def test_partial_custom_values(self):
         """Проверка создания с частично кастомными значениями."""
         rules = LiquidityRules(min_sales_per_week=25.0)
-        
+
         assert rules.min_sales_per_week == 25.0
         assert rules.max_time_to_sell_days == 7.0  # default
 
@@ -62,7 +62,7 @@ class TestLiquidityRulesDataclass:
             min_price_stability=0.0,
             min_liquidity_score=0.0,
         )
-        
+
         assert rules.min_sales_per_week == 0.0
         assert rules.min_price_stability == 0.0
         assert rules.min_liquidity_score == 0.0
@@ -183,7 +183,7 @@ class TestLiquidityRecommendations:
 class TestGetLiquidityCategory:
     """Тесты для функции get_liquidity_category."""
 
-    @pytest.mark.parametrize("score,expected_category", [
+    @pytest.mark.parametrize(("score", "expected_category"), (
         (100.0, "very_high"),
         (90.0, "very_high"),
         (80.0, "very_high"),
@@ -199,7 +199,7 @@ class TestGetLiquidityCategory:
         (19.9, "very_low"),
         (10.0, "very_low"),
         (0.0, "very_low"),
-    ])
+    ))
     def test_category_by_score(self, score: float, expected_category: str):
         """Тест определения категории по score."""
         assert get_liquidity_category(score) == expected_category
@@ -266,7 +266,7 @@ class TestGetLiquidityRecommendation:
         assert "❌" in recommendation
         assert "Избегать" in recommendation
 
-    @pytest.mark.parametrize("score", [0.0, 25.0, 50.0, 75.0, 100.0])
+    @pytest.mark.parametrize("score", (0.0, 25.0, 50.0, 75.0, 100.0))
     def test_recommendation_is_string(self, score: float):
         """Рекомендация должна быть непустой строкой."""
         recommendation = get_liquidity_recommendation(score)

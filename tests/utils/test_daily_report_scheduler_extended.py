@@ -58,7 +58,7 @@ class TestDailyReportSchedulerEdgeCases:
 class TestDailyReportSchedulerStartStopEdgeCases:
     """Tests for start/stop edge cases."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_multiple_times(self):
         """Test calling start multiple times doesn't cause issues."""
         scheduler = DailyReportScheduler(
@@ -79,7 +79,7 @@ class TestDailyReportSchedulerStartStopEdgeCases:
             assert mock_add.call_count == 1
             assert mock_start.call_count == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_multiple_times(self):
         """Test calling stop multiple times doesn't cause issues."""
         scheduler = DailyReportScheduler(
@@ -97,7 +97,7 @@ class TestDailyReportSchedulerStartStopEdgeCases:
             # shutdown should only be called once
             assert mock_shutdown.call_count == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_then_stop_then_start(self):
         """Test scheduler can be restarted after stopping."""
         scheduler = DailyReportScheduler(
@@ -127,7 +127,7 @@ class TestDailyReportSchedulerStartStopEdgeCases:
 class TestGenerateAndSendReportEdgeCases:
     """Tests for _generate_and_send_report edge cases."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_generate_report_with_partial_admin_failures(self):
         """Test report generation when some admins fail to receive."""
         bot = MagicMock()
@@ -159,7 +159,7 @@ class TestGenerateAndSendReportEdgeCases:
 
             assert call_count == 3  # All admins were attempted
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_generate_report_with_all_admins_failing(self):
         """Test report generation when all admins fail to receive."""
         bot = MagicMock()
@@ -180,7 +180,7 @@ class TestGenerateAndSendReportEdgeCases:
             # Should not raise
             await scheduler._generate_and_send_report()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_generate_report_statistics_collection_error(self):
         """Test report generation when statistics collection fails."""
         bot = MagicMock()
@@ -204,7 +204,7 @@ class TestGenerateAndSendReportEdgeCases:
             # At least one message should be sent (error notification)
             assert bot.send_message.call_count >= 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_generate_report_with_multiday_range(self):
         """Test manual report with 30-day range."""
         bot = MagicMock()
@@ -241,7 +241,7 @@ class TestGenerateAndSendReportEdgeCases:
 class TestCollectStatisticsEdgeCases:
     """Tests for _collect_statistics edge cases."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_statistics_with_missing_methods(self):
         """Test statistics collection when database methods return errors."""
         database = MagicMock()
@@ -261,12 +261,12 @@ class TestCollectStatisticsEdgeCases:
 
         # Should return default values when methods fail
         stats = await scheduler._collect_statistics(start_date, end_date)
-        
+
         # Should return default stats structure
         assert "total_trades" in stats
         assert stats["total_trades"] == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_statistics_with_database_timeout(self):
         """Test statistics collection with database timeout."""
         database = MagicMock()
@@ -293,7 +293,7 @@ class TestCollectStatisticsEdgeCases:
             # Also acceptable behavior
             pass
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_statistics_with_partial_data(self):
         """Test statistics collection with partial data from database."""
         database = MagicMock()
@@ -319,7 +319,7 @@ class TestCollectStatisticsEdgeCases:
         assert stats["api_errors"] == {}
         assert stats["critical_errors"] == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_collect_statistics_with_negative_values(self):
         """Test statistics collection with negative values (edge case)."""
         database = MagicMock()
@@ -569,7 +569,7 @@ class TestFormatReportEdgeCases:
 class TestManualReportEdgeCases:
     """Tests for send_manual_report edge cases."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_manual_report_with_zero_days(self):
         """Test manual report with zero days (edge case)."""
         scheduler = DailyReportScheduler(
@@ -584,7 +584,7 @@ class TestManualReportEdgeCases:
             await scheduler.send_manual_report(days=0)
             mock_generate.assert_called_once_with(days=0)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_manual_report_with_large_day_range(self):
         """Test manual report with 365 days."""
         scheduler = DailyReportScheduler(
@@ -603,7 +603,7 @@ class TestManualReportEdgeCases:
 class TestSchedulerIntegration:
     """Integration-like tests for the scheduler."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_full_report_cycle(self):
         """Test a complete report generation cycle."""
         bot = MagicMock()

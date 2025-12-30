@@ -8,7 +8,6 @@ This module contains tests for src/utils/api_circuit_breaker.py covering:
 Target: 20+ tests to achieve 70%+ coverage
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
@@ -52,7 +51,7 @@ class TestAPICircuitBreakerInit:
 
     def test_expected_exception_constant(self):
         """Test EXPECTED_EXCEPTION constant."""
-        assert APICircuitBreaker.EXPECTED_EXCEPTION == httpx.HTTPError
+        assert httpx.HTTPError == APICircuitBreaker.EXPECTED_EXCEPTION
 
 
 # TestGlobalInstance
@@ -80,7 +79,7 @@ class TestGlobalInstance:
 class TestCallWithCircuitBreaker:
     """Tests for call_with_circuit_breaker function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_successful_call(self):
         """Test successful function call."""
         # Arrange
@@ -93,7 +92,7 @@ class TestCallWithCircuitBreaker:
         # Assert
         assert result == "success"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_with_args(self):
         """Test call with positional arguments."""
         # Arrange
@@ -106,7 +105,7 @@ class TestCallWithCircuitBreaker:
         # Assert
         assert result == 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_with_kwargs(self):
         """Test call with keyword arguments."""
         # Arrange
@@ -119,7 +118,7 @@ class TestCallWithCircuitBreaker:
         # Assert
         assert result == "hello test"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_returns_value(self):
         """Test that call returns the function's return value."""
         # Arrange
@@ -163,7 +162,7 @@ class TestCircuitBreakerEdgeCases:
         # Assert
         assert isinstance(breaker, CircuitBreaker)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_async_function(self):
         """Test calling an async function."""
         # Arrange
@@ -176,7 +175,7 @@ class TestCircuitBreakerEdgeCases:
         # Assert
         assert result == "async result"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_call_with_none_fallback(self):
         """Test call with fallback=None."""
         # Arrange

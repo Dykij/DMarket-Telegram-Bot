@@ -7,7 +7,7 @@ Supports balance updates, order events, and market changes with push notificatio
 import asyncio
 from collections.abc import Callable
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 import json
 from typing import Any, Generic, TypeVar
 
@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 T = TypeVar("T")
 
 
-class EventType(str, Enum):
+class EventType(StrEnum):
     """WebSocket event types."""
 
     BALANCE_UPDATE = "balance:update"
@@ -38,7 +38,7 @@ class EventType(str, Enum):
     TRADE_COMPLETED = "trade:completed"
 
 
-class SubscriptionState(str, Enum):
+class SubscriptionState(StrEnum):
     """Subscription states."""
 
     IDLE = "idle"

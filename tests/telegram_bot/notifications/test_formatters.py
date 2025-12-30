@@ -12,10 +12,6 @@ This module tests notification message formatting functions:
 
 from __future__ import annotations
 
-from typing import Any
-
-import pytest
-
 
 # =============================================================================
 # Test format_price function

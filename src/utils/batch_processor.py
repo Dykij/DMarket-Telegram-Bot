@@ -6,8 +6,8 @@ Perfect for single-user scenarios.
 """
 
 import asyncio
-from collections.abc import Callable
-from typing import Any, Awaitable, TypeVar
+from collections.abc import Awaitable, Callable
+from typing import Any, TypeVar
 
 from structlog import get_logger
 

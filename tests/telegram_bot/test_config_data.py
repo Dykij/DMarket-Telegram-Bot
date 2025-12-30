@@ -92,20 +92,20 @@ class TestArbitrageModes:
 
     def test_all_modes_have_trade_strategy(self):
         """Тест что у всех режимов есть стратегия торговли."""
-        for mode_name, mode_data in ARBITRAGE_MODES.items():
+        for mode_data in ARBITRAGE_MODES.values():
             assert "trade_strategy" in mode_data
             assert isinstance(mode_data["trade_strategy"], str)
             assert len(mode_data["trade_strategy"]) > 0
 
     def test_all_prices_positive(self):
         """Тест что все цены положительные."""
-        for mode_name, mode_data in ARBITRAGE_MODES.items():
+        for mode_data in ARBITRAGE_MODES.values():
             assert mode_data["min_price"] > 0
             assert mode_data["max_price"] > 0
             assert mode_data["min_price"] < mode_data["max_price"]
 
     def test_all_profit_values_positive(self):
         """Тест что все значения прибыли положительные."""
-        for mode_name, mode_data in ARBITRAGE_MODES.items():
+        for mode_data in ARBITRAGE_MODES.values():
             assert mode_data["min_profit_percent"] > 0
             assert mode_data["min_profit_amount"] > 0

@@ -12,6 +12,7 @@ Based on DMarket API documentation: https://docs.dmarket.com/v1/swagger.html
 
 import datetime
 import logging
+import operator
 import time
 from typing import Any
 
@@ -170,7 +171,7 @@ class SalesAnalyzer:
         if isinstance(sales, dict):
             sales_list = sales.get("sales", [])
         else:
-            sales_list = sales if sales else []
+            sales_list = sales or []
 
         if not sales_list:
             return {
@@ -524,10 +525,10 @@ class SalesAnalyzer:
         if volume_stats["is_liquid"] and time_to_sell["estimated_days"] is not None:
             if time_to_sell["estimated_days"] < 2 and price_trends["trend"] != "strong_downward":
                 risk_level = "low"
-            elif time_to_sell["estimated_days"] < 5 and price_trends["trend"] not in [
+            elif time_to_sell["estimated_days"] < 5 and price_trends["trend"] not in {
                 "strong_downward",
                 "downward",
-            ]:
+            }:
                 risk_level = "medium"
 
         # Calculate ROI (Return on Investment) taking into account time
@@ -564,9 +565,9 @@ class SalesAnalyzer:
                 rating += 1
 
         # Adjust based on price trend
-        if price_trends["trend"] in ["strong_upward", "upward"]:
+        if price_trends["trend"] in {"strong_upward", "upward"}:
             rating += 1
-        elif price_trends["trend"] in ["strong_downward"]:
+        elif price_trends["trend"] == "strong_downward":
             rating -= 1
 
         # Cap rating at 0-10
@@ -744,7 +745,7 @@ class SalesAnalyzer:
                 # Continue processing other items
 
         # Sort by profit percentage (descending)
-        opportunities.sort(key=lambda x: x["profit_percentage"], reverse=True)
+        opportunities.sort(key=operator.itemgetter("profit_percentage"), reverse=True)
 
         # Limit results
         return opportunities[:limit]
@@ -898,7 +899,7 @@ async def find_best_arbitrage_opportunities(
             # Continue processing other items
 
     # Sort by profit percentage (descending)
-    opportunities.sort(key=lambda x: x["profit_percentage"], reverse=True)
+    opportunities.sort(key=operator.itemgetter("profit_percentage"), reverse=True)
 
     # Limit results
     return opportunities[:limit]

@@ -4,14 +4,12 @@ This module adds comprehensive tests for BotLogger class,
 setup_logging function, and Sentry integration.
 """
 
+from datetime import datetime
 import json
 import logging
 import os
 import tempfile
-from datetime import datetime
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from src.utils.logging_utils import (
     BotLogger,
@@ -49,7 +47,7 @@ class TestBotLoggerLogCommand:
     def test_log_command_success(self):
         """Test logging successful command."""
         logger = BotLogger("test")
-        
+
         # Should not raise
         logger.log_command(
             user_id=12345,
@@ -60,7 +58,7 @@ class TestBotLoggerLogCommand:
     def test_log_command_failure(self):
         """Test logging failed command."""
         logger = BotLogger("test")
-        
+
         # Should not raise
         logger.log_command(
             user_id=12345,
@@ -72,7 +70,7 @@ class TestBotLoggerLogCommand:
     def test_log_command_with_extra_kwargs(self):
         """Test logging command with extra keyword arguments."""
         logger = BotLogger("test")
-        
+
         # Should not raise
         logger.log_command(
             user_id=12345,
@@ -86,7 +84,7 @@ class TestBotLoggerLogCommand:
 
 class TestBotLoggerLogApiCall:
     """Tests for BotLogger.log_api_call method.
-    
+
     Note: The source code has a bug where it uses string level ('error'/'info')
     instead of numeric level (logging.ERROR/logging.INFO) with structlog.
     These tests mock the internal logger to verify the method is called correctly
@@ -96,7 +94,7 @@ class TestBotLoggerLogApiCall:
     def test_log_api_call_success(self):
         """Test logging successful API call."""
         logger = BotLogger("test")
-        
+
         # Mock the internal logger to verify the method is called correctly
         with patch.object(logger, "logger") as mock_logger:
             logger.log_api_call(
@@ -110,7 +108,7 @@ class TestBotLoggerLogApiCall:
     def test_log_api_call_error(self):
         """Test logging failed API call."""
         logger = BotLogger("test")
-        
+
         with patch.object(logger, "logger") as mock_logger:
             logger.log_api_call(
                 endpoint="/market/buy",
@@ -124,7 +122,7 @@ class TestBotLoggerLogApiCall:
     def test_log_api_call_with_extra_context(self):
         """Test logging API call with extra context."""
         logger = BotLogger("test")
-        
+
         with patch.object(logger, "logger") as mock_logger:
             logger.log_api_call(
                 endpoint="/user/balance",
@@ -143,7 +141,7 @@ class TestBotLoggerLogMarketData:
     def test_log_market_data_basic(self):
         """Test logging basic market data."""
         logger = BotLogger("test")
-        
+
         logger.log_market_data(
             game="csgo",
             items_count=150,
@@ -152,7 +150,7 @@ class TestBotLoggerLogMarketData:
     def test_log_market_data_with_value(self):
         """Test logging market data with total value."""
         logger = BotLogger("test")
-        
+
         logger.log_market_data(
             game="dota2",
             items_count=500,
@@ -162,7 +160,7 @@ class TestBotLoggerLogMarketData:
     def test_log_market_data_with_extra_context(self):
         """Test logging market data with extra context."""
         logger = BotLogger("test")
-        
+
         logger.log_market_data(
             game="tf2",
             items_count=75,
@@ -178,7 +176,7 @@ class TestBotLoggerLogError:
     def test_log_error_basic(self):
         """Test logging basic error."""
         logger = BotLogger("test")
-        
+
         try:
             raise ValueError("Test error")
         except ValueError as e:
@@ -187,7 +185,7 @@ class TestBotLoggerLogError:
     def test_log_error_with_context(self):
         """Test logging error with context."""
         logger = BotLogger("test")
-        
+
         try:
             raise ConnectionError("Connection failed")
         except ConnectionError as e:
@@ -199,7 +197,7 @@ class TestBotLoggerLogError:
     def test_log_error_with_extra_kwargs(self):
         """Test logging error with extra keyword arguments."""
         logger = BotLogger("test")
-        
+
         try:
             raise TimeoutError("Request timed out")
         except TimeoutError as e:
@@ -217,7 +215,7 @@ class TestBotLoggerLogBuyIntent:
     def test_log_buy_intent_dry_run(self):
         """Test logging buy intent in dry run mode."""
         logger = BotLogger("test")
-        
+
         logger.log_buy_intent(
             item_name="AK-47 | Redline",
             price_usd=15.50,
@@ -233,7 +231,7 @@ class TestBotLoggerLogBuyIntent:
     def test_log_buy_intent_live(self):
         """Test logging buy intent in live mode."""
         logger = BotLogger("test")
-        
+
         logger.log_buy_intent(
             item_name="AWP | Dragon Lore",
             price_usd=5000.00,
@@ -249,7 +247,7 @@ class TestBotLoggerLogBuyIntent:
     def test_log_buy_intent_minimal(self):
         """Test logging buy intent with minimal parameters."""
         logger = BotLogger("test")
-        
+
         logger.log_buy_intent(
             item_name="Test Item",
             price_usd=10.00,
@@ -262,7 +260,7 @@ class TestBotLoggerLogSellIntent:
     def test_log_sell_intent_dry_run(self):
         """Test logging sell intent in dry run mode."""
         logger = BotLogger("test")
-        
+
         logger.log_sell_intent(
             item_name="AK-47 | Redline",
             price_usd=18.00,
@@ -278,7 +276,7 @@ class TestBotLoggerLogSellIntent:
     def test_log_sell_intent_live(self):
         """Test logging sell intent in live mode."""
         logger = BotLogger("test")
-        
+
         logger.log_sell_intent(
             item_name="M4A4 | Howl",
             price_usd=3000.00,
@@ -298,7 +296,7 @@ class TestBotLoggerLogTradeResult:
     def test_log_trade_result_success(self):
         """Test logging successful trade result."""
         logger = BotLogger("test")
-        
+
         logger.log_trade_result(
             operation="buy",
             success=True,
@@ -310,7 +308,7 @@ class TestBotLoggerLogTradeResult:
     def test_log_trade_result_failure(self):
         """Test logging failed trade result."""
         logger = BotLogger("test")
-        
+
         logger.log_trade_result(
             operation="sell",
             success=False,
@@ -323,7 +321,7 @@ class TestBotLoggerLogTradeResult:
     def test_log_trade_result_with_extra_context(self):
         """Test logging trade result with extra context."""
         logger = BotLogger("test")
-        
+
         logger.log_trade_result(
             operation="buy",
             success=True,
@@ -341,7 +339,7 @@ class TestBotLoggerLogCrash:
     def test_log_crash_basic(self):
         """Test logging basic crash."""
         logger = BotLogger("test")
-        
+
         try:
             raise RuntimeError("Critical failure")
         except RuntimeError as e:
@@ -350,9 +348,9 @@ class TestBotLoggerLogCrash:
     def test_log_crash_with_traceback(self):
         """Test logging crash with traceback."""
         logger = BotLogger("test")
-        
+
         import traceback
-        
+
         try:
             raise ValueError("Value error occurred")
         except ValueError as e:
@@ -362,7 +360,7 @@ class TestBotLoggerLogCrash:
     def test_log_crash_with_context(self):
         """Test logging crash with context."""
         logger = BotLogger("test")
-        
+
         try:
             raise MemoryError("Out of memory")
         except MemoryError as e:
@@ -383,14 +381,14 @@ class TestBotLoggerLogCrash:
             return_value=MagicMock()
         )
         mock_sentry.push_scope.return_value.__exit__ = MagicMock(return_value=False)
-        
+
         logger = BotLogger("test")
-        
+
         try:
             raise Exception("Test crash")
         except Exception as e:
             logger.log_crash(e)
-        
+
         mock_sentry.capture_exception.assert_called_once()
 
 
@@ -402,7 +400,7 @@ class TestSetupLogging:
         with patch("src.utils.logging_utils.setup_sentry"):
             with patch("src.utils.logging_utils.setup_structlog"):
                 setup_logging(enable_sentry=False)
-        
+
         # Check root logger has handlers
         root_logger = logging.getLogger()
         assert len(root_logger.handlers) > 0
@@ -411,7 +409,7 @@ class TestSetupLogging:
         """Test setup_logging with file output."""
         with tempfile.NamedTemporaryFile(suffix=".log", delete=False) as f:
             log_file = f.name
-        
+
         try:
             setup_logging(
                 level="DEBUG",
@@ -419,11 +417,11 @@ class TestSetupLogging:
                 enable_structlog=False,
                 enable_sentry=False,
             )
-            
+
             # Log something
             logger = logging.getLogger("test.file")
             logger.info("Test message")
-            
+
             # Verify file was created
             assert os.path.exists(log_file)
         finally:
@@ -435,7 +433,7 @@ class TestSetupLogging:
         """Test setup_logging with JSON format."""
         with tempfile.NamedTemporaryFile(suffix=".log", delete=False) as f:
             log_file = f.name
-        
+
         try:
             setup_logging(
                 level="INFO",
@@ -444,14 +442,14 @@ class TestSetupLogging:
                 enable_structlog=False,
                 enable_sentry=False,
             )
-            
+
             # File handler should use JSONFormatter
             root_logger = logging.getLogger()
             file_handlers = [
                 h for h in root_logger.handlers
                 if isinstance(h, logging.handlers.RotatingFileHandler)
             ]
-            
+
             if file_handlers:
                 assert isinstance(file_handlers[0].formatter, JSONFormatter)
         finally:
@@ -468,7 +466,7 @@ class TestSetupLogging:
                         enable_sentry=False,
                         enable_structlog=False,
                     )
-            
+
             root_logger = logging.getLogger()
             expected_level = getattr(logging, level)
             assert root_logger.level == expected_level
@@ -488,7 +486,7 @@ class TestSetupSentry:
     def test_setup_sentry_with_dsn(self, mock_sentry):
         """Test setup_sentry with DSN configured."""
         setup_sentry(environment="test")
-        
+
         mock_sentry.init.assert_called_once()
         call_kwargs = mock_sentry.init.call_args.kwargs
         assert call_kwargs["environment"] == "test"
@@ -498,7 +496,7 @@ class TestSetupSentry:
     def test_setup_sentry_with_custom_sample_rate(self, mock_sentry):
         """Test setup_sentry with custom sample rate."""
         setup_sentry(traces_sample_rate=0.1)
-        
+
         mock_sentry.init.assert_called_once()
         call_kwargs = mock_sentry.init.call_args.kwargs
         assert call_kwargs["traces_sample_rate"] == 0.1
@@ -550,7 +548,7 @@ class TestColoredFormatterEdgeCases:
     def test_colored_formatter_unknown_level(self):
         """Test ColoredFormatter with unknown log level."""
         formatter = ColoredFormatter("%(levelname)s - %(message)s")
-        
+
         record = logging.LogRecord(
             name="test",
             level=42,  # Unknown level
@@ -561,7 +559,7 @@ class TestColoredFormatterEdgeCases:
             exc_info=None,
         )
         record.levelname = "CUSTOM"
-        
+
         # Should not raise
         result = formatter.format(record)
         assert "CUSTOM" in result
@@ -569,7 +567,7 @@ class TestColoredFormatterEdgeCases:
     def test_colored_formatter_empty_message(self):
         """Test ColoredFormatter with empty message."""
         formatter = ColoredFormatter("%(levelname)s - %(message)s")
-        
+
         record = logging.LogRecord(
             name="test",
             level=logging.INFO,
@@ -579,7 +577,7 @@ class TestColoredFormatterEdgeCases:
             args=(),
             exc_info=None,
         )
-        
+
         result = formatter.format(record)
         assert "INFO" in result
 
@@ -590,7 +588,7 @@ class TestJSONFormatterEdgeCasesExtended:
     def test_json_formatter_with_nested_dict(self):
         """Test JSONFormatter with nested dictionary in extra."""
         formatter = JSONFormatter()
-        
+
         record = logging.LogRecord(
             name="test",
             level=logging.INFO,
@@ -601,16 +599,16 @@ class TestJSONFormatterEdgeCasesExtended:
             exc_info=None,
         )
         record.nested = {"level1": {"level2": {"level3": "value"}}}
-        
+
         result = formatter.format(record)
         parsed = json.loads(result)
-        
+
         assert parsed["nested"]["level1"]["level2"]["level3"] == "value"
 
     def test_json_formatter_with_list_in_extra(self):
         """Test JSONFormatter with list in extra."""
         formatter = JSONFormatter()
-        
+
         record = logging.LogRecord(
             name="test",
             level=logging.INFO,
@@ -621,16 +619,16 @@ class TestJSONFormatterEdgeCasesExtended:
             exc_info=None,
         )
         record.items = ["item1", "item2", "item3"]
-        
+
         result = formatter.format(record)
         parsed = json.loads(result)
-        
+
         assert parsed["items"] == ["item1", "item2", "item3"]
 
     def test_json_formatter_with_datetime(self):
         """Test JSONFormatter with datetime in extra."""
         formatter = JSONFormatter()
-        
+
         record = logging.LogRecord(
             name="test",
             level=logging.INFO,
@@ -641,7 +639,7 @@ class TestJSONFormatterEdgeCasesExtended:
             exc_info=None,
         )
         record.event_time = datetime(2024, 1, 15, 10, 30, 0)
-        
+
         result = formatter.format(record)
         # Should be valid JSON (datetime converted to string)
         parsed = json.loads(result)
@@ -650,7 +648,7 @@ class TestJSONFormatterEdgeCasesExtended:
     def test_json_formatter_with_special_characters(self):
         """Test JSONFormatter with special characters in message."""
         formatter = JSONFormatter()
-        
+
         record = logging.LogRecord(
             name="test",
             level=logging.INFO,
@@ -660,7 +658,7 @@ class TestJSONFormatterEdgeCasesExtended:
             args=(),
             exc_info=None,
         )
-        
+
         result = formatter.format(record)
         # Should be valid JSON with escaped characters
         parsed = json.loads(result)

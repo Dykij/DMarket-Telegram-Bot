@@ -4,11 +4,8 @@ Tests for user profile management, loading, saving, and retrieval.
 """
 
 import json
-import os
-import time
-from unittest.mock import MagicMock, patch, mock_open
-
-import pytest
+import pathlib
+from unittest.mock import patch
 
 
 class TestSaveUserProfiles:
@@ -29,7 +26,7 @@ class TestSaveUserProfiles:
                 profiles.save_user_profiles()
 
                 # Check file was created and contains correct data
-                with open(tmp_path / "profiles.json") as f:
+                with open(tmp_path / "profiles.json", encoding="utf-8") as f:
                     saved = json.load(f)
 
                 assert saved == test_profiles
@@ -62,8 +59,7 @@ class TestSaveUserProfiles:
             with patch.object(profiles, "USER_PROFILES_FILE", str(tmp_path / "profiles.json")):
                 profiles.save_user_profiles()
 
-                with open(tmp_path / "profiles.json") as f:
-                    content = f.read()
+                content = pathlib.Path(tmp_path / "profiles.json").read_text(encoding="utf-8")
 
                 # Should be formatted with indentation
                 assert "\n" in content
@@ -85,7 +81,7 @@ class TestSaveUserProfiles:
             with patch.object(profiles, "USER_PROFILES_FILE", str(tmp_path / "profiles.json")):
                 profiles.save_user_profiles()
 
-                with open(tmp_path / "profiles.json") as f:
+                with open(tmp_path / "profiles.json", encoding="utf-8") as f:
                     saved = json.load(f)
 
                 assert saved == {}
@@ -102,13 +98,13 @@ class TestLoadUserProfiles:
 
         # Create test file
         profile_file = tmp_path / "profiles.json"
-        with open(profile_file, "w") as f:
+        with open(profile_file, "w", encoding="utf-8") as f:
             json.dump(test_data, f)
 
         with patch.object(profiles, "USER_PROFILES_FILE", str(profile_file)):
             profiles.load_user_profiles()
 
-            assert profiles.USER_PROFILES == test_data
+            assert test_data == profiles.USER_PROFILES
 
     def test_load_user_profiles_handles_missing_file(self, tmp_path):
         """Test load_user_profiles handles missing file."""
@@ -128,8 +124,7 @@ class TestLoadUserProfiles:
 
         # Create invalid JSON file
         profile_file = tmp_path / "profiles.json"
-        with open(profile_file, "w") as f:
-            f.write("invalid json {{{")
+        pathlib.Path(profile_file).write_text("invalid json {{{", encoding="utf-8")
 
         with patch.object(profiles, "USER_PROFILES_FILE", str(profile_file)):
             profiles.load_user_profiles()
@@ -142,7 +137,7 @@ class TestLoadUserProfiles:
         from src.telegram_bot import profiles
 
         profile_file = tmp_path / "profiles.json"
-        with open(profile_file, "w") as f:
+        with open(profile_file, "w", encoding="utf-8") as f:
             json.dump({"test": "data"}, f)
 
         with patch.object(profiles, "USER_PROFILES_FILE", str(profile_file)):

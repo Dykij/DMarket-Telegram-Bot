@@ -44,7 +44,7 @@ class JSONFormatter(logging.Formatter):
 
         # Add extra fields
         for key, value in record.__dict__.items():
-            if key not in [
+            if key not in {
                 "name",
                 "msg",
                 "args",
@@ -66,7 +66,7 @@ class JSONFormatter(logging.Formatter):
                 "exc_info",
                 "exc_text",
                 "stack_info",
-            ]:
+            }:
                 log_entry[key] = value
 
         return json.dumps(log_entry, default=str)
