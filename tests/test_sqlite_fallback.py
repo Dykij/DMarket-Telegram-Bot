@@ -8,10 +8,10 @@
 - Совместимость моделей с SQLite
 """
 
+from collections.abc import AsyncGenerator
 import os
 import pathlib
 import tempfile
-from collections.abc import AsyncGenerator
 from uuid import uuid4
 
 import pytest

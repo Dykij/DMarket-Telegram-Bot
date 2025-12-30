@@ -640,7 +640,7 @@ class DMarketAPI:
                     endpoint=path,
                     method=method.upper(),
                     retry_attempt=retries,
-                    has_cache=cache_key != "" and self._get_from_cache(cache_key) is not None,
+                    has_cache=cache_key and self._get_from_cache(cache_key) is not None,
                 )
 
                 # Выполняем запрос с нужным методом

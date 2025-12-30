@@ -15,13 +15,14 @@ import os
 from pathlib import Path
 import sys
 from typing import TYPE_CHECKING, Any
-from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     from _pytest.config import Config
     from _pytest.logging import LogCaptureFixture
 

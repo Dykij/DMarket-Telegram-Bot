@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
-from collections.abc import AsyncGenerator
 
 import httpx
 import pytest
@@ -11,6 +10,8 @@ import pytest_asyncio
 
 
 if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+
     from src.dmarket.dmarket_api import DMarketAPI
     from src.utils.database import DatabaseManager
 

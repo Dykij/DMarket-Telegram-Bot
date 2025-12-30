@@ -261,7 +261,7 @@ class DMarketAPIClient:
                     endpoint=path,
                     method=method.upper(),
                     retry_attempt=retries,
-                    has_cache=cache_key != "" and get_from_cache(cache_key) is not None,
+                    has_cache=cache_key and get_from_cache(cache_key) is not None,
                 )
 
                 # Execute request

@@ -199,8 +199,8 @@ async def handle_dmarket_arbitrage_impl(
             if pagination_row:
                 keyboard.append(pagination_row)
 
-        # Добавляем кнопки действий с результатами
-        keyboard.append(
+        # Добавляем кнопки действий с результатами и меню
+        keyboard.extend([
             [
                 InlineKeyboardButton(
                     "📊 Подробный анализ",
@@ -211,17 +211,13 @@ async def handle_dmarket_arbitrage_impl(
                     callback_data=f"refresh:{mode}",
                 ),
             ],
-        )
-
-        # Добавляем кнопку открытия DMarket
-        keyboard.append(
             [
                 InlineKeyboardButton(
                     "🌐 Открыть DMarket",
                     web_app={"url": "https://dmarket.com"},
                 ),
             ],
-        )
+        ])
 
         # Добавляем стандартные кнопки меню арбитража
         arbitrage_keyboard = get_arbitrage_keyboard().inline_keyboard

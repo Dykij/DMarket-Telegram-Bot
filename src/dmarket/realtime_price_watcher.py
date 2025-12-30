@@ -618,7 +618,7 @@ class RealtimePriceWatcher:
 
     def register_alert_handler(
         self,
-        handler: Callable[[PriceAlert, float], None | Coroutine[Any, Any, None]],
+        handler: Callable[[PriceAlert, float], Coroutine[Any, Any, None] | None],
     ) -> None:
         """Регистрация обработчика срабатывания оповещения.
 

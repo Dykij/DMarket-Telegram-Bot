@@ -27,7 +27,6 @@ Usage:
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
@@ -38,6 +37,8 @@ import httpx
 
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from src.utils.database import DatabaseManager
     from src.utils.redis_cache import RedisCache
 

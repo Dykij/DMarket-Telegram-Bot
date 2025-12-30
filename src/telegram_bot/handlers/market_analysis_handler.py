@@ -466,7 +466,14 @@ async def show_price_changes_results(
 
     # Добавляем кнопки периодов и возврата к анализу рынка
     keyboard = list(pagination_keyboard.inline_keyboard)
-    keyboard.extend((tuple(period_buttons), (InlineKeyboardButton("⬅️ Назад к анализу рынка", callback_data=f"analysis:select_game:{game}"),)))
+    keyboard.extend((
+        tuple(period_buttons),
+        (
+            InlineKeyboardButton(
+                "⬅️ Назад к анализу рынка", callback_data=f"analysis:select_game:{game}"
+            ),
+        ),
+    ))
 
     # Отображаем результаты
     await query.edit_message_text(
@@ -527,7 +534,17 @@ async def show_trending_items_results(
 
     # Добавляем фильтры цены и возврат к анализу рынка
     keyboard = list(pagination_keyboard.inline_keyboard)
-    keyboard.extend(((InlineKeyboardButton("🔽 Цена $1-50", callback_data=f"price_filter:1:50:{game}"), InlineKeyboardButton("🔼 Цена $50+", callback_data=f"price_filter:50:500:{game}")), (InlineKeyboardButton("⬅️ Назад к анализу рынка", callback_data=f"analysis:select_game:{game}"),)))
+    keyboard.extend((
+        (
+            InlineKeyboardButton("🔽 Цена $1-50", callback_data=f"price_filter:1:50:{game}"),
+            InlineKeyboardButton("🔼 Цена $50+", callback_data=f"price_filter:50:500:{game}"),
+        ),
+        (
+            InlineKeyboardButton(
+                "⬅️ Назад к анализу рынка", callback_data=f"analysis:select_game:{game}"
+            ),
+        ),
+    ))
 
     # Отображаем результаты
     await query.edit_message_text(
@@ -1033,17 +1050,15 @@ async def show_investment_recommendations_results(
             InlineKeyboardButton(label, callback_data=f"analysis_risk:{risk}:{game}"),
         )
 
-    keyboard.append(risk_row)
-
-    # Кнопка возврата к анализу
-    keyboard.append(
+    keyboard.extend([
+        risk_row,
         [
             InlineKeyboardButton(
                 "⬅️ Назад к анализу",
                 callback_data=f"analysis:select_game:{game}",
             ),
         ],
-    )
+    ])
 
     # Отображаем результаты
     await query.edit_message_text(

@@ -6,7 +6,7 @@ Tests the backtesting system for trading strategies.
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -23,6 +23,10 @@ from src.dmarket.backtester import (
     TradeStatus,
     TradingStrategy,
 )
+
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 @pytest.fixture()
