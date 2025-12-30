@@ -20,7 +20,6 @@ from src.dmarket.market_analysis import (
     find_trending_items,
 )
 
-
 # Настройка логирования
 logger = logging.getLogger(__name__)
 
@@ -741,6 +740,7 @@ class MarketAlertsManager:
             Количество удаленных уведомлений
 
         """
+        _ = max_age_days  # TODO: Implement timestamp-based cleanup
         # Эта функция не имеет реальной реализации, так как мы не храним даты отправки
         # В реальном приложении здесь была бы логика удаления старых уведомлений
         # На данный момент просто очищаем все

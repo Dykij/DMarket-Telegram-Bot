@@ -124,6 +124,7 @@ def setup_sentry(
 
     def filter_sensitive_data(event, hint):
         """Filter sensitive data from Sentry events."""
+        _ = hint  # Unused but required by Sentry callback protocol
         # Remove API keys and tokens
         if "request" in event:
             headers = event["request"].get("headers", {})

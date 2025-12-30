@@ -138,10 +138,11 @@ class DMarketAPIClient:
     async def __aexit__(
         self,
         exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,  # noqa: ARG002
-        exc_tb: object | None,  # noqa: ARG002
+        exc_val: BaseException | None,
+        exc_tb: object | None,
     ) -> None:
         """Context manager exit."""
+        _ = (exc_type, exc_val, exc_tb)  # Unused but required by protocol
         await self._close_client()
 
     async def _get_client(self) -> httpx.AsyncClient:

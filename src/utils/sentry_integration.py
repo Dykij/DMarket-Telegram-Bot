@@ -105,11 +105,12 @@ def before_send_callback(event: dict[str, Any], hint: dict[str, Any]) -> dict[st
 
     Args:
         event: Sentry event dictionary
-        hint: Additional context about the event
+        hint: Additional context about the event (unused but required by protocol)
 
     Returns:
         Modified event or None to discard the event
     """
+    _ = hint  # Unused but required by Sentry callback protocol
     # Filter out sensitive data from event
     if "request" in event:
         if "headers" in event["request"]:

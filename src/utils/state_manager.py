@@ -345,6 +345,7 @@ class StateManager:
 
         def signal_handler(signum: int, frame: Any) -> None:
             """Handle shutdown signals."""
+            _ = frame  # Unused but required by signal.signal protocol
             logger.warning(
                 "Received signal %s, saving checkpoint and shutting down...",
                 signum,

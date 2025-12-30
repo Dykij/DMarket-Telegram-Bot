@@ -138,11 +138,12 @@ def get_payment_keyboard(
 
     Args:
         title: Текст кнопки оплаты
-        payment_provider_token: Токен платежного провайдера (не используется напрямую)
+        payment_provider_token: Токен платежного провайдера (сохранен для будущего использования)
 
     Returns:
         InlineKeyboardMarkup с кнопкой оплаты
     """
+    _ = payment_provider_token  # Reserved for future payment integration
     keyboard = [
         [InlineKeyboardButton(title, pay=True)],
     ]

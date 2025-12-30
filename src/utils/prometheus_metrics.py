@@ -11,7 +11,6 @@ import time
 
 from prometheus_client import Counter, Gauge, Histogram, Info, generate_latest, make_asgi_app
 
-
 # =============================================================================
 # Bot Metrics
 # =============================================================================
@@ -290,8 +289,9 @@ class Timer:
 
     def __exit__(
         self,
-        exc_type: type[BaseException] | None,  # noqa: ARG002
-        exc_val: BaseException | None,  # noqa: ARG002
-        exc_tb: object,  # noqa: ARG002
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: object,
     ) -> None:
+        _ = (exc_type, exc_val, exc_tb)  # Unused but required by protocol
         self.elapsed = time.perf_counter() - self.start_time

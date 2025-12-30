@@ -10,7 +10,8 @@ import os
 import signal
 import sys
 
-from telegram.ext import Application as TelegramApplication, ApplicationBuilder
+from telegram.ext import Application as TelegramApplication
+from telegram.ext import ApplicationBuilder
 
 from src.dmarket.dmarket_api import DMarketAPI
 from src.telegram_bot.notifier import send_crash_notification, send_critical_shutdown_notification
@@ -21,7 +22,6 @@ from src.utils.database import DatabaseManager
 from src.utils.logging_utils import BotLogger, setup_logging
 from src.utils.sentry_integration import init_sentry
 from src.utils.state_manager import StateManager
-
 
 logger = logging.getLogger(__name__)
 bot_logger = BotLogger(__name__)
@@ -377,6 +377,7 @@ class Application:
         """Setup signal handlers for graceful shutdown."""
 
         def signal_handler(sig: int, frame: object) -> None:
+            _ = frame  # Unused but required by signal.signal protocol
             logger.info(f"Received signal {sig}")
             self._shutdown_event.set()
 

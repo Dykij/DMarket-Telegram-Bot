@@ -19,6 +19,7 @@ class SQLiteUUID(TypeDecorator[UUID]):
         dialect: Any,
     ) -> str | None:
         """Convert UUID to string when storing."""
+        _ = dialect  # Unused but required by SQLAlchemy protocol
         if value is None:
             return None
         if isinstance(value, UUID):
@@ -31,6 +32,7 @@ class SQLiteUUID(TypeDecorator[UUID]):
         dialect: Any,
     ) -> UUID | None:
         """Convert string back to UUID when retrieving."""
+        _ = dialect  # Unused but required by SQLAlchemy protocol
         if value is None:
             return None
         return UUID(value)
