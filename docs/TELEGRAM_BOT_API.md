@@ -2,15 +2,19 @@
 
 **Версия Bot API**: 9.2 (обновление от 15 августа 2025 г.)
 **Базовый URL**: `https://api.telegram.org/bot<token>/METHOD_NAME`
-**Дата документа**: 17 декабря 2025 г.
+**Дата документа**: 28 декабря 2025 г.
 **Официальная документация**: [https://core.telegram.org/bots/api](https://core.telegram.org/bots/api)
+**Changelog**: [https://core.telegram.org/bots/api-changelog](https://core.telegram.org/bots/api-changelog)
+**Новости**: [@BotNews](https://t.me/BotNews) | **Обсуждение**: [@BotTalk](https://t.me/BotTalk)
 
-> **Ключевые возможности Bot API 9.2:**
-> - **Checklists** - ответы на конкретные пункты чек-листов
-> - **Gifts** - отслеживание подарков с `publisher_chat`
-> - **Direct Messages** - `is_direct_messages` и `parent_chat` для суперграпп
-> - **Suggested Posts** - создание/одобрение предложенных постов для каналов
-> - **Enhanced Admin** - `can_manage_direct_messages` для управления личными сообщениями
+> **Ключевые возможности Bot API 9.2 (15 августа 2025):**
+> - ✅ **Checklists** - `checklist_task_id` в `ReplyParameters` для ответа на конкретные пункты чек-листов
+> - ✅ **Gifts** - поле `publisher_chat` в классах `Gift` и `UniqueGift` для информации о чате-издателе
+> - ✅ **Direct Messages** - `is_direct_messages` в `Chat`/`ChatFullInfo`, `parent_chat` для связи с родительским каналом
+> - ✅ **DirectMessagesTopic** - новый класс и поле `direct_messages_topic` в `Message`
+> - ✅ **Suggested Posts** - класс `SuggestedPostParameters`, методы `approveSuggestedPost` и `declineSuggestedPost`
+> - ✅ **Enhanced Admin** - `can_manage_direct_messages` для управления личными сообщениями в каналах
+> - ✅ **Paid Posts** - поле `is_paid_post` (требует хранения 24 часа для обработки платежа)
 
 ---
 
@@ -871,51 +875,94 @@ await send_message(chat_id=123456789, text=text, parse_mode="MarkdownV2")
 
 ## 🆕 Новые функции Bot API 9.2 (15 августа 2025)
 
-### 1. Чек-листы
+### 1. Чек-листы (Checklists)
 
-Создание и управление задачами в чате:
+Ответ на конкретный пункт чек-листа:
 
 ```python
-# Отправка чек-листа
-await send_checklist(
-    chat_id=123456789,
-    tasks=[
-        "Проверить баланс DMarket",
-        "Запустить сканирование",
-        "Создать таргеты"
-    ]
-)
-
-# Редактирование чек-листа
-async def edit_checklist(chat_id: int, message_id: int, tasks: list[dict]):
-    url = f"{BASE_URL}/editMessageChecklist"
+# Ответ на конкретную задачу чек-листа
+async def reply_to_checklist_task(
+    chat_id: int,
+    text: str,
+    message_id: int,
+    checklist_task_id: int
+):
+    """Ответить на конкретный пункт чек-листа."""
+    url = f"{BASE_URL}/sendMessage"
     data = {
         "chat_id": chat_id,
-        "message_id": message_id,
-        "tasks": tasks
+        "text": text,
+        "reply_parameters": {
+            "message_id": message_id,
+            "checklist_task_id": checklist_task_id
+        }
     }
     async with httpx.AsyncClient() as client:
         response = await client.post(url, json=data)
         return response.json()
 ```
 
-### 2. Прямые сообщения в каналах
+Новые поля:
+- `checklist_task_id` в `ReplyParameters` - ID задачи для ответа
+- `reply_to_checklist_task_id` в классе `Message` - ID задачи, на которую отвечает сообщение
 
-Отправка сообщений в определенный топик канала:
+### 2. Прямые сообщения в каналах (Direct Messages)
+
+Работа с прямыми сообщениями в каналах:
 
 ```python
+# Определение чата прямых сообщений
+def is_direct_messages_chat(chat: dict) -> bool:
+    """Проверить, является ли чат прямыми сообщениями канала."""
+    return chat.get("is_direct_messages", False)
+
+# Получение родительского канала
+def get_parent_channel(chat_full_info: dict) -> dict | None:
+    """Получить родительский канал для чата прямых сообщений."""
+    return chat_full_info.get("parent_chat")
+
+# Отправка в топик прямых сообщений
 await send_message(
     chat_id=-1001234567890,  # ID канала
     text="Уведомление о новых арбитражных возможностях",
-    direct_messages_topic_id=123  # ID топика
+    direct_messages_topic_id=123  # ID топика прямых сообщений
 )
 ```
 
-### 3. Предложенные посты
+Новые классы и поля:
+- `DirectMessagesTopic` - описание топика в чате прямых сообщений
+- `is_direct_messages` в `Chat` и `ChatFullInfo`
+- `parent_chat` в `ChatFullInfo` - ссылка на родительский канал
+- `direct_messages_topic` в `Message`
+- `direct_messages_topic_id` в методах отправки сообщений
 
-Работа с предложенными постами в каналах:
+### 3. Предложенные посты (Suggested Posts)
+
+Создание и управление предложенными постами:
 
 ```python
+# Отправка предложенного поста
+async def send_suggested_post(
+    chat_id: int,
+    text: str,
+    price: int | None = None
+):
+    """Отправить предложенный пост в канал."""
+    url = f"{BASE_URL}/sendMessage"
+    data = {
+        "chat_id": chat_id,
+        "text": text,
+        "suggested_post_parameters": {
+            "pricing": {
+                "star_count": price
+            } if price else None
+        }
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, json=data)
+        return response.json()
+
+# Одобрение предложенного поста
 async def approve_suggested_post(chat_id: int, post_id: int):
     """Одобрить предложенный пост."""
     url = f"{BASE_URL}/approveSuggestedPost"
@@ -927,6 +974,7 @@ async def approve_suggested_post(chat_id: int, post_id: int):
         response = await client.post(url, json=data)
         return response.json()
 
+# Отклонение предложенного поста
 async def decline_suggested_post(chat_id: int, post_id: int):
     """Отклонить предложенный пост."""
     url = f"{BASE_URL}/declineSuggestedPost"
@@ -939,21 +987,34 @@ async def decline_suggested_post(chat_id: int, post_id: int):
         return response.json()
 ```
 
-### 4. Подарки
+Новые классы и методы:
+- `SuggestedPostParameters` - параметры предложенного поста
+- `approveSuggestedPost` - одобрение поста
+- `declineSuggestedPost` - отклонение поста
+- `is_paid_post` - флаг платного поста (должен храниться 24 часа для обработки платежа)
 
-Отправка и управление подарками:
+### 4. Подарки (Gifts)
+
+Отслеживание издателя подарка:
 
 ```python
-async def send_gift(user_id: int, gift_id: str):
-    """Отправить подарок пользователю."""
-    url = f"{BASE_URL}/sendGift"
-    data = {
-        "user_id": user_id,
-        "gift_id": gift_id
-    }
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, json=data)
-        return response.json()
+async def get_gift_publisher(gift: dict) -> dict | None:
+    """Получить информацию о чате-издателе подарка."""
+    return gift.get("publisher_chat")
+```
+
+Новое поле:
+- `publisher_chat` в `Gift` и `UniqueGift` - информация о чате, опубликовавшем подарок
+
+### 5. Права администратора
+
+Новое право для управления прямыми сообщениями:
+
+```python
+# Проверка права на управление прямыми сообщениями
+def can_manage_direct_messages(admin: dict) -> bool:
+    """Проверить право администратора на управление DM."""
+    return admin.get("can_manage_direct_messages", False)
 ```
 
 ---
@@ -1313,4 +1374,16 @@ async def start_target_creation(user_id: int, item_title: str):
 
 ---
 
-**Документация актуальна на 17 декабря 2025 г. Всегда проверяйте официальную документацию Telegram для получения последних обновлений Bot API.**
+## 📚 Дополнительные ресурсы
+
+- **Официальная документация**: https://core.telegram.org/bots/api
+- **Changelog Bot API**: https://core.telegram.org/bots/api-changelog
+- **FAQ**: https://core.telegram.org/bots/faq
+- **python-telegram-bot библиотека**: https://python-telegram-bot.org/
+- **Примеры ботов**: https://github.com/python-telegram-bot/python-telegram-bot/tree/master/examples
+- **Канал новостей**: [@BotNews](https://t.me/BotNews)
+- **Чат разработчиков**: [@BotTalk](https://t.me/BotTalk)
+
+---
+
+**Документация актуальна на 28 декабря 2025 г. Всегда проверяйте официальную документацию Telegram для получения последних обновлений Bot API.**

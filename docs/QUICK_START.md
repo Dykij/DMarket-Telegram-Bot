@@ -1,7 +1,7 @@
 # 🚀 Быстрый старт: Запуск DMarket Telegram Bot
 
-**Дата**: 17 декабря 2025 г.
-**Версия**: 5.0
+**Дата**: 28 декабря 2025 г.
+**Версия**: 1.0.0
 **Последнее обновление**: Полная актуализация документации
 
 ---
@@ -49,8 +49,8 @@
 
 ```bash
 # Клонировать репозиторий
-git clone https://github.com/your-username/dmarket-telegram-bot.git
-cd dmarket-telegram-bot
+git clone https://github.com/Dykij/DMarket-Telegram-Bot.git
+cd DMarket-Telegram-Bot
 ```
 
 ---

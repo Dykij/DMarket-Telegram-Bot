@@ -1,7 +1,7 @@
 # Contributing to DMarket Telegram Bot
 
-**Версия**: 3.0
-**Последнее обновление**: 17 декабря 2025 г.
+**Версия**: 1.0.0
+**Последнее обновление**: 28 декабря 2025 г.
 
 ---
 
@@ -17,8 +17,8 @@ We love your input! We want to make contributing to this project as easy and tra
 
 1. **Fork the repository**
    ```bash
-   git clone https://github.com/your-username/dmarket-telegram-bot.git
-   cd dmarket-telegram-bot
+   git clone https://github.com/Dykij/DMarket-Telegram-Bot.git
+   cd DMarket-Telegram-Bot
    ```
 
 2. **Create a virtual environment**

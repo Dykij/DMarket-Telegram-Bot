@@ -122,4 +122,4 @@ We'd like to thank the following people for responsibly disclosing security issu
 
 ---
 
-**Last Updated**: December 14, 2025
+**Last Updated**: December 28, 2025
