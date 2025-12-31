@@ -1,6 +1,6 @@
 # Configuration Files Reference
 
-> **Last Updated**: December 31, 2025  
+> **Last Updated**: December 31, 2025
 > **Status**: All configs verified and up-to-date ✅
 
 This document provides a comprehensive overview of all configuration files in the project.
@@ -21,8 +21,8 @@ This document provides a comprehensive overview of all configuration files in th
 ## 🐍 Python Project
 
 ### pyproject.toml
-**Purpose**: Main Python project configuration (PEP 621)  
-**Location**: Root directory  
+**Purpose**: Main Python project configuration (PEP 621)
+**Location**: Root directory
 **Contains**:
 - Project metadata (name, version, dependencies)
 - Tool configurations:
@@ -47,9 +47,9 @@ requires-python = ">=3.11"
 ```
 
 ### requirements.in
-**Purpose**: Source file for pip-compile  
-**Location**: Root directory  
-**Usage**: 
+**Purpose**: Source file for pip-compile
+**Location**: Root directory
+**Usage**:
 ```bash
 pip-compile requirements.in
 pip install -r requirements.txt
@@ -67,8 +67,8 @@ pip install -r requirements.txt
 ## 🛠️ Development Tools
 
 ### .pre-commit-config.yaml
-**Purpose**: Git pre-commit hooks configuration  
-**Location**: Root directory  
+**Purpose**: Git pre-commit hooks configuration
+**Location**: Root directory
 **Hooks**:
 - **Ruff** (v0.8.6) - Linting and formatting
 - **MyPy** (v1.15.0) - Type checking
@@ -88,8 +88,8 @@ pre-commit run --all-files
 ```
 
 ### .gitignore
-**Purpose**: Specify files to ignore in git  
-**Location**: Root directory  
+**Purpose**: Specify files to ignore in git
+**Location**: Root directory
 **Excludes**:
 - Python artifacts (`__pycache__`, `*.pyc`)
 - Virtual environments (`.venv/`, `venv/`)
@@ -103,16 +103,16 @@ pre-commit run --all-files
 - Added `bandit-report.json` (Dec 31, 2025)
 
 ### .yamllint.yml
-**Purpose**: YAML file linting rules  
-**Location**: Root directory  
+**Purpose**: YAML file linting rules
+**Location**: Root directory
 **Usage**:
 ```bash
 yamllint .
 ```
 
 ### cSpell.json
-**Purpose**: Spell checker configuration  
-**Location**: Root directory  
+**Purpose**: Spell checker configuration
+**Location**: Root directory
 **Custom Dictionary**:
 - Technical terms (asyncio, pytest, mypy)
 - DMarket-specific terms
@@ -123,8 +123,8 @@ yamllint .
 ## ⚙️ Application Config
 
 ### config/config.yaml
-**Purpose**: Main application configuration  
-**Location**: `config/` directory  
+**Purpose**: Main application configuration
+**Location**: `config/` directory
 **Contains**:
 - API endpoints
 - Rate limiting settings
@@ -136,15 +136,15 @@ yamllint .
 api:
   base_url: "https://api.dmarket.com"
   rate_limit: 30  # requests per minute
-  
+
 cache:
   ttl: 300  # seconds
   backend: "redis"
 ```
 
 ### config/feature_flags.yaml
-**Purpose**: Feature flag configuration  
-**Location**: `config/` directory  
+**Purpose**: Feature flag configuration
+**Location**: `config/` directory
 **Usage**: Enable/disable features without code changes
 
 **Example**:
@@ -153,22 +153,22 @@ features:
   advanced_filters:
     enabled: true
     rollout: 100  # percentage
-  
+
   auto_trading:
     enabled: false
 ```
 
 ### config/auto_sell.yaml
-**Purpose**: Auto-sell feature configuration  
-**Location**: `config/` directory  
+**Purpose**: Auto-sell feature configuration
+**Location**: `config/` directory
 **Contains**:
 - Sell strategies
 - Price thresholds
 - Item filters
 
 ### config/item_filters.yaml
-**Purpose**: Item filtering rules  
-**Location**: `config/` directory  
+**Purpose**: Item filtering rules
+**Location**: `config/` directory
 **Filters**:
 - Game-specific filters (CS:GO, Dota 2, etc.)
 - Price ranges
@@ -180,8 +180,8 @@ features:
 ## 🐳 Docker & Deployment
 
 ### docker-compose.yml
-**Purpose**: Docker services orchestration  
-**Location**: Root directory  
+**Purpose**: Docker services orchestration
+**Location**: Root directory
 **Services**:
 - `bot` - Telegram bot application
 - `postgres` - PostgreSQL database
@@ -196,8 +196,8 @@ docker-compose down
 ```
 
 ### Dockerfile
-**Purpose**: Docker image build instructions  
-**Location**: Root directory  
+**Purpose**: Docker image build instructions
+**Location**: Root directory
 **Features**:
 - Multi-stage build (smaller image)
 - Python 3.12+ base
@@ -205,8 +205,8 @@ docker-compose down
 - Health checks
 
 ### ecosystem.config.js
-**Purpose**: PM2 process manager configuration  
-**Location**: Root directory  
+**Purpose**: PM2 process manager configuration
+**Location**: Root directory
 **Features**:
 - Auto-restart on crash
 - Memory limit monitoring
@@ -221,8 +221,8 @@ pm2 reload ecosystem.config.js
 ```
 
 ### Makefile
-**Purpose**: Build automation and common tasks  
-**Location**: Root directory  
+**Purpose**: Build automation and common tasks
+**Location**: Root directory
 **Commands**:
 ```bash
 make help          # Show all commands
@@ -239,8 +239,8 @@ make docker-build  # Build Docker image
 ## 💻 IDE & Editor
 
 ### .vscode/settings.json
-**Purpose**: VS Code workspace settings  
-**Location**: `.vscode/` directory  
+**Purpose**: VS Code workspace settings
+**Location**: `.vscode/` directory
 **Features**:
 - Python interpreter path
 - Ruff configuration
@@ -248,8 +248,8 @@ make docker-build  # Build Docker image
 - Test discovery
 
 ### .vscode/extensions.json
-**Purpose**: Recommended VS Code extensions  
-**Location**: `.vscode/` directory  
+**Purpose**: Recommended VS Code extensions
+**Location**: `.vscode/` directory
 **Extensions**:
 - `ms-python.python` - Python support
 - `charliermarsh.ruff` - Ruff linter
@@ -257,8 +257,8 @@ make docker-build  # Build Docker image
 - `GitHub.copilot` - AI assistant
 
 ### .config/pyrightconfig.json
-**Purpose**: Pyright type checker configuration  
-**Location**: `.config/` directory  
+**Purpose**: Pyright type checker configuration
+**Location**: `.config/` directory
 **Settings**:
 - Python version
 - Type checking mode
@@ -269,8 +269,8 @@ make docker-build  # Build Docker image
 ## 📊 Data Files
 
 ### data/user_profiles.json
-**Purpose**: User profile storage (runtime data)  
-**Location**: `data/` directory  
+**Purpose**: User profile storage (runtime data)
+**Location**: `data/` directory
 **Format**:
 ```json
 {
@@ -288,8 +288,8 @@ make docker-build  # Build Docker image
 **Note**: This file is gitignored and created at runtime.
 
 ### data/user_alerts.json
-**Purpose**: User alert configurations  
-**Location**: `data/` directory  
+**Purpose**: User alert configurations
+**Location**: `data/` directory
 **Auto-generated**: Yes
 
 ---
@@ -297,8 +297,8 @@ make docker-build  # Build Docker image
 ## 🔍 Database
 
 ### alembic.ini
-**Purpose**: Alembic database migrations configuration  
-**Location**: Root directory  
+**Purpose**: Alembic database migrations configuration
+**Location**: Root directory
 **Usage**:
 ```bash
 alembic revision --autogenerate -m "description"
@@ -352,13 +352,13 @@ DMarket-Telegram-Bot/
 
 ## 🔄 Update History
 
-| Date | Config | Change |
-|------|--------|--------|
-| 2025-12-31 | .gitignore | Added `bandit-report.json` |
-| 2025-12-31 | pyproject.toml | Updated Bandit skips |
-| 2025-12-31 | Multiple | Removed duplicate user_profiles.json |
-| 2025-12-13 | .pre-commit-config.yaml | Updated to Ruff 0.8.6 |
-| 2025-12-13 | pyproject.toml | Updated MyPy to 1.15.0 |
+| Date       | Config                  | Change                               |
+| ---------- | ----------------------- | ------------------------------------ |
+| 2025-12-31 | .gitignore              | Added `bandit-report.json`           |
+| 2025-12-31 | pyproject.toml          | Updated Bandit skips                 |
+| 2025-12-31 | Multiple                | Removed duplicate user_profiles.json |
+| 2025-12-13 | .pre-commit-config.yaml | Updated to Ruff 0.8.6                |
+| 2025-12-13 | pyproject.toml          | Updated MyPy to 1.15.0               |
 
 ---
 
