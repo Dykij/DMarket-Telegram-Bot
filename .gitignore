@@ -34,6 +34,7 @@ dmypy.json
 junit.xml
 coverage.xml
 coverage.json
+bandit-report.json
 test_results*.txt
 test_run_output.txt
 .coverage.*
