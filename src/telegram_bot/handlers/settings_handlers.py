@@ -18,7 +18,6 @@ from src.telegram_bot.localization import LANGUAGES, LOCALIZATIONS
 from src.utils.exceptions import handle_exceptions
 from src.utils.logging_utils import get_logger
 
-
 # Настраиваем логирование
 logger = get_logger(__name__)
 
@@ -233,7 +232,7 @@ async def settings_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         if api_secret:
             api_secret_display = api_secret[:3] + "..." + api_secret[-3:]
         else:
-            api_secret_display = "Не установлен"
+            api_secret_display = "Не установлен"  # noqa: S105 - display text, not password
 
         api_text = (
             f"🔑 Настройки API DMarket\n\n"

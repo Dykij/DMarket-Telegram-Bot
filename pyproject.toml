@@ -87,9 +87,9 @@ where = ["src"]
 
 # Tests to skip (comma-separated list)
 skips = [
-    # "B101",  # Test for use of assert (common in tests)
-    # "B603",  # subprocess without shell equals true (sometimes needed)
-    # "B607",  # Starting a process with a partial executable path
+    "B105",  # Hardcoded password string - false positives with "pass", enum values
+    "B106",  # Hardcoded password funcarg - false positives with default empty strings
+    "B311",  # Standard pseudo-random generators - OK for non-cryptographic use (jitter, simulation)
 ]
 
 # Tests to run (comma-separated list) - if empty, all tests run

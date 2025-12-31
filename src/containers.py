@@ -31,7 +31,6 @@ from src.utils.database import DatabaseManager
 from src.utils.memory_cache import TTLCache
 from src.utils.redis_cache import RedisCache
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -65,8 +64,8 @@ class Container(containers.DeclarativeContainer):
     # DMarket API Client (singleton)
     dmarket_api = providers.Singleton(
         DMarketAPI,
-        public_key="",
-        secret_key="",
+        public_key="",  # noqa: S106 - default placeholder, overridden by config
+        secret_key="",  # noqa: S106 - default placeholder, overridden by config
         api_url="https://api.dmarket.com",
     )
 

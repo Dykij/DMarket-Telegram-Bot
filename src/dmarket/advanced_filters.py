@@ -26,14 +26,13 @@ Usage:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from enum import StrEnum
 import logging
 import math
+from dataclasses import dataclass
+from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 
 import yaml
-
 
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
@@ -44,7 +43,7 @@ logger = logging.getLogger(__name__)
 class FilterResult(StrEnum):
     """Result of filter evaluation."""
 
-    PASS = "pass"
+    PASS = "pass"  # noqa: S105 - not a password, filter result
     FAIL = "fail"
     SKIP = "skip"  # Not enough data
 
