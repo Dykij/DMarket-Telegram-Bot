@@ -50,7 +50,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Полная история для лучшего анализа
 
@@ -64,7 +64,7 @@ jobs:
             pyproject.toml
 
       - name: Cache pip dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v4
         id: pip-cache
         with:
           path: |
@@ -147,7 +147,7 @@ jobs:
             --cov-report=xml:build/coverage/coverage.xml \
             --cov-report=html:build/coverage/html \
             --cov-report=term-missing \
-            --cov-fail-under=85 \
+            --cov-fail-under=${{ env.MIN_COVERAGE }} \
             --junitxml=build/test-results/junit.xml \
             --maxfail=3 \
             --reruns 2 \
@@ -232,7 +232,7 @@ jobs:
 
       - name: Archive test results
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: test-results-py${{ matrix.python-version }}
           path: |

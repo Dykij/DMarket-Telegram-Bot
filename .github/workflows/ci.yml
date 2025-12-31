@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -43,7 +43,7 @@ jobs:
             pyproject.toml
 
       - name: Cache linting tools
-        uses: actions/cache@v5
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-lint-${{ env.CACHE_VERSION }}-${{ hashFiles('requirements.txt', 'pyproject.toml') }}
@@ -109,7 +109,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -121,7 +121,7 @@ jobs:
             pyproject.toml
 
       - name: Cache pip dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ env.CACHE_VERSION }}-py${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}
@@ -134,7 +134,7 @@ jobs:
           python -m pip install --upgrade pip
 
           # Сначала устанавливаем инструменты тестирования
-          pip install pytest pytest-asyncio pytest-cov pytest-mock
+          pip install pytest pytest-asyncio pytest-cov pytest-mock pytest-xdist
 
           # Затем зависимости проекта
           if [ -f requirements.txt ]; then
@@ -210,7 +210,7 @@ jobs:
 
       - name: Upload coverage report
         if: matrix.coverage && always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report-py${{ matrix.python-version }}
           path: |
@@ -234,7 +234,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -243,7 +243,7 @@ jobs:
           cache: 'pip'
 
       - name: Cache security tools
-        uses: actions/cache@v5
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-security-${{ env.CACHE_VERSION }}
@@ -275,7 +275,7 @@ jobs:
 
       - name: Upload security reports
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: security-reports
           path: security-reports/
