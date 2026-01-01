@@ -771,7 +771,8 @@ async def button_callback_handler(
             try:
                 from src.telegram_bot.handlers.scanner_handler import start_scanner_menu
                 await start_scanner_menu(update, context)
-            except ImportError:
+            except ImportError as e:
+                logger.warning("Scanner handler not available: %s, using fallback menu", e)
                 await query.edit_message_text(
                     "🔍 <b>Многоуровневый сканер</b>\n\n"
                     "Выберите уровень сканирования:",

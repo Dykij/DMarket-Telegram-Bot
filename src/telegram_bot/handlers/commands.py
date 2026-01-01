@@ -220,7 +220,6 @@ async def handle_text_buttons(
             status_message=update.message,
         )
     elif text == "🎯 Таргеты":
-        from src.telegram_bot.keyboards import get_main_menu_keyboard
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
         await update.message.reply_text(
             "🎯 <b>Таргеты (Buy Orders)</b>\n\n"
