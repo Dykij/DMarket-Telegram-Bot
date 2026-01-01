@@ -361,7 +361,7 @@ async def button_callback_handler(
             )
 
         # Обработка для арбитража
-        elif callback_data == "arbitrage":
+        elif callback_data == "arbitrage" or callback_data == "arbitrage_menu":
             await arbitrage_callback_impl(update, context)
 
         elif callback_data == "auto_arbitrage":
@@ -389,6 +389,11 @@ async def button_callback_handler(
             # Извлекаем код игры из callback_data
             game = callback_data.split(":", 1)[1]
             # Делегируем обработку специализированному обработчику
+            await handle_game_selected_impl(update, context, game=game)
+
+        elif callback_data.startswith("game_") and not callback_data.startswith("game_selected"):
+            # Обработка выбора игры с кнопок game_csgo, game_dota2 и т.д.
+            game = callback_data[5:]  # Убираем префикс "game_"
             await handle_game_selected_impl(update, context, game=game)
 
         elif callback_data == "market_comparison":

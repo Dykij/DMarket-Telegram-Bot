@@ -1150,7 +1150,7 @@ class ArbitrageScanner:
         # Анализируем каждый предмет
         results = []
         for item in items:
-            analysis = await self._analyze_item(item, config, game)
+            analysis = await self._analyze_item(item, config, game, level)
             if analysis:
                 results.append(analysis)
                 if len(results) >= max_results:
@@ -1165,6 +1165,7 @@ class ArbitrageScanner:
         item: dict[str, Any],
         config: dict[str, Any],
         game: str,
+        level: str = "",
     ) -> dict[str, Any] | None:
         """Анализировать предмет на предмет прибыльности.
 
@@ -1172,6 +1173,7 @@ class ArbitrageScanner:
             item: Данные о предмете
             config: Конфигурация уровня
             game: Код игры
+            level: Уровень арбитража (boost, standard, medium, advanced, pro)
 
         Returns:
             Словарь с данными о возможности или None
@@ -1275,18 +1277,36 @@ class ArbitrageScanner:
                     logger.debug(f"Ошибка анализа ликвидности: {e}")
                     # Продолжаем без данных ликвидности
 
+            # Определяем уровень риска на основе процента прибыли
+            if profit_percent >= 20:
+                risk_level = "high"
+            elif profit_percent >= 10:
+                risk_level = "medium"
+            else:
+                risk_level = "low"
+
+            # Формируем результат в формате, ожидаемом format_scanner_item
             result = {
-                "item": item,
+                # Основные поля для отображения
+                "title": item.get("title", "Неизвестный предмет"),
                 "buy_price": price_usd,
-                "suggested_price": suggested_price,
+                "sell_price": suggested_price,  # Используем sell_price вместо suggested_price
                 "profit": profit_usd,
-                "expected_profit": profit_usd,
                 "profit_percent": profit_percent,
+                "level": config.get("name", level),  # Название уровня для отображения
+                "risk_level": risk_level,
+                "item_id": item.get("itemId", ""),
+                # Дополнительные поля для совместимости
+                "item": item,
+                "suggested_price": suggested_price,  # Оставляем для обратной совместимости
+                "expected_profit": profit_usd,
                 "game": game,
             }
 
-            # Добавляем данные ликвидности если они есть
+            # Добавляем данные ликвидности если они есть (в формате liquidity_data)
             if liquidity_data:
+                result["liquidity_data"] = liquidity_data
+                # Также добавляем на верхний уровень для обратной совместимости
                 result.update(liquidity_data)
 
             # Проверяем конкуренцию buy orders если включен фильтр

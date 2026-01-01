@@ -52,6 +52,9 @@ def get_modern_arbitrage_keyboard() -> InlineKeyboardMarkup:
             InlineKeyboardButton(
                 text="📈 Анализ рынка", callback_data="arb_market_analysis"
             ),
+            InlineKeyboardButton(
+                text="🔍 Многоуровневый скан", callback_data="scanner"
+            ),
         ],
         [
             InlineKeyboardButton(text="🎯 Создать таргет", callback_data="arb_target"),

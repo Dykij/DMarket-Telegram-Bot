@@ -172,6 +172,12 @@ async def find_arbitrage_opportunities_advanced(
         mode = "medium"
     elif mode == "best":
         mode = "high"
+    elif mode == "quick":
+        # Быстрый скан - ищем низкорисковые возможности с высокой ликвидностью
+        mode = "low"
+    elif mode == "deep":
+        # Глубокий скан - ищем все возможности включая высокорисковые
+        mode = "high"
 
     # Проверяем корректность параметров с подробным логированием ошибок
     if game not in GAMES:
