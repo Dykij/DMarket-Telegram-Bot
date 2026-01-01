@@ -26,13 +26,14 @@ Usage:
 
 from __future__ import annotations
 
-import logging
-import math
 from dataclasses import dataclass
 from enum import StrEnum
+import logging
+import math
 from typing import TYPE_CHECKING, Any
 
 import yaml
+
 
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
