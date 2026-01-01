@@ -584,5 +584,6 @@
   "powershell.powerShellDefaultVersion": "PowerShell (x64)",
   "terminal.integrated.shellIntegration.enabled": true,
   "python-envs.defaultEnvManager": "ms-python.python:system",
-  "python-envs.pythonProjects": []
+  "python-envs.pythonProjects": [],
+  "markdown.validate.enabled": true
 }

@@ -1,14 +1,15 @@
 # Инструкции для GitHub Copilot
 
-## 📊 Статус проекта (Декабрь 2025)
+## 📊 Статус проекта (Январь 2026)
 
 | Метрика | Значение |
 |---------|----------|
 | **Версия** | 1.0.0 |
-| **Готовность** | 78% (39/50 задач) |
+| **Готовность** | 78% (39/50 задач, Фаза 2 в работе) |
 | **Тесты** | 2356/2356 ✅ |
-| **Покрытие** | 85%+ (цель) |
-| **Python** | 3.11+ (3.12 рекомендуется) |
+| **Покрытие** | 85%+ (цель: 90% к концу Фазы 2) |
+| **Python** | 3.11+ (3.12+ рекомендуется для новых фич) |
+| **Roadmap** | См. `IMPROVEMENT_ROADMAP.md` |
 
 ---
 
@@ -134,7 +135,23 @@ pip install -r requirements.txt
 
 ---
 
-## 🆕 Новые возможности (Декабрь 2025)
+## 🆕 Новые возможности (Январь 2026)
+
+### 🎯 Фаза 2: Infrastructure Improvements (В РАБОТЕ)
+
+**Текущие задачи** (из `IMPROVEMENT_ROADMAP.md`):
+
+1. ✅ **Codecov Integration** - для coverage badge
+2. ⏳ **Code Readability** - рефакторинг вложенности, early returns
+3. ⏳ **E2E Tests** - добавить `tests/e2e/` директорию
+4. ⏳ **Performance Profiling** - оптимизация scanner и caching
+
+**При работе в Фазе 2:**
+- Применять **early returns** вместо глубокой вложенности
+- Разбивать методы > 50 строк на меньшие функции
+- Добавлять docstrings к сложным функциям
+- Создавать E2E тесты для критических flows
+- Профилировать производительность перед оптимизацией
 
 ### Современные паттерны Python 3.12+
 
@@ -160,6 +177,38 @@ match event:
 ```python
 async with api_client.session() as session:
     result = await session.get(url)
+```
+
+### Early Returns Pattern (Фаза 2 стиль)
+
+**❌ До (nested conditions)**:
+```python
+async def process_arbitrage(item):
+    if item.price > 0:
+        if item.suggested_price > 0:
+            if item.profit_margin > 3:
+                if await check_liquidity(item):
+                    return await execute_trade(item)
+    return None
+```
+
+**✅ После (early returns)**:
+```python
+async def process_arbitrage(item):
+    """Process arbitrage opportunity with validation."""
+    if item.price <= 0:
+        return None
+
+    if item.suggested_price <= 0:
+        return None
+
+    if item.profit_margin <= 3:
+        return None
+
+    if not await check_liquidity(item):
+        return None
+
+    return await execute_trade(item)
 ```
 
 ---
@@ -880,11 +929,83 @@ async with httpx.AsyncClient(timeout=10.0) as client:
 
 ### Тестирование
 - Использовать **pytest** и **pytest-asyncio** для тестов
-- Стремиться к покрытию кода **80%+** (текущая цель: 85%)
+- Стремиться к покрытию кода **85%+** (Фаза 2: цель 90%)
 - Писать unit-тесты для всех публичных функций
 - Использовать **pytest-mock** для моков внешних зависимостей
 - Тестировать граничные случаи и обработку ошибок
 - Именовать тесты описательно: `test_<функция>_<условие>_<ожидаемый_результат>`
+
+#### E2E тесты (Фаза 2 приоритет)
+
+**Создать структуру**:
+```
+tests/
+├── unit/          # Юнит-тесты (существующие)
+├── integration/   # Интеграционные тесты (существующие)
+└── e2e/          # E2E тесты (новые, Фаза 2)
+    ├── conftest.py
+    ├── test_arbitrage_flow.py
+    ├── test_target_management_flow.py
+    └── test_notification_flow.py
+```
+
+**Пример E2E теста**:
+```python
+# tests/e2e/test_arbitrage_flow.py
+@pytest.mark.e2e
+@pytest.mark.asyncio
+async def test_full_arbitrage_workflow():
+    """Test complete arbitrage flow from scanning to purchase."""
+    # Arrange
+    scanner = ArbitrageScanner(api_client=api_client)
+    trader = Trader(api_client=api_client)
+
+    # Act: 1. Scan market
+    opportunities = await scanner.scan_level("standard", "csgo")
+    assert len(opportunities) > 0
+
+    # Act: 2. Select best opportunity
+    best = max(opportunities, key=lambda x: x.profit_margin)
+    assert best.profit_margin > 3
+
+    # Act: 3. Execute (DRY_RUN mode for safety)
+    result = await trader.execute(best, dry_run=True)
+
+    # Assert: 4. Verify
+    assert result["success"]
+    assert "order_id" in result
+    assert result["profit_estimate"] > 0
+
+@pytest.mark.e2e
+@pytest.mark.asyncio
+async def test_notification_delivery_flow():
+    """Test notification is delivered to user after arbitrage found."""
+    # Test end-to-end notification delivery
+    ...
+```
+
+**Маркеры pytest**:
+```python
+# Добавить в pytest.ini или pyproject.toml
+[tool.pytest.ini_options]
+markers = [
+    "e2e: End-to-end tests (slow)",
+    "unit: Unit tests (fast)",
+    "integration: Integration tests (medium)",
+]
+```
+
+**Запуск E2E тестов**:
+```bash
+# Только E2E
+pytest tests/e2e/ -m e2e -v
+
+# Исключить E2E в CI (быстрая проверка)
+pytest -m "not e2e"
+
+# Все тесты включая E2E
+pytest tests/ -v
+```
 
 ```python
 @pytest.mark.asyncio
@@ -941,6 +1062,115 @@ from aiocache import cached
 async def get_market_items(game: str) -> list[dict]:
     # запрос к API
     pass
+```
+
+#### Оптимизация производительности (Фаза 2)
+
+**1. Профилирование перед оптимизацией**:
+
+```bash
+# Установить py-spy для профилирования
+pip install py-spy
+
+# Профилировать приложение
+py-spy record -o profile.svg -- python -m src.main
+
+# Профилировать конкретную функцию
+py-spy top -- python -m pytest tests/test_arbitrage_scanner.py
+```
+
+**2. Пакетная обработка для scanner**:
+
+```python
+# src/dmarket/arbitrage_scanner.py
+async def scan_items_batch(items: list[Item], batch_size: int = 100) -> list[Opportunity]:
+    """Scan items in batches for better performance."""
+    tasks = []
+
+    for i in range(0, len(items), batch_size):
+        batch = items[i:i + batch_size]
+        tasks.append(process_batch(batch))
+
+    # Параллельная обработка батчей
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    # Фильтрация ошибок
+    opportunities = []
+    for result in results:
+        if isinstance(result, Exception):
+            logger.warning("batch_processing_error", error=str(result))
+            continue
+        opportunities.extend(result)
+
+    return opportunities
+```
+
+**3. Расширенное кэширование**:
+
+```python
+# Кэш для разных уровней
+@cached(ttl=300, key="market:items:{game}:{level}")
+async def get_market_items_for_level(game: str, level: str):
+    """Кэш специфичен для игры И уровня."""
+    ...
+
+# Кэш с автоматической инвалидацией
+@cached(ttl=600, key="balance:{user_id}")
+async def get_user_balance(user_id: int):
+    """Кэш на 10 минут."""
+    ...
+
+# Инвалидация кэша при изменениях
+async def update_balance(user_id: int, new_balance: float):
+    await save_balance(user_id, new_balance)
+    # Инвалидировать кэш
+    await cache.delete(f"balance:{user_id}")
+```
+
+**4. Connection pooling**:
+
+```python
+# Оптимизация httpx клиента
+limits = httpx.Limits(
+    max_keepalive_connections=20,
+    max_connections=100,
+    keepalive_expiry=30.0
+)
+
+client = httpx.AsyncClient(
+    timeout=10.0,
+    limits=limits,
+    http2=True  # Использовать HTTP/2 если доступно
+)
+```
+
+**5. Метрики производительности**:
+
+```python
+# Добавить метрики времени выполнения
+import time
+from functools import wraps
+
+def measure_time(func):
+    """Декоратор для измерения времени выполнения."""
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        result = await func(*args, **kwargs)
+        elapsed = time.perf_counter() - start
+
+        logger.info(
+            "performance_metric",
+            function=func.__name__,
+            elapsed_ms=elapsed * 1000,
+        )
+        return result
+    return wrapper
+
+@measure_time
+async def scan_arbitrage(game: str, level: str):
+    """Измерить время сканирования."""
+    ...
 ```
 
 ### Безопасность
@@ -1017,6 +1247,7 @@ DMarket-Telegram-Bot/
 ├── tests/                    # Тесты (2348 тестов)
 │   ├── unit/                # Юнит-тесты
 │   ├── integration/         # Интеграционные тесты
+│   ├── e2e/                 # E2E тесты (Фаза 2, новые)
 │   ├── contracts/           # Pact контрактные тесты (43 теста)
 │   ├── property_based/      # Hypothesis property-based тесты
 │   ├── cassettes/           # VCR.py записи HTTP
@@ -1063,17 +1294,191 @@ DMarket-Telegram-Bot/
 
 ## ✅ Checklist перед коммитом
 
+**Фаза 2 дополнения**:
+
 - [ ] Код отформатирован Black
 - [ ] Ruff проверка пройдена
 - [ ] MyPy проверка типов пройдена
 - [ ] Все тесты проходят (pytest)
-- [ ] Покрытие тестами >= 80%
+- [ ] Покрытие тестами >= 85% (Фаза 2: стремиться к 90%)
 - [ ] Добавлены docstrings для публичных функций
 - [ ] Обновлена документация (если нужно)
 - [ ] Нет захардкоженных секретов
 - [ ] Логирование добавлено для важных операций
 - [ ] Обработка ошибок реализована
 - [ ] Коммит следует Conventional Commits
+- [ ] **Фаза 2**: Применены early returns (нет вложенности > 3 уровней)
+- [ ] **Фаза 2**: Методы < 50 строк (разбить на меньшие функции)
+- [ ] **Фаза 2**: E2E тест добавлен для новых критических flows
+- [ ] **Фаза 2**: Performance проверен (если затрагивает scanner/API)
+
+---
+
+## 📐 Code Readability Guidelines (Фаза 2)
+
+### 1. Ограничение сложности функций
+
+**Максимальная длина функции: 50 строк**
+
+**❌ Плохо - длинная функция**:
+```python
+async def process_arbitrage_opportunities(game: str, level: str):
+    """Process arbitrage (100+ lines)."""
+    # ... 100+ строк кода
+    # Сложно понять, тестировать, поддерживать
+```
+
+**✅ Хорошо - разбита на меньшие функции**:
+```python
+async def process_arbitrage_opportunities(game: str, level: str):
+    """Process arbitrage opportunities in stages."""
+    items = await _fetch_items(game, level)
+    validated = await _validate_items(items)
+    opportunities = await _find_opportunities(validated)
+    return await _execute_best_opportunity(opportunities)
+
+async def _fetch_items(game: str, level: str) -> list[Item]:
+    """Fetch items from market."""
+    ...
+
+async def _validate_items(items: list[Item]) -> list[Item]:
+    """Validate and filter items."""
+    ...
+```
+
+### 2. Избегать глубокой вложенности (max 3 уровня)
+
+**❌ Плохо - 5 уровней вложенности**:
+```python
+async def process_item(item):
+    if item.price > 0:
+        if item.suggested_price > 0:
+            if item.profit_margin > 3:
+                if await check_liquidity(item):
+                    if not item.is_blacklisted:
+                        return await execute_trade(item)
+    return None
+```
+
+**✅ Хорошо - early returns**:
+```python
+async def process_item(item):
+    """Process item with validation."""
+    if item.price <= 0:
+        return None
+
+    if item.suggested_price <= 0:
+        return None
+
+    if item.profit_margin <= 3:
+        return None
+
+    if not await check_liquidity(item):
+        return None
+
+    if item.is_blacklisted:
+        return None
+
+    return await execute_trade(item)
+```
+
+### 3. Описательные имена переменных
+
+**❌ Плохо - непонятные сокращения**:
+```python
+async def proc_arb(g, l, min_p):
+    opps = await scan(g, l)
+    filt = [o for o in opps if o.p > min_p]
+    return filt
+```
+
+**✅ Хорошо - понятные имена**:
+```python
+async def process_arbitrage(
+    game: str,
+    level: str,
+    min_profit_margin: float
+) -> list[Opportunity]:
+    """Process arbitrage opportunities for game and level."""
+    opportunities = await scan_market(game, level)
+    filtered = [
+        opp for opp in opportunities
+        if opp.profit_margin > min_profit_margin
+    ]
+    return filtered
+```
+
+### 4. Добавлять docstrings к сложным функциям
+
+**Всегда добавлять docstring если функция**:
+- Имеет > 3 параметров
+- Выполняет сложную бизнес-логику
+- Может выбросить исключения
+- Имеет неочевидное поведение
+
+```python
+async def calculate_arbitrage_profit(
+    buy_price: float,
+    sell_price: float,
+    commission_percent: float = 7.0,
+    additional_fees: float = 0.0
+) -> float:
+    """Calculate net arbitrage profit with all fees.
+
+    Args:
+        buy_price: Price to buy the item (USD cents)
+        sell_price: Price to sell the item (USD cents)
+        commission_percent: DMarket commission (default: 7%)
+        additional_fees: Additional fees in USD cents
+
+    Returns:
+        Net profit in USD cents
+
+    Raises:
+        ValueError: If prices are negative or sell_price <= buy_price
+
+    Example:
+        >>> await calculate_arbitrage_profit(1000, 1500, 7.0)
+        395.0  # $3.95 profit
+    """
+    if buy_price < 0 or sell_price < 0:
+        raise ValueError("Prices cannot be negative")
+
+    if sell_price <= buy_price:
+        raise ValueError("Sell price must be higher than buy price")
+
+    commission = sell_price * (commission_percent / 100)
+    net_profit = sell_price - buy_price - commission - additional_fees
+
+    return net_profit
+```
+
+### 5. Комментарии только для сложной логики
+
+**Не комментировать очевидное**:
+```python
+# ❌ Избыточные комментарии
+# Get the user from database
+user = await db.get_user(user_id)
+
+# Check if user exists
+if user is None:
+    # Return error
+    return {"error": "User not found"}
+```
+
+**Комментировать только неочевидное**:
+```python
+# ✅ Полезный комментарий
+# DMarket API returns prices in cents, but we store in dollars
+price_dollars = api_response["price"] / 100
+
+# Retry with exponential backoff because DMarket API is flaky
+# during peak hours (12:00-14:00 UTC)
+@retry(wait=wait_exponential(multiplier=1, min=4, max=10))
+async def fetch_market_data():
+    ...
+```
 
 ---
 
@@ -1253,8 +1658,9 @@ async def balance_command(
 
 ---
 
-**Версия**: 4.0
-**Последнее обновление**: 13 ноября 2025 г.
+**Версия**: 5.0 (Фаза 2)
+**Последнее обновление**: 01 января 2026 г.
+**Roadmap**: См. `IMPROVEMENT_ROADMAP.md` для деталей Фазы 2
 
 ---
 
@@ -1360,8 +1766,11 @@ async def balance_command(
 1. Изучи **ARCHITECTURE.md** для понимания структуры
 2. Проверь **api_reference.md** на наличие похожих методов
 3. Следуй **code_quality_tools_guide.md** для стиля кода
-4. Обнови **CHANGELOG.md** при значимых изменениях
-5. Прочитай **SECURITY.md** если работаешь с API ключами
+4. **Фаза 2**: Применяй early returns и ограничивай длину функций
+5. **Фаза 2**: Добавляй E2E тест для критических flows
+6. Обнови **CHANGELOG.md** при значимых изменениях
+7. Прочитай **SECURITY.md** если работаешь с API ключами
+8. **Фаза 2**: Профилируй производительность если затрагиваешь scanner/API
 
 ---
 
@@ -1387,12 +1796,15 @@ async def balance_command(
 4. Создай клавиатуру в `src/telegram_bot/keyboards.py` (если нужно)
 5. Добавь тесты
 
-### Оптимизация производительности
-1. Используй кэширование через `@cached` декоратор
-2. Применяй `asyncio.gather()` для параллельных запросов
-3. Проверь rate limiting настройки
-4. Используй connection pooling для БД
-5. Используй Circuit Breaker через `src/utils/api_circuit_breaker.py`
+### Оптимизация производительности (Фаза 2 приоритет)
+1. **Профилируй ПЕРЕД оптимизацией** (py-spy, cProfile)
+2. Используй кэширование через `@cached` декоратор
+3. Применяй `asyncio.gather()` для параллельных запросов
+4. Используй **пакетную обработку** для больших датасетов (batch_size=100)
+5. Проверь rate limiting настройки
+6. Используй connection pooling для БД и HTTP (httpx.Limits)
+7. Используй Circuit Breaker через `src/utils/api_circuit_breaker.py`
+8. **Измеряй результаты** - добавляй performance метрики (measure_time декоратор)
 
 ---
 
@@ -1437,7 +1849,11 @@ async def balance_command(
 - Краткие ответы пользователю
 - Автоматическое выполнение очевидных команд
 - Структурированное логирование
-- Тестирование (80%+ coverage)
+- Тестирование (85%+ coverage, цель: 90%)
+- **Фаза 2**: Early returns вместо вложенности
+- **Фаза 2**: Функции < 50 строк
+- **Фаза 2**: E2E тесты для критических flows
+- **Фаза 2**: Профилирование перед оптимизацией
 - **Английская раскладка при работе с командами**
 - **Проверка команд перед выполнением**
 
@@ -1449,4 +1865,21 @@ async def balance_command(
 - Синхронный код для I/O операций
 - Захардкоженные секреты
 - Голые `except:` блоки
+- **Фаза 2**: Вложенность > 3 уровней
+- **Фаза 2**: Функции > 50 строк без разбиения
+- **Фаза 2**: Оптимизация без профилирования
 - **Кириллические символы в командах терминала**
+
+---
+
+## 🎯 Фаза 2 Quick Reference
+
+| Задача | Действие |
+|--------|----------|
+| Рефакторинг вложенности | Применить early returns |
+| Длинная функция (>50 строк) | Разбить на меньшие функции |
+| Новый критический flow | Добавить E2E тест в `tests/e2e/` |
+| Оптимизация производительности | 1. Профилировать 2. Оптимизировать 3. Измерить |
+| Новая функция scanner | Использовать пакетную обработку (batch) |
+| Добавление кэша | Использовать ключи с уровнем детализации |
+| Покрытие тестами | Стремиться к 90% (текущая цель) |

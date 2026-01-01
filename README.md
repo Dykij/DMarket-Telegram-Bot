@@ -1,19 +1,40 @@
 # 📚 DMarket Telegram Bot
 
-**Дата**: 28 декабря 2025 г.
-**Версия**: 1.0.0
+<!-- Badges: Project Info -->
+[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![License](https://img.shields.io/github/license/Dykij/DMarket-Telegram-Bot?color=green)](LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/Dykij/DMarket-Telegram-Bot?style=social)](https://github.com/Dykij/DMarket-Telegram-Bot/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/Dykij/DMarket-Telegram-Bot?style=social)](https://github.com/Dykij/DMarket-Telegram-Bot/network/members)
 
-Автоматизированная система для торговли игровыми предметами на платформе DMarket.
+<!-- Badges: CI/CD Status -->
+[![CI Status](https://img.shields.io/github/actions/workflow/status/Dykij/DMarket-Telegram-Bot/ci.yml?branch=main&label=CI&logo=github)](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/Dykij/DMarket-Telegram-Bot/python-tests.yml?branch=main&label=Tests&logo=pytest)](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/python-tests.yml)
+[![Code Quality](https://img.shields.io/github/actions/workflow/status/Dykij/DMarket-Telegram-Bot/code-quality.yml?branch=main&label=Code%20Quality&logo=ruff)](https://github.com/Dykij/DMarket-Telegram-Bot/actions/workflows/code-quality.yml)
+[![CodeQL](https://img.shields.io/github/actions/workflow/status/Dykij/DMarket-Telegram-Bot/codeql.yml?branch=main&label=CodeQL&logo=github)](https://github.com/Dykij/DMarket-Telegram-Bot/security/code-scanning)
+
+<!-- Badges: Activity -->
+[![Last Commit](https://img.shields.io/github/last-commit/Dykij/DMarket-Telegram-Bot?logo=git&logoColor=white)](https://github.com/Dykij/DMarket-Telegram-Bot/commits/main)
+[![GitHub Issues](https://img.shields.io/github/issues/Dykij/DMarket-Telegram-Bot?logo=github)](https://github.com/Dykij/DMarket-Telegram-Bot/issues)
+[![GitHub PRs](https://img.shields.io/github/issues-pr/Dykij/DMarket-Telegram-Bot?logo=github)](https://github.com/Dykij/DMarket-Telegram-Bot/pulls)
+
+<!-- Badges: Tech Stack -->
+[![Telegram Bot](https://img.shields.io/badge/Telegram-Bot_API_9.2-blue?logo=telegram&logoColor=white)](https://core.telegram.org/bots/api)
+[![DMarket](https://img.shields.io/badge/DMarket-API_v1.1-orange?logo=steam&logoColor=white)](https://docs.dmarket.com/)
+[![Async](https://img.shields.io/badge/async-httpx_0.28%2B-purple?logo=fastapi&logoColor=white)](https://www.python-httpx.org/)
+
+---
+
+> 🤖 **Автоматизированная система для торговли игровыми предметами** на платформе DMarket с поддержкой многоуровневого арбитража, системы таргетов и real-time мониторинга.
 
 ## 📋 Обзор проекта
 
-| Метрика | Значение |
-|---------|----------|
-| **Версия** | 1.0.0 |
-| **Python** | 3.11+ (3.12 рекомендуется) |
-| **Тестовых файлов** | 372 |
-| **Покрытие тестами** | 85%+ (цель) |
-| **Лицензия** | MIT |
+| Метрика              | Значение                   |
+| -------------------- | -------------------------- |
+| **Версия**           | 1.0.0                      |
+| **Python**           | 3.11+ (3.12 рекомендуется) |
+| **Тестовых файлов**  | 372                        |
+| **Покрытие тестами** | 85%+ (цель)                |
+| **Лицензия**         | MIT                        |
 
 ## 🎯 Основные возможности
 
@@ -387,19 +408,19 @@ logger.info(
 
 ## 🛠️ Технологический стек
 
-| Категория | Технологии |
-|-----------|------------|
-| **Язык** | Python 3.11+ (3.12 рекомендуется) |
-| **Async** | asyncio, httpx 0.28+ |
-| **Bot Framework** | python-telegram-bot 22.0+ |
-| **ORM** | SQLAlchemy 2.0+ |
-| **Validation** | Pydantic 2.5+ |
-| **Linting** | Ruff 0.14+ |
-| **Type Checking** | MyPy 1.19+ |
-| **Testing** | pytest 8.4+, VCR.py, Hypothesis |
-| **Database** | PostgreSQL 14+, Redis 7+ |
-| **Deployment** | Docker, docker-compose |
-| **Monitoring** | Sentry, Prometheus |
+| Категория         | Технологии                        |
+| ----------------- | --------------------------------- |
+| **Язык**          | Python 3.11+ (3.12 рекомендуется) |
+| **Async**         | asyncio, httpx 0.28+              |
+| **Bot Framework** | python-telegram-bot 22.0+         |
+| **ORM**           | SQLAlchemy 2.0+                   |
+| **Validation**    | Pydantic 2.5+                     |
+| **Linting**       | Ruff 0.14+                        |
+| **Type Checking** | MyPy 1.19+                        |
+| **Testing**       | pytest 8.4+, VCR.py, Hypothesis   |
+| **Database**      | PostgreSQL 14+, Redis 7+          |
+| **Deployment**    | Docker, docker-compose            |
+| **Monitoring**    | Sentry, Prometheus                |
 
 ---
 
