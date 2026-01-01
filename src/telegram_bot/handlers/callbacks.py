@@ -13,6 +13,7 @@ from telegram.ext import ContextTypes
 from src.dmarket.arbitrage import GAMES, find_arbitrage_opportunities_advanced
 from src.telegram_bot.handlers.dmarket_status import dmarket_status_impl
 from src.telegram_bot.keyboards import (
+    CB_GAME_PREFIX,
     create_pagination_keyboard,
     get_alert_keyboard,
     get_auto_arbitrage_keyboard,
@@ -391,9 +392,9 @@ async def button_callback_handler(
             # Делегируем обработку специализированному обработчику
             await handle_game_selected_impl(update, context, game=game)
 
-        elif callback_data.startswith("game_") and not callback_data.startswith("game_selected"):
+        elif callback_data.startswith(CB_GAME_PREFIX) and not callback_data.startswith("game_selected"):
             # Обработка выбора игры с кнопок game_csgo, game_dota2 и т.д.
-            game = callback_data[5:]  # Убираем префикс "game_"
+            game = callback_data[len(CB_GAME_PREFIX):]  # Убираем префикс
             await handle_game_selected_impl(update, context, game=game)
 
         elif callback_data == "market_comparison":
