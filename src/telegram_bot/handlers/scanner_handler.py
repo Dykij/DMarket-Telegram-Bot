@@ -357,7 +357,7 @@ async def handle_level_scan(
             reply_markup=keyboard,
         )
 
-    except Exception as e:
+    except Exception:
         logger.exception("Ошибка при сканировании уровня %s", level)
         await query.edit_message_text(
             "❌ Произошла ошибка при сканировании.\n\nПожалуйста, попробуйте позже.",

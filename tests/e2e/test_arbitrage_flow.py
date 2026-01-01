@@ -9,9 +9,11 @@
 4. Уведомление пользователя о результате
 """
 
+import operator
 from unittest.mock import AsyncMock
 
 import pytest
+
 
 # ============================================================================
 # FIXTURES
@@ -183,7 +185,7 @@ class TestTradeExecutionFlow:
         assert len(opportunities) > 0, "Should find opportunities"
 
         # Act: Step 2 - Select best opportunity
-        best_opportunity = max(opportunities, key=lambda x: x["profit_margin"])
+        best_opportunity = max(opportunities, key=operator.itemgetter("profit_margin"))
 
         # Act: Step 3 - Execute trade (DRY_RUN mode)
         result = await scanner.execute_trade(opportunity=best_opportunity, dry_run=True)
@@ -367,7 +369,7 @@ class TestMultiLevelArbitrageFlow:
                 all_opportunities.extend(game_opps)
 
         # Sort by profit
-        sorted_opps = sorted(all_opportunities, key=lambda x: x["profit_margin"], reverse=True)
+        sorted_opps = sorted(all_opportunities, key=operator.itemgetter("profit_margin"), reverse=True)
 
         # Assert: Best opportunities on top
         if sorted_opps:

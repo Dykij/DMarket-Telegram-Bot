@@ -8,7 +8,6 @@ import pytest
 
 from src.dmarket.api.endpoints import (
     EndpointCategory,
-    EndpointInfo,
     Endpoints,
     HttpMethod,
 )
@@ -108,7 +107,7 @@ class TestErrorCodes:
 
     def test_error_codes_have_descriptions(self):
         """Test error codes have meaningful descriptions."""
-        for code, description in Endpoints.ERROR_CODES.items():
+        for description in Endpoints.ERROR_CODES.values():
             assert isinstance(description, str)
             assert len(description) > 0
 

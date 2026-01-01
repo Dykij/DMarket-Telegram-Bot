@@ -64,10 +64,7 @@ async def arbitrage_callback_impl(
     # Если у пользователя есть настройка современного UI, используем её
     use_modern_ui = user_data.get("use_modern_ui", False)
 
-    if use_modern_ui:
-        keyboard = get_modern_arbitrage_keyboard()
-    else:
-        keyboard = get_arbitrage_keyboard()
+    keyboard = get_modern_arbitrage_keyboard() if use_modern_ui else get_arbitrage_keyboard()
 
     await query.edit_message_text(
         text="🔍 <b>Выберите режим арбитража:</b>",

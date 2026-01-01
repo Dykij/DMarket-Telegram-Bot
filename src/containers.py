@@ -152,11 +152,8 @@ def init_container(config: Config | dict[str, Any] | None = None) -> Container:
     _container = Container()
 
     if config is not None:
-        if isinstance(config, Config):
-            # Convert Config to dict for dependency-injector
-            config_dict = _config_to_dict(config)
-        else:
-            config_dict = config
+        # Convert Config to dict for dependency-injector
+        config_dict = _config_to_dict(config) if isinstance(config, Config) else config
 
         _container.config.from_dict(config_dict)
 

@@ -410,7 +410,7 @@ class HealthMonitor:
                 cb_result = callback(result)
                 if asyncio.iscoroutine(cb_result):
                     await cb_result
-            except Exception as e:
+            except Exception:
                 logger.exception("Error in alert callback")
 
     async def start_heartbeat(self) -> None:
@@ -449,7 +449,7 @@ class HealthMonitor:
                 await asyncio.sleep(self.config.interval_seconds)
             except asyncio.CancelledError:
                 break
-            except Exception as e:
+            except Exception:
                 logger.exception("Error in heartbeat loop")
                 await asyncio.sleep(self.config.interval_seconds)
 

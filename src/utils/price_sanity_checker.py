@@ -215,7 +215,7 @@ class PriceSanityChecker:
                 message=f"Price sanity check error: {e}",
                 item_name=item_name,
                 current_price=current_price,
-            )
+            ) from e
 
     async def _get_price_history(
         self,

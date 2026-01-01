@@ -8,20 +8,19 @@
 """
 
 import asyncio
-from datetime import datetime
 import os
-from pathlib import Path
 import sys
 import traceback
+from datetime import datetime
+from pathlib import Path
 from typing import Any
 
-from dotenv import load_dotenv
 import httpx
+from dotenv import load_dotenv
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.table import Table
-
 
 console = Console()
 
@@ -621,17 +620,17 @@ async def main():
     load_dotenv()
 
     # Настройки репозитория
-    REPO_OWNER = "Dykij"
-    REPO_NAME = "DMarket-Telegram-Bot"
+    repo_owner = "Dykij"
+    repo_name = "DMarket-Telegram-Bot"
 
     # GitHub Token (опционально, для большего rate limit)
     # Получить можно здесь: https://github.com/settings/tokens
-    GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+    github_token = os.getenv("GITHUB_TOKEN")
 
     console.print("\n[bold cyan]🚀 Запуск GitHub Actions Monitor...[/bold cyan]\n")
 
     # Создание монитора
-    monitor = GitHubActionsMonitor(REPO_OWNER, REPO_NAME, GITHUB_TOKEN)
+    monitor = GitHubActionsMonitor(repo_owner, repo_name, github_token)
 
     try:
         # Проверка rate limit

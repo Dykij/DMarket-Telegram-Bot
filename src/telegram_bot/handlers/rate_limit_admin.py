@@ -44,10 +44,7 @@ async def rate_limit_stats_command(
 
     # Получить user_id из аргументов или использовать свой
     args = context.args
-    if args and args[0].isdigit():
-        user_id = int(args[0])
-    else:
-        user_id = update.effective_user.id
+    user_id = int(args[0]) if args and args[0].isdigit() else update.effective_user.id
 
     try:
         stats = await rate_limiter.get_user_stats(user_id)

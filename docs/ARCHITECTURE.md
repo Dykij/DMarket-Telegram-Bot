@@ -1,8 +1,8 @@
 # 🏗️ Архитектура проекта DMarket Telegram Bot
 
-**Дата**: 28 декабря 2025 г.
-**Версия**: 1.0.0
-**Последнее обновление**: Полная актуализация документации
+**Дата**: 01 января 2026 г.
+**Версия**: 1.0.0 (Phase 2 Complete)
+**Последнее обновление**: Phase 2 - Code Readability & Performance
 
 ---
 
@@ -17,9 +17,15 @@ DMarket Telegram Bot — это асинхронное Python-приложени
 - httpx 0.28+ (async HTTP)
 - SQLAlchemy 2.0+ (ORM)
 - Pydantic 2.5+ (validation)
-- Ruff 0.14+ (linting)
-- MyPy 1.19+ (type checking)
-- pytest 8.4+ (testing)
+- Ruff 0.8+ (linting & formatting)
+- MyPy 1.14+ (type checking - strict mode)
+- pytest 8.4+ (testing - 2348+ tests)
+
+**Phase 2 Enhancements (January 2026)**:
+- ✅ E2E Testing Framework
+- ✅ Code Readability Refactoring (early returns, <50 line functions)
+- ✅ Performance Optimization (batch processing, profiling)
+- ✅ Enhanced Documentation & Migration Guides
 
 ---
 
@@ -114,11 +120,37 @@ DMarket-Telegram-Bot/
 │   │   ├── hft_mode.py          # High-frequency trading
 │   │   ├── liquidity_analyzer.py # Анализ ликвидности
 │   │   ├── market_analysis.py   # Анализ рынка
-│   │   └── sales_history.py     # История продаж
+│   │   ├── sales_history.py     # История продаж
+│   │   │
+│   │   ├── 🆕 Phase 2 Refactored Modules (January 2026)
+│   │   ├── dmarket_api_refactored.py        # Refactored API client (early returns)
+│   │   ├── arbitrage_scanner_refactored.py  # Refactored scanner (batch processing)
+│   │   ├── market_analysis_refactored.py    # Refactored analysis (<50 line functions)
+│   │   ├── auto_trader_refactored.py        # Refactored auto trader
+│   │   │
+│   │   ├── 🆕 Phase 2 New Helper Modules
+│   │   ├── rare_pricing_analyzer.py         # Rare item pricing analysis
+│   │   ├── market_depth_analyzer.py         # Market depth analysis
+│   │   ├── direct_balance_requester.py      # Direct balance requests
+│   │   ├── trending_items_finder.py         # Find trending items
+│   │   ├── game_scanner.py                  # Game-specific scanning
+│   │   ├── balance_checker.py               # Balance checking utilities
+│   │   ├── universal_balance_getter.py      # Universal balance getter
+│   │   ├── price_anomaly_detector.py        # Price anomaly detection
+│   │   └── batch_scanner_optimizer.py       # Batch scanning optimization
 │   │
 │   ├── telegram_bot/             # Telegram бот
 │   │   ├── commands/            # Обработчики команд
+│   │   │   └── 🆕 balance_command_refactored.py  # Refactored balance command
 │   │   ├── handlers/            # Обработчики событий
+│   │   │   ├── 🆕 Phase 2 Refactored Handlers
+│   │   │   ├── scanner_handler_refactored.py
+│   │   │   ├── target_handler_refactored.py
+│   │   │   ├── market_analysis_handler_refactored.py
+│   │   │   ├── callbacks_refactored.py
+│   │   │   ├── game_filter_handlers_refactored.py
+│   │   │   ├── notification_filters_handler_refactored.py
+│   │   │   └── settings_handlers_refactored.py
 │   │   ├── keyboards/           # Клавиатуры
 │   │   ├── notifications/       # Система уведомлений
 │   │   ├── smart_notifications/ # Умные уведомления
@@ -157,16 +189,27 @@ DMarket-Telegram-Bot/
 │       ├── api_circuit_breaker.py # Circuit Breaker
 │       ├── sentry_integration.py # Sentry мониторинг
 │       ├── logging_utils.py     # Логирование
-│       └── config.py            # Конфигурация
+│       ├── config.py            # Конфигурация
+│       └── 🆕 price_sanity_checker.py  # Price validation (Phase 2)
 │
-├── tests/                        # Тесты (372 файла)
+├── tests/                        # Тесты (372+ файла, 2348+ tests)
 │   ├── unit/                    # Юнит-тесты
 │   ├── integration/             # Интеграционные тесты
 │   ├── contracts/               # Контрактные тесты (Pact)
 │   ├── property_based/          # Property-based тесты
-│   ├── e2e/                     # End-to-end тесты
+│   ├── e2e/                     # 🆕 End-to-end тесты (Phase 2)
+│   │   ├── test_arbitrage_flow.py
+│   │   ├── test_target_management_flow.py
+│   │   └── conftest.py
 │   └── cassettes/               # VCR.py записи HTTP
-├── docs/                         # Документация (19 файлов)
+├── docs/                         # Документация (50+ файлов)
+│   ├── 🆕 MIGRATION_GUIDE.md    # Migration guide for refactored modules
+│   ├── 🆕 PHASE_2_REFACTORING_GUIDE.md  # Phase 2 refactoring patterns
+│   └── 🆕 PERFORMANCE_OPTIMIZATION_GUIDE.md  # Performance guide
+├── scripts/                      # Utility scripts
+│   ├── 🆕 profile_scanner.py    # Performance profiling
+│   ├── 🆕 find_long_functions.py # Find functions >50 lines
+│   └── 🆕 generate_refactoring_todo.py  # Generate TODO list
 ├── config/                       # Конфигурация
 └── alembic/                      # Миграции базы данных
 ```

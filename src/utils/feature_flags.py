@@ -96,7 +96,7 @@ class FeatureFlagsManager:
                 path=self.config_path,
             )
             return self._get_default_config()
-        except Exception as e:
+        except Exception:
             logger.exception("feature_flags_load_error")
             return self._get_default_config()
 

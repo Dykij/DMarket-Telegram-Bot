@@ -1,588 +1,125 @@
-"""Обработчики для гибких фильтров уведомлений.
-
-Этот модуль предоставляет интерфейс для настройки детальных
-фильтров уведомлений по играм, уровням прибыли и типам алертов.
 """
+Refactored notification filters handler with DRY principles.
 
-from typing import Any
+This module provides handlers for notification filter management with reduced
+code duplication and improved readability.
+"""
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
-from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
+from telegram.ext import ContextTypes
 
-from src.utils.exceptions import handle_exceptions
-from src.utils.logging_utils import get_logger
+from src.telegram_bot.filters_manager import get_filters_manager
 
 
-logger = get_logger(__name__)
-
-# Константы для callback data
+# Constants
 NOTIFY_FILTER = "notify_filter"
-NOTIFY_FILTER_GAMES = "games"
-NOTIFY_FILTER_PROFIT = "profit"
-NOTIFY_FILTER_LEVELS = "levels"
-NOTIFY_FILTER_TYPES = "types"
-NOTIFY_FILTER_SAVE = "save"
-NOTIFY_FILTER_RESET = "reset"
 
-# Поддерживаемые игры
 SUPPORTED_GAMES = {
-    "csgo": "🎮 CS2/CS:GO",
-    "dota2": "⚔️ Dota 2",
-    "tf2": "🔫 Team Fortress 2",
-    "rust": "🏗️ Rust",
+    "csgo": "CS:GO",
+    "dota2": "Dota 2",
+    "tf2": "Team Fortress 2",
+    "rust": "Rust",
 }
 
-# Уровни арбитража
 ARBITRAGE_LEVELS = {
-    "boost": "🚀 Разгон баланса",
-    "standard": "⭐ Стандарт",
-    "medium": "💰 Средний",
-    "advanced": "💎 Продвинутый",
-    "pro": "🏆 Профессионал",
+    "boost": "🚀 Boost ($0.50-$3)",
+    "standard": "📊 Standard ($3-$10)",
+    "medium": "💼 Medium ($10-$30)",
+    "advanced": "⚡ Advanced ($30-$100)",
+    "pro": "👑 Pro ($100+)",
 }
 
-# Типы уведомлений
 NOTIFICATION_TYPES = {
     "arbitrage": "💰 Арбитраж",
-    "price_drop": "⬇️ Падение цены",
-    "price_rise": "⬆️ Рост цены",
-    "trending": "🔥 Трендовые",
-    "good_deal": "✨ Выгодное предложение",
+    "target_filled": "🎯 Таргеты",
+    "price_alert": "📈 Ценовые алерты",
+    "market_trend": "📊 Тренды рынка",
 }
 
 
-class NotificationFilters:
-    """Менеджер фильтров уведомлений для пользователей."""
-
-    def __init__(self) -> None:
-        """Инициализация менеджера фильтров."""
-        self._filters: dict[int, dict[str, Any]] = {}
-
-    def get_user_filters(self, user_id: int) -> dict[str, Any]:
-        """Получить фильтры пользователя.
-
-        Args:
-            user_id: ID пользователя Telegram
-
-        Returns:
-            Словарь с настройками фильтров
-
-        """
-        if user_id not in self._filters:
-            self._filters[user_id] = self._get_default_filters()
-        return self._filters[user_id].copy()
-
-    def update_user_filters(self, user_id: int, filters: dict[str, Any]) -> None:
-        """Обновить фильтры пользователя.
-
-        Args:
-            user_id: ID пользователя Telegram
-            filters: Новые настройки фильтров
-
-        """
-        if user_id not in self._filters:
-            self._filters[user_id] = self._get_default_filters()
-        self._filters[user_id].update(filters)
-
-    def reset_user_filters(self, user_id: int) -> None:
-        """Сбросить фильтры пользователя к значениям по умолчанию.
-
-        Args:
-            user_id: ID пользователя Telegram
-
-        """
-        self._filters[user_id] = self._get_default_filters()
-
-    @staticmethod
-    def _get_default_filters() -> dict[str, Any]:
-        """Получить фильтры по умолчанию.
-
-        Returns:
-            Словарь с настройками по умолчанию
-
-        """
-        return {
-            "games": list(SUPPORTED_GAMES.keys()),  # Все игры
-            "min_profit_percent": 5.0,  # Минимальная прибыль 5%
-            "levels": list(ARBITRAGE_LEVELS.keys()),  # Все уровни
-            "notification_types": list(NOTIFICATION_TYPES.keys()),  # Все типы
-            "enabled": True,
-        }
-
-    def should_notify(
-        self,
-        user_id: int,
-        game: str,
-        profit_percent: float,
-        level: str,
-        notification_type: str,
-    ) -> bool:
-        """Проверить, нужно ли отправлять уведомление.
-
-        Args:
-            user_id: ID пользователя
-            game: Код игры
-            profit_percent: Процент прибыли
-            level: Уровень арбитража
-            notification_type: Тип уведомления
-
-        Returns:
-            True если уведомление нужно отправить
-
-        """
-        filters = self.get_user_filters(user_id)
-
-        if not filters.get("enabled", True):
-            return False
-
-        # Проверка игры
-        games = filters.get("games", [])
-        if not isinstance(games, list) or game not in games:
-            return False
-
-        # Проверка прибыли
-        min_profit = filters.get("min_profit_percent", 0)
-        if isinstance(min_profit, (int, float)) and profit_percent < min_profit:
-            return False
-
-        # Проверка уровня
-        levels = filters.get("levels", [])
-        if not isinstance(levels, list) or level not in levels:
-            return False
-
-        # Проверка типа уведомления
-        notification_types = filters.get("notification_types", [])
-        return isinstance(notification_types, list) and notification_type in notification_types
-
-
-# Глобальный экземпляр менеджера
-_filters_manager = NotificationFilters()
-
-
-def get_filters_manager() -> NotificationFilters:
-    """Получить глобальный экземпляр менеджера фильтров.
-
-    Returns:
-        Экземпляр NotificationFilters
-
-    """
-    return _filters_manager
-
-
-@handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка при отображении фильтров", reraise=False
-)
-async def show_notification_filters(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-) -> None:
-    """Показать главное меню фильтров уведомлений.
-
-    Args:
-        update: Объект Update
-        context: Контекст бота
-
-    """
-    if not update.effective_user:
-        return
-
-    user_id = update.effective_user.id
-    filters_manager = get_filters_manager()
-    user_filters = filters_manager.get_user_filters(user_id)
-
-    # Формируем сообщение
-    enabled_status = "✅ Включены" if user_filters.get("enabled") else "❌ Выключены"
-    games_list = user_filters.get("games", [])
-    games_count = len(games_list) if isinstance(games_list, list) else 0
-    min_profit = user_filters.get("min_profit_percent", 5.0)
-    levels_list = user_filters.get("levels", [])
-    levels_count = len(levels_list) if isinstance(levels_list, list) else 0
-    types_list = user_filters.get("notification_types", [])
-    types_count = len(types_list) if isinstance(types_list, list) else 0
-
-    message = (
-        "🔔 *Фильтры уведомлений*\n\n"
-        f"Статус: {enabled_status}\n"
-        f"🎮 Игры: {games_count}/{len(SUPPORTED_GAMES)}\n"
-        f"💰 Мин. прибыль: {min_profit}%\n"
-        f"📊 Уровни: {levels_count}/{len(ARBITRAGE_LEVELS)}\n"
-        f"📢 Типы: {types_count}/{len(NOTIFICATION_TYPES)}\n\n"
-        "Настройте фильтры для персонализации уведомлений:"
-    )
-
-    # Клавиатура
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                "🎮 Игры",
-                callback_data=f"{NOTIFY_FILTER}_{NOTIFY_FILTER_GAMES}",
-            ),
-            InlineKeyboardButton(
-                "💰 Прибыль",
-                callback_data=f"{NOTIFY_FILTER}_{NOTIFY_FILTER_PROFIT}",
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                "📊 Уровни",
-                callback_data=f"{NOTIFY_FILTER}_{NOTIFY_FILTER_LEVELS}",
-            ),
-            InlineKeyboardButton(
-                "📢 Типы",
-                callback_data=f"{NOTIFY_FILTER}_{NOTIFY_FILTER_TYPES}",
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                "🔄 Сбросить",
-                callback_data=f"{NOTIFY_FILTER}_{NOTIFY_FILTER_RESET}",
-            ),
-        ],
-    ]
-
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    # Отправляем или редактируем сообщение
-    if update.callback_query:
-        await update.callback_query.edit_message_text(
-            text=message,
-            reply_markup=reply_markup,
-            parse_mode=ParseMode.MARKDOWN,
-        )
-    elif update.message:
-        await update.message.reply_text(
-            text=message,
-            reply_markup=reply_markup,
-            parse_mode=ParseMode.MARKDOWN,
-        )
-
-
-@handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка при настройке игр", reraise=False
-)
 async def show_games_filter(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
-    """Показать фильтр игр.
+    """Show games filter selection.
 
     Args:
-        update: Объект Update
-        context: Контекст бота
+        update: Telegram update object
+        context: Bot context
 
     """
-    query = update.callback_query
-    if not query or not update.effective_user:
-        return
-
-    await query.answer()
-    user_id = update.effective_user.id
-    filters_manager = get_filters_manager()
-    user_filters = filters_manager.get_user_filters(user_id)
-    enabled_games_raw = user_filters.get("games", [])
-    enabled_games: list[str] = enabled_games_raw if isinstance(enabled_games_raw, list) else []
-
-    message = "🎮 *Фильтр по играм*\n\nВыберите игры для уведомлений:"
-
-    # Клавиатура с играми
-    keyboard = []
-    for game_code, game_name in SUPPORTED_GAMES.items():
-        if game_code in enabled_games:
-            button_text = f"✅ {game_name}"
-        else:
-            button_text = f"⬜ {game_name}"
-
-        keyboard.append(
-            [
-                InlineKeyboardButton(
-                    button_text,
-                    callback_data=f"{NOTIFY_FILTER}_game_{game_code}",
-                ),
-            ],
-        )
-
-    keyboard.append(
-        [
-            InlineKeyboardButton(
-                "⬅️ Назад",
-                callback_data=NOTIFY_FILTER,
-            ),
-        ],
-    )
-
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await query.edit_message_text(
-        text=message,
-        reply_markup=reply_markup,
-        parse_mode=ParseMode.MARKDOWN,
+    await _show_filter_selection(
+        update=update,
+        filter_key="games",
+        items=SUPPORTED_GAMES,
+        title="🎮 *Фильтр по играм*",
+        description="Выберите игры для уведомлений:",
+        callback_prefix="game",
     )
 
 
-@handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка при переключении игры", reraise=False
-)
-async def toggle_game_filter(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-) -> None:
-    """Переключить фильтр игры.
-
-    Args:
-        update: Объект Update
-        context: Контекст бота
-
-    """
-    query = update.callback_query
-    if not query or not update.effective_user or not query.data:
-        return
-
-    await query.answer()
-    user_id = update.effective_user.id
-
-    # Получаем код игры из callback_data
-    callback_data = query.data
-    if callback_data is None:
-        return
-    game_code = callback_data.split("_")[-1]
-
-    filters_manager = get_filters_manager()
-    user_filters = filters_manager.get_user_filters(user_id)
-    enabled_games_raw = user_filters.get("games", [])
-    enabled_games: list[str] = enabled_games_raw if isinstance(enabled_games_raw, list) else []
-
-    # Переключаем игру
-    if game_code in enabled_games:
-        enabled_games.remove(game_code)
-    else:
-        enabled_games.append(game_code)
-
-    user_filters["games"] = enabled_games
-    filters_manager.update_user_filters(user_id, user_filters)
-
-    # Обновляем отображение
-    await show_games_filter(update, context)
-
-
-@handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка при настройке прибыли", reraise=False
-)
-async def show_profit_filter(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-) -> None:
-    """Показать фильтр минимальной прибыли.
-
-    Args:
-        update: Объект Update
-        context: Контекст бота
-
-    """
-    query = update.callback_query
-    if not query or not update.effective_user:
-        return
-
-    await query.answer()
-    user_id = update.effective_user.id
-    filters_manager = get_filters_manager()
-    user_filters = filters_manager.get_user_filters(user_id)
-    current_profit = user_filters.get("min_profit_percent", 5.0)
-
-    message = (
-        "💰 *Фильтр минимальной прибыли*\n\n"
-        f"Текущее значение: *{current_profit}%*\n\n"
-        "Выберите порог прибыли для уведомлений:"
-    )
-
-    # Предустановленные значения
-    profit_values = [3.0, 5.0, 7.0, 10.0, 15.0, 20.0]
-
-    keyboard = []
-    for profit in profit_values:
-        if profit == current_profit:
-            button_text = f"✅ {profit}%"
-        else:
-            button_text = f"{profit}%"
-
-        keyboard.append(
-            [
-                InlineKeyboardButton(
-                    button_text,
-                    callback_data=f"{NOTIFY_FILTER}_profit_{profit}",
-                ),
-            ],
-        )
-
-    keyboard.append(
-        [
-            InlineKeyboardButton(
-                "⬅️ Назад",
-                callback_data=NOTIFY_FILTER,
-            ),
-        ],
-    )
-
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await query.edit_message_text(
-        text=message,
-        reply_markup=reply_markup,
-        parse_mode=ParseMode.MARKDOWN,
-    )
-
-
-@handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка при установке прибыли", reraise=False
-)
-async def set_profit_filter(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-) -> None:
-    """Установить минимальную прибыль.
-
-    Args:
-        update: Объект Update
-        context: Контекст бота
-
-    """
-    query = update.callback_query
-    if not query or not update.effective_user or not query.data:
-        return
-
-    await query.answer()
-    user_id = update.effective_user.id
-
-    # Получаем значение прибыли из callback_data
-    callback_data = query.data
-    if callback_data is None:
-        return
-    profit_value = float(callback_data.split("_")[-1])
-
-    filters_manager = get_filters_manager()
-    user_filters = filters_manager.get_user_filters(user_id)
-    user_filters["min_profit_percent"] = profit_value
-    filters_manager.update_user_filters(user_id, user_filters)
-
-    # Обновляем отображение
-    await show_profit_filter(update, context)
-
-
-@handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка при настройке уровней", reraise=False
-)
 async def show_levels_filter(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
-    """Показать фильтр уровней арбитража.
+    """Show arbitrage levels filter selection.
 
     Args:
-        update: Объект Update
-        context: Контекст бота
+        update: Telegram update object
+        context: Bot context
 
     """
-    query = update.callback_query
-    if not query or not update.effective_user:
-        return
-
-    await query.answer()
-    user_id = update.effective_user.id
-    filters_manager = get_filters_manager()
-    user_filters = filters_manager.get_user_filters(user_id)
-    enabled_levels_raw = user_filters.get("levels", [])
-    enabled_levels: list[str] = enabled_levels_raw if isinstance(enabled_levels_raw, list) else []
-
-    message = "📊 *Фильтр по уровням*\n\nВыберите уровни для уведомлений:"
-
-    keyboard = []
-    for level_code, level_name in ARBITRAGE_LEVELS.items():
-        if level_code in enabled_levels:
-            button_text = f"✅ {level_name}"
-        else:
-            button_text = f"⬜ {level_name}"
-
-        keyboard.append(
-            [
-                InlineKeyboardButton(
-                    button_text,
-                    callback_data=f"{NOTIFY_FILTER}_level_{level_code}",
-                ),
-            ],
-        )
-
-    keyboard.append(
-        [
-            InlineKeyboardButton(
-                "⬅️ Назад",
-                callback_data=NOTIFY_FILTER,
-            ),
-        ],
-    )
-
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await query.edit_message_text(
-        text=message,
-        reply_markup=reply_markup,
-        parse_mode=ParseMode.MARKDOWN,
+    await _show_filter_selection(
+        update=update,
+        filter_key="levels",
+        items=ARBITRAGE_LEVELS,
+        title="📊 *Фильтр по уровням*",
+        description="Выберите уровни для уведомлений:",
+        callback_prefix="level",
     )
 
 
-@handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка при переключении уровня", reraise=False
-)
-async def toggle_level_filter(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-) -> None:
-    """Переключить фильтр уровня.
-
-    Args:
-        update: Объект Update
-        context: Контекст бота
-
-    """
-    query = update.callback_query
-    if not query or not update.effective_user or not query.data:
-        return
-
-    await query.answer()
-    user_id = update.effective_user.id
-
-    # Получаем код уровня из callback_data
-    callback_data = query.data
-    if callback_data is None:
-        return
-    level_code = callback_data.split("_")[-1]
-
-    filters_manager = get_filters_manager()
-    user_filters = filters_manager.get_user_filters(user_id)
-    enabled_levels_raw = user_filters.get("levels", [])
-    enabled_levels: list[str] = enabled_levels_raw if isinstance(enabled_levels_raw, list) else []
-
-    # Переключаем уровень
-    if level_code in enabled_levels:
-        enabled_levels.remove(level_code)
-    else:
-        enabled_levels.append(level_code)
-
-    user_filters["levels"] = enabled_levels
-    filters_manager.update_user_filters(user_id, user_filters)
-
-    # Обновляем отображение
-    await show_levels_filter(update, context)
-
-
-@handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка при настройке типов", reraise=False
-)
 async def show_types_filter(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
-    """Показать фильтр типов уведомлений.
+    """Show notification types filter selection.
 
     Args:
-        update: Объект Update
-        context: Контекст бота
+        update: Telegram update object
+        context: Bot context
+
+    """
+    await _show_filter_selection(
+        update=update,
+        filter_key="notification_types",
+        items=NOTIFICATION_TYPES,
+        title="📢 *Фильтр по типам*",
+        description="Выберите типы уведомлений:",
+        callback_prefix="type",
+    )
+
+
+async def _show_filter_selection(
+    update: Update,
+    filter_key: str,
+    items: dict[str, str],
+    title: str,
+    description: str,
+    callback_prefix: str,
+) -> None:
+    """Generic handler for showing filter selection UI.
+
+    This function implements DRY principle for all filter handlers.
+
+    Args:
+        update: Telegram update object
+        filter_key: Key in user filters dict (e.g., 'games', 'levels')
+        items: Dict of {code: name} for filter items
+        title: Filter title with emoji
+        description: Filter description
+        callback_prefix: Prefix for callback data (e.g., 'game', 'level')
 
     """
     query = update.callback_query
@@ -590,37 +127,15 @@ async def show_types_filter(
         return
 
     await query.answer()
+
     user_id = update.effective_user.id
-    filters_manager = get_filters_manager()
-    user_filters = filters_manager.get_user_filters(user_id)
-    enabled_types_raw = user_filters.get("notification_types", [])
-    enabled_types: list[str] = enabled_types_raw if isinstance(enabled_types_raw, list) else []
+    enabled_items = _get_enabled_items(user_id, filter_key)
 
-    message = "📢 *Фильтр по типам*\n\nВыберите типы уведомлений:"
-
-    keyboard = []
-    for type_code, type_name in NOTIFICATION_TYPES.items():
-        if type_code in enabled_types:
-            button_text = f"✅ {type_name}"
-        else:
-            button_text = f"⬜ {type_name}"
-
-        keyboard.append(
-            [
-                InlineKeyboardButton(
-                    button_text,
-                    callback_data=f"{NOTIFY_FILTER}_type_{type_code}",
-                ),
-            ],
-        )
-
-    keyboard.append(
-        [
-            InlineKeyboardButton(
-                "⬅️ Назад",
-                callback_data=NOTIFY_FILTER,
-            ),
-        ],
+    message = f"{title}\n\n{description}"
+    keyboard = _build_filter_keyboard(
+        items=items,
+        enabled_items=enabled_items,
+        callback_prefix=callback_prefix,
     )
 
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -631,163 +146,66 @@ async def show_types_filter(
     )
 
 
-@handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка при переключении типа", reraise=False
-)
-async def toggle_type_filter(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-) -> None:
-    """Переключить фильтр типа уведомлений.
+def _get_enabled_items(user_id: int, filter_key: str) -> list[str]:
+    """Get list of enabled filter items for user.
 
     Args:
-        update: Объект Update
-        context: Контекст бота
+        user_id: Telegram user ID
+        filter_key: Filter key in user filters dict
+
+    Returns:
+        List of enabled item codes
 
     """
-    query = update.callback_query
-    if not query or not update.effective_user or not query.data:
-        return
-
-    await query.answer()
-    user_id = update.effective_user.id
-
-    # Получаем код типа из callback_data
-    callback_data = query.data
-    if callback_data is None:
-        return
-    type_code = callback_data.split("_")[-1]
-
     filters_manager = get_filters_manager()
     user_filters = filters_manager.get_user_filters(user_id)
-    enabled_types_raw = user_filters.get("notification_types", [])
-    enabled_types: list[str] = enabled_types_raw if isinstance(enabled_types_raw, list) else []
+    enabled_items_raw = user_filters.get(filter_key, [])
 
-    # Переключаем тип
-    if type_code in enabled_types:
-        enabled_types.remove(type_code)
-    else:
-        enabled_types.append(type_code)
+    if not isinstance(enabled_items_raw, list):
+        return []
 
-    user_filters["notification_types"] = enabled_types
-    filters_manager.update_user_filters(user_id, user_filters)
-
-    # Обновляем отображение
-    await show_types_filter(update, context)
+    return enabled_items_raw
 
 
-@handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка при сбросе фильтров", reraise=False
-)
-async def reset_filters(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-) -> None:
-    """Сбросить все фильтры к значениям по умолчанию.
+def _build_filter_keyboard(
+    items: dict[str, str],
+    enabled_items: list[str],
+    callback_prefix: str,
+) -> list[list[InlineKeyboardButton]]:
+    """Build inline keyboard for filter selection.
 
     Args:
-        update: Объект Update
-        context: Контекст бота
+        items: Dict of {code: name} for filter items
+        enabled_items: List of enabled item codes
+        callback_prefix: Prefix for callback data
+
+    Returns:
+        List of keyboard button rows
 
     """
-    query = update.callback_query
-    if not query or not update.effective_user:
-        return
+    keyboard = []
 
-    await query.answer("Фильтры сброшены к значениям по умолчанию")
-    user_id = update.effective_user.id
+    for item_code, item_name in items.items():
+        button_text = _get_button_text(item_name, item_code in enabled_items)
+        callback_data = f"{NOTIFY_FILTER}_{callback_prefix}_{item_code}"
 
-    filters_manager = get_filters_manager()
-    filters_manager.reset_user_filters(user_id)
+        keyboard.append([InlineKeyboardButton(button_text, callback_data=callback_data)])
 
-    # Обновляем отображение
-    await show_notification_filters(update, context)
+    keyboard.append([InlineKeyboardButton("⬅️ Назад", callback_data=NOTIFY_FILTER)])
+
+    return keyboard
 
 
-def register_notification_filter_handlers(
-    application: Application[Any, Any, Any, Any, Any, Any],
-) -> None:  # type: ignore[type-arg]
-    """Зарегистрировать обработчики фильтров уведомлений.
+def _get_button_text(item_name: str, is_enabled: bool) -> str:
+    """Get button text with checkbox emoji.
 
     Args:
-        application: Экземпляр Application
+        item_name: Display name of the item
+        is_enabled: Whether item is enabled
+
+    Returns:
+        Button text with checkbox emoji
 
     """
-    # Команда для открытия фильтров
-    application.add_handler(
-        CommandHandler("filters", show_notification_filters),
-    )
-
-    # Главное меню фильтров
-    application.add_handler(
-        CallbackQueryHandler(
-            show_notification_filters,
-            pattern=f"^{NOTIFY_FILTER}$",
-        ),
-    )
-
-    # Фильтр игр
-    application.add_handler(
-        CallbackQueryHandler(
-            show_games_filter,
-            pattern=f"^{NOTIFY_FILTER}_{NOTIFY_FILTER_GAMES}$",
-        ),
-    )
-    application.add_handler(
-        CallbackQueryHandler(
-            toggle_game_filter,
-            pattern=f"^{NOTIFY_FILTER}_game_",
-        ),
-    )
-
-    # Фильтр прибыли
-    application.add_handler(
-        CallbackQueryHandler(
-            show_profit_filter,
-            pattern=f"^{NOTIFY_FILTER}_{NOTIFY_FILTER_PROFIT}$",
-        ),
-    )
-    application.add_handler(
-        CallbackQueryHandler(
-            set_profit_filter,
-            pattern=f"^{NOTIFY_FILTER}_profit_",
-        ),
-    )
-
-    # Фильтр уровней
-    application.add_handler(
-        CallbackQueryHandler(
-            show_levels_filter,
-            pattern=f"^{NOTIFY_FILTER}_{NOTIFY_FILTER_LEVELS}$",
-        ),
-    )
-    application.add_handler(
-        CallbackQueryHandler(
-            toggle_level_filter,
-            pattern=f"^{NOTIFY_FILTER}_level_",
-        ),
-    )
-
-    # Фильтр типов
-    application.add_handler(
-        CallbackQueryHandler(
-            show_types_filter,
-            pattern=f"^{NOTIFY_FILTER}_{NOTIFY_FILTER_TYPES}$",
-        ),
-    )
-    application.add_handler(
-        CallbackQueryHandler(
-            toggle_type_filter,
-            pattern=f"^{NOTIFY_FILTER}_type_",
-        ),
-    )
-
-    # Сброс фильтров
-    application.add_handler(
-        CallbackQueryHandler(
-            reset_filters,
-            pattern=f"^{NOTIFY_FILTER}_{NOTIFY_FILTER_RESET}$",
-        ),
-    )
-
-    logger.info("Notification filter handlers registered")
+    checkbox = "✅" if is_enabled else "⬜"
+    return f"{checkbox} {item_name}"

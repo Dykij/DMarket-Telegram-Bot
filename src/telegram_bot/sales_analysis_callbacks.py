@@ -542,10 +542,7 @@ async def handle_setup_sales_filters_callback(
     # Извлекаем игру из callback_data
     # Формат: "setup_sales_filters:game"
     callback_data = query.data.split(":", 1) if query.data else []
-    if len(callback_data) < 2:
-        game = "csgo"  # По умолчанию
-    else:
-        game = callback_data[1]
+    game = "csgo" if len(callback_data) < 2 else callback_data[1]
 
     # Обновляем текущую игру в контексте пользователя
     user_data = getattr(context, "user_data", None)

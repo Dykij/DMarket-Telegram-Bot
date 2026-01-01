@@ -8,6 +8,8 @@ aiocache==0.12.3
     # via -r requirements.in
 aiofiles==25.1.0
     # via -r requirements.in
+apscheduler==3.11.2
+    # via -r requirements.in
 aiohappyeyeballs==2.6.1
     # via aiohttp
 aiohttp==3.13.2

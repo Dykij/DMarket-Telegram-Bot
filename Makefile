@@ -214,15 +214,15 @@ qa: check test-cov
 # ТЕСТИРОВАНИЕ
 # ============================================================================
 
-# Запуск тестов
+# Запуск тестов (через poetry для правильного окружения)
 test: $(VENV)
 	@echo Запуск тестов...
-	@$(VENV_PYTHON) -m pytest $(PYTEST_OPTS)
+	@poetry run pytest $(PYTEST_OPTS)
 
 # Тесты с покрытием кода
 test-cov: $(VENV)
 	@echo Запуск тестов с измерением покрытия...
-	@$(VENV_PYTHON) -m pytest $(PYTEST_COV_OPTS)
+	@poetry run pytest $(PYTEST_COV_OPTS)
 
 # Детальный отчет о покрытии
 coverage: test-cov
@@ -231,17 +231,27 @@ coverage: test-cov
 # Быстрые тесты (без покрытия)
 test-fast: $(VENV)
 	@echo Быстрые тесты...
-	@$(VENV_PYTHON) -m pytest -x --ff
+	@poetry run pytest -x --ff
+
+# E2E тесты
+test-e2e: $(VENV)
+	@echo E2E тесты...
+	@poetry run pytest tests/e2e/ -v -m e2e
+
+# Только юнит-тесты
+test-unit: $(VENV)
+	@echo Юнит-тесты...
+	@poetry run pytest tests/unit/ -v
 
 # Параллельные тесты (быстрее)
 test-parallel: $(VENV)
 	@echo Параллельные тесты...
-	@$(VENV_PYTHON) -m pytest -n auto $(PYTEST_OPTS)
+	@poetry run pytest -n auto $(PYTEST_OPTS)
 
 # Тесты для конкретного модуля
 test-module: $(VENV)
 	@echo Тесты модуля: $(MODULE)
-	@$(VENV_PYTHON) -m pytest tests/test_$(MODULE).py -v
+	@poetry run pytest tests/test_$(MODULE).py -v
 
 # ============================================================================
 # РАЗРАБОТКА

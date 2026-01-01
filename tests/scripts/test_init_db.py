@@ -7,8 +7,6 @@ Updated: 28 December 2025
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from scripts.init_db import (
     init_database,
     parse_args,

@@ -27,12 +27,12 @@ Example:
 """
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 from urllib.parse import quote, urlencode
 
 
-class EndpointCategory(str, Enum):
+class EndpointCategory(StrEnum):
     """Categories of DMarket API endpoints."""
 
     ACCOUNT = "account"
@@ -45,7 +45,7 @@ class EndpointCategory(str, Enum):
     GAME = "game"
 
 
-class HttpMethod(str, Enum):
+class HttpMethod(StrEnum):
     """HTTP methods used by DMarket API."""
 
     GET = "GET"
@@ -607,7 +607,7 @@ class Endpoints:
         from decimal import ROUND_HALF_UP, Decimal
         # Use Decimal for precise conversion
         price_decimal = Decimal(str(price_usd))
-        cents_decimal = (price_decimal * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        cents_decimal = (price_decimal * 100).quantize(Decimal(1), rounding=ROUND_HALF_UP)
         return int(cents_decimal)
 
     @classmethod

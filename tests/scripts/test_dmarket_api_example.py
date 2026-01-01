@@ -23,7 +23,6 @@ class TestGetApiKeys:
             },
         ):
             # Import inside test to avoid import errors
-            import importlib
             import sys
 
             # Clear cached module

@@ -7,17 +7,18 @@
 - Кэширование данных пользователя для снижения нагрузки на API
 """
 
+from collections.abc import Awaitable, Callable
 import json
 import logging
 import os
-import time
-from collections.abc import Awaitable, Callable
 from pathlib import Path
+import time
 from typing import Any, TypeVar
 
 from cryptography.fernet import Fernet
 from telegram import Update
 from telegram.ext import ContextTypes
+
 
 logger = logging.getLogger(__name__)
 

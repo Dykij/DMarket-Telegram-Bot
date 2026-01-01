@@ -4,9 +4,9 @@ This module provides database connection management, model definitions,
 and common database operations.
 """
 
-from datetime import UTC, datetime, timedelta
 import json
 import logging
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -19,13 +19,10 @@ from sqlalchemy.ext.asyncio import (
 )
 
 # Import all models to ensure they're registered with Base.metadata
-from src.models import (
-    MarketData,  # noqa: F401
-    User,
-)
+from src.models import MarketData  # noqa: F401
+from src.models import User
 from src.models.base import Base
 from src.utils.memory_cache import _user_cache, cached, get_all_cache_stats
-
 
 logger = logging.getLogger(__name__)
 
@@ -37,22 +34,28 @@ class DatabaseManager:
         self,
         database_url: str,
         echo: bool = False,
-        pool_size: int = 5,
+        pool_size: int = 20,
         max_overflow: int = 10,
+        pool_pre_ping: bool = True,
+        pool_recycle: int = 3600,
     ) -> None:
-        """Initialize database manager.
+        """Initialize database manager with optimized connection pooling.
 
         Args:
             database_url: Database connection URL
             echo: Whether to echo SQL queries
-            pool_size: Connection pool size
+            pool_size: Connection pool size (default: 20 for production)
             max_overflow: Maximum number of connections to overflow
+            pool_pre_ping: Test connections before using (detect stale connections)
+            pool_recycle: Recycle connections after N seconds (prevent timeout)
 
         """
         self.database_url = database_url
         self.echo = echo
         self.pool_size = pool_size
         self.max_overflow = max_overflow
+        self.pool_pre_ping = pool_pre_ping
+        self.pool_recycle = pool_recycle
         self._async_engine: AsyncEngine | None = None
         self._async_session_maker: async_sessionmaker[AsyncSession] | None = None
 
@@ -69,7 +72,8 @@ class DatabaseManager:
 
             kwargs: dict[str, Any] = {
                 "echo": self.echo,
-                "pool_pre_ping": True,
+                "pool_pre_ping": self.pool_pre_ping,
+                "pool_recycle": self.pool_recycle,
             }
 
             # Check for in-memory SQLite
@@ -693,15 +697,13 @@ class DatabaseManager:
             scans = []
             for row in result.fetchall():
                 params = json.loads(row[1]) if row[1] else {}
-                scans.append(
-                    {
-                        "command": row[0],
-                        "parameters": params,
-                        "created_at": row[2],
-                        "success": row[3],
-                        "execution_time_ms": row[4],
-                    }
-                )
+                scans.append({
+                    "command": row[0],
+                    "parameters": params,
+                    "created_at": row[2],
+                    "success": row[3],
+                    "execution_time_ms": row[4],
+                })
 
             return scans
 
@@ -740,20 +742,18 @@ class DatabaseManager:
         async with self.get_async_session() as session:
             values = []
             for item in items:
-                values.append(
-                    {
-                        "id": str(uuid4()),
-                        "item_id": item.get("item_id"),
-                        "game": item.get("game"),
-                        "item_name": item.get("item_name"),
-                        "price_usd": item.get("price_usd"),
-                        "price_change_24h": item.get("price_change_24h"),
-                        "volume_24h": item.get("volume_24h"),
-                        "market_cap": item.get("market_cap"),
-                        "data_source": item.get("data_source", "dmarket"),
-                        "created_at": datetime.now(UTC),
-                    }
-                )
+                values.append({
+                    "id": str(uuid4()),
+                    "item_id": item.get("item_id"),
+                    "game": item.get("game"),
+                    "item_name": item.get("item_name"),
+                    "price_usd": item.get("price_usd"),
+                    "price_change_24h": item.get("price_change_24h"),
+                    "volume_24h": item.get("volume_24h"),
+                    "market_cap": item.get("market_cap"),
+                    "data_source": item.get("data_source", "dmarket"),
+                    "created_at": datetime.now(UTC),
+                })
 
             # Batch insert
             await session.execute(

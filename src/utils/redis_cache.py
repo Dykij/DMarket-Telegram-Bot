@@ -9,7 +9,6 @@ from typing import Any, cast
 
 import orjson
 
-
 try:
     import redis.asyncio as aioredis
 
@@ -19,7 +18,6 @@ except ImportError:
     aioredis = None  # type: ignore[assignment]
 
 from src.utils.memory_cache import TTLCache
-
 
 logger = logging.getLogger(__name__)
 
@@ -41,17 +39,23 @@ class RedisCache:
         default_ttl: int = 300,
         fallback_to_memory: bool = True,
         max_memory_size: int = 1000,
+        max_connections: int = 50,
+        socket_keepalive: bool = True,
     ):
-        """Initialize Redis cache.
+        """Initialize Redis cache with optimized connection pooling.
 
         Args:
             redis_url: Redis connection URL (redis://localhost:6379/0)
             default_ttl: Default TTL in seconds (default: 300 = 5 minutes)
             fallback_to_memory: Use in-memory cache if Redis unavailable
+            max_connections: Maximum connections in pool (default: 50)
+            socket_keepalive: Enable TCP keepalive
             max_memory_size: Max size for fallback memory cache
         """
         self.redis_url = redis_url
         self.default_ttl = default_ttl
+        self.max_connections = max_connections
+        self.socket_keepalive = socket_keepalive
         self._redis: aioredis.Redis[bytes] | None = None
         self._connected = False
 
@@ -91,13 +95,24 @@ class RedisCache:
                 self.redis_url,
                 encoding="utf-8",
                 decode_responses=False,  # We'll handle encoding ourselves
+                max_connections=self.max_connections,
+                socket_keepalive=self.socket_keepalive,
+                socket_keepalive_options={
+                    1: 1,  # TCP_KEEPIDLE
+                    2: 1,  # TCP_KEEPINTVL
+                    3: 3,  # TCP_KEEPCNT
+                }
+                if self.socket_keepalive
+                else None,
             )
 
             # Test connection
             await self._redis.ping()
 
             self._connected = True
-            logger.info(f"Connected to Redis at {self.redis_url}")
+            logger.info(
+                f"Connected to Redis at {self.redis_url} (pool size: {self.max_connections})"
+            )
             return True
 
         except Exception:

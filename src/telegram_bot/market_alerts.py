@@ -20,6 +20,7 @@ from src.dmarket.market_analysis import (
     find_trending_items,
 )
 
+
 # Настройка логирования
 logger = logging.getLogger(__name__)
 

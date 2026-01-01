@@ -15,7 +15,6 @@ Test Coverage:
 - Network error handling
 """
 
-import asyncio
 import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -46,7 +45,9 @@ class TestPrepareCacheKey:
         path = "/market/items"
         params = {"game": "csgo", "limit": 100}
         data = {}
-        get_cache_key_fn = lambda m, p, prm, d: f"{m}:{p}:{str(prm)}"
+
+        def get_cache_key_fn(m, p, prm, d):
+            return f"{m}:{p}:{prm!s}"
 
         # Act
         result = _prepare_cache_key(method, path, params, data, get_cache_key_fn)
@@ -61,7 +62,9 @@ class TestPrepareCacheKey:
         path = "/market/buy"
         params = {}
         data = {"item_id": "123"}
-        get_cache_key_fn = lambda m, p, prm, d: f"{m}:{p}"
+
+        def get_cache_key_fn(m, p, prm, d):
+            return f"{m}:{p}"
 
         # Act
         result = _prepare_cache_key(method, path, params, data, get_cache_key_fn)
@@ -79,7 +82,9 @@ class TestTryGetCached:
         cache_key = "test_key"
         is_cacheable = True
         cached_data = {"result": "cached"}
-        get_from_cache_fn = lambda key: cached_data
+
+        def get_from_cache_fn(key):
+            return cached_data
         path = "/test"
 
         # Act
@@ -93,7 +98,9 @@ class TestTryGetCached:
         # Arrange
         cache_key = "test_key"
         is_cacheable = False
-        get_from_cache_fn = lambda key: {"data": "should_not_return"}
+
+        def get_from_cache_fn(key):
+            return {"data": "should_not_return"}
         path = "/test"
 
         # Act
@@ -107,7 +114,9 @@ class TestTryGetCached:
         # Arrange
         cache_key = "missing_key"
         is_cacheable = True
-        get_from_cache_fn = lambda key: None
+
+        def get_from_cache_fn(key):
+            return None
         path = "/test"
 
         # Act
@@ -162,7 +171,7 @@ class TestPrepareRequestBody:
 class TestExecuteHttpRequest:
     """Tests for _execute_http_request function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_http_request_get(self):
         """Test GET request execution."""
         # Arrange
@@ -175,14 +184,17 @@ class TestExecuteHttpRequest:
         mock_response = MagicMock(spec=httpx.Response)
         mock_response.status_code = 200
 
-        with patch("src.dmarket.dmarket_api_refactored.call_with_circuit_breaker", return_value=mock_response):
+        with patch(
+            "src.dmarket.dmarket_api_refactored.call_with_circuit_breaker",
+            return_value=mock_response,
+        ):
             # Act
             result = await _execute_http_request(method, url, client, headers, params)
 
             # Assert
             assert result == mock_response
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_http_request_post(self):
         """Test POST request execution."""
         # Arrange
@@ -194,14 +206,17 @@ class TestExecuteHttpRequest:
 
         mock_response = MagicMock(spec=httpx.Response)
 
-        with patch("src.dmarket.dmarket_api_refactored.call_with_circuit_breaker", return_value=mock_response):
+        with patch(
+            "src.dmarket.dmarket_api_refactored.call_with_circuit_breaker",
+            return_value=mock_response,
+        ):
             # Act
             result = await _execute_http_request(method, url, client, headers, data=data)
 
             # Assert
             assert result == mock_response
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_execute_http_request_unsupported_method_raises_error(self):
         """Test unsupported HTTP method raises ValueError."""
         # Arrange
@@ -366,7 +381,7 @@ class TestShouldReturnErrorData:
 class TestHandleHttpStatusError:
     """Tests for _handle_http_status_error function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_http_status_error_retryable(self):
         """Test handling of retryable HTTP errors."""
         # Arrange
@@ -387,7 +402,7 @@ class TestHandleHttpStatusError:
         assert new_delay == 10.0
         assert exception is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_http_status_error_non_retryable(self):
         """Test handling of non-retryable HTTP errors."""
         # Arrange
@@ -400,7 +415,7 @@ class TestHandleHttpStatusError:
         error = httpx.HTTPStatusError("Forbidden", request=MagicMock(), response=response)
 
         # Act
-        should_retry, new_delay, exception = await _handle_http_status_error(
+        should_retry, _new_delay, exception = await _handle_http_status_error(
             error, "GET", "/market/items", 0, 3, time.time(), {429, 500}, {403: "Forbidden"}, 1.0
         )
 
@@ -413,31 +428,27 @@ class TestHandleHttpStatusError:
 class TestHandleNetworkError:
     """Tests for _handle_network_error function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_network_error(self):
         """Test handling of network errors."""
         # Arrange
         error = httpx.ConnectError("Connection failed")
 
         # Act
-        should_retry, new_delay = await _handle_network_error(
-            error, "GET", "/market/items", 1, 2.0
-        )
+        should_retry, new_delay = await _handle_network_error(error, "GET", "/market/items", 1, 2.0)
 
         # Assert
         assert should_retry is True
         assert new_delay == 3.0  # 2.0 * 1.5
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_network_error_max_delay(self):
         """Test max delay cap for network errors."""
         # Arrange
         error = httpx.ReadError("Read timeout")
 
         # Act
-        should_retry, new_delay = await _handle_network_error(
-            error, "GET", "/market/items", 5, 8.0
-        )
+        should_retry, new_delay = await _handle_network_error(error, "GET", "/market/items", 5, 8.0)
 
         # Assert
         assert should_retry is True
@@ -448,24 +459,22 @@ class TestHandleNetworkError:
 # Integration Test for _request_refactored
 # ============================================================================
 
+
 class TestRequestRefactoredIntegration:
     """Integration tests for the complete refactored _request function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_request_refactored_success_flow(self):
         """Test successful request flow end-to-end."""
         # This would require mocking DMarketAPI instance
         # Placeholder for future implementation
-        pass
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_request_refactored_cache_hit(self):
         """Test cache hit returns cached data."""
         # Placeholder for future implementation
-        pass
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_request_refactored_retry_on_rate_limit(self):
         """Test retry logic for rate limit errors."""
         # Placeholder for future implementation
-        pass

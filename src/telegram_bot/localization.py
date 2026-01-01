@@ -311,3 +311,39 @@ LOCALIZATIONS = {
         "previous_page": "⬅️ Zurück",
     },
 }
+
+
+def get_localized_text(key: str, lang: str = "en", **kwargs) -> str:
+    """Get localized text by key.
+
+    Args:
+        key: Text key to retrieve
+        lang: Language code (default: "en")
+        **kwargs: Format parameters for string interpolation
+
+    Returns:
+        Localized and formatted text
+
+    Example:
+        >>> get_localized_text("welcome", lang="en", user="Alice")
+        "Hello, Alice! 👋..."
+    """
+    # Fallback to English if language not found
+    if lang not in LOCALIZATIONS:
+        lang = "en"
+
+    # Get text from localizations
+    text = LOCALIZATIONS.get(lang, {}).get(key)
+
+    # Fallback to English if key not found in selected language
+    if text is None:
+        text = LOCALIZATIONS.get("en", {}).get(key, key)
+
+    # Format with provided kwargs
+    if kwargs:
+        try:
+            return text.format(**kwargs)
+        except (KeyError, ValueError):
+            return text
+
+    return text
