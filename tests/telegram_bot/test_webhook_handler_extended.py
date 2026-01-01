@@ -134,7 +134,9 @@ class TestWebhookHandlerSetup:
 
         # Check routes are registered
         routes = list(webhook_handler._app.router.routes())
-        paths = [r.resource.canonical if hasattr(r, "resource") else str(r) for r in routes]
+        paths = [
+            r.resource.canonical if hasattr(r, "resource") else str(r) for r in routes
+        ]
 
         # At least 4 routes should exist
         assert len(routes) >= 4
@@ -428,7 +430,9 @@ class TestWebhookFailoverModes:
     @pytest.mark.asyncio()
     async def test_try_webhook_mode_failure(self, webhook_failover):
         """Test failed webhook mode setup."""
-        webhook_failover.webhook_handler.start = AsyncMock(side_effect=Exception("Start failed"))
+        webhook_failover.webhook_handler.start = AsyncMock(
+            side_effect=Exception("Start failed")
+        )
         webhook_failover.webhook_handler.is_running = False
         webhook_failover.webhook_handler.stop = AsyncMock()
 

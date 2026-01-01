@@ -106,7 +106,9 @@ class TestDMarketStatusEdgeCases:
         mock_update.message = None
 
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
         ):
             mock_profile.return_value = {}
 
@@ -119,9 +121,13 @@ class TestDMarketStatusEdgeCases:
     ):
         """Test with provided status_message skips creating new message."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
 
@@ -129,7 +135,11 @@ class TestDMarketStatusEdgeCases:
             api_instance._close_client = AsyncMock()
             mock_api.return_value = api_instance
 
-            mock_balance.return_value = {"error": False, "balance": 100.0, "has_funds": True}
+            mock_balance.return_value = {
+                "error": False,
+                "balance": 100.0,
+                "has_funds": True,
+            }
 
             await dmarket_status_impl(
                 mock_update, mock_context, status_message=mock_status_message
@@ -151,10 +161,16 @@ class TestDMarketStatusBalanceEdgeCases:
     async def test_zero_balance(self, mock_update, mock_context):
         """Test display with zero balance."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -167,7 +183,11 @@ class TestDMarketStatusBalanceEdgeCases:
             api_instance._close_client = AsyncMock()
             mock_api.return_value = api_instance
 
-            mock_balance.return_value = {"error": False, "balance": 0.0, "has_funds": False}
+            mock_balance.return_value = {
+                "error": False,
+                "balance": 0.0,
+                "has_funds": False,
+            }
 
             await dmarket_status_impl(mock_update, mock_context)
 
@@ -180,10 +200,16 @@ class TestDMarketStatusBalanceEdgeCases:
     async def test_large_balance(self, mock_update, mock_context):
         """Test display with large balance value."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -212,11 +238,17 @@ class TestDMarketStatusBalanceEdgeCases:
     async def test_balance_without_keys(self, mock_update, mock_context):
         """Test balance display when keys are empty."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("os.getenv") as mock_getenv,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {}
             mock_text.return_value = "Checking..."
@@ -230,7 +262,11 @@ class TestDMarketStatusBalanceEdgeCases:
             api_instance._close_client = AsyncMock()
             mock_api.return_value = api_instance
 
-            mock_balance.return_value = {"error": False, "balance": 0, "has_funds": False}
+            mock_balance.return_value = {
+                "error": False,
+                "balance": 0,
+                "has_funds": False,
+            }
 
             await dmarket_status_impl(mock_update, mock_context)
 
@@ -245,13 +281,21 @@ class TestDMarketStatusErrorMessages:
     """Tests for error message handling."""
 
     @pytest.mark.asyncio()
-    async def test_balance_error_with_unauthorized_message(self, mock_update, mock_context):
+    async def test_balance_error_with_unauthorized_message(
+        self, mock_update, mock_context
+    ):
         """Test error when balance returns unauthorized error."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -276,13 +320,21 @@ class TestDMarketStatusErrorMessages:
             assert "❌" in call_text
 
     @pytest.mark.asyncio()
-    async def test_balance_error_with_generic_error_message(self, mock_update, mock_context):
+    async def test_balance_error_with_generic_error_message(
+        self, mock_update, mock_context
+    ):
         """Test error when balance returns generic error."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -310,10 +362,16 @@ class TestDMarketStatusErrorMessages:
     async def test_api_error_500(self, mock_update, mock_context):
         """Test handling of 500 server error."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -326,7 +384,9 @@ class TestDMarketStatusErrorMessages:
             api_instance._close_client = AsyncMock()
             mock_api.return_value = api_instance
 
-            mock_balance.side_effect = APIError("Internal Server Error", status_code=500)
+            mock_balance.side_effect = APIError(
+                "Internal Server Error", status_code=500
+            )
 
             await dmarket_status_impl(mock_update, mock_context)
 
@@ -338,10 +398,16 @@ class TestDMarketStatusErrorMessages:
     async def test_api_error_429_rate_limit(self, mock_update, mock_context):
         """Test handling of 429 rate limit error."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -372,12 +438,21 @@ class TestDMarketStatusTroubleshooting:
     async def test_troubleshooting_shown_on_auth_error(self, mock_update, mock_context):
         """Test that troubleshooting is shown on auth error."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
-            mock_profile.return_value = {"api_key": "bad_key", "api_secret": "bad_secret"}
+            mock_profile.return_value = {
+                "api_key": "bad_key",
+                "api_secret": "bad_secret",
+            }
             mock_text.return_value = "Checking..."
 
             status_msg = AsyncMock(spec=Message)
@@ -399,10 +474,16 @@ class TestDMarketStatusTroubleshooting:
     async def test_no_troubleshooting_on_success(self, mock_update, mock_context):
         """Test that troubleshooting is not shown on success."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -415,7 +496,11 @@ class TestDMarketStatusTroubleshooting:
             api_instance._close_client = AsyncMock()
             mock_api.return_value = api_instance
 
-            mock_balance.return_value = {"error": False, "balance": 100.0, "has_funds": True}
+            mock_balance.return_value = {
+                "error": False,
+                "balance": 100.0,
+                "has_funds": True,
+            }
 
             await dmarket_status_impl(mock_update, mock_context)
 
@@ -434,10 +519,16 @@ class TestDMarketStatusParseMode:
     async def test_html_parse_mode_used(self, mock_update, mock_context):
         """Test that HTML parse mode is used in final message."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -450,7 +541,11 @@ class TestDMarketStatusParseMode:
             api_instance._close_client = AsyncMock()
             mock_api.return_value = api_instance
 
-            mock_balance.return_value = {"error": False, "balance": 100.0, "has_funds": True}
+            mock_balance.return_value = {
+                "error": False,
+                "balance": 100.0,
+                "has_funds": True,
+            }
 
             await dmarket_status_impl(mock_update, mock_context)
 
@@ -461,10 +556,16 @@ class TestDMarketStatusParseMode:
     async def test_html_tags_in_message(self, mock_update, mock_context):
         """Test that HTML tags are present in the message."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -477,7 +578,11 @@ class TestDMarketStatusParseMode:
             api_instance._close_client = AsyncMock()
             mock_api.return_value = api_instance
 
-            mock_balance.return_value = {"error": False, "balance": 100.0, "has_funds": True}
+            mock_balance.return_value = {
+                "error": False,
+                "balance": 100.0,
+                "has_funds": True,
+            }
 
             await dmarket_status_impl(mock_update, mock_context)
 
@@ -499,10 +604,16 @@ class TestDMarketStatusChatActions:
     async def test_typing_action_sent(self, mock_update, mock_context):
         """Test that TYPING action is sent initially."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -515,7 +626,11 @@ class TestDMarketStatusChatActions:
             api_instance._close_client = AsyncMock()
             mock_api.return_value = api_instance
 
-            mock_balance.return_value = {"error": False, "balance": 100.0, "has_funds": True}
+            mock_balance.return_value = {
+                "error": False,
+                "balance": 100.0,
+                "has_funds": True,
+            }
 
             await dmarket_status_impl(mock_update, mock_context)
 
@@ -528,10 +643,16 @@ class TestDMarketStatusChatActions:
     async def test_upload_document_action_sent(self, mock_update, mock_context):
         """Test that UPLOAD_DOCUMENT action is sent."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -544,7 +665,11 @@ class TestDMarketStatusChatActions:
             api_instance._close_client = AsyncMock()
             mock_api.return_value = api_instance
 
-            mock_balance.return_value = {"error": False, "balance": 100.0, "has_funds": True}
+            mock_balance.return_value = {
+                "error": False,
+                "balance": 100.0,
+                "has_funds": True,
+            }
 
             await dmarket_status_impl(mock_update, mock_context)
 
@@ -560,14 +685,22 @@ class TestDMarketStatusAuthSource:
     """Tests for auth source display in messages."""
 
     @pytest.mark.asyncio()
-    async def test_env_source_shown_when_using_env_keys(self, mock_update, mock_context):
+    async def test_env_source_shown_when_using_env_keys(
+        self, mock_update, mock_context
+    ):
         """Test that env source is indicated when using environment keys."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("os.getenv") as mock_getenv,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {}
             mock_text.return_value = "Checking..."
@@ -587,7 +720,11 @@ class TestDMarketStatusAuthSource:
             api_instance._close_client = AsyncMock()
             mock_api.return_value = api_instance
 
-            mock_balance.return_value = {"error": False, "balance": 50.0, "has_funds": True}
+            mock_balance.return_value = {
+                "error": False,
+                "balance": 50.0,
+                "has_funds": True,
+            }
 
             await dmarket_status_impl(mock_update, mock_context)
 
@@ -596,15 +733,26 @@ class TestDMarketStatusAuthSource:
             assert "переменных окружения" in call_text.lower()
 
     @pytest.mark.asyncio()
-    async def test_no_env_source_when_using_profile_keys(self, mock_update, mock_context):
+    async def test_no_env_source_when_using_profile_keys(
+        self, mock_update, mock_context
+    ):
         """Test that env source is NOT shown when using profile keys."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
-            mock_profile.return_value = {"api_key": "profile_key", "api_secret": "profile_secret"}
+            mock_profile.return_value = {
+                "api_key": "profile_key",
+                "api_secret": "profile_secret",
+            }
             mock_text.return_value = "Checking..."
 
             status_msg = AsyncMock(spec=Message)
@@ -615,7 +763,11 @@ class TestDMarketStatusAuthSource:
             api_instance._close_client = AsyncMock()
             mock_api.return_value = api_instance
 
-            mock_balance.return_value = {"error": False, "balance": 100.0, "has_funds": True}
+            mock_balance.return_value = {
+                "error": False,
+                "balance": 100.0,
+                "has_funds": True,
+            }
 
             await dmarket_status_impl(mock_update, mock_context)
 

@@ -76,7 +76,9 @@ class TestGetBuyOrdersCompetition:
     """Тесты метода get_buy_orders_competition."""
 
     @pytest.mark.asyncio()
-    async def test_low_competition_detection(self, mock_dmarket_api, sample_orders_response_low):
+    async def test_low_competition_detection(
+        self, mock_dmarket_api, sample_orders_response_low
+    ):
         """Тест определения низкой конкуренции."""
         # Arrange
         mock_dmarket_api.get_targets_by_title.return_value = sample_orders_response_low
@@ -102,7 +104,9 @@ class TestGetBuyOrdersCompetition:
         assert result["average_price"] == 8.35  # (8.50 + 8.20) / 2
 
     @pytest.mark.asyncio()
-    async def test_high_competition_detection(self, mock_dmarket_api, sample_orders_response_high):
+    async def test_high_competition_detection(
+        self, mock_dmarket_api, sample_orders_response_high
+    ):
         """Тест определения высокой конкуренции."""
         # Arrange
         mock_dmarket_api.get_targets_by_title.return_value = sample_orders_response_high
@@ -127,7 +131,9 @@ class TestGetBuyOrdersCompetition:
     async def test_no_competition(self, mock_dmarket_api, sample_orders_response_empty):
         """Тест при отсутствии конкуренции."""
         # Arrange
-        mock_dmarket_api.get_targets_by_title.return_value = sample_orders_response_empty
+        mock_dmarket_api.get_targets_by_title.return_value = (
+            sample_orders_response_empty
+        )
 
         api = DMarketAPI(
             public_key="test_key",

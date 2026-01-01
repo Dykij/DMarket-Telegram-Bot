@@ -94,7 +94,10 @@ async def test_handle_sales_analysis_success(
     assert "5.20" in message_text  # Продаж в день
 
     # Проверяем наличие информации о последних продажах
-    assert "Последние продажи" in message_text or "последние продажи" in message_text.lower()
+    assert (
+        "Последние продажи" in message_text
+        or "последние продажи" in message_text.lower()
+    )
     assert "2023-01-01" in message_text
     assert "$95.00" in message_text
 
@@ -303,7 +306,9 @@ async def test_handle_arbitrage_with_sales_no_opportunities(
 
 @pytest.mark.asyncio()
 @patch("src.telegram_bot.handlers.sales_analysis_handlers.analyze_item_liquidity")
-async def test_handle_liquidity_analysis(mock_analyze_item_liquidity, mock_update, mock_context):
+async def test_handle_liquidity_analysis(
+    mock_analyze_item_liquidity, mock_update, mock_context
+):
     """Тестирует обработку запроса на анализ ликвидности предмета."""
     # Настройка текста команды
     mock_update.message.text = "/liquidity AWP | Asiimov (Field-Tested)"
@@ -351,7 +356,10 @@ async def test_handle_liquidity_analysis(mock_analyze_item_liquidity, mock_updat
         message_text = ""
 
     # Проверяем, что в тексте содержится нужная информация (с учетом HTML-форматирования)
-    assert "Анализ ликвидности" in message_text or "анализ ликвидности" in message_text.lower()
+    assert (
+        "Анализ ликвидности" in message_text
+        or "анализ ликвидности" in message_text.lower()
+    )
     assert "AWP | Asiimov (Field-Tested)" in message_text
     assert "Высокая" in message_text  # Категория ликвидности
     assert "6/7" in message_text  # Оценка
@@ -360,7 +368,9 @@ async def test_handle_liquidity_analysis(mock_analyze_item_liquidity, mock_updat
 
 @pytest.mark.asyncio()
 @patch("src.telegram_bot.handlers.sales_analysis_handlers.get_sales_volume_stats")
-async def test_handle_sales_volume_stats(mock_get_sales_volume_stats, mock_update, mock_context):
+async def test_handle_sales_volume_stats(
+    mock_get_sales_volume_stats, mock_update, mock_context
+):
     """Тестирует обработку запроса на статистику объемов продаж."""
     # Настройка мока для reply_text
     reply_message = MagicMock()

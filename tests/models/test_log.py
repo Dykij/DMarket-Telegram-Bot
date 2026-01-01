@@ -208,7 +208,9 @@ class TestAnalyticsEventModel:
         user_id = uuid4()
 
         events = []
-        for i, event_type in enumerate(["session_start", "page_view", "action", "session_end"]):
+        for i, event_type in enumerate(
+            ["session_start", "page_view", "action", "session_end"]
+        ):
             event = MagicMock()
             event.user_id = user_id
             event.session_id = session_id

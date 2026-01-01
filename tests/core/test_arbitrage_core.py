@@ -88,7 +88,9 @@ class TestArbitrageLevelsConstants:
 
         for level_name, level_config in ARBITRAGE_LEVELS.items():
             for field in required_fields:
-                assert field in level_config, f"Level {level_name} missing field {field}"
+                assert (
+                    field in level_config
+                ), f"Level {level_name} missing field {field}"
 
     def test_profit_percentages_ascending(self):
         """Тест что процент прибыли возрастает с уровнем."""
@@ -98,7 +100,9 @@ class TestArbitrageLevelsConstants:
             current_level = ARBITRAGE_LEVELS[levels_order[i]]
             next_level = ARBITRAGE_LEVELS[levels_order[i + 1]]
 
-            assert current_level["min_profit_percent"] <= next_level["min_profit_percent"]
+            assert (
+                current_level["min_profit_percent"] <= next_level["min_profit_percent"]
+            )
 
 
 class TestGameIDsConstants:
@@ -193,7 +197,9 @@ class TestArbitrageScannerFiltering:
         # Фильтрация по диапазону 10-20
         price_range = (10.0, 20.0)
         filtered = [
-            opp for opp in opportunities if price_range[0] <= opp["buy_price"] <= price_range[1]
+            opp
+            for opp in opportunities
+            if price_range[0] <= opp["buy_price"] <= price_range[1]
         ]
 
         assert len(filtered) == 1

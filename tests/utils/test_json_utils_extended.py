@@ -38,12 +38,8 @@ class TestJsonDumps:
     def test_dumps_nested_dict(self):
         """Test serializing nested structures."""
         data = {
-            "level1": {
-                "level2": {
-                    "value": "deep"
-                }
-            },
-            "list": [1, 2, {"nested": True}]
+            "level1": {"level2": {"value": "deep"}},
+            "list": [1, 2, {"nested": True}],
         }
         result = json_utils.dumps(data)
 

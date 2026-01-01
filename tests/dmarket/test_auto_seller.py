@@ -161,7 +161,9 @@ class TestScheduledSale:
         assert profit == 0.0
         assert profit_percent == 0.0
 
-    def test_calculate_profit_uses_current_price(self, sample_sale: ScheduledSale) -> None:
+    def test_calculate_profit_uses_current_price(
+        self, sample_sale: ScheduledSale
+    ) -> None:
         """Test that calculate_profit uses current_price when no sale_price given."""
         sample_sale.current_price = 12.00
         profit, profit_percent = sample_sale.calculate_profit()
@@ -205,7 +207,9 @@ class TestAutoSellerInit:
         assert seller.scheduled_sales == {}
         assert seller._running is False
 
-    def test_init_with_custom_config(self, mock_api: AsyncMock, sale_config: SaleConfig) -> None:
+    def test_init_with_custom_config(
+        self, mock_api: AsyncMock, sale_config: SaleConfig
+    ) -> None:
         """Test initialization with custom config."""
         seller = AutoSeller(api=mock_api, config=sale_config)
 
@@ -238,7 +242,9 @@ class TestAutoSellerScheduling:
         assert sale.status == SaleStatus.LISTED
 
     @pytest.mark.asyncio()
-    async def test_schedule_sale_with_custom_margin(self, auto_seller: AutoSeller) -> None:
+    async def test_schedule_sale_with_custom_margin(
+        self, auto_seller: AutoSeller
+    ) -> None:
         """Test scheduling with custom target margin."""
         sale = await auto_seller.schedule_sale(
             item_id="item_456",
@@ -494,7 +500,9 @@ class TestAutoSellerSaleManagement:
         # No API call for pending items
         auto_seller.api.remove_offers.assert_not_called()
 
-    def test_mark_sold(self, auto_seller: AutoSeller, sample_sale: ScheduledSale) -> None:
+    def test_mark_sold(
+        self, auto_seller: AutoSeller, sample_sale: ScheduledSale
+    ) -> None:
         """Test marking an item as sold."""
         sample_sale.status = SaleStatus.LISTED
         auto_seller.scheduled_sales[sample_sale.item_id] = sample_sale
@@ -557,7 +565,9 @@ class TestAutoSellerStatistics:
         assert stats["sold_count"] == 1
         assert stats["total_profit"] == 1.50
 
-    def test_get_active_sales(self, auto_seller: AutoSeller, sample_sale: ScheduledSale) -> None:
+    def test_get_active_sales(
+        self, auto_seller: AutoSeller, sample_sale: ScheduledSale
+    ) -> None:
         """Test getting active sales list."""
         sample_sale.status = SaleStatus.LISTED
         sample_sale.current_price = 11.50
@@ -591,7 +601,9 @@ class TestAutoSellerPriceMonitor:
         assert auto_seller._monitor_task is None
 
     @pytest.mark.asyncio()
-    async def test_start_price_monitor_idempotent(self, auto_seller: AutoSeller) -> None:
+    async def test_start_price_monitor_idempotent(
+        self, auto_seller: AutoSeller
+    ) -> None:
         """Test that starting multiple times doesn't create multiple tasks."""
         await auto_seller.start_price_monitor()
         task1 = auto_seller._monitor_task

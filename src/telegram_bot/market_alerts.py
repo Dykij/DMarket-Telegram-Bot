@@ -209,7 +209,9 @@ class MarketAlertsManager:
 
                 for item in price_changes:
                     # Создаем уникальный идентификатор для уведомления
-                    item_id = f"{item['market_hash_name']}_{int(item['change_percent'])}"
+                    item_id = (
+                        f"{item['market_hash_name']}_{int(item['change_percent'])}"
+                    )
 
                     # Пропускаем, если уведомление уже было отправлено
                     if item_id in self.sent_alerts["price_changes"][user_id]:
@@ -286,7 +288,8 @@ class MarketAlertsManager:
             trending_items = [
                 item
                 for item in trending_items
-                if item.get("popularity_score", 0) >= self.alert_thresholds["trending_popularity"]
+                if item.get("popularity_score", 0)
+                >= self.alert_thresholds["trending_popularity"]
             ]
 
             if not trending_items:
@@ -303,7 +306,9 @@ class MarketAlertsManager:
 
                 for item in trending_items:
                     # Создаем уникальный идентификатор для уведомления
-                    item_id = f"{item['market_hash_name']}_{int(item['popularity_score'])}"
+                    item_id = (
+                        f"{item['market_hash_name']}_{int(item['popularity_score'])}"
+                    )
 
                     # Пропускаем, если уведомление уже было отправлено
                     if item_id in self.sent_alerts["trending"][user_id]:
@@ -376,7 +381,8 @@ class MarketAlertsManager:
             volatile_items = [
                 item
                 for item in volatile_items
-                if item.get("volatility_score", 0) >= self.alert_thresholds["volatility_threshold"]
+                if item.get("volatility_score", 0)
+                >= self.alert_thresholds["volatility_threshold"]
             ]
 
             if not volatile_items:
@@ -400,7 +406,9 @@ class MarketAlertsManager:
                     f"{i}. {name} - ${price:.2f} (волатильность: {volatility:.1f})\n"
                 )
 
-            market_update_message += "\nДля получения полного отчета используйте /market_analysis"
+            market_update_message += (
+                "\nДля получения полного отчета используйте /market_analysis"
+            )
 
             # Отправляем уведомления подписчикам
             for user_id in self.subscribers["volatility"]:
@@ -610,7 +618,9 @@ class MarketAlertsManager:
 
         """
         return [
-            alert_type for alert_type in self.subscribers if user_id in self.subscribers[alert_type]
+            alert_type
+            for alert_type in self.subscribers
+            if user_id in self.subscribers[alert_type]
         ]
 
     def get_subscription_count(self, alert_type: str | None = None) -> int:

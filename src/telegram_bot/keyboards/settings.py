@@ -21,7 +21,9 @@ def get_settings_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
         [
             InlineKeyboardButton(text="🌐 Язык", callback_data="settings_language"),
-            InlineKeyboardButton(text="🔔 Уведомления", callback_data="settings_notify"),
+            InlineKeyboardButton(
+                text="🔔 Уведомления", callback_data="settings_notify"
+            ),
         ],
         [
             InlineKeyboardButton(text="🔑 API ключи", callback_data="settings_api"),
@@ -57,7 +59,9 @@ def create_settings_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
         [
             InlineKeyboardButton(text="🌐 Язык", callback_data="set_language"),
-            InlineKeyboardButton(text="🔔 Уведомления", callback_data="set_notifications"),
+            InlineKeyboardButton(
+                text="🔔 Уведомления", callback_data="set_notifications"
+            ),
         ],
         [
             InlineKeyboardButton(text="🔑 API", callback_data="set_api"),

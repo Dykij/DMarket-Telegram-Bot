@@ -369,20 +369,14 @@ class TestReactiveDMarketWebSocketInitPhase4:
     def test_websocket_custom_reconnect_attempts(self):
         """Test custom max_reconnect_attempts."""
         mock_api = MagicMock()
-        ws = ReactiveDMarketWebSocket(
-            api_client=mock_api,
-            max_reconnect_attempts=20
-        )
+        ws = ReactiveDMarketWebSocket(api_client=mock_api, max_reconnect_attempts=20)
 
         assert ws.max_reconnect_attempts == 20
 
     def test_websocket_disable_auto_reconnect(self):
         """Test disabling auto_reconnect."""
         mock_api = MagicMock()
-        ws = ReactiveDMarketWebSocket(
-            api_client=mock_api,
-            auto_reconnect=False
-        )
+        ws = ReactiveDMarketWebSocket(api_client=mock_api, auto_reconnect=False)
 
         assert ws.auto_reconnect is False
 
@@ -653,11 +647,9 @@ class TestReactiveDMarketWebSocketHandleMessagePhase4:
         sub = Subscription(topic="test:topic")
         ws.subscriptions["test:topic"] = sub
 
-        message = json.dumps({
-            "type": "balance:update",
-            "topic": "test:topic",
-            "data": {}
-        })
+        message = json.dumps(
+            {"type": "balance:update", "topic": "test:topic", "data": {}}
+        )
         await ws._handle_message(message)
 
         assert sub.event_count == 1
@@ -1047,11 +1039,9 @@ class TestReactiveDMarketWebSocketIntegration:
         assert sub.state == SubscriptionState.ACTIVE
 
         # Receive message
-        message = json.dumps({
-            "type": "balance:update",
-            "topic": "test:topic",
-            "data": {"amount": 100}
-        })
+        message = json.dumps(
+            {"type": "balance:update", "topic": "test:topic", "data": {"amount": 100}}
+        )
         await ws._handle_message(message)
         assert sub.event_count == 1
 
@@ -1084,16 +1074,14 @@ class TestReactiveDMarketWebSocketIntegration:
         ws.all_events.subscribe_async(all_observer)
 
         # Send balance update
-        await ws._handle_message(json.dumps({
-            "type": "balance:update",
-            "data": {"amount": 100}
-        }))
+        await ws._handle_message(
+            json.dumps({"type": "balance:update", "data": {"amount": 100}})
+        )
 
         # Send order created
-        await ws._handle_message(json.dumps({
-            "type": "order:created",
-            "data": {"orderId": "123"}
-        }))
+        await ws._handle_message(
+            json.dumps({"type": "order:created", "data": {"orderId": "123"}})
+        )
 
         assert len(balance_events) == 1
         assert len(order_events) == 1

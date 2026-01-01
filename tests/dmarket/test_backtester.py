@@ -201,10 +201,14 @@ class TestHistoricalDataSet:
         time2 = datetime.now(UTC) - timedelta(hours=1)
 
         dataset.add_price(
-            PricePoint(timestamp=time1, item_id="item_001", item_name="Test", price=10.0)
+            PricePoint(
+                timestamp=time1, item_id="item_001", item_name="Test", price=10.0
+            )
         )
         dataset.add_price(
-            PricePoint(timestamp=time2, item_id="item_001", item_name="Test", price=11.0)
+            PricePoint(
+                timestamp=time2, item_id="item_001", item_name="Test", price=11.0
+            )
         )
 
         assert len(dataset.prices) == 2
@@ -296,7 +300,9 @@ class TestSimpleArbitrageStrategy:
 
     def test_evaluate_hold_insufficient_balance(self):
         """Test hold when balance is insufficient."""
-        strategy = SimpleArbitrageStrategy(buy_threshold_percent=5.0, lookback_periods=5)
+        strategy = SimpleArbitrageStrategy(
+            buy_threshold_percent=5.0, lookback_periods=5
+        )
 
         history = [
             PricePoint(
@@ -653,7 +659,9 @@ class TestBacktesterMetrics:
 
     def test_max_drawdown_no_drawdown(self, backtester):
         """Test max drawdown when equity only rises."""
-        equity_curve = [(datetime.now(UTC) - timedelta(hours=i), 1000.0 + i * 10) for i in range(5)]
+        equity_curve = [
+            (datetime.now(UTC) - timedelta(hours=i), 1000.0 + i * 10) for i in range(5)
+        ]
 
         max_dd = backtester._calculate_max_drawdown(equity_curve)
 
@@ -663,7 +671,9 @@ class TestBacktesterMetrics:
         """Test Sharpe ratio calculation."""
         # Create equity curve with some returns
         base_time = datetime.now(UTC)
-        equity_curve = [(base_time - timedelta(hours=10 - i), 1000.0 + i * 5) for i in range(10)]
+        equity_curve = [
+            (base_time - timedelta(hours=10 - i), 1000.0 + i * 5) for i in range(10)
+        ]
 
         sharpe = backtester._calculate_sharpe_ratio(equity_curve)
 

@@ -268,7 +268,9 @@ class TestExtractTrendingCategories:
             {"market_hash_name": "AWP | Dragon Lore"},
         ]
         result = _extract_trending_categories(trending_items)
-        assert any(cat in result for cat in ["Штурмовые винтовки", "Снайперские винтовки"])
+        assert any(
+            cat in result for cat in ["Штурмовые винтовки", "Снайперские винтовки"]
+        )
 
     def test_trending_categories_empty(self):
         """Test extraction with empty list."""
@@ -329,7 +331,10 @@ class TestGenerateMarketRecommendations:
         ]
         recommendations = _generate_market_recommendations(results)
         assert len(recommendations) > 0
-        assert any("падающ" in rec.lower() or "избегайте" in rec.lower() for rec in recommendations)
+        assert any(
+            "падающ" in rec.lower() or "избегайте" in rec.lower()
+            for rec in recommendations
+        )
 
     def test_recommendations_trending(self):
         """Test recommendations for trending items."""
@@ -342,7 +347,10 @@ class TestGenerateMarketRecommendations:
         ]
         recommendations = _generate_market_recommendations(results)
         assert len(recommendations) > 0
-        assert any("популярн" in rec.lower() or "спрос" in rec.lower() for rec in recommendations)
+        assert any(
+            "популярн" in rec.lower() or "спрос" in rec.lower()
+            for rec in recommendations
+        )
 
     def test_recommendations_volatile(self):
         """Test recommendations for volatile items."""
@@ -355,7 +363,10 @@ class TestGenerateMarketRecommendations:
         ]
         recommendations = _generate_market_recommendations(results)
         assert len(recommendations) > 0
-        assert any("волатильн" in rec.lower() or "осторожн" in rec.lower() for rec in recommendations)
+        assert any(
+            "волатильн" in rec.lower() or "осторожн" in rec.lower()
+            for rec in recommendations
+        )
 
     def test_recommendations_no_data(self):
         """Test recommendations with no data."""
@@ -378,7 +389,9 @@ class TestAnalyzePriceChangesUnit:
         mock_api = AsyncMock()
         mock_api.get_market_items = AsyncMock(return_value=None)
 
-        with patch("src.dmarket.market_analysis.rate_limiter.wait_if_needed", AsyncMock()):
+        with patch(
+            "src.dmarket.market_analysis.rate_limiter.wait_if_needed", AsyncMock()
+        ):
             result = await analyze_price_changes(
                 game="csgo",
                 dmarket_api=mock_api,
@@ -393,7 +406,9 @@ class TestAnalyzePriceChangesUnit:
         mock_api = AsyncMock()
         mock_api.get_market_items = AsyncMock(return_value={"other": "data"})
 
-        with patch("src.dmarket.market_analysis.rate_limiter.wait_if_needed", AsyncMock()):
+        with patch(
+            "src.dmarket.market_analysis.rate_limiter.wait_if_needed", AsyncMock()
+        ):
             result = await analyze_price_changes(
                 game="csgo",
                 dmarket_api=mock_api,
@@ -412,7 +427,9 @@ class TestFindTrendingItemsUnit:
         mock_api = AsyncMock()
         mock_api.get_market_items = AsyncMock(return_value=None)
 
-        with patch("src.dmarket.market_analysis.rate_limiter.wait_if_needed", AsyncMock()):
+        with patch(
+            "src.dmarket.market_analysis.rate_limiter.wait_if_needed", AsyncMock()
+        ):
             result = await find_trending_items(
                 game="csgo",
                 dmarket_api=mock_api,
@@ -427,7 +444,9 @@ class TestFindTrendingItemsUnit:
         mock_api = AsyncMock()
         mock_api.get_market_items = AsyncMock(return_value={"other": "data"})
 
-        with patch("src.dmarket.market_analysis.rate_limiter.wait_if_needed", AsyncMock()):
+        with patch(
+            "src.dmarket.market_analysis.rate_limiter.wait_if_needed", AsyncMock()
+        ):
             result = await find_trending_items(
                 game="csgo",
                 dmarket_api=mock_api,
@@ -446,8 +465,15 @@ class TestAnalyzeMarketVolatilityUnit:
         mock_api = AsyncMock()
         mock_api.get_market_items = AsyncMock(return_value=None)
 
-        with patch("src.dmarket.market_analysis.rate_limiter.wait_if_needed", AsyncMock()), \
-             patch("src.dmarket.market_analysis._get_historical_prices", AsyncMock(return_value={})):
+        with (
+            patch(
+                "src.dmarket.market_analysis.rate_limiter.wait_if_needed", AsyncMock()
+            ),
+            patch(
+                "src.dmarket.market_analysis._get_historical_prices",
+                AsyncMock(return_value={}),
+            ),
+        ):
             result = await analyze_market_volatility(
                 game="csgo",
                 dmarket_api=mock_api,
@@ -466,7 +492,9 @@ class TestAnalyzeMarketDepthUnit:
         mock_api = AsyncMock()
         mock_api.get_market_items = AsyncMock(return_value={"items": []})
 
-        with patch("src.dmarket.market_analysis.rate_limiter.wait_if_needed", AsyncMock()):
+        with patch(
+            "src.dmarket.market_analysis.rate_limiter.wait_if_needed", AsyncMock()
+        ):
             result = await analyze_market_depth(
                 game="csgo",
                 items=None,
@@ -483,7 +511,9 @@ class TestAnalyzeMarketDepthUnit:
         mock_api = AsyncMock()
         mock_api.get_aggregated_prices_bulk = AsyncMock(return_value=None)
 
-        with patch("src.dmarket.market_analysis.rate_limiter.wait_if_needed", AsyncMock()):
+        with patch(
+            "src.dmarket.market_analysis.rate_limiter.wait_if_needed", AsyncMock()
+        ):
             result = await analyze_market_depth(
                 game="csgo",
                 items=["Test Item"],
@@ -523,7 +553,9 @@ class TestGetHistoricalPricesUnit:
         mock_api = AsyncMock()
         mock_api.get_market_items = AsyncMock(return_value=None)
 
-        with patch("src.dmarket.market_analysis.rate_limiter.wait_if_needed", AsyncMock()):
+        with patch(
+            "src.dmarket.market_analysis.rate_limiter.wait_if_needed", AsyncMock()
+        ):
             result = await _get_historical_prices(
                 game="csgo",
                 period_hours=24,
@@ -539,7 +571,9 @@ class TestGetHistoricalPricesUnit:
         mock_api = AsyncMock()
         mock_api.get_market_items = AsyncMock(return_value={"other": "data"})
 
-        with patch("src.dmarket.market_analysis.rate_limiter.wait_if_needed", AsyncMock()):
+        with patch(
+            "src.dmarket.market_analysis.rate_limiter.wait_if_needed", AsyncMock()
+        ):
             result = await _get_historical_prices(
                 game="csgo",
                 period_hours=24,

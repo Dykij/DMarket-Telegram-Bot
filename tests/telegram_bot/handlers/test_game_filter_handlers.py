@@ -126,7 +126,13 @@ class TestConstants:
 
     def test_cs2_exteriors_contains_expected(self):
         """CS2 внешний вид должен содержать ожидаемые элементы."""
-        expected = ["Factory New", "Minimal Wear", "Field-Tested", "Well-Worn", "Battle-Scarred"]
+        expected = [
+            "Factory New",
+            "Minimal Wear",
+            "Field-Tested",
+            "Well-Worn",
+            "Battle-Scarred",
+        ]
         assert expected == CS2_EXTERIORS
 
     def test_dota2_heroes_not_empty(self):
@@ -141,7 +147,15 @@ class TestConstants:
 
     def test_dota2_rarities_hierarchy(self):
         """Dota 2 редкости должны быть в иерархии."""
-        expected = ["Common", "Uncommon", "Rare", "Mythical", "Legendary", "Immortal", "Arcana"]
+        expected = [
+            "Common",
+            "Uncommon",
+            "Rare",
+            "Mythical",
+            "Legendary",
+            "Immortal",
+            "Arcana",
+        ]
         assert expected == DOTA2_RARITIES
 
     def test_dota2_slots_not_empty(self):
@@ -154,7 +168,17 @@ class TestConstants:
 
     def test_tf2_classes_contains_expected(self):
         """TF2 классы должны содержать все 9 классов + All Classes."""
-        expected = ["Scout", "Soldier", "Pyro", "Demoman", "Heavy", "Engineer", "Medic", "Sniper", "Spy"]
+        expected = [
+            "Scout",
+            "Soldier",
+            "Pyro",
+            "Demoman",
+            "Heavy",
+            "Engineer",
+            "Medic",
+            "Sniper",
+            "Spy",
+        ]
         for cls in expected:
             assert cls in TF2_CLASSES
         assert "All Classes" in TF2_CLASSES
@@ -464,7 +488,9 @@ class TestHandleGameFilters:
         await handle_game_filters(mock_update, mock_context)
 
         call_args = mock_update.message.reply_text.call_args
-        reply_markup = call_args.kwargs.get("reply_markup") or call_args[1].get("reply_markup")
+        reply_markup = call_args.kwargs.get("reply_markup") or call_args[1].get(
+            "reply_markup"
+        )
 
         button_texts = [btn.text for row in reply_markup.inline_keyboard for btn in row]
         assert "🎮 CS2" in button_texts
@@ -478,7 +504,9 @@ class TestHandleGameFilters:
         await handle_game_filters(mock_update, mock_context)
 
         call_args = mock_update.message.reply_text.call_args
-        reply_markup = call_args.kwargs.get("reply_markup") or call_args[1].get("reply_markup")
+        reply_markup = call_args.kwargs.get("reply_markup") or call_args[1].get(
+            "reply_markup"
+        )
 
         button_texts = [btn.text for row in reply_markup.inline_keyboard for btn in row]
         assert "⬅️ Назад" in button_texts
@@ -508,7 +536,9 @@ class TestHandleSelectGameFilterCallback:
     async def test_answers_callback_query(self, mock_update, mock_context):
         """Должен отвечать на callback_query."""
         mock_update.callback_query.data = "select_game_filter:csgo"
-        with patch("src.telegram_bot.handlers.game_filter_handlers.FilterFactory") as mock_factory:
+        with patch(
+            "src.telegram_bot.handlers.game_filter_handlers.FilterFactory"
+        ) as mock_factory:
             mock_filter = MagicMock()
             mock_filter.get_filter_description.return_value = ""
             mock_factory.get_filter.return_value = mock_filter
@@ -521,7 +551,9 @@ class TestHandleSelectGameFilterCallback:
     async def test_edits_message_with_filter_keyboard(self, mock_update, mock_context):
         """Должен редактировать сообщение с клавиатурой фильтров."""
         mock_update.callback_query.data = "select_game_filter:csgo"
-        with patch("src.telegram_bot.handlers.game_filter_handlers.FilterFactory") as mock_factory:
+        with patch(
+            "src.telegram_bot.handlers.game_filter_handlers.FilterFactory"
+        ) as mock_factory:
             mock_filter = MagicMock()
             mock_filter.get_filter_description.return_value = ""
             mock_factory.get_filter.return_value = mock_filter
@@ -534,7 +566,9 @@ class TestHandleSelectGameFilterCallback:
     async def test_extracts_game_from_callback_data(self, mock_update, mock_context):
         """Должен извлекать игру из callback_data."""
         mock_update.callback_query.data = "select_game_filter:dota2"
-        with patch("src.telegram_bot.handlers.game_filter_handlers.FilterFactory") as mock_factory:
+        with patch(
+            "src.telegram_bot.handlers.game_filter_handlers.FilterFactory"
+        ) as mock_factory:
             mock_filter = MagicMock()
             mock_filter.get_filter_description.return_value = ""
             mock_factory.get_filter.return_value = mock_filter
@@ -548,7 +582,9 @@ class TestHandleSelectGameFilterCallback:
     async def test_uses_html_parse_mode(self, mock_update, mock_context):
         """Должен использовать HTML parse mode."""
         mock_update.callback_query.data = "select_game_filter:csgo"
-        with patch("src.telegram_bot.handlers.game_filter_handlers.FilterFactory") as mock_factory:
+        with patch(
+            "src.telegram_bot.handlers.game_filter_handlers.FilterFactory"
+        ) as mock_factory:
             mock_filter = MagicMock()
             mock_filter.get_filter_description.return_value = ""
             mock_factory.get_filter.return_value = mock_filter
@@ -600,7 +636,9 @@ class TestHandlePriceRangeCallback:
         await handle_price_range_callback(mock_update, mock_context)
 
         call_args = mock_update.callback_query.edit_message_text.call_args
-        reply_markup = call_args.kwargs.get("reply_markup") or call_args[1].get("reply_markup")
+        reply_markup = call_args.kwargs.get("reply_markup") or call_args[1].get(
+            "reply_markup"
+        )
 
         button_texts = [btn.text for row in reply_markup.inline_keyboard for btn in row]
         assert "$1-10" in button_texts

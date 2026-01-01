@@ -33,10 +33,14 @@ async def rate_limit_stats_command(
         return
 
     if not is_admin(update.effective_user.id):
-        await update.message.reply_text("❌ Эта команда доступна только администраторам")
+        await update.message.reply_text(
+            "❌ Эта команда доступна только администраторам"
+        )
         return
 
-    rate_limiter: UserRateLimiter | None = getattr(context.bot_data, "user_rate_limiter", None)
+    rate_limiter: UserRateLimiter | None = getattr(
+        context.bot_data, "user_rate_limiter", None
+    )
 
     if not rate_limiter:
         await update.message.reply_text("❌ Rate limiter не настроен")
@@ -84,10 +88,14 @@ async def rate_limit_reset_command(
         return
 
     if not is_admin(update.effective_user.id):
-        await update.message.reply_text("❌ Эта команда доступна только администраторам")
+        await update.message.reply_text(
+            "❌ Эта команда доступна только администраторам"
+        )
         return
 
-    rate_limiter: UserRateLimiter | None = getattr(context.bot_data, "user_rate_limiter", None)
+    rate_limiter: UserRateLimiter | None = getattr(
+        context.bot_data, "user_rate_limiter", None
+    )
 
     if not rate_limiter:
         await update.message.reply_text("❌ Rate limiter не настроен")
@@ -133,10 +141,14 @@ async def rate_limit_whitelist_command(
         return
 
     if not is_admin(update.effective_user.id):
-        await update.message.reply_text("❌ Эта команда доступна только администраторам")
+        await update.message.reply_text(
+            "❌ Эта команда доступна только администраторам"
+        )
         return
 
-    rate_limiter: UserRateLimiter | None = getattr(context.bot_data, "user_rate_limiter", None)
+    rate_limiter: UserRateLimiter | None = getattr(
+        context.bot_data, "user_rate_limiter", None
+    )
 
     if not rate_limiter:
         await update.message.reply_text("❌ Rate limiter не настроен")
@@ -159,11 +171,15 @@ async def rate_limit_whitelist_command(
     try:
         if action == "add":
             await rate_limiter.add_whitelist(user_id)
-            await update.message.reply_text(f"✅ Пользователь {user_id} добавлен в whitelist")
+            await update.message.reply_text(
+                f"✅ Пользователь {user_id} добавлен в whitelist"
+            )
 
         elif action == "remove":
             await rate_limiter.remove_whitelist(user_id)
-            await update.message.reply_text(f"✅ Пользователь {user_id} удален из whitelist")
+            await update.message.reply_text(
+                f"✅ Пользователь {user_id} удален из whitelist"
+            )
 
         elif action == "check":
             is_whitelisted = await rate_limiter.is_whitelisted(user_id)
@@ -194,10 +210,14 @@ async def rate_limit_config_command(
         return
 
     if not is_admin(update.effective_user.id):
-        await update.message.reply_text("❌ Эта команда доступна только администраторам")
+        await update.message.reply_text(
+            "❌ Эта команда доступна только администраторам"
+        )
         return
 
-    rate_limiter: UserRateLimiter | None = getattr(context.bot_data, "user_rate_limiter", None)
+    rate_limiter: UserRateLimiter | None = getattr(
+        context.bot_data, "user_rate_limiter", None
+    )
 
     if not rate_limiter:
         await update.message.reply_text("❌ Rate limiter не настроен")

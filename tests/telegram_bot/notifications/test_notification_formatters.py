@@ -397,7 +397,12 @@ class TestFormatAlertsList:
             pytest.skip("Function not available")
 
         alerts = [
-            {"item_name": f"Item {i}", "target_price": 10.0, "type": "price_drop", "game": "csgo"}
+            {
+                "item_name": f"Item {i}",
+                "target_price": 10.0,
+                "type": "price_drop",
+                "game": "csgo",
+            }
             for i in range(5)
         ]
         result = format_alerts_list(alerts)

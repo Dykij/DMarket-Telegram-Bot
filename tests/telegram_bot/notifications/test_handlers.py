@@ -21,6 +21,7 @@ import pytest
 # Test handle_buy_cancel_callback function
 # =============================================================================
 
+
 class TestHandleBuyCancelCallback:
     """Tests for handle_buy_cancel_callback function."""
 
@@ -80,6 +81,7 @@ class TestHandleBuyCancelCallback:
 # Test handle_alert_callback function
 # =============================================================================
 
+
 class TestHandleAlertCallback:
     """Tests for handle_alert_callback function."""
 
@@ -96,9 +98,7 @@ class TestHandleAlertCallback:
         return update
 
     @pytest.mark.asyncio()
-    async def test_handle_alert_callback_success(
-        self, mock_update: MagicMock
-    ) -> None:
+    async def test_handle_alert_callback_success(self, mock_update: MagicMock) -> None:
         """Test successful alert disabling."""
         with patch(
             "src.telegram_bot.notifications.handlers.remove_price_alert",
@@ -161,6 +161,7 @@ class TestHandleAlertCallback:
 # Test list_alerts_command function
 # =============================================================================
 
+
 class TestListAlertsCommand:
     """Tests for list_alerts_command function."""
 
@@ -202,9 +203,7 @@ class TestListAlertsCommand:
             assert "Test Item" in call_args[0][0]
 
     @pytest.mark.asyncio()
-    async def test_list_alerts_command_empty(
-        self, mock_update: MagicMock
-    ) -> None:
+    async def test_list_alerts_command_empty(self, mock_update: MagicMock) -> None:
         """Test list_alerts_command with no alerts."""
         with patch(
             "src.telegram_bot.notifications.handlers.get_user_alerts",
@@ -236,6 +235,7 @@ class TestListAlertsCommand:
 # Test remove_alert_command function
 # =============================================================================
 
+
 class TestRemoveAlertCommand:
     """Tests for remove_alert_command function."""
 
@@ -250,9 +250,7 @@ class TestRemoveAlertCommand:
         return update
 
     @pytest.mark.asyncio()
-    async def test_remove_alert_command_success(
-        self, mock_update: MagicMock
-    ) -> None:
+    async def test_remove_alert_command_success(self, mock_update: MagicMock) -> None:
         """Test successful alert removal."""
         context = MagicMock()
         context.args = ["1"]
@@ -279,12 +277,12 @@ class TestRemoveAlertCommand:
 
             mock_update.message.reply_text.assert_called_once()
             call_args = mock_update.message.reply_text.call_args
-            assert "удалено" in call_args[0][0].lower() or "Test Item" in call_args[0][0]
+            assert (
+                "удалено" in call_args[0][0].lower() or "Test Item" in call_args[0][0]
+            )
 
     @pytest.mark.asyncio()
-    async def test_remove_alert_command_no_args(
-        self, mock_update: MagicMock
-    ) -> None:
+    async def test_remove_alert_command_no_args(self, mock_update: MagicMock) -> None:
         """Test remove_alert_command with no arguments."""
         context = MagicMock()
         context.args = []
@@ -343,6 +341,7 @@ class TestRemoveAlertCommand:
 # Test settings_command function
 # =============================================================================
 
+
 class TestSettingsCommand:
     """Tests for settings_command function."""
 
@@ -357,9 +356,7 @@ class TestSettingsCommand:
         return update
 
     @pytest.mark.asyncio()
-    async def test_settings_command_show_settings(
-        self, mock_update: MagicMock
-    ) -> None:
+    async def test_settings_command_show_settings(self, mock_update: MagicMock) -> None:
         """Test settings_command shows current settings."""
         context = MagicMock()
         context.args = []
@@ -434,6 +431,7 @@ class TestSettingsCommand:
 # Test register_notification_handlers function
 # =============================================================================
 
+
 class TestRegisterNotificationHandlers:
     """Tests for register_notification_handlers function."""
 
@@ -482,6 +480,7 @@ class TestRegisterNotificationHandlers:
 # =============================================================================
 # Module exports test
 # =============================================================================
+
 
 class TestHandlersModuleExports:
     """Tests for module exports."""

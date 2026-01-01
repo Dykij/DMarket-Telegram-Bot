@@ -152,9 +152,16 @@ class TestMarketOpportunityDataclass:
     def test_required_fields(self):
         """Test that dataclass has expected required fields."""
         required_fields = [
-            "item_id", "title", "current_price", "suggested_price",
-            "profit_potential", "profit_percent", "opportunity_type",
-            "confidence_score", "liquidity_score", "risk_level"
+            "item_id",
+            "title",
+            "current_price",
+            "suggested_price",
+            "profit_potential",
+            "profit_percent",
+            "opportunity_type",
+            "confidence_score",
+            "liquidity_score",
+            "risk_level",
         ]
         field_names = [f.name for f in fields(MarketOpportunity)]
         for field in required_fields:
@@ -1097,10 +1104,12 @@ class TestCalculateLiquidityScore:
     def test_increases_with_aggregated_counts(self, finder):
         """Test score increases with offer/order counts."""
         without = finder._calculate_liquidity_score({"extra": {}})
-        with_counts = finder._calculate_liquidity_score({
-            "extra": {},
-            "aggregated": {"offerCount": 50, "orderCount": 30},
-        })
+        with_counts = finder._calculate_liquidity_score(
+            {
+                "extra": {},
+                "aggregated": {"offerCount": 50, "orderCount": 30},
+            }
+        )
 
         assert with_counts > without
 
@@ -1305,7 +1314,9 @@ class TestGenerateNotes:
             liquidity=50.0,
         )
 
-        assert any("редкость" in note.lower() or "covert" in note.lower() for note in notes)
+        assert any(
+            "редкость" in note.lower() or "covert" in note.lower() for note in notes
+        )
 
     def test_popularity_note(self, finder):
         """Test note for popular items."""
@@ -1357,17 +1368,19 @@ class TestModuleLevelFunctions:
     async def test_find_best_deals_with_items(self):
         """Test find_best_deals returns opportunities when items exist."""
         mock_api = MagicMock()
-        mock_api._request = AsyncMock(return_value={
-            "objects": [
-                {
-                    "itemId": "item1",
-                    "title": "Test Item",
-                    "price": {"USD": "1000"},
-                    "suggestedPrice": {"USD": "2000"},
-                    "extra": {"popularity": 0.8},
-                },
-            ]
-        })
+        mock_api._request = AsyncMock(
+            return_value={
+                "objects": [
+                    {
+                        "itemId": "item1",
+                        "title": "Test Item",
+                        "price": {"USD": "1000"},
+                        "suggestedPrice": {"USD": "2000"},
+                        "extra": {"popularity": 0.8},
+                    },
+                ]
+            }
+        )
 
         result = await find_best_deals(
             api_client=mock_api,

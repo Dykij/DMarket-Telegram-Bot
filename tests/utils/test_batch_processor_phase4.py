@@ -48,7 +48,9 @@ class TestSimpleBatchProcessorInitPhase4:
 
     def test_init_with_very_large_batch_size(self):
         """Test initialization with very large batch size."""
-        processor = SimpleBatchProcessor(batch_size=1_000_000, delay_between_batches=0.01)
+        processor = SimpleBatchProcessor(
+            batch_size=1_000_000, delay_between_batches=0.01
+        )
         assert processor.batch_size == 1_000_000
 
     def test_init_with_very_small_delay(self):
@@ -314,7 +316,9 @@ class TestProcessWithConcurrencyPhase4:
         async def process_returning_none(x):
             return None if x % 2 == 0 else x * 10
 
-        results = await processor.process_with_concurrency(items, process_returning_none)
+        results = await processor.process_with_concurrency(
+            items, process_returning_none
+        )
 
         # Should only have results for odd numbers
         assert len(results) == 3
@@ -722,11 +726,13 @@ class TestBatchProcessorIntegrationPhase4:
     async def test_chunked_with_mixed_result_types(self):
         """Test chunked_api_calls with mixed result types across calls."""
         items = [1, 2, 3, 4, 5, 6]
-        api_call_fn = AsyncMock(side_effect=[
-            [10, 20],  # List
-            {"status": "ok"},  # Dict
-            None,  # None
-        ])
+        api_call_fn = AsyncMock(
+            side_effect=[
+                [10, 20],  # List
+                {"status": "ok"},  # Dict
+                None,  # None
+            ]
+        )
 
         results = await chunked_api_calls(items, api_call_fn, chunk_size=2, delay=0.001)
 
@@ -738,8 +744,12 @@ class TestBatchProcessorIntegrationPhase4:
     @pytest.mark.asyncio()
     async def test_nested_batch_processing(self):
         """Test nested batch processing - batches within batches."""
-        outer_processor = SimpleBatchProcessor(batch_size=2, delay_between_batches=0.001)
-        inner_processor = SimpleBatchProcessor(batch_size=3, delay_between_batches=0.001)
+        outer_processor = SimpleBatchProcessor(
+            batch_size=2, delay_between_batches=0.001
+        )
+        inner_processor = SimpleBatchProcessor(
+            batch_size=3, delay_between_batches=0.001
+        )
 
         outer_items = [[1, 2, 3, 4], [5, 6, 7, 8]]
 

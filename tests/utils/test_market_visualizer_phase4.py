@@ -82,12 +82,36 @@ def price_history_with_volume():
     """Price history with volume data."""
     now = datetime.now(UTC)
     return [
-        {"price": 10.0, "timestamp": (now - timedelta(days=6)).timestamp(), "volume": 100},
-        {"price": 10.5, "timestamp": (now - timedelta(days=5)).timestamp(), "volume": 120},
-        {"price": 11.0, "timestamp": (now - timedelta(days=4)).timestamp(), "volume": 150},
-        {"price": 10.8, "timestamp": (now - timedelta(days=3)).timestamp(), "volume": 130},
-        {"price": 11.5, "timestamp": (now - timedelta(days=2)).timestamp(), "volume": 180},
-        {"price": 12.0, "timestamp": (now - timedelta(days=1)).timestamp(), "volume": 200},
+        {
+            "price": 10.0,
+            "timestamp": (now - timedelta(days=6)).timestamp(),
+            "volume": 100,
+        },
+        {
+            "price": 10.5,
+            "timestamp": (now - timedelta(days=5)).timestamp(),
+            "volume": 120,
+        },
+        {
+            "price": 11.0,
+            "timestamp": (now - timedelta(days=4)).timestamp(),
+            "volume": 150,
+        },
+        {
+            "price": 10.8,
+            "timestamp": (now - timedelta(days=3)).timestamp(),
+            "volume": 130,
+        },
+        {
+            "price": 11.5,
+            "timestamp": (now - timedelta(days=2)).timestamp(),
+            "volume": 180,
+        },
+        {
+            "price": 12.0,
+            "timestamp": (now - timedelta(days=1)).timestamp(),
+            "volume": 200,
+        },
         {"price": 12.5, "timestamp": now.timestamp(), "volume": 220},
     ]
 
@@ -240,7 +264,9 @@ class TestCreatePriceChart:
         # Check it's valid PNG data
         assert result.read(8) == b"\x89PNG\r\n\x1a\n"
 
-    async def test_price_chart_with_volume(self, visualizer_dark, price_history_with_volume):
+    async def test_price_chart_with_volume(
+        self, visualizer_dark, price_history_with_volume
+    ):
         """Test price chart with volume data."""
         result = await visualizer_dark.create_price_chart(
             price_history=price_history_with_volume,
@@ -250,7 +276,9 @@ class TestCreatePriceChart:
         )
         assert isinstance(result, io.BytesIO)
 
-    async def test_price_chart_without_volume_flag(self, visualizer_dark, price_history_with_volume):
+    async def test_price_chart_without_volume_flag(
+        self, visualizer_dark, price_history_with_volume
+    ):
         """Test price chart with volume data but flag disabled."""
         result = await visualizer_dark.create_price_chart(
             price_history=price_history_with_volume,
@@ -260,7 +288,9 @@ class TestCreatePriceChart:
         )
         assert isinstance(result, io.BytesIO)
 
-    async def test_price_chart_extended_data(self, visualizer_dark, extended_price_history):
+    async def test_price_chart_extended_data(
+        self, visualizer_dark, extended_price_history
+    ):
         """Test price chart with extended data for support/resistance."""
         result = await visualizer_dark.create_price_chart(
             price_history=extended_price_history,
@@ -269,7 +299,9 @@ class TestCreatePriceChart:
         )
         assert isinstance(result, io.BytesIO)
 
-    async def test_price_chart_different_games(self, visualizer_dark, basic_price_history):
+    async def test_price_chart_different_games(
+        self, visualizer_dark, basic_price_history
+    ):
         """Test price chart with different game codes."""
         games = ["csgo", "dota2", "tf2", "rust", "unknown_game"]
         for game in games:
@@ -280,7 +312,9 @@ class TestCreatePriceChart:
             )
             assert isinstance(result, io.BytesIO)
 
-    async def test_price_chart_custom_dimensions(self, visualizer_dark, basic_price_history):
+    async def test_price_chart_custom_dimensions(
+        self, visualizer_dark, basic_price_history
+    ):
         """Test price chart with custom dimensions."""
         result = await visualizer_dark.create_price_chart(
             price_history=basic_price_history,
@@ -343,7 +377,9 @@ class TestCreateMarketComparisonChart:
         )
         assert isinstance(result, io.BytesIO)
 
-    async def test_comparison_chart_missing_item(self, visualizer_dark, basic_price_history):
+    async def test_comparison_chart_missing_item(
+        self, visualizer_dark, basic_price_history
+    ):
         """Test comparison chart with missing item in histories."""
         items_data = [
             {"itemId": "item1", "title": "Item 1"},
@@ -360,7 +396,9 @@ class TestCreateMarketComparisonChart:
         )
         assert isinstance(result, io.BytesIO)
 
-    async def test_comparison_chart_empty_history(self, visualizer_dark, basic_price_history):
+    async def test_comparison_chart_empty_history(
+        self, visualizer_dark, basic_price_history
+    ):
         """Test comparison chart with empty history for one item."""
         items_data = [
             {"itemId": "item1", "title": "Item 1"},
@@ -392,7 +430,9 @@ class TestCreateMarketComparisonChart:
         )
         assert isinstance(result, io.BytesIO)
 
-    async def test_comparison_chart_custom_dimensions(self, visualizer_dark, basic_price_history):
+    async def test_comparison_chart_custom_dimensions(
+        self, visualizer_dark, basic_price_history
+    ):
         """Test comparison chart with custom dimensions."""
         items_data = [{"itemId": "item1", "title": "Item 1"}]
         price_histories = {"item1": basic_price_history}
@@ -467,7 +507,9 @@ class TestCreatePatternVisualization:
         )
         assert isinstance(result, io.BytesIO)
 
-    async def test_pattern_visualization_fomo(self, visualizer_dark, extended_price_history):
+    async def test_pattern_visualization_fomo(
+        self, visualizer_dark, extended_price_history
+    ):
         """Test pattern visualization with FOMO pattern."""
         patterns = [{"type": "fomo", "confidence": 0.85}]
         result = await visualizer_dark.create_pattern_visualization(
@@ -477,7 +519,9 @@ class TestCreatePatternVisualization:
         )
         assert isinstance(result, io.BytesIO)
 
-    async def test_pattern_visualization_panic(self, visualizer_dark, extended_price_history):
+    async def test_pattern_visualization_panic(
+        self, visualizer_dark, extended_price_history
+    ):
         """Test pattern visualization with panic pattern."""
         patterns = [{"type": "panic", "confidence": 0.8}]
         result = await visualizer_dark.create_pattern_visualization(
@@ -525,7 +569,9 @@ class TestCreatePatternVisualization:
 class TestCreateMarketSummaryImage:
     """Tests for create_market_summary_image method."""
 
-    async def test_basic_summary_image(self, visualizer_dark, sample_item_data, sample_analysis):
+    async def test_basic_summary_image(
+        self, visualizer_dark, sample_item_data, sample_analysis
+    ):
         """Test basic market summary image creation."""
         result = await visualizer_dark.create_market_summary_image(
             item_data=sample_item_data,
@@ -594,7 +640,9 @@ class TestCreateMarketSummaryImage:
         )
         assert isinstance(result, io.BytesIO)
 
-    async def test_summary_image_with_support_resistance(self, visualizer_dark, sample_item_data):
+    async def test_summary_image_with_support_resistance(
+        self, visualizer_dark, sample_item_data
+    ):
         """Test summary image with support and resistance levels."""
         analysis = {
             "trend": "up",
@@ -608,7 +656,9 @@ class TestCreateMarketSummaryImage:
         )
         assert isinstance(result, io.BytesIO)
 
-    async def test_summary_image_without_support_resistance(self, visualizer_dark, sample_item_data):
+    async def test_summary_image_without_support_resistance(
+        self, visualizer_dark, sample_item_data
+    ):
         """Test summary image without support and resistance levels."""
         analysis = {
             "trend": "up",
@@ -638,7 +688,9 @@ class TestCreateMarketSummaryImage:
         )
         assert isinstance(result, io.BytesIO)
 
-    async def test_summary_image_empty_patterns(self, visualizer_dark, sample_item_data):
+    async def test_summary_image_empty_patterns(
+        self, visualizer_dark, sample_item_data
+    ):
         """Test summary image with empty patterns list."""
         analysis = {
             "trend": "up",
@@ -663,7 +715,9 @@ class TestCreateMarketSummaryImage:
         )
         assert isinstance(result, io.BytesIO)
 
-    async def test_summary_image_volatility_levels(self, visualizer_dark, sample_item_data):
+    async def test_summary_image_volatility_levels(
+        self, visualizer_dark, sample_item_data
+    ):
         """Test summary image with different volatility levels."""
         for volatility in ["low", "medium", "high"]:
             analysis = {"trend": "up", "volatility": volatility}
@@ -696,7 +750,9 @@ class TestProcessPriceData:
         assert "price" in df.columns
         assert "volume" in df.columns
 
-    def test_processing_dict_price_format(self, visualizer_dark, price_history_dict_format):
+    def test_processing_dict_price_format(
+        self, visualizer_dark, price_history_dict_format
+    ):
         """Test price data processing with dict price format."""
         df = visualizer_dark.process_price_data(price_history_dict_format)
         assert len(df) == 3
@@ -774,8 +830,15 @@ class TestProcessPriceData:
         """Test price data processing with partial volume data."""
         now = datetime.now(UTC)
         history = [
-            {"price": 10.0, "timestamp": (now - timedelta(days=2)).timestamp(), "volume": 100},
-            {"price": 11.0, "timestamp": (now - timedelta(days=1)).timestamp()},  # No volume
+            {
+                "price": 10.0,
+                "timestamp": (now - timedelta(days=2)).timestamp(),
+                "volume": 100,
+            },
+            {
+                "price": 11.0,
+                "timestamp": (now - timedelta(days=1)).timestamp(),
+            },  # No volume
             {"price": 12.0, "timestamp": now.timestamp(), "volume": 120},
         ]
         df = visualizer_dark.process_price_data(history)
@@ -869,8 +932,21 @@ class TestAddSupportResistance:
         dates = [datetime.now(UTC) - timedelta(days=x) for x in range(15, 0, -1)]
         # Create data with clear support/resistance levels
         prices = [
-            10.0, 11.0, 10.5, 10.0, 11.5, 12.0, 11.8, 11.0, 10.5, 11.0,
-            12.5, 13.0, 12.8, 13.5, 14.0
+            10.0,
+            11.0,
+            10.5,
+            10.0,
+            11.5,
+            12.0,
+            11.8,
+            11.0,
+            10.5,
+            11.0,
+            12.5,
+            13.0,
+            12.8,
+            13.5,
+            14.0,
         ]
         df = pd.DataFrame({"price": prices}, index=dates)
 
@@ -903,7 +979,10 @@ class TestEdgeCases:
         """Test with very large dataset."""
         now = datetime.now(UTC)
         history = [
-            {"price": 10.0 + i * 0.01, "timestamp": (now - timedelta(hours=i)).timestamp()}
+            {
+                "price": 10.0 + i * 0.01,
+                "timestamp": (now - timedelta(hours=i)).timestamp(),
+            }
             for i in range(500)
         ]
         result = await visualizer_dark.create_price_chart(
@@ -933,7 +1012,9 @@ class TestEdgeCases:
         )
         assert isinstance(result, io.BytesIO)
 
-    async def test_special_characters_in_name(self, visualizer_dark, basic_price_history):
+    async def test_special_characters_in_name(
+        self, visualizer_dark, basic_price_history
+    ):
         """Test with special characters in item name."""
         result = await visualizer_dark.create_price_chart(
             price_history=basic_price_history,
@@ -1019,7 +1100,9 @@ class TestEdgeCases:
 class TestIntegration:
     """Integration tests for MarketVisualizer."""
 
-    async def test_full_workflow_price_chart(self, visualizer_dark, extended_price_history):
+    async def test_full_workflow_price_chart(
+        self, visualizer_dark, extended_price_history
+    ):
         """Test full workflow for creating a price chart."""
         # Create chart
         result = await visualizer_dark.create_price_chart(
@@ -1039,7 +1122,9 @@ class TestIntegration:
         assert img.width > 0
         assert img.height > 0
 
-    async def test_full_workflow_comparison(self, visualizer_dark, extended_price_history):
+    async def test_full_workflow_comparison(
+        self, visualizer_dark, extended_price_history
+    ):
         """Test full workflow for creating a comparison chart."""
         items = [
             {"itemId": "item1", "title": "AK-47 | Redline"},

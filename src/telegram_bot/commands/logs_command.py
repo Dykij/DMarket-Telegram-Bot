@@ -40,7 +40,9 @@ async def logs_command(
     # For I/O-intensive operations, consider using aiofiles
     log_dir = Path("logs")
     if not log_dir.exists():  # noqa: ASYNC240
-        await update.message.reply_text("❌ Папка логов не найдена. Логи пока не записывались.")
+        await update.message.reply_text(
+            "❌ Папка логов не найдена. Логи пока не записывались."
+        )
         return
 
     # Get all log files sorted by modification time (newest first)

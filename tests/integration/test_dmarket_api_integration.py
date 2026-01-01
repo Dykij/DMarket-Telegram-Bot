@@ -25,7 +25,9 @@ class TestDMarketAPIIntegration:
         mock_balance_response: dict[str, str],
     ) -> None:
         """Test successful balance retrieval."""
-        with patch.object(mock_dmarket_api, "_request", return_value=mock_balance_response):
+        with patch.object(
+            mock_dmarket_api, "_request", return_value=mock_balance_response
+        ):
             balance = await mock_dmarket_api.get_balance()
 
             assert balance is not None
@@ -38,7 +40,9 @@ class TestDMarketAPIIntegration:
         mock_market_items_response: dict[str, Any],
     ) -> None:
         """Test market items retrieval with pagination."""
-        with patch.object(mock_dmarket_api, "_request", return_value=mock_market_items_response):
+        with patch.object(
+            mock_dmarket_api, "_request", return_value=mock_market_items_response
+        ):
             items = await mock_dmarket_api.get_market_items(game="csgo", limit=100)
 
             assert items is not None
@@ -46,7 +50,9 @@ class TestDMarketAPIIntegration:
             assert len(items["objects"]) == 2
             assert items["cursor"] == "next_page_cursor"
 
-    async def test_get_all_market_items_with_cursor(self, mock_dmarket_api: DMarketAPI) -> None:
+    async def test_get_all_market_items_with_cursor(
+        self, mock_dmarket_api: DMarketAPI
+    ) -> None:
         """Test get all market items with cursor-based pagination."""
         page1 = {
             "objects": [
@@ -71,7 +77,9 @@ class TestDMarketAPIIntegration:
 
         responses = [page1, page2]
         with patch.object(mock_dmarket_api, "get_market_items", side_effect=responses):
-            all_items = await mock_dmarket_api.get_all_market_items(game="csgo", max_items=10)
+            all_items = await mock_dmarket_api.get_all_market_items(
+                game="csgo", max_items=10
+            )
 
             # Проверяем структуру ответа
             assert isinstance(all_items, list)
@@ -142,7 +150,9 @@ class TestDMarketAPIIntegration:
             "_request",
             return_value=mock_aggregated_prices_response,
         ):
-            result = await mock_dmarket_api.get_aggregated_prices(titles=titles, game_id="a8db")
+            result = await mock_dmarket_api.get_aggregated_prices(
+                titles=titles, game_id="a8db"
+            )
             assert "aggregatedPrices" in result
             assert len(result["aggregatedPrices"]) == 1
             assert result["aggregatedPrices"][0]["title"] == titles[0]
@@ -157,7 +167,9 @@ class TestDMarketAPIIntegration:
         import asyncio
 
         async def get_balance() -> dict[str, str]:
-            with patch.object(mock_dmarket_api, "_request", return_value=mock_balance_response):
+            with patch.object(
+                mock_dmarket_api, "_request", return_value=mock_balance_response
+            ):
                 return await mock_dmarket_api.get_balance()
 
         async def get_items() -> dict[str, Any]:
@@ -179,7 +191,9 @@ class TestDMarketAPIIntegration:
 class TestDMarketAPIEdgeCases:
     """Edge case tests for DMarket API."""
 
-    async def test_empty_market_items_response(self, mock_dmarket_api: DMarketAPI) -> None:
+    async def test_empty_market_items_response(
+        self, mock_dmarket_api: DMarketAPI
+    ) -> None:
         """Test handling of empty market items."""
         empty_response = {"objects": [], "total": 0, "cursor": ""}
 
@@ -189,11 +203,15 @@ class TestDMarketAPIEdgeCases:
             assert items["objects"] == []
             assert items["total"] == 0
 
-    async def test_malformed_response_handling(self, mock_dmarket_api: DMarketAPI) -> None:
+    async def test_malformed_response_handling(
+        self, mock_dmarket_api: DMarketAPI
+    ) -> None:
         """Test handling of malformed API responses."""
         malformed_response = {"unexpected": "format"}
 
-        with patch.object(mock_dmarket_api, "_request", return_value=malformed_response):
+        with patch.object(
+            mock_dmarket_api, "_request", return_value=malformed_response
+        ):
             # Should handle gracefully or raise appropriate error
             result = await mock_dmarket_api.get_balance()
             assert result is not None

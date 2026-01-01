@@ -45,7 +45,9 @@ class DMarketMCPServer:
             RuntimeError: Если MCP модуль не установлен
         """
         if not MCP_AVAILABLE:
-            raise RuntimeError("MCP module is not installed. Install it with: pip install mcp")
+            raise RuntimeError(
+                "MCP module is not installed. Install it with: pip install mcp"
+            )
 
         self.server = Server("dmarket-bot")
         self.api_client = api_client or DMarketAPI(
@@ -116,7 +118,13 @@ class DMarketMCPServer:
                             "level": {
                                 "type": "string",
                                 "description": "Уровень арбитража",
-                                "enum": ["boost", "standard", "medium", "advanced", "pro"],
+                                "enum": [
+                                    "boost",
+                                    "standard",
+                                    "medium",
+                                    "advanced",
+                                    "pro",
+                                ],
                                 "default": "standard",
                             },
                             "min_profit": {
@@ -217,7 +225,9 @@ class DMarketMCPServer:
                 return [
                     TextContent(
                         type="text",
-                        text=json.dumps({"error": str(e), "tool": name}, ensure_ascii=False),
+                        text=json.dumps(
+                            {"error": str(e), "tool": name}, ensure_ascii=False
+                        ),
                     )
                 ]
 

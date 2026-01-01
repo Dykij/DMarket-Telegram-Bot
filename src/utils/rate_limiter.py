@@ -296,7 +296,9 @@ class RateLimiter:
         self.last_request_times[endpoint_type] = time.time()
 
         # Увеличиваем счетчик общих запросов
-        self.total_requests[endpoint_type] = self.total_requests.get(endpoint_type, 0) + 1
+        self.total_requests[endpoint_type] = (
+            self.total_requests.get(endpoint_type, 0) + 1
+        )
 
     async def handle_429(
         self,
@@ -323,7 +325,9 @@ class RateLimiter:
         # Увеличиваем счетчик попыток и ошибок 429
         current_attempts = self.retry_attempts.get(endpoint_type, 0) + 1
         self.retry_attempts[endpoint_type] = current_attempts
-        self.total_429_errors[endpoint_type] = self.total_429_errors.get(endpoint_type, 0) + 1
+        self.total_429_errors[endpoint_type] = (
+            self.total_429_errors.get(endpoint_type, 0) + 1
+        )
 
         # Определяем время ожидания
         if retry_after is not None and retry_after > 0:
@@ -425,7 +429,10 @@ class RateLimiter:
 
         """
         # Esli endpoint nahoditsya pod ogranicheniem
-        if endpoint_type in self.reset_times and time.time() < self.reset_times[endpoint_type]:
+        if (
+            endpoint_type in self.reset_times
+            and time.time() < self.reset_times[endpoint_type]
+        ):
             return 0
 
         # Vozvrashchaem ostavsheeesya kolichestvo zaprosov

@@ -8,7 +8,6 @@ This module contains tests for src/utils/api_circuit_breaker.py covering:
 Target: 20+ tests to achieve 70%+ coverage
 """
 
-
 import httpx
 import pytest
 
@@ -82,6 +81,7 @@ class TestCallWithCircuitBreaker:
     @pytest.mark.asyncio()
     async def test_successful_call(self):
         """Test successful function call."""
+
         # Arrange
         async def success_func():
             return "success"
@@ -95,6 +95,7 @@ class TestCallWithCircuitBreaker:
     @pytest.mark.asyncio()
     async def test_call_with_args(self):
         """Test call with positional arguments."""
+
         # Arrange
         async def func_with_args(a, b):
             return a + b
@@ -108,6 +109,7 @@ class TestCallWithCircuitBreaker:
     @pytest.mark.asyncio()
     async def test_call_with_kwargs(self):
         """Test call with keyword arguments."""
+
         # Arrange
         async def func_with_kwargs(name="default"):
             return f"hello {name}"
@@ -165,6 +167,7 @@ class TestCircuitBreakerEdgeCases:
     @pytest.mark.asyncio()
     async def test_call_async_function(self):
         """Test calling an async function."""
+
         # Arrange
         async def async_func():
             return "async result"
@@ -178,6 +181,7 @@ class TestCircuitBreakerEdgeCases:
     @pytest.mark.asyncio()
     async def test_call_with_none_fallback(self):
         """Test call with fallback=None."""
+
         # Arrange
         async def success_func():
             return "success"

@@ -77,7 +77,9 @@ class DatabaseManager:
             }
 
             # Check for in-memory SQLite
-            is_memory = ":memory:" in self.database_url or "mode=memory" in self.database_url
+            is_memory = (
+                ":memory:" in self.database_url or "mode=memory" in self.database_url
+            )
 
             if not is_memory:
                 kwargs["pool_size"] = self.pool_size
@@ -273,7 +275,11 @@ class DatabaseManager:
 
                 # Return updated user with new data
                 return User(
-                    id=(UUID(user_row.id) if isinstance(user_row.id, str) else user_row.id),
+                    id=(
+                        UUID(user_row.id)
+                        if isinstance(user_row.id, str)
+                        else user_row.id
+                    ),
                     telegram_id=user_row.telegram_id,
                     username=username or user_row.username,
                     first_name=first_name or user_row.first_name,
@@ -431,14 +437,16 @@ class DatabaseManager:
         """
         async with self.get_async_session() as session:
             result = await session.execute(
-                text("""
+                text(
+                    """
                     SELECT price_usd, created_at as timestamp
                     FROM market_data
                     WHERE item_name = :item_name
                       AND game = :game
                       AND created_at >= :start_date
                     ORDER BY created_at DESC
-                """),
+                """
+                ),
                 {
                     "item_name": item_name,
                     "game": game,
@@ -472,7 +480,8 @@ class DatabaseManager:
         """
         async with self.get_async_session() as session:
             result = await session.execute(
-                text("""
+                text(
+                    """
                     SELECT
                         COUNT(*) as total_trades,
                         SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END)
@@ -487,7 +496,8 @@ class DatabaseManager:
                     FROM trades
                     WHERE created_at >= :start_date
                       AND created_at < :end_date
-                """),
+                """
+                ),
                 {"start_date": start_date, "end_date": end_date},
             )
 
@@ -521,7 +531,8 @@ class DatabaseManager:
         async with self.get_async_session() as session:
             # API errors breakdown
             result = await session.execute(
-                text("""
+                text(
+                    """
                     SELECT error_message, COUNT(*) as count
                     FROM command_log
                     WHERE success = false
@@ -531,7 +542,8 @@ class DatabaseManager:
                     GROUP BY error_message
                     ORDER BY count DESC
                     LIMIT 10
-                """),
+                """
+                ),
                 {"start_date": start_date, "end_date": end_date},
             )
 
@@ -542,14 +554,16 @@ class DatabaseManager:
 
             # Critical errors count
             result_critical = await session.execute(
-                text("""
+                text(
+                    """
                     SELECT COUNT(*) as critical_count
                     FROM command_log
                     WHERE success = false
                       AND created_at >= :start_date
                       AND created_at < :end_date
                       AND error_message LIKE '%CRITICAL%'
-                """),
+                """
+                ),
                 {"start_date": start_date, "end_date": end_date},
             )
 
@@ -578,7 +592,8 @@ class DatabaseManager:
         """
         async with self.get_async_session() as session:
             result = await session.execute(
-                text("""
+                text(
+                    """
                     SELECT
                         COUNT(*) as scans_performed,
                         COALESCE(
@@ -595,7 +610,8 @@ class DatabaseManager:
                       AND success = true
                       AND created_at >= :start_date
                       AND created_at < :end_date
-                """),
+                """
+                ),
                 {"start_date": start_date, "end_date": end_date},
             )
 
@@ -665,7 +681,9 @@ class DatabaseManager:
             )
 
     @cached(cache=None, ttl=300, key_prefix="recent_scans")
-    async def get_recent_scans_cached(self, user_id: UUID, limit: int = 10) -> list[dict[str, Any]]:
+    async def get_recent_scans_cached(
+        self, user_id: UUID, limit: int = 10
+    ) -> list[dict[str, Any]]:
         """
         Получить последние сканирования пользователя с кэшированием.
 
@@ -678,7 +696,8 @@ class DatabaseManager:
         """
         async with self.get_async_session() as session:
             result = await session.execute(
-                text("""
+                text(
+                    """
                     SELECT
                         command,
                         parameters,
@@ -690,20 +709,23 @@ class DatabaseManager:
                       AND command LIKE '%scan%'
                     ORDER BY created_at DESC
                     LIMIT :limit
-                """),
+                """
+                ),
                 {"user_id": str(user_id), "limit": limit},
             )
 
             scans = []
             for row in result.fetchall():
                 params = json.loads(row[1]) if row[1] else {}
-                scans.append({
-                    "command": row[0],
-                    "parameters": params,
-                    "created_at": row[2],
-                    "success": row[3],
-                    "execution_time_ms": row[4],
-                })
+                scans.append(
+                    {
+                        "command": row[0],
+                        "parameters": params,
+                        "created_at": row[2],
+                        "success": row[3],
+                        "execution_time_ms": row[4],
+                    }
+                )
 
             return scans
 
@@ -742,22 +764,25 @@ class DatabaseManager:
         async with self.get_async_session() as session:
             values = []
             for item in items:
-                values.append({
-                    "id": str(uuid4()),
-                    "item_id": item.get("item_id"),
-                    "game": item.get("game"),
-                    "item_name": item.get("item_name"),
-                    "price_usd": item.get("price_usd"),
-                    "price_change_24h": item.get("price_change_24h"),
-                    "volume_24h": item.get("volume_24h"),
-                    "market_cap": item.get("market_cap"),
-                    "data_source": item.get("data_source", "dmarket"),
-                    "created_at": datetime.now(UTC),
-                })
+                values.append(
+                    {
+                        "id": str(uuid4()),
+                        "item_id": item.get("item_id"),
+                        "game": item.get("game"),
+                        "item_name": item.get("item_name"),
+                        "price_usd": item.get("price_usd"),
+                        "price_change_24h": item.get("price_change_24h"),
+                        "volume_24h": item.get("volume_24h"),
+                        "market_cap": item.get("market_cap"),
+                        "data_source": item.get("data_source", "dmarket"),
+                        "created_at": datetime.now(UTC),
+                    }
+                )
 
             # Batch insert
             await session.execute(
-                text("""
+                text(
+                    """
                     INSERT INTO market_data (
                         id, item_id, game, item_name, price_usd,
                         price_change_24h, volume_24h, market_cap,
@@ -767,7 +792,8 @@ class DatabaseManager:
                         :price_change_24h, :volume_24h, :market_cap,
                         :data_source, :created_at
                     )
-                """),
+                """
+                ),
                 values,
             )
             await session.commit()
@@ -787,10 +813,12 @@ class DatabaseManager:
 
         async with self.get_async_session() as session:
             result = await session.execute(
-                text("""
+                text(
+                    """
                     DELETE FROM market_data
                     WHERE created_at < :cutoff_date
-                """),
+                """
+                ),
                 {"cutoff_date": cutoff_date},
             )
             await session.commit()
@@ -810,10 +838,12 @@ class DatabaseManager:
 
         async with self.get_async_session() as session:
             result = await session.execute(
-                text("""
+                text(
+                    """
                     DELETE FROM market_data_cache
                     WHERE expires_at < :now
-                """),
+                """
+                ),
                 {"now": now},
             )
             await session.commit()

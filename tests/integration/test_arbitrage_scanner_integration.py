@@ -35,7 +35,9 @@ def scanner(mock_api_client, mock_liquidity_analyzer):
 
 
 @pytest.mark.asyncio()
-async def test_scan_game_with_liquidity_filter_enabled(scanner, mock_liquidity_analyzer):
+async def test_scan_game_with_liquidity_filter_enabled(
+    scanner, mock_liquidity_analyzer
+):
     """Test that scan_game calls liquidity_analyzer.filter_liquid_items when enabled."""
 
     # Mock items returned by the arbitrage functions
@@ -81,7 +83,9 @@ async def test_scan_game_with_liquidity_filter_enabled(scanner, mock_liquidity_a
 async def test_scan_game_with_liquidity_filter_disabled(mock_api_client):
     """Test that scan_game skips liquidity analysis when disabled."""
 
-    scanner = ArbitrageScanner(api_client=mock_api_client, enable_liquidity_filter=False)
+    scanner = ArbitrageScanner(
+        api_client=mock_api_client, enable_liquidity_filter=False
+    )
     # Ensure analyzer is None
     scanner.liquidity_analyzer = None
 

@@ -55,7 +55,9 @@ class AttributesModel(BaseModel):
     category: str | None = Field(None, description="Категория предмета")
     exterior: str | None = Field(None, description="Состояние (для CS:GO)")
     rarity: str | None = Field(None, description="Редкость")
-    float_value: str | None = Field(None, alias="floatValue", description="Float значение")
+    float_value: str | None = Field(
+        None, alias="floatValue", description="Float значение"
+    )
     phase: str | None = Field(None, description="Фаза (для Doppler)")
     paint_seed: int | None = Field(None, alias="paintSeed", description="Paint seed")
 
@@ -87,7 +89,9 @@ class MarketItemsResponse(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, extra="allow")
 
-    objects: list[MarketItemModel] = Field(default_factory=list, description="Список предметов")
+    objects: list[MarketItemModel] = Field(
+        default_factory=list, description="Список предметов"
+    )
     total: int | str = Field(0, description="Общее количество предметов")
     cursor: str | None = Field(None, description="Курсор для пагинации")
 
@@ -133,7 +137,9 @@ class CreateTargetRequest(BaseModel):
     title: str = Field(..., alias="Title", description="Название предмета")
     amount: int = Field(..., alias="Amount", description="Количество", ge=1, le=100)
     price: TargetPriceModel = Field(..., alias="Price", description="Цена")
-    attrs: dict[str, Any] | None = Field(None, alias="Attrs", description="Дополнительные атрибуты")
+    attrs: dict[str, Any] | None = Field(
+        None, alias="Attrs", description="Дополнительные атрибуты"
+    )
 
 
 class TargetResultModel(BaseModel):
@@ -277,7 +283,9 @@ class AggregatedPriceModel(BaseModel):
     offer_best_price: str | None = Field(
         None, alias="offerBestPrice", description="Лучшая цена продажи"
     )
-    offer_count: int = Field(0, alias="offerCount", description="Количество активных предложений")
+    offer_count: int = Field(
+        0, alias="offerCount", description="Количество активных предложений"
+    )
 
     def get_order_price_decimal(self) -> Decimal | None:
         """Получить цену buy order в долларах."""

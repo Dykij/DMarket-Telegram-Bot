@@ -112,9 +112,9 @@ class TestAnalyzePriceHistoryExtended:
     async def test_single_data_point(self):
         """Test with single data point."""
         analyzer = MarketAnalyzer()
-        result = await analyzer.analyze_price_history([
-            {"price": 10.0, "timestamp": datetime.now(UTC).timestamp()}
-        ])
+        result = await analyzer.analyze_price_history(
+            [{"price": 10.0, "timestamp": datetime.now(UTC).timestamp()}]
+        )
 
         assert result["insufficient_data"] is True
         assert result["avg_price"] == 0.0
@@ -124,7 +124,10 @@ class TestAnalyzePriceHistoryExtended:
         """Test with exactly min_data_points entries."""
         analyzer = MarketAnalyzer(min_data_points=5)
         history = [
-            {"price": float(10 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
+            {
+                "price": float(10 + i),
+                "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp(),
+            }
             for i in range(5)
         ]
         result = await analyzer.analyze_price_history(history)
@@ -138,11 +141,23 @@ class TestAnalyzePriceHistoryExtended:
         analyzer = MarketAnalyzer()
         # Create unsorted history
         history = [
-            {"price": 12.0, "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp()},
-            {"price": 10.0, "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp()},
-            {"price": 11.0, "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp()},
+            {
+                "price": 12.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(),
+            },
+            {
+                "price": 10.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(),
+            },
+            {
+                "price": 11.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(),
+            },
             {"price": 13.0, "timestamp": datetime.now(UTC).timestamp()},
-            {"price": 10.5, "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp()},
+            {
+                "price": 10.5,
+                "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(),
+            },
         ]
         result = await analyzer.analyze_price_history(history)
 
@@ -179,10 +194,26 @@ class TestAnalyzePriceHistoryExtended:
         """Test with volume data present."""
         analyzer = MarketAnalyzer()
         history = [
-            {"price": 10.0, "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(), "volume": 100},
-            {"price": 10.5, "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(), "volume": 120},
-            {"price": 11.0, "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(), "volume": 130},
-            {"price": 11.5, "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(), "volume": 140},
+            {
+                "price": 10.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(),
+                "volume": 100,
+            },
+            {
+                "price": 10.5,
+                "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(),
+                "volume": 120,
+            },
+            {
+                "price": 11.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(),
+                "volume": 130,
+            },
+            {
+                "price": 11.5,
+                "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(),
+                "volume": 140,
+            },
             {"price": 12.0, "timestamp": datetime.now(UTC).timestamp(), "volume": 150},
         ]
         result = await analyzer.analyze_price_history(history)
@@ -194,13 +225,28 @@ class TestAnalyzePriceHistoryExtended:
         """Test with zero initial volume."""
         analyzer = MarketAnalyzer()
         history = [
-            {"price": 10.0, "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(), "volume": 0},
-            {"price": 10.5, "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(), "volume": 50},
+            {
+                "price": 10.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(),
+                "volume": 0,
+            },
+            {
+                "price": 10.5,
+                "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(),
+                "volume": 50,
+            },
             {"price": 11.0, "timestamp": datetime.now(UTC).timestamp(), "volume": 100},
         ]
         # Add more data points
         for i in range(3, 6):
-            history.insert(0, {"price": float(9 + i), "timestamp": (datetime.now(UTC) - timedelta(days=i)).timestamp(), "volume": i * 10})
+            history.insert(
+                0,
+                {
+                    "price": float(9 + i),
+                    "timestamp": (datetime.now(UTC) - timedelta(days=i)).timestamp(),
+                    "volume": i * 10,
+                },
+            )
 
         result = await analyzer.analyze_price_history(history)
         assert "volume_change" in result
@@ -211,12 +257,30 @@ class TestAnalyzePriceHistoryExtended:
         analyzer = MarketAnalyzer()
         # Highly volatile prices
         history = [
-            {"price": 10.0, "timestamp": (datetime.now(UTC) - timedelta(days=6)).timestamp()},
-            {"price": 15.0, "timestamp": (datetime.now(UTC) - timedelta(days=5)).timestamp()},
-            {"price": 8.0, "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp()},
-            {"price": 16.0, "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp()},
-            {"price": 7.0, "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp()},
-            {"price": 14.0, "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp()},
+            {
+                "price": 10.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=6)).timestamp(),
+            },
+            {
+                "price": 15.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=5)).timestamp(),
+            },
+            {
+                "price": 8.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(),
+            },
+            {
+                "price": 16.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(),
+            },
+            {
+                "price": 7.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(),
+            },
+            {
+                "price": 14.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(),
+            },
             {"price": 9.0, "timestamp": datetime.now(UTC).timestamp()},
         ]
         result = await analyzer.analyze_price_history(history)
@@ -230,12 +294,30 @@ class TestAnalyzePriceHistoryExtended:
         analyzer = MarketAnalyzer()
         # Moderately volatile prices
         history = [
-            {"price": 10.0, "timestamp": (datetime.now(UTC) - timedelta(days=6)).timestamp()},
-            {"price": 10.8, "timestamp": (datetime.now(UTC) - timedelta(days=5)).timestamp()},
-            {"price": 9.5, "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp()},
-            {"price": 11.0, "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp()},
-            {"price": 10.2, "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp()},
-            {"price": 10.9, "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp()},
+            {
+                "price": 10.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=6)).timestamp(),
+            },
+            {
+                "price": 10.8,
+                "timestamp": (datetime.now(UTC) - timedelta(days=5)).timestamp(),
+            },
+            {
+                "price": 9.5,
+                "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(),
+            },
+            {
+                "price": 11.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(),
+            },
+            {
+                "price": 10.2,
+                "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(),
+            },
+            {
+                "price": 10.9,
+                "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(),
+            },
             {"price": 10.5, "timestamp": datetime.now(UTC).timestamp()},
         ]
         result = await analyzer.analyze_price_history(history)
@@ -247,10 +329,22 @@ class TestAnalyzePriceHistoryExtended:
         """Test price statistics calculations."""
         analyzer = MarketAnalyzer()
         history = [
-            {"price": 10.0, "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp()},
-            {"price": 12.0, "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp()},
-            {"price": 14.0, "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp()},
-            {"price": 16.0, "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp()},
+            {
+                "price": 10.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(),
+            },
+            {
+                "price": 12.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(),
+            },
+            {
+                "price": 14.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(),
+            },
+            {
+                "price": 16.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(),
+            },
             {"price": 18.0, "timestamp": datetime.now(UTC).timestamp()},
         ]
         result = await analyzer.analyze_price_history(history)
@@ -279,7 +373,9 @@ class TestAnalyzeTrendExtended:
     def test_analyze_trend_perfect_uptrend(self):
         """Test with perfect linear uptrend."""
         analyzer = MarketAnalyzer()
-        trend, confidence = analyzer._analyze_trend([10.0, 11.0, 12.0, 13.0, 14.0, 15.0])
+        trend, confidence = analyzer._analyze_trend(
+            [10.0, 11.0, 12.0, 13.0, 14.0, 15.0]
+        )
 
         assert trend == TREND_UP
         assert confidence > 0.99
@@ -287,7 +383,9 @@ class TestAnalyzeTrendExtended:
     def test_analyze_trend_perfect_downtrend(self):
         """Test with perfect linear downtrend."""
         analyzer = MarketAnalyzer()
-        trend, confidence = analyzer._analyze_trend([15.0, 14.0, 13.0, 12.0, 11.0, 10.0])
+        trend, confidence = analyzer._analyze_trend(
+            [15.0, 14.0, 13.0, 12.0, 11.0, 10.0]
+        )
 
         assert trend == TREND_DOWN
         assert confidence > 0.99
@@ -312,14 +410,18 @@ class TestAnalyzeTrendExtended:
     def test_analyze_trend_slightly_up(self):
         """Test with slight upward trend."""
         analyzer = MarketAnalyzer()
-        trend, _confidence = analyzer._analyze_trend([10.0, 10.2, 10.5, 10.3, 10.6, 10.8])
+        trend, _confidence = analyzer._analyze_trend(
+            [10.0, 10.2, 10.5, 10.3, 10.6, 10.8]
+        )
 
         assert trend == TREND_UP
 
     def test_analyze_trend_slightly_down(self):
         """Test with slight downward trend."""
         analyzer = MarketAnalyzer()
-        trend, _confidence = analyzer._analyze_trend([10.8, 10.6, 10.3, 10.5, 10.2, 10.0])
+        trend, _confidence = analyzer._analyze_trend(
+            [10.8, 10.6, 10.3, 10.5, 10.2, 10.0]
+        )
 
         assert trend == TREND_DOWN
 
@@ -629,7 +731,10 @@ class TestAnalyzeMarketOpportunityExtended:
             "price": {"amount": 1000},
         }
         history = [
-            {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
+            {
+                "price": float(8 + i),
+                "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp(),
+            }
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -645,7 +750,10 @@ class TestAnalyzeMarketOpportunityExtended:
             "price": 15.0,
         }
         history = [
-            {"price": float(10 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
+            {
+                "price": float(10 + i),
+                "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp(),
+            }
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -661,7 +769,10 @@ class TestAnalyzeMarketOpportunityExtended:
             "price": 20,
         }
         history = [
-            {"price": float(15 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
+            {
+                "price": float(15 + i),
+                "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp(),
+            }
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -676,7 +787,10 @@ class TestAnalyzeMarketOpportunityExtended:
             "title": "Test Item",
         }
         history = [
-            {"price": float(10 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
+            {
+                "price": float(10 + i),
+                "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp(),
+            }
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -693,11 +807,31 @@ class TestAnalyzeMarketOpportunityExtended:
         }
         # Create history that triggers many patterns for high score
         history = [
-            {"price": 20.0, "timestamp": (datetime.now(UTC) - timedelta(days=5)).timestamp(), "volume": 100},
-            {"price": 18.0, "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(), "volume": 110},
-            {"price": 15.0, "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(), "volume": 130},
-            {"price": 10.0, "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(), "volume": 150},
-            {"price": 6.0, "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(), "volume": 180},
+            {
+                "price": 20.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=5)).timestamp(),
+                "volume": 100,
+            },
+            {
+                "price": 18.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(),
+                "volume": 110,
+            },
+            {
+                "price": 15.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(),
+                "volume": 130,
+            },
+            {
+                "price": 10.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(),
+                "volume": 150,
+            },
+            {
+                "price": 6.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(),
+                "volume": 180,
+            },
             {"price": 5.0, "timestamp": datetime.now(UTC).timestamp(), "volume": 200},
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -709,7 +843,10 @@ class TestAnalyzeMarketOpportunityExtended:
         """Test opportunity analysis with upward trend."""
         item_data = {"itemId": "test-123", "title": "Test Item", "price": 15.0}
         history = [
-            {"price": float(10 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
+            {
+                "price": float(10 + i),
+                "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp(),
+            }
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -722,10 +859,22 @@ class TestAnalyzeMarketOpportunityExtended:
         """Test opportunity analysis with panic pattern."""
         item_data = {"itemId": "test-123", "title": "Test Item", "price": 5.0}
         history = [
-            {"price": 20.0, "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp()},
-            {"price": 17.0, "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp()},
-            {"price": 13.0, "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp()},
-            {"price": 9.0, "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp()},
+            {
+                "price": 20.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(),
+            },
+            {
+                "price": 17.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(),
+            },
+            {
+                "price": 13.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(),
+            },
+            {
+                "price": 9.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(),
+            },
             {"price": 5.0, "timestamp": datetime.now(UTC).timestamp()},
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -739,10 +888,22 @@ class TestAnalyzeMarketOpportunityExtended:
         """Test opportunity analysis with FOMO pattern."""
         item_data = {"itemId": "test-123", "title": "Test Item", "price": 25.0}
         history = [
-            {"price": 10.0, "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp()},
-            {"price": 12.0, "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp()},
-            {"price": 15.0, "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp()},
-            {"price": 18.0, "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp()},
+            {
+                "price": 10.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(),
+            },
+            {
+                "price": 12.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(),
+            },
+            {
+                "price": 15.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(),
+            },
+            {
+                "price": 18.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(),
+            },
             {"price": 25.0, "timestamp": datetime.now(UTC).timestamp()},
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -756,12 +917,30 @@ class TestAnalyzeMarketOpportunityExtended:
         """Test opportunity when price is near support level."""
         item_data = {"itemId": "test-123", "title": "Test Item", "price": 10.2}
         history = [
-            {"price": 12.0, "timestamp": (datetime.now(UTC) - timedelta(days=6)).timestamp()},
-            {"price": 11.0, "timestamp": (datetime.now(UTC) - timedelta(days=5)).timestamp()},
-            {"price": 10.0, "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp()},
-            {"price": 11.0, "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp()},
-            {"price": 12.0, "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp()},
-            {"price": 11.0, "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp()},
+            {
+                "price": 12.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=6)).timestamp(),
+            },
+            {
+                "price": 11.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=5)).timestamp(),
+            },
+            {
+                "price": 10.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(),
+            },
+            {
+                "price": 11.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(),
+            },
+            {
+                "price": 12.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(),
+            },
+            {
+                "price": 11.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(),
+            },
             {"price": 10.2, "timestamp": datetime.now(UTC).timestamp()},
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -774,10 +953,26 @@ class TestAnalyzeMarketOpportunityExtended:
         """Test opportunity with volume increase."""
         item_data = {"itemId": "test-123", "title": "Test Item", "price": 12.0}
         history = [
-            {"price": 10.0, "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(), "volume": 100},
-            {"price": 10.5, "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(), "volume": 120},
-            {"price": 11.0, "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(), "volume": 140},
-            {"price": 11.5, "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(), "volume": 160},
+            {
+                "price": 10.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(),
+                "volume": 100,
+            },
+            {
+                "price": 10.5,
+                "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(),
+                "volume": 120,
+            },
+            {
+                "price": 11.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(),
+                "volume": 140,
+            },
+            {
+                "price": 11.5,
+                "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(),
+                "volume": 160,
+            },
             {"price": 12.0, "timestamp": datetime.now(UTC).timestamp(), "volume": 200},
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -790,7 +985,10 @@ class TestAnalyzeMarketOpportunityExtended:
         """Test CS:GO case gets bonus score."""
         item_data = {"itemId": "test-123", "title": "Clutch Case", "price": 1.0}
         history = [
-            {"price": float(1 + i * 0.1), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
+            {
+                "price": float(1 + i * 0.1),
+                "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp(),
+            }
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -801,9 +999,16 @@ class TestAnalyzeMarketOpportunityExtended:
     @pytest.mark.asyncio()
     async def test_opportunity_csgo_collection_bonus(self):
         """Test CS:GO collection gets bonus score."""
-        item_data = {"itemId": "test-123", "title": "2021 Collection Item", "price": 2.0}
+        item_data = {
+            "itemId": "test-123",
+            "title": "2021 Collection Item",
+            "price": 2.0,
+        }
         history = [
-            {"price": float(2 + i * 0.1), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
+            {
+                "price": float(2 + i * 0.1),
+                "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp(),
+            }
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -815,7 +1020,10 @@ class TestAnalyzeMarketOpportunityExtended:
         """Test opportunity analysis for different games."""
         item_data = {"itemId": "test-123", "title": "Arcana Item", "price": 25.0}
         history = [
-            {"price": float(20 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
+            {
+                "price": float(20 + i),
+                "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp(),
+            }
             for i in range(5)
         ]
 
@@ -829,10 +1037,26 @@ class TestAnalyzeMarketOpportunityExtended:
         item_data = {"itemId": "test-123", "title": "Test Item", "price": 5.0}
         # Create panic selling scenario for buy opportunity
         history = [
-            {"price": 20.0, "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(), "volume": 100},
-            {"price": 15.0, "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(), "volume": 150},
-            {"price": 10.0, "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(), "volume": 200},
-            {"price": 7.0, "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(), "volume": 250},
+            {
+                "price": 20.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(),
+                "volume": 100,
+            },
+            {
+                "price": 15.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(),
+                "volume": 150,
+            },
+            {
+                "price": 10.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(),
+                "volume": 200,
+            },
+            {
+                "price": 7.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(),
+                "volume": 250,
+            },
             {"price": 5.0, "timestamp": datetime.now(UTC).timestamp(), "volume": 300},
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -861,7 +1085,12 @@ class TestBatchAnalyzeItemsExtended:
         ]
         histories = {
             "test-123": [
-                {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
+                {
+                    "price": float(8 + i),
+                    "timestamp": (
+                        datetime.now(UTC) - timedelta(days=4 - i)
+                    ).timestamp(),
+                }
                 for i in range(5)
             ]
         }
@@ -880,15 +1109,38 @@ class TestBatchAnalyzeItemsExtended:
         # Create histories where case item should have higher score
         histories = {
             "low-score": [
-                {"price": 10.0, "timestamp": (datetime.now(UTC) - timedelta(days=i)).timestamp()}
+                {
+                    "price": 10.0,
+                    "timestamp": (datetime.now(UTC) - timedelta(days=i)).timestamp(),
+                }
                 for i in range(5, 0, -1)
             ],
             "high-score": [
-                {"price": 20.0, "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(), "volume": 100},
-                {"price": 15.0, "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(), "volume": 130},
-                {"price": 10.0, "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(), "volume": 160},
-                {"price": 7.0, "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(), "volume": 190},
-                {"price": 5.0, "timestamp": datetime.now(UTC).timestamp(), "volume": 220},
+                {
+                    "price": 20.0,
+                    "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(),
+                    "volume": 100,
+                },
+                {
+                    "price": 15.0,
+                    "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(),
+                    "volume": 130,
+                },
+                {
+                    "price": 10.0,
+                    "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(),
+                    "volume": 160,
+                },
+                {
+                    "price": 7.0,
+                    "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(),
+                    "volume": 190,
+                },
+                {
+                    "price": 5.0,
+                    "timestamp": datetime.now(UTC).timestamp(),
+                    "volume": 220,
+                },
             ],
         }
         results = await batch_analyze_items(items, histories, "csgo")
@@ -906,7 +1158,12 @@ class TestBatchAnalyzeItemsExtended:
         ]
         histories = {
             "has-history": [
-                {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
+                {
+                    "price": float(8 + i),
+                    "timestamp": (
+                        datetime.now(UTC) - timedelta(days=4 - i)
+                    ).timestamp(),
+                }
                 for i in range(5)
             ]
         }
@@ -922,13 +1179,21 @@ class TestBatchAnalyzeItemsExtended:
         ]
         histories = {
             "test-123": [
-                {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
+                {
+                    "price": float(8 + i),
+                    "timestamp": (
+                        datetime.now(UTC) - timedelta(days=4 - i)
+                    ).timestamp(),
+                }
                 for i in range(5)
             ]
         }
 
         # Patch analyze_market_opportunity to raise exception
-        with patch("src.utils.market_analyzer.analyze_market_opportunity", side_effect=Exception("Test error")):
+        with patch(
+            "src.utils.market_analyzer.analyze_market_opportunity",
+            side_effect=Exception("Test error"),
+        ):
             results = await batch_analyze_items(items, histories, "csgo")
 
         # Should return empty list due to exception
@@ -943,7 +1208,12 @@ class TestBatchAnalyzeItemsExtended:
         ]
         histories = {
             f"item-{i}": [
-                {"price": float(8 + j), "timestamp": (datetime.now(UTC) - timedelta(days=4 - j)).timestamp()}
+                {
+                    "price": float(8 + j),
+                    "timestamp": (
+                        datetime.now(UTC) - timedelta(days=4 - j)
+                    ).timestamp(),
+                }
                 for j in range(5)
             ]
             for i in range(50)
@@ -968,7 +1238,10 @@ class TestEdgeCases:
             "price": 10.0,
         }
         history = [
-            {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
+            {
+                "price": float(8 + i),
+                "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp(),
+            }
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -980,7 +1253,10 @@ class TestEdgeCases:
         """Test with very small price values."""
         item_data = {"itemId": "test-123", "title": "Cheap Item", "price": 0.01}
         history = [
-            {"price": 0.01 + i * 0.001, "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
+            {
+                "price": 0.01 + i * 0.001,
+                "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp(),
+            }
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -992,7 +1268,10 @@ class TestEdgeCases:
         """Test with very large price values."""
         item_data = {"itemId": "test-123", "title": "Expensive Item", "price": 100000.0}
         history = [
-            {"price": float(90000 + i * 2000), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
+            {
+                "price": float(90000 + i * 2000),
+                "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp(),
+            }
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -1004,10 +1283,22 @@ class TestEdgeCases:
         """Test with zero prices in history."""
         analyzer = MarketAnalyzer()
         history = [
-            {"price": 0.0, "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp()},
-            {"price": 0.0, "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp()},
-            {"price": 0.0, "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp()},
-            {"price": 0.0, "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp()},
+            {
+                "price": 0.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(),
+            },
+            {
+                "price": 0.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(),
+            },
+            {
+                "price": 0.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(),
+            },
+            {
+                "price": 0.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(),
+            },
             {"price": 0.0, "timestamp": datetime.now(UTC).timestamp()},
         ]
         result = await analyzer.analyze_price_history(history)
@@ -1019,10 +1310,22 @@ class TestEdgeCases:
         """Test with negative prices in history (edge case)."""
         analyzer = MarketAnalyzer()
         history = [
-            {"price": -10.0, "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp()},
-            {"price": -5.0, "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp()},
-            {"price": 0.0, "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp()},
-            {"price": 5.0, "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp()},
+            {
+                "price": -10.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(),
+            },
+            {
+                "price": -5.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(),
+            },
+            {
+                "price": 0.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(),
+            },
+            {
+                "price": 5.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(),
+            },
             {"price": 10.0, "timestamp": datetime.now(UTC).timestamp()},
         ]
         result = await analyzer.analyze_price_history(history)
@@ -1035,7 +1338,10 @@ class TestEdgeCases:
         """Test with missing item title."""
         item_data = {"itemId": "test-123", "price": 10.0}
         history = [
-            {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
+            {
+                "price": float(8 + i),
+                "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp(),
+            }
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -1047,7 +1353,10 @@ class TestEdgeCases:
         """Test with empty item ID."""
         item_data = {"itemId": "", "title": "Test", "price": 10.0}
         history = [
-            {"price": float(8 + i), "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp()}
+            {
+                "price": float(8 + i),
+                "timestamp": (datetime.now(UTC) - timedelta(days=4 - i)).timestamp(),
+            }
             for i in range(5)
         ]
         result = await analyze_market_opportunity(item_data, history, "csgo")
@@ -1085,13 +1394,18 @@ class TestIntegration:
         for i in range(30):
             # Simulate realistic price movement
             import random
+
             random.seed(i)
             price = base_price + random.uniform(-1, 1.5)
-            history.append({
-                "price": price,
-                "timestamp": (datetime.now(UTC) - timedelta(days=29 - i)).timestamp(),
-                "volume": 100 + i * 5,
-            })
+            history.append(
+                {
+                    "price": price,
+                    "timestamp": (
+                        datetime.now(UTC) - timedelta(days=29 - i)
+                    ).timestamp(),
+                    "volume": 100 + i * 5,
+                }
+            )
 
         result = await analyze_market_opportunity(item_data, history, "csgo")
 
@@ -1121,13 +1435,20 @@ class TestIntegration:
 
         for i in range(5):
             item_id = f"item-{i}"
-            items.append({
-                "itemId": item_id,
-                "title": f"Test Item {i}",
-                "price": float(10 + i * 2),
-            })
+            items.append(
+                {
+                    "itemId": item_id,
+                    "title": f"Test Item {i}",
+                    "price": float(10 + i * 2),
+                }
+            )
             histories[item_id] = [
-                {"price": float(8 + i + j * 0.5), "timestamp": (datetime.now(UTC) - timedelta(days=6 - j)).timestamp()}
+                {
+                    "price": float(8 + i + j * 0.5),
+                    "timestamp": (
+                        datetime.now(UTC) - timedelta(days=6 - j)
+                    ).timestamp(),
+                }
                 for j in range(7)
             ]
 
@@ -1136,7 +1457,9 @@ class TestIntegration:
         assert len(results) == 5
         # Results should be sorted by opportunity score
         for i in range(len(results) - 1):
-            assert results[i]["opportunity_score"] >= results[i + 1]["opportunity_score"]
+            assert (
+                results[i]["opportunity_score"] >= results[i + 1]["opportunity_score"]
+            )
 
     @pytest.mark.asyncio()
     async def test_multi_pattern_detection(self):
@@ -1144,20 +1467,62 @@ class TestIntegration:
         analyzer = MarketAnalyzer()
         # Create data that could trigger multiple patterns
         history = [
-            {"price": 10.0, "timestamp": (datetime.now(UTC) - timedelta(days=14)).timestamp()},
-            {"price": 10.5, "timestamp": (datetime.now(UTC) - timedelta(days=13)).timestamp()},
-            {"price": 11.0, "timestamp": (datetime.now(UTC) - timedelta(days=12)).timestamp()},
-            {"price": 10.8, "timestamp": (datetime.now(UTC) - timedelta(days=11)).timestamp()},
-            {"price": 11.2, "timestamp": (datetime.now(UTC) - timedelta(days=10)).timestamp()},
-            {"price": 10.9, "timestamp": (datetime.now(UTC) - timedelta(days=9)).timestamp()},
-            {"price": 11.5, "timestamp": (datetime.now(UTC) - timedelta(days=8)).timestamp()},
-            {"price": 12.0, "timestamp": (datetime.now(UTC) - timedelta(days=7)).timestamp()},
-            {"price": 13.0, "timestamp": (datetime.now(UTC) - timedelta(days=6)).timestamp()},
-            {"price": 14.0, "timestamp": (datetime.now(UTC) - timedelta(days=5)).timestamp()},
-            {"price": 15.5, "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp()},
-            {"price": 17.0, "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp()},
-            {"price": 19.0, "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp()},
-            {"price": 22.0, "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp()},
+            {
+                "price": 10.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=14)).timestamp(),
+            },
+            {
+                "price": 10.5,
+                "timestamp": (datetime.now(UTC) - timedelta(days=13)).timestamp(),
+            },
+            {
+                "price": 11.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=12)).timestamp(),
+            },
+            {
+                "price": 10.8,
+                "timestamp": (datetime.now(UTC) - timedelta(days=11)).timestamp(),
+            },
+            {
+                "price": 11.2,
+                "timestamp": (datetime.now(UTC) - timedelta(days=10)).timestamp(),
+            },
+            {
+                "price": 10.9,
+                "timestamp": (datetime.now(UTC) - timedelta(days=9)).timestamp(),
+            },
+            {
+                "price": 11.5,
+                "timestamp": (datetime.now(UTC) - timedelta(days=8)).timestamp(),
+            },
+            {
+                "price": 12.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=7)).timestamp(),
+            },
+            {
+                "price": 13.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=6)).timestamp(),
+            },
+            {
+                "price": 14.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=5)).timestamp(),
+            },
+            {
+                "price": 15.5,
+                "timestamp": (datetime.now(UTC) - timedelta(days=4)).timestamp(),
+            },
+            {
+                "price": 17.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=3)).timestamp(),
+            },
+            {
+                "price": 19.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=2)).timestamp(),
+            },
+            {
+                "price": 22.0,
+                "timestamp": (datetime.now(UTC) - timedelta(days=1)).timestamp(),
+            },
             {"price": 26.0, "timestamp": datetime.now(UTC).timestamp()},
         ]
 

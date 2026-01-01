@@ -57,7 +57,9 @@ class TestArbitrageScannerEdgeCases:
 
         # Мок для aggregated-prices (вызывается автоматически)
         httpx_mock.add_response(
-            url=re.compile(r"https://api\.dmarket\.com/marketplace-api/v1/aggregated-prices.*"),
+            url=re.compile(
+                r"https://api\.dmarket\.com/marketplace-api/v1/aggregated-prices.*"
+            ),
             method="POST",
             json={"aggregatedPrices": []},
             status_code=200,
@@ -102,7 +104,9 @@ class TestArbitrageScannerEdgeCases:
 
         # Мок для aggregated-prices (вызывается автоматически)
         httpx_mock.add_response(
-            url=re.compile(r"https://api\.dmarket\.com/marketplace-api/v1/aggregated-prices.*"),
+            url=re.compile(
+                r"https://api\.dmarket\.com/marketplace-api/v1/aggregated-prices.*"
+            ),
             method="POST",
             json={"aggregatedPrices": []},
             status_code=200,

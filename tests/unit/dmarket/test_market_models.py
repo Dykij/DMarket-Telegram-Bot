@@ -26,7 +26,10 @@ class TestPrice:
 class TestBalance:
     def test_usd_dollars_property(self):
         balance = Balance(
-            usd="1250", usdAvailableToWithdraw="1000", dmc="500", dmcAvailableToWithdraw="400"
+            usd="1250",
+            usdAvailableToWithdraw="1000",
+            dmc="500",
+            dmcAvailableToWithdraw="400",
         )
         assert balance.usd_dollars == 12.50
         assert balance.available_usd_dollars == 10.00
@@ -43,7 +46,10 @@ class TestBalance:
 
     def test_invalid_values(self):
         balance = Balance(
-            usd="invalid", usdAvailableToWithdraw="invalid", dmc="500", dmcAvailableToWithdraw="400"
+            usd="invalid",
+            usdAvailableToWithdraw="invalid",
+            dmc="500",
+            dmcAvailableToWithdraw="400",
         )
         assert balance.usd_dollars == 0.0
         assert balance.available_usd_dollars == 0.0
@@ -52,12 +58,17 @@ class TestBalance:
 class TestMarketItem:
     def test_price_usd_property_dict_format(self):
         item = MarketItem(
-            itemId="1", title="Test Item", price={"USD": {"amount": 1250}}, gameId="game1"
+            itemId="1",
+            title="Test Item",
+            price={"USD": {"amount": 1250}},
+            gameId="game1",
         )
         assert item.price_usd == 12.50
 
     def test_price_usd_property_str_format(self):
-        item = MarketItem(itemId="1", title="Test Item", price={"USD": "12.50"}, gameId="game1")
+        item = MarketItem(
+            itemId="1", title="Test Item", price={"USD": "12.50"}, gameId="game1"
+        )
         assert item.price_usd == 12.50
 
     def test_suggested_price_usd(self):
@@ -97,7 +108,11 @@ class TestAggregatedPrice:
 
     def test_spread_percent_zero_order_price(self):
         agg_price = AggregatedPrice(
-            title="Test Item", orderBestPrice="0", orderCount=0, offerBestPrice="1200", offerCount=3
+            title="Test Item",
+            orderBestPrice="0",
+            orderCount=0,
+            offerBestPrice="1200",
+            offerCount=3,
         )
         assert agg_price.spread_percent == 0.0
 
@@ -110,7 +125,9 @@ class TestTargetOrder:
 
 class TestOfferByTitle:
     def test_price_usd_float(self):
-        offer = OfferByTitle(offerId="1", price=MarketPrice(USD="1250"), title="Test Item")
+        offer = OfferByTitle(
+            offerId="1", price=MarketPrice(USD="1250"), title="Test Item"
+        )
         assert offer.price_usd_float == 12.50
 
 

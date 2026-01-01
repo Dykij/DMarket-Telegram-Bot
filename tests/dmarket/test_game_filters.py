@@ -114,7 +114,8 @@ class TestCS2Filter:
         # CS2 должен поддерживать фильтры по float, exterior, rarity и т.д.
         supported = cs2_filter.supported_filters
         assert any(
-            filter_name in supported for filter_name in ["float", "exterior", "rarity", "category"]
+            filter_name in supported
+            for filter_name in ["float", "exterior", "rarity", "category"]
         )
 
     def test_cs2_filter_apply_filters(self):
@@ -149,7 +150,8 @@ class TestDota2Filter:
         supported = dota2_filter.supported_filters
         # Dota 2 должен поддерживать фильтры по герою, слоту, качеству и т.д.
         assert any(
-            filter_name in supported for filter_name in ["hero", "slot", "quality", "rarity"]
+            filter_name in supported
+            for filter_name in ["hero", "slot", "quality", "rarity"]
         )
 
 

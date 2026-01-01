@@ -301,7 +301,9 @@ class ArbitrageTrader:
 
                     commission_amount = sell_price * commission / 100
                     net_profit = sell_price - buy_price - commission_amount
-                    profit_percent = (net_profit / buy_price) * 100 if buy_price > 0 else 0
+                    profit_percent = (
+                        (net_profit / buy_price) * 100 if buy_price > 0 else 0
+                    )
 
                     if profit_percent >= min_profit and net_profit > 0:
                         opportunities.append(
@@ -320,7 +322,9 @@ class ArbitrageTrader:
                         break  # Берем только лучшую цену для продажи
 
             # Сортируем по прибыльности
-            opportunities.sort(key=operator.itemgetter("profit_percentage"), reverse=True)
+            opportunities.sort(
+                key=operator.itemgetter("profit_percentage"), reverse=True
+            )
             logger.info(f"Найдено {len(opportunities)} выгодных возможностей")
 
             return opportunities
@@ -571,7 +575,9 @@ class ArbitrageTrader:
             Словарь с информацией о статусе
         """
         total_profit = (
-            sum(t["profit"] for t in self.transaction_history) if self.transaction_history else 0.0
+            sum(t["profit"] for t in self.transaction_history)
+            if self.transaction_history
+            else 0.0
         )
 
         on_pause = time.time() < self.pause_until

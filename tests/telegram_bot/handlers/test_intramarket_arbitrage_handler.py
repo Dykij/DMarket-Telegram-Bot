@@ -268,9 +268,7 @@ class TestDisplayResultsWithPagination:
 
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.intramarket_arbitrage_handler.pagination_manager")
-    async def test_display_empty_results(
-        self, mock_pagination, mock_callback_query
-    ):
+    async def test_display_empty_results(self, mock_pagination, mock_callback_query):
         """Test displaying empty results."""
         await display_results_with_pagination(
             query=mock_callback_query,
@@ -608,7 +606,9 @@ class TestHandleIntramarketCallback:
         self, mock_api_client, mock_anomalies, mock_update, mock_context
     ):
         """Test callback when API client creation fails."""
-        mock_update.callback_query.data = f"{INTRA_ARBITRAGE_ACTION}_{ANOMALY_ACTION}_csgo"
+        mock_update.callback_query.data = (
+            f"{INTRA_ARBITRAGE_ACTION}_{ANOMALY_ACTION}_csgo"
+        )
         mock_api_client.return_value = None
 
         await handle_intramarket_callback(mock_update, mock_context)
@@ -618,16 +618,13 @@ class TestHandleIntramarketCallback:
         call_args = mock_update.callback_query.edit_message_text.call_args_list
         # Check last call for error message
         error_shown = any(
-            "API" in str(call) or "ошибка" in str(call).lower()
-            for call in call_args
+            "API" in str(call) or "ошибка" in str(call).lower() for call in call_args
         )
         # At minimum, some message should be shown
         assert len(call_args) > 0
 
     @pytest.mark.asyncio()
-    @patch(
-        "src.telegram_bot.handlers.intramarket_arbitrage_handler.pagination_manager"
-    )
+    @patch("src.telegram_bot.handlers.intramarket_arbitrage_handler.pagination_manager")
     @patch(
         "src.telegram_bot.handlers.intramarket_arbitrage_handler.find_price_anomalies"
     )
@@ -644,7 +641,9 @@ class TestHandleIntramarketCallback:
         sample_underpriced_result,
     ):
         """Test successful anomaly search callback."""
-        mock_update.callback_query.data = f"{INTRA_ARBITRAGE_ACTION}_{ANOMALY_ACTION}_csgo"
+        mock_update.callback_query.data = (
+            f"{INTRA_ARBITRAGE_ACTION}_{ANOMALY_ACTION}_csgo"
+        )
         mock_api_client.return_value = AsyncMock()
         mock_anomalies.return_value = [sample_underpriced_result]
         mock_pagination.get_page.return_value = ([sample_underpriced_result], 0, 1)
@@ -656,9 +655,7 @@ class TestHandleIntramarketCallback:
         mock_pagination.add_items_for_user.assert_called_once()
 
     @pytest.mark.asyncio()
-    @patch(
-        "src.telegram_bot.handlers.intramarket_arbitrage_handler.pagination_manager"
-    )
+    @patch("src.telegram_bot.handlers.intramarket_arbitrage_handler.pagination_manager")
     @patch(
         "src.telegram_bot.handlers.intramarket_arbitrage_handler.find_trending_items"
     )
@@ -675,7 +672,9 @@ class TestHandleIntramarketCallback:
         sample_trending_result,
     ):
         """Test successful trending search callback."""
-        mock_update.callback_query.data = f"{INTRA_ARBITRAGE_ACTION}_{TRENDING_ACTION}_dota2"
+        mock_update.callback_query.data = (
+            f"{INTRA_ARBITRAGE_ACTION}_{TRENDING_ACTION}_dota2"
+        )
         mock_api_client.return_value = AsyncMock()
         mock_trending.return_value = [sample_trending_result]
         mock_pagination.get_page.return_value = ([sample_trending_result], 0, 1)
@@ -688,9 +687,7 @@ class TestHandleIntramarketCallback:
         assert call_kwargs["game"] == "dota2"
 
     @pytest.mark.asyncio()
-    @patch(
-        "src.telegram_bot.handlers.intramarket_arbitrage_handler.pagination_manager"
-    )
+    @patch("src.telegram_bot.handlers.intramarket_arbitrage_handler.pagination_manager")
     @patch(
         "src.telegram_bot.handlers.intramarket_arbitrage_handler.find_mispriced_rare_items"
     )
@@ -723,9 +720,13 @@ class TestHandleIntramarketCallback:
     @patch(
         "src.telegram_bot.handlers.intramarket_arbitrage_handler.create_api_client_from_env"
     )
-    async def test_callback_unknown_action(self, mock_api_client, mock_update, mock_context):
+    async def test_callback_unknown_action(
+        self, mock_api_client, mock_update, mock_context
+    ):
         """Test callback with unknown action type."""
-        mock_update.callback_query.data = f"{INTRA_ARBITRAGE_ACTION}_unknown_action_csgo"
+        mock_update.callback_query.data = (
+            f"{INTRA_ARBITRAGE_ACTION}_unknown_action_csgo"
+        )
         mock_api_client.return_value = AsyncMock()
 
         await handle_intramarket_callback(mock_update, mock_context)

@@ -9,10 +9,9 @@ import time
 
 import pytest
 
-
 # Check if pytest-benchmark is available
 try:
-    import pytest_benchmark
+    import pytest_benchmark as _  # noqa: F401
 
     HAS_BENCHMARK = True
 except ImportError:
@@ -33,7 +32,9 @@ class TestPriceCalculationPerformance:
     def test_profit_calculation_speed(self, benchmark):
         """Benchmark profit calculation speed."""
 
-        def calculate_profit(buy_price: float, sell_price: float, commission: float) -> float:
+        def calculate_profit(
+            buy_price: float, sell_price: float, commission: float
+        ) -> float:
             """Calculate net profit from arbitrage."""
             net_sell = sell_price * (1 - commission / 100)
             return net_sell - buy_price
@@ -56,8 +57,7 @@ class TestPriceCalculationPerformance:
 
         # Create test data
         test_items = [
-            {"buy": 10.0 + i, "sell": 15.0 + i, "commission": 7.0}
-            for i in range(1000)
+            {"buy": 10.0 + i, "sell": 15.0 + i, "commission": 7.0} for i in range(1000)
         ]
 
         results = benchmark(calculate_profits_batch, test_items)
@@ -66,7 +66,9 @@ class TestPriceCalculationPerformance:
     def test_profit_percentage_calculation_speed(self, benchmark):
         """Benchmark profit percentage calculation."""
 
-        def calculate_profit_percent(buy: float, sell: float, commission: float) -> float:
+        def calculate_profit_percent(
+            buy: float, sell: float, commission: float
+        ) -> float:
             """Calculate profit as percentage of buy price."""
             net_sell = sell * (1 - commission / 100)
             profit = net_sell - buy
@@ -131,17 +133,13 @@ class TestFilteringPerformance:
 
     def test_price_filter_speed(self, benchmark):
         """Benchmark price range filtering speed."""
-        items = [
-            {"title": f"Item {i}", "price": i * 10}
-            for i in range(10000)
-        ]
+        items = [{"title": f"Item {i}", "price": i * 10} for i in range(10000)]
 
-        def filter_by_price(items: list[dict], min_price: int, max_price: int) -> list[dict]:
+        def filter_by_price(
+            items: list[dict], min_price: int, max_price: int
+        ) -> list[dict]:
             """Filter items by price range."""
-            return [
-                item for item in items
-                if min_price <= item["price"] <= max_price
-            ]
+            return [item for item in items if min_price <= item["price"] <= max_price]
 
         results = benchmark(filter_by_price, items, 5000, 8000)
         assert len(results) > 0
@@ -167,7 +165,8 @@ class TestFilteringPerformance:
         ) -> list[dict]:
             """Filter items by multiple criteria."""
             return [
-                item for item in items
+                item
+                for item in items
                 if min_price <= item["price"] <= max_price
                 and item["game"] == game
                 and item["profit_percent"] >= min_profit
@@ -183,10 +182,7 @@ class TestSortingPerformance:
 
     def test_profit_sort_speed(self, benchmark):
         """Benchmark sorting by profit speed."""
-        items = [
-            {"title": f"Item {i}", "profit": i % 100}
-            for i in range(10000)
-        ]
+        items = [{"title": f"Item {i}", "profit": i % 100} for i in range(10000)]
 
         def sort_by_profit(items: list[dict], descending: bool = True) -> list[dict]:
             """Sort items by profit."""
@@ -262,9 +258,11 @@ class TestStringOperationsPerformance:
             """Format item title with truncation."""
             if len(title) <= max_length:
                 return title
-            return f"{title[:max_length - 3]}..."
+            return f"{title[: max_length - 3]}..."
 
-        long_title = "AK-47 | Redline (Field-Tested) with StatTrak Counter and Rare Pattern"
+        long_title = (
+            "AK-47 | Redline (Field-Tested) with StatTrak Counter and Rare Pattern"
+        )
         result = benchmark(format_title, long_title)
         assert len(result) <= 50
 
@@ -364,7 +362,7 @@ class TestAsyncPerformance:
         # Process in batches of 10
         results = []
         for i in range(0, len(items), 10):
-            batch = items[i:i + 10]
+            batch = items[i : i + 10]
             batch_results = await asyncio.gather(
                 *[process_item(item) for item in batch]
             )
@@ -408,16 +406,10 @@ class TestMemoryEfficiency:
         import sys
 
         # Dict storage
-        dict_items = [
-            {"id": i, "price": i * 10, "profit": i % 20}
-            for i in range(1000)
-        ]
+        dict_items = [{"id": i, "price": i * 10, "profit": i % 20} for i in range(1000)]
 
         # Tuple storage (more memory efficient)
-        tuple_items = [
-            (i, i * 10, i % 20)
-            for i in range(1000)
-        ]
+        tuple_items = [(i, i * 10, i % 20) for i in range(1000)]
 
         dict_size = sum(sys.getsizeof(item) for item in dict_items)
         tuple_size = sum(sys.getsizeof(item) for item in tuple_items)

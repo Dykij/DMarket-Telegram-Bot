@@ -6,7 +6,12 @@
 
 from __future__ import annotations
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
+from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+)
 
 from src.dmarket.arbitrage import GAMES
 from src.telegram_bot.keyboards.utils import CB_GAME_PREFIX, CB_HELP, CB_SETTINGS

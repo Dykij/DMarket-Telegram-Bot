@@ -36,7 +36,9 @@ class TestAPIDowntimeScenarios:
             result = await mock_dmarket_api.get_balance()
             assert result is not None or result == {}
 
-    async def test_intermittent_connectivity(self, mock_dmarket_api: DMarketAPI) -> None:
+    async def test_intermittent_connectivity(
+        self, mock_dmarket_api: DMarketAPI
+    ) -> None:
         """Test handling of intermittent connectivity issues."""
         network_error = httpx.ConnectError("Connection refused")
         success = {"usd": "10000"}
@@ -81,7 +83,9 @@ class TestRateLimitScenarios:
             result = await mock_dmarket_api.get_balance()
             assert result is not None or result == {}
 
-    async def test_varying_retry_after_values(self, mock_dmarket_api: DMarketAPI) -> None:
+    async def test_varying_retry_after_values(
+        self, mock_dmarket_api: DMarketAPI
+    ) -> None:
         """Test handling of varying Retry-After values."""
         rate_limit_short = httpx.HTTPStatusError(
             message="Rate limit exceeded",
@@ -98,7 +102,9 @@ class TestRateLimitScenarios:
             balance = await mock_dmarket_api.get_balance()
             assert isinstance(balance, dict)
 
-    async def test_rate_limit_without_retry_header(self, mock_dmarket_api: DMarketAPI) -> None:
+    async def test_rate_limit_without_retry_header(
+        self, mock_dmarket_api: DMarketAPI
+    ) -> None:
         """Test rate limit without Retry-After header."""
         rate_limit = httpx.HTTPStatusError(
             message="Rate limit exceeded",
@@ -130,12 +136,16 @@ class TestMalformedResponseScenarios:
         """Test handling of responses missing required fields."""
         incomplete_response = {"incomplete": "data"}
 
-        with patch.object(mock_dmarket_api, "_request", return_value=incomplete_response):
+        with patch.object(
+            mock_dmarket_api, "_request", return_value=incomplete_response
+        ):
             result = await mock_dmarket_api.get_balance()
             # Should handle missing fields
             assert result is not None
 
-    async def test_unexpected_response_structure(self, mock_dmarket_api: DMarketAPI) -> None:
+    async def test_unexpected_response_structure(
+        self, mock_dmarket_api: DMarketAPI
+    ) -> None:
         """Test handling of completely unexpected response structure."""
         weird_response = {"nested": {"deeply": {"weird": "structure"}}}
 
@@ -147,7 +157,9 @@ class TestMalformedResponseScenarios:
 class TestExtremeDataScenarios:
     """Test handling of extreme data scenarios."""
 
-    async def test_very_large_market_response(self, mock_dmarket_api: DMarketAPI) -> None:
+    async def test_very_large_market_response(
+        self, mock_dmarket_api: DMarketAPI
+    ) -> None:
         """Test handling of very large market responses."""
         large_response = {
             "objects": [

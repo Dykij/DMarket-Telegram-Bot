@@ -35,7 +35,9 @@ class TestItemFiltersInit:
     def test_init_with_custom_config_path(self):
         """Test initialization with custom config path."""
         # Arrange
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".yaml", delete=False
+        ) as f:
             yaml.dump({"arbitrage_filters": {"min_avg_price": 1.0}}, f)
             temp_path = f.name
 
@@ -77,7 +79,9 @@ class TestConfigLoading:
             "good_categories": ["Rifle", "Knife"],
         }
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".yaml", delete=False
+        ) as f:
             yaml.dump(config, f)
             temp_path = f.name
 
@@ -91,7 +95,9 @@ class TestConfigLoading:
     def test_load_empty_config(self):
         """Test loading empty configuration."""
         # Arrange
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".yaml", delete=False
+        ) as f:
             f.write("")
             temp_path = f.name
 
@@ -137,7 +143,9 @@ class TestPatternMatching:
             "bad_items": ["Sticker"],
         }
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".yaml", delete=False
+        ) as f:
             yaml.dump(config, f)
             temp_path = f.name
 
@@ -157,7 +165,9 @@ class TestPatternMatching:
             "bad_items": ["Sticker", "Graffiti"],
         }
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".yaml", delete=False
+        ) as f:
             yaml.dump(config, f)
             temp_path = f.name
 
@@ -175,7 +185,9 @@ class TestPatternMatching:
             "good_categories": ["Rifle", "Knife"],
         }
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".yaml", delete=False
+        ) as f:
             yaml.dump(config, f)
             temp_path = f.name
 
@@ -360,7 +372,9 @@ class TestEdgeCases:
             "good_item_patterns": ["valid.*pattern"],
         }
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".yaml", delete=False
+        ) as f:
             yaml.dump(config, f)
             temp_path = f.name
 
@@ -378,7 +392,9 @@ class TestEdgeCases:
             "bad_items": ["STICKER"],
         }
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".yaml", delete=False
+        ) as f:
             yaml.dump(config, f)
             temp_path = f.name
 

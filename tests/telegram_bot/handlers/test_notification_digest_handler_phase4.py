@@ -449,11 +449,14 @@ class TestUpdateUserSettings:
 
     def test_update_multiple_settings(self, manager):
         """Test updating multiple settings at once."""
-        manager.update_user_settings(123, {
-            "enabled": True,
-            "frequency": DigestFrequency.EVERY_6_HOURS,
-            "min_items": 5,
-        })
+        manager.update_user_settings(
+            123,
+            {
+                "enabled": True,
+                "frequency": DigestFrequency.EVERY_6_HOURS,
+                "min_items": 5,
+            },
+        )
         settings = manager.get_user_settings(123)
         assert settings.enabled is True
         assert settings.frequency == DigestFrequency.EVERY_6_HOURS
@@ -471,11 +474,14 @@ class TestResetUserSettings:
 
     def test_reset_restores_defaults(self, manager):
         """Test that reset restores default values."""
-        manager.update_user_settings(123, {
-            "enabled": True,
-            "frequency": DigestFrequency.HOURLY,
-            "min_items": 20,
-        })
+        manager.update_user_settings(
+            123,
+            {
+                "enabled": True,
+                "frequency": DigestFrequency.HOURLY,
+                "min_items": 20,
+            },
+        )
         manager.reset_user_settings(123)
         settings = manager.get_user_settings(123)
         assert settings.enabled is False
@@ -562,31 +568,42 @@ class TestShouldSendDigest:
         manager.add_notification(sample_notification)
         assert manager.should_send_digest(sample_notification.user_id) is False
 
-    def test_returns_false_when_insufficient_notifications(self, manager, sample_notification):
+    def test_returns_false_when_insufficient_notifications(
+        self, manager, sample_notification
+    ):
         """Test returns False when not enough notifications."""
-        manager.update_user_settings(sample_notification.user_id, {
-            "enabled": True,
-            "min_items": 5,
-        })
+        manager.update_user_settings(
+            sample_notification.user_id,
+            {
+                "enabled": True,
+                "min_items": 5,
+            },
+        )
         manager.add_notification(sample_notification)
         assert manager.should_send_digest(sample_notification.user_id) is False
 
     def test_returns_true_when_never_sent(self, manager, sample_notification):
         """Test returns True when digest was never sent."""
-        manager.update_user_settings(sample_notification.user_id, {
-            "enabled": True,
-            "min_items": 1,
-        })
+        manager.update_user_settings(
+            sample_notification.user_id,
+            {
+                "enabled": True,
+                "min_items": 1,
+            },
+        )
         manager.add_notification(sample_notification)
         assert manager.should_send_digest(sample_notification.user_id) is True
 
     def test_returns_false_when_sent_recently(self, manager, sample_notification):
         """Test returns False when sent recently."""
-        manager.update_user_settings(sample_notification.user_id, {
-            "enabled": True,
-            "min_items": 1,
-            "frequency": DigestFrequency.DAILY,
-        })
+        manager.update_user_settings(
+            sample_notification.user_id,
+            {
+                "enabled": True,
+                "min_items": 1,
+                "frequency": DigestFrequency.DAILY,
+            },
+        )
         settings = manager.get_user_settings(sample_notification.user_id)
         settings.last_sent = datetime.now()  # Just now
         manager.add_notification(sample_notification)
@@ -594,11 +611,14 @@ class TestShouldSendDigest:
 
     def test_returns_true_when_enough_time_passed(self, manager, sample_notification):
         """Test returns True when enough time has passed."""
-        manager.update_user_settings(sample_notification.user_id, {
-            "enabled": True,
-            "min_items": 1,
-            "frequency": DigestFrequency.HOURLY,
-        })
+        manager.update_user_settings(
+            sample_notification.user_id,
+            {
+                "enabled": True,
+                "min_items": 1,
+                "frequency": DigestFrequency.HOURLY,
+            },
+        )
         settings = manager.get_user_settings(sample_notification.user_id)
         settings.last_sent = datetime.now() - timedelta(hours=2)
         manager.add_notification(sample_notification)
@@ -606,11 +626,14 @@ class TestShouldSendDigest:
 
     def test_returns_false_for_disabled_frequency(self, manager, sample_notification):
         """Test returns False for disabled frequency when last_sent is set."""
-        manager.update_user_settings(sample_notification.user_id, {
-            "enabled": True,
-            "frequency": DigestFrequency.DISABLED,
-            "min_items": 1,
-        })
+        manager.update_user_settings(
+            sample_notification.user_id,
+            {
+                "enabled": True,
+                "frequency": DigestFrequency.DISABLED,
+                "min_items": 1,
+            },
+        )
         # Set last_sent so it doesn't return True early
         settings = manager.get_user_settings(sample_notification.user_id)
         settings.last_sent = datetime.now() - timedelta(days=1)
@@ -629,12 +652,16 @@ class TestFormatDigest:
 
     def test_contains_header(self, manager, sample_notification):
         """Test that digest contains header."""
-        result = manager.format_digest(sample_notification.user_id, [sample_notification])
+        result = manager.format_digest(
+            sample_notification.user_id, [sample_notification]
+        )
         assert "Дайджест уведомлений" in result
 
     def test_contains_count(self, manager, sample_notification):
         """Test that digest contains notification count."""
-        result = manager.format_digest(sample_notification.user_id, [sample_notification])
+        result = manager.format_digest(
+            sample_notification.user_id, [sample_notification]
+        )
         assert "1 уведомлений" in result
 
     def test_groups_by_type(self, manager):
@@ -667,12 +694,30 @@ class TestGroupNotifications:
     def test_group_by_type(self, manager):
         """Test grouping by notification type."""
         notifications = [
-            NotificationItem(user_id=123, notification_type="arbitrage", game="csgo",
-                           title="T1", message="M1", timestamp=datetime.now()),
-            NotificationItem(user_id=123, notification_type="arbitrage", game="dota2",
-                           title="T2", message="M2", timestamp=datetime.now()),
-            NotificationItem(user_id=123, notification_type="price_drop", game="csgo",
-                           title="T3", message="M3", timestamp=datetime.now()),
+            NotificationItem(
+                user_id=123,
+                notification_type="arbitrage",
+                game="csgo",
+                title="T1",
+                message="M1",
+                timestamp=datetime.now(),
+            ),
+            NotificationItem(
+                user_id=123,
+                notification_type="arbitrage",
+                game="dota2",
+                title="T2",
+                message="M2",
+                timestamp=datetime.now(),
+            ),
+            NotificationItem(
+                user_id=123,
+                notification_type="price_drop",
+                game="csgo",
+                title="T3",
+                message="M3",
+                timestamp=datetime.now(),
+            ),
         ]
         grouped = manager._group_notifications(notifications, GroupingMode.BY_TYPE)
         assert "arbitrage" in grouped
@@ -683,12 +728,30 @@ class TestGroupNotifications:
     def test_group_by_game(self, manager):
         """Test grouping by game."""
         notifications = [
-            NotificationItem(user_id=123, notification_type="arbitrage", game="csgo",
-                           title="T1", message="M1", timestamp=datetime.now()),
-            NotificationItem(user_id=123, notification_type="price_drop", game="csgo",
-                           title="T2", message="M2", timestamp=datetime.now()),
-            NotificationItem(user_id=123, notification_type="arbitrage", game="dota2",
-                           title="T3", message="M3", timestamp=datetime.now()),
+            NotificationItem(
+                user_id=123,
+                notification_type="arbitrage",
+                game="csgo",
+                title="T1",
+                message="M1",
+                timestamp=datetime.now(),
+            ),
+            NotificationItem(
+                user_id=123,
+                notification_type="price_drop",
+                game="csgo",
+                title="T2",
+                message="M2",
+                timestamp=datetime.now(),
+            ),
+            NotificationItem(
+                user_id=123,
+                notification_type="arbitrage",
+                game="dota2",
+                title="T3",
+                message="M3",
+                timestamp=datetime.now(),
+            ),
         ]
         grouped = manager._group_notifications(notifications, GroupingMode.BY_GAME)
         assert "csgo" in grouped
@@ -699,10 +762,24 @@ class TestGroupNotifications:
     def test_group_by_priority(self, manager):
         """Test grouping by priority."""
         notifications = [
-            NotificationItem(user_id=123, notification_type="arbitrage", game="csgo",
-                           title="T1", message="M1", timestamp=datetime.now(), priority=1),
-            NotificationItem(user_id=123, notification_type="arbitrage", game="csgo",
-                           title="T2", message="M2", timestamp=datetime.now(), priority=2),
+            NotificationItem(
+                user_id=123,
+                notification_type="arbitrage",
+                game="csgo",
+                title="T1",
+                message="M1",
+                timestamp=datetime.now(),
+                priority=1,
+            ),
+            NotificationItem(
+                user_id=123,
+                notification_type="arbitrage",
+                game="csgo",
+                title="T2",
+                message="M2",
+                timestamp=datetime.now(),
+                priority=2,
+            ),
         ]
         grouped = manager._group_notifications(notifications, GroupingMode.BY_PRIORITY)
         assert "priority_1" in grouped
@@ -711,12 +788,26 @@ class TestGroupNotifications:
     def test_chronological_grouping(self, manager):
         """Test chronological grouping."""
         notifications = [
-            NotificationItem(user_id=123, notification_type="arbitrage", game="csgo",
-                           title="T1", message="M1", timestamp=datetime.now()),
-            NotificationItem(user_id=123, notification_type="price_drop", game="dota2",
-                           title="T2", message="M2", timestamp=datetime.now()),
+            NotificationItem(
+                user_id=123,
+                notification_type="arbitrage",
+                game="csgo",
+                title="T1",
+                message="M1",
+                timestamp=datetime.now(),
+            ),
+            NotificationItem(
+                user_id=123,
+                notification_type="price_drop",
+                game="dota2",
+                title="T2",
+                message="M2",
+                timestamp=datetime.now(),
+            ),
         ]
-        grouped = manager._group_notifications(notifications, GroupingMode.CHRONOLOGICAL)
+        grouped = manager._group_notifications(
+            notifications, GroupingMode.CHRONOLOGICAL
+        )
         assert "all" in grouped
         assert len(grouped["all"]) == 2
 
@@ -726,46 +817,78 @@ class TestFormatGroup:
 
     def test_format_by_type_arbitrage(self, manager):
         """Test formatting arbitrage type group."""
-        items = [NotificationItem(
-            user_id=123, notification_type="arbitrage", game="csgo",
-            title="Test", message="Test message", timestamp=datetime.now()
-        )]
+        items = [
+            NotificationItem(
+                user_id=123,
+                notification_type="arbitrage",
+                game="csgo",
+                title="Test",
+                message="Test message",
+                timestamp=datetime.now(),
+            )
+        ]
         result = manager._format_group("arbitrage", items, GroupingMode.BY_TYPE)
         assert "Арбитраж" in result
 
     def test_format_by_type_price_drop(self, manager):
         """Test formatting price_drop type group."""
-        items = [NotificationItem(
-            user_id=123, notification_type="price_drop", game="csgo",
-            title="Test", message="Test message", timestamp=datetime.now()
-        )]
+        items = [
+            NotificationItem(
+                user_id=123,
+                notification_type="price_drop",
+                game="csgo",
+                title="Test",
+                message="Test message",
+                timestamp=datetime.now(),
+            )
+        ]
         result = manager._format_group("price_drop", items, GroupingMode.BY_TYPE)
         assert "Падение цены" in result
 
     def test_format_by_game_csgo(self, manager):
         """Test formatting csgo game group."""
-        items = [NotificationItem(
-            user_id=123, notification_type="arbitrage", game="csgo",
-            title="Test", message="Test message", timestamp=datetime.now()
-        )]
+        items = [
+            NotificationItem(
+                user_id=123,
+                notification_type="arbitrage",
+                game="csgo",
+                title="Test",
+                message="Test message",
+                timestamp=datetime.now(),
+            )
+        ]
         result = manager._format_group("csgo", items, GroupingMode.BY_GAME)
         assert "CS2" in result
 
     def test_format_by_priority(self, manager):
         """Test formatting priority group."""
-        items = [NotificationItem(
-            user_id=123, notification_type="arbitrage", game="csgo",
-            title="Test", message="Test message", timestamp=datetime.now(), priority=5
-        )]
+        items = [
+            NotificationItem(
+                user_id=123,
+                notification_type="arbitrage",
+                game="csgo",
+                title="Test",
+                message="Test message",
+                timestamp=datetime.now(),
+                priority=5,
+            )
+        ]
         result = manager._format_group("priority_5", items, GroupingMode.BY_PRIORITY)
         assert "Приоритет" in result
 
     def test_truncates_at_10_items(self, manager):
         """Test that group is truncated at 10 items."""
-        items = [NotificationItem(
-            user_id=123, notification_type="arbitrage", game="csgo",
-            title=f"Test {i}", message=f"Message {i}", timestamp=datetime.now()
-        ) for i in range(15)]
+        items = [
+            NotificationItem(
+                user_id=123,
+                notification_type="arbitrage",
+                game="csgo",
+                title=f"Test {i}",
+                message=f"Message {i}",
+                timestamp=datetime.now(),
+            )
+            for i in range(15)
+        ]
         result = manager._format_group("arbitrage", items, GroupingMode.BY_TYPE)
         assert "еще 5 уведомлений" in result
 
@@ -779,7 +902,9 @@ class TestShowDigestMenu:
     @pytest.mark.asyncio()
     async def test_shows_menu_for_callback_query(self, mock_update, mock_context):
         """Test shows menu when called from callback query."""
-        with patch("src.telegram_bot.handlers.notification_digest_handler.get_digest_manager") as mock_get_manager:
+        with patch(
+            "src.telegram_bot.handlers.notification_digest_handler.get_digest_manager"
+        ) as mock_get_manager:
             mock_manager = MagicMock()
             mock_manager.get_user_settings.return_value = DigestSettings()
             mock_manager.get_pending_notifications.return_value = []
@@ -795,7 +920,9 @@ class TestShowDigestMenu:
         """Test shows menu when called from message."""
         mock_update.callback_query = None
 
-        with patch("src.telegram_bot.handlers.notification_digest_handler.get_digest_manager") as mock_get_manager:
+        with patch(
+            "src.telegram_bot.handlers.notification_digest_handler.get_digest_manager"
+        ) as mock_get_manager:
             mock_manager = MagicMock()
             mock_manager.get_user_settings.return_value = DigestSettings()
             mock_manager.get_pending_notifications.return_value = []
@@ -822,13 +949,18 @@ class TestToggleDigest:
     @pytest.mark.asyncio()
     async def test_toggles_enabled_status(self, mock_update, mock_context):
         """Test toggles enabled status."""
-        with patch("src.telegram_bot.handlers.notification_digest_handler.get_digest_manager") as mock_get_manager:
+        with patch(
+            "src.telegram_bot.handlers.notification_digest_handler.get_digest_manager"
+        ) as mock_get_manager:
             mock_manager = MagicMock()
             mock_manager.get_user_settings.return_value = DigestSettings(enabled=False)
             mock_manager.get_pending_notifications.return_value = []
             mock_get_manager.return_value = mock_manager
 
-            with patch("src.telegram_bot.handlers.notification_digest_handler.show_digest_menu", new_callable=AsyncMock):
+            with patch(
+                "src.telegram_bot.handlers.notification_digest_handler.show_digest_menu",
+                new_callable=AsyncMock,
+            ):
                 await toggle_digest(mock_update, mock_context)
 
             mock_manager.update_user_settings.assert_called_once()
@@ -849,7 +981,9 @@ class TestShowFrequencyMenu:
     @pytest.mark.asyncio()
     async def test_shows_frequency_options(self, mock_update, mock_context):
         """Test shows frequency options menu."""
-        with patch("src.telegram_bot.handlers.notification_digest_handler.get_digest_manager") as mock_get_manager:
+        with patch(
+            "src.telegram_bot.handlers.notification_digest_handler.get_digest_manager"
+        ) as mock_get_manager:
             mock_manager = MagicMock()
             mock_manager.get_user_settings.return_value = DigestSettings()
             mock_get_manager.return_value = mock_manager
@@ -868,13 +1002,18 @@ class TestSetFrequency:
         """Test sets frequency from callback data."""
         mock_update.callback_query.data = "digest_set_freq_hourly"
 
-        with patch("src.telegram_bot.handlers.notification_digest_handler.get_digest_manager") as mock_get_manager:
+        with patch(
+            "src.telegram_bot.handlers.notification_digest_handler.get_digest_manager"
+        ) as mock_get_manager:
             mock_manager = MagicMock()
             mock_manager.get_user_settings.return_value = DigestSettings()
             mock_manager.get_pending_notifications.return_value = []
             mock_get_manager.return_value = mock_manager
 
-            with patch("src.telegram_bot.handlers.notification_digest_handler.show_digest_menu", new_callable=AsyncMock):
+            with patch(
+                "src.telegram_bot.handlers.notification_digest_handler.show_digest_menu",
+                new_callable=AsyncMock,
+            ):
                 await set_frequency(mock_update, mock_context)
 
             mock_manager.update_user_settings.assert_called_once()
@@ -890,13 +1029,18 @@ class TestSetGroupingMode:
         """Test sets grouping mode from callback data."""
         mock_update.callback_query.data = "digest_set_group_by_game"
 
-        with patch("src.telegram_bot.handlers.notification_digest_handler.get_digest_manager") as mock_get_manager:
+        with patch(
+            "src.telegram_bot.handlers.notification_digest_handler.get_digest_manager"
+        ) as mock_get_manager:
             mock_manager = MagicMock()
             mock_manager.get_user_settings.return_value = DigestSettings()
             mock_manager.get_pending_notifications.return_value = []
             mock_get_manager.return_value = mock_manager
 
-            with patch("src.telegram_bot.handlers.notification_digest_handler.show_digest_menu", new_callable=AsyncMock):
+            with patch(
+                "src.telegram_bot.handlers.notification_digest_handler.show_digest_menu",
+                new_callable=AsyncMock,
+            ):
                 await set_grouping_mode(mock_update, mock_context)
 
             mock_manager.update_user_settings.assert_called_once()
@@ -912,13 +1056,18 @@ class TestSetMinItems:
         """Test sets min items from callback data."""
         mock_update.callback_query.data = "digest_set_min_10"
 
-        with patch("src.telegram_bot.handlers.notification_digest_handler.get_digest_manager") as mock_get_manager:
+        with patch(
+            "src.telegram_bot.handlers.notification_digest_handler.get_digest_manager"
+        ) as mock_get_manager:
             mock_manager = MagicMock()
             mock_manager.get_user_settings.return_value = DigestSettings()
             mock_manager.get_pending_notifications.return_value = []
             mock_get_manager.return_value = mock_manager
 
-            with patch("src.telegram_bot.handlers.notification_digest_handler.show_digest_menu", new_callable=AsyncMock):
+            with patch(
+                "src.telegram_bot.handlers.notification_digest_handler.show_digest_menu",
+                new_callable=AsyncMock,
+            ):
                 await set_min_items(mock_update, mock_context)
 
             mock_manager.update_user_settings.assert_called_once()
@@ -932,13 +1081,18 @@ class TestResetDigestSettings:
     @pytest.mark.asyncio()
     async def test_resets_settings(self, mock_update, mock_context):
         """Test resets settings to defaults."""
-        with patch("src.telegram_bot.handlers.notification_digest_handler.get_digest_manager") as mock_get_manager:
+        with patch(
+            "src.telegram_bot.handlers.notification_digest_handler.get_digest_manager"
+        ) as mock_get_manager:
             mock_manager = MagicMock()
             mock_manager.get_user_settings.return_value = DigestSettings()
             mock_manager.get_pending_notifications.return_value = []
             mock_get_manager.return_value = mock_manager
 
-            with patch("src.telegram_bot.handlers.notification_digest_handler.show_digest_menu", new_callable=AsyncMock):
+            with patch(
+                "src.telegram_bot.handlers.notification_digest_handler.show_digest_menu",
+                new_callable=AsyncMock,
+            ):
                 await reset_digest_settings(mock_update, mock_context)
 
             mock_manager.reset_user_settings.assert_called_once()
@@ -950,7 +1104,10 @@ class TestDigestCommand:
     @pytest.mark.asyncio()
     async def test_calls_show_digest_menu(self, mock_update, mock_context):
         """Test digest command calls show_digest_menu."""
-        with patch("src.telegram_bot.handlers.notification_digest_handler.show_digest_menu", new_callable=AsyncMock) as mock_show:
+        with patch(
+            "src.telegram_bot.handlers.notification_digest_handler.show_digest_menu",
+            new_callable=AsyncMock,
+        ) as mock_show:
             await digest_command(mock_update, mock_context)
             mock_show.assert_called_once()
 
@@ -959,7 +1116,10 @@ class TestDigestCommand:
         """Test returns early without effective user."""
         mock_update.effective_user = None
 
-        with patch("src.telegram_bot.handlers.notification_digest_handler.show_digest_menu", new_callable=AsyncMock) as mock_show:
+        with patch(
+            "src.telegram_bot.handlers.notification_digest_handler.show_digest_menu",
+            new_callable=AsyncMock,
+        ) as mock_show:
             await digest_command(mock_update, mock_context)
             mock_show.assert_not_called()
 
@@ -982,7 +1142,10 @@ class TestGetDigestManager:
 
     def test_returns_manager_instance(self):
         """Test returns NotificationDigestManager instance."""
-        with patch("src.telegram_bot.handlers.notification_digest_handler._digest_manager", None):
+        with patch(
+            "src.telegram_bot.handlers.notification_digest_handler._digest_manager",
+            None,
+        ):
             manager = get_digest_manager()
             assert isinstance(manager, NotificationDigestManager)
 
@@ -1117,11 +1280,14 @@ class TestIntegration:
         user_id = 12345
 
         # Enable digest
-        manager.update_user_settings(user_id, {
-            "enabled": True,
-            "frequency": DigestFrequency.HOURLY,
-            "min_items": 2,
-        })
+        manager.update_user_settings(
+            user_id,
+            {
+                "enabled": True,
+                "frequency": DigestFrequency.HOURLY,
+                "min_items": 2,
+            },
+        )
 
         # Add notifications
         for i in range(3):
@@ -1178,10 +1344,13 @@ class TestIntegration:
     def test_frequency_time_intervals(self, manager):
         """Test different frequency time intervals."""
         user_id = 123
-        manager.update_user_settings(user_id, {
-            "enabled": True,
-            "min_items": 1,
-        })
+        manager.update_user_settings(
+            user_id,
+            {
+                "enabled": True,
+                "min_items": 1,
+            },
+        )
 
         # Add a notification
         notif = NotificationItem(

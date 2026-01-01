@@ -228,13 +228,16 @@ class TestHandleDmarketArbitrageImpl:
         context.user_data = {"current_game": "dota2"}
         callback_query.message.chat.send_action = AsyncMock()
 
-        with patch(
-            "src.dmarket.arbitrage.arbitrage_mid_async",
-            new_callable=AsyncMock,
-            return_value=[],
-        ) as mock_mid, patch(
-            "src.telegram_bot.handlers.arbitrage_callback_impl.format_dmarket_results",
-            return_value="No results",
+        with (
+            patch(
+                "src.dmarket.arbitrage.arbitrage_mid_async",
+                new_callable=AsyncMock,
+                return_value=[],
+            ) as mock_mid,
+            patch(
+                "src.telegram_bot.handlers.arbitrage_callback_impl.format_dmarket_results",
+                return_value="No results",
+            ),
         ):
             # Execute
             await handle_dmarket_arbitrage_impl(callback_query, context, "mid")
@@ -253,13 +256,16 @@ class TestHandleDmarketArbitrageImpl:
         context.user_data = {"current_game": "tf2"}
         callback_query.message.chat.send_action = AsyncMock()
 
-        with patch(
-            "src.dmarket.arbitrage.arbitrage_pro_async",
-            new_callable=AsyncMock,
-            return_value=[],
-        ) as mock_pro, patch(
-            "src.telegram_bot.handlers.arbitrage_callback_impl.format_dmarket_results",
-            return_value="No results",
+        with (
+            patch(
+                "src.dmarket.arbitrage.arbitrage_pro_async",
+                new_callable=AsyncMock,
+                return_value=[],
+            ) as mock_pro,
+            patch(
+                "src.telegram_bot.handlers.arbitrage_callback_impl.format_dmarket_results",
+                return_value="No results",
+            ),
         ):
             # Execute
             await handle_dmarket_arbitrage_impl(callback_query, context, "pro")
@@ -278,18 +284,19 @@ class TestHandleDmarketArbitrageImpl:
         context.user_data = {}
         callback_query.message.chat.send_action = AsyncMock()
 
-        with patch(
-            "src.dmarket.arbitrage.arbitrage_boost_async",
-            new_callable=AsyncMock,
-            return_value=[],
-        ) as mock_boost, patch(
-            "src.telegram_bot.handlers.arbitrage_callback_impl.format_dmarket_results",
-            return_value="No results",
+        with (
+            patch(
+                "src.dmarket.arbitrage.arbitrage_boost_async",
+                new_callable=AsyncMock,
+                return_value=[],
+            ) as mock_boost,
+            patch(
+                "src.telegram_bot.handlers.arbitrage_callback_impl.format_dmarket_results",
+                return_value="No results",
+            ),
         ):
             # Execute
-            await handle_dmarket_arbitrage_impl(
-                callback_query, context, "boost"
-            )
+            await handle_dmarket_arbitrage_impl(callback_query, context, "boost")
 
             # Verify - should use default game csgo
             mock_boost.assert_awaited_once_with("csgo")
@@ -315,14 +322,17 @@ class TestHandleBestOpportunitiesImpl:
         ]
 
         # Patch at the source module where the import happens inside the function
-        with patch(
-            "src.dmarket.arbitrage_scanner.find_arbitrage_opportunities_async",
-            new_callable=AsyncMock,
-            return_value=mock_opportunities,
-        ) as mock_find, patch(
-            "src.telegram_bot.handlers.arbitrage_callback_impl.format_best_opportunities",
-            return_value="Best opportunities formatted",
-        ) as mock_format:
+        with (
+            patch(
+                "src.dmarket.arbitrage_scanner.find_arbitrage_opportunities_async",
+                new_callable=AsyncMock,
+                return_value=mock_opportunities,
+            ) as mock_find,
+            patch(
+                "src.telegram_bot.handlers.arbitrage_callback_impl.format_best_opportunities",
+                return_value="Best opportunities formatted",
+            ) as mock_format,
+        ):
             # Execute
             await handle_best_opportunities_impl(callback_query, context)
 
@@ -346,13 +356,16 @@ class TestHandleBestOpportunitiesImpl:
         context.user_data = {"current_game": "rust"}
         callback_query.message.chat.send_action = AsyncMock()
 
-        with patch(
-            "src.dmarket.arbitrage_scanner.find_arbitrage_opportunities_async",
-            new_callable=AsyncMock,
-            return_value=[],
-        ), patch(
-            "src.telegram_bot.handlers.arbitrage_callback_impl.format_best_opportunities",
-            return_value="No opportunities found",
+        with (
+            patch(
+                "src.dmarket.arbitrage_scanner.find_arbitrage_opportunities_async",
+                new_callable=AsyncMock,
+                return_value=[],
+            ),
+            patch(
+                "src.telegram_bot.handlers.arbitrage_callback_impl.format_best_opportunities",
+                return_value="No opportunities found",
+            ),
         ):
             # Execute
             await handle_best_opportunities_impl(callback_query, context)

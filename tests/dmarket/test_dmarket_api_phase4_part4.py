@@ -69,8 +69,12 @@ class TestBuyItem:
         mock_response = {"success": True, "itemId": "item123", "price": {"USD": "1000"}}
 
         with patch.object(dmarket_api, "_request", return_value=mock_response):
-            with patch.object(dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock):
-                result = await dmarket_api.buy_item(item_id="item123", price=10.0, game="csgo")
+            with patch.object(
+                dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock
+            ):
+                result = await dmarket_api.buy_item(
+                    item_id="item123", price=10.0, game="csgo"
+                )
 
                 assert result is not None
                 assert result.get("success") is True
@@ -80,8 +84,12 @@ class TestBuyItem:
         """Тест конвертации цены в центы."""
         mock_response = {"success": True}
 
-        with patch.object(dmarket_api, "_request", return_value=mock_response) as mock_req:
-            with patch.object(dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock):
+        with patch.object(
+            dmarket_api, "_request", return_value=mock_response
+        ) as mock_req:
+            with patch.object(
+                dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock
+            ):
                 await dmarket_api.buy_item(item_id="item123", price=25.50, game="csgo")
 
                 # Проверяем что данные переданы
@@ -97,9 +105,14 @@ class TestBuyItem:
         mock_response = {"success": True}
 
         with patch.object(dmarket_api, "_request", return_value=mock_response):
-            with patch.object(dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock):
+            with patch.object(
+                dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock
+            ):
                 result = await dmarket_api.buy_item(
-                    item_id="item123", price=10.0, game="csgo", item_name="AK-47 | Redline"
+                    item_id="item123",
+                    price=10.0,
+                    game="csgo",
+                    item_name="AK-47 | Redline",
                 )
 
                 assert result is not None
@@ -110,9 +123,13 @@ class TestBuyItem:
         mock_response = {"success": True}
 
         with patch.object(dmarket_api, "_request", return_value=mock_response):
-            with patch.object(dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock):
+            with patch.object(
+                dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock
+            ):
                 for game in ["csgo", "dota2", "tf2", "rust"]:
-                    result = await dmarket_api.buy_item(item_id="item123", price=10.0, game=game)
+                    result = await dmarket_api.buy_item(
+                        item_id="item123", price=10.0, game=game
+                    )
                     assert result is not None
 
     @pytest.mark.asyncio()
@@ -121,8 +138,12 @@ class TestBuyItem:
         mock_response = {"success": True}
 
         with patch.object(dmarket_api, "_request", return_value=mock_response):
-            with patch.object(dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock):
-                result = await dmarket_api.buy_item(item_id="item123", price=0.50, game="csgo")
+            with patch.object(
+                dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock
+            ):
+                result = await dmarket_api.buy_item(
+                    item_id="item123", price=0.50, game="csgo"
+                )
 
                 assert result is not None
 
@@ -132,8 +153,12 @@ class TestBuyItem:
         mock_response = {"success": True}
 
         with patch.object(dmarket_api, "_request", return_value=mock_response):
-            with patch.object(dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock):
-                result = await dmarket_api.buy_item(item_id="item123", price=500.00, game="csgo")
+            with patch.object(
+                dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock
+            ):
+                result = await dmarket_api.buy_item(
+                    item_id="item123", price=500.00, game="csgo"
+                )
 
                 assert result is not None
 
@@ -143,7 +168,9 @@ class TestBuyItem:
         mock_response = {"success": True}
 
         with patch.object(dmarket_api, "_request", return_value=mock_response):
-            with patch.object(dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock):
+            with patch.object(
+                dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock
+            ):
                 result = await dmarket_api.buy_item(
                     item_id="item123", price=10.0, game="csgo", source="arbitrage"
                 )
@@ -165,8 +192,12 @@ class TestSellItem:
         mock_response = {"success": True, "offerId": "offer123"}
 
         with patch.object(dmarket_api, "_request", return_value=mock_response):
-            with patch.object(dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock):
-                result = await dmarket_api.sell_item(item_id="item123", price=15.0, game="csgo")
+            with patch.object(
+                dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock
+            ):
+                result = await dmarket_api.sell_item(
+                    item_id="item123", price=15.0, game="csgo"
+                )
 
                 assert result is not None
                 assert result.get("success") is True
@@ -176,8 +207,12 @@ class TestSellItem:
         """Тест конвертации цены в центы."""
         mock_response = {"success": True}
 
-        with patch.object(dmarket_api, "_request", return_value=mock_response) as mock_req:
-            with patch.object(dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock):
+        with patch.object(
+            dmarket_api, "_request", return_value=mock_response
+        ) as mock_req:
+            with patch.object(
+                dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock
+            ):
                 await dmarket_api.sell_item(item_id="item123", price=25.50, game="csgo")
 
                 # Проверяем данные
@@ -192,7 +227,9 @@ class TestSellItem:
         mock_response = {"success": True}
 
         with patch.object(dmarket_api, "_request", return_value=mock_response):
-            with patch.object(dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock):
+            with patch.object(
+                dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock
+            ):
                 result = await dmarket_api.sell_item(
                     item_id="item123", price=15.0, game="csgo", buy_price=10.0
                 )
@@ -206,9 +243,14 @@ class TestSellItem:
         mock_response = {"success": True}
 
         with patch.object(dmarket_api, "_request", return_value=mock_response):
-            with patch.object(dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock):
+            with patch.object(
+                dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock
+            ):
                 result = await dmarket_api.sell_item(
-                    item_id="item123", price=15.0, game="csgo", item_name="AWP | Dragon Lore"
+                    item_id="item123",
+                    price=15.0,
+                    game="csgo",
+                    item_name="AWP | Dragon Lore",
                 )
 
                 assert result is not None
@@ -219,9 +261,13 @@ class TestSellItem:
         mock_response = {"success": True}
 
         with patch.object(dmarket_api, "_request", return_value=mock_response):
-            with patch.object(dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock):
+            with patch.object(
+                dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock
+            ):
                 for game in ["csgo", "dota2", "tf2", "rust"]:
-                    result = await dmarket_api.sell_item(item_id="item123", price=15.0, game=game)
+                    result = await dmarket_api.sell_item(
+                        item_id="item123", price=15.0, game=game
+                    )
                     assert result is not None
 
     @pytest.mark.asyncio()
@@ -230,7 +276,9 @@ class TestSellItem:
         mock_response = {"success": True}
 
         with patch.object(dmarket_api, "_request", return_value=mock_response):
-            with patch.object(dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock):
+            with patch.object(
+                dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock
+            ):
                 result = await dmarket_api.sell_item(
                     item_id="item123", price=15.0, game="csgo", source="auto_sell"
                 )
@@ -243,8 +291,12 @@ class TestSellItem:
         mock_response = {"success": True}
 
         with patch.object(dmarket_api, "_request", return_value=mock_response):
-            with patch.object(dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock):
-                result = await dmarket_api.sell_item(item_id="item123", price=0.75, game="csgo")
+            with patch.object(
+                dmarket_api, "clear_cache_for_endpoint", new_callable=AsyncMock
+            ):
+                result = await dmarket_api.sell_item(
+                    item_id="item123", price=0.75, game="csgo"
+                )
 
                 assert result is not None
 
@@ -261,7 +313,9 @@ class TestDryRunMode:
     async def test_buy_item_dry_run_does_not_call_api(self, dmarket_api_dry_run):
         """Тест что buy_item в DRY_RUN не вызывает API."""
         with patch.object(dmarket_api_dry_run, "_request") as mock_req:
-            result = await dmarket_api_dry_run.buy_item(item_id="item123", price=10.0, game="csgo")
+            result = await dmarket_api_dry_run.buy_item(
+                item_id="item123", price=10.0, game="csgo"
+            )
 
             # API не должен быть вызван
             mock_req.assert_not_called()
@@ -273,7 +327,9 @@ class TestDryRunMode:
     async def test_sell_item_dry_run_does_not_call_api(self, dmarket_api_dry_run):
         """Тест что sell_item в DRY_RUN не вызывает API."""
         with patch.object(dmarket_api_dry_run, "_request") as mock_req:
-            result = await dmarket_api_dry_run.sell_item(item_id="item123", price=15.0, game="csgo")
+            result = await dmarket_api_dry_run.sell_item(
+                item_id="item123", price=15.0, game="csgo"
+            )
 
             # API не должен быть вызван
             mock_req.assert_not_called()
@@ -284,7 +340,9 @@ class TestDryRunMode:
     @pytest.mark.asyncio()
     async def test_dry_run_buy_returns_success(self, dmarket_api_dry_run):
         """Тест что DRY_RUN buy всегда возвращает success."""
-        result = await dmarket_api_dry_run.buy_item(item_id="item123", price=10.0, game="csgo")
+        result = await dmarket_api_dry_run.buy_item(
+            item_id="item123", price=10.0, game="csgo"
+        )
 
         assert result.get("success") is True
         assert result.get("dry_run") is True
@@ -292,7 +350,9 @@ class TestDryRunMode:
     @pytest.mark.asyncio()
     async def test_dry_run_sell_returns_success(self, dmarket_api_dry_run):
         """Тест что DRY_RUN sell всегда возвращает success."""
-        result = await dmarket_api_dry_run.sell_item(item_id="item123", price=15.0, game="csgo")
+        result = await dmarket_api_dry_run.sell_item(
+            item_id="item123", price=15.0, game="csgo"
+        )
 
         assert result.get("success") is True
         assert result.get("dry_run") is True

@@ -75,7 +75,12 @@ class TestMetricsCollection:
         memory_snapshots = []
 
         # Act
-        memory_snapshots.extend(({"used_mb": 100, "available_mb": 900}, {"used_mb": 150, "available_mb": 850}))
+        memory_snapshots.extend(
+            (
+                {"used_mb": 100, "available_mb": 900},
+                {"used_mb": 150, "available_mb": 850},
+            )
+        )
 
         # Assert
         assert len(memory_snapshots) == 2
@@ -148,7 +153,9 @@ class TestMetricsCollection:
         }
 
         # Act
-        utilization = (pool_stats["active_connections"] / pool_stats["total_connections"]) * 100
+        utilization = (
+            pool_stats["active_connections"] / pool_stats["total_connections"]
+        ) * 100
 
         # Assert
         assert utilization == 30.0

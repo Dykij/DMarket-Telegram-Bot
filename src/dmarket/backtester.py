@@ -775,20 +775,26 @@ class Backtester:
         all_timestamps: set[datetime] = set()
         for item in items_to_test:
             if item in self.data:
-                all_timestamps.update(price.timestamp for price in self.data[item].prices)
+                all_timestamps.update(
+                    price.timestamp for price in self.data[item].prices
+                )
 
         sorted_timestamps = sorted(all_timestamps)
         if not sorted_timestamps:
             raise ValueError("No price data available")
 
         # Simulate trading over time
-        historical_prices: dict[str, list[PricePoint]] = {item: [] for item in items_to_test}
+        historical_prices: dict[str, list[PricePoint]] = {
+            item: [] for item in items_to_test
+        }
 
         for timestamp in sorted_timestamps:
             # Update historical prices
             for item in items_to_test:
                 if item in self.data:
-                    current_prices = [p for p in self.data[item].prices if p.timestamp == timestamp]
+                    current_prices = [
+                        p for p in self.data[item].prices if p.timestamp == timestamp
+                    ]
                     for price in current_prices:
                         historical_prices[item].append(price)
 
@@ -874,7 +880,9 @@ class Backtester:
 
         for position in self.open_positions:
             if position.item_id == current_price.item_id:
-                should_close, reason = strategy.should_close_position(position, current_price)
+                should_close, reason = strategy.should_close_position(
+                    position, current_price
+                )
                 if should_close:
                     positions_to_close.append((position, current_price, reason))
 
@@ -948,10 +956,14 @@ class Backtester:
         losing_trades = [t for t in closed_trades if (t.profit or 0) < 0]
 
         sum(t.profit or 0 for t in closed_trades)
-        total_roi = ((self.current_balance - self.initial_balance) / self.initial_balance) * 100
+        total_roi = (
+            (self.current_balance - self.initial_balance) / self.initial_balance
+        ) * 100
 
         # Calculate win rate
-        win_rate = (len(winning_trades) / len(closed_trades) * 100) if closed_trades else 0
+        win_rate = (
+            (len(winning_trades) / len(closed_trades) * 100) if closed_trades else 0
+        )
 
         # Calculate average profit/loss
         avg_profit = (
@@ -960,7 +972,9 @@ class Backtester:
             else 0
         )
         avg_loss = (
-            sum(t.profit or 0 for t in losing_trades) / len(losing_trades) if losing_trades else 0
+            sum(t.profit or 0 for t in losing_trades) / len(losing_trades)
+            if losing_trades
+            else 0
         )
 
         # Calculate profit factor
@@ -1087,7 +1101,9 @@ class Backtester:
 
         results = []
         for strategy in strategies:
-            result = asyncio.get_event_loop().run_until_complete(self.run(strategy, item_id))
+            result = asyncio.get_event_loop().run_until_complete(
+                self.run(strategy, item_id)
+            )
             results.append(result)
 
         return results

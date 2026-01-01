@@ -136,13 +136,16 @@ class TestAlertsCommand:
         mock_manager = MagicMock()
         mock_manager.get_user_subscriptions.return_value = ["price_changes", "trending"]
 
-        with patch(
-            "src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager",
-            return_value=mock_manager,
-        ), patch(
-            "src.telegram_bot.handlers.market_alerts_handler.get_user_alerts",
-            new_callable=AsyncMock,
-            return_value=[],
+        with (
+            patch(
+                "src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager",
+                return_value=mock_manager,
+            ),
+            patch(
+                "src.telegram_bot.handlers.market_alerts_handler.get_user_alerts",
+                new_callable=AsyncMock,
+                return_value=[],
+            ),
         ):
             await alerts_command(update, context)
 
@@ -170,13 +173,16 @@ class TestAlertsCommand:
             {"id": "1", "title": "Test Item", "type": "price_drop", "threshold": 100.0},
         ]
 
-        with patch(
-            "src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager",
-            return_value=mock_manager,
-        ), patch(
-            "src.telegram_bot.handlers.market_alerts_handler.get_user_alerts",
-            new_callable=AsyncMock,
-            return_value=mock_alerts,
+        with (
+            patch(
+                "src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager",
+                return_value=mock_manager,
+            ),
+            patch(
+                "src.telegram_bot.handlers.market_alerts_handler.get_user_alerts",
+                new_callable=AsyncMock,
+                return_value=mock_alerts,
+            ),
         ):
             await alerts_command(update, context)
 
@@ -201,13 +207,16 @@ class TestAlertsCommand:
         mock_manager = MagicMock()
         mock_manager.get_user_subscriptions.return_value = []
 
-        with patch(
-            "src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager",
-            return_value=mock_manager,
-        ), patch(
-            "src.telegram_bot.handlers.market_alerts_handler.get_user_alerts",
-            new_callable=AsyncMock,
-            return_value=[],
+        with (
+            patch(
+                "src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager",
+                return_value=mock_manager,
+            ),
+            patch(
+                "src.telegram_bot.handlers.market_alerts_handler.get_user_alerts",
+                new_callable=AsyncMock,
+                return_value=[],
+            ),
         ):
             await alerts_command(update, context)
 
@@ -375,7 +384,9 @@ class TestHandleToggleAlert:
         query.answer = AsyncMock()
 
         mock_manager = MagicMock()
-        mock_manager.get_user_subscriptions.return_value = ["price_changes"]  # Subscribed
+        mock_manager.get_user_subscriptions.return_value = [
+            "price_changes"
+        ]  # Subscribed
         mock_manager.unsubscribe.return_value = True
 
         with patch(
@@ -433,7 +444,9 @@ class TestHandleSubscribeAll:
     @pytest.mark.asyncio()
     async def test_subscribe_all_success(self) -> None:
         """Test subscribe all successful."""
-        from src.telegram_bot.handlers.market_alerts_handler import _handle_subscribe_all
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            _handle_subscribe_all,
+        )
 
         query = MagicMock()
         query.answer = AsyncMock()
@@ -468,7 +481,9 @@ class TestHandleUnsubscribeAll:
     @pytest.mark.asyncio()
     async def test_unsubscribe_all_with_method(self) -> None:
         """Test unsubscribe all with unsubscribe_all method."""
-        from src.telegram_bot.handlers.market_alerts_handler import _handle_unsubscribe_all
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            _handle_unsubscribe_all,
+        )
 
         query = MagicMock()
         query.answer = AsyncMock()
@@ -496,7 +511,9 @@ class TestHandleUnsubscribeAll:
     @pytest.mark.asyncio()
     async def test_unsubscribe_all_fallback(self) -> None:
         """Test unsubscribe all with fallback loop."""
-        from src.telegram_bot.handlers.market_alerts_handler import _handle_unsubscribe_all
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            _handle_unsubscribe_all,
+        )
 
         query = MagicMock()
         query.answer = AsyncMock()
@@ -557,13 +574,16 @@ class TestHandleRemoveAlert:
         query = MagicMock()
         query.answer = AsyncMock()
 
-        with patch(
-            "src.telegram_bot.handlers.market_alerts_handler.remove_price_alert",
-            new_callable=AsyncMock,
-            return_value=True,
-        ), patch(
-            "src.telegram_bot.handlers.market_alerts_handler.show_user_alerts_list",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                "src.telegram_bot.handlers.market_alerts_handler.remove_price_alert",
+                new_callable=AsyncMock,
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.handlers.market_alerts_handler.show_user_alerts_list",
+                new_callable=AsyncMock,
+            ),
         ):
             await _handle_remove_alert(
                 query=query,
@@ -612,7 +632,9 @@ class TestHandleThresholdAction:
     @pytest.mark.asyncio()
     async def test_threshold_invalid_format(self) -> None:
         """Test threshold with invalid format."""
-        from src.telegram_bot.handlers.market_alerts_handler import _handle_threshold_action
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            _handle_threshold_action,
+        )
 
         query = MagicMock()
         query.answer = AsyncMock()
@@ -632,7 +654,9 @@ class TestHandleThresholdAction:
     @pytest.mark.asyncio()
     async def test_threshold_up(self) -> None:
         """Test threshold increase."""
-        from src.telegram_bot.handlers.market_alerts_handler import _handle_threshold_action
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            _handle_threshold_action,
+        )
 
         query = MagicMock()
         query.answer = AsyncMock()
@@ -662,7 +686,9 @@ class TestHandleThresholdAction:
     @pytest.mark.asyncio()
     async def test_threshold_down(self) -> None:
         """Test threshold decrease."""
-        from src.telegram_bot.handlers.market_alerts_handler import _handle_threshold_action
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            _handle_threshold_action,
+        )
 
         query = MagicMock()
         query.answer = AsyncMock()
@@ -699,7 +725,9 @@ class TestHandleIntervalAction:
     @pytest.mark.asyncio()
     async def test_interval_invalid_format(self) -> None:
         """Test interval with invalid format."""
-        from src.telegram_bot.handlers.market_alerts_handler import _handle_interval_action
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            _handle_interval_action,
+        )
 
         query = MagicMock()
         query.answer = AsyncMock()
@@ -719,7 +747,9 @@ class TestHandleIntervalAction:
     @pytest.mark.asyncio()
     async def test_interval_up(self) -> None:
         """Test interval increase."""
-        from src.telegram_bot.handlers.market_alerts_handler import _handle_interval_action
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            _handle_interval_action,
+        )
 
         query = MagicMock()
         query.answer = AsyncMock()
@@ -749,7 +779,9 @@ class TestHandleIntervalAction:
     @pytest.mark.asyncio()
     async def test_interval_down(self) -> None:
         """Test interval decrease."""
-        from src.telegram_bot.handlers.market_alerts_handler import _handle_interval_action
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            _handle_interval_action,
+        )
 
         query = MagicMock()
         query.answer = AsyncMock()
@@ -779,7 +811,9 @@ class TestHandleIntervalAction:
     @pytest.mark.asyncio()
     async def test_interval_max_cap(self) -> None:
         """Test interval capped at max value."""
-        from src.telegram_bot.handlers.market_alerts_handler import _handle_interval_action
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            _handle_interval_action,
+        )
 
         query = MagicMock()
         query.answer = AsyncMock()
@@ -808,7 +842,9 @@ class TestHandleIntervalAction:
     @pytest.mark.asyncio()
     async def test_interval_min_cap(self) -> None:
         """Test interval capped at min value."""
-        from src.telegram_bot.handlers.market_alerts_handler import _handle_interval_action
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            _handle_interval_action,
+        )
 
         query = MagicMock()
         query.answer = AsyncMock()
@@ -844,7 +880,9 @@ class TestShowUserAlertsList:
     @pytest.mark.asyncio()
     async def test_show_empty_alerts_list(self) -> None:
         """Test show alerts list when empty."""
-        from src.telegram_bot.handlers.market_alerts_handler import show_user_alerts_list
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            show_user_alerts_list,
+        )
 
         query = MagicMock()
         query.edit_message_text = AsyncMock()
@@ -863,7 +901,9 @@ class TestShowUserAlertsList:
     @pytest.mark.asyncio()
     async def test_show_alerts_list_with_price_drop(self) -> None:
         """Test show alerts list with price_drop alert."""
-        from src.telegram_bot.handlers.market_alerts_handler import show_user_alerts_list
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            show_user_alerts_list,
+        )
 
         query = MagicMock()
         query.edit_message_text = AsyncMock()
@@ -892,7 +932,9 @@ class TestShowUserAlertsList:
     @pytest.mark.asyncio()
     async def test_show_alerts_list_with_price_rise(self) -> None:
         """Test show alerts list with price_rise alert."""
-        from src.telegram_bot.handlers.market_alerts_handler import show_user_alerts_list
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            show_user_alerts_list,
+        )
 
         query = MagicMock()
         query.edit_message_text = AsyncMock()
@@ -921,7 +963,9 @@ class TestShowUserAlertsList:
     @pytest.mark.asyncio()
     async def test_show_alerts_list_with_volume_increase(self) -> None:
         """Test show alerts list with volume_increase alert."""
-        from src.telegram_bot.handlers.market_alerts_handler import show_user_alerts_list
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            show_user_alerts_list,
+        )
 
         query = MagicMock()
         query.edit_message_text = AsyncMock()
@@ -950,7 +994,9 @@ class TestShowUserAlertsList:
     @pytest.mark.asyncio()
     async def test_show_alerts_list_with_good_deal(self) -> None:
         """Test show alerts list with good_deal alert."""
-        from src.telegram_bot.handlers.market_alerts_handler import show_user_alerts_list
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            show_user_alerts_list,
+        )
 
         query = MagicMock()
         query.edit_message_text = AsyncMock()
@@ -979,7 +1025,9 @@ class TestShowUserAlertsList:
     @pytest.mark.asyncio()
     async def test_show_alerts_list_with_trend_change(self) -> None:
         """Test show alerts list with trend_change alert."""
-        from src.telegram_bot.handlers.market_alerts_handler import show_user_alerts_list
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            show_user_alerts_list,
+        )
 
         query = MagicMock()
         query.edit_message_text = AsyncMock()
@@ -1015,7 +1063,9 @@ class TestShowCreateAlertForm:
     @pytest.mark.asyncio()
     async def test_show_create_alert_form(self) -> None:
         """Test show create alert form."""
-        from src.telegram_bot.handlers.market_alerts_handler import show_create_alert_form
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            show_create_alert_form,
+        )
 
         query = MagicMock()
         query.edit_message_text = AsyncMock()
@@ -1144,7 +1194,9 @@ class TestUpdateAlertsKeyboard:
     @pytest.mark.asyncio()
     async def test_update_keyboard_no_subscriptions(self) -> None:
         """Test update keyboard with no subscriptions."""
-        from src.telegram_bot.handlers.market_alerts_handler import update_alerts_keyboard
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            update_alerts_keyboard,
+        )
 
         query = MagicMock()
         query.edit_message_text = AsyncMock()
@@ -1166,7 +1218,9 @@ class TestUpdateAlertsKeyboard:
     @pytest.mark.asyncio()
     async def test_update_keyboard_with_subscriptions(self) -> None:
         """Test update keyboard with subscriptions."""
-        from src.telegram_bot.handlers.market_alerts_handler import update_alerts_keyboard
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            update_alerts_keyboard,
+        )
 
         query = MagicMock()
         query.edit_message_text = AsyncMock()
@@ -1194,14 +1248,19 @@ class TestRegisterAlertsHandlers:
 
     def test_register_handlers(self) -> None:
         """Test register handlers."""
-        from src.telegram_bot.handlers.market_alerts_handler import register_alerts_handlers
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            register_alerts_handlers,
+        )
 
         mock_application = MagicMock()
 
-        with patch(
-            "src.telegram_bot.handlers.market_alerts_handler.load_user_alerts",
-        ), patch(
-            "src.telegram_bot.handlers.market_alerts_handler.register_notification_handlers",
+        with (
+            patch(
+                "src.telegram_bot.handlers.market_alerts_handler.load_user_alerts",
+            ),
+            patch(
+                "src.telegram_bot.handlers.market_alerts_handler.register_notification_handlers",
+            ),
         ):
             register_alerts_handlers(mock_application)
 
@@ -1218,7 +1277,9 @@ class TestInitializeAlertsManager:
     @pytest.mark.asyncio()
     async def test_initialize_alerts_manager(self) -> None:
         """Test initialize alerts manager."""
-        from src.telegram_bot.handlers.market_alerts_handler import initialize_alerts_manager
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            initialize_alerts_manager,
+        )
 
         mock_application = MagicMock()
 
@@ -1253,13 +1314,16 @@ class TestIntegration:
         mock_manager.get_user_subscriptions.return_value = []
         mock_manager.subscribe.return_value = True
 
-        with patch(
-            "src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager",
-            return_value=mock_manager,
-        ), patch(
-            "src.telegram_bot.handlers.market_alerts_handler.get_user_alerts",
-            new_callable=AsyncMock,
-            return_value=[],
+        with (
+            patch(
+                "src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager",
+                return_value=mock_manager,
+            ),
+            patch(
+                "src.telegram_bot.handlers.market_alerts_handler.get_user_alerts",
+                new_callable=AsyncMock,
+                return_value=[],
+            ),
         ):
             await alerts_command(update, context)
 
@@ -1268,7 +1332,9 @@ class TestIntegration:
     @pytest.mark.asyncio()
     async def test_alert_action_dispatcher(self) -> None:
         """Test alert action dispatcher."""
-        from src.telegram_bot.handlers.market_alerts_handler import _ALERT_ACTION_HANDLERS
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            _ALERT_ACTION_HANDLERS,
+        )
 
         # Check all expected handlers are registered
         expected_handlers = [
@@ -1327,7 +1393,9 @@ class TestEdgeCases:
         """Test concurrent updates to alerts."""
         import asyncio
 
-        from src.telegram_bot.handlers.market_alerts_handler import _handle_subscribe_all
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            _handle_subscribe_all,
+        )
 
         query = MagicMock()
         query.answer = AsyncMock()

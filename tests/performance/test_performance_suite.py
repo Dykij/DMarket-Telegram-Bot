@@ -51,7 +51,11 @@ async def test_parallel_arbitrage_scanning_50_plus():
     api.get_market_items = AsyncMock(
         return_value={
             "objects": [
-                {"title": "Item", "price": {"USD": "1000"}, "suggestedPrice": {"USD": "1200"}}
+                {
+                    "title": "Item",
+                    "price": {"USD": "1000"},
+                    "suggestedPrice": {"USD": "1200"},
+                }
             ]
         }
     )
@@ -136,7 +140,9 @@ async def test_websocket_connections_under_load():
     elapsed = time.perf_counter() - start_time
 
     assert len(results) == 20
-    assert elapsed < 5.0, f"Should establish 20 connections within 5s, took {elapsed:.2f}s"
+    assert (
+        elapsed < 5.0
+    ), f"Should establish 20 connections within 5s, took {elapsed:.2f}s"
 
 
 @pytest.mark.asyncio()
@@ -182,6 +188,7 @@ async def test_recovery_after_failure():
 @pytest.mark.asyncio()
 async def test_graceful_shutdown_under_load():
     """Test graceful shutdown while under load."""
+
     async def slow_operation():
         await asyncio.sleep(2.0)
         return "complete"
@@ -274,7 +281,9 @@ async def test_database_indexes_optimization():
     # Query with index
     start_time = time.perf_counter()
     async with db.async_session_maker() as session:
-        result = await session.execute(text("SELECT * FROM users WHERE telegram_id = 1000500"))
+        result = await session.execute(
+            text("SELECT * FROM users WHERE telegram_id = 1000500")
+        )
         user = result.first()
     elapsed = time.perf_counter() - start_time
 
@@ -306,7 +315,9 @@ async def test_database_transactions_rollback_under_load():
 
     # Verify nothing was committed
     async with db.async_session_maker() as session:
-        result = await session.execute(text("SELECT COUNT(*) FROM users WHERE telegram_id >= 2000000"))
+        result = await session.execute(
+            text("SELECT COUNT(*) FROM users WHERE telegram_id >= 2000000")
+        )
         count = result.scalar()
 
     assert count == 0, "All transactions should be rolled back"
@@ -334,7 +345,9 @@ async def test_concurrent_database_writes_100_plus():
     await asyncio.gather(*tasks, return_exceptions=True)
     elapsed = time.perf_counter() - start_time
 
-    assert elapsed < 15.0, f"100 concurrent writes should complete within 15s, took {elapsed:.2f}s"
+    assert (
+        elapsed < 15.0
+    ), f"100 concurrent writes should complete within 15s, took {elapsed:.2f}s"
 
     await db.close()
 
@@ -351,17 +364,23 @@ async def test_complex_query_optimization():
     # Simulate complex query
     start_time = time.perf_counter()
     async with db.async_session_maker() as session:
-        result = await session.execute(text("""
+        result = await session.execute(
+            text(
+                """
             SELECT u.*, COUNT(t.id) as trade_count
             FROM users u
             LEFT JOIN trades t ON u.telegram_id = t.user_id
             GROUP BY u.telegram_id
             LIMIT 100
-        """))
+        """
+            )
+        )
         rows = result.fetchall()
     elapsed = time.perf_counter() - start_time
 
-    assert elapsed < 1.0, f"Complex query should complete within 1s, took {elapsed:.4f}s"
+    assert (
+        elapsed < 1.0
+    ), f"Complex query should complete within 1s, took {elapsed:.4f}s"
 
     await db.close()
 
@@ -376,7 +395,8 @@ async def test_bulk_operations_1000_plus_items():
     await db.init_database()
 
     bulk_data = [
-        {"telegram_id": 4000000 + i, "username": f"bulk_{i}", "balance": 50.0} for i in range(1000)
+        {"telegram_id": 4000000 + i, "username": f"bulk_{i}", "balance": 50.0}
+        for i in range(1000)
     ]
 
     start_time = time.perf_counter()
@@ -385,7 +405,9 @@ async def test_bulk_operations_1000_plus_items():
         await session.commit()
     elapsed = time.perf_counter() - start_time
 
-    assert elapsed < 5.0, f"Bulk insert of 1000 items should be <5s, took {elapsed:.2f}s"
+    assert (
+        elapsed < 5.0
+    ), f"Bulk insert of 1000 items should be <5s, took {elapsed:.2f}s"
 
     await db.close()
 
@@ -410,7 +432,9 @@ async def test_connection_pool_saturation():
     elapsed = time.perf_counter() - start_time
 
     # Should handle gracefully without hanging
-    assert elapsed < 10.0, f"Should handle pool saturation within 10s, took {elapsed:.2f}s"
+    assert (
+        elapsed < 10.0
+    ), f"Should handle pool saturation within 10s, took {elapsed:.2f}s"
 
     await db.close()
 
@@ -463,7 +487,9 @@ async def test_redis_throughput_10000_plus_ops():
         elapsed = time.perf_counter() - start_time
         ops_per_sec = 10000 / elapsed
 
-        assert ops_per_sec >= 1000, f"Should achieve 1000+ ops/sec, got {ops_per_sec:.0f}"
+        assert (
+            ops_per_sec >= 1000
+        ), f"Should achieve 1000+ ops/sec, got {ops_per_sec:.0f}"
 
 
 @pytest.mark.asyncio()
@@ -508,9 +534,9 @@ async def test_cache_memory_usage_optimization():
 
     # Cache should not exceed reasonable memory limit
     max_size_mb = 100
-    assert cache_size < max_size_mb * 1024 * 1024, (
-        f"Cache should be <{max_size_mb}MB, was {cache_size / 1024 / 1024:.2f}MB"
-    )
+    assert (
+        cache_size < max_size_mb * 1024 * 1024
+    ), f"Cache should be <{max_size_mb}MB, was {cache_size / 1024 / 1024:.2f}MB"
 
 
 @pytest.mark.asyncio()
@@ -602,7 +628,9 @@ async def test_cache_stampede_prevention():
 
     assert len(set(results)) == 1, "All results should be the same"
     # With proper locking, expensive operation should only be called once or very few times
-    assert call_count <= 5, f"Should prevent stampede with locking, had {call_count} calls"
+    assert (
+        call_count <= 5
+    ), f"Should prevent stampede with locking, had {call_count} calls"
 
 
 # ============================================================================

@@ -474,9 +474,7 @@ class TestPriceAndSalesHistory:
         with patch.object(
             dmarket_api, "_request", new=AsyncMock(return_value=mock_response)
         ):
-            result = await dmarket_api.get_sales_history(
-                title="Rare Item", game="csgo"
-            )
+            result = await dmarket_api.get_sales_history(title="Rare Item", game="csgo")
 
             assert result["sales"] == []
 
@@ -751,7 +749,9 @@ class TestTargetOperations:
                 game_id="a8db", title="AK-47 | Redline"
             )
 
-            assert "competition_level" in result or "orders" in result or "title" in result
+            assert (
+                "competition_level" in result or "orders" in result or "title" in result
+            )
 
     @pytest.mark.asyncio()
     async def test_get_closed_targets_success(self, dmarket_api):
@@ -808,11 +808,17 @@ class TestUtilityMethods:
         ):
             # Mock the entire direct_balance_request to avoid real network call
             with patch.object(
-                dmarket_api, "direct_balance_request", new=AsyncMock(return_value=mock_response)
+                dmarket_api,
+                "direct_balance_request",
+                new=AsyncMock(return_value=mock_response),
             ):
                 result = await dmarket_api.direct_balance_request()
 
-                assert "usd" in result or "USD" in result or "balance" in str(result).lower()
+                assert (
+                    "usd" in result
+                    or "USD" in result
+                    or "balance" in str(result).lower()
+                )
 
 
 # ============================================================================
@@ -826,33 +832,46 @@ class TestErrorHandling:
     @pytest.mark.asyncio()
     async def test_deposit_assets_api_error(self, dmarket_api):
         """Test deposit with API error."""
-        with patch.object(
-            dmarket_api,
-            "_request",
-            new=AsyncMock(side_effect=httpx.HTTPStatusError(
-                "Error", request=MagicMock(), response=MagicMock(status_code=500)
-            )),
-        ), pytest.raises(httpx.HTTPStatusError):
+        with (
+            patch.object(
+                dmarket_api,
+                "_request",
+                new=AsyncMock(
+                    side_effect=httpx.HTTPStatusError(
+                        "Error",
+                        request=MagicMock(),
+                        response=MagicMock(status_code=500),
+                    )
+                ),
+            ),
+            pytest.raises(httpx.HTTPStatusError),
+        ):
             await dmarket_api.deposit_assets(["asset_1"])
 
     @pytest.mark.asyncio()
     async def test_sync_inventory_timeout(self, dmarket_api):
         """Test inventory sync with timeout."""
-        with patch.object(
-            dmarket_api,
-            "_request",
-            new=AsyncMock(side_effect=httpx.TimeoutException("Timeout")),
-        ), pytest.raises(httpx.TimeoutException):
+        with (
+            patch.object(
+                dmarket_api,
+                "_request",
+                new=AsyncMock(side_effect=httpx.TimeoutException("Timeout")),
+            ),
+            pytest.raises(httpx.TimeoutException),
+        ):
             await dmarket_api.sync_inventory()
 
     @pytest.mark.asyncio()
     async def test_get_targets_connection_error(self, dmarket_api):
         """Test targets request with connection error."""
-        with patch.object(
-            dmarket_api,
-            "_request",
-            new=AsyncMock(side_effect=httpx.ConnectError("Connection failed")),
-        ), pytest.raises(httpx.ConnectError):
+        with (
+            patch.object(
+                dmarket_api,
+                "_request",
+                new=AsyncMock(side_effect=httpx.ConnectError("Connection failed")),
+            ),
+            pytest.raises(httpx.ConnectError),
+        ):
             await dmarket_api.get_user_targets(game_id="a8db")
 
 
@@ -886,9 +905,7 @@ class TestEdgeCases:
         with patch.object(
             dmarket_api_live, "_request", new=AsyncMock(return_value=mock_response)
         ):
-            result = await dmarket_api_live.create_targets(
-                game_id="a8db", targets=[]
-            )
+            result = await dmarket_api_live.create_targets(game_id="a8db", targets=[])
 
             assert result["Targets"] == []
 
@@ -912,9 +929,7 @@ class TestEdgeCases:
         with patch.object(
             dmarket_api, "_request", new=AsyncMock(return_value=mock_response)
         ):
-            result = await dmarket_api.get_sales_history(
-                title="AK-47", game="csgo"
-            )
+            result = await dmarket_api.get_sales_history(title="AK-47", game="csgo")
 
             assert len(result["sales"]) == 30
 

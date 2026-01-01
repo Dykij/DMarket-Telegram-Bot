@@ -209,37 +209,43 @@ def sample_recommendations():
 
 def create_undervalued_item(trend: str = "stable") -> list[dict]:
     """Create test data for undervalued item with specified trend."""
-    return [{
-        "title": "Test Item",
-        "current_price": 100.0,
-        "avg_price": 120.0,
-        "discount": 16.7,
-        "trend": trend,
-        "volume": 50,
-    }]
+    return [
+        {
+            "title": "Test Item",
+            "current_price": 100.0,
+            "avg_price": 120.0,
+            "discount": 16.7,
+            "trend": trend,
+            "volume": 50,
+        }
+    ]
 
 
 def create_recommendation_item(liquidity: str = "medium") -> list[dict]:
     """Create test data for recommendation item with specified liquidity."""
-    return [{
-        "title": "Test Item",
-        "current_price": 100.0,
-        "discount": 10.0,
-        "liquidity": liquidity,
-        "investment_score": 7.0,
-        "reason": "Test reason",
-    }]
+    return [
+        {
+            "title": "Test Item",
+            "current_price": 100.0,
+            "discount": 10.0,
+            "liquidity": liquidity,
+            "investment_score": 7.0,
+            "reason": "Test reason",
+        }
+    ]
 
 
 def create_volatility_item(volatility_score: float = 15.0) -> list[dict]:
     """Create test data for volatility item with specified score."""
-    return [{
-        "market_hash_name": "Test Item",
-        "current_price": 100.0,
-        "change_24h_percent": 10.0,
-        "change_7d_percent": 15.0,
-        "volatility_score": volatility_score,
-    }]
+    return [
+        {
+            "market_hash_name": "Test Item",
+            "current_price": 100.0,
+            "change_24h_percent": 10.0,
+            "change_7d_percent": 15.0,
+            "volatility_score": volatility_score,
+        }
+    ]
 
 
 # ======================== Тесты market_analysis_command ========================
@@ -299,7 +305,9 @@ async def test_market_analysis_callback_select_game(mock_update, mock_context):
 
 
 @pytest.mark.asyncio()
-async def test_market_analysis_callback_initializes_user_data(mock_update, mock_context):
+async def test_market_analysis_callback_initializes_user_data(
+    mock_update, mock_context
+):
     """Тест инициализации данных пользователя."""
     mock_update.callback_query.data = "analysis:select_game:csgo"
 
@@ -338,7 +346,9 @@ async def test_market_analysis_callback_price_changes(
 
 @pytest.mark.asyncio()
 @patch("src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env")
-async def test_market_analysis_callback_api_error(mock_api_client, mock_update, mock_context):
+async def test_market_analysis_callback_api_error(
+    mock_api_client, mock_update, mock_context
+):
     """Тест обработки ошибки API при колбэке."""
     mock_update.callback_query.data = "analysis:trending:csgo"
     mock_context.user_data["market_analysis"] = {"current_game": "csgo"}
@@ -380,7 +390,9 @@ async def test_show_price_changes_results_success(
 
 @pytest.mark.asyncio()
 @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
-async def test_show_price_changes_results_empty(mock_pagination, mock_callback_query, mock_context):
+async def test_show_price_changes_results_empty(
+    mock_pagination, mock_callback_query, mock_context
+):
     """Тест отображения пустых результатов изменения цен."""
     # Настройка пагинации - пустой список
     mock_pagination.get_page.return_value = ([], 0, 0)
@@ -425,7 +437,9 @@ async def test_show_volatility_results(
 
 
 @pytest.mark.asyncio()
-async def test_show_market_report(mock_callback_query, mock_context, sample_market_report):
+async def test_show_market_report(
+    mock_callback_query, mock_context, sample_market_report
+):
     """Тест отображения рыночного отчета."""
     await show_market_report(mock_callback_query, mock_context, sample_market_report)
 
@@ -471,7 +485,9 @@ async def test_show_investment_recommendations_results(
     """Тест отображения инвестиционных рекомендаций."""
     mock_pagination.get_page.return_value = (sample_recommendations, 0, 1)
 
-    await show_investment_recommendations_results(mock_callback_query, mock_context, "csgo")
+    await show_investment_recommendations_results(
+        mock_callback_query, mock_context, "csgo"
+    )
 
     mock_callback_query.edit_message_text.assert_called_once()
     args = mock_callback_query.edit_message_text.call_args[0]
@@ -665,7 +681,9 @@ class TestMarketAnalysisCallbackExtended:
         assert result is None
 
     @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env")
+    @patch(
+        "src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env"
+    )
     @patch("src.telegram_bot.handlers.market_analysis_handler.find_trending_items")
     async def test_callback_trending_action(
         self, mock_trending, mock_api_client, mock_update, mock_context
@@ -685,8 +703,12 @@ class TestMarketAnalysisCallbackExtended:
         mock_trending.assert_called_once()
 
     @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env")
-    @patch("src.telegram_bot.handlers.market_analysis_handler.analyze_market_volatility")
+    @patch(
+        "src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env"
+    )
+    @patch(
+        "src.telegram_bot.handlers.market_analysis_handler.analyze_market_volatility"
+    )
     async def test_callback_volatility_action(
         self, mock_volatility, mock_api_client, mock_update, mock_context
     ):
@@ -705,7 +727,9 @@ class TestMarketAnalysisCallbackExtended:
         mock_volatility.assert_called_once()
 
     @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env")
+    @patch(
+        "src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env"
+    )
     @patch("src.telegram_bot.handlers.market_analysis_handler.generate_market_report")
     async def test_callback_report_action(
         self, mock_report, mock_api_client, mock_update, mock_context
@@ -723,7 +747,9 @@ class TestMarketAnalysisCallbackExtended:
         mock_report.assert_called_once()
 
     @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env")
+    @patch(
+        "src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env"
+    )
     @patch("src.telegram_bot.handlers.market_analysis_handler.find_undervalued_items")
     async def test_callback_undervalued_action(
         self, mock_undervalued, mock_api_client, mock_update, mock_context
@@ -743,8 +769,12 @@ class TestMarketAnalysisCallbackExtended:
         mock_undervalued.assert_called_once()
 
     @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env")
-    @patch("src.telegram_bot.handlers.market_analysis_handler.get_investment_recommendations")
+    @patch(
+        "src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env"
+    )
+    @patch(
+        "src.telegram_bot.handlers.market_analysis_handler.get_investment_recommendations"
+    )
     async def test_callback_recommendations_action(
         self, mock_recommendations, mock_api_client, mock_update, mock_context
     ):
@@ -762,7 +792,9 @@ class TestMarketAnalysisCallbackExtended:
         mock_recommendations.assert_called_once()
 
     @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env")
+    @patch(
+        "src.telegram_bot.handlers.market_analysis_handler.create_api_client_from_env"
+    )
     async def test_callback_handles_exception(
         self, mock_api_client, mock_update, mock_context
     ):
@@ -847,7 +879,9 @@ class TestShowVolatilityResultsExtended:
         keyboard = kwargs["reply_markup"]
 
         # Должна быть кнопка "Вперед" на первой странице
-        button_texts = [button.text for row in keyboard.inline_keyboard for button in row]
+        button_texts = [
+            button.text for row in keyboard.inline_keyboard for button in row
+        ]
         assert any("Вперед" in text for text in button_texts)
 
 
@@ -861,7 +895,9 @@ class TestShowMarketReportExtended:
         """Тест отображения падающего направления рынка."""
         sample_market_report["market_summary"]["price_change_direction"] = "down"
 
-        await show_market_report(mock_callback_query, mock_context, sample_market_report)
+        await show_market_report(
+            mock_callback_query, mock_context, sample_market_report
+        )
 
         args = mock_callback_query.edit_message_text.call_args[0]
         assert "Падающий" in args[0]
@@ -873,7 +909,9 @@ class TestShowMarketReportExtended:
         """Тест отображения стабильного направления рынка."""
         sample_market_report["market_summary"]["price_change_direction"] = "stable"
 
-        await show_market_report(mock_callback_query, mock_context, sample_market_report)
+        await show_market_report(
+            mock_callback_query, mock_context, sample_market_report
+        )
 
         args = mock_callback_query.edit_message_text.call_args[0]
         assert "Стабильный" in args[0]
@@ -883,7 +921,11 @@ class TestShowMarketReportExtended:
         self, mock_callback_query, mock_context, sample_market_report
     ):
         """Тест отображения уровней волатильности рынка."""
-        for level, expected in [("low", "Низкая"), ("medium", "Средняя"), ("high", "Высокая")]:
+        for level, expected in [
+            ("low", "Низкая"),
+            ("medium", "Средняя"),
+            ("high", "Высокая"),
+        ]:
             # Create a copy to avoid modifying shared fixture
             report_copy = {
                 "game": sample_market_report["game"],
@@ -910,7 +952,11 @@ class TestShowUndervaluedItemsResultsExtended:
         self, mock_pagination, mock_callback_query, mock_context
     ):
         """Тест иконки восходящего тренда."""
-        mock_pagination.get_page.return_value = (create_undervalued_item("upward"), 0, 1)
+        mock_pagination.get_page.return_value = (
+            create_undervalued_item("upward"),
+            0,
+            1,
+        )
 
         await show_undervalued_items_results(mock_callback_query, mock_context, "csgo")
 
@@ -923,7 +969,11 @@ class TestShowUndervaluedItemsResultsExtended:
         self, mock_pagination, mock_callback_query, mock_context
     ):
         """Тест иконки нисходящего тренда."""
-        mock_pagination.get_page.return_value = (create_undervalued_item("downward"), 0, 1)
+        mock_pagination.get_page.return_value = (
+            create_undervalued_item("downward"),
+            0,
+            1,
+        )
 
         await show_undervalued_items_results(mock_callback_query, mock_context, "csgo")
 
@@ -936,7 +986,11 @@ class TestShowUndervaluedItemsResultsExtended:
         self, mock_pagination, mock_callback_query, mock_context
     ):
         """Тест иконки стабильного тренда."""
-        mock_pagination.get_page.return_value = (create_undervalued_item("stable"), 0, 1)
+        mock_pagination.get_page.return_value = (
+            create_undervalued_item("stable"),
+            0,
+            1,
+        )
 
         await show_undervalued_items_results(mock_callback_query, mock_context, "csgo")
 
@@ -953,9 +1007,15 @@ class TestShowInvestmentRecommendationsResultsExtended:
         self, mock_pagination, mock_callback_query, mock_context
     ):
         """Тест иконки высокой ликвидности."""
-        mock_pagination.get_page.return_value = (create_recommendation_item("high"), 0, 1)
+        mock_pagination.get_page.return_value = (
+            create_recommendation_item("high"),
+            0,
+            1,
+        )
 
-        await show_investment_recommendations_results(mock_callback_query, mock_context, "csgo")
+        await show_investment_recommendations_results(
+            mock_callback_query, mock_context, "csgo"
+        )
 
         args = mock_callback_query.edit_message_text.call_args[0]
         assert "🟢" in args[0]
@@ -966,9 +1026,15 @@ class TestShowInvestmentRecommendationsResultsExtended:
         self, mock_pagination, mock_callback_query, mock_context
     ):
         """Тест иконки средней ликвидности."""
-        mock_pagination.get_page.return_value = (create_recommendation_item("medium"), 0, 1)
+        mock_pagination.get_page.return_value = (
+            create_recommendation_item("medium"),
+            0,
+            1,
+        )
 
-        await show_investment_recommendations_results(mock_callback_query, mock_context, "csgo")
+        await show_investment_recommendations_results(
+            mock_callback_query, mock_context, "csgo"
+        )
 
         args = mock_callback_query.edit_message_text.call_args[0]
         assert "🟡" in args[0]
@@ -979,9 +1045,15 @@ class TestShowInvestmentRecommendationsResultsExtended:
         self, mock_pagination, mock_callback_query, mock_context
     ):
         """Тест иконки низкой ликвидности."""
-        mock_pagination.get_page.return_value = (create_recommendation_item("low"), 0, 1)
+        mock_pagination.get_page.return_value = (
+            create_recommendation_item("low"),
+            0,
+            1,
+        )
 
-        await show_investment_recommendations_results(mock_callback_query, mock_context, "csgo")
+        await show_investment_recommendations_results(
+            mock_callback_query, mock_context, "csgo"
+        )
 
         args = mock_callback_query.edit_message_text.call_args[0]
         assert "🔴" in args[0]
@@ -1121,7 +1193,9 @@ class TestHandlePaginationAnalysisExtended:
 
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
-    @patch("src.telegram_bot.handlers.market_analysis_handler.show_undervalued_items_results")
+    @patch(
+        "src.telegram_bot.handlers.market_analysis_handler.show_undervalued_items_results"
+    )
     async def test_pagination_undervalued_type(
         self, mock_show_results, mock_pagination, mock_update, mock_context
     ):
@@ -1136,7 +1210,9 @@ class TestHandlePaginationAnalysisExtended:
 
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.market_analysis_handler.pagination_manager")
-    @patch("src.telegram_bot.handlers.market_analysis_handler.show_investment_recommendations_results")
+    @patch(
+        "src.telegram_bot.handlers.market_analysis_handler.show_investment_recommendations_results"
+    )
     async def test_pagination_recommendations_type(
         self, mock_show_results, mock_pagination, mock_update, mock_context
     ):

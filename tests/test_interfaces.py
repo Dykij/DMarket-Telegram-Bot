@@ -70,7 +70,9 @@ class TestIDMarketAPIProtocol:
         """Test mock get_balance method."""
         # Arrange
         mock_api = MagicMock()
-        mock_api.get_balance = AsyncMock(return_value={"balance": 150.50, "usd": {"USD": 15050}})
+        mock_api.get_balance = AsyncMock(
+            return_value={"balance": 150.50, "usd": {"USD": 15050}}
+        )
 
         # Act
         result = await mock_api.get_balance()
@@ -84,10 +86,12 @@ class TestIDMarketAPIProtocol:
         """Test mock get_market_items method."""
         # Arrange
         mock_api = MagicMock()
-        mock_api.get_market_items = AsyncMock(return_value={
-            "objects": [{"title": "AK-47", "price": {"USD": 1000}}],
-            "total": 1
-        })
+        mock_api.get_market_items = AsyncMock(
+            return_value={
+                "objects": [{"title": "AK-47", "price": {"USD": 1000}}],
+                "total": 1,
+            }
+        )
 
         # Act
         result = await mock_api.get_market_items("csgo", limit=10, offset=0)
@@ -115,7 +119,9 @@ class TestIDMarketAPIProtocol:
         """Test mock sell_item method."""
         # Arrange
         mock_api = MagicMock()
-        mock_api.sell_item = AsyncMock(return_value={"success": True, "offer_id": "456"})
+        mock_api.sell_item = AsyncMock(
+            return_value={"success": True, "offer_id": "456"}
+        )
 
         # Act
         result = await mock_api.sell_item("asset_123", 30.00)
@@ -130,7 +136,9 @@ class TestIDMarketAPIProtocol:
         # Arrange
         mock_api = MagicMock()
         targets = [{"title": "AWP", "price": 50.0}]
-        mock_api.create_targets = AsyncMock(return_value={"created": 1, "targets": targets})
+        mock_api.create_targets = AsyncMock(
+            return_value={"created": 1, "targets": targets}
+        )
 
         # Act
         result = await mock_api.create_targets(targets)
@@ -144,9 +152,9 @@ class TestIDMarketAPIProtocol:
         """Test mock get_user_targets method."""
         # Arrange
         mock_api = MagicMock()
-        mock_api.get_user_targets = AsyncMock(return_value={
-            "targets": [{"title": "M4A4", "price": 20.0}]
-        })
+        mock_api.get_user_targets = AsyncMock(
+            return_value={"targets": [{"title": "M4A4", "price": 20.0}]}
+        )
 
         # Act
         result = await mock_api.get_user_targets(game_id="csgo")
@@ -160,25 +168,27 @@ class TestIDMarketAPIProtocol:
         """Test mock get_sales_history method."""
         # Arrange
         mock_api = MagicMock()
-        mock_api.get_sales_history = AsyncMock(return_value={
-            "sales": [{"price": 10.0, "date": "2024-01-01"}]
-        })
+        mock_api.get_sales_history = AsyncMock(
+            return_value={"sales": [{"price": 10.0, "date": "2024-01-01"}]}
+        )
 
         # Act
         result = await mock_api.get_sales_history("csgo", "AK-47 | Redline", limit=50)
 
         # Assert
         assert len(result["sales"]) == 1
-        mock_api.get_sales_history.assert_called_once_with("csgo", "AK-47 | Redline", limit=50)
+        mock_api.get_sales_history.assert_called_once_with(
+            "csgo", "AK-47 | Redline", limit=50
+        )
 
     @pytest.mark.asyncio()
     async def test_mock_get_user_inventory(self):
         """Test mock get_user_inventory method."""
         # Arrange
         mock_api = MagicMock()
-        mock_api.get_user_inventory = AsyncMock(return_value={
-            "objects": [{"title": "AWP | Dragon Lore"}]
-        })
+        mock_api.get_user_inventory = AsyncMock(
+            return_value={"objects": [{"title": "AWP | Dragon Lore"}]}
+        )
 
         # Act
         result = await mock_api.get_user_inventory(game_id="csgo", limit=100, offset=0)
@@ -312,9 +322,9 @@ class TestIArbitrageScannerProtocol:
         """Test mock scan_game method."""
         # Arrange
         mock_scanner = MagicMock()
-        mock_scanner.scan_game = AsyncMock(return_value=[
-            {"title": "AK-47", "profit": 5.0, "roi": 10.0}
-        ])
+        mock_scanner.scan_game = AsyncMock(
+            return_value=[{"title": "AK-47", "profit": 5.0, "roi": 10.0}]
+        )
 
         # Act
         result = await mock_scanner.scan_game("csgo", "standard", max_results=10)
@@ -322,21 +332,22 @@ class TestIArbitrageScannerProtocol:
         # Assert
         assert len(result) == 1
         assert result[0]["profit"] == 5.0
-        mock_scanner.scan_game.assert_called_once_with("csgo", "standard", max_results=10)
+        mock_scanner.scan_game.assert_called_once_with(
+            "csgo", "standard", max_results=10
+        )
 
     @pytest.mark.asyncio()
     async def test_mock_find_opportunities(self):
         """Test mock find_opportunities method."""
         # Arrange
         mock_scanner = MagicMock()
-        mock_scanner.find_opportunities = AsyncMock(return_value=[
-            {"title": "M4A4", "profit": 3.0}
-        ])
+        mock_scanner.find_opportunities = AsyncMock(
+            return_value=[{"title": "M4A4", "profit": 3.0}]
+        )
 
         # Act
         result = await mock_scanner.find_opportunities(
-            games=["csgo", "dota2"],
-            levels=["standard", "medium"]
+            games=["csgo", "dota2"], levels=["standard", "medium"]
         )
 
         # Assert
@@ -374,10 +385,9 @@ class TestITargetManagerProtocol:
         """Test mock create_target method."""
         # Arrange
         mock_manager = MagicMock()
-        mock_manager.create_target = AsyncMock(return_value={
-            "success": True,
-            "target_id": "target_123"
-        })
+        mock_manager.create_target = AsyncMock(
+            return_value={"success": True, "target_id": "target_123"}
+        )
 
         # Act
         result = await mock_manager.create_target(
@@ -385,7 +395,7 @@ class TestITargetManagerProtocol:
             title="AK-47 | Redline",
             price=25.0,
             amount=1,
-            attrs={"exterior": "FT"}
+            attrs={"exterior": "FT"},
         )
 
         # Assert
@@ -410,9 +420,9 @@ class TestITargetManagerProtocol:
         """Test mock get_active_targets method."""
         # Arrange
         mock_manager = MagicMock()
-        mock_manager.get_active_targets = AsyncMock(return_value=[
-            {"title": "AWP | Asiimov", "price": 50.0}
-        ])
+        mock_manager.get_active_targets = AsyncMock(
+            return_value=[{"title": "AWP | Asiimov", "price": 50.0}]
+        )
 
         # Act
         result = await mock_manager.get_active_targets(game="csgo")
@@ -500,7 +510,13 @@ class TestModuleExports:
         """Test __all__ contains expected interfaces."""
         from src import interfaces
 
-        expected = ["IDMarketAPI", "ICache", "IArbitrageScanner", "ITargetManager", "IDatabase"]
+        expected = [
+            "IDMarketAPI",
+            "ICache",
+            "IArbitrageScanner",
+            "ITargetManager",
+            "IDatabase",
+        ]
         assert hasattr(interfaces, "__all__")
         for item in expected:
             assert item in interfaces.__all__
@@ -508,26 +524,31 @@ class TestModuleExports:
     def test_idmarket_api_importable(self):
         """Test IDMarketAPI is importable."""
         from src.interfaces import IDMarketAPI
+
         assert IDMarketAPI is not None
 
     def test_icache_importable(self):
         """Test ICache is importable."""
         from src.interfaces import ICache
+
         assert ICache is not None
 
     def test_iarbitrage_scanner_importable(self):
         """Test IArbitrageScanner is importable."""
         from src.interfaces import IArbitrageScanner
+
         assert IArbitrageScanner is not None
 
     def test_itarget_manager_importable(self):
         """Test ITargetManager is importable."""
         from src.interfaces import ITargetManager
+
         assert ITargetManager is not None
 
     def test_idatabase_importable(self):
         """Test IDatabase is importable."""
         from src.interfaces import IDatabase
+
         assert IDatabase is not None
 
 
@@ -557,7 +578,9 @@ class TestProtocolRuntimeChecking:
             async def sell_item(self, asset_id: str, price: float) -> dict[str, Any]:
                 return {"success": True}
 
-            async def create_targets(self, targets: list[dict[str, Any]]) -> dict[str, Any]:
+            async def create_targets(
+                self, targets: list[dict[str, Any]]
+            ) -> dict[str, Any]:
                 return {"created": 0}
 
             async def get_user_targets(

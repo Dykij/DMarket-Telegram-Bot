@@ -194,7 +194,9 @@ class TestDiscordNotifier:
         """Test handling of request error."""
         with patch("httpx.AsyncClient") as mock_client:
             mock_instance = AsyncMock()
-            mock_instance.post = AsyncMock(side_effect=httpx.RequestError("Connection error"))
+            mock_instance.post = AsyncMock(
+                side_effect=httpx.RequestError("Connection error")
+            )
             mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
             mock_instance.__aexit__ = AsyncMock(return_value=None)
             mock_client.return_value = mock_instance

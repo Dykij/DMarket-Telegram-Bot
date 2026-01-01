@@ -77,9 +77,9 @@ class TestProfitCalculation:
         profit = net_sell - buy_price
 
         expected_profit = sell_price - buy_price
-        assert abs(profit - expected_profit) < 0.001, (
-            f"При нулевой комиссии прибыль должна быть {expected_profit}, получили {profit}"
-        )
+        assert (
+            abs(profit - expected_profit) < 0.001
+        ), f"При нулевой комиссии прибыль должна быть {expected_profit}, получили {profit}"
 
     @given(price_pair=price_pair(), commission=commission_percent)
     @settings(max_examples=200, suppress_health_check=[HealthCheck.too_slow])
@@ -101,9 +101,9 @@ class TestProfitCalculation:
         profit_with_commission = calculate_profit(buy_price, sell_price, commission)
         profit_without_commission = calculate_profit(buy_price, sell_price, 0)
 
-        assert profit_with_commission < profit_without_commission, (
-            "Прибыль с комиссией должна быть меньше прибыли без комиссии"
-        )
+        assert (
+            profit_with_commission < profit_without_commission
+        ), "Прибыль с комиссией должна быть меньше прибыли без комиссии"
 
     @given(
         buy_price=price_usd,
@@ -178,9 +178,9 @@ class TestPriceValidation:
         cents_back = int(usd * 100)
 
         # Допускаем небольшую погрешность округления
-        assert abs(cents - cents_back) <= 1, (
-            f"Конвертация {cents} центов -> ${usd} -> {cents_back} центов не должна терять точность"
-        )
+        assert (
+            abs(cents - cents_back) <= 1
+        ), f"Конвертация {cents} центов -> ${usd} -> {cents_back} центов не должна терять точность"
 
 
 # ============================================================================
@@ -221,9 +221,9 @@ class TestCommissionCalculation:
 
         commission = estimate_commission(popularity, game)
 
-        assert 2.0 <= commission <= 15.0, (
-            f"Комиссия {commission}% выходит за допустимый диапазон 2-15%"
-        )
+        assert (
+            2.0 <= commission <= 15.0
+        ), f"Комиссия {commission}% выходит за допустимый диапазон 2-15%"
 
     @given(
         pop1=item_popularity,
@@ -354,9 +354,9 @@ class TestInvariants:
         profit_high = calculate_profit(buy_price, markup_percent, commission)
 
         if markup_percent > 5.0:
-            assert profit_high >= profit_low - 0.001, (
-                "Большая наценка должна давать большую прибыль"
-            )
+            assert (
+                profit_high >= profit_low - 0.001
+            ), "Большая наценка должна давать большую прибыль"
 
     @given(
         buy_price=price_usd,
@@ -379,4 +379,6 @@ class TestInvariants:
         profit = net_sell - buy_price
 
         # При равных ценах и любой комиссии прибыль отрицательна или нулевая
-        assert profit <= 0.001, "При равных ценах покупки и продажи не должно быть прибыли"
+        assert (
+            profit <= 0.001
+        ), "При равных ценах покупки и продажи не должно быть прибыли"

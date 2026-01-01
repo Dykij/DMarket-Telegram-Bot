@@ -181,7 +181,9 @@ class TestMarketAnalysisCallback:
         query.answer.assert_not_called()
 
     @pytest.mark.asyncio()
-    async def test_callback_handles_game_selection(self, mock_callback_query, mock_context):
+    async def test_callback_handles_game_selection(
+        self, mock_callback_query, mock_context
+    ):
         """Тест: callback обрабатывает выбор игры."""
         update = MagicMock(spec=Update)
         update.callback_query = mock_callback_query
@@ -197,7 +199,9 @@ class TestShowPriceChangesResults:
     """Тесты для show_price_changes_results."""
 
     @pytest.mark.asyncio()
-    async def test_shows_empty_message_when_no_items(self, mock_callback_query, mock_context):
+    async def test_shows_empty_message_when_no_items(
+        self, mock_callback_query, mock_context
+    ):
         """Тест: показ пустого сообщения когда нет предметов."""
         with patch(
             "src.telegram_bot.handlers.market_analysis_handler_refactored.pagination_manager"
@@ -225,16 +229,22 @@ class TestShowPriceChangesResults:
             ) as mock_format:
                 mock_format.return_value = "Formatted text"
 
-                await show_price_changes_results(mock_callback_query, mock_context, "csgo")
+                await show_price_changes_results(
+                    mock_callback_query, mock_context, "csgo"
+                )
 
-                mock_format.assert_called_once_with(items=items, page=0, items_per_page=10)
+                mock_format.assert_called_once_with(
+                    items=items, page=0, items_per_page=10
+                )
 
 
 class TestShowTrendingItemsResults:
     """Тесты для show_trending_items_results."""
 
     @pytest.mark.asyncio()
-    async def test_shows_empty_message_when_no_items(self, mock_callback_query, mock_context):
+    async def test_shows_empty_message_when_no_items(
+        self, mock_callback_query, mock_context
+    ):
         """Тест: показ пустого сообщения когда нет трендовых предметов."""
         with patch(
             "src.telegram_bot.handlers.market_analysis_handler_refactored.pagination_manager"
@@ -262,7 +272,9 @@ class TestShowTrendingItemsResults:
             ) as mock_format:
                 mock_format.return_value = "Items text"
 
-                await show_trending_items_results(mock_callback_query, mock_context, "csgo")
+                await show_trending_items_results(
+                    mock_callback_query, mock_context, "csgo"
+                )
 
                 mock_callback_query.edit_message_text.assert_called_once()
                 call_args = mock_callback_query.edit_message_text.call_args

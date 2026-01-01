@@ -25,6 +25,7 @@ from src.analytics.historical_data import PriceHistory, PricePoint
 # Test Fixtures
 # ============================================================================
 
+
 @pytest.fixture()
 def sample_trade_buy():
     """Create a sample buy trade."""
@@ -106,6 +107,7 @@ def sample_backtest_result():
 # Test TradeType Enum
 # ============================================================================
 
+
 class TestTradeType:
     """Tests for TradeType enum."""
 
@@ -126,6 +128,7 @@ class TestTradeType:
 # ============================================================================
 # Test Trade Dataclass
 # ============================================================================
+
 
 class TestTrade:
     """Tests for Trade dataclass."""
@@ -174,6 +177,7 @@ class TestTrade:
 # Test Position Dataclass
 # ============================================================================
 
+
 class TestPosition:
     """Tests for Position dataclass."""
 
@@ -216,6 +220,7 @@ class TestPosition:
 # ============================================================================
 # Test BacktestResult Dataclass
 # ============================================================================
+
 
 class TestBacktestResult:
     """Tests for BacktestResult dataclass."""
@@ -287,6 +292,7 @@ class TestBacktestResult:
 # ============================================================================
 # Test SimpleArbitrageStrategy
 # ============================================================================
+
 
 class TestSimpleArbitrageStrategy:
     """Tests for SimpleArbitrageStrategy."""
@@ -447,6 +453,7 @@ class TestSimpleArbitrageStrategy:
 # Test Backtester Class
 # ============================================================================
 
+
 class TestBacktester:
     """Tests for Backtester class."""
 
@@ -466,9 +473,7 @@ class TestBacktester:
         backtester = Backtester()
         strategy = SimpleArbitrageStrategy()
 
-        price_histories = {
-            "AK-47 | Redline (FT)": sample_price_history
-        }
+        price_histories = {"AK-47 | Redline (FT)": sample_price_history}
 
         result = await backtester.run(
             strategy=strategy,
@@ -575,7 +580,7 @@ class TestBacktester:
         balance_history = [
             Decimal(1000),
             Decimal(1100),  # Peak
-            Decimal(990),   # Drawdown: (1100-990)/1100 = 10%
+            Decimal(990),  # Drawdown: (1100-990)/1100 = 10%
             Decimal(1050),
         ]
 
@@ -650,6 +655,7 @@ class TestBacktester:
 # Test Integration Scenarios
 # ============================================================================
 
+
 class TestBacktestIntegration:
     """Integration tests for backtesting scenarios."""
 
@@ -666,11 +672,33 @@ class TestBacktestIntegration:
         # Create price history that triggers buy then sell
         base_date = datetime(2025, 1, 1)
         points = [
-            PricePoint(game="csgo", title="Test Item", timestamp=base_date, price=Decimal(10)),
-            PricePoint(game="csgo", title="Test Item", timestamp=base_date + timedelta(days=1), price=Decimal(7)),  # Dip
-            PricePoint(game="csgo", title="Test Item", timestamp=base_date + timedelta(days=2), price=Decimal(8)),
-            PricePoint(game="csgo", title="Test Item", timestamp=base_date + timedelta(days=3), price=Decimal(9)),
-            PricePoint(game="csgo", title="Test Item", timestamp=base_date + timedelta(days=4), price=Decimal(12)),  # Rise
+            PricePoint(
+                game="csgo", title="Test Item", timestamp=base_date, price=Decimal(10)
+            ),
+            PricePoint(
+                game="csgo",
+                title="Test Item",
+                timestamp=base_date + timedelta(days=1),
+                price=Decimal(7),
+            ),  # Dip
+            PricePoint(
+                game="csgo",
+                title="Test Item",
+                timestamp=base_date + timedelta(days=2),
+                price=Decimal(8),
+            ),
+            PricePoint(
+                game="csgo",
+                title="Test Item",
+                timestamp=base_date + timedelta(days=3),
+                price=Decimal(9),
+            ),
+            PricePoint(
+                game="csgo",
+                title="Test Item",
+                timestamp=base_date + timedelta(days=4),
+                price=Decimal(12),
+            ),  # Rise
         ]
 
         price_histories = {
@@ -707,9 +735,7 @@ class TestBacktestIntegration:
                 )
                 for d in range(5)
             ]
-            price_histories[name] = PriceHistory(
-                title=name, game="csgo", points=points
-            )
+            price_histories[name] = PriceHistory(title=name, game="csgo", points=points)
 
         result = await backtester.run(
             strategy=strategy,
@@ -729,7 +755,12 @@ class TestBacktestIntegration:
 
         base_date = datetime(2025, 1, 1)
         points = [
-            PricePoint(game="csgo", title="Test", timestamp=base_date + timedelta(days=d), price=Decimal(10))
+            PricePoint(
+                game="csgo",
+                title="Test",
+                timestamp=base_date + timedelta(days=d),
+                price=Decimal(10),
+            )
             for d in range(10)
         ]
 

@@ -102,7 +102,9 @@ class TestPortfolioManagerGetItems:
         assert len(items) == 1
         assert items[0].category == ItemCategory.WEAPON
 
-    def test_get_items_by_game_and_category(self, manager_with_items: PortfolioManager) -> None:
+    def test_get_items_by_game_and_category(
+        self, manager_with_items: PortfolioManager
+    ) -> None:
         """Test filtering by both game and category."""
         items = manager_with_items.get_items(user_id=123, game="csgo", category="knife")
         assert len(items) == 1
@@ -298,7 +300,9 @@ class TestPortfolioManagerSyncWithInventory:
         assert result == 0
 
     @pytest.mark.asyncio()
-    async def test_sync_empty_inventory(self, manager_with_api: PortfolioManager) -> None:
+    async def test_sync_empty_inventory(
+        self, manager_with_api: PortfolioManager
+    ) -> None:
         """Test syncing empty inventory."""
         manager_with_api.api.get_user_inventory.return_value = {"objects": []}
 
@@ -333,7 +337,9 @@ class TestPortfolioManagerSyncWithInventory:
         assert len(portfolio.items) == 2
 
     @pytest.mark.asyncio()
-    async def test_sync_skips_existing_items(self, manager_with_api: PortfolioManager) -> None:
+    async def test_sync_skips_existing_items(
+        self, manager_with_api: PortfolioManager
+    ) -> None:
         """Test that sync skips items already in portfolio."""
         # Add existing item
         manager_with_api.add_item(
@@ -360,7 +366,9 @@ class TestPortfolioManagerSyncWithInventory:
         assert result == 0
 
     @pytest.mark.asyncio()
-    async def test_sync_handles_api_error(self, manager_with_api: PortfolioManager) -> None:
+    async def test_sync_handles_api_error(
+        self, manager_with_api: PortfolioManager
+    ) -> None:
         """Test that sync handles API errors gracefully."""
         manager_with_api.api.get_user_inventory.side_effect = Exception("API Error")
 
@@ -446,7 +454,9 @@ class TestPortfolioManagerUpdatePrices:
         mock_api.get_aggregated_prices_bulk.assert_not_called()
 
     @pytest.mark.asyncio()
-    async def test_update_prices_success(self, manager_with_items_and_api: PortfolioManager) -> None:
+    async def test_update_prices_success(
+        self, manager_with_items_and_api: PortfolioManager
+    ) -> None:
         """Test successful price update."""
         manager_with_items_and_api.api.get_aggregated_prices_bulk.return_value = {
             "aggregatedPrices": [
@@ -469,7 +479,9 @@ class TestPortfolioManagerUpdatePrices:
         self, manager_with_items_and_api: PortfolioManager
     ) -> None:
         """Test that update handles API errors gracefully."""
-        manager_with_items_and_api.api.get_aggregated_prices_bulk.side_effect = Exception("API Error")
+        manager_with_items_and_api.api.get_aggregated_prices_bulk.side_effect = (
+            Exception("API Error")
+        )
 
         result = await manager_with_items_and_api.update_prices(user_id=123)
 
@@ -532,7 +544,9 @@ class TestPortfolioAnalyzerEdgeCases:
         """Create analyzer instance."""
         return PortfolioAnalyzer()
 
-    def test_analyze_diversification_zero_value(self, analyzer: PortfolioAnalyzer) -> None:
+    def test_analyze_diversification_zero_value(
+        self, analyzer: PortfolioAnalyzer
+    ) -> None:
         """Test diversification with zero total value."""
         portfolio = Portfolio(user_id=123)
         portfolio.add_item(
@@ -587,7 +601,9 @@ class TestPortfolioAnalyzerEdgeCases:
         # Single expensive item should have high risk
         assert report.risk_level in {"high", "critical"}
 
-    def test_calculate_volatility_single_item(self, analyzer: PortfolioAnalyzer) -> None:
+    def test_calculate_volatility_single_item(
+        self, analyzer: PortfolioAnalyzer
+    ) -> None:
         """Test volatility calculation with single item."""
         portfolio = Portfolio(user_id=123)
         portfolio.add_item(
@@ -604,7 +620,9 @@ class TestPortfolioAnalyzerEdgeCases:
 
         assert volatility == 50.0  # abs(50%)
 
-    def test_calculate_liquidity_high_value_items(self, analyzer: PortfolioAnalyzer) -> None:
+    def test_calculate_liquidity_high_value_items(
+        self, analyzer: PortfolioAnalyzer
+    ) -> None:
         """Test liquidity with high value items."""
         portfolio = Portfolio(user_id=123)
         portfolio.add_item(
@@ -739,7 +757,9 @@ class TestPortfolioAnalyzerRecommendations:
         """Create analyzer instance."""
         return PortfolioAnalyzer()
 
-    def test_diversification_recommendations_low_score(self, analyzer: PortfolioAnalyzer) -> None:
+    def test_diversification_recommendations_low_score(
+        self, analyzer: PortfolioAnalyzer
+    ) -> None:
         """Test recommendations for low diversification score."""
         recommendations = analyzer._generate_diversification_recommendations(
             by_game={"csgo": 100.0},
@@ -750,7 +770,9 @@ class TestPortfolioAnalyzerRecommendations:
 
         assert any("concentrated" in r.lower() for r in recommendations)
 
-    def test_diversification_recommendations_single_game(self, analyzer: PortfolioAnalyzer) -> None:
+    def test_diversification_recommendations_single_game(
+        self, analyzer: PortfolioAnalyzer
+    ) -> None:
         """Test recommendations for single game."""
         recommendations = analyzer._generate_diversification_recommendations(
             by_game={"csgo": 100.0},
@@ -761,7 +783,9 @@ class TestPortfolioAnalyzerRecommendations:
 
         assert any("multiple games" in r.lower() for r in recommendations)
 
-    def test_diversification_recommendations_few_categories(self, analyzer: PortfolioAnalyzer) -> None:
+    def test_diversification_recommendations_few_categories(
+        self, analyzer: PortfolioAnalyzer
+    ) -> None:
         """Test recommendations for few categories."""
         recommendations = analyzer._generate_diversification_recommendations(
             by_game={"csgo": 50.0, "dota2": 50.0},
@@ -805,7 +829,9 @@ class TestPortfolioAnalyzerRecommendations:
 
         assert any("well diversified" in r.lower() for r in recommendations)
 
-    def test_risk_recommendations_high_volatility(self, analyzer: PortfolioAnalyzer) -> None:
+    def test_risk_recommendations_high_volatility(
+        self, analyzer: PortfolioAnalyzer
+    ) -> None:
         """Test recommendations for high volatility."""
         recommendations = analyzer._generate_risk_recommendations(
             volatility=60.0,
@@ -816,7 +842,9 @@ class TestPortfolioAnalyzerRecommendations:
 
         assert any("volatile" in r.lower() for r in recommendations)
 
-    def test_risk_recommendations_low_liquidity(self, analyzer: PortfolioAnalyzer) -> None:
+    def test_risk_recommendations_low_liquidity(
+        self, analyzer: PortfolioAnalyzer
+    ) -> None:
         """Test recommendations for low liquidity."""
         recommendations = analyzer._generate_risk_recommendations(
             volatility=20.0,
@@ -827,7 +855,9 @@ class TestPortfolioAnalyzerRecommendations:
 
         assert any("illiquid" in r.lower() for r in recommendations)
 
-    def test_risk_recommendations_high_concentration(self, analyzer: PortfolioAnalyzer) -> None:
+    def test_risk_recommendations_high_concentration(
+        self, analyzer: PortfolioAnalyzer
+    ) -> None:
         """Test recommendations for high concentration."""
         recommendations = analyzer._generate_risk_recommendations(
             volatility=20.0,

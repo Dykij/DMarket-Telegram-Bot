@@ -1029,11 +1029,13 @@ class TestLocalStateManagerCleanupOldCheckpoints:
             checkpoint_file = Path(tmpdir) / f"{scan_id}.json"
             old_time = (datetime.now(UTC) - timedelta(days=10)).isoformat()
             checkpoint_file.write_text(
-                json.dumps({
-                    "scan_id": str(scan_id),
-                    "timestamp": old_time,
-                    "status": "completed",
-                }),
+                json.dumps(
+                    {
+                        "scan_id": str(scan_id),
+                        "timestamp": old_time,
+                        "status": "completed",
+                    }
+                ),
                 encoding="utf-8",
             )
 
@@ -1056,11 +1058,13 @@ class TestLocalStateManagerCleanupOldCheckpoints:
             checkpoint_file = Path(tmpdir) / f"{scan_id}.json"
             old_time = (datetime.now(UTC) - timedelta(days=10)).isoformat()
             checkpoint_file.write_text(
-                json.dumps({
-                    "scan_id": str(scan_id),
-                    "timestamp": old_time,
-                    "status": "in_progress",
-                }),
+                json.dumps(
+                    {
+                        "scan_id": str(scan_id),
+                        "timestamp": old_time,
+                        "status": "in_progress",
+                    }
+                ),
                 encoding="utf-8",
             )
 
@@ -1083,11 +1087,13 @@ class TestLocalStateManagerCleanupOldCheckpoints:
             checkpoint_file = Path(tmpdir) / f"{scan_id}.json"
             recent_time = datetime.now(UTC).isoformat()
             checkpoint_file.write_text(
-                json.dumps({
-                    "scan_id": str(scan_id),
-                    "timestamp": recent_time,
-                    "status": "completed",
-                }),
+                json.dumps(
+                    {
+                        "scan_id": str(scan_id),
+                        "timestamp": recent_time,
+                        "status": "completed",
+                    }
+                ),
                 encoding="utf-8",
             )
 

@@ -435,7 +435,9 @@ class TestGenerateCacheKey:
         """Test key generation with extra parameters."""
         from src.dmarket.scanner.cache import generate_cache_key
 
-        key = generate_cache_key("standard", "csgo", {"min_price": 100, "max_price": 500})
+        key = generate_cache_key(
+            "standard", "csgo", {"min_price": 100, "max_price": 500}
+        )
 
         assert "scanner:standard:csgo" in key
         assert "min_price=100" in key

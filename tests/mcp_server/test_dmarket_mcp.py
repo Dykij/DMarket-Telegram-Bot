@@ -16,12 +16,15 @@ import pytest
 
 
 # Mock MCP imports before importing the module
-with patch.dict("sys.modules", {
-    "mcp": MagicMock(),
-    "mcp.server": MagicMock(),
-    "mcp.server.stdio": MagicMock(),
-    "mcp.types": MagicMock(),
-}):
+with patch.dict(
+    "sys.modules",
+    {
+        "mcp": MagicMock(),
+        "mcp.server": MagicMock(),
+        "mcp.server.stdio": MagicMock(),
+        "mcp.types": MagicMock(),
+    },
+):
     pass
 
 
@@ -35,12 +38,15 @@ class TestMCPAvailability:
 
     def test_mcp_not_installed_raises_error(self) -> None:
         """Test that missing MCP raises RuntimeError."""
-        with patch.dict("sys.modules", {
-            "mcp": None,
-            "mcp.server": None,
-            "mcp.server.stdio": None,
-            "mcp.types": None,
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "mcp": None,
+                "mcp.server": None,
+                "mcp.server.stdio": None,
+                "mcp.types": None,
+            },
+        ):
             # Re-import to trigger availability check
             pass  # Skip actual test since we can't easily unload modules
 
@@ -51,6 +57,7 @@ class TestMCPAvailability:
         # The constant should be either True or False
         try:
             from src.mcp_server.dmarket_mcp import MCP_AVAILABLE
+
             assert isinstance(MCP_AVAILABLE, bool)
         except ImportError:
             # If import fails due to missing dependencies, test passes
@@ -117,9 +124,7 @@ class TestGetBalance:
     async def test_get_balance_api_error(self) -> None:
         """Test balance retrieval with API error."""
         mock_client = AsyncMock()
-        mock_client.get_balance = AsyncMock(
-            side_effect=Exception("API Error")
-        )
+        mock_client.get_balance = AsyncMock(side_effect=Exception("API Error"))
 
         async def get_balance(api_client: AsyncMock) -> dict:
             try:
@@ -247,7 +252,9 @@ class TestScanArbitrage:
             min_profit: float = 0.5,
         ) -> dict:
             opportunities = await scanner.scan_level(level=level, game=game)
-            filtered = [opp for opp in opportunities if opp.get("profit", 0) >= min_profit]
+            filtered = [
+                opp for opp in opportunities if opp.get("profit", 0) >= min_profit
+            ]
             return {
                 "success": True,
                 "game": game,
@@ -292,9 +299,13 @@ class TestScanArbitrage:
             return_value=[{"item": f"Item {i}", "profit": 1.0} for i in range(30)]
         )
 
-        async def scan_arbitrage(scanner: AsyncMock, game: str, min_profit: float = 0.5) -> dict:
+        async def scan_arbitrage(
+            scanner: AsyncMock, game: str, min_profit: float = 0.5
+        ) -> dict:
             opportunities = await scanner.scan_level(level="standard", game=game)
-            filtered = [opp for opp in opportunities if opp.get("profit", 0) >= min_profit]
+            filtered = [
+                opp for opp in opportunities if opp.get("profit", 0) >= min_profit
+            ]
             return {
                 "success": True,
                 "count": len(filtered),
@@ -340,9 +351,7 @@ class TestGetItemDetails:
     async def test_get_item_details_not_found(self) -> None:
         """Test item details when item not found."""
         mock_client = AsyncMock()
-        mock_client.get_item_by_id = AsyncMock(
-            side_effect=Exception("Item not found")
-        )
+        mock_client.get_item_by_id = AsyncMock(side_effect=Exception("Item not found"))
 
         async def get_item_details(api_client: AsyncMock, item_id: str) -> dict:
             try:
@@ -514,6 +523,7 @@ class TestErrorHandling:
     @pytest.mark.asyncio()
     async def test_unknown_tool_error(self) -> None:
         """Test handling of unknown tool call."""
+
         async def call_tool(name: str) -> dict:
             known_tools = ["get_balance", "get_market_items", "scan_arbitrage"]
             if name not in known_tools:

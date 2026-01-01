@@ -130,7 +130,7 @@ class TestBeforeSendCallback:
                     "x-api-key": "secret_key",
                     "content-type": "application/json",
                 }
-            }
+            },
         }
         hint = {}
 
@@ -257,7 +257,7 @@ class TestAddBreadcrumb:
         add_breadcrumb(
             message="API call",
             category="http",
-            data={"url": "/api/test", "status": 200}
+            data={"url": "/api/test", "status": 200},
         )
 
         mock_add.assert_called_once()

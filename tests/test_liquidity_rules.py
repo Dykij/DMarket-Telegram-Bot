@@ -214,21 +214,38 @@ class TestLiquidityRulesIntegration:
     def test_conservative_vs_aggressive_comparison(self):
         """Сравнение консервативных и агрессивных правил."""
         # Консервативные правила должны быть строже
-        assert CONSERVATIVE_RULES.min_sales_per_week > AGGRESSIVE_RULES.min_sales_per_week
-        assert CONSERVATIVE_RULES.max_time_to_sell_days < AGGRESSIVE_RULES.max_time_to_sell_days
+        assert (
+            CONSERVATIVE_RULES.min_sales_per_week > AGGRESSIVE_RULES.min_sales_per_week
+        )
+        assert (
+            CONSERVATIVE_RULES.max_time_to_sell_days
+            < AGGRESSIVE_RULES.max_time_to_sell_days
+        )
         assert CONSERVATIVE_RULES.max_active_offers < AGGRESSIVE_RULES.max_active_offers
-        assert CONSERVATIVE_RULES.min_price_stability > AGGRESSIVE_RULES.min_price_stability
-        assert CONSERVATIVE_RULES.min_liquidity_score > AGGRESSIVE_RULES.min_liquidity_score
+        assert (
+            CONSERVATIVE_RULES.min_price_stability
+            > AGGRESSIVE_RULES.min_price_stability
+        )
+        assert (
+            CONSERVATIVE_RULES.min_liquidity_score
+            > AGGRESSIVE_RULES.min_liquidity_score
+        )
 
     def test_balanced_between_conservative_and_aggressive(self):
         """Проверка что balanced правила находятся между conservative и aggressive."""
         # Проверяем min_sales_per_week
         assert AGGRESSIVE_RULES.min_sales_per_week <= BALANCED_RULES.min_sales_per_week
-        assert BALANCED_RULES.min_sales_per_week <= CONSERVATIVE_RULES.min_sales_per_week
+        assert (
+            BALANCED_RULES.min_sales_per_week <= CONSERVATIVE_RULES.min_sales_per_week
+        )
 
         # Проверяем min_liquidity_score
-        assert AGGRESSIVE_RULES.min_liquidity_score <= BALANCED_RULES.min_liquidity_score
-        assert BALANCED_RULES.min_liquidity_score <= CONSERVATIVE_RULES.min_liquidity_score
+        assert (
+            AGGRESSIVE_RULES.min_liquidity_score <= BALANCED_RULES.min_liquidity_score
+        )
+        assert (
+            BALANCED_RULES.min_liquidity_score <= CONSERVATIVE_RULES.min_liquidity_score
+        )
 
     @pytest.mark.parametrize(
         ("score", "expected_category"),

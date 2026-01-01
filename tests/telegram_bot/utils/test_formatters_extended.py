@@ -4,7 +4,6 @@ This module provides comprehensive tests for all formatting functions
 in the Telegram bot formatters module.
 """
 
-
 from src.telegram_bot.utils.formatters import (
     MAX_MESSAGE_LENGTH,
     format_arbitrage_with_sales,
@@ -158,10 +157,7 @@ class TestFormatMarketItems:
 
     def test_format_market_items_multiple(self):
         """Test formatting multiple items."""
-        items = [
-            {"title": f"Item {i}", "price": {"USD": i * 100}}
-            for i in range(1, 6)
-        ]
+        items = [{"title": f"Item {i}", "price": {"USD": i * 100}} for i in range(1, 6)]
         result = format_market_items(items)
         assert "5" in result  # count
         assert "Item 1" in result
@@ -173,7 +169,9 @@ class TestFormatMarketItems:
 
     def test_format_market_items_pagination(self):
         """Test pagination."""
-        items = [{"title": f"Item {i}", "price": {"USD": i * 100}} for i in range(1, 20)]
+        items = [
+            {"title": f"Item {i}", "price": {"USD": i * 100}} for i in range(1, 20)
+        ]
 
         result_page1 = format_market_items(items, page=0, items_per_page=5)
         result_page2 = format_market_items(items, page=1, items_per_page=5)
@@ -343,9 +341,7 @@ class TestFormatSalesAnalysis:
             "sales_volume": 100,
             "sales_per_day": 5.0,
             "period_days": 30,
-            "recent_sales": [
-                {"date": "2025-01-01", "price": 15.0, "currency": "USD"}
-            ],
+            "recent_sales": [{"date": "2025-01-01", "price": 15.0, "currency": "USD"}],
         }
         result = format_sales_analysis(analysis, "Test Item")
         assert "Test Item" in result
@@ -497,9 +493,25 @@ class TestFormatSalesVolumeStats:
 
     def test_format_sales_volume_stats_games(self):
         """Test different game names."""
-        stats = {"items": [{"item_name": "Test", "sales_per_day": 10, "avg_price": 5, "price_trend": "stable"}], "count": 1, "summary": {}}
+        stats = {
+            "items": [
+                {
+                    "item_name": "Test",
+                    "sales_per_day": 10,
+                    "avg_price": 5,
+                    "price_trend": "stable",
+                }
+            ],
+            "count": 1,
+            "summary": {},
+        }
 
-        for game, display in [("csgo", "CS2"), ("dota2", "Dota 2"), ("tf2", "Team Fortress 2"), ("rust", "Rust")]:
+        for game, display in [
+            ("csgo", "CS2"),
+            ("dota2", "Dota 2"),
+            ("tf2", "Team Fortress 2"),
+            ("rust", "Rust"),
+        ]:
             result = format_sales_volume_stats(stats, game)
             assert display in result
 
@@ -638,7 +650,13 @@ class TestFormatBestOpportunities:
     def test_format_best_opportunities_limit(self):
         """Test limit parameter."""
         opportunities = [
-            {"item_name": f"Item {i}", "buy_price": 10, "sell_price": 15, "profit": 5, "profit_percent": 50}
+            {
+                "item_name": f"Item {i}",
+                "buy_price": 10,
+                "sell_price": 15,
+                "profit": 5,
+                "profit_percent": 50,
+            }
             for i in range(20)
         ]
         result = format_best_opportunities(opportunities, limit=5)

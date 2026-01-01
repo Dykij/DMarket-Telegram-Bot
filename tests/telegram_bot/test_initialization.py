@@ -139,7 +139,9 @@ class TestInitializeBot:
             mock_admin.return_value = [123]
 
             mock_app = MagicMock()
-            mock_builder.return_value.token.return_value.concurrent_updates.return_value.connection_pool_size.return_value.build.return_value = mock_app
+            mock_builder.return_value.token.return_value.concurrent_updates.return_value.connection_pool_size.return_value.build.return_value = (
+                mock_app
+            )
 
             result = await initialize_bot("test_token", setup_persistence=False)
 
@@ -153,7 +155,9 @@ class TestInitializeBot:
 
         with (
             patch("src.telegram_bot.initialization.ApplicationBuilder") as mock_builder,
-            patch("src.telegram_bot.initialization.PicklePersistence") as mock_persistence,
+            patch(
+                "src.telegram_bot.initialization.PicklePersistence"
+            ) as mock_persistence,
             patch("src.telegram_bot.initialization.profile_manager") as mock_profiles,
             patch("src.telegram_bot.initialization.configure_admin_ids") as mock_admin,
             patch("src.telegram_bot.initialization.setup_error_handler"),
@@ -185,7 +189,9 @@ class TestInitializeBot:
             patch("src.telegram_bot.initialization.ApplicationBuilder") as mock_builder,
             patch("src.telegram_bot.initialization.profile_manager") as mock_profiles,
             patch("src.telegram_bot.initialization.configure_admin_ids") as mock_admin,
-            patch("src.telegram_bot.initialization.setup_error_handler") as mock_setup_error,
+            patch(
+                "src.telegram_bot.initialization.setup_error_handler"
+            ) as mock_setup_error,
             patch("src.telegram_bot.initialization.register_global_exception_handlers"),
             patch("src.telegram_bot.initialization.setup_signal_handlers"),
         ):
@@ -193,7 +199,9 @@ class TestInitializeBot:
             mock_admin.return_value = []
 
             mock_app = MagicMock()
-            mock_builder.return_value.token.return_value.concurrent_updates.return_value.connection_pool_size.return_value.build.return_value = mock_app
+            mock_builder.return_value.token.return_value.concurrent_updates.return_value.connection_pool_size.return_value.build.return_value = (
+                mock_app
+            )
 
             await initialize_bot("test_token", setup_persistence=False)
 
@@ -216,8 +224,11 @@ class TestSetupBotCommands:
         await setup_bot_commands(mock_bot)
 
         # Should call set_my_commands with language_code="en"
-        calls = [call for call in mock_bot.set_my_commands.call_args_list
-                 if call[1].get("language_code") == "en"]
+        calls = [
+            call
+            for call in mock_bot.set_my_commands.call_args_list
+            if call[1].get("language_code") == "en"
+        ]
         assert len(calls) == 1
 
     @pytest.mark.asyncio()
@@ -230,8 +241,11 @@ class TestSetupBotCommands:
         await setup_bot_commands(mock_bot)
 
         # Should call set_my_commands with language_code="ru"
-        calls = [call for call in mock_bot.set_my_commands.call_args_list
-                 if call[1].get("language_code") == "ru"]
+        calls = [
+            call
+            for call in mock_bot.set_my_commands.call_args_list
+            if call[1].get("language_code") == "ru"
+        ]
         assert len(calls) == 1
 
     @pytest.mark.asyncio()
@@ -503,7 +517,10 @@ class TestSetupAndRunBot:
 
         with (
             patch("src.telegram_bot.initialization.setup_logging"),
-            patch("src.telegram_bot.initialization.get_bot_token", return_value="test_token"),
+            patch(
+                "src.telegram_bot.initialization.get_bot_token",
+                return_value="test_token",
+            ),
             patch("src.telegram_bot.initialization.initialize_bot") as mock_init,
             patch("src.telegram_bot.initialization.register_handlers"),
             patch("src.telegram_bot.initialization.start_bot") as mock_start,
@@ -553,7 +570,8 @@ class TestSetupAndRunBot:
         with (
             patch("src.telegram_bot.initialization.setup_logging"),
             patch(
-                "src.telegram_bot.initialization.get_bot_token", return_value="env_token"
+                "src.telegram_bot.initialization.get_bot_token",
+                return_value="env_token",
             ) as mock_get_token,
             patch("src.telegram_bot.initialization.initialize_bot") as mock_init,
             patch("src.telegram_bot.initialization.register_handlers"),

@@ -247,7 +247,9 @@ class TestChunkedApiCalls:
         items = [1, 2, 3, 4]
         api_call_fn = AsyncMock(side_effect=[["a", "b"], ["c", "d"]])
 
-        with patch("src.utils.batch_processor.asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+        with patch(
+            "src.utils.batch_processor.asyncio.sleep", new_callable=AsyncMock
+        ) as mock_sleep:
             await chunked_api_calls(items, api_call_fn, chunk_size=2, delay=0.5)
 
             # Sleep should be called once (between first and second chunk)
@@ -292,7 +294,9 @@ class TestProcessWithConcurrency:
         """Test with multiple items."""
         process_fn = AsyncMock(side_effect=lambda x: x * 10)
 
-        result = await processor.process_with_concurrency([1, 2, 3], process_fn, max_concurrent=5)
+        result = await processor.process_with_concurrency(
+            [1, 2, 3], process_fn, max_concurrent=5
+        )
 
         assert sorted(result) == [10, 20, 30]
         assert process_fn.call_count == 3
@@ -333,6 +337,7 @@ class TestProcessWithConcurrency:
     @pytest.mark.asyncio()
     async def test_handles_item_errors(self, processor):
         """Test that errors in processing items are handled."""
+
         async def sometimes_fails(item):
             if item == 2:
                 raise ValueError("Item 2 failed")
@@ -350,6 +355,7 @@ class TestProcessWithConcurrency:
     @pytest.mark.asyncio()
     async def test_filters_none_results(self, processor):
         """Test that None results are filtered out."""
+
         async def return_none_sometimes(item):
             if item == 2:
                 return None

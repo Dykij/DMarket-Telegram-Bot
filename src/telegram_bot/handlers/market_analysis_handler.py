@@ -19,14 +19,19 @@ from src.telegram_bot.utils.api_client import create_api_client_from_env
 from src.telegram_bot.utils.formatters import format_market_items
 
 # Импортируем новые функции из улучшенного анализатора цен
-from src.utils.price_analyzer import find_undervalued_items, get_investment_recommendations
+from src.utils.price_analyzer import (
+    find_undervalued_items,
+    get_investment_recommendations,
+)
 
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
 
 
-async def market_analysis_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def market_analysis_command(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
     """Обрабатывает команду /market_analysis для начала анализа рынка.
 
     Args:
@@ -105,7 +110,9 @@ async def market_analysis_command(update: Update, context: ContextTypes.DEFAULT_
     )
 
 
-async def market_analysis_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def market_analysis_callback(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
     """Обрабатывает колбэки для анализа рынка.
 
     Args:
@@ -359,7 +366,9 @@ async def market_analysis_callback(update: Update, context: ContextTypes.DEFAULT
             logger.warning(f"Ошибка при закрытии клиента API: {e}")
 
 
-async def handle_pagination_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_pagination_analysis(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
     """Обрабатывает пагинацию для результатов анализа рынка.
 
     Args:
@@ -466,14 +475,17 @@ async def show_price_changes_results(
 
     # Добавляем кнопки периодов и возврата к анализу рынка
     keyboard = list(pagination_keyboard.inline_keyboard)
-    keyboard.extend((
-        tuple(period_buttons),
+    keyboard.extend(
         (
-            InlineKeyboardButton(
-                "⬅️ Назад к анализу рынка", callback_data=f"analysis:select_game:{game}"
+            tuple(period_buttons),
+            (
+                InlineKeyboardButton(
+                    "⬅️ Назад к анализу рынка",
+                    callback_data=f"analysis:select_game:{game}",
+                ),
             ),
-        ),
-    ))
+        )
+    )
 
     # Отображаем результаты
     await query.edit_message_text(
@@ -534,17 +546,24 @@ async def show_trending_items_results(
 
     # Добавляем фильтры цены и возврат к анализу рынка
     keyboard = list(pagination_keyboard.inline_keyboard)
-    keyboard.extend((
+    keyboard.extend(
         (
-            InlineKeyboardButton("🔽 Цена $1-50", callback_data=f"price_filter:1:50:{game}"),
-            InlineKeyboardButton("🔼 Цена $50+", callback_data=f"price_filter:50:500:{game}"),
-        ),
-        (
-            InlineKeyboardButton(
-                "⬅️ Назад к анализу рынка", callback_data=f"analysis:select_game:{game}"
+            (
+                InlineKeyboardButton(
+                    "🔽 Цена $1-50", callback_data=f"price_filter:1:50:{game}"
+                ),
+                InlineKeyboardButton(
+                    "🔼 Цена $50+", callback_data=f"price_filter:50:500:{game}"
+                ),
             ),
-        ),
-    ))
+            (
+                InlineKeyboardButton(
+                    "⬅️ Назад к анализу рынка",
+                    callback_data=f"analysis:select_game:{game}",
+                ),
+            ),
+        )
+    )
 
     # Отображаем результаты
     await query.edit_message_text(
@@ -768,7 +787,9 @@ async def show_market_report(
     )
 
 
-async def handle_period_change(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_period_change(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
     """Обрабатывает изменение периода анализа.
 
     Args:
@@ -1050,15 +1071,17 @@ async def show_investment_recommendations_results(
             InlineKeyboardButton(label, callback_data=f"analysis_risk:{risk}:{game}"),
         )
 
-    keyboard.extend([
-        risk_row,
+    keyboard.extend(
         [
-            InlineKeyboardButton(
-                "⬅️ Назад к анализу",
-                callback_data=f"analysis:select_game:{game}",
-            ),
-        ],
-    ])
+            risk_row,
+            [
+                InlineKeyboardButton(
+                    "⬅️ Назад к анализу",
+                    callback_data=f"analysis:select_game:{game}",
+                ),
+            ],
+        ]
+    )
 
     # Отображаем результаты
     await query.edit_message_text(

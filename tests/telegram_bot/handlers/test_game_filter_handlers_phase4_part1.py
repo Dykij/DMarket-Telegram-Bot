@@ -384,7 +384,9 @@ class TestHandlers:
         mock_update.message.reply_text.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_handle_select_game_filter_callback_answers(self, mock_update, mock_context):
+    async def test_handle_select_game_filter_callback_answers(
+        self, mock_update, mock_context
+    ):
         """Тест что обработчик отвечает на callback."""
         mock_update.callback_query.data = "filter:csgo"
 
@@ -393,7 +395,9 @@ class TestHandlers:
         mock_update.callback_query.answer.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_handle_filter_callback_processes_query(self, mock_update, mock_context):
+    async def test_handle_filter_callback_processes_query(
+        self, mock_update, mock_context
+    ):
         """Тест обработки filter callback."""
         mock_update.callback_query.data = "set_filter:csgo:category:Rifle"
 
@@ -402,7 +406,9 @@ class TestHandlers:
         mock_update.callback_query.answer.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_handle_back_to_filters_callback_returns_to_menu(self, mock_update, mock_context):
+    async def test_handle_back_to_filters_callback_returns_to_menu(
+        self, mock_update, mock_context
+    ):
         """Тест возврата к меню фильтров."""
         mock_update.callback_query.data = "back_to_filters:csgo"
 

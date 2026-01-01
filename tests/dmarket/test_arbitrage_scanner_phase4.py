@@ -14,40 +14,46 @@ import pytest
 def mock_api_client():
     """Create a mock DMarket API client."""
     client = AsyncMock()
-    client.get_market_items = AsyncMock(return_value={
-        "objects": [
-            {
-                "itemId": "item1",
-                "title": "AK-47 | Redline",
-                "price": {"USD": "1000", "amount": 1000},
-                "suggestedPrice": {"USD": "1200", "amount": 1200},
-                "game": "csgo",
-            },
-            {
-                "itemId": "item2",
-                "title": "M4A4 | Asiimov",
-                "price": {"USD": "2500", "amount": 2500},
-                "suggestedPrice": {"USD": "3000", "amount": 3000},
-                "game": "csgo",
-            },
-        ]
-    })
-    client.get_aggregated_prices_bulk = AsyncMock(return_value={
-        "aggregatedPrices": [
-            {"title": "AK-47 | Redline", "offerCount": 10, "orderCount": 5},
-            {"title": "M4A4 | Asiimov", "offerCount": 15, "orderCount": 8},
-        ]
-    })
-    client.get_buy_orders_competition = AsyncMock(return_value={
-        "competition_level": "low",
-        "total_orders": 2,
-        "total_amount": 500,
-        "best_price": 9.50,
-        "average_price": 9.75,
-    })
-    client._request = AsyncMock(return_value={
-        "usd": {"available": 10000, "frozen": 500}
-    })
+    client.get_market_items = AsyncMock(
+        return_value={
+            "objects": [
+                {
+                    "itemId": "item1",
+                    "title": "AK-47 | Redline",
+                    "price": {"USD": "1000", "amount": 1000},
+                    "suggestedPrice": {"USD": "1200", "amount": 1200},
+                    "game": "csgo",
+                },
+                {
+                    "itemId": "item2",
+                    "title": "M4A4 | Asiimov",
+                    "price": {"USD": "2500", "amount": 2500},
+                    "suggestedPrice": {"USD": "3000", "amount": 3000},
+                    "game": "csgo",
+                },
+            ]
+        }
+    )
+    client.get_aggregated_prices_bulk = AsyncMock(
+        return_value={
+            "aggregatedPrices": [
+                {"title": "AK-47 | Redline", "offerCount": 10, "orderCount": 5},
+                {"title": "M4A4 | Asiimov", "offerCount": 15, "orderCount": 8},
+            ]
+        }
+    )
+    client.get_buy_orders_competition = AsyncMock(
+        return_value={
+            "competition_level": "low",
+            "total_orders": 2,
+            "total_amount": 500,
+            "best_price": 9.50,
+            "average_price": 9.75,
+        }
+    )
+    client._request = AsyncMock(
+        return_value={"usd": {"available": 10000, "frozen": 500}}
+    )
     return client
 
 
@@ -230,11 +236,17 @@ class TestGetApiClient:
 
         scanner = ArbitrageScanner()
 
-        with patch.dict("os.environ", {
-            "DMARKET_PUBLIC_KEY": "test_public",
-            "DMARKET_SECRET_KEY": "test_secret",
-            "DMARKET_API_URL": "https://api.dmarket.com",
-        }), patch("src.dmarket.arbitrage_scanner.DMarketAPI") as mock_api:
+        with (
+            patch.dict(
+                "os.environ",
+                {
+                    "DMARKET_PUBLIC_KEY": "test_public",
+                    "DMARKET_SECRET_KEY": "test_secret",
+                    "DMARKET_API_URL": "https://api.dmarket.com",
+                },
+            ),
+            patch("src.dmarket.arbitrage_scanner.DMarketAPI") as mock_api,
+        ):
             mock_instance = MagicMock()
             mock_api.return_value = mock_instance
 
@@ -328,9 +340,7 @@ class TestStandardizeItems:
         from src.dmarket.arbitrage_scanner import ArbitrageScanner
 
         scanner = ArbitrageScanner()
-        items = [
-            {"name": "Dollar Item", "buy_price": 10.0, "profit": "$3.00"}
-        ]
+        items = [{"name": "Dollar Item", "buy_price": 10.0, "profit": "$3.00"}]
 
         result = scanner._standardize_items(items, "csgo", 1.0, 5.0)
 
@@ -474,9 +484,13 @@ class TestScanGame:
         with patch("src.dmarket.arbitrage_scanner.rate_limiter") as mock_limiter:
             mock_limiter.wait_if_needed = AsyncMock()
             with patch("src.dmarket.arbitrage_scanner.arbitrage_mid", return_value=[]):
-                with patch("src.dmarket.arbitrage_scanner.ArbitrageTrader") as mock_trader:
+                with patch(
+                    "src.dmarket.arbitrage_scanner.ArbitrageTrader"
+                ) as mock_trader:
                     mock_trader_instance = MagicMock()
-                    mock_trader_instance.find_profitable_items = AsyncMock(return_value=[])
+                    mock_trader_instance.find_profitable_items = AsyncMock(
+                        return_value=[]
+                    )
                     mock_trader.return_value = mock_trader_instance
 
                     await scanner.scan_game("csgo", "medium", 10)
@@ -495,10 +509,16 @@ class TestScanGame:
 
         with patch("src.dmarket.arbitrage_scanner.rate_limiter") as mock_limiter:
             mock_limiter.wait_if_needed = AsyncMock()
-            with patch("src.dmarket.arbitrage_scanner.arbitrage_boost", return_value=[]):
-                with patch("src.dmarket.arbitrage_scanner.ArbitrageTrader") as mock_trader:
+            with patch(
+                "src.dmarket.arbitrage_scanner.arbitrage_boost", return_value=[]
+            ):
+                with patch(
+                    "src.dmarket.arbitrage_scanner.ArbitrageTrader"
+                ) as mock_trader:
                     mock_trader_instance = MagicMock()
-                    mock_trader_instance.find_profitable_items = AsyncMock(return_value=[])
+                    mock_trader_instance.find_profitable_items = AsyncMock(
+                        return_value=[]
+                    )
                     mock_trader.return_value = mock_trader_instance
 
                     result = await scanner.scan_game("csgo", "low", 10)
@@ -518,9 +538,13 @@ class TestScanGame:
         with patch("src.dmarket.arbitrage_scanner.rate_limiter") as mock_limiter:
             mock_limiter.wait_if_needed = AsyncMock()
             with patch("src.dmarket.arbitrage_scanner.arbitrage_pro", return_value=[]):
-                with patch("src.dmarket.arbitrage_scanner.ArbitrageTrader") as mock_trader:
+                with patch(
+                    "src.dmarket.arbitrage_scanner.ArbitrageTrader"
+                ) as mock_trader:
                     mock_trader_instance = MagicMock()
-                    mock_trader_instance.find_profitable_items = AsyncMock(return_value=[])
+                    mock_trader_instance.find_profitable_items = AsyncMock(
+                        return_value=[]
+                    )
                     mock_trader.return_value = mock_trader_instance
 
                     result = await scanner.scan_game("csgo", "high", 10)
@@ -634,7 +658,9 @@ class TestScanLevel:
         cached_data = [{"item": "cached", "profit": 3.0}]
         scanner._save_to_cache(cache_key, cached_data)
 
-        result = await scanner.scan_level("boost", "csgo", max_results=10, use_cache=True)
+        result = await scanner.scan_level(
+            "boost", "csgo", max_results=10, use_cache=True
+        )
         assert result == cached_data
 
     @pytest.mark.asyncio()
@@ -761,10 +787,9 @@ class TestCheckUserBalance:
         """Test balance check with error in response."""
         from src.dmarket.arbitrage_scanner import ArbitrageScanner
 
-        mock_api_client._request = AsyncMock(return_value={
-            "error": True,
-            "message": "unauthorized"
-        })
+        mock_api_client._request = AsyncMock(
+            return_value={"error": True, "message": "unauthorized"}
+        )
         scanner = ArbitrageScanner(api_client=mock_api_client)
 
         result = await scanner.check_user_balance()
@@ -777,10 +802,9 @@ class TestCheckUserBalance:
         """Test balance check with timeout error."""
         from src.dmarket.arbitrage_scanner import ArbitrageScanner
 
-        mock_api_client._request = AsyncMock(return_value={
-            "error": True,
-            "message": "timeout occurred"
-        })
+        mock_api_client._request = AsyncMock(
+            return_value={"error": True, "message": "timeout occurred"}
+        )
         scanner = ArbitrageScanner(api_client=mock_api_client)
 
         result = await scanner.check_user_balance()
@@ -793,10 +817,9 @@ class TestCheckUserBalance:
         """Test balance check with missing keys error."""
         from src.dmarket.arbitrage_scanner import ArbitrageScanner
 
-        mock_api_client._request = AsyncMock(return_value={
-            "error": True,
-            "message": "api key invalid"
-        })
+        mock_api_client._request = AsyncMock(
+            return_value={"error": True, "message": "api key invalid"}
+        )
         scanner = ArbitrageScanner(api_client=mock_api_client)
 
         result = await scanner.check_user_balance()
@@ -809,9 +832,9 @@ class TestCheckUserBalance:
         """Test balance check with zero balance."""
         from src.dmarket.arbitrage_scanner import ArbitrageScanner
 
-        mock_api_client._request = AsyncMock(return_value={
-            "usd": {"available": 0, "frozen": 0}
-        })
+        mock_api_client._request = AsyncMock(
+            return_value={"usd": {"available": 0, "frozen": 0}}
+        )
         scanner = ArbitrageScanner(api_client=mock_api_client)
 
         result = await scanner.check_user_balance()
@@ -830,9 +853,14 @@ class TestCheckUserBalance:
         """
         from src.dmarket.arbitrage_scanner import ArbitrageScanner
 
-        mock_api_client._request = AsyncMock(return_value={
-            "usd": {"available": 50, "frozen": 1000}  # 50 cents available, 1000 cents frozen
-        })
+        mock_api_client._request = AsyncMock(
+            return_value={
+                "usd": {
+                    "available": 50,
+                    "frozen": 1000,
+                }  # 50 cents available, 1000 cents frozen
+            }
+        )
         scanner = ArbitrageScanner(api_client=mock_api_client)
 
         result = await scanner.check_user_balance()
@@ -864,10 +892,14 @@ class TestAutoTradeItems:
 
         scanner = ArbitrageScanner(api_client=mock_api_client)
 
-        with patch.object(scanner, "check_user_balance", new_callable=AsyncMock) as mock_balance:
+        with patch.object(
+            scanner, "check_user_balance", new_callable=AsyncMock
+        ) as mock_balance:
             mock_balance.return_value = {"has_funds": False, "balance": 0.0}
 
-            purchases, sales, profit = await scanner.auto_trade_items(sample_items_by_game)
+            purchases, sales, profit = await scanner.auto_trade_items(
+                sample_items_by_game
+            )
 
         assert purchases == 0
         assert sales == 0
@@ -880,10 +912,14 @@ class TestAutoTradeItems:
 
         scanner = ArbitrageScanner(api_client=mock_api_client)
 
-        with patch.object(scanner, "check_user_balance", new_callable=AsyncMock) as mock_balance:
+        with patch.object(
+            scanner, "check_user_balance", new_callable=AsyncMock
+        ) as mock_balance:
             mock_balance.return_value = {"has_funds": True, "balance": 100.0}
 
-            with patch.object(scanner, "_get_current_item_data", new_callable=AsyncMock) as mock_get:
+            with patch.object(
+                scanner, "_get_current_item_data", new_callable=AsyncMock
+            ) as mock_get:
                 mock_get.return_value = None  # Item not available
 
                 purchases, _sales, _profit = await scanner.auto_trade_items(
@@ -904,16 +940,18 @@ class TestGetMarketOverview:
         from src.dmarket.arbitrage_scanner import ArbitrageScanner
 
         # Configure mock to return proper numeric values
-        mock_api_client.get_market_items = AsyncMock(return_value={
-            "objects": [
-                {
-                    "itemId": "item1",
-                    "title": "Test Item",
-                    "price": {"USD": 1000},  # Numeric value, not string
-                    "suggestedPrice": {"USD": 1200},
-                }
-            ]
-        })
+        mock_api_client.get_market_items = AsyncMock(
+            return_value={
+                "objects": [
+                    {
+                        "itemId": "item1",
+                        "title": "Test Item",
+                        "price": {"USD": 1000},  # Numeric value, not string
+                        "suggestedPrice": {"USD": 1200},
+                    }
+                ]
+            }
+        )
 
         scanner = ArbitrageScanner(api_client=mock_api_client)
 
@@ -959,7 +997,9 @@ class TestHelperFunctions:
     @pytest.mark.asyncio()
     async def test_find_multi_game_arbitrage_opportunities(self):
         """Test find_multi_game_arbitrage_opportunities function."""
-        from src.dmarket.arbitrage_scanner import find_multi_game_arbitrage_opportunities
+        from src.dmarket.arbitrage_scanner import (
+            find_multi_game_arbitrage_opportunities,
+        )
 
         with patch("src.dmarket.arbitrage_scanner.ArbitrageScanner") as mock_scanner:
             mock_instance = MagicMock()
@@ -1005,10 +1045,12 @@ class TestHelperFunctions:
 
         with patch("src.dmarket.arbitrage_scanner.ArbitrageScanner") as mock_scanner:
             mock_instance = MagicMock()
-            mock_instance.check_user_balance = AsyncMock(return_value={
-                "has_funds": True,
-                "balance": 100.0,
-            })
+            mock_instance.check_user_balance = AsyncMock(
+                return_value={
+                    "has_funds": True,
+                    "balance": 100.0,
+                }
+            )
             mock_scanner.return_value = mock_instance
 
             result = await check_user_balance(mock_api_client)
@@ -1016,7 +1058,9 @@ class TestHelperFunctions:
         assert isinstance(result, dict)
 
     @pytest.mark.asyncio()
-    async def test_auto_trade_items_function(self, mock_api_client, sample_items_by_game):
+    async def test_auto_trade_items_function(
+        self, mock_api_client, sample_items_by_game
+    ):
         """Test auto_trade_items function."""
         from src.dmarket.arbitrage_scanner import auto_trade_items
 
@@ -1132,7 +1176,7 @@ class TestAnalyzeItem:
                 "order_count": 10,
                 "liquidity_score": 80,
                 "is_liquid": True,
-            }
+            },
         }
         config = {
             "price_range": (5.0, 50.0),
@@ -1164,7 +1208,7 @@ class TestAnalyzeItem:
                 "order_count": 1,
                 "liquidity_score": 10,
                 "is_liquid": False,
-            }
+            },
         }
         config = {
             "price_range": (5.0, 50.0),
@@ -1184,13 +1228,17 @@ class TestGetCurrentItemData:
         """Test successful item data retrieval."""
         from src.dmarket.arbitrage_scanner import ArbitrageScanner
 
-        mock_api_client._request = AsyncMock(return_value={
-            "objects": [{
-                "itemId": "item1",
-                "title": "Test Item",
-                "price": {"USD": 1000},
-            }]
-        })
+        mock_api_client._request = AsyncMock(
+            return_value={
+                "objects": [
+                    {
+                        "itemId": "item1",
+                        "title": "Test Item",
+                        "price": {"USD": 1000},
+                    }
+                ]
+            }
+        )
 
         scanner = ArbitrageScanner(api_client=mock_api_client)
 
@@ -1208,7 +1256,9 @@ class TestGetCurrentItemData:
 
         scanner = ArbitrageScanner(api_client=mock_api_client)
 
-        result = await scanner._get_current_item_data("nonexistent", "csgo", mock_api_client)
+        result = await scanner._get_current_item_data(
+            "nonexistent", "csgo", mock_api_client
+        )
 
         assert result is None
 
@@ -1234,9 +1284,9 @@ class TestPurchaseItem:
         """Test successful item purchase."""
         from src.dmarket.arbitrage_scanner import ArbitrageScanner
 
-        mock_api_client._request = AsyncMock(return_value={
-            "items": [{"itemId": "new_item_id"}]
-        })
+        mock_api_client._request = AsyncMock(
+            return_value={"items": [{"itemId": "new_item_id"}]}
+        )
 
         scanner = ArbitrageScanner(api_client=mock_api_client)
 
@@ -1250,9 +1300,9 @@ class TestPurchaseItem:
         """Test purchase with error response."""
         from src.dmarket.arbitrage_scanner import ArbitrageScanner
 
-        mock_api_client._request = AsyncMock(return_value={
-            "error": {"message": "Item not available"}
-        })
+        mock_api_client._request = AsyncMock(
+            return_value={"error": {"message": "Item not available"}}
+        )
 
         scanner = ArbitrageScanner(api_client=mock_api_client)
 
@@ -1296,9 +1346,9 @@ class TestListItemForSale:
         """Test listing with error response."""
         from src.dmarket.arbitrage_scanner import ArbitrageScanner
 
-        mock_api_client._request = AsyncMock(return_value={
-            "error": {"message": "Price too low"}
-        })
+        mock_api_client._request = AsyncMock(
+            return_value={"error": {"message": "Price too low"}}
+        )
 
         scanner = ArbitrageScanner(api_client=mock_api_client)
 

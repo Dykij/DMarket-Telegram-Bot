@@ -80,7 +80,9 @@ class RedisCache:
             True if connected successfully, False otherwise
         """
         if not REDIS_AVAILABLE:
-            logger.warning("Redis library not available. Install with: pip install redis[hiredis]")
+            logger.warning(
+                "Redis library not available. Install with: pip install redis[hiredis]"
+            )
             if self._fallback_enabled:
                 logger.info("Falling back to in-memory cache")
                 return False
@@ -97,13 +99,15 @@ class RedisCache:
                 decode_responses=False,  # We'll handle encoding ourselves
                 max_connections=self.max_connections,
                 socket_keepalive=self.socket_keepalive,
-                socket_keepalive_options={
-                    1: 1,  # TCP_KEEPIDLE
-                    2: 1,  # TCP_KEEPINTVL
-                    3: 3,  # TCP_KEEPCNT
-                }
-                if self.socket_keepalive
-                else None,
+                socket_keepalive_options=(
+                    {
+                        1: 1,  # TCP_KEEPIDLE
+                        2: 1,  # TCP_KEEPINTVL
+                        3: 3,  # TCP_KEEPCNT
+                    }
+                    if self.socket_keepalive
+                    else None
+                ),
             )
 
             # Test connection

@@ -50,9 +50,12 @@ async def test_direct_balance_request_handles_circuit_breaker_error():
     # Mock the client
     mock_client = AsyncMock()
 
-    with patch.object(api, "_get_client", return_value=mock_client), patch(
-        "src.dmarket.dmarket_api.call_with_circuit_breaker", new_callable=AsyncMock
-    ) as mock_cb:
+    with (
+        patch.object(api, "_get_client", return_value=mock_client),
+        patch(
+            "src.dmarket.dmarket_api.call_with_circuit_breaker", new_callable=AsyncMock
+        ) as mock_cb,
+    ):
         # Create a mock circuit breaker with a name attribute
         mock_breaker = MagicMock()
         mock_breaker.name = "test_breaker"

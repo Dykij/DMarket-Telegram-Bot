@@ -263,7 +263,9 @@ class TestSalesHistoryIntegration:
         }
 
         with patch.object(api_client, "_request", return_value=valid_response):
-            result = await api_client.get_sales_history(game="csgo", title="AK-47 | Redline (FT)")
+            result = await api_client.get_sales_history(
+                game="csgo", title="AK-47 | Redline (FT)"
+            )
 
         assert "sales" in result
         assert len(result["sales"]) == 2
@@ -344,14 +346,18 @@ class TestBackwardCompatibility:
     async def test_extra_fields_in_response_accepted(self, api_client):
         """Тест: дополнительные поля в response не ломают валидацию (extra='allow')."""
         response_with_new_fields = {
-            "objects": [{"itemId": "item1", "title": "Test Item", "price": {"USD": "1000"}}],
+            "objects": [
+                {"itemId": "item1", "title": "Test Item", "price": {"USD": "1000"}}
+            ],
             "total": "1",
             "cursor": "next_token",
             "newField": "future_data",  # Новое поле
             "extraMetadata": {"nested": "structure"},  # Дополнительная структура
         }
 
-        with patch.object(api_client, "_request", return_value=response_with_new_fields):
+        with patch.object(
+            api_client, "_request", return_value=response_with_new_fields
+        ):
             result = await api_client.get_market_items(game="csgo", limit=10)
 
         # Валидация прошла успешно (extra='allow')

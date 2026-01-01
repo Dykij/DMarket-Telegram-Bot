@@ -114,6 +114,7 @@ class TestMarketAlertsManagerSubscribers:
     def manager(self):
         """Create MarketAlertsManager instance."""
         from src.telegram_bot.market_alerts import MarketAlertsManager
+
         return MarketAlertsManager(MagicMock(), MagicMock())
 
     def test_subscribe_to_price_changes(self, manager):
@@ -164,6 +165,7 @@ class TestMarketAlertsManagerMonitoring:
     def manager(self):
         """Create MarketAlertsManager instance."""
         from src.telegram_bot.market_alerts import MarketAlertsManager
+
         return MarketAlertsManager(MagicMock(), MagicMock())
 
     @pytest.mark.asyncio()
@@ -193,6 +195,7 @@ class TestMarketAlertsManagerAlerts:
     def manager(self):
         """Create MarketAlertsManager instance."""
         from src.telegram_bot.market_alerts import MarketAlertsManager
+
         return MarketAlertsManager(MagicMock(), MagicMock())
 
     def test_active_alerts_structure(self, manager):
@@ -226,6 +229,7 @@ class TestMarketAlertsManagerThresholds:
     def manager(self):
         """Create MarketAlertsManager instance."""
         from src.telegram_bot.market_alerts import MarketAlertsManager
+
         return MarketAlertsManager(MagicMock(), MagicMock())
 
     def test_modify_price_change_threshold(self, manager):
@@ -266,6 +270,7 @@ class TestMarketAlertsManagerCheckIntervals:
     def manager(self):
         """Create MarketAlertsManager instance."""
         from src.telegram_bot.market_alerts import MarketAlertsManager
+
         return MarketAlertsManager(MagicMock(), MagicMock())
 
     def test_should_check_after_interval(self, manager):
@@ -278,9 +283,7 @@ class TestMarketAlertsManagerCheckIntervals:
         # Set last check to past
         manager.last_check_time[alert_type] = time.time() - interval - 1
 
-        should_check = (
-            time.time() - manager.last_check_time[alert_type]
-        ) >= interval
+        should_check = (time.time() - manager.last_check_time[alert_type]) >= interval
 
         assert should_check is True
 
@@ -294,9 +297,7 @@ class TestMarketAlertsManagerCheckIntervals:
         # Set last check to recent time
         manager.last_check_time[alert_type] = time.time()
 
-        should_check = (
-            time.time() - manager.last_check_time[alert_type]
-        ) >= interval
+        should_check = (time.time() - manager.last_check_time[alert_type]) >= interval
 
         assert should_check is False
 

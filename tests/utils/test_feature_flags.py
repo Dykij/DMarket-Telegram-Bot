@@ -63,7 +63,8 @@ class TestFeatureFlagsManager:
     def manager(self, tmp_path):
         """Create test manager."""
         config_file = tmp_path / "test_flags.yaml"
-        config_file.write_text("""
+        config_file.write_text(
+            """
 features:
   test_feature:
     enabled: true
@@ -83,7 +84,8 @@ features:
   blacklist_feature:
     enabled: true
     blacklist: [789]
-""")
+"""
+        )
         return FeatureFlagsManager(config_path=str(config_file))
 
     @pytest.mark.asyncio()
@@ -156,7 +158,8 @@ class TestFeatureFlagsManagerExtended:
     def manager(self, tmp_path):
         """Create test manager with full config."""
         config_file = tmp_path / "test_flags.yaml"
-        config_file.write_text("""
+        config_file.write_text(
+            """
 features:
   test_feature:
     enabled: true
@@ -176,7 +179,8 @@ features:
   blacklist_feature:
     enabled: true
     blacklist: [789, 101112]
-""")
+"""
+        )
         return FeatureFlagsManager(config_path=str(config_file))
 
     @pytest.mark.asyncio()
@@ -208,8 +212,7 @@ features:
     async def test_is_enabled_conditions_match(self, manager):
         """Test is_enabled with matching conditions."""
         enabled = await manager.is_enabled(
-            "conditional_feature",
-            context={"game": "csgo", "min_balance": 100}
+            "conditional_feature", context={"game": "csgo", "min_balance": 100}
         )
         assert enabled is True
 
@@ -217,8 +220,7 @@ features:
     async def test_is_enabled_conditions_no_match(self, manager):
         """Test is_enabled with non-matching conditions."""
         enabled = await manager.is_enabled(
-            "conditional_feature",
-            context={"game": "dota2", "min_balance": 100}
+            "conditional_feature", context={"game": "dota2", "min_balance": 100}
         )
         assert enabled is False
 
@@ -226,8 +228,7 @@ features:
     async def test_is_enabled_conditions_list_match(self, manager):
         """Test is_enabled with list conditions matching."""
         enabled = await manager.is_enabled(
-            "list_condition_feature",
-            context={"game": "dota2"}
+            "list_condition_feature", context={"game": "dota2"}
         )
         assert enabled is True
 
@@ -235,8 +236,7 @@ features:
     async def test_is_enabled_conditions_list_no_match(self, manager):
         """Test is_enabled with list conditions not matching."""
         enabled = await manager.is_enabled(
-            "list_condition_feature",
-            context={"game": "tf2"}
+            "list_condition_feature", context={"game": "tf2"}
         )
         assert enabled is False
 
@@ -244,8 +244,7 @@ features:
     async def test_is_enabled_conditions_missing_key(self, manager):
         """Test is_enabled with missing context key."""
         enabled = await manager.is_enabled(
-            "conditional_feature",
-            context={"other_key": "value"}
+            "conditional_feature", context={"other_key": "value"}
         )
         assert enabled is False
 
@@ -347,11 +346,13 @@ features:
         """Test reload_config reloads from file."""
         # Modify the original config file
         config_file = tmp_path / "test_flags.yaml"
-        config_file.write_text("""
+        config_file.write_text(
+            """
 features:
   reloaded_feature:
     enabled: true
-""")
+"""
+        )
         manager.config_path = str(config_file)
         await manager.reload_config()
         assert "reloaded_feature" in manager.flags
@@ -382,11 +383,13 @@ class TestFeatureFlagsManagerWithRedis:
     def manager_with_redis(self, tmp_path, mock_redis):
         """Create manager with mocked Redis."""
         config_file = tmp_path / "test_flags.yaml"
-        config_file.write_text("""
+        config_file.write_text(
+            """
 features:
   cached_feature:
     enabled: true
-""")
+"""
+        )
         return FeatureFlagsManager(
             config_path=str(config_file),
             redis_client=mock_redis,
@@ -468,6 +471,7 @@ class TestGlobalFeatureFlags:
     def test_get_feature_flags_not_initialized(self):
         """Test get_feature_flags raises error when not initialized."""
         import src.utils.feature_flags as ff
+
         ff._feature_flags = None
 
         with pytest.raises(RuntimeError, match="not initialized"):

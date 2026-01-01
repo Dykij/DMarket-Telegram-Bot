@@ -275,8 +275,7 @@ class TestMarketAnalyzerTrendDetection:
         """Test detecting upward trend."""
         # Create stronger upward trend to exceed the 2% threshold
         price_data = [
-            {"date": f"2024-01-{i:02d}", "price": 10.0 + i * 5}
-            for i in range(1, 15)
+            {"date": f"2024-01-{i:02d}", "price": 10.0 + i * 5} for i in range(1, 15)
         ]
 
         result = MarketAnalyzer.detect_price_trends(price_data, window=3)
@@ -290,8 +289,7 @@ class TestMarketAnalyzerTrendDetection:
         """Test detecting downward trend."""
         # Create stronger downward trend
         price_data = [
-            {"date": f"2024-01-{i:02d}", "price": 100.0 - i * 5}
-            for i in range(1, 15)
+            {"date": f"2024-01-{i:02d}", "price": 100.0 - i * 5} for i in range(1, 15)
         ]
 
         result = MarketAnalyzer.detect_price_trends(price_data, window=3)
@@ -331,10 +329,26 @@ class TestMarketAnalyzerSupportResistance:
         """Test finding support and resistance levels."""
         # Create data with clear local minima and maxima
         prices = [
-            10.0, 12.0, 15.0, 13.0, 10.0,  # local min at 10
-            12.0, 18.0, 20.0, 18.0, 15.0,  # local max at 20
-            12.0, 10.0, 8.0, 10.0, 12.0,   # local min at 8
-            15.0, 18.0, 22.0, 20.0, 17.0,  # local max at 22
+            10.0,
+            12.0,
+            15.0,
+            13.0,
+            10.0,  # local min at 10
+            12.0,
+            18.0,
+            20.0,
+            18.0,
+            15.0,  # local max at 20
+            12.0,
+            10.0,
+            8.0,
+            10.0,
+            12.0,  # local min at 8
+            15.0,
+            18.0,
+            22.0,
+            20.0,
+            17.0,  # local max at 22
         ]
 
         result = MarketAnalyzer.find_support_resistance(prices, window=2)

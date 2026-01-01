@@ -25,7 +25,9 @@ TARGET_COMPETITION_ACTION = "target_competition"
 
 
 @handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка в меню таргетов", reraise=False
+    logger_instance=logger,
+    default_error_message="Ошибка в меню таргетов",
+    reraise=False,
 )
 async def start_targets_menu(
     update: Update,
@@ -200,7 +202,9 @@ async def handle_smart_targets(
 
 
 @handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка при анализе конкуренции", reraise=False
+    logger_instance=logger,
+    default_error_message="Ошибка при анализе конкуренции",
+    reraise=False,
 )
 async def handle_competition_analysis(
     update: Update,
@@ -274,7 +278,9 @@ async def handle_competition_analysis(
 
 
 @handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка в обработчике таргетов", reraise=False
+    logger_instance=logger,
+    default_error_message="Ошибка в обработчике таргетов",
+    reraise=False,
 )
 async def handle_target_callback(
     update: Update,

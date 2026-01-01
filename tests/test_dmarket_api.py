@@ -85,6 +85,7 @@ class TestTryGetCached:
 
         def get_from_cache_fn(key):
             return cached_data
+
         path = "/test"
 
         # Act
@@ -101,6 +102,7 @@ class TestTryGetCached:
 
         def get_from_cache_fn(key):
             return {"data": "should_not_return"}
+
         path = "/test"
 
         # Act
@@ -117,6 +119,7 @@ class TestTryGetCached:
 
         def get_from_cache_fn(key):
             return None
+
         path = "/test"
 
         # Act
@@ -211,7 +214,9 @@ class TestExecuteHttpRequest:
             return_value=mock_response,
         ):
             # Act
-            result = await _execute_http_request(method, url, client, headers, data=data)
+            result = await _execute_http_request(
+                method, url, client, headers, data=data
+            )
 
             # Assert
             assert result == mock_response
@@ -273,7 +278,9 @@ class TestCalculateRetryDelay:
         retries = 1
 
         # Act
-        result = _calculate_retry_delay(status_code, retry_headers, current_delay, retries)
+        result = _calculate_retry_delay(
+            status_code, retry_headers, current_delay, retries
+        )
 
         # Assert
         assert result == 60.0
@@ -287,7 +294,9 @@ class TestCalculateRetryDelay:
         retries = 2
 
         # Act
-        result = _calculate_retry_delay(status_code, retry_headers, current_delay, retries)
+        result = _calculate_retry_delay(
+            status_code, retry_headers, current_delay, retries
+        )
 
         # Assert
         assert result == 4.0  # current_delay * 2
@@ -301,7 +310,9 @@ class TestCalculateRetryDelay:
         retries = 3
 
         # Act
-        result = _calculate_retry_delay(status_code, retry_headers, current_delay, retries)
+        result = _calculate_retry_delay(
+            status_code, retry_headers, current_delay, retries
+        )
 
         # Assert
         assert result == 30.0  # capped at 30
@@ -315,7 +326,9 @@ class TestCalculateRetryDelay:
         retries = 3
 
         # Act
-        result = _calculate_retry_delay(status_code, retry_headers, current_delay, retries)
+        result = _calculate_retry_delay(
+            status_code, retry_headers, current_delay, retries
+        )
 
         # Assert
         assert result == 2.5  # 1.0 + 3 * 0.5
@@ -328,7 +341,10 @@ class TestBuildErrorData:
         """Test error data building from JSON response."""
         # Arrange
         response = MagicMock(spec=httpx.Response)
-        response.json.return_value = {"message": "Item not found", "code": "ITEM_NOT_FOUND"}
+        response.json.return_value = {
+            "message": "Item not found",
+            "code": "ITEM_NOT_FOUND",
+        }
         response.text = ""
         status_code = 404
         error_description = "Resource not found"
@@ -390,11 +406,21 @@ class TestHandleHttpStatusError:
         response.text = "Rate limit"
         response.headers = {"Retry-After": "10"}
 
-        error = httpx.HTTPStatusError("Rate limit", request=MagicMock(), response=response)
+        error = httpx.HTTPStatusError(
+            "Rate limit", request=MagicMock(), response=response
+        )
 
         # Act
         should_retry, new_delay, exception = await _handle_http_status_error(
-            error, "GET", "/market/items", 0, 3, time.time(), {429, 500}, {429: "Rate limit"}, 1.0
+            error,
+            "GET",
+            "/market/items",
+            0,
+            3,
+            time.time(),
+            {429, 500},
+            {429: "Rate limit"},
+            1.0,
         )
 
         # Assert
@@ -412,11 +438,21 @@ class TestHandleHttpStatusError:
         response.headers = {}
         response.json.return_value = {"message": "Access denied"}
 
-        error = httpx.HTTPStatusError("Forbidden", request=MagicMock(), response=response)
+        error = httpx.HTTPStatusError(
+            "Forbidden", request=MagicMock(), response=response
+        )
 
         # Act
         should_retry, _new_delay, exception = await _handle_http_status_error(
-            error, "GET", "/market/items", 0, 3, time.time(), {429, 500}, {403: "Forbidden"}, 1.0
+            error,
+            "GET",
+            "/market/items",
+            0,
+            3,
+            time.time(),
+            {429, 500},
+            {403: "Forbidden"},
+            1.0,
         )
 
         # Assert
@@ -435,7 +471,9 @@ class TestHandleNetworkError:
         error = httpx.ConnectError("Connection failed")
 
         # Act
-        should_retry, new_delay = await _handle_network_error(error, "GET", "/market/items", 1, 2.0)
+        should_retry, new_delay = await _handle_network_error(
+            error, "GET", "/market/items", 1, 2.0
+        )
 
         # Assert
         assert should_retry is True
@@ -448,7 +486,9 @@ class TestHandleNetworkError:
         error = httpx.ReadError("Read timeout")
 
         # Act
-        should_retry, new_delay = await _handle_network_error(error, "GET", "/market/items", 5, 8.0)
+        should_retry, new_delay = await _handle_network_error(
+            error, "GET", "/market/items", 5, 8.0
+        )
 
         # Assert
         assert should_retry is True

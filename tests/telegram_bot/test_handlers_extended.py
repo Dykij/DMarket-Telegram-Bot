@@ -25,9 +25,7 @@ class TestNotifierModule:
         mock_bot.send_message.return_value = MagicMock()
 
         await mock_bot.send_message(
-            chat_id=123456,
-            text="Test notification",
-            parse_mode="HTML"
+            chat_id=123456, text="Test notification", parse_mode="HTML"
         )
 
         mock_bot.send_message.assert_called_once()
@@ -39,9 +37,7 @@ class TestNotifierModule:
         mock_bot.send_message.return_value = MagicMock()
 
         await mock_bot.send_message(
-            chat_id=123456,
-            text="Test",
-            reply_markup=mock_keyboard
+            chat_id=123456, text="Test", reply_markup=mock_keyboard
         )
 
         call_args = mock_bot.send_message.call_args
@@ -66,6 +62,7 @@ class TestSmartNotifierModule:
 
     def test_notification_dedup_key(self) -> None:
         """Тест создания ключа дедупликации."""
+
         def make_dedup_key(event_type: str, item_id: str) -> str:
             return f"{event_type}:{item_id}"
 
@@ -92,9 +89,7 @@ class TestCallbackHandlers:
         return query
 
     @pytest.fixture()
-    def mock_update_with_callback(
-        self, mock_callback_query: MagicMock
-    ) -> MagicMock:
+    def mock_update_with_callback(self, mock_callback_query: MagicMock) -> MagicMock:
         """Создать mock Update с callback."""
         update = MagicMock(spec=Update)
         update.callback_query = mock_callback_query
@@ -102,9 +97,7 @@ class TestCallbackHandlers:
         return update
 
     @pytest.mark.asyncio()
-    async def test_callback_answer(
-        self, mock_callback_query: MagicMock
-    ) -> None:
+    async def test_callback_answer(self, mock_callback_query: MagicMock) -> None:
         """Тест ответа на callback."""
         await mock_callback_query.answer()
         mock_callback_query.answer.assert_called_once()
@@ -118,9 +111,7 @@ class TestCallbackHandlers:
         mock_callback_query.answer.assert_called_once_with(text="Done!")
 
     @pytest.mark.asyncio()
-    async def test_callback_edit_message(
-        self, mock_callback_query: MagicMock
-    ) -> None:
+    async def test_callback_edit_message(self, mock_callback_query: MagicMock) -> None:
         """Тест редактирования сообщения через callback."""
         await mock_callback_query.edit_message_text(text="Updated text")
         mock_callback_query.edit_message_text.assert_called_once_with(
@@ -164,6 +155,7 @@ class TestDashboardHandler:
 
     def test_format_currency(self) -> None:
         """Тест форматирования валюты."""
+
         def format_currency(amount: float, currency: str = "USD") -> str:
             if currency == "USD":
                 return f"${amount:.2f}"
@@ -174,6 +166,7 @@ class TestDashboardHandler:
 
     def test_format_percentage(self) -> None:
         """Тест форматирования процентов."""
+
         def format_percentage(value: float) -> str:
             sign = "+" if value > 0 else ""
             return f"{sign}{value:.2f}%"
@@ -261,6 +254,7 @@ class TestMarketAlertsHandler:
 
     def test_alert_threshold_validation(self) -> None:
         """Тест валидации порога алерта."""
+
         def validate_threshold(threshold: float) -> bool:
             return 0.01 <= threshold <= 100.0
 
@@ -286,6 +280,7 @@ class TestPriceAlertsHandler:
 
     def test_check_price_alert_triggered(self) -> None:
         """Тест проверки срабатывания алерта."""
+
         def check_alert(
             current_price: float, target_price: float, direction: str
         ) -> bool:

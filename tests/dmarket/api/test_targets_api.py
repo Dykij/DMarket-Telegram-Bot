@@ -81,8 +81,16 @@ class TestCreateTargets:
             "targets": [{"TargetID": "1"}, {"TargetID": "2"}],
         }
         targets = [
-            {"Title": "Item 1", "Amount": 1, "Price": {"Amount": 100, "Currency": "USD"}},
-            {"Title": "Item 2", "Amount": 2, "Price": {"Amount": 200, "Currency": "USD"}},
+            {
+                "Title": "Item 1",
+                "Amount": 1,
+                "Price": {"Amount": 100, "Currency": "USD"},
+            },
+            {
+                "Title": "Item 2",
+                "Amount": 2,
+                "Price": {"Amount": 200, "Currency": "USD"},
+            },
         ]
 
         # Act
@@ -237,7 +245,11 @@ class TestGetTargetsByTitle:
         # Arrange
         mock_request.return_value = {
             "orders": [
-                {"amount": 10, "price": "1200", "title": "AK-47 | Redline (Field-Tested)"}
+                {
+                    "amount": 10,
+                    "price": "1200",
+                    "title": "AK-47 | Redline (Field-Tested)",
+                }
             ]
         }
         game_id = "csgo"

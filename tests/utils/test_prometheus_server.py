@@ -129,7 +129,9 @@ class TestRunPrometheusServer:
     async def test_run_prometheus_server_cancellation(self) -> None:
         """Test run_prometheus_server handles cancellation."""
         with (
-            patch.object(PrometheusServer, "start", new_callable=AsyncMock) as mock_start,
+            patch.object(
+                PrometheusServer, "start", new_callable=AsyncMock
+            ) as mock_start,
             patch.object(PrometheusServer, "stop", new_callable=AsyncMock) as mock_stop,
         ):
             # Create a task and cancel it

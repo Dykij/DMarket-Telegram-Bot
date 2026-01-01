@@ -115,7 +115,9 @@ class TestCreateTarget:
         manager, _ = create_manager()
 
         with pytest.raises(ValueError, match="Количество должно быть от 1 до 100"):
-            await manager.create_target(game="csgo", title="AK-47", price=10.0, amount=0)
+            await manager.create_target(
+                game="csgo", title="AK-47", price=10.0, amount=0
+            )
 
     @pytest.mark.asyncio()
     async def test_create_target_invalid_amount_too_high(self) -> None:
@@ -123,7 +125,9 @@ class TestCreateTarget:
         manager, _ = create_manager()
 
         with pytest.raises(ValueError, match="Количество должно быть от 1 до 100"):
-            await manager.create_target(game="csgo", title="AK-47", price=10.0, amount=101)
+            await manager.create_target(
+                game="csgo", title="AK-47", price=10.0, amount=101
+            )
 
     @pytest.mark.asyncio()
     async def test_create_target_converts_price_to_cents(self) -> None:
@@ -257,9 +261,7 @@ class TestDeleteAllTargets:
     async def test_delete_all_targets_actual_delete(self) -> None:
         """Test actual deletion of all targets."""
         manager, mock_api = create_manager()
-        mock_api.get_user_targets.return_value = {
-            "items": [{"id": "t1"}, {"id": "t2"}]
-        }
+        mock_api.get_user_targets.return_value = {"items": [{"id": "t1"}, {"id": "t2"}]}
 
         result = await manager.delete_all_targets(dry_run=False)
 
@@ -279,7 +281,9 @@ class TestGetTargetsByTitle:
             "items": [{"id": "t1", "price": 1000}]
         }
 
-        result = await manager.get_targets_by_title(game="csgo", title="AK-47 | Redline")
+        result = await manager.get_targets_by_title(
+            game="csgo", title="AK-47 | Redline"
+        )
 
         assert isinstance(result, list)
         assert len(result) == 1
@@ -401,9 +405,7 @@ class TestGetTargetStatistics:
     async def test_get_target_statistics_basic(self) -> None:
         """Test basic statistics calculation."""
         manager, mock_api = create_manager()
-        mock_api.get_user_targets.return_value = {
-            "items": [{"id": "t1"}, {"id": "t2"}]
-        }
+        mock_api.get_user_targets.return_value = {"items": [{"id": "t1"}, {"id": "t2"}]}
         mock_api.get_closed_targets.return_value = {
             "trades": [
                 {"TargetID": "t3", "Status": "successful", "Price": 1000},
@@ -446,7 +448,9 @@ class TestAnalyzeTargetCompetition:
         ) as mock_analyze:
             mock_analyze.return_value = {"competition_count": 5}
 
-            result = await manager.analyze_target_competition(game="csgo", title="AK-47")
+            result = await manager.analyze_target_competition(
+                game="csgo", title="AK-47"
+            )
 
             assert result["competition_count"] == 5
 

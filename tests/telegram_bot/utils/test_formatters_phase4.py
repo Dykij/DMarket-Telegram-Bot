@@ -295,7 +295,13 @@ class TestFormatOpportunitiesPhase4:
     def test_format_opportunities_page_calculation(self):
         """Test page number calculation."""
         opportunities = [
-            {"item_name": f"Item {i}", "buy_price": 10, "sell_price": 15, "profit": 5, "profit_percent": 50}
+            {
+                "item_name": f"Item {i}",
+                "buy_price": 10,
+                "sell_price": 15,
+                "profit": 5,
+                "profit_percent": 50,
+            }
             for i in range(9)
         ]
         result = format_opportunities(opportunities, page=2, items_per_page=3)
@@ -304,7 +310,13 @@ class TestFormatOpportunitiesPhase4:
     def test_format_opportunities_timestamp_in_output(self):
         """Test that timestamp is included."""
         opportunities = [
-            {"item_name": "Item", "buy_price": 10, "sell_price": 15, "profit": 5, "profit_percent": 50}
+            {
+                "item_name": "Item",
+                "buy_price": 10,
+                "sell_price": 15,
+                "profit": 5,
+                "profit_percent": 50,
+            }
         ]
         result = format_opportunities(opportunities)
         assert "🕒" in result
@@ -627,7 +639,12 @@ class TestFormatSalesVolumeStatsPhase4:
         """Test with unknown game code."""
         stats = {
             "items": [
-                {"item_name": "Item", "sales_per_day": 10, "avg_price": 5, "price_trend": "stable"}
+                {
+                    "item_name": "Item",
+                    "sales_per_day": 10,
+                    "avg_price": 5,
+                    "price_trend": "stable",
+                }
             ],
             "count": 1,
             "summary": {},
@@ -639,7 +656,12 @@ class TestFormatSalesVolumeStatsPhase4:
         """Test without summary dict."""
         stats = {
             "items": [
-                {"item_name": "Item", "sales_per_day": 10, "avg_price": 5, "price_trend": "stable"}
+                {
+                    "item_name": "Item",
+                    "sales_per_day": 10,
+                    "avg_price": 5,
+                    "price_trend": "stable",
+                }
             ],
             "count": 1,
         }
@@ -651,7 +673,12 @@ class TestFormatSalesVolumeStatsPhase4:
         """Test only top 5 items shown."""
         stats = {
             "items": [
-                {"item_name": f"Item {i}", "sales_per_day": 100 - i, "avg_price": 10, "price_trend": "stable"}
+                {
+                    "item_name": f"Item {i}",
+                    "sales_per_day": 100 - i,
+                    "avg_price": 10,
+                    "price_trend": "stable",
+                }
                 for i in range(10)
             ],
             "count": 10,
@@ -748,8 +775,7 @@ class TestFormatDmarketResultsPhase4:
         """Test with more than 10 items."""
         results = {
             "objects": [
-                {"title": f"Item {i}", "price": {"USD": i * 100}}
-                for i in range(15)
+                {"title": f"Item {i}", "price": {"USD": i * 100}} for i in range(15)
             ],
             "total": {"items": 100},
         }
@@ -776,8 +802,7 @@ class TestFormatDmarketResultsPhase4:
         """Test with exactly 10 items."""
         results = {
             "objects": [
-                {"title": f"Item {i}", "price": {"USD": 100}}
-                for i in range(10)
+                {"title": f"Item {i}", "price": {"USD": 100}} for i in range(10)
             ],
             "total": {"items": 10},
         }
@@ -840,7 +865,13 @@ class TestFormatBestOpportunitiesPhase4:
     def test_format_best_opportunities_limit_zero(self):
         """Test with limit=0."""
         opportunities = [
-            {"item_name": "Item", "buy_price": 10, "sell_price": 15, "profit": 5, "profit_percent": 50}
+            {
+                "item_name": "Item",
+                "buy_price": 10,
+                "sell_price": 15,
+                "profit": 5,
+                "profit_percent": 50,
+            }
         ]
         result = format_best_opportunities(opportunities, limit=0)
         # Should show Топ-0
@@ -975,8 +1006,7 @@ class TestFormatTargetCompetitionAnalysisPhase4:
             "recommended_price": 950,
             "strategy": "conservative",
             "existing_orders": [
-                {"price": 1000 - i * 10, "amount": i + 1}
-                for i in range(10)
+                {"price": 1000 - i * 10, "amount": i + 1} for i in range(10)
             ],
         }
         result = format_target_competition_analysis(analysis, "Item")
@@ -1122,7 +1152,11 @@ class TestFormatMarketDepthPhase4:
                 "arbitrage_opportunities": 10,
             },
             "items": [
-                {"title": "High Liq Item", "liquidity_score": 85, "spread_percent": 2.0},
+                {
+                    "title": "High Liq Item",
+                    "liquidity_score": 85,
+                    "spread_percent": 2.0,
+                },
                 {"title": "Med Liq Item", "liquidity_score": 65, "spread_percent": 4.0},
                 {"title": "Low Liq Item", "liquidity_score": 40, "spread_percent": 8.0},
             ],
@@ -1230,10 +1264,7 @@ class TestFormattersIntegrationPhase4:
 
     def test_full_workflow_market_items_pagination(self):
         """Test market items with pagination workflow."""
-        items = [
-            {"title": f"Item {i}", "price": {"USD": i * 100}}
-            for i in range(50)
-        ]
+        items = [{"title": f"Item {i}", "price": {"USD": i * 100}} for i in range(50)]
 
         all_content = []
         total_pages = (len(items) + 4) // 5  # items_per_page=5

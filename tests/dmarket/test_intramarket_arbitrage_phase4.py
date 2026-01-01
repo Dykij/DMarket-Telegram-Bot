@@ -194,7 +194,9 @@ class TestFindPriceAnomaliesExtended:
 
         # Graffiti should be filtered out
         for result in results:
-            assert "graffiti" not in result.get("item_to_buy", {}).get("title", "").lower()
+            assert (
+                "graffiti" not in result.get("item_to_buy", {}).get("title", "").lower()
+            )
 
     @pytest.mark.asyncio()
     async def test_patch_items_filtered_csgo(self, mock_api):
@@ -212,7 +214,8 @@ class TestFindPriceAnomaliesExtended:
         results = await find_price_anomalies(game="csgo", dmarket_api=mock_api)
 
         assert results == [] or all(
-            "patch" not in r.get("item_to_buy", {}).get("title", "").lower() for r in results
+            "patch" not in r.get("item_to_buy", {}).get("title", "").lower()
+            for r in results
         )
 
     @pytest.mark.asyncio()
@@ -431,9 +434,7 @@ class TestFindTrendingItemsExtended:
     async def test_price_extraction_float_format(self, mock_api):
         """Test price extraction from float format."""
         mock_api.get_market_items.return_value = {
-            "items": [
-                {"title": "Test Item", "price": 15.50, "itemId": "item_1"}
-            ]
+            "items": [{"title": "Test Item", "price": 15.50, "itemId": "item_1"}]
         }
         mock_api.get_sales_history.return_value = {"items": []}
 
@@ -1322,7 +1323,11 @@ class TestEdgeCases:
         long_title = "A" * 1000  # 1000 character title
         mock_api.get_market_items.return_value = {
             "items": [
-                {"title": long_title, "price": {"amount": 1000}, "itemId": "long_title_1"}
+                {
+                    "title": long_title,
+                    "price": {"amount": 1000},
+                    "itemId": "long_title_1",
+                }
             ]
         }
 

@@ -4,7 +4,8 @@ This module contains property-based tests that automatically generate
 test cases to find edge cases and validate invariants.
 """
 
-from hypothesis import HealthCheck, assume, given, settings, strategies as st
+from hypothesis import HealthCheck, assume, given, settings
+from hypothesis import strategies as st
 
 from src.dmarket.api.wallet import WalletOperationsMixin
 
@@ -99,7 +100,13 @@ class TestBalanceParsingProperties:
         assert abs(usd_amount - usd_available) < 0.01 * 100  # Within 1 cent
         assert abs(usd_amount - usd_total) < 0.01 * 100
 
-    @given(st.text(alphabet=st.characters(blacklist_categories=("Cs",)), min_size=1, max_size=20))
+    @given(
+        st.text(
+            alphabet=st.characters(blacklist_categories=("Cs",)),
+            min_size=1,
+            max_size=20,
+        )
+    )
     def test_parse_balance_invalid_string_returns_zero(self, invalid_string):
         """Property: Invalid balance strings should return zero."""
         # Arrange

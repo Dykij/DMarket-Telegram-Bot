@@ -97,7 +97,9 @@ async def find_price_anomalies(
                 continue
 
             # Skip unwanted items (stickers, etc. for CS2)
-            if game == "csgo" and any(x in title.lower() for x in ["sticker", "graffiti", "patch"]):
+            if game == "csgo" and any(
+                x in title.lower() for x in ["sticker", "graffiti", "patch"]
+            ):
                 continue
 
             # Extract key attributes for comparison
@@ -135,7 +137,9 @@ async def find_price_anomalies(
             price = None
             if "price" in item:
                 if isinstance(item["price"], dict) and "amount" in item["price"]:
-                    price = int(item["price"]["amount"]) / 100  # Convert from cents to USD
+                    price = (
+                        int(item["price"]["amount"]) / 100
+                    )  # Convert from cents to USD
                 elif isinstance(item["price"], int | float):
                     price = float(item["price"])
 
@@ -174,7 +178,8 @@ async def find_price_anomalies(
                         # Calculate profit after fees
                         fee_percent = 7.0  # DMarket fee
                         profit_after_fee = (
-                            high_item["price"] * (1 - fee_percent / 100) - low_item["price"]
+                            high_item["price"] * (1 - fee_percent / 100)
+                            - low_item["price"]
                         )
 
                         # Only include if profitable after fees
@@ -283,7 +288,10 @@ async def find_trending_items(
             # Get recommended price if available
             suggested_price = 0
             if "suggestedPrice" in item:
-                if isinstance(item["suggestedPrice"], dict) and "amount" in item["suggestedPrice"]:
+                if (
+                    isinstance(item["suggestedPrice"], dict)
+                    and "amount" in item["suggestedPrice"]
+                ):
                     suggested_price = int(item["suggestedPrice"]["amount"]) / 100
                 elif isinstance(item["suggestedPrice"], int | float):
                     suggested_price = float(item["suggestedPrice"])
@@ -307,7 +315,10 @@ async def find_trending_items(
                     # Get sale price
                     sale_price = None
                     if "price" in sale:
-                        if isinstance(sale["price"], dict) and "amount" in sale["price"]:
+                        if (
+                            isinstance(sale["price"], dict)
+                            and "amount" in sale["price"]
+                        ):
                             sale_price = int(sale["price"]["amount"]) / 100
                         elif isinstance(sale["price"], int | float):
                             sale_price = float(sale["price"])
@@ -316,7 +327,9 @@ async def find_trending_items(
                         market_data[title]["last_sold_price"] = sale_price
 
                 # Increment sales count
-                market_data[title]["sales_count"] = market_data[title].get("sales_count", 0) + 1
+                market_data[title]["sales_count"] = (
+                    market_data[title].get("sales_count", 0) + 1
+                )
 
         # Analyze for trends
         for title, data in market_data.items():
@@ -361,7 +374,9 @@ async def find_trending_items(
             # Downward trend but with recovery potential
             elif price_change < -15 and sales_count >= 3:
                 # Items that recently crashed hard might bounce back
-                projected_price = last_sold_price * 0.9  # Project recovery to 90% of last sold
+                projected_price = (
+                    last_sold_price * 0.9
+                )  # Project recovery to 90% of last sold
                 potential_profit = projected_price - current_price
                 potential_profit_percent = (potential_profit / current_price) * 100
 
@@ -382,7 +397,9 @@ async def find_trending_items(
                     )
 
         # Sort by potential profit percentage
-        trending_items.sort(key=operator.itemgetter("potential_profit_percent"), reverse=True)
+        trending_items.sort(
+            key=operator.itemgetter("potential_profit_percent"), reverse=True
+        )
 
         return trending_items[:max_results]
 
@@ -576,7 +593,9 @@ async def find_mispriced_rare_items(
                     )
 
         # Sort by price difference percentage
-        scored_items.sort(key=operator.itemgetter("price_difference_percent"), reverse=True)
+        scored_items.sort(
+            key=operator.itemgetter("price_difference_percent"), reverse=True
+        )
 
         return scored_items[:max_results]
 

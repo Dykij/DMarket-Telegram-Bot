@@ -6,7 +6,6 @@ This module tests the DatabaseManager class including:
 - Database initialization
 """
 
-
 import pytest
 
 from src.utils.database import DatabaseManager

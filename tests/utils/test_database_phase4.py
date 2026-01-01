@@ -29,8 +29,7 @@ except ImportError:
 
 # Skip all tests if module not available
 pytestmark = pytest.mark.skipif(
-    DatabaseManager is None,
-    reason="DatabaseManager not available"
+    DatabaseManager is None, reason="DatabaseManager not available"
 )
 
 
@@ -50,10 +49,7 @@ class TestDatabaseManagerInit:
     def test_init_with_custom_values(self):
         """Test initialization with custom values."""
         db = DatabaseManager(
-            "postgresql://localhost/test",
-            echo=True,
-            pool_size=10,
-            max_overflow=20
+            "postgresql://localhost/test", echo=True, pool_size=10, max_overflow=20
         )
         assert db.database_url == "postgresql://localhost/test"
         assert db.echo is True
@@ -232,7 +228,9 @@ class TestInitDatabase:
         mock_engine.begin.return_value = mock_context
         db._async_engine = mock_engine
 
-        with patch.object(db, "_create_indexes", new_callable=AsyncMock) as mock_indexes:
+        with patch.object(
+            db, "_create_indexes", new_callable=AsyncMock
+        ) as mock_indexes:
             with patch.object(db, "_optimize_sqlite", new_callable=AsyncMock):
                 await db.init_database()
                 mock_indexes.assert_called_once()
@@ -370,10 +368,7 @@ class TestGetOrCreateUser:
 
         with patch.object(db, "get_async_session", return_value=mock_session):
             user = await db.get_or_create_user(
-                999999,
-                username="newuser",
-                first_name="New",
-                last_name="User"
+                999999, username="newuser", first_name="New", last_name="User"
             )
             assert user.telegram_id == 999999
             assert user.username == "newuser"
@@ -400,7 +395,7 @@ class TestLogCommand:
                 command="/scan",
                 parameters={"game": "csgo"},
                 success=True,
-                execution_time_ms=150
+                execution_time_ms=150,
             )
             mock_session.execute.assert_called_once()
             mock_session.commit.assert_called_once()
@@ -421,7 +416,7 @@ class TestLogCommand:
                 user_id=uuid4(),
                 command="/scan",
                 success=False,
-                error_message="API rate limit exceeded"
+                error_message="API rate limit exceeded",
             )
             mock_session.execute.assert_called_once()
 
@@ -437,10 +432,7 @@ class TestLogCommand:
         mock_session.__aexit__ = AsyncMock(return_value=None)
 
         with patch.object(db, "get_async_session", return_value=mock_session):
-            await db.log_command(
-                user_id=uuid4(),
-                command="/help"
-            )
+            await db.log_command(user_id=uuid4(), command="/help")
             mock_session.execute.assert_called_once()
 
 
@@ -463,7 +455,7 @@ class TestSaveMarketData:
                 item_id="item123",
                 game="csgo",
                 item_name="AK-47 | Redline",
-                price_usd=15.50
+                price_usd=15.50,
             )
             mock_session.execute.assert_called_once()
             mock_session.commit.assert_called_once()
@@ -488,7 +480,7 @@ class TestSaveMarketData:
                 price_change_24h=2.5,
                 volume_24h=1000,
                 market_cap=500000.0,
-                data_source="custom"
+                data_source="custom",
             )
             mock_session.execute.assert_called_once()
 
@@ -519,7 +511,7 @@ class TestGetPriceHistory:
             history = await db.get_price_history(
                 item_name="AK-47 | Redline",
                 game="csgo",
-                start_date=datetime.now(UTC) - timedelta(days=1)
+                start_date=datetime.now(UTC) - timedelta(days=1),
             )
             assert len(history) == 3
             assert history[0]["price_usd"] == 15.50
@@ -539,9 +531,7 @@ class TestGetPriceHistory:
 
         with patch.object(db, "get_async_session", return_value=mock_session):
             history = await db.get_price_history(
-                item_name="NonExistent",
-                game="csgo",
-                start_date=datetime.now(UTC)
+                item_name="NonExistent", game="csgo", start_date=datetime.now(UTC)
             )
             assert len(history) == 0
 
@@ -567,7 +557,7 @@ class TestGetTradeStatistics:
         with patch.object(db, "get_async_session", return_value=mock_session):
             stats = await db.get_trade_statistics(
                 start_date=datetime.now(UTC) - timedelta(days=7),
-                end_date=datetime.now(UTC)
+                end_date=datetime.now(UTC),
             )
             assert stats["total_trades"] == 100
             assert stats["successful_trades"] == 80
@@ -592,7 +582,7 @@ class TestGetTradeStatistics:
         with patch.object(db, "get_async_session", return_value=mock_session):
             stats = await db.get_trade_statistics(
                 start_date=datetime.now(UTC) - timedelta(days=7),
-                end_date=datetime.now(UTC)
+                end_date=datetime.now(UTC),
             )
             assert stats == {}
 
@@ -626,7 +616,7 @@ class TestGetErrorStatistics:
         with patch.object(db, "get_async_session", return_value=mock_session):
             stats = await db.get_error_statistics(
                 start_date=datetime.now(UTC) - timedelta(days=1),
-                end_date=datetime.now(UTC)
+                end_date=datetime.now(UTC),
             )
             assert "rate_limit" in stats["api_errors"]
             assert stats["critical_errors"] == 5
@@ -687,7 +677,7 @@ class TestGetScanStatistics:
         with patch.object(db, "get_async_session", return_value=mock_session):
             stats = await db.get_scan_statistics(
                 start_date=datetime.now(UTC) - timedelta(days=1),
-                end_date=datetime.now(UTC)
+                end_date=datetime.now(UTC),
             )
             assert stats["scans_performed"] == 50
             assert stats["opportunities_found"] == 150
@@ -708,7 +698,7 @@ class TestGetScanStatistics:
         with patch.object(db, "get_async_session", return_value=mock_session):
             stats = await db.get_scan_statistics(
                 start_date=datetime.now(UTC) - timedelta(days=1),
-                end_date=datetime.now(UTC)
+                end_date=datetime.now(UTC),
             )
             assert stats == {}
 
@@ -797,7 +787,9 @@ class TestCacheManagement:
         """Test getting cache statistics."""
         db = DatabaseManager("sqlite:///:memory:")
 
-        with patch("src.utils.database.get_all_cache_stats", new_callable=AsyncMock) as mock_stats:
+        with patch(
+            "src.utils.database.get_all_cache_stats", new_callable=AsyncMock
+        ) as mock_stats:
             mock_stats.return_value = {"hits": 100, "misses": 10}
             stats = await db.get_cache_stats()
             assert stats["hits"] == 100
@@ -835,13 +827,13 @@ class TestBatchOperations:
                 "item_id": "item1",
                 "game": "csgo",
                 "item_name": "AK-47",
-                "price_usd": 15.50
+                "price_usd": 15.50,
             },
             {
                 "item_id": "item2",
                 "game": "csgo",
                 "item_name": "M4A1-S",
-                "price_usd": 12.00
+                "price_usd": 12.00,
             },
         ]
 
@@ -997,9 +989,7 @@ class TestIntegration:
             await db.log_command(user.id, "/scan", {"game": "csgo"})
 
             # Save market data
-            await db.save_market_data(
-                "item1", "csgo", "AK-47", 15.50
-            )
+            await db.save_market_data("item1", "csgo", "AK-47", 15.50)
 
     @pytest.mark.asyncio()
     async def test_statistics_workflow(self):

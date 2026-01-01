@@ -83,10 +83,14 @@ class PortfolioHandler:
         keyboard = [
             [
                 InlineKeyboardButton("📊 Details", callback_data="portfolio:details"),
-                InlineKeyboardButton("📈 Performance", callback_data="portfolio:performance"),
+                InlineKeyboardButton(
+                    "📈 Performance", callback_data="portfolio:performance"
+                ),
             ],
             [
-                InlineKeyboardButton("🎯 Risk Analysis", callback_data="portfolio:risk"),
+                InlineKeyboardButton(
+                    "🎯 Risk Analysis", callback_data="portfolio:risk"
+                ),
                 InlineKeyboardButton(
                     "🔀 Diversification", callback_data="portfolio:diversification"
                 ),
@@ -96,7 +100,9 @@ class PortfolioHandler:
                 InlineKeyboardButton("🔄 Sync", callback_data="portfolio:sync"),
             ],
             [
-                InlineKeyboardButton("💰 Update Prices", callback_data="portfolio:update_prices"),
+                InlineKeyboardButton(
+                    "💰 Update Prices", callback_data="portfolio:update_prices"
+                ),
             ],
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -334,7 +340,9 @@ class PortfolioHandler:
             lines.append(f"  {game.upper()}: {pct:.1f}%")
 
         lines.append("\n*By Category:*")
-        for cat, pct in sorted(report.by_category.items(), key=operator.itemgetter(1), reverse=True)[:5]:
+        for cat, pct in sorted(
+            report.by_category.items(), key=operator.itemgetter(1), reverse=True
+        )[:5]:
             lines.append(f"  {cat}: {pct:.1f}%")
 
         lines.append("\n*Recommendations:*")
@@ -433,10 +441,14 @@ class PortfolioHandler:
         keyboard = [
             [
                 InlineKeyboardButton("📊 Details", callback_data="portfolio:details"),
-                InlineKeyboardButton("📈 Performance", callback_data="portfolio:performance"),
+                InlineKeyboardButton(
+                    "📈 Performance", callback_data="portfolio:performance"
+                ),
             ],
             [
-                InlineKeyboardButton("🎯 Risk Analysis", callback_data="portfolio:risk"),
+                InlineKeyboardButton(
+                    "🎯 Risk Analysis", callback_data="portfolio:risk"
+                ),
                 InlineKeyboardButton(
                     "🔀 Diversification", callback_data="portfolio:diversification"
                 ),
@@ -446,7 +458,9 @@ class PortfolioHandler:
                 InlineKeyboardButton("🔄 Sync", callback_data="portfolio:sync"),
             ],
             [
-                InlineKeyboardButton("💰 Update Prices", callback_data="portfolio:update_prices"),
+                InlineKeyboardButton(
+                    "💰 Update Prices", callback_data="portfolio:update_prices"
+                ),
             ],
         ]
 

@@ -9,7 +9,6 @@ This module contains tests for src/dmarket/api/cache.py covering:
 Target: 20+ tests to achieve 70%+ coverage of cache.py
 """
 
-
 from src.dmarket.api.cache import (
     CACHE_TTL,
     clear_cache,
@@ -143,7 +142,9 @@ class TestIsCacheable:
     def test_is_cacheable_get_aggregated_prices(self):
         """Test that aggregated prices endpoint is cacheable with medium TTL."""
         # Act
-        is_cache, ttl_type = is_cacheable("GET", "/exchange/v1/market/aggregated-prices")
+        is_cache, ttl_type = is_cacheable(
+            "GET", "/exchange/v1/market/aggregated-prices"
+        )
 
         # Assert
         assert is_cache is True
@@ -350,13 +351,7 @@ class TestCacheEdgeCases:
         """Test caching nested data structures."""
         # Arrange
         cache_key = "test:nested"
-        data = {
-            "level1": {
-                "level2": {
-                    "level3": [1, 2, 3]
-                }
-            }
-        }
+        data = {"level1": {"level2": {"level3": [1, 2, 3]}}}
 
         # Act
         save_to_cache(cache_key, data)

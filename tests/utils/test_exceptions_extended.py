@@ -465,7 +465,9 @@ class TestDMarketSpecificError:
 
     def test_init(self):
         """Test initialization."""
-        exc = DMarketSpecificError("DMarket error", status_code=400, error_code="ITEM_SOLD")
+        exc = DMarketSpecificError(
+            "DMarket error", status_code=400, error_code="ITEM_SOLD"
+        )
         assert exc.status_code == 400
         assert exc._error_code == "ITEM_SOLD"
 
@@ -481,7 +483,9 @@ class TestDMarketSpecificError:
 
     def test_error_code_property_from_error_code_key(self):
         """Test error_code property when set via error_code key in details."""
-        exc = DMarketSpecificError("Error", response_data={"error_code": "FROM_ERROR_CODE"})
+        exc = DMarketSpecificError(
+            "Error", response_data={"error_code": "FROM_ERROR_CODE"}
+        )
         assert exc.error_code == "FROM_ERROR_CODE"
 
     def test_error_code_property_from_error_key(self):
@@ -598,7 +602,9 @@ class TestDMarketErrorMapping:
 
     def test_temporary_unavailable_mapping(self):
         """Test TemporaryUnavailable maps to TemporaryUnavailableError."""
-        assert DMARKET_ERROR_MAPPING["TemporaryUnavailable"] == TemporaryUnavailableError
+        assert (
+            DMARKET_ERROR_MAPPING["TemporaryUnavailable"] == TemporaryUnavailableError
+        )
 
 
 # TestCategorizeError

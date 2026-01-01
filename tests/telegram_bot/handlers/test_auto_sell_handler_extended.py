@@ -53,22 +53,28 @@ def mock_auto_seller():
     """Create mock AutoSeller instance."""
     seller = MagicMock()
     seller.is_enabled = True
-    seller.get_stats = MagicMock(return_value={
-        "total_sales": 10,
-        "total_profit": 150.50,
-        "active_sales": 3,
-        "pending_sales": 2,
-    })
-    seller.get_config = MagicMock(return_value={
-        "min_profit_percent": 5.0,
-        "max_price": 100.0,
-        "min_price": 1.0,
-        "hold_time_hours": 24,
-    })
-    seller.get_active_sales = MagicMock(return_value=[
-        {"item_id": "item1", "title": "Test Item 1", "price": 10.0, "profit": 2.0},
-        {"item_id": "item2", "title": "Test Item 2", "price": 20.0, "profit": 4.0},
-    ])
+    seller.get_stats = MagicMock(
+        return_value={
+            "total_sales": 10,
+            "total_profit": 150.50,
+            "active_sales": 3,
+            "pending_sales": 2,
+        }
+    )
+    seller.get_config = MagicMock(
+        return_value={
+            "min_profit_percent": 5.0,
+            "max_price": 100.0,
+            "min_price": 1.0,
+            "hold_time_hours": 24,
+        }
+    )
+    seller.get_active_sales = MagicMock(
+        return_value=[
+            {"item_id": "item1", "title": "Test Item 1", "price": 10.0, "profit": 2.0},
+            {"item_id": "item2", "title": "Test Item 2", "price": 20.0, "profit": 4.0},
+        ]
+    )
     seller.cancel_sale = AsyncMock(return_value=True)
     seller.toggle = MagicMock()
     seller.set_config = MagicMock()
@@ -117,7 +123,9 @@ class TestHandleAutoSellCommand:
         await handler.handle_auto_sell_command(update, mock_context)
 
     @pytest.mark.asyncio()
-    async def test_command_shows_menu(self, mock_update, mock_context, mock_auto_seller):
+    async def test_command_shows_menu(
+        self, mock_update, mock_context, mock_auto_seller
+    ):
         """Test that command shows menu with buttons."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -131,7 +139,9 @@ class TestHandleAutoSellCommand:
         assert call_args[1].get("reply_markup") is not None
 
     @pytest.mark.asyncio()
-    async def test_command_shows_enabled_status(self, mock_update, mock_context, mock_auto_seller):
+    async def test_command_shows_enabled_status(
+        self, mock_update, mock_context, mock_auto_seller
+    ):
         """Test that command shows enabled status."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -145,7 +155,9 @@ class TestHandleAutoSellCommand:
         assert "Enabled" in call_args[0][0] or "✅" in call_args[0][0]
 
     @pytest.mark.asyncio()
-    async def test_command_shows_disabled_status(self, mock_update, mock_context, mock_auto_seller):
+    async def test_command_shows_disabled_status(
+        self, mock_update, mock_context, mock_auto_seller
+    ):
         """Test that command shows disabled status."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -163,7 +175,9 @@ class TestHandleCallback:
     """Tests for callback handling."""
 
     @pytest.mark.asyncio()
-    async def test_status_callback(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_status_callback(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test status callback."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -175,7 +189,9 @@ class TestHandleCallback:
         mock_callback_update.callback_query.answer.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_config_callback(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_config_callback(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test config callback."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -187,7 +203,9 @@ class TestHandleCallback:
         mock_callback_update.callback_query.answer.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_toggle_callback(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_toggle_callback(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test toggle callback."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -199,7 +217,9 @@ class TestHandleCallback:
         mock_callback_update.callback_query.answer.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_active_sales_callback(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_active_sales_callback(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test active sales callback."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -211,7 +231,9 @@ class TestHandleCallback:
         mock_callback_update.callback_query.answer.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_cancel_menu_callback(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_cancel_menu_callback(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test cancel menu callback."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -223,7 +245,9 @@ class TestHandleCallback:
         mock_callback_update.callback_query.answer.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_cancel_specific_item_callback(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_cancel_specific_item_callback(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test cancel specific item callback."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -235,7 +259,9 @@ class TestHandleCallback:
         mock_callback_update.callback_query.answer.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_unknown_callback(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_unknown_callback(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test unknown callback data."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -251,7 +277,9 @@ class TestStatusDisplay:
     """Tests for status display functionality."""
 
     @pytest.mark.asyncio()
-    async def test_display_stats(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_display_stats(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test displaying statistics."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -264,7 +292,9 @@ class TestStatusDisplay:
         mock_auto_seller.get_stats.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_display_empty_stats(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_display_empty_stats(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test displaying empty statistics."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -286,7 +316,9 @@ class TestConfigManagement:
     """Tests for configuration management."""
 
     @pytest.mark.asyncio()
-    async def test_display_config(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_display_config(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test displaying configuration."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -298,7 +330,9 @@ class TestConfigManagement:
         mock_auto_seller.get_config.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_config_shows_all_params(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_config_shows_all_params(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test that config shows all parameters."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -312,14 +346,19 @@ class TestConfigManagement:
         if call_args:
             text = call_args[0][0] if call_args[0] else call_args[1].get("text", "")
             # Config should contain price-related text
-            assert any(keyword in text.lower() for keyword in ["config", "price", "profit", "settings"])
+            assert any(
+                keyword in text.lower()
+                for keyword in ["config", "price", "profit", "settings"]
+            )
 
 
 class TestActiveSalesManagement:
     """Tests for active sales management."""
 
     @pytest.mark.asyncio()
-    async def test_display_active_sales(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_display_active_sales(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test displaying active sales."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -331,7 +370,9 @@ class TestActiveSalesManagement:
         mock_auto_seller.get_active_sales.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_display_empty_active_sales(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_display_empty_active_sales(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test displaying empty active sales."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -348,7 +389,9 @@ class TestToggleFunctionality:
     """Tests for toggle functionality."""
 
     @pytest.mark.asyncio()
-    async def test_toggle_enables_auto_sell(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_toggle_enables_auto_sell(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test toggling enables auto-sell."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -361,7 +404,9 @@ class TestToggleFunctionality:
         mock_auto_seller.toggle.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_toggle_disables_auto_sell(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_toggle_disables_auto_sell(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test toggling disables auto-sell."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -378,7 +423,9 @@ class TestCancelSaleFunctionality:
     """Tests for cancel sale functionality."""
 
     @pytest.mark.asyncio()
-    async def test_cancel_sale_success(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_cancel_sale_success(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test successful sale cancellation."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -391,7 +438,9 @@ class TestCancelSaleFunctionality:
         mock_auto_seller.cancel_sale.assert_called_with("item1")
 
     @pytest.mark.asyncio()
-    async def test_cancel_sale_failure(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_cancel_sale_failure(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test failed sale cancellation."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -421,7 +470,9 @@ class TestEdgeCases:
         mock_update.message.reply_text.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_callback_without_auto_seller(self, mock_callback_update, mock_context):
+    async def test_callback_without_auto_seller(
+        self, mock_callback_update, mock_context
+    ):
         """Test callback when auto_seller is not set."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -434,7 +485,9 @@ class TestEdgeCases:
         mock_callback_update.callback_query.answer.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_invalid_callback_data(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_invalid_callback_data(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test invalid callback data format."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -448,7 +501,9 @@ class TestEdgeCases:
             pass  # Some handlers may raise, that's acceptable
 
     @pytest.mark.asyncio()
-    async def test_callback_with_empty_data(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_callback_with_empty_data(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test callback with empty data."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -466,7 +521,9 @@ class TestKeyboardGeneration:
     """Tests for keyboard generation."""
 
     @pytest.mark.asyncio()
-    async def test_main_menu_keyboard(self, mock_update, mock_context, mock_auto_seller):
+    async def test_main_menu_keyboard(
+        self, mock_update, mock_context, mock_auto_seller
+    ):
         """Test main menu keyboard generation."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 
@@ -481,7 +538,9 @@ class TestKeyboardGeneration:
         assert isinstance(reply_markup, InlineKeyboardMarkup)
 
     @pytest.mark.asyncio()
-    async def test_cancel_menu_keyboard(self, mock_callback_update, mock_context, mock_auto_seller):
+    async def test_cancel_menu_keyboard(
+        self, mock_callback_update, mock_context, mock_auto_seller
+    ):
         """Test cancel menu keyboard generation."""
         from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
 

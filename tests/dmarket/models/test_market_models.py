@@ -5,7 +5,6 @@ including enums, price models, account models, market items,
 offers, targets, and other entities.
 """
 
-
 # ==================== ENUM TESTS ====================
 
 
@@ -263,7 +262,7 @@ class TestBalanceModel:
             usd="10000",
             usdAvailableToWithdraw="8000",
             dmc="500",
-            dmcAvailableToWithdraw="400"
+            dmcAvailableToWithdraw="400",
         )
 
         assert balance.dmc == "500"
@@ -281,7 +280,7 @@ class TestUserProfileModel:
             id="user123",
             username="testuser",
             email="test@example.com",
-            isEmailVerified=True
+            isEmailVerified=True,
         )
 
         assert profile.id == "user123"
@@ -299,7 +298,7 @@ class TestUserProfileModel:
             email="test@example.com",
             isEmailVerified=False,
             countryCode="US",
-            publicKey="pubkey123"
+            publicKey="pubkey123",
         )
 
         assert profile.countryCode == "US"
@@ -320,7 +319,7 @@ class TestMarketItemModel:
             itemId="item123",
             title="AK-47 | Redline",
             price={"USD": "1234"},
-            gameId="a8db"
+            gameId="a8db",
         )
 
         assert item.itemId == "item123"
@@ -332,10 +331,7 @@ class TestMarketItemModel:
         from src.dmarket.models.market_models import MarketItem
 
         item = MarketItem(
-            itemId="item123",
-            title="Test Item",
-            price={"USD": "12.34"},
-            gameId="a8db"
+            itemId="item123", title="Test Item", price={"USD": "12.34"}, gameId="a8db"
         )
 
         assert item.price_usd == 12.34
@@ -348,7 +344,7 @@ class TestMarketItemModel:
             itemId="item123",
             title="Test Item",
             price={"USD": {"amount": 1234}},
-            gameId="a8db"
+            gameId="a8db",
         )
 
         assert item.price_usd == 12.34
@@ -358,10 +354,7 @@ class TestMarketItemModel:
         from src.dmarket.models.market_models import MarketItem
 
         item = MarketItem(
-            itemId="item123",
-            title="Test Item",
-            price={"USD": "invalid"},
-            gameId="a8db"
+            itemId="item123", title="Test Item", price={"USD": "invalid"}, gameId="a8db"
         )
 
         assert item.price_usd == 0.0
@@ -375,7 +368,7 @@ class TestMarketItemModel:
             title="Test Item",
             price={"USD": "1234"},
             gameId="a8db",
-            suggestedPrice={"USD": "1500"}
+            suggestedPrice={"USD": "1500"},
         )
 
         assert item.suggested_price_usd == 15.0
@@ -385,10 +378,7 @@ class TestMarketItemModel:
         from src.dmarket.models.market_models import MarketItem
 
         item = MarketItem(
-            itemId="item123",
-            title="Test Item",
-            price={"USD": "1234"},
-            gameId="a8db"
+            itemId="item123", title="Test Item", price={"USD": "1234"}, gameId="a8db"
         )
 
         assert item.suggested_price_usd == 0.0
@@ -401,7 +391,7 @@ class TestMarketItemModel:
             "itemId": "item456",
             "title": "AWP | Dragon Lore",
             "price": {"USD": "100000"},
-            "gameId": "a8db"
+            "gameId": "a8db",
         }
 
         item = MarketItem.from_dict(data)
@@ -423,7 +413,7 @@ class TestMarketItemModel:
             tradable=True,
             type="weapon",
             tags=["rare", "special"],
-            extra={"exterior": "Factory New"}
+            extra={"exterior": "Factory New"},
         )
 
         assert item.image == "https://example.com/image.png"
@@ -443,7 +433,7 @@ class TestMarketItemsResponseModel:
 
         items = [
             MarketItem(itemId="1", title="Item 1", price={"USD": "100"}, gameId="a8db"),
-            MarketItem(itemId="2", title="Item 2", price={"USD": "200"}, gameId="a8db")
+            MarketItem(itemId="2", title="Item 2", price={"USD": "200"}, gameId="a8db"),
         ]
 
         response = MarketItemsResponse(objects=items, total=2)
@@ -477,7 +467,7 @@ class TestOfferModel:
             Title="Test Offer",
             GameID="a8db",
             price={"USD": "1000"},
-            status="OfferStatusActive"
+            status="OfferStatusActive",
         )
 
         assert offer.OfferID == "offer123"
@@ -496,11 +486,7 @@ class TestTargetAttrsModel:
         """Test creating TargetAttrs."""
         from src.dmarket.models.market_models import TargetAttrs
 
-        attrs = TargetAttrs(
-            paintSeed=123,
-            phase="Phase 2",
-            floatPartValue="0.01"
-        )
+        attrs = TargetAttrs(paintSeed=123, phase="Phase 2", floatPartValue="0.01")
 
         assert attrs.paintSeed == 123
         assert attrs.phase == "Phase 2"
@@ -524,11 +510,7 @@ class TestTargetModel:
         """Test creating Target."""
         from src.dmarket.models.market_models import Target
 
-        target = Target(
-            Title="AK-47 | Redline",
-            Amount="5",
-            price={"USD": "1000"}
-        )
+        target = Target(Title="AK-47 | Redline", Amount="5", price={"USD": "1000"})
 
         assert target.Title == "AK-47 | Redline"
         assert target.Amount == "5"
@@ -545,7 +527,7 @@ class TestTargetModel:
             Amount="1",
             price={"USD": "5000000"},
             Attrs=attrs,
-            status="TargetStatusActive"
+            status="TargetStatusActive",
         )
 
         assert target.TargetID == "target123"
@@ -562,7 +544,7 @@ class TestCreateTargetRequestModel:
 
         targets = [
             Target(Title="Item 1", Amount="1", price={"USD": "100"}),
-            Target(Title="Item 2", Amount="2", price={"USD": "200"})
+            Target(Title="Item 2", Amount="2", price={"USD": "200"}),
         ]
 
         request = CreateTargetRequest(GameID="a8db", Targets=targets)
@@ -586,7 +568,7 @@ class TestAggregatedPriceModel:
             orderBestPrice="900",
             orderCount=10,
             offerBestPrice="1000",
-            offerCount=5
+            offerCount=5,
         )
 
         assert agg.title == "Test Item"
@@ -602,7 +584,7 @@ class TestAggregatedPriceModel:
             orderBestPrice="900",
             orderCount=10,
             offerBestPrice="1000",
-            offerCount=5
+            offerCount=5,
         )
 
         assert agg.order_price_usd == 9.0
@@ -616,7 +598,7 @@ class TestAggregatedPriceModel:
             orderBestPrice="900",
             orderCount=10,
             offerBestPrice="1000",
-            offerCount=5
+            offerCount=5,
         )
 
         assert agg.offer_price_usd == 10.0
@@ -630,7 +612,7 @@ class TestAggregatedPriceModel:
             orderBestPrice="900",
             orderCount=10,
             offerBestPrice="1000",
-            offerCount=5
+            offerCount=5,
         )
 
         assert agg.spread_usd == 1.0
@@ -644,7 +626,7 @@ class TestAggregatedPriceModel:
             orderBestPrice="900",
             orderCount=10,
             offerBestPrice="1000",
-            offerCount=5
+            offerCount=5,
         )
 
         assert abs(agg.spread_percent - 11.11) < 0.1
@@ -658,7 +640,7 @@ class TestAggregatedPriceModel:
             orderBestPrice="0",
             orderCount=0,
             offerBestPrice="1000",
-            offerCount=5
+            offerCount=5,
         )
 
         assert agg.spread_percent == 0.0
@@ -669,7 +651,10 @@ class TestAggregatedPricesResponseModel:
 
     def test_aggregated_prices_response(self):
         """Test creating AggregatedPricesResponse."""
-        from src.dmarket.models.market_models import AggregatedPrice, AggregatedPricesResponse
+        from src.dmarket.models.market_models import (
+            AggregatedPrice,
+            AggregatedPricesResponse,
+        )
 
         prices = [
             AggregatedPrice(
@@ -677,7 +662,7 @@ class TestAggregatedPricesResponseModel:
                 orderBestPrice="100",
                 orderCount=5,
                 offerBestPrice="120",
-                offerCount=3
+                offerCount=3,
             )
         ]
 
@@ -697,11 +682,7 @@ class TestTargetOrderModel:
         """Test creating TargetOrder."""
         from src.dmarket.models.market_models import TargetOrder
 
-        order = TargetOrder(
-            amount=5,
-            price="1000",
-            title="Test Item"
-        )
+        order = TargetOrder(amount=5, price="1000", title="Test Item")
 
         assert order.amount == 5
         assert order.price == "1000"
@@ -731,7 +712,7 @@ class TestTargetOrderModel:
             amount=1,
             price="50000",
             title="Karambit",
-            attributes={"phase": "Ruby", "exterior": "Factory New"}
+            attributes={"phase": "Ruby", "exterior": "Factory New"},
         )
 
         assert order.attributes["phase"] == "Ruby"
@@ -748,9 +729,7 @@ class TestOfferByTitleModel:
         from src.dmarket.models.market_models import MarketPrice, OfferByTitle
 
         offer = OfferByTitle(
-            offerId="offer123",
-            price=MarketPrice(USD="1234"),
-            title="Test Item"
+            offerId="offer123", price=MarketPrice(USD="1234"), title="Test Item"
         )
 
         assert offer.offerId == "offer123"
@@ -761,9 +740,7 @@ class TestOfferByTitleModel:
         from src.dmarket.models.market_models import MarketPrice, OfferByTitle
 
         offer = OfferByTitle(
-            offerId="offer123",
-            price=MarketPrice(USD="1234"),
-            title="Test Item"
+            offerId="offer123", price=MarketPrice(USD="1234"), title="Test Item"
         )
 
         assert offer.price_usd_float == 12.34
@@ -773,9 +750,7 @@ class TestOfferByTitleModel:
         from src.dmarket.models.market_models import MarketPrice, OfferByTitle
 
         offer = OfferByTitle(
-            offerId="offer123",
-            price=MarketPrice(USD="invalid"),
-            title="Test Item"
+            offerId="offer123", price=MarketPrice(USD="invalid"), title="Test Item"
         )
 
         assert offer.price_usd_float == 0.0
@@ -792,10 +767,7 @@ class TestInventoryItemModel:
         from src.dmarket.models.market_models import InventoryItem
 
         item = InventoryItem(
-            ItemID="item123",
-            AssetID="asset456",
-            Title="Test Item",
-            GameID="a8db"
+            ItemID="item123", AssetID="asset456", Title="Test Item", GameID="a8db"
         )
 
         assert item.ItemID == "item123"
@@ -814,7 +786,7 @@ class TestInventoryItemModel:
             Title="Test Item",
             GameID="a8db",
             Price=Price(Amount=1000),
-            InMarket=True
+            InMarket=True,
         )
 
         assert item.Price.Amount == 1000
@@ -826,11 +798,12 @@ class TestUserInventoryResponseModel:
 
     def test_user_inventory_response(self):
         """Test creating UserInventoryResponse."""
-        from src.dmarket.models.market_models import InventoryItem, UserInventoryResponse
+        from src.dmarket.models.market_models import (
+            InventoryItem,
+            UserInventoryResponse,
+        )
 
-        items = [
-            InventoryItem(ItemID="1", AssetID="a1", Title="Item 1", GameID="a8db")
-        ]
+        items = [InventoryItem(ItemID="1", AssetID="a1", Title="Item 1", GameID="a8db")]
 
         response = UserInventoryResponse(Items=items, Total="1")
 
@@ -848,11 +821,7 @@ class TestBuyItemResponseModel:
         """Test creating BuyItemResponse."""
         from src.dmarket.models.market_models import BuyItemResponse
 
-        response = BuyItemResponse(
-            orderId="order123",
-            status="success",
-            txId="tx456"
-        )
+        response = BuyItemResponse(orderId="order123", status="success", txId="tx456")
 
         assert response.orderId == "order123"
         assert response.status == "success"
@@ -883,10 +852,7 @@ class TestSalesHistoryModel:
         """Test creating SalesHistory."""
         from src.dmarket.models.market_models import SalesHistory
 
-        sale = SalesHistory(
-            price="1234",
-            date="2024-01-15T12:00:00Z"
-        )
+        sale = SalesHistory(price="1234", date="2024-01-15T12:00:00Z")
 
         assert sale.price == "1234"
         assert sale.date == "2024-01-15T12:00:00Z"
@@ -934,7 +900,7 @@ class TestSalesHistoryModel:
         data = {
             "price": "5000",
             "date": "2024-02-01T10:30:00",
-            "txOperationType": "BUY"
+            "txOperationType": "BUY",
         }
 
         sale = SalesHistory.from_dict(data)
@@ -953,10 +919,7 @@ class TestDepositAssetModel:
         """Test creating DepositAsset."""
         from src.dmarket.models.market_models import DepositAsset
 
-        asset = DepositAsset(
-            InGameAssetID="ingame123",
-            DmarketAssetID="dmarket456"
-        )
+        asset = DepositAsset(InGameAssetID="ingame123", DmarketAssetID="dmarket456")
 
         assert asset.InGameAssetID == "ingame123"
         assert asset.DmarketAssetID == "dmarket456"
@@ -972,7 +935,7 @@ class TestDepositStatusModel:
         status = DepositStatus(
             DepositID="deposit123",
             AssetID=["asset1", "asset2"],
-            status=TransferStatus.PENDING
+            status=TransferStatus.PENDING,
         )
 
         assert status.DepositID == "deposit123"
@@ -1065,12 +1028,7 @@ class TestEdgeCases:
         """Test MarketItem with empty price dict."""
         from src.dmarket.models.market_models import MarketItem
 
-        item = MarketItem(
-            itemId="item123",
-            title="Test",
-            price={},
-            gameId="a8db"
-        )
+        item = MarketItem(itemId="item123", title="Test", price={}, gameId="a8db")
 
         assert item.price_usd == 0.0
 
@@ -1082,7 +1040,7 @@ class TestEdgeCases:
             itemId="item123",
             title="АК-47 | Рулон",  # Russian text
             price={"USD": "1000"},
-            gameId="a8db"
+            gameId="a8db",
         )
 
         assert "АК-47" in item.title

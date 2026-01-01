@@ -108,7 +108,9 @@ class TestAttributesModel:
     def test_attributes_model_basic(self):
         """Test AttributesModel with basic attributes."""
         # Act
-        attrs = AttributesModel(category="Rifle", exterior="Field-Tested", rarity="Covert")
+        attrs = AttributesModel(
+            category="Rifle", exterior="Field-Tested", rarity="Covert"
+        )
 
         # Assert
         assert attrs.category == "Rifle"
@@ -118,11 +120,13 @@ class TestAttributesModel:
     def test_attributes_model_with_alias(self):
         """Test AttributesModel with alias fields."""
         # Act
-        attrs = AttributesModel.model_validate({
-            "category": "Knife",
-            "floatValue": "0.15",
-            "paintSeed": 123,
-        })
+        attrs = AttributesModel.model_validate(
+            {
+                "category": "Knife",
+                "floatValue": "0.15",
+                "paintSeed": 123,
+            }
+        )
 
         # Assert
         assert attrs.float_value == "0.15"
@@ -131,10 +135,12 @@ class TestAttributesModel:
     def test_attributes_model_extra_fields(self):
         """Test AttributesModel allows extra fields."""
         # Act
-        attrs = AttributesModel.model_validate({
-            "category": "Rifle",
-            "customField": "custom_value",
-        })
+        attrs = AttributesModel.model_validate(
+            {
+                "category": "Rifle",
+                "customField": "custom_value",
+            }
+        )
 
         # Assert
         assert attrs.category == "Rifle"

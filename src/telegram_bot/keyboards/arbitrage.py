@@ -49,14 +49,18 @@ def get_modern_arbitrage_keyboard() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="🔬 Глубокий скан", callback_data="arb_deep"),
         ],
         [
-            InlineKeyboardButton(text="📈 Анализ рынка", callback_data="arb_market_analysis"),
+            InlineKeyboardButton(
+                text="📈 Анализ рынка", callback_data="arb_market_analysis"
+            ),
         ],
         [
             InlineKeyboardButton(text="🎯 Создать таргет", callback_data="arb_target"),
             InlineKeyboardButton(text="📊 Статистика", callback_data="arb_stats"),
         ],
         [
-            InlineKeyboardButton(text="🔄 Сравнить площадки", callback_data="arb_compare"),
+            InlineKeyboardButton(
+                text="🔄 Сравнить площадки", callback_data="arb_compare"
+            ),
         ],
         [
             InlineKeyboardButton(text="◀️ Главное меню", callback_data="main_menu"),
@@ -120,7 +124,9 @@ def create_arbitrage_keyboard(
         )
 
     if include_auto:
-        keyboard.append([InlineKeyboardButton(text="🤖 Авто", callback_data="arb_auto")])
+        keyboard.append(
+            [InlineKeyboardButton(text="🤖 Авто", callback_data="arb_auto")]
+        )
 
     keyboard.append([InlineKeyboardButton(text="◀️ Назад", callback_data=CB_BACK)])
 

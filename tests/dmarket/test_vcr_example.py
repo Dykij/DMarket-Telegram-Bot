@@ -151,7 +151,9 @@ class TestVCRAsync:
             import httpx
 
             async with httpx.AsyncClient() as client:
-                response = await client.get("https://api.dmarket.com/account/v1/balance")
+                response = await client.get(
+                    "https://api.dmarket.com/account/v1/balance"
+                )
                 assert response.status_code in {200, 401}
 
 

@@ -14,7 +14,9 @@ from tests.conftest import LogAssertions, generate_test_item_data
 class TestLoggingFixtures:
     """Тесты для фикстур управления логами."""
 
-    def test_suppress_logs_fixture(self, suppress_logs: None, caplog: pytest.LogCaptureFixture) -> None:
+    def test_suppress_logs_fixture(
+        self, suppress_logs: None, caplog: pytest.LogCaptureFixture
+    ) -> None:
         """Проверяет что фикстура suppress_logs подавляет логи."""
         logger = logging.getLogger("test_logger")
         logger.info("This should not appear")

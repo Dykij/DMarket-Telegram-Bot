@@ -278,7 +278,9 @@ async def test_handle_text_buttons_arbitrage_button(mock_update, mock_context):
 
 @pytest.mark.asyncio()
 @patch("src.telegram_bot.handlers.commands.dmarket_status_impl")
-async def test_handle_text_buttons_balance_button(mock_dmarket_status, mock_update, mock_context):
+async def test_handle_text_buttons_balance_button(
+    mock_dmarket_status, mock_update, mock_context
+):
     """Тест: текстовая кнопка '📊 Баланс' вызывает dmarket_status_impl."""
     mock_dmarket_status.return_value = AsyncMock()
     mock_update.message.text = "📊 Баланс"
@@ -411,9 +413,9 @@ async def test_all_commands_use_html_parse_mode(mock_update, mock_context):
 
         # Проверка: хотя бы один вызов с ParseMode.HTML
         calls = mock_update.message.reply_text.call_args_list
-        assert any(call[1].get("parse_mode") == ParseMode.HTML for call in calls), (
-            f"{command_func.__name__} не использует ParseMode.HTML"
-        )
+        assert any(
+            call[1].get("parse_mode") == ParseMode.HTML for call in calls
+        ), f"{command_func.__name__} не использует ParseMode.HTML"
 
 
 @pytest.mark.asyncio()
@@ -437,9 +439,9 @@ async def test_all_commands_send_reply_markup(mock_update, mock_context):
 
         # Проверка: хотя бы один вызов с reply_markup
         calls = mock_update.message.reply_text.call_args_list
-        assert any("reply_markup" in call[1] for call in calls), (
-            f"{command_func.__name__} не отправляет reply_markup"
-        )
+        assert any(
+            "reply_markup" in call[1] for call in calls
+        ), f"{command_func.__name__} не отправляет reply_markup"
 
 
 # ============================================================================

@@ -319,7 +319,9 @@ class TestGetAggregatedPricesBulk:
     """Tests for get_aggregated_prices_bulk method."""
 
     @pytest.mark.asyncio()
-    async def test_get_aggregated_prices_bulk_single_title(self, market_mixin, mock_request):
+    async def test_get_aggregated_prices_bulk_single_title(
+        self, market_mixin, mock_request
+    ):
         """Test get_aggregated_prices_bulk with single title."""
         # Arrange
         mock_request.return_value = {"objects": [{"title": "AK-47", "price": 1500}]}
@@ -332,7 +334,9 @@ class TestGetAggregatedPricesBulk:
         mock_request.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_get_aggregated_prices_bulk_multiple_titles(self, market_mixin, mock_request):
+    async def test_get_aggregated_prices_bulk_multiple_titles(
+        self, market_mixin, mock_request
+    ):
         """Test get_aggregated_prices_bulk with multiple titles."""
         # Arrange
         mock_request.return_value = {
@@ -352,7 +356,9 @@ class TestGetAggregatedPricesBulk:
         assert result is not None
 
     @pytest.mark.asyncio()
-    async def test_get_aggregated_prices_bulk_empty_titles(self, market_mixin, mock_request):
+    async def test_get_aggregated_prices_bulk_empty_titles(
+        self, market_mixin, mock_request
+    ):
         """Test get_aggregated_prices_bulk with empty titles list."""
         # Act
         result = await market_mixin.get_aggregated_prices_bulk(titles=[])
@@ -459,7 +465,9 @@ class TestMarketOperationsEdgeCases:
         assert result["total"] == "0"
 
     @pytest.mark.asyncio()
-    async def test_get_market_items_with_error_response(self, market_mixin, mock_request):
+    async def test_get_market_items_with_error_response(
+        self, market_mixin, mock_request
+    ):
         """Test handling of error response."""
         # Arrange
         mock_request.return_value = {"error": True, "message": "Server error"}
@@ -479,7 +487,9 @@ class TestMarketOperationsEdgeCases:
         mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        result = await market_mixin.get_market_items(title="AK-47 | Redline (Field-Tested)")
+        result = await market_mixin.get_market_items(
+            title="AK-47 | Redline (Field-Tested)"
+        )
 
         # Assert
         call_args = mock_request.call_args
@@ -572,7 +582,7 @@ class TestGetAllMarketItems:
         assert mock_request.call_count == 1
 
 
-class TestListMarketItems:
+class TestListMarketItemsExtended:
     """Tests for list_market_items method."""
 
     @pytest.mark.asyncio()
@@ -613,10 +623,12 @@ class TestListMarketItems:
         assert call_args[1]["params"]["sort"] == "price_desc"
 
 
-class TestGetMarketBestOffers:
+class TestGetMarketBestOffersExtended:
     """Tests for get_market_best_offers method."""
 
-    @pytest.mark.skip(reason="get_market_best_offers() doesn't accept 'item_ids' parameter")
+    @pytest.mark.skip(
+        reason="get_market_best_offers() doesn't accept 'item_ids' parameter"
+    )
     @pytest.mark.asyncio()
     async def test_get_best_offers_with_item_ids(self, market_mixin, mock_request):
         """Test getting best offers for specific items."""
@@ -637,7 +649,9 @@ class TestGetMarketBestOffers:
         assert "offers" in result
         mock_request.assert_called_once()
 
-    @pytest.mark.skip(reason="get_market_best_offers() doesn't accept 'item_ids' parameter")
+    @pytest.mark.skip(
+        reason="get_market_best_offers() doesn't accept 'item_ids' parameter"
+    )
     @pytest.mark.asyncio()
     async def test_get_best_offers_empty_list(self, market_mixin, mock_request):
         """Test getting best offers with empty item list."""
@@ -651,7 +665,7 @@ class TestGetMarketBestOffers:
         assert result is not None
 
 
-class TestGetAggregatedPrices:
+class TestGetAggregatedPricesExtended:
     """Tests for get_aggregated_prices method."""
 
     @pytest.mark.asyncio()
@@ -680,7 +694,9 @@ class TestGetAggregatedPrices:
         mock_request.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_get_aggregated_prices_multiple_items(self, market_mixin, mock_request):
+    async def test_get_aggregated_prices_multiple_items(
+        self, market_mixin, mock_request
+    ):
         """Test getting aggregated prices for multiple items."""
         # Arrange
         titles = ["Item 1", "Item 2", "Item 3"]
@@ -696,7 +712,7 @@ class TestGetAggregatedPrices:
         assert result is not None
 
 
-class TestGetAggregatedPricesBulk:
+class TestGetAggregatedPricesBulkExtended:
     """Tests for get_aggregated_prices_bulk method."""
 
     @pytest.mark.asyncio()
@@ -714,7 +730,9 @@ class TestGetAggregatedPricesBulk:
         mock_request.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_get_aggregated_prices_bulk_with_currency(self, market_mixin, mock_request):
+    async def test_get_aggregated_prices_bulk_with_currency(
+        self, market_mixin, mock_request
+    ):
         """Test bulk prices with custom currency."""
         # Arrange
         mock_request.return_value = {"items": []}
@@ -728,7 +746,7 @@ class TestGetAggregatedPricesBulk:
         assert call_args[1]["params"]["currency"] == "EUR"
 
 
-class TestGetMarketMeta:
+class TestGetMarketMetaExtended:
     """Tests for get_market_meta method."""
 
     @pytest.mark.asyncio()
@@ -751,7 +769,7 @@ class TestGetMarketMeta:
         mock_request.assert_called_once()
 
 
-class TestGetSalesHistoryAggregator:
+class TestGetSalesHistoryAggregatorExtended:
     """Tests for get_sales_history_aggregator method."""
 
     @pytest.mark.asyncio()
@@ -865,7 +883,9 @@ class TestMarketEdgeCases:
         assert call_args[1]["params"]["offset"] == 10000
 
     @pytest.mark.asyncio()
-    async def test_get_market_items_with_negative_price(self, market_mixin, mock_request):
+    async def test_get_market_items_with_negative_price(
+        self, market_mixin, mock_request
+    ):
         """Test market items with negative price (should be converted to 0)."""
         # Arrange
         mock_request.return_value = {"objects": [], "total": "0"}
@@ -948,7 +968,9 @@ class TestGetAllMarketItemsCorrect:
         assert len(result) == 150
 
     @pytest.mark.asyncio()
-    async def test_get_all_items_stops_on_empty_response(self, market_mixin, mock_request):
+    async def test_get_all_items_stops_on_empty_response(
+        self, market_mixin, mock_request
+    ):
         """Test that pagination stops when empty response received."""
         # Arrange
         mock_request.side_effect = [
@@ -1072,7 +1094,9 @@ class TestMarketItemsForceRefresh:
     """Tests for force_refresh functionality."""
 
     @pytest.mark.asyncio()
-    async def test_force_refresh_clears_cache(self, market_mixin, mock_request, mock_cache_clear):
+    async def test_force_refresh_clears_cache(
+        self, market_mixin, mock_request, mock_cache_clear
+    ):
         """Test that force_refresh calls cache clear."""
         # Arrange
         mock_request.return_value = {"objects": []}

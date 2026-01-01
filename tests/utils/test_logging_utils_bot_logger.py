@@ -446,7 +446,8 @@ class TestSetupLogging:
             # File handler should use JSONFormatter
             root_logger = logging.getLogger()
             file_handlers = [
-                h for h in root_logger.handlers
+                h
+                for h in root_logger.handlers
                 if isinstance(h, logging.handlers.RotatingFileHandler)
             ]
 

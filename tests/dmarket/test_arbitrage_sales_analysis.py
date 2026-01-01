@@ -48,7 +48,9 @@ class TestSalesAnalyzer:
         ]
 
         # Mock get_market_items to return item ID
-        mock_api.get_market_items = AsyncMock(return_value={"items": [{"itemId": "item123"}]})
+        mock_api.get_market_items = AsyncMock(
+            return_value={"items": [{"itemId": "item123"}]}
+        )
 
         # Mock _request to return sales data
         mock_api._request = AsyncMock(return_value={"sales": mock_sales})
@@ -81,11 +83,17 @@ class TestSalesAnalyzer:
         """Тест анализа объема продаж (высокий)."""
         # 50 продаж за 7 дней = ~7 продаж/день
         mock_sales = [
-            {"date": f"2023-11-{i:02d}T10:00:00Z", "price": {"amount": 1000}, "quantity": 1}
+            {
+                "date": f"2023-11-{i:02d}T10:00:00Z",
+                "price": {"amount": 1000},
+                "quantity": 1,
+            }
             for i in range(1, 51)
         ]
 
-        mock_api.get_market_items = AsyncMock(return_value={"items": [{"itemId": "item123"}]})
+        mock_api.get_market_items = AsyncMock(
+            return_value={"items": [{"itemId": "item123"}]}
+        )
         mock_api._request = AsyncMock(return_value={"sales": mock_sales})
 
         result = await analyzer.analyze_sales_volume(
@@ -103,11 +111,17 @@ class TestSalesAnalyzer:
         """Тест анализа объема продаж (средний)."""
         # 20 продаж за 7 дней = ~3 продажи/день
         mock_sales = [
-            {"date": f"2023-11-{i:02d}T10:00:00Z", "price": {"amount": 1000}, "quantity": 1}
+            {
+                "date": f"2023-11-{i:02d}T10:00:00Z",
+                "price": {"amount": 1000},
+                "quantity": 1,
+            }
             for i in range(1, 21)
         ]
 
-        mock_api.get_market_items = AsyncMock(return_value={"items": [{"itemId": "item123"}]})
+        mock_api.get_market_items = AsyncMock(
+            return_value={"items": [{"itemId": "item123"}]}
+        )
         mock_api._request = AsyncMock(return_value={"sales": mock_sales})
 
         result = await analyzer.analyze_sales_volume(
@@ -124,11 +138,17 @@ class TestSalesAnalyzer:
         """Тест анализа объема продаж (низкий)."""
         # 3 продажи за 7 дней = <1 продажа/день
         mock_sales = [
-            {"date": f"2023-11-0{i}T10:00:00Z", "price": {"amount": 1000}, "quantity": 1}
+            {
+                "date": f"2023-11-0{i}T10:00:00Z",
+                "price": {"amount": 1000},
+                "quantity": 1,
+            }
             for i in range(1, 4)
         ]
 
-        mock_api.get_market_items = AsyncMock(return_value={"items": [{"itemId": "item123"}]})
+        mock_api.get_market_items = AsyncMock(
+            return_value={"items": [{"itemId": "item123"}]}
+        )
         mock_api._request = AsyncMock(return_value={"sales": mock_sales})
 
         result = await analyzer.analyze_sales_volume(
@@ -147,7 +167,9 @@ class TestSalesAnalyzer:
         import time
 
         base_time = int(time.time())
-        sales = [{"price": {"amount": 1000}, "date": base_time - i * 3600} for i in range(20)]
+        sales = [
+            {"price": {"amount": 1000}, "date": base_time - i * 3600} for i in range(20)
+        ]
         analyzer.api_client.get_market_items = AsyncMock(
             return_value={"items": [{"itemId": "test_id"}]}
         )
@@ -166,7 +188,9 @@ class TestSalesAnalyzer:
         # Мало продаж = медленно
         mock_sales = [{"date": "2023-11-01T10:00:00Z", "price": {"amount": 1000}}]
 
-        mock_api.get_market_items = AsyncMock(return_value={"items": [{"itemId": "item123"}]})
+        mock_api.get_market_items = AsyncMock(
+            return_value={"items": [{"itemId": "item123"}]}
+        )
         mock_api._request = AsyncMock(return_value={"sales": mock_sales})
 
         result = await analyzer.estimate_time_to_sell(
@@ -195,7 +219,9 @@ class TestSalesAnalyzer:
         )
         analyzer.api_client._request = AsyncMock(return_value={"sales": sales})
 
-        result = await analyzer.analyze_price_trends(item_name="Trending Item", game="csgo", days=7)
+        result = await analyzer.analyze_price_trends(
+            item_name="Trending Item", game="csgo", days=7
+        )
 
         assert result["trend"] in {"rising", "upward", "strong_upward", "unknown"}
 
@@ -246,7 +272,9 @@ class TestSalesAnalyzer:
         )
         analyzer.api_client._request = AsyncMock(return_value={"sales": sales})
 
-        result = await analyzer.analyze_price_trends(item_name="Stable Item", game="csgo", days=7)
+        result = await analyzer.analyze_price_trends(
+            item_name="Stable Item", game="csgo", days=7
+        )
 
         assert result["trend"] in {"stable", "sideways", "unknown"}
 
@@ -257,7 +285,9 @@ class TestSalesAnalyzer:
         import time
 
         base_time = int(time.time())
-        sales = [{"price": {"amount": 1000}, "date": base_time - i * 3600} for i in range(30)]
+        sales = [
+            {"price": {"amount": 1000}, "date": base_time - i * 3600} for i in range(30)
+        ]
         analyzer.api_client.get_market_items = AsyncMock(
             return_value={"items": [{"itemId": "test_id"}]}
         )
@@ -282,7 +312,9 @@ class TestSalesAnalyzer:
         import time
 
         base_time = int(time.time())
-        sales = [{"price": {"amount": 1200}, "date": base_time - i * 86400} for i in range(2)]
+        sales = [
+            {"price": {"amount": 1200}, "date": base_time - i * 86400} for i in range(2)
+        ]
         analyzer.api_client.get_market_items = AsyncMock(
             return_value={"items": [{"itemId": "test_id"}]}
         )
@@ -303,14 +335,22 @@ class TestSalesAnalyzer:
     @pytest.mark.asyncio()
     async def test_caching_works(self, analyzer, mock_api):
         """Тест работы кэширования."""
-        mock_api.get_market_items = AsyncMock(return_value={"items": [{"itemId": "item123"}]})
-        mock_api._request = AsyncMock(return_value={"sales": [{"price": {"amount": 1000}}]})
+        mock_api.get_market_items = AsyncMock(
+            return_value={"items": [{"itemId": "item123"}]}
+        )
+        mock_api._request = AsyncMock(
+            return_value={"sales": [{"price": {"amount": 1000}}]}
+        )
 
         # Первый вызов
-        await analyzer.get_item_sales_history(item_name="Test Item", game="csgo", days=7)
+        await analyzer.get_item_sales_history(
+            item_name="Test Item", game="csgo", days=7
+        )
 
         # Второй вызов (должен использовать кэш)
-        await analyzer.get_item_sales_history(item_name="Test Item", game="csgo", days=7)
+        await analyzer.get_item_sales_history(
+            item_name="Test Item", game="csgo", days=7
+        )
 
         # _request должен быть вызван только один раз
         assert mock_api._request.call_count == 1
@@ -327,12 +367,16 @@ class TestEdgeCases:
     async def test_no_sales_history(self):
         """Тест обработки отсутствия истории продаж."""
         mock_api = MagicMock()
-        mock_api.get_market_items = AsyncMock(return_value={"items": [{"itemId": "item123"}]})
+        mock_api.get_market_items = AsyncMock(
+            return_value={"items": [{"itemId": "item123"}]}
+        )
         mock_api._request = AsyncMock(return_value={"sales": []})
 
         analyzer = SalesAnalyzer(api_client=mock_api)
 
-        result = await analyzer.analyze_sales_volume(item_name="No Sales Item", game="csgo")
+        result = await analyzer.analyze_sales_volume(
+            item_name="No Sales Item", game="csgo"
+        )
 
         assert result["volume_category"] == "low"
         assert result["sales_count"] == 0
@@ -346,7 +390,9 @@ class TestEdgeCases:
         analyzer = SalesAnalyzer(api_client=mock_api)
 
         # Метод должен вернуть пустой результат, а не выбросить исключение
-        result = await analyzer.get_item_sales_history(item_name="Test Item", game="csgo")
+        result = await analyzer.get_item_sales_history(
+            item_name="Test Item", game="csgo"
+        )
         assert result == {"sales": []}
 
     @pytest.mark.asyncio()

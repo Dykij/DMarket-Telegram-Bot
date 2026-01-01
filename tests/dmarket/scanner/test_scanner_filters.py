@@ -262,7 +262,9 @@ class TestFilterByProfit:
             {"title": "Item 2", "profit_percent": 15.0},
             {"title": "Item 3", "profit_percent": 30.0},
         ]
-        result = filters.filter_by_profit(items, min_profit_percent=10.0, max_profit_percent=20.0)
+        result = filters.filter_by_profit(
+            items, min_profit_percent=10.0, max_profit_percent=20.0
+        )
         assert len(result) == 1
         assert result[0]["title"] == "Item 2"
 

@@ -70,7 +70,9 @@ class TestGenerateProfitChart:
             {"date": "2024-01-03", "profit": 8.7},
         ]
 
-        with patch.object(generator, "_generate_chart_url", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            generator, "_generate_chart_url", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "https://quickchart.io/chart/test"
 
             result = await generator.generate_profit_chart(data)
@@ -96,7 +98,9 @@ class TestGenerateProfitChart:
             {"profit": 10.5},  # Missing date
         ]
 
-        with patch.object(generator, "_generate_chart_url", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            generator, "_generate_chart_url", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "https://quickchart.io/chart/test"
 
             result = await generator.generate_profit_chart(data)
@@ -109,7 +113,9 @@ class TestGenerateProfitChart:
         """Test generate_profit_chart helper function."""
         data = [{"date": "2024-01-01", "profit": 10.5}]
 
-        with patch.object(chart_generator, "generate_profit_chart", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            chart_generator, "generate_profit_chart", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "https://quickchart.io/chart/test"
 
             result = await generate_profit_chart(data)
@@ -136,7 +142,9 @@ class TestGenerateScanHistoryChart:
             {"date": "2024-01-03", "count": 3},
         ]
 
-        with patch.object(generator, "_generate_chart_url", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            generator, "_generate_chart_url", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "https://quickchart.io/chart/test"
 
             result = await generator.generate_scan_history_chart(data)
@@ -158,7 +166,9 @@ class TestGenerateScanHistoryChart:
         """Test generate_scan_history_chart helper function."""
         data = [{"date": "2024-01-01", "count": 5}]
 
-        with patch.object(chart_generator, "generate_scan_history_chart", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            chart_generator, "generate_scan_history_chart", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "https://quickchart.io/chart/test"
 
             result = await generate_scan_history_chart(data)
@@ -187,7 +197,9 @@ class TestGenerateLevelDistributionChart:
             "Pro": 3,
         }
 
-        with patch.object(generator, "_generate_chart_url", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            generator, "_generate_chart_url", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "https://quickchart.io/chart/test"
 
             result = await generator.generate_level_distribution_chart(data)
@@ -210,7 +222,9 @@ class TestGenerateLevelDistributionChart:
         generator = ChartGenerator()
         data = {"Boost": 100}
 
-        with patch.object(generator, "_generate_chart_url", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            generator, "_generate_chart_url", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "https://quickchart.io/chart/test"
 
             result = await generator.generate_level_distribution_chart(data)
@@ -222,7 +236,9 @@ class TestGenerateLevelDistributionChart:
         """Test generate_level_distribution_chart helper function."""
         data = {"Boost": 10, "Standard": 20}
 
-        with patch.object(chart_generator, "generate_level_distribution_chart", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            chart_generator, "generate_level_distribution_chart", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "https://quickchart.io/chart/test"
 
             result = await generate_level_distribution_chart(data)
@@ -247,7 +263,9 @@ class TestGenerateProfitComparisonChart:
         avg_profits = [2.5, 5.0, 8.5, 15.0, 25.0]
         max_profits = [5.0, 12.0, 20.0, 35.0, 50.0]
 
-        with patch.object(generator, "_generate_chart_url", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            generator, "_generate_chart_url", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "https://quickchart.io/chart/test"
 
             result = await generator.generate_profit_comparison_chart(
@@ -271,9 +289,7 @@ class TestGenerateProfitComparisonChart:
         """Test profit comparison chart with empty profits."""
         generator = ChartGenerator()
 
-        result = await generator.generate_profit_comparison_chart(
-            ["Boost"], [], []
-        )
+        result = await generator.generate_profit_comparison_chart(["Boost"], [], [])
 
         assert result is None
 
@@ -284,7 +300,9 @@ class TestGenerateProfitComparisonChart:
         avg = [5.0]
         max_p = [10.0]
 
-        with patch.object(chart_generator, "generate_profit_comparison_chart", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            chart_generator, "generate_profit_comparison_chart", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "https://quickchart.io/chart/test"
 
             result = await generate_profit_comparison_chart(levels, avg, max_p)
@@ -358,7 +376,9 @@ class TestGenerateChartUrl:
             mock_client = AsyncMock()
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock()
-            mock_client.post = AsyncMock(side_effect=httpx.RequestError("Connection failed"))
+            mock_client.post = AsyncMock(
+                side_effect=httpx.RequestError("Connection failed")
+            )
             mock_client_class.return_value = mock_client
 
             # Create large config to force POST
@@ -396,7 +416,9 @@ class TestChartConfigStructure:
         generator = ChartGenerator()
         data = [{"date": "2024-01-01", "profit": 10.5}]
 
-        with patch.object(generator, "_generate_chart_url", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            generator, "_generate_chart_url", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "url"
 
             await generator.generate_profit_chart(data)
@@ -413,7 +435,9 @@ class TestChartConfigStructure:
         generator = ChartGenerator()
         data = [{"date": "2024-01-01", "count": 5}]
 
-        with patch.object(generator, "_generate_chart_url", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            generator, "_generate_chart_url", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "url"
 
             await generator.generate_scan_history_chart(data)
@@ -427,7 +451,9 @@ class TestChartConfigStructure:
         generator = ChartGenerator()
         data = {"Level": 10}
 
-        with patch.object(generator, "_generate_chart_url", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            generator, "_generate_chart_url", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "url"
 
             await generator.generate_level_distribution_chart(data)
@@ -454,7 +480,9 @@ class TestEdgeCases:
             {"date": "2024-01-03", "profit": -2.5},
         ]
 
-        with patch.object(generator, "_generate_chart_url", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            generator, "_generate_chart_url", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "url"
 
             result = await generator.generate_profit_chart(data)
@@ -465,12 +493,11 @@ class TestEdgeCases:
     async def test_chart_with_large_dataset(self) -> None:
         """Test chart with large dataset."""
         generator = ChartGenerator()
-        data = [
-            {"date": f"2024-01-{i:02d}", "profit": float(i)}
-            for i in range(1, 32)
-        ]
+        data = [{"date": f"2024-01-{i:02d}", "profit": float(i)} for i in range(1, 32)]
 
-        with patch.object(generator, "_generate_chart_url", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            generator, "_generate_chart_url", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "url"
 
             result = await generator.generate_profit_chart(data)
@@ -483,7 +510,9 @@ class TestEdgeCases:
         generator = ChartGenerator()
         data = {"Zero Level": 0, "Some Level": 10}
 
-        with patch.object(generator, "_generate_chart_url", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            generator, "_generate_chart_url", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "url"
 
             result = await generator.generate_level_distribution_chart(data)
@@ -499,7 +528,9 @@ class TestEdgeCases:
             {"date": "2024-01-02", "profit": 0.00001},
         ]
 
-        with patch.object(generator, "_generate_chart_url", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            generator, "_generate_chart_url", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "url"
 
             result = await generator.generate_profit_chart(data)
@@ -512,7 +543,9 @@ class TestEdgeCases:
         generator = ChartGenerator()
         data = {"Уровень 1": 10, "レベル2": 20, "Level 3 🎮": 30}
 
-        with patch.object(generator, "_generate_chart_url", new_callable=AsyncMock) as mock_gen:
+        with patch.object(
+            generator, "_generate_chart_url", new_callable=AsyncMock
+        ) as mock_gen:
             mock_gen.return_value = "url"
 
             result = await generator.generate_level_distribution_chart(data)

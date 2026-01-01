@@ -310,7 +310,9 @@ class TestUpdateAlertThreshold:
         result = alerts_manager.update_alert_threshold("price_changes", 0)
 
         assert result is False
-        assert alerts_manager.alert_thresholds["price_change_percent"] == 15.0  # Unchanged
+        assert (
+            alerts_manager.alert_thresholds["price_change_percent"] == 15.0
+        )  # Unchanged
 
     def test_update_threshold_negative_value_returns_false(self, alerts_manager):
         """Test updating threshold with negative value returns False."""
@@ -329,7 +331,9 @@ class TestUpdateCheckInterval:
 
     def test_update_interval_valid(self, alerts_manager):
         """Test updating check interval with valid value."""
-        result = alerts_manager.update_check_interval("price_changes", 600)  # 10 minutes
+        result = alerts_manager.update_check_interval(
+            "price_changes", 600
+        )  # 10 minutes
 
         assert result is True
         assert alerts_manager.check_intervals["price_changes"] == 600
@@ -508,7 +512,7 @@ class TestCheckMethods:
         with patch(
             "src.telegram_bot.market_alerts.analyze_price_changes",
             new_callable=AsyncMock,
-            return_value=[]
+            return_value=[],
         ):
             await alerts_manager._check_price_changes()
 
@@ -528,14 +532,14 @@ class TestCheckMethods:
                 "current_price": 100.0,
                 "old_price": 80.0,
                 "change_amount": 20.0,
-                "item_url": "https://dmarket.com/test"
+                "item_url": "https://dmarket.com/test",
             }
         ]
 
         with patch(
             "src.telegram_bot.market_alerts.analyze_price_changes",
             new_callable=AsyncMock,
-            return_value=mock_changes
+            return_value=mock_changes,
         ):
             await alerts_manager._check_price_changes()
 
@@ -547,7 +551,7 @@ class TestCheckMethods:
         with patch(
             "src.telegram_bot.market_alerts.analyze_price_changes",
             new_callable=AsyncMock,
-            side_effect=Exception("API Error")
+            side_effect=Exception("API Error"),
         ):
             # Should not raise exception
             await alerts_manager._check_price_changes()
@@ -558,7 +562,7 @@ class TestCheckMethods:
         with patch(
             "src.telegram_bot.market_alerts.find_trending_items",
             new_callable=AsyncMock,
-            return_value=[]
+            return_value=[],
         ):
             await alerts_manager._check_trending_items()
 
@@ -576,14 +580,14 @@ class TestCheckMethods:
                 "price": 50.0,
                 "sales_volume": 100,
                 "offers_count": 50,
-                "item_url": "https://dmarket.com/test"
+                "item_url": "https://dmarket.com/test",
             }
         ]
 
         with patch(
             "src.telegram_bot.market_alerts.find_trending_items",
             new_callable=AsyncMock,
-            return_value=mock_items
+            return_value=mock_items,
         ):
             await alerts_manager._check_trending_items()
 
@@ -595,7 +599,7 @@ class TestCheckMethods:
         with patch(
             "src.telegram_bot.market_alerts.analyze_market_volatility",
             new_callable=AsyncMock,
-            return_value=[]
+            return_value=[],
         ):
             await alerts_manager._check_volatility()
 
@@ -610,14 +614,14 @@ class TestCheckMethods:
             {
                 "market_hash_name": "Volatile Item",
                 "volatility_score": 30.0,
-                "current_price": 100.0
+                "current_price": 100.0,
             }
         ]
 
         with patch(
             "src.telegram_bot.market_alerts.analyze_market_volatility",
             new_callable=AsyncMock,
-            return_value=mock_items
+            return_value=mock_items,
         ):
             await alerts_manager._check_volatility()
 
@@ -626,9 +630,7 @@ class TestCheckMethods:
     @pytest.mark.asyncio()
     async def test_check_arbitrage_no_opportunities(self, alerts_manager):
         """Test _check_arbitrage with no opportunities."""
-        with patch(
-            "src.dmarket.arbitrage_scanner.ArbitrageScanner"
-        ) as MockScanner:
+        with patch("src.dmarket.arbitrage_scanner.ArbitrageScanner") as MockScanner:
             mock_scanner = MagicMock()
             mock_scanner.scan_level = AsyncMock(return_value=[])
             MockScanner.return_value = mock_scanner
@@ -664,7 +666,9 @@ class TestMonitorMarketLoop:
             await original_sleep(0.01)  # Short delay
 
         with patch("asyncio.sleep", mock_sleep):
-            with patch.object(alerts_manager, "_check_price_changes", new_callable=AsyncMock) as mock_check:
+            with patch.object(
+                alerts_manager, "_check_price_changes", new_callable=AsyncMock
+            ) as mock_check:
                 await alerts_manager._monitor_market()
 
                 # Should not call check methods since no subscribers
@@ -683,6 +687,7 @@ class TestGetAlertsManager:
         """Test that get_alerts_manager raises error without bot."""
         # Reset global manager
         import src.telegram_bot.market_alerts as module
+
         module._alerts_manager = None
 
         with pytest.raises(ValueError, match="требуется bot"):
@@ -692,6 +697,7 @@ class TestGetAlertsManager:
         """Test that get_alerts_manager creates new instance."""
         # Reset global manager
         import src.telegram_bot.market_alerts as module
+
         module._alerts_manager = None
 
         manager = get_alerts_manager(bot=mock_bot, dmarket_api=mock_dmarket_api)
@@ -705,6 +711,7 @@ class TestGetAlertsManager:
     def test_get_alerts_manager_returns_existing(self, mock_bot, mock_dmarket_api):
         """Test that get_alerts_manager returns existing instance."""
         import src.telegram_bot.market_alerts as module
+
         module._alerts_manager = None
 
         manager1 = get_alerts_manager(bot=mock_bot, dmarket_api=mock_dmarket_api)

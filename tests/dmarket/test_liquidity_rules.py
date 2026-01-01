@@ -98,15 +98,25 @@ class TestPresetRules:
     def test_conservative_stricter_than_balanced(self):
         """Консервативные правила должны быть строже сбалансированных."""
         assert CONSERVATIVE_RULES.min_sales_per_week > BALANCED_RULES.min_sales_per_week
-        assert CONSERVATIVE_RULES.max_time_to_sell_days < BALANCED_RULES.max_time_to_sell_days
+        assert (
+            CONSERVATIVE_RULES.max_time_to_sell_days
+            < BALANCED_RULES.max_time_to_sell_days
+        )
         assert CONSERVATIVE_RULES.max_active_offers < BALANCED_RULES.max_active_offers
-        assert CONSERVATIVE_RULES.min_price_stability > BALANCED_RULES.min_price_stability
-        assert CONSERVATIVE_RULES.min_liquidity_score > BALANCED_RULES.min_liquidity_score
+        assert (
+            CONSERVATIVE_RULES.min_price_stability > BALANCED_RULES.min_price_stability
+        )
+        assert (
+            CONSERVATIVE_RULES.min_liquidity_score > BALANCED_RULES.min_liquidity_score
+        )
 
     def test_balanced_stricter_than_aggressive(self):
         """Сбалансированные правила должны быть строже агрессивных."""
         assert BALANCED_RULES.min_sales_per_week > AGGRESSIVE_RULES.min_sales_per_week
-        assert BALANCED_RULES.max_time_to_sell_days < AGGRESSIVE_RULES.max_time_to_sell_days
+        assert (
+            BALANCED_RULES.max_time_to_sell_days
+            < AGGRESSIVE_RULES.max_time_to_sell_days
+        )
         assert BALANCED_RULES.max_active_offers < AGGRESSIVE_RULES.max_active_offers
         assert BALANCED_RULES.min_price_stability > AGGRESSIVE_RULES.min_price_stability
         assert BALANCED_RULES.min_liquidity_score > AGGRESSIVE_RULES.min_liquidity_score
@@ -127,7 +137,13 @@ class TestLiquidityScoreWeights:
 
     def test_expected_weight_categories(self):
         """Проверка наличия ожидаемых категорий весов."""
-        expected_keys = {"sales_volume", "time_to_sell", "price_stability", "demand_supply", "market_depth"}
+        expected_keys = {
+            "sales_volume",
+            "time_to_sell",
+            "price_stability",
+            "demand_supply",
+            "market_depth",
+        }
         assert set(LIQUIDITY_SCORE_WEIGHTS.keys()) == expected_keys
 
     def test_sales_volume_has_highest_weight(self):
@@ -175,7 +191,10 @@ class TestLiquidityRecommendations:
 
     def test_negative_recommendations_contain_warning(self):
         """Негативные рекомендации должны содержать ⚠️ или ❌."""
-        assert "⚠️" in LIQUIDITY_RECOMMENDATIONS["medium"] or "❌" in LIQUIDITY_RECOMMENDATIONS["medium"]
+        assert (
+            "⚠️" in LIQUIDITY_RECOMMENDATIONS["medium"]
+            or "❌" in LIQUIDITY_RECOMMENDATIONS["medium"]
+        )
         assert "❌" in LIQUIDITY_RECOMMENDATIONS["low"]
         assert "❌" in LIQUIDITY_RECOMMENDATIONS["very_low"]
 
@@ -183,23 +202,26 @@ class TestLiquidityRecommendations:
 class TestGetLiquidityCategory:
     """Тесты для функции get_liquidity_category."""
 
-    @pytest.mark.parametrize(("score", "expected_category"), (
-        (100.0, "very_high"),
-        (90.0, "very_high"),
-        (80.0, "very_high"),
-        (79.9, "high"),
-        (70.0, "high"),
-        (60.0, "high"),
-        (59.9, "medium"),
-        (50.0, "medium"),
-        (40.0, "medium"),
-        (39.9, "low"),
-        (30.0, "low"),
-        (20.0, "low"),
-        (19.9, "very_low"),
-        (10.0, "very_low"),
-        (0.0, "very_low"),
-    ))
+    @pytest.mark.parametrize(
+        ("score", "expected_category"),
+        (
+            (100.0, "very_high"),
+            (90.0, "very_high"),
+            (80.0, "very_high"),
+            (79.9, "high"),
+            (70.0, "high"),
+            (60.0, "high"),
+            (59.9, "medium"),
+            (50.0, "medium"),
+            (40.0, "medium"),
+            (39.9, "low"),
+            (30.0, "low"),
+            (20.0, "low"),
+            (19.9, "very_low"),
+            (10.0, "very_low"),
+            (0.0, "very_low"),
+        ),
+    )
     def test_category_by_score(self, score: float, expected_category: str):
         """Тест определения категории по score."""
         assert get_liquidity_category(score) == expected_category

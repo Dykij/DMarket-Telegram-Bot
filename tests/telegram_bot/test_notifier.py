@@ -204,15 +204,19 @@ async def test_add_price_alert_creates_unique_id():
     import asyncio
 
     with patch("src.telegram_bot.notifier.save_user_alerts"):
-        alert1 = await add_price_alert(12345, "item1", "Title1", "csgo", "price_drop", 10.0)
+        alert1 = await add_price_alert(
+            12345, "item1", "Title1", "csgo", "price_drop", 10.0
+        )
         # Даём достаточно времени для создания уникального timestamp (ID включает секунды)
         await asyncio.sleep(1.1)
-        alert2 = await add_price_alert(12345, "item2", "Title2", "csgo", "price_drop", 20.0)
+        alert2 = await add_price_alert(
+            12345, "item2", "Title2", "csgo", "price_drop", 20.0
+        )
 
         # Проверяем, что ID действительно разные
-        assert alert1["id"] != alert2["id"], (
-            f"IDs должны быть разными: {alert1['id']} vs {alert2['id']}"
-        )
+        assert (
+            alert1["id"] != alert2["id"]
+        ), f"IDs должны быть разными: {alert1['id']} vs {alert2['id']}"
 
 
 # ============================================================================
@@ -756,7 +760,10 @@ async def test_check_price_alert_volume_increase_triggered():
 
     with (
         patch("src.telegram_bot.notifier.get_current_price", return_value=10.0),
-        patch("src.telegram_bot.notifier.get_item_price_history", return_value=price_history),
+        patch(
+            "src.telegram_bot.notifier.get_item_price_history",
+            return_value=price_history,
+        ),
     ):
         result = await check_price_alert(mock_api, alert)
 
@@ -784,7 +791,10 @@ async def test_check_price_alert_volume_increase_not_triggered():
 
     with (
         patch("src.telegram_bot.notifier.get_current_price", return_value=10.0),
-        patch("src.telegram_bot.notifier.get_item_price_history", return_value=price_history),
+        patch(
+            "src.telegram_bot.notifier.get_item_price_history",
+            return_value=price_history,
+        ),
     ):
         result = await check_price_alert(mock_api, alert)
 
@@ -812,7 +822,9 @@ async def test_check_price_alert_trend_change_triggered():
 
     with (
         patch("src.telegram_bot.notifier.get_current_price", return_value=15.0),
-        patch("src.telegram_bot.notifier.calculate_price_trend", return_value=trend_info),
+        patch(
+            "src.telegram_bot.notifier.calculate_price_trend", return_value=trend_info
+        ),
     ):
         result = await check_price_alert(mock_api, alert)
 

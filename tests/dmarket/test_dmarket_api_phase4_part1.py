@@ -98,8 +98,12 @@ class TestCaching:
 
     def test_get_cache_key_different_for_different_params(self, dmarket_api):
         """Тест различных ключей для разных параметров."""
-        key1 = dmarket_api._get_cache_key("GET", "/market/items", params={"game": "csgo"})
-        key2 = dmarket_api._get_cache_key("GET", "/market/items", params={"game": "dota2"})
+        key1 = dmarket_api._get_cache_key(
+            "GET", "/market/items", params={"game": "csgo"}
+        )
+        key2 = dmarket_api._get_cache_key(
+            "GET", "/market/items", params={"game": "dota2"}
+        )
 
         assert key1 != key2
 
@@ -115,7 +119,9 @@ class TestCaching:
 
     def test_is_cacheable_get_market_items(self, dmarket_api):
         """Тест что GET запросы к /market/items кэшируются."""
-        cacheable, ttl_type = dmarket_api._is_cacheable("GET", "/exchange/v1/market/items")
+        cacheable, ttl_type = dmarket_api._is_cacheable(
+            "GET", "/exchange/v1/market/items"
+        )
 
         assert cacheable is True
         assert ttl_type == "short"
@@ -129,7 +135,9 @@ class TestCaching:
 
     def test_is_cacheable_get_price_history(self, dmarket_api):
         """Тест что история цен кэшируется (short TTL из-за /market/ в пути)."""
-        cacheable, ttl_type = dmarket_api._is_cacheable("GET", "/exchange/v1/market/price-history")
+        cacheable, ttl_type = dmarket_api._is_cacheable(
+            "GET", "/exchange/v1/market/price-history"
+        )
 
         assert cacheable is True
         # NOTE: Этот эндпоинт содержит "/market/", поэтому получает short TTL,
@@ -285,7 +293,9 @@ class TestBalanceParsing:
         """Тест парсинга баланса в официальном формате DMarket API."""
         response = {"usd": "2550", "usdAvailableToWithdraw": "2500", "dmc": "0"}
 
-        usd_amount, usd_available, usd_total = dmarket_api._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = dmarket_api._parse_balance_from_response(
+            response
+        )
 
         assert usd_amount == 2550.0
         assert usd_available == 2500.0
@@ -295,11 +305,17 @@ class TestBalanceParsing:
         """Тест парсинга баланса из формата с funds.usdWallet."""
         response = {
             "funds": {
-                "usdWallet": {"balance": 25.50, "availableBalance": 25.00, "totalBalance": 26.00}
+                "usdWallet": {
+                    "balance": 25.50,
+                    "availableBalance": 25.00,
+                    "totalBalance": 26.00,
+                }
             }
         }
 
-        usd_amount, usd_available, usd_total = dmarket_api._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = dmarket_api._parse_balance_from_response(
+            response
+        )
 
         assert usd_amount == 2550.0  # 25.50 * 100
         assert usd_available == 2500.0  # 25.00 * 100
@@ -309,7 +325,9 @@ class TestBalanceParsing:
         """Тест парсинга баланса из простого формата."""
         response = {"balance": 30.00, "available": 28.50, "total": 30.00}
 
-        usd_amount, usd_available, usd_total = dmarket_api._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = dmarket_api._parse_balance_from_response(
+            response
+        )
 
         assert usd_amount == 3000.0
         assert usd_available == 2850.0
@@ -319,7 +337,9 @@ class TestBalanceParsing:
         """Тест парсинга баланса из legacy формата."""
         response = {"usdAvailableToWithdraw": "1500"}
 
-        _usd_amount, usd_available, _usd_total = dmarket_api._parse_balance_from_response(response)
+        _usd_amount, usd_available, _usd_total = (
+            dmarket_api._parse_balance_from_response(response)
+        )
 
         assert usd_available == 150000.0  # 1500 * 100
         # usd_amount и usd_total должны быть 0 или равны available в этом формате
@@ -328,7 +348,9 @@ class TestBalanceParsing:
         """Тест парсинга баланса со знаком доллара в строке."""
         response = {"usdAvailableToWithdraw": "$25.50"}
 
-        _usd_amount, usd_available, _usd_total = dmarket_api._parse_balance_from_response(response)
+        _usd_amount, usd_available, _usd_total = (
+            dmarket_api._parse_balance_from_response(response)
+        )
 
         assert usd_available == 2550.0
 
@@ -336,7 +358,9 @@ class TestBalanceParsing:
         """Тест парсинга пустого ответа."""
         response = {}
 
-        usd_amount, usd_available, usd_total = dmarket_api._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = dmarket_api._parse_balance_from_response(
+            response
+        )
 
         assert usd_amount == 0.0
         assert usd_available == 0.0
@@ -346,7 +370,9 @@ class TestBalanceParsing:
         """Тест парсинга нулевого баланса."""
         response = {"usd": "0", "usdAvailableToWithdraw": "0"}
 
-        usd_amount, usd_available, usd_total = dmarket_api._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = dmarket_api._parse_balance_from_response(
+            response
+        )
 
         assert usd_amount == 0.0
         assert usd_available == 0.0
@@ -356,7 +382,9 @@ class TestBalanceParsing:
         """Тест парсинга невалидного формата (fallback)."""
         response = {"invalid_key": "value"}
 
-        usd_amount, usd_available, usd_total = dmarket_api._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = dmarket_api._parse_balance_from_response(
+            response
+        )
 
         assert usd_amount == 0.0
         assert usd_available == 0.0

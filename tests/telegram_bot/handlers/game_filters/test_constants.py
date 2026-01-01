@@ -8,7 +8,6 @@ This module tests the constants used for game filters:
 - Default filters and game names
 """
 
-
 from src.telegram_bot.handlers.game_filters.constants import (
     CS2_CATEGORIES,
     CS2_EXTERIORS,
@@ -136,7 +135,17 @@ class TestTF2Constants:
 
     def test_tf2_classes_contains_all_classes(self):
         """Test that TF2_CLASSES contains all expected classes."""
-        expected = ["Scout", "Soldier", "Pyro", "Demoman", "Heavy", "Engineer", "Medic", "Sniper", "Spy"]
+        expected = [
+            "Scout",
+            "Soldier",
+            "Pyro",
+            "Demoman",
+            "Heavy",
+            "Engineer",
+            "Medic",
+            "Sniper",
+            "Spy",
+        ]
         for cls in expected:
             assert cls in TF2_CLASSES
 

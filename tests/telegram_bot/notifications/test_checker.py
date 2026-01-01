@@ -32,15 +32,17 @@ from src.telegram_bot.notifications.checker import (
 def mock_api():
     """Create a mock DMarket API client."""
     api = AsyncMock()
-    api.get_market_items = AsyncMock(return_value={
-        "objects": [
-            {
-                "title": "Test Item",
-                "price": {"USD": "1000"},  # $10.00 in cents
-                "itemId": "item123",
-            }
-        ]
-    })
+    api.get_market_items = AsyncMock(
+        return_value={
+            "objects": [
+                {
+                    "title": "Test Item",
+                    "price": {"USD": "1000"},  # $10.00 in cents
+                    "itemId": "item123",
+                }
+            ]
+        }
+    )
     return api
 
 
@@ -58,20 +60,22 @@ def mock_storage():
     storage = MagicMock()
     storage.get_cached_price = MagicMock(return_value=None)
     storage.set_cached_price = MagicMock()
-    storage.get_user_data = MagicMock(return_value={
-        "alerts": [
-            {
-                "id": "alert1",
-                "item_id": "item123",
-                "title": "Test Item",
-                "game": "csgo",
-                "type": "price_drop",
-                "threshold": 15.0,
-                "active": True,
-            }
-        ],
-        "settings": {"enabled": True},
-    })
+    storage.get_user_data = MagicMock(
+        return_value={
+            "alerts": [
+                {
+                    "id": "alert1",
+                    "item_id": "item123",
+                    "title": "Test Item",
+                    "game": "csgo",
+                    "type": "price_drop",
+                    "threshold": 15.0,
+                    "active": True,
+                }
+            ],
+            "settings": {"enabled": True},
+        }
+    )
     storage.user_alerts = {
         "12345": {
             "alerts": [
@@ -95,10 +99,12 @@ def mock_storage():
 def mock_storage_with_cache():
     """Create a mock storage with cached prices."""
     storage = MagicMock()
-    storage.get_cached_price = MagicMock(return_value={
-        "price": 12.50,
-        "timestamp": time.time(),  # Recent timestamp
-    })
+    storage.get_cached_price = MagicMock(
+        return_value={
+            "price": 12.50,
+            "timestamp": time.time(),  # Recent timestamp
+        }
+    )
     return storage
 
 
@@ -111,7 +117,10 @@ class TestGetCurrentPrice:
     @pytest.mark.asyncio()
     async def test_get_current_price_from_api(self, mock_api, mock_storage):
         """Test getting price from API when not cached."""
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
             price = await get_current_price(
                 api=mock_api,
                 item_id="item123",
@@ -123,9 +132,14 @@ class TestGetCurrentPrice:
             mock_api.get_market_items.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_get_current_price_uses_cache(self, mock_api, mock_storage_with_cache):
+    async def test_get_current_price_uses_cache(
+        self, mock_api, mock_storage_with_cache
+    ):
         """Test that cached price is used when available."""
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage_with_cache):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage_with_cache,
+        ):
             price = await get_current_price(
                 api=mock_api,
                 item_id="item123",
@@ -141,13 +155,17 @@ class TestGetCurrentPrice:
     async def test_get_current_price_cache_expired(self, mock_api):
         """Test that expired cache is refreshed."""
         storage = MagicMock()
-        storage.get_cached_price = MagicMock(return_value={
-            "price": 8.0,
-            "timestamp": time.time() - 3600,  # Old timestamp (1 hour ago)
-        })
+        storage.get_cached_price = MagicMock(
+            return_value={
+                "price": 8.0,
+                "timestamp": time.time() - 3600,  # Old timestamp (1 hour ago)
+            }
+        )
         storage.set_cached_price = MagicMock()
 
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=storage):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage", return_value=storage
+        ):
             price = await get_current_price(
                 api=mock_api,
                 item_id="item123",
@@ -158,9 +176,14 @@ class TestGetCurrentPrice:
             mock_api.get_market_items.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_get_current_price_no_items_found(self, mock_api_no_items, mock_storage):
+    async def test_get_current_price_no_items_found(
+        self, mock_api_no_items, mock_storage
+    ):
         """Test handling when no items are found."""
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
             price = await get_current_price(
                 api=mock_api_no_items,
                 item_id="nonexistent",
@@ -174,7 +197,10 @@ class TestGetCurrentPrice:
         """Test getting prices for different games."""
         games = ["csgo", "dota2", "tf2", "rust"]
 
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
             for game in games:
                 await get_current_price(
                     api=mock_api,
@@ -207,9 +233,15 @@ class TestCheckPriceAlert:
             "last_price": 20.0,  # Previous price was $20
         }
 
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
-            with patch("src.telegram_bot.notifications.checker.get_current_price",
-                       new_callable=AsyncMock, return_value=12.0):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
+            with patch(
+                "src.telegram_bot.notifications.checker.get_current_price",
+                new_callable=AsyncMock,
+                return_value=12.0,
+            ):
                 result = await check_price_alert(
                     api=mock_api,
                     alert=alert,
@@ -232,9 +264,15 @@ class TestCheckPriceAlert:
             "active": True,
         }
 
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
-            with patch("src.telegram_bot.notifications.checker.get_current_price",
-                       new_callable=AsyncMock, return_value=10.0):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
+            with patch(
+                "src.telegram_bot.notifications.checker.get_current_price",
+                new_callable=AsyncMock,
+                return_value=10.0,
+            ):
                 result = await check_price_alert(
                     api=mock_api,
                     alert=alert,
@@ -258,9 +296,15 @@ class TestCheckPriceAlert:
             "last_price": 5.0,  # Previous price was $5
         }
 
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
-            with patch("src.telegram_bot.notifications.checker.get_current_price",
-                       new_callable=AsyncMock, return_value=10.0):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
+            with patch(
+                "src.telegram_bot.notifications.checker.get_current_price",
+                new_callable=AsyncMock,
+                return_value=10.0,
+            ):
                 result = await check_price_alert(
                     api=mock_api,
                     alert=alert,
@@ -283,7 +327,10 @@ class TestCheckPriceAlert:
             "active": False,  # Inactive
         }
 
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
             result = await check_price_alert(
                 api=mock_api,
                 alert=alert,
@@ -306,9 +353,15 @@ class TestCheckPriceAlert:
             "active": True,
         }
 
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
-            with patch("src.telegram_bot.notifications.checker.get_current_price",
-                       new_callable=AsyncMock, return_value=None):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
+            with patch(
+                "src.telegram_bot.notifications.checker.get_current_price",
+                new_callable=AsyncMock,
+                return_value=None,
+            ):
                 result = await check_price_alert(
                     api=mock_api,
                     alert=alert,
@@ -331,7 +384,9 @@ class TestCheckAllAlerts:
         storage = MagicMock()
         storage.user_alerts = {}
 
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=storage):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage", return_value=storage
+        ):
             results = await check_all_alerts(api=mock_api)
 
             assert results is None or results == [] or isinstance(results, list)
@@ -341,9 +396,15 @@ class TestCheckAllAlerts:
         """Test checking all alerts for all users."""
         mock_bot = AsyncMock()
 
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
-            with patch("src.telegram_bot.notifications.checker.check_price_alert",
-                       new_callable=AsyncMock, return_value=False):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
+            with patch(
+                "src.telegram_bot.notifications.checker.check_price_alert",
+                new_callable=AsyncMock,
+                return_value=False,
+            ):
                 results = await check_all_alerts(api=mock_api, bot=mock_bot)
 
                 # Should return results or None
@@ -354,9 +415,15 @@ class TestCheckAllAlerts:
         """Test that errors in individual checks don't stop the process."""
         mock_bot = AsyncMock()
 
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
-            with patch("src.telegram_bot.notifications.checker.check_price_alert",
-                       new_callable=AsyncMock, side_effect=Exception("Test error")):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
+            with patch(
+                "src.telegram_bot.notifications.checker.check_price_alert",
+                new_callable=AsyncMock,
+                side_effect=Exception("Test error"),
+            ):
                 # Should not raise exception
                 try:
                     results = await check_all_alerts(api=mock_api, bot=mock_bot)
@@ -373,7 +440,10 @@ class TestCheckGoodDealAlerts:
     @pytest.mark.asyncio()
     async def test_check_good_deal_alerts_basic(self, mock_api, mock_storage):
         """Test checking good deal alerts."""
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
             results = await check_good_deal_alerts(
                 api=mock_api,
                 user_id=12345,
@@ -383,9 +453,14 @@ class TestCheckGoodDealAlerts:
             assert results is None or isinstance(results, (list, dict))
 
     @pytest.mark.asyncio()
-    async def test_check_good_deal_alerts_with_min_discount(self, mock_api, mock_storage):
+    async def test_check_good_deal_alerts_with_min_discount(
+        self, mock_api, mock_storage
+    ):
         """Test checking good deals with minimum discount threshold."""
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
             results = await check_good_deal_alerts(
                 api=mock_api,
                 user_id=12345,
@@ -407,9 +482,15 @@ class TestRunAlertsChecker:
         """Test running alerts checker for single iteration."""
         mock_bot = AsyncMock()
 
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
-            with patch("src.telegram_bot.notifications.checker.check_all_alerts",
-                       new_callable=AsyncMock, return_value=None):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
+            with patch(
+                "src.telegram_bot.notifications.checker.check_all_alerts",
+                new_callable=AsyncMock,
+                return_value=None,
+            ):
                 # Run single iteration (would normally be a loop)
                 # We test the function can be called without error
                 try:
@@ -439,9 +520,15 @@ class TestRunAlertsChecker:
             nonlocal call_count
             call_count += 1
 
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
-            with patch("src.telegram_bot.notifications.checker.check_all_alerts",
-                       new_callable=AsyncMock, side_effect=count_calls):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
+            with patch(
+                "src.telegram_bot.notifications.checker.check_all_alerts",
+                new_callable=AsyncMock,
+                side_effect=count_calls,
+            ):
                 try:
                     task = asyncio.create_task(
                         run_alerts_checker(
@@ -482,9 +569,15 @@ class TestCheckerEdgeCases:
             "active": True,
         }
 
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
-            with patch("src.telegram_bot.notifications.checker.get_current_price",
-                       new_callable=AsyncMock, return_value=10.0):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
+            with patch(
+                "src.telegram_bot.notifications.checker.get_current_price",
+                new_callable=AsyncMock,
+                return_value=10.0,
+            ):
                 result = await check_price_alert(
                     api=mock_api,
                     alert=alert,
@@ -507,9 +600,15 @@ class TestCheckerEdgeCases:
             "active": True,
         }
 
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
-            with patch("src.telegram_bot.notifications.checker.get_current_price",
-                       new_callable=AsyncMock, return_value=9.999):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
+            with patch(
+                "src.telegram_bot.notifications.checker.get_current_price",
+                new_callable=AsyncMock,
+                return_value=9.999,
+            ):
                 result = await check_price_alert(
                     api=mock_api,
                     alert=alert,
@@ -525,7 +624,10 @@ class TestCheckerEdgeCases:
         api = AsyncMock()
         api.get_market_items = AsyncMock(side_effect=Exception("API Error"))
 
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
             try:
                 price = await get_current_price(
                     api=api,
@@ -550,9 +652,15 @@ class TestCheckerEdgeCases:
             "active": True,
         }
 
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
-            with patch("src.telegram_bot.notifications.checker.get_current_price",
-                       new_callable=AsyncMock, return_value=10.0):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
+            with patch(
+                "src.telegram_bot.notifications.checker.get_current_price",
+                new_callable=AsyncMock,
+                return_value=10.0,
+            ):
                 result = await check_price_alert(
                     api=mock_api,
                     alert=alert,
@@ -575,7 +683,10 @@ class TestCheckerEdgeCases:
             "active": True,
         }
 
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
             result = await check_price_alert(
                 api=mock_api,
                 alert=alert,
@@ -598,9 +709,15 @@ class TestCheckerIntegration:
         mock_bot = AsyncMock()
 
         # Setup mock to return price below threshold
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=mock_storage):
-            with patch("src.telegram_bot.notifications.checker.get_current_price",
-                       new_callable=AsyncMock, return_value=12.0):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage",
+            return_value=mock_storage,
+        ):
+            with patch(
+                "src.telegram_bot.notifications.checker.get_current_price",
+                new_callable=AsyncMock,
+                return_value=12.0,
+            ):
 
                 alert = mock_storage.get_user_data(12345)["alerts"][0]
 
@@ -645,9 +762,14 @@ class TestCheckerIntegration:
 
         mock_bot = AsyncMock()
 
-        with patch("src.telegram_bot.notifications.checker.get_storage", return_value=storage):
-            with patch("src.telegram_bot.notifications.checker.check_price_alert",
-                       new_callable=AsyncMock, return_value=False):
+        with patch(
+            "src.telegram_bot.notifications.checker.get_storage", return_value=storage
+        ):
+            with patch(
+                "src.telegram_bot.notifications.checker.check_price_alert",
+                new_callable=AsyncMock,
+                return_value=False,
+            ):
                 results = await check_all_alerts(api=mock_api, bot=mock_bot)
 
                 # Should process all alerts

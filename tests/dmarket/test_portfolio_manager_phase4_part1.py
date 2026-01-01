@@ -32,7 +32,9 @@ from src.dmarket.portfolio_manager import (
 def mock_api_client():
     """Создает мок DMarketAPI клиента."""
     api = MagicMock()
-    api.get_balance = AsyncMock(return_value={"usd": "10000", "balance": 100.0, "has_funds": True})
+    api.get_balance = AsyncMock(
+        return_value={"usd": "10000", "balance": 100.0, "has_funds": True}
+    )
     api.get_user_inventory = AsyncMock(
         return_value={
             "objects": [
@@ -41,7 +43,9 @@ def mock_api_client():
                     "title": "AK-47 | Redline (Field-Tested)",
                     "price": {"USD": "1250"},
                     "gameId": "csgo",
-                    "createdAt": int((datetime.now(UTC) - timedelta(days=30)).timestamp()),
+                    "createdAt": int(
+                        (datetime.now(UTC) - timedelta(days=30)).timestamp()
+                    ),
                 }
             ]
         }
@@ -160,7 +164,9 @@ class TestRiskAnalysis:
     """Тесты методов анализа риска."""
 
     @pytest.mark.asyncio()
-    async def test_analyze_risk_returns_analysis(self, portfolio_manager, sample_snapshot):
+    async def test_analyze_risk_returns_analysis(
+        self, portfolio_manager, sample_snapshot
+    ):
         """Тест что analyze_risk возвращает RiskAnalysis."""
         risk = await portfolio_manager.analyze_risk(sample_snapshot)
 
@@ -224,7 +230,9 @@ class TestPerformanceMetrics:
 class TestReportFormatting:
     """Тесты методов форматирования отчетов."""
 
-    def test_format_portfolio_report_returns_string(self, portfolio_manager, sample_snapshot):
+    def test_format_portfolio_report_returns_string(
+        self, portfolio_manager, sample_snapshot
+    ):
         """Тест что format_portfolio_report возвращает строку."""
         risk = RiskAnalysis(
             overall_risk=RiskLevel.LOW,
@@ -239,7 +247,9 @@ class TestReportFormatting:
         assert isinstance(report, str)
         assert len(report) > 0
 
-    def test_format_portfolio_report_includes_total_value(self, portfolio_manager, sample_snapshot):
+    def test_format_portfolio_report_includes_total_value(
+        self, portfolio_manager, sample_snapshot
+    ):
         """Тест что отчет включает общую стоимость."""
         risk = RiskAnalysis(
             overall_risk=RiskLevel.LOW,
@@ -251,9 +261,15 @@ class TestReportFormatting:
 
         report = portfolio_manager.format_portfolio_report(sample_snapshot, risk)
 
-        assert "$" in report or "USD" in report or str(sample_snapshot.total_value_usd) in report
+        assert (
+            "$" in report
+            or "USD" in report
+            or str(sample_snapshot.total_value_usd) in report
+        )
 
-    def test_format_portfolio_report_includes_risk_level(self, portfolio_manager, sample_snapshot):
+    def test_format_portfolio_report_includes_risk_level(
+        self, portfolio_manager, sample_snapshot
+    ):
         """Тест что отчет включает уровень риска."""
         risk = RiskAnalysis(
             overall_risk=RiskLevel.MEDIUM,
@@ -267,7 +283,9 @@ class TestReportFormatting:
 
         assert "risk" in report.lower() or "medium" in report.lower()
 
-    def test_format_portfolio_report_includes_asset_count(self, portfolio_manager, sample_snapshot):
+    def test_format_portfolio_report_includes_asset_count(
+        self, portfolio_manager, sample_snapshot
+    ):
         """Тест что отчет включает количество активов."""
         risk = RiskAnalysis(
             overall_risk=RiskLevel.LOW,
@@ -282,7 +300,9 @@ class TestReportFormatting:
         # Должно упоминаться количество активов
         assert len(report) > 50  # Минимальная длина отчета
 
-    def test_format_portfolio_report_with_high_risk(self, portfolio_manager, sample_snapshot):
+    def test_format_portfolio_report_with_high_risk(
+        self, portfolio_manager, sample_snapshot
+    ):
         """Тест форматирования отчета с высоким риском."""
         risk = RiskAnalysis(
             overall_risk=RiskLevel.CRITICAL,

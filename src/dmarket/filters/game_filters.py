@@ -152,7 +152,13 @@ class Dota2Filter(BaseGameFilter):
     """Filter for Dota 2 items."""
 
     game_name = "dota2"
-    supported_filters = [*BaseGameFilter.supported_filters, "rarity", "hero", "quality", "slot"]
+    supported_filters = [
+        *BaseGameFilter.supported_filters,
+        "rarity",
+        "hero",
+        "quality",
+        "slot",
+    ]
 
     def apply_filters(self, item: dict[str, Any], filters: dict[str, Any]) -> bool:
         """Apply Dota 2-specific filters."""

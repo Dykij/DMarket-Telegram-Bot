@@ -210,7 +210,9 @@ class TestHandleLevelScanRefactored:
     @pytest.mark.asyncio()
     async def test_handle_level_scan_validates_inputs(self):
         """Test function validates inputs with early returns."""
-        from src.telegram_bot.handlers.scanner_handler_refactored import handle_level_scan
+        from src.telegram_bot.handlers.scanner_handler_refactored import (
+            handle_level_scan,
+        )
 
         # Test with no query
         update = MagicMock()
@@ -224,7 +226,9 @@ class TestHandleLevelScanRefactored:
     @pytest.mark.asyncio()
     async def test_handle_level_scan_invalid_level(self):
         """Test function handles invalid level."""
-        from src.telegram_bot.handlers.scanner_handler_refactored import handle_level_scan
+        from src.telegram_bot.handlers.scanner_handler_refactored import (
+            handle_level_scan,
+        )
 
         update = MagicMock()
         query = AsyncMock()
@@ -232,7 +236,9 @@ class TestHandleLevelScanRefactored:
         update.effective_user = MagicMock(id=12345, username="test_user")
         context = MagicMock()
 
-        with patch("src.telegram_bot.handlers.scanner_handler_refactored.add_command_breadcrumb"):
+        with patch(
+            "src.telegram_bot.handlers.scanner_handler_refactored.add_command_breadcrumb"
+        ):
             await handle_level_scan(update, context, "invalid_level", "csgo")
 
         # Should send error message
@@ -270,4 +276,6 @@ async def test_refactored_functions_are_shorter():
         line_count = len(source_lines)
 
         # Allow up to 75 lines for complex handlers with comprehensive error handling
-        assert line_count < 75, f"{func.__name__} has {line_count} lines (should be < 75)"
+        assert (
+            line_count < 75
+        ), f"{func.__name__} has {line_count} lines (should be < 75)"

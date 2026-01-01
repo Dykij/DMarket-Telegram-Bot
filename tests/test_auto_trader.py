@@ -148,7 +148,9 @@ class TestAutoTrader:
         scanner.api_client = MagicMock()
         scanner.successful_trades = 0
         scanner.total_profit = 0.0
-        scanner.check_user_balance = AsyncMock(return_value={"balance": 100.0, "has_funds": True})
+        scanner.check_user_balance = AsyncMock(
+            return_value={"balance": 100.0, "has_funds": True}
+        )
         scanner.get_api_client = AsyncMock(return_value=MagicMock())
         scanner._get_current_item_data = AsyncMock()
         scanner._purchase_item = AsyncMock()
@@ -339,7 +341,9 @@ class TestAutoTrader:
         title = "Test Item"
 
         # Act
-        is_acceptable = auto_trader._is_price_acceptable(updated_item, original_price, title)
+        is_acceptable = auto_trader._is_price_acceptable(
+            updated_item, original_price, title
+        )
 
         # Assert
         assert is_acceptable is True
@@ -352,7 +356,9 @@ class TestAutoTrader:
         title = "Test Item"
 
         # Act
-        is_acceptable = auto_trader._is_price_acceptable(updated_item, original_price, title)
+        is_acceptable = auto_trader._is_price_acceptable(
+            updated_item, original_price, title
+        )
 
         # Assert
         assert is_acceptable is False
@@ -365,13 +371,17 @@ class TestAutoTrader:
         title = "Test Item"
 
         # Act
-        is_acceptable = auto_trader._is_price_acceptable(updated_item, original_price, title)
+        is_acceptable = auto_trader._is_price_acceptable(
+            updated_item, original_price, title
+        )
 
         # Assert
         assert is_acceptable is False
 
     @pytest.mark.asyncio()
-    async def test_auto_trade_items_insufficient_balance(self, auto_trader, mock_scanner):
+    async def test_auto_trade_items_insufficient_balance(
+        self, auto_trader, mock_scanner
+    ):
         """Test auto trade returns zeros with insufficient balance."""
         # Arrange
         mock_scanner.check_user_balance.return_value = {

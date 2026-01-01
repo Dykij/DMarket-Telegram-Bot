@@ -43,7 +43,7 @@ def notification_queue(mock_bot):
     return NotificationQueue(
         bot=mock_bot,
         global_rate_limit=0.01,  # Fast for testing
-        chat_rate_limit=0.01,    # Fast for testing
+        chat_rate_limit=0.01,  # Fast for testing
     )
 
 
@@ -266,9 +266,15 @@ class TestPriorityOrdering:
     @pytest.mark.asyncio()
     async def test_fifo_within_same_priority(self, notification_queue):
         """Test FIFO ordering within same priority."""
-        await notification_queue.enqueue(chat_id=1, text="First", priority=Priority.NORMAL)
-        await notification_queue.enqueue(chat_id=2, text="Second", priority=Priority.NORMAL)
-        await notification_queue.enqueue(chat_id=3, text="Third", priority=Priority.NORMAL)
+        await notification_queue.enqueue(
+            chat_id=1, text="First", priority=Priority.NORMAL
+        )
+        await notification_queue.enqueue(
+            chat_id=2, text="Second", priority=Priority.NORMAL
+        )
+        await notification_queue.enqueue(
+            chat_id=3, text="Third", priority=Priority.NORMAL
+        )
 
         _, _, _, msg1 = await notification_queue.queue.get()
         _, _, _, msg2 = await notification_queue.queue.get()
@@ -414,9 +420,9 @@ class TestTimestampCleanup:
         # Add old and new timestamps
         notification_queue.last_chat_send_time = {
             1: now - 120,  # Old (2 min ago)
-            2: now - 90,   # Old (1.5 min ago)
-            3: now - 30,   # Recent (30 sec ago)
-            4: now - 5,    # Recent (5 sec ago)
+            2: now - 90,  # Old (1.5 min ago)
+            3: now - 30,  # Recent (30 sec ago)
+            4: now - 5,  # Recent (5 sec ago)
         }
 
         notification_queue._cleanup_timestamps()

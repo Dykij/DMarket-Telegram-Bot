@@ -101,14 +101,16 @@ class TestCheckPriceAlerts:
         self, mock_api, mock_bot, mock_notification_queue
     ):
         """Test check_price_alerts with no active alerts."""
-        with patch(
-            f"{CHECKERS_MODULE}.get_active_alerts",
-            return_value={},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_user_preferences",
-            return_value={},
-        ), patch(
-            f"{CHECKERS_MODULE}.save_user_preferences"
+        with (
+            patch(
+                f"{CHECKERS_MODULE}.get_active_alerts",
+                return_value={},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_user_preferences",
+                return_value={},
+            ),
+            patch(f"{CHECKERS_MODULE}.save_user_preferences"),
         ):
             # Act - should complete without error
             await check_price_alerts(mock_api, mock_bot, mock_notification_queue)
@@ -121,14 +123,16 @@ class TestCheckPriceAlerts:
         self, mock_api, mock_bot, mock_notification_queue, sample_alert
     ):
         """Test check_price_alerts skips disabled users."""
-        with patch(
-            f"{CHECKERS_MODULE}.get_active_alerts",
-            return_value={"123": [sample_alert]},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_user_preferences",
-            return_value={"123": {"enabled": False}},
-        ), patch(
-            f"{CHECKERS_MODULE}.save_user_preferences"
+        with (
+            patch(
+                f"{CHECKERS_MODULE}.get_active_alerts",
+                return_value={"123": [sample_alert]},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_user_preferences",
+                return_value={"123": {"enabled": False}},
+            ),
+            patch(f"{CHECKERS_MODULE}.save_user_preferences"),
         ):
             # Act
             await check_price_alerts(mock_api, mock_bot, mock_notification_queue)
@@ -147,23 +151,28 @@ class TestCheckPriceAlerts:
     ):
         """Test check_price_alerts triggers when price falls below threshold."""
         # Set price to $20, threshold is $25
-        with patch(
-            f"{CHECKERS_MODULE}.get_active_alerts",
-            return_value={"123": [sample_alert]},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_user_preferences",
-            return_value={"123": {"enabled": True, "chat_id": 123}},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_market_data_for_items",
-            return_value={"item_abc": sample_item_data},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_item_price",
-            return_value=20.0,
-        ), patch(
-            f"{CHECKERS_MODULE}.send_price_alert_notification",
-            new_callable=AsyncMock,
-        ) as mock_send, patch(
-            f"{CHECKERS_MODULE}.save_user_preferences"
+        with (
+            patch(
+                f"{CHECKERS_MODULE}.get_active_alerts",
+                return_value={"123": [sample_alert]},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_user_preferences",
+                return_value={"123": {"enabled": True, "chat_id": 123}},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_market_data_for_items",
+                return_value={"item_abc": sample_item_data},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_item_price",
+                return_value=20.0,
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.send_price_alert_notification",
+                new_callable=AsyncMock,
+            ) as mock_send,
+            patch(f"{CHECKERS_MODULE}.save_user_preferences"),
         ):
             # Act
             await check_price_alerts(mock_api, mock_bot, mock_notification_queue)
@@ -191,23 +200,28 @@ class TestCheckPriceAlerts:
             "trigger_count": 0,
         }
 
-        with patch(
-            f"{CHECKERS_MODULE}.get_active_alerts",
-            return_value={"123": [alert]},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_user_preferences",
-            return_value={"123": {"enabled": True}},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_market_data_for_items",
-            return_value={"item_abc": sample_item_data},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_item_price",
-            return_value=20.0,  # Price is $20, above $15 threshold
-        ), patch(
-            f"{CHECKERS_MODULE}.send_price_alert_notification",
-            new_callable=AsyncMock,
-        ) as mock_send, patch(
-            f"{CHECKERS_MODULE}.save_user_preferences"
+        with (
+            patch(
+                f"{CHECKERS_MODULE}.get_active_alerts",
+                return_value={"123": [alert]},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_user_preferences",
+                return_value={"123": {"enabled": True}},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_market_data_for_items",
+                return_value={"item_abc": sample_item_data},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_item_price",
+                return_value=20.0,  # Price is $20, above $15 threshold
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.send_price_alert_notification",
+                new_callable=AsyncMock,
+            ) as mock_send,
+            patch(f"{CHECKERS_MODULE}.save_user_preferences"),
         ):
             # Act
             await check_price_alerts(mock_api, mock_bot, mock_notification_queue)
@@ -235,23 +249,28 @@ class TestCheckPriceAlerts:
             "trigger_count": 0,
         }
 
-        with patch(
-            f"{CHECKERS_MODULE}.get_active_alerts",
-            return_value={"123": [alert]},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_user_preferences",
-            return_value={"123": {"enabled": True, "chat_id": 123}},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_market_data_for_items",
-            return_value={"item_abc": sample_item_data},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_item_price",
-            return_value=20.0,  # Price is $20, above $15 threshold
-        ), patch(
-            f"{CHECKERS_MODULE}.send_price_alert_notification",
-            new_callable=AsyncMock,
-        ) as mock_send, patch(
-            f"{CHECKERS_MODULE}.save_user_preferences"
+        with (
+            patch(
+                f"{CHECKERS_MODULE}.get_active_alerts",
+                return_value={"123": [alert]},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_user_preferences",
+                return_value={"123": {"enabled": True, "chat_id": 123}},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_market_data_for_items",
+                return_value={"item_abc": sample_item_data},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_item_price",
+                return_value=20.0,  # Price is $20, above $15 threshold
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.send_price_alert_notification",
+                new_callable=AsyncMock,
+            ) as mock_send,
+            patch(f"{CHECKERS_MODULE}.save_user_preferences"),
         ):
             # Act
             await check_price_alerts(mock_api, mock_bot, mock_notification_queue)
@@ -266,17 +285,20 @@ class TestCheckPriceAlerts:
         """Test check_price_alerts handles API errors gracefully."""
         from src.utils.exceptions import APIError
 
-        with patch(
-            f"{CHECKERS_MODULE}.get_active_alerts",
-            return_value={"123": [sample_alert]},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_user_preferences",
-            return_value={"123": {"enabled": True}},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_market_data_for_items",
-            side_effect=APIError("API error"),
-        ), patch(
-            f"{CHECKERS_MODULE}.save_user_preferences"
+        with (
+            patch(
+                f"{CHECKERS_MODULE}.get_active_alerts",
+                return_value={"123": [sample_alert]},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_user_preferences",
+                return_value={"123": {"enabled": True}},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_market_data_for_items",
+                side_effect=APIError("API error"),
+            ),
+            patch(f"{CHECKERS_MODULE}.save_user_preferences"),
         ):
             # Act - should not raise exception
             await check_price_alerts(mock_api, mock_bot, mock_notification_queue)
@@ -302,23 +324,28 @@ class TestCheckPriceAlerts:
             "trigger_count": 0,
         }
 
-        with patch(
-            f"{CHECKERS_MODULE}.get_active_alerts",
-            return_value={"123": [alert]},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_user_preferences",
-            return_value={"123": {"enabled": True, "chat_id": 123}},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_market_data_for_items",
-            return_value={"item_abc": sample_item_data},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_item_price",
-            return_value=20.0,
-        ), patch(
-            f"{CHECKERS_MODULE}.send_price_alert_notification",
-            new_callable=AsyncMock,
-        ), patch(
-            f"{CHECKERS_MODULE}.save_user_preferences"
+        with (
+            patch(
+                f"{CHECKERS_MODULE}.get_active_alerts",
+                return_value={"123": [alert]},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_user_preferences",
+                return_value={"123": {"enabled": True, "chat_id": 123}},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_market_data_for_items",
+                return_value={"item_abc": sample_item_data},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_item_price",
+                return_value=20.0,
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.send_price_alert_notification",
+                new_callable=AsyncMock,
+            ),
+            patch(f"{CHECKERS_MODULE}.save_user_preferences"),
         ):
             # Act
             await check_price_alerts(mock_api, mock_bot, mock_notification_queue)
@@ -345,7 +372,9 @@ class TestCheckMarketOpportunities:
             return_value={},
         ):
             # Act - should complete without error
-            await check_market_opportunities(mock_api, mock_bot, mock_notification_queue)
+            await check_market_opportunities(
+                mock_api, mock_bot, mock_notification_queue
+            )
 
             # Assert - no API calls made for market data
             mock_notification_queue.enqueue.assert_not_called()
@@ -365,7 +394,9 @@ class TestCheckMarketOpportunities:
             },
         ):
             # Act
-            await check_market_opportunities(mock_api, mock_bot, mock_notification_queue)
+            await check_market_opportunities(
+                mock_api, mock_bot, mock_notification_queue
+            )
 
             # Assert
             mock_notification_queue.enqueue.assert_not_called()
@@ -377,42 +408,52 @@ class TestCheckMarketOpportunities:
         """Test check_market_opportunities handles API errors gracefully."""
         from src.utils.exceptions import APIError
 
-        with patch(
-            f"{CHECKERS_MODULE}.get_user_preferences",
-            return_value={
-                "123": {
-                    "enabled": True,
-                    "notifications": {"market_opportunity": True},
-                    "games": {"csgo": True},
-                }
-            },
-        ), patch(
-            f"{CHECKERS_MODULE}.get_market_items_for_game",
-            side_effect=APIError("API error"),
+        with (
+            patch(
+                f"{CHECKERS_MODULE}.get_user_preferences",
+                return_value={
+                    "123": {
+                        "enabled": True,
+                        "notifications": {"market_opportunity": True},
+                        "games": {"csgo": True},
+                    }
+                },
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_market_items_for_game",
+                side_effect=APIError("API error"),
+            ),
         ):
             # Act - should not raise exception
-            await check_market_opportunities(mock_api, mock_bot, mock_notification_queue)
+            await check_market_opportunities(
+                mock_api, mock_bot, mock_notification_queue
+            )
 
     @pytest.mark.asyncio()
     async def test_check_opportunities_empty_market(
         self, mock_api, mock_bot, mock_notification_queue
     ):
         """Test check_market_opportunities with empty market data."""
-        with patch(
-            f"{CHECKERS_MODULE}.get_user_preferences",
-            return_value={
-                "123": {
-                    "enabled": True,
-                    "notifications": {"market_opportunity": True},
-                    "games": {"csgo": True},
-                }
-            },
-        ), patch(
-            f"{CHECKERS_MODULE}.get_market_items_for_game",
-            return_value=[],
+        with (
+            patch(
+                f"{CHECKERS_MODULE}.get_user_preferences",
+                return_value={
+                    "123": {
+                        "enabled": True,
+                        "notifications": {"market_opportunity": True},
+                        "games": {"csgo": True},
+                    }
+                },
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_market_items_for_game",
+                return_value=[],
+            ),
         ):
             # Act
-            await check_market_opportunities(mock_api, mock_bot, mock_notification_queue)
+            await check_market_opportunities(
+                mock_api, mock_bot, mock_notification_queue
+            )
 
             # Assert - no notifications sent
             mock_notification_queue.enqueue.assert_not_called()
@@ -431,21 +472,25 @@ class TestStartNotificationChecker:
         self, mock_api, mock_bot, mock_notification_queue
     ):
         """Test start_notification_checker loads user preferences."""
-        with patch(
-            f"{CHECKERS_MODULE}.load_user_preferences"
-        ) as mock_load, patch(
-            f"{CHECKERS_MODULE}.check_price_alerts",
-            new_callable=AsyncMock,
-        ), patch(
-            f"{CHECKERS_MODULE}.check_market_opportunities",
-            new_callable=AsyncMock,
-        ), patch(
-            "asyncio.sleep", side_effect=asyncio.CancelledError
+        with (
+            patch(f"{CHECKERS_MODULE}.load_user_preferences") as mock_load,
+            patch(
+                f"{CHECKERS_MODULE}.check_price_alerts",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.check_market_opportunities",
+                new_callable=AsyncMock,
+            ),
+            patch("asyncio.sleep", side_effect=asyncio.CancelledError),
         ):
             # Act
             with pytest.raises(asyncio.CancelledError):
                 await start_notification_checker(
-                    mock_api, mock_bot, interval=1, notification_queue=mock_notification_queue
+                    mock_api,
+                    mock_bot,
+                    interval=1,
+                    notification_queue=mock_notification_queue,
                 )
 
             # Assert
@@ -456,21 +501,25 @@ class TestStartNotificationChecker:
         self, mock_api, mock_bot, mock_notification_queue
     ):
         """Test start_notification_checker calls both price and opportunity checkers."""
-        with patch(
-            f"{CHECKERS_MODULE}.load_user_preferences"
-        ), patch(
-            f"{CHECKERS_MODULE}.check_price_alerts",
-            new_callable=AsyncMock,
-        ) as mock_price, patch(
-            f"{CHECKERS_MODULE}.check_market_opportunities",
-            new_callable=AsyncMock,
-        ) as mock_opp, patch(
-            "asyncio.sleep", side_effect=asyncio.CancelledError
+        with (
+            patch(f"{CHECKERS_MODULE}.load_user_preferences"),
+            patch(
+                f"{CHECKERS_MODULE}.check_price_alerts",
+                new_callable=AsyncMock,
+            ) as mock_price,
+            patch(
+                f"{CHECKERS_MODULE}.check_market_opportunities",
+                new_callable=AsyncMock,
+            ) as mock_opp,
+            patch("asyncio.sleep", side_effect=asyncio.CancelledError),
         ):
             # Act
             with pytest.raises(asyncio.CancelledError):
                 await start_notification_checker(
-                    mock_api, mock_bot, interval=1, notification_queue=mock_notification_queue
+                    mock_api,
+                    mock_bot,
+                    interval=1,
+                    notification_queue=mock_notification_queue,
                 )
 
             # Assert
@@ -490,20 +539,26 @@ class TestStartNotificationChecker:
             if call_count >= 2:
                 raise asyncio.CancelledError
 
-        with patch(
-            f"{CHECKERS_MODULE}.load_user_preferences"
-        ), patch(
-            f"{CHECKERS_MODULE}.check_price_alerts",
-            new_callable=AsyncMock,
-            side_effect=Exception("Test error"),
-        ), patch(
-            f"{CHECKERS_MODULE}.check_market_opportunities",
-            new_callable=AsyncMock,
-        ), patch("asyncio.sleep", side_effect=mock_sleep):
+        with (
+            patch(f"{CHECKERS_MODULE}.load_user_preferences"),
+            patch(
+                f"{CHECKERS_MODULE}.check_price_alerts",
+                new_callable=AsyncMock,
+                side_effect=Exception("Test error"),
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.check_market_opportunities",
+                new_callable=AsyncMock,
+            ),
+            patch("asyncio.sleep", side_effect=mock_sleep),
+        ):
             # Act - should not raise the test error, only CancelledError
             with pytest.raises(asyncio.CancelledError):
                 await start_notification_checker(
-                    mock_api, mock_bot, interval=1, notification_queue=mock_notification_queue
+                    mock_api,
+                    mock_bot,
+                    interval=1,
+                    notification_queue=mock_notification_queue,
                 )
 
 
@@ -530,17 +585,20 @@ class TestEdgeCases:
             "trigger_count": 0,
         }
 
-        with patch(
-            f"{CHECKERS_MODULE}.get_active_alerts",
-            return_value={"123": [alert]},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_user_preferences",
-            return_value={"123": {"enabled": True}},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_market_data_for_items",
-            return_value={},
-        ), patch(
-            f"{CHECKERS_MODULE}.save_user_preferences"
+        with (
+            patch(
+                f"{CHECKERS_MODULE}.get_active_alerts",
+                return_value={"123": [alert]},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_user_preferences",
+                return_value={"123": {"enabled": True}},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_market_data_for_items",
+                return_value={},
+            ),
+            patch(f"{CHECKERS_MODULE}.save_user_preferences"),
         ):
             # Act - should complete without error
             await check_price_alerts(mock_api, mock_bot, mock_notification_queue)
@@ -560,14 +618,16 @@ class TestEdgeCases:
             "trigger_count": 0,
         }
 
-        with patch(
-            f"{CHECKERS_MODULE}.get_active_alerts",
-            return_value={"123": [alert]},
-        ), patch(
-            f"{CHECKERS_MODULE}.get_user_preferences",
-            return_value={"123": {"enabled": True}},
-        ), patch(
-            f"{CHECKERS_MODULE}.save_user_preferences"
+        with (
+            patch(
+                f"{CHECKERS_MODULE}.get_active_alerts",
+                return_value={"123": [alert]},
+            ),
+            patch(
+                f"{CHECKERS_MODULE}.get_user_preferences",
+                return_value={"123": {"enabled": True}},
+            ),
+            patch(f"{CHECKERS_MODULE}.save_user_preferences"),
         ):
             # Act
             await check_price_alerts(mock_api, mock_bot, mock_notification_queue)

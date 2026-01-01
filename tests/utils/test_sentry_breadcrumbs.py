@@ -23,7 +23,9 @@ from src.utils.sentry_breadcrumbs import (
 @pytest.fixture()
 def mock_sentry_initialized():
     """Fixture to mock sentry_sdk.is_initialized() to return True."""
-    with patch("src.utils.sentry_breadcrumbs.sentry_sdk.is_initialized", return_value=True):
+    with patch(
+        "src.utils.sentry_breadcrumbs.sentry_sdk.is_initialized", return_value=True
+    ):
         yield
 
 
@@ -292,14 +294,18 @@ class TestContextFunctions:
             username="john_doe",
         )
 
-        mock_set_user.assert_called_once_with({
-            "id": "123456",
-            "username": "john_doe",
-        })
+        mock_set_user.assert_called_once_with(
+            {
+                "id": "123456",
+                "username": "john_doe",
+            }
+        )
 
     @patch("src.utils.sentry_breadcrumbs.sentry_sdk.set_user")
     @patch("src.utils.sentry_breadcrumbs.sentry_sdk.is_initialized", return_value=True)
-    def test_set_user_context_full(self, mock_is_init: MagicMock, mock_set_user: MagicMock) -> None:
+    def test_set_user_context_full(
+        self, mock_is_init: MagicMock, mock_set_user: MagicMock
+    ) -> None:
         """Тест установки user context со всеми параметрами."""
         set_user_context(
             user_id=123456,
@@ -317,7 +323,9 @@ class TestContextFunctions:
 
     @patch("src.utils.sentry_breadcrumbs.sentry_sdk.set_tag")
     @patch("src.utils.sentry_breadcrumbs.sentry_sdk.is_initialized", return_value=True)
-    def test_set_context_tag(self, mock_is_init: MagicMock, mock_set_tag: MagicMock) -> None:
+    def test_set_context_tag(
+        self, mock_is_init: MagicMock, mock_set_tag: MagicMock
+    ) -> None:
         """Тест установки context tag."""
         set_context_tag("environment", "production")
 

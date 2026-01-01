@@ -184,7 +184,9 @@ class RateLimitExceeded(APIError):
             response_data: Данные ответа API
             retry_after: Рекомендуемое время ожидания в секундах
         """
-        super().__init__(message, status_code, ErrorCode.RATE_LIMIT_ERROR, response_data)
+        super().__init__(
+            message, status_code, ErrorCode.RATE_LIMIT_ERROR, response_data
+        )
         self.retry_after = retry_after
 
     @property
@@ -572,7 +574,9 @@ def handle_exceptions(  # noqa: UP047
         if effective_logger is None:
             effective_logger = get_logger(f"{func.__module__}.{func.__qualname__}")
 
-        async def _send_error_to_user(args: tuple[Any, ...], error_message: str) -> None:
+        async def _send_error_to_user(
+            args: tuple[Any, ...], error_message: str
+        ) -> None:
             """Отправить сообщение об ошибке пользователю."""
             # Проверяем как args[0] (для функций), так и args[1] (для методов класса)
             update = None
@@ -586,7 +590,10 @@ def handle_exceptions(  # noqa: UP047
 
             if update:
                 # Проверка на callback query (должен быть не None)
-                if hasattr(update, "callback_query") and update.callback_query is not None:
+                if (
+                    hasattr(update, "callback_query")
+                    and update.callback_query is not None
+                ):
                     try:
                         if hasattr(update.callback_query, "answer"):
                             await update.callback_query.answer(
@@ -594,7 +601,9 @@ def handle_exceptions(  # noqa: UP047
                                 show_alert=True,
                             )
                     except Exception as answer_error:
-                        effective_logger.exception(f"Не удалось отправить answer: {answer_error!s}")
+                        effective_logger.exception(
+                            f"Не удалось отправить answer: {answer_error!s}"
+                        )
                 elif update.message and hasattr(update.message, "reply_text"):
                     try:
                         await update.message.reply_text(

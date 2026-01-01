@@ -141,9 +141,15 @@ class TestTargetModel:
 
     def test_query_targets_by_user(self, session):
         """Тест получения таргетов по пользователю."""
-        target1 = Target(user_id=789, target_id="t1", game="csgo", title="Item 1", price=5.0)
-        target2 = Target(user_id=789, target_id="t2", game="dota2", title="Item 2", price=10.0)
-        target3 = Target(user_id=999, target_id="t3", game="csgo", title="Item 3", price=15.0)
+        target1 = Target(
+            user_id=789, target_id="t1", game="csgo", title="Item 1", price=5.0
+        )
+        target2 = Target(
+            user_id=789, target_id="t2", game="dota2", title="Item 2", price=10.0
+        )
+        target3 = Target(
+            user_id=999, target_id="t3", game="csgo", title="Item 3", price=15.0
+        )
         session.add_all([target1, target2, target3])
         session.commit()
 
@@ -153,9 +159,15 @@ class TestTargetModel:
 
     def test_query_targets_by_game(self, session):
         """Тест получения таргетов по игре."""
-        target1 = Target(user_id=111, target_id="g1", game="csgo", title="CS Item", price=5.0)
-        target2 = Target(user_id=222, target_id="g2", game="csgo", title="CS Item 2", price=10.0)
-        target3 = Target(user_id=333, target_id="g3", game="dota2", title="Dota Item", price=15.0)
+        target1 = Target(
+            user_id=111, target_id="g1", game="csgo", title="CS Item", price=5.0
+        )
+        target2 = Target(
+            user_id=222, target_id="g2", game="csgo", title="CS Item 2", price=10.0
+        )
+        target3 = Target(
+            user_id=333, target_id="g3", game="dota2", title="Dota Item", price=15.0
+        )
         session.add_all([target1, target2, target3])
         session.commit()
 
@@ -217,7 +229,9 @@ class TestTargetModel:
 
     def test_delete_target(self, session):
         """Тест удаления таргета."""
-        target = Target(user_id=666, target_id="del1", game="csgo", title="Delete Me", price=5.0)
+        target = Target(
+            user_id=666, target_id="del1", game="csgo", title="Delete Me", price=5.0
+        )
         session.add(target)
         session.commit()
 
@@ -449,7 +463,9 @@ class TestTradingSettingsModel:
 
     def test_settings_repr(self, session):
         """Тест строкового представления."""
-        settings = TradingSettings(user_id=123, strategy="conservative", auto_trading_enabled=1)
+        settings = TradingSettings(
+            user_id=123, strategy="conservative", auto_trading_enabled=1
+        )
         session.add(settings)
         session.commit()
 
@@ -499,7 +515,9 @@ class TestTradingSettingsModel:
         session.add_all([settings1, settings2, settings3])
         session.commit()
 
-        conservative = session.query(TradingSettings).filter_by(strategy="conservative").all()
+        conservative = (
+            session.query(TradingSettings).filter_by(strategy="conservative").all()
+        )
         assert len(conservative) == 2
 
     def test_toggle_auto_trading(self, session):

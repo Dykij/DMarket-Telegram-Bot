@@ -282,7 +282,9 @@ class TestHandlePriceRangeCallback:
         """Test showing current price range."""
         # Arrange
         mock_update.callback_query.data = "price_range:csgo"
-        mock_context.user_data["filters"] = {"csgo": {"min_price": 10.0, "max_price": 50.0}}
+        mock_context.user_data["filters"] = {
+            "csgo": {"min_price": 10.0, "max_price": 50.0}
+        }
 
         # Act
         await handle_price_range_callback(mock_update, mock_context)

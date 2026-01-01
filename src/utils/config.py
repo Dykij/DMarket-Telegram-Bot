@@ -480,7 +480,9 @@ class Config:
         # Validate database URL
         if not self.database.url:
             errors.append("DATABASE_URL is required")
-        elif not self.database.url.startswith(("sqlite://", "postgresql://", "mysql://")):
+        elif not self.database.url.startswith(
+            ("sqlite://", "postgresql://", "mysql://")
+        ):
             errors.append(
                 "DATABASE_URL has unsupported scheme. "
                 "Supported: sqlite://, postgresql://, mysql://. "
@@ -490,7 +492,9 @@ class Config:
         # Validate logging level
         valid_log_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
         if self.logging.level.upper() not in valid_log_levels:
-            errors.append(f"LOG_LEVEL must be one of {valid_log_levels}, got: {self.logging.level}")
+            errors.append(
+                f"LOG_LEVEL must be one of {valid_log_levels}, got: {self.logging.level}"
+            )
 
         # Validate security settings (convert user IDs)
         if self.security.allowed_users:
@@ -513,7 +517,9 @@ class Config:
 
         # Validate pool settings
         if self.database.pool_size <= 0:
-            errors.append(f"Database pool_size must be positive, got: {self.database.pool_size}")
+            errors.append(
+                f"Database pool_size must be positive, got: {self.database.pool_size}"
+            )
 
         if self.database.max_overflow < 0:
             errors.append(
@@ -526,7 +532,9 @@ class Config:
                 "⚠️  DRY_RUN=false - BOT WILL MAKE REAL TRADES! Make sure you understand the risks."
             )
         elif self.dry_run:
-            logger.info("✅ DRY_RUN=true - Bot is in safe mode (no real trades will be made)")
+            logger.info(
+                "✅ DRY_RUN=true - Bot is in safe mode (no real trades will be made)"
+            )
 
         # Raise all errors at once
         if errors:

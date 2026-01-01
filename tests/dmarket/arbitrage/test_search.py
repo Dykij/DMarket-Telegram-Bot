@@ -256,10 +256,13 @@ class TestFindArbitrageOpportunitiesAdvanced:
         """Test mode normalization (normal -> medium, best -> high)."""
         from src.dmarket.arbitrage.search import find_arbitrage_opportunities_advanced
 
-        with patch(
-            "src.dmarket.arbitrage.search.get_arbitrage_cache",
-            return_value=None,
-        ), patch("src.dmarket.arbitrage.search.save_arbitrage_cache"):
+        with (
+            patch(
+                "src.dmarket.arbitrage.search.get_arbitrage_cache",
+                return_value=None,
+            ),
+            patch("src.dmarket.arbitrage.search.save_arbitrage_cache"),
+        ):
             # Should internally convert "normal" to "medium"
             await find_arbitrage_opportunities_advanced(
                 api_client=mock_api_client,

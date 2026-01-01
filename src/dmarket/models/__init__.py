@@ -1,3 +1,47 @@
-"""Модели данных для работы с DMarket."""
+"""Модели данных для работы с DMarket.
 
-__version__ = "0.1.0"
+Новые модели (январь 2026):
+- target_enhancements.py - расширенные модели для улучшенной системы таргетов
+"""
+
+__version__ = "0.2.0"  # Обновлено для новых моделей таргетов
+
+# Импорты для удобного доступа
+from .target_enhancements import (
+    BatchTargetItem,
+    ExistingOrderInfo,
+    PriceRangeAction,
+    PriceRangeConfig,
+    RarityFilter,
+    RarityLevel,
+    RelistAction,
+    RelistHistory,
+    RelistLimitConfig,
+    RelistStatistics,
+    StickerFilter,
+    TargetDefaults,
+    TargetErrorCode,
+    TargetOperationResult,
+    TargetOperationStatus,
+    TargetOverbidConfig,
+)
+
+__all__ = [
+    # Расширенные модели таргетов (NEW - январь 2026)
+    "TargetOverbidConfig",
+    "PriceRangeConfig",
+    "PriceRangeAction",
+    "RelistLimitConfig",
+    "RelistAction",
+    "TargetDefaults",
+    "TargetOperationResult",
+    "TargetOperationStatus",
+    "TargetErrorCode",
+    "StickerFilter",
+    "RarityFilter",
+    "RarityLevel",
+    "BatchTargetItem",
+    "ExistingOrderInfo",
+    "RelistHistory",
+    "RelistStatistics",
+]

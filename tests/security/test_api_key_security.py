@@ -139,9 +139,7 @@ class TestAPIKeyEncryption:
         original_key = "sk_live_abc123xyz"
 
         # Simulate encryption
-        encrypted = b64encode(
-            sha256(original_key.encode()).digest()
-        ).decode()
+        encrypted = b64encode(sha256(original_key.encode()).digest()).decode()
 
         # Original key should not be visible
         assert original_key not in encrypted
@@ -190,8 +188,14 @@ class TestInputValidation:
     @pytest.mark.parametrize(
         ("malicious_input", "expected_safe"),
         (
-            ("<script>alert('xss')</script>", "&lt;script&gt;alert('xss')&lt;/script&gt;"),
-            ("<img src=x onerror=alert('xss')>", "&lt;img src=x onerror=alert('xss')&gt;"),
+            (
+                "<script>alert('xss')</script>",
+                "&lt;script&gt;alert('xss')&lt;/script&gt;",
+            ),
+            (
+                "<img src=x onerror=alert('xss')>",
+                "&lt;img src=x onerror=alert('xss')&gt;",
+            ),
             ("javascript:alert('xss')", "javascript:alert('xss')"),  # No HTML tags
         ),
     )
@@ -334,7 +338,9 @@ class TestAuthenticationSecurity:
         from hashlib import pbkdf2_hmac
         import secrets
 
-        def hash_password(password: str, salt: bytes | None = None) -> tuple[bytes, bytes]:
+        def hash_password(
+            password: str, salt: bytes | None = None
+        ) -> tuple[bytes, bytes]:
             """Hash password using PBKDF2."""
             if salt is None:
                 salt = secrets.token_bytes(16)

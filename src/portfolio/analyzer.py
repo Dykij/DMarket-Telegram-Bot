@@ -148,7 +148,9 @@ class PortfolioAnalyzer:
 
         # Ensure total_value is Decimal for type safety
         total_value_decimal = (
-            Decimal(total_value) if not isinstance(total_value, Decimal) else total_value
+            Decimal(total_value)
+            if not isinstance(total_value, Decimal)
+            else total_value
         )
 
         # Calculate distributions
@@ -163,7 +165,9 @@ class PortfolioAnalyzer:
         )
 
         # Find concentration risks
-        concentration_risks = self._find_concentration_risks(portfolio.items, total_value_decimal)
+        concentration_risks = self._find_concentration_risks(
+            portfolio.items, total_value_decimal
+        )
 
         # Calculate diversification score
         diversification_score = self._calculate_diversification_score(
@@ -205,7 +209,9 @@ class PortfolioAnalyzer:
 
         # Ensure total_value is Decimal for type safety
         total_value_decimal = (
-            Decimal(total_value) if not isinstance(total_value, Decimal) else total_value
+            Decimal(total_value)
+            if not isinstance(total_value, Decimal)
+            else total_value
         )
 
         # Calculate risk scores
@@ -217,7 +223,9 @@ class PortfolioAnalyzer:
 
         # Overall risk
         overall_risk_score = (
-            volatility_score * 0.3 + (100 - liquidity_score) * 0.3 + concentration_score * 0.4
+            volatility_score * 0.3
+            + (100 - liquidity_score) * 0.3
+            + concentration_score * 0.4
         )
 
         # Determine risk level
@@ -231,7 +239,9 @@ class PortfolioAnalyzer:
             risk_level = "critical"
 
         # Find high risk items
-        high_risk_items = self._find_high_risk_items(portfolio.items, total_value_decimal)
+        high_risk_items = self._find_high_risk_items(
+            portfolio.items, total_value_decimal
+        )
 
         # Generate recommendations
         recommendations = self._generate_risk_recommendations(
@@ -319,7 +329,9 @@ class PortfolioAnalyzer:
         for item in items:
             percentage = float(item.current_value / total_value * 100)
             if percentage >= self.CONCENTRATION_HIGH:
-                risk_level = "critical" if percentage >= self.CONCENTRATION_CRITICAL else "high"
+                risk_level = (
+                    "critical" if percentage >= self.CONCENTRATION_CRITICAL else "high"
+                )
                 risks.append(
                     ConcentrationRisk(
                         item_title=item.title,
@@ -340,7 +352,9 @@ class PortfolioAnalyzer:
         for cat, value in by_category.items():
             percentage = float(value / total_value * 100)
             if percentage >= self.CONCENTRATION_HIGH:
-                risk_level = "critical" if percentage >= self.CONCENTRATION_CRITICAL else "high"
+                risk_level = (
+                    "critical" if percentage >= self.CONCENTRATION_CRITICAL else "high"
+                )
                 risks.append(
                     ConcentrationRisk(
                         item_title=f"Category: {cat}",
@@ -414,7 +428,11 @@ class PortfolioAnalyzer:
 
         # High value items reduce liquidity
         high_value_ratio = (
-            sum(item.current_value for item in portfolio.items if item.current_price > Decimal(100))
+            sum(
+                item.current_value
+                for item in portfolio.items
+                if item.current_price > Decimal(100)
+            )
             / total_value
         )
 
@@ -441,7 +459,9 @@ class PortfolioAnalyzer:
             return 0.0
 
         # Herfindahl-Hirschman Index
-        hhi = sum((float(item.current_value / total_value * 100)) ** 2 for item in items)
+        hhi = sum(
+            (float(item.current_value / total_value * 100)) ** 2 for item in items
+        )
 
         # Normalize to 0-100 scale
         # Perfect diversification across 10 items = 1000 HHI
@@ -486,7 +506,9 @@ class PortfolioAnalyzer:
             recommendations.append("Consider diversifying across multiple games")
 
         if len(by_category) < 3:
-            recommendations.append("Add items from different categories (weapons, stickers, cases)")
+            recommendations.append(
+                "Add items from different categories (weapons, stickers, cases)"
+            )
 
         for risk in concentration_risks[:2]:
             if risk.risk_level == "critical":
@@ -522,7 +544,9 @@ class PortfolioAnalyzer:
             )
 
         if concentration > 50:
-            recommendations.append("Reduce concentration by selling largest positions partially")
+            recommendations.append(
+                "Reduce concentration by selling largest positions partially"
+            )
 
         for item in high_risk_items[:2]:
             recommendations.append(f"Review: {item}")

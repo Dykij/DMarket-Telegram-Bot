@@ -108,7 +108,9 @@ class TestGetApiClient:
     """Tests for get_api_client method."""
 
     @pytest.mark.asyncio()
-    async def test_get_existing_api_client(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_get_existing_api_client(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test returning existing API client."""
         result = await analyzer.get_api_client()
         assert result == mock_api
@@ -118,11 +120,17 @@ class TestGetApiClient:
         """Test creating new API client when none exists."""
         analyzer = SalesAnalyzer()
 
-        with patch.dict("os.environ", {
-            "DMARKET_PUBLIC_KEY": "test_public",
-            "DMARKET_SECRET_KEY": "test_secret",
-            "DMARKET_API_URL": "https://test.api.com",
-        }), patch("src.dmarket.arbitrage_sales_analysis.DMarketAPI") as mock_class:
+        with (
+            patch.dict(
+                "os.environ",
+                {
+                    "DMARKET_PUBLIC_KEY": "test_public",
+                    "DMARKET_SECRET_KEY": "test_secret",
+                    "DMARKET_API_URL": "https://test.api.com",
+                },
+            ),
+            patch("src.dmarket.arbitrage_sales_analysis.DMarketAPI") as mock_class,
+        ):
             mock_instance = MagicMock()
             mock_class.return_value = mock_instance
 
@@ -160,7 +168,10 @@ class TestGetItemSalesHistory:
 
     @pytest.mark.asyncio()
     async def test_cache_expired(
-        self, analyzer: SalesAnalyzer, mock_api: MagicMock, sample_sales_data: list[dict[str, Any]]
+        self,
+        analyzer: SalesAnalyzer,
+        mock_api: MagicMock,
+        sample_sales_data: list[dict[str, Any]],
     ) -> None:
         """Test expired cache triggers new API call."""
         cache_key = "csgo:Test Item:30"
@@ -176,7 +187,10 @@ class TestGetItemSalesHistory:
 
     @pytest.mark.asyncio()
     async def test_cache_bypass(
-        self, analyzer: SalesAnalyzer, mock_api: MagicMock, sample_sales_data: list[dict[str, Any]]
+        self,
+        analyzer: SalesAnalyzer,
+        mock_api: MagicMock,
+        sample_sales_data: list[dict[str, Any]],
     ) -> None:
         """Test cache bypass when use_cache=False."""
         cache_key = "csgo:Test Item:30"
@@ -192,7 +206,9 @@ class TestGetItemSalesHistory:
         mock_api.get_market_items.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_item_not_found(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_item_not_found(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test handling when item is not found."""
         mock_api.get_market_items.return_value = {"items": []}
 
@@ -201,7 +217,9 @@ class TestGetItemSalesHistory:
         assert result == {"sales": []}
 
     @pytest.mark.asyncio()
-    async def test_no_items_key(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_no_items_key(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test handling response without items key."""
         mock_api.get_market_items.return_value = {}
 
@@ -210,7 +228,9 @@ class TestGetItemSalesHistory:
         assert result == {"sales": []}
 
     @pytest.mark.asyncio()
-    async def test_missing_item_id(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_missing_item_id(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test handling item without itemId."""
         mock_api.get_market_items.return_value = {"items": [{"title": "Test"}]}
 
@@ -219,7 +239,9 @@ class TestGetItemSalesHistory:
         assert result == {"sales": []}
 
     @pytest.mark.asyncio()
-    async def test_api_exception(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_api_exception(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test handling API exception."""
         mock_api.get_market_items.side_effect = Exception("API Error")
 
@@ -228,7 +250,9 @@ class TestGetItemSalesHistory:
         assert result == {"sales": []}
 
     @pytest.mark.asyncio()
-    async def test_different_games(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_different_games(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test sales history for different games."""
         mock_api.get_market_items.return_value = {"items": [{"itemId": "dota_item"}]}
         mock_api._request.return_value = {"sales": []}
@@ -248,11 +272,16 @@ class TestAnalyzeSalesVolume:
     """Tests for analyze_sales_volume method."""
 
     @pytest.mark.asyncio()
-    async def test_very_high_volume(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_very_high_volume(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test very high volume categorization."""
         # 100 sales in 30 days = ~3.3 sales/day
         base_time = int(time.time())
-        sales = [{"price": {"amount": 1000}, "date": base_time - i * 3600} for i in range(100)]
+        sales = [
+            {"price": {"amount": 1000}, "date": base_time - i * 3600}
+            for i in range(100)
+        ]
 
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
         mock_api._request.return_value = {"sales": sales}
@@ -264,7 +293,9 @@ class TestAnalyzeSalesVolume:
         assert result["sales_count"] == 100
 
     @pytest.mark.asyncio()
-    async def test_empty_sales_list(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_empty_sales_list(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test empty sales list."""
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
         mock_api._request.return_value = {"sales": []}
@@ -278,7 +309,9 @@ class TestAnalyzeSalesVolume:
         assert result["price_range"]["max"] == 0
 
     @pytest.mark.asyncio()
-    async def test_dict_sales_response(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_dict_sales_response(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test handling dict response with sales key."""
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
         mock_api._request.return_value = {"sales": [{"price": {"amount": 1000}}]}
@@ -292,7 +325,9 @@ class TestAnalyzeSalesVolume:
             assert isinstance(result, dict)
 
     @pytest.mark.asyncio()
-    async def test_price_range_calculation(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_price_range_calculation(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test price range is calculated correctly."""
         base_time = int(time.time())
         sales = [
@@ -320,7 +355,9 @@ class TestEstimateTimeToSell:
     """Tests for estimate_time_to_sell method."""
 
     @pytest.mark.asyncio()
-    async def test_insufficient_data(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_insufficient_data(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test response with insufficient sales data."""
         # Less than min_sample_size (3) sales
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
@@ -334,7 +371,10 @@ class TestEstimateTimeToSell:
 
     @pytest.mark.asyncio()
     async def test_high_confidence_estimation(
-        self, analyzer: SalesAnalyzer, mock_api: MagicMock, sample_sales_data: list[dict[str, Any]]
+        self,
+        analyzer: SalesAnalyzer,
+        mock_api: MagicMock,
+        sample_sales_data: list[dict[str, Any]],
     ) -> None:
         """Test high confidence time estimation."""
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
@@ -347,7 +387,10 @@ class TestEstimateTimeToSell:
 
     @pytest.mark.asyncio()
     async def test_no_current_price(
-        self, analyzer: SalesAnalyzer, mock_api: MagicMock, sample_sales_data: list[dict[str, Any]]
+        self,
+        analyzer: SalesAnalyzer,
+        mock_api: MagicMock,
+        sample_sales_data: list[dict[str, Any]],
     ) -> None:
         """Test estimation without current price uses median."""
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
@@ -358,7 +401,9 @@ class TestEstimateTimeToSell:
         assert "estimated_days" in result or result["confidence"] == "very_low"
 
     @pytest.mark.asyncio()
-    async def test_zero_sales_per_day(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_zero_sales_per_day(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test handling zero sales per day."""
         base_time = int(time.time())
         sales = [
@@ -382,8 +427,7 @@ class TestEstimateTimeToSell:
         base_time = int(time.time())
         # Many recent sales = quick sell
         sales = [
-            {"price": {"amount": 1000}, "date": base_time - i * 1800}
-            for i in range(50)
+            {"price": {"amount": 1000}, "date": base_time - i * 1800} for i in range(50)
         ]
 
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
@@ -395,14 +439,13 @@ class TestEstimateTimeToSell:
             assert result["recommendation"] == "good"
 
     @pytest.mark.asyncio()
-    async def test_exception_handling(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_exception_handling(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test exception handling in estimate_time_to_sell."""
         base_time = int(time.time())
         # Sales with invalid data structure to trigger exception in pandas
-        sales = [
-            {"invalid_field": "data", "date": base_time}
-            for _ in range(5)
-        ]
+        sales = [{"invalid_field": "data", "date": base_time} for _ in range(5)]
 
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
         mock_api._request.return_value = {"sales": sales}
@@ -422,7 +465,9 @@ class TestAnalyzePriceTrends:
     """Tests for analyze_price_trends method."""
 
     @pytest.mark.asyncio()
-    async def test_insufficient_sales(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_insufficient_sales(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test handling insufficient sales data."""
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
         mock_api._request.return_value = {"sales": []}
@@ -433,7 +478,9 @@ class TestAnalyzePriceTrends:
         assert "Insufficient" in result["message"]
 
     @pytest.mark.asyncio()
-    async def test_strong_upward_trend(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_strong_upward_trend(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test strong upward trend detection."""
         base_time = int(time.time())
         # Price increases by 20% over time
@@ -453,7 +500,9 @@ class TestAnalyzePriceTrends:
         assert result["price_change_percent"] > 10
 
     @pytest.mark.asyncio()
-    async def test_strong_downward_trend(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_strong_downward_trend(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test strong downward trend detection."""
         base_time = int(time.time())
         # Price decreases by 20% over time
@@ -473,7 +522,9 @@ class TestAnalyzePriceTrends:
         assert result["price_change_percent"] < -10
 
     @pytest.mark.asyncio()
-    async def test_high_volatility_message(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_high_volatility_message(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test high volatility message addition."""
         base_time = int(time.time())
         # High volatility prices
@@ -493,7 +544,9 @@ class TestAnalyzePriceTrends:
         assert "volatility" in result["message"]
 
     @pytest.mark.asyncio()
-    async def test_missing_timestamp_field(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_missing_timestamp_field(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test handling missing timestamp field."""
         sales = [
             {"price": {"amount": 1000}, "invalid_date": "2023-01-01"},
@@ -508,7 +561,9 @@ class TestAnalyzePriceTrends:
         assert result["trend"] == "unknown"
 
     @pytest.mark.asyncio()
-    async def test_single_daily_average(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_single_daily_average(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test handling when all sales are on same day."""
         base_time = int(time.time())
         # All sales on the same day
@@ -583,8 +638,7 @@ class TestEvaluateArbitragePotential:
         """Test risk level calculation."""
         base_time = int(time.time())
         sales = [
-            {"price": {"amount": 1000}, "date": base_time - i * 1800}
-            for i in range(30)
+            {"price": {"amount": 1000}, "date": base_time - i * 1800} for i in range(30)
         ]
 
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
@@ -603,8 +657,7 @@ class TestEvaluateArbitragePotential:
         """Test daily ROI calculation."""
         base_time = int(time.time())
         sales = [
-            {"price": {"amount": 1000}, "date": base_time - i * 1800}
-            for i in range(30)
+            {"price": {"amount": 1000}, "date": base_time - i * 1800} for i in range(30)
         ]
 
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
@@ -627,8 +680,7 @@ class TestEvaluateArbitragePotential:
 
         # High volume for better rating
         sales = [
-            {"price": {"amount": 1000}, "date": base_time - i * 1800}
-            for i in range(50)
+            {"price": {"amount": 1000}, "date": base_time - i * 1800} for i in range(50)
         ]
 
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
@@ -656,7 +708,9 @@ class TestBatchAnalyzeItems:
     ) -> None:
         """Test SalesAnalyzer.batch_analyze_items method."""
         base_time = int(time.time())
-        sales = [{"price": {"amount": 1000}, "date": base_time - i * 3600} for i in range(10)]
+        sales = [
+            {"price": {"amount": 1000}, "date": base_time - i * 3600} for i in range(10)
+        ]
 
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
         mock_api._request.return_value = {"sales": sales}
@@ -693,16 +747,22 @@ class TestBatchAnalyzeItems:
     @pytest.mark.asyncio()
     async def test_module_function_batch_analyze(self) -> None:
         """Test module-level batch_analyze_items function."""
-        with patch("src.dmarket.arbitrage_sales_analysis.SalesAnalyzer") as MockAnalyzer:
+        with patch(
+            "src.dmarket.arbitrage_sales_analysis.SalesAnalyzer"
+        ) as MockAnalyzer:
             mock_instance = MagicMock()
-            mock_instance.analyze_sales_volume = AsyncMock(return_value={
-                "sales_count": 10,
-                "volume_category": "medium",
-                "is_liquid": True,
-            })
-            mock_instance.analyze_price_trends = AsyncMock(return_value={
-                "trend": "stable",
-            })
+            mock_instance.analyze_sales_volume = AsyncMock(
+                return_value={
+                    "sales_count": 10,
+                    "volume_category": "medium",
+                    "is_liquid": True,
+                }
+            )
+            mock_instance.analyze_price_trends = AsyncMock(
+                return_value={
+                    "trend": "stable",
+                }
+            )
             MockAnalyzer.return_value = mock_instance
 
             items = [{"title": "Test Item", "buy_price": 10.0}]
@@ -739,7 +799,9 @@ class TestFindBestArbitrageOpportunities:
     ) -> None:
         """Test SalesAnalyzer.find_best_arbitrage_opportunities method."""
         base_time = int(time.time())
-        sales = [{"price": {"amount": 1000}, "date": base_time - i * 3600} for i in range(20)]
+        sales = [
+            {"price": {"amount": 1000}, "date": base_time - i * 3600} for i in range(20)
+        ]
 
         mock_api.get_market_items.return_value = {
             "items": [
@@ -749,7 +811,9 @@ class TestFindBestArbitrageOpportunities:
         }
         mock_api._request.return_value = {"sales": sales}
 
-        result = await analyzer.find_best_arbitrage_opportunities("csgo", 5.0, "medium", 10)
+        result = await analyzer.find_best_arbitrage_opportunities(
+            "csgo", 5.0, "medium", 10
+        )
 
         assert isinstance(result, list)
 
@@ -760,7 +824,9 @@ class TestFindBestArbitrageOpportunities:
         """Test handling empty items response."""
         mock_api.get_market_items.return_value = {"items": []}
 
-        result = await analyzer.find_best_arbitrage_opportunities("csgo", 5.0, "medium", 10)
+        result = await analyzer.find_best_arbitrage_opportunities(
+            "csgo", 5.0, "medium", 10
+        )
 
         assert result == []
 
@@ -771,7 +837,9 @@ class TestFindBestArbitrageOpportunities:
         """Test handling response without items key."""
         mock_api.get_market_items.return_value = {}
 
-        result = await analyzer.find_best_arbitrage_opportunities("csgo", 5.0, "medium", 10)
+        result = await analyzer.find_best_arbitrage_opportunities(
+            "csgo", 5.0, "medium", 10
+        )
 
         assert result == []
 
@@ -782,14 +850,18 @@ class TestFindBestArbitrageOpportunities:
         """Test handling API error."""
         mock_api.get_market_items.side_effect = Exception("API Error")
 
-        result = await analyzer.find_best_arbitrage_opportunities("csgo", 5.0, "medium", 10)
+        result = await analyzer.find_best_arbitrage_opportunities(
+            "csgo", 5.0, "medium", 10
+        )
 
         assert result == []
 
     @pytest.mark.asyncio()
     async def test_module_function_find_opportunities(self) -> None:
         """Test module-level find_best_arbitrage_opportunities function."""
-        with patch("src.dmarket.arbitrage_sales_analysis.SalesAnalyzer") as MockAnalyzer:
+        with patch(
+            "src.dmarket.arbitrage_sales_analysis.SalesAnalyzer"
+        ) as MockAnalyzer:
             mock_instance = MagicMock()
             mock_instance.get_api_client = AsyncMock()
 
@@ -800,7 +872,9 @@ class TestFindBestArbitrageOpportunities:
 
             MockAnalyzer.return_value = mock_instance
 
-            result = await find_best_arbitrage_opportunities("csgo", 5.0, "medium", 10, None)
+            result = await find_best_arbitrage_opportunities(
+                "csgo", 5.0, "medium", 10, None
+            )
 
             assert isinstance(result, list)
 
@@ -810,7 +884,9 @@ class TestFindBestArbitrageOpportunities:
     ) -> None:
         """Test filtering by risk level."""
         base_time = int(time.time())
-        sales = [{"price": {"amount": 1000}, "date": base_time - i * 3600} for i in range(30)]
+        sales = [
+            {"price": {"amount": 1000}, "date": base_time - i * 3600} for i in range(30)
+        ]
 
         mock_api.get_market_items.return_value = {
             "items": [{"title": "Item 1", "itemId": "id1", "price": {"amount": 1000}}]
@@ -818,7 +894,9 @@ class TestFindBestArbitrageOpportunities:
         mock_api._request.return_value = {"sales": sales}
 
         # Test low risk filter
-        result = await analyzer.find_best_arbitrage_opportunities("csgo", 5.0, "low", 10)
+        result = await analyzer.find_best_arbitrage_opportunities(
+            "csgo", 5.0, "low", 10
+        )
 
         for opportunity in result:
             assert opportunity["risk_level"] == "low"
@@ -835,13 +913,17 @@ class TestModuleLevelFunctions:
     @pytest.mark.asyncio()
     async def test_analyze_item_liquidity(self) -> None:
         """Test analyze_item_liquidity function."""
-        with patch("src.dmarket.arbitrage_sales_analysis.SalesAnalyzer") as MockAnalyzer:
+        with patch(
+            "src.dmarket.arbitrage_sales_analysis.SalesAnalyzer"
+        ) as MockAnalyzer:
             mock_instance = MagicMock()
-            mock_instance.analyze_sales_volume = AsyncMock(return_value={
-                "volume_category": "high",
-                "avg_daily_sales": 5,
-                "total_sales": 100,
-            })
+            mock_instance.analyze_sales_volume = AsyncMock(
+                return_value={
+                    "volume_category": "high",
+                    "avg_daily_sales": 5,
+                    "total_sales": 100,
+                }
+            )
             MockAnalyzer.return_value = mock_instance
 
             result = await analyze_item_liquidity("item123", None)
@@ -852,7 +934,9 @@ class TestModuleLevelFunctions:
     @pytest.mark.asyncio()
     async def test_analyze_item_liquidity_error(self) -> None:
         """Test analyze_item_liquidity with error."""
-        with patch("src.dmarket.arbitrage_sales_analysis.SalesAnalyzer") as MockAnalyzer:
+        with patch(
+            "src.dmarket.arbitrage_sales_analysis.SalesAnalyzer"
+        ) as MockAnalyzer:
             mock_instance = MagicMock()
             mock_instance.analyze_sales_volume = AsyncMock(return_value={"error": True})
             MockAnalyzer.return_value = mock_instance
@@ -865,9 +949,13 @@ class TestModuleLevelFunctions:
     @pytest.mark.asyncio()
     async def test_analyze_item_liquidity_exception(self) -> None:
         """Test analyze_item_liquidity with exception."""
-        with patch("src.dmarket.arbitrage_sales_analysis.SalesAnalyzer") as MockAnalyzer:
+        with patch(
+            "src.dmarket.arbitrage_sales_analysis.SalesAnalyzer"
+        ) as MockAnalyzer:
             mock_instance = MagicMock()
-            mock_instance.analyze_sales_volume = AsyncMock(side_effect=ValueError("Test error"))
+            mock_instance.analyze_sales_volume = AsyncMock(
+                side_effect=ValueError("Test error")
+            )
             MockAnalyzer.return_value = mock_instance
 
             result = await analyze_item_liquidity("item123", None)
@@ -949,7 +1037,9 @@ class TestEdgeCases:
     """Tests for edge cases and boundary conditions."""
 
     @pytest.mark.asyncio()
-    async def test_zero_buy_price(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_zero_buy_price(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test handling zero buy price in arbitrage evaluation."""
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
         mock_api._request.return_value = {"sales": []}
@@ -962,10 +1052,14 @@ class TestEdgeCases:
         assert "profit_percent" in result
 
     @pytest.mark.asyncio()
-    async def test_negative_profit(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_negative_profit(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test handling negative profit scenario."""
         base_time = int(time.time())
-        sales = [{"price": {"amount": 1000}, "date": base_time - i * 3600} for i in range(10)]
+        sales = [
+            {"price": {"amount": 1000}, "date": base_time - i * 3600} for i in range(10)
+        ]
 
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
         mock_api._request.return_value = {"sales": sales}
@@ -978,7 +1072,9 @@ class TestEdgeCases:
         assert result["profit_percent"] < 0
 
     @pytest.mark.asyncio()
-    async def test_unicode_item_name(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_unicode_item_name(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test handling unicode characters in item name."""
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
         mock_api._request.return_value = {"sales": []}
@@ -988,7 +1084,9 @@ class TestEdgeCases:
         mock_api.get_market_items.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_very_long_item_name(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_very_long_item_name(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test handling very long item name."""
         long_name = "A" * 1000
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
@@ -1012,7 +1110,9 @@ class TestEdgeCases:
         mock_api.get_market_items.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_empty_game_string(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_empty_game_string(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test handling empty game string."""
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
         mock_api._request.return_value = {"sales": []}
@@ -1022,7 +1122,9 @@ class TestEdgeCases:
         mock_api.get_market_items.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_zero_days_parameter(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_zero_days_parameter(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test handling zero days parameter."""
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
         mock_api._request.return_value = {"sales": []}
@@ -1045,7 +1147,9 @@ class TestEdgeCases:
         mock_api.get_market_items.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_concurrent_cache_access(self, analyzer: SalesAnalyzer, mock_api: MagicMock) -> None:
+    async def test_concurrent_cache_access(
+        self, analyzer: SalesAnalyzer, mock_api: MagicMock
+    ) -> None:
         """Test concurrent cache access doesn't cause issues."""
         import asyncio
 
@@ -1054,8 +1158,7 @@ class TestEdgeCases:
 
         # Run multiple concurrent requests
         tasks = [
-            analyzer.get_item_sales_history(f"Item {i}", "csgo", 30)
-            for i in range(10)
+            analyzer.get_item_sales_history(f"Item {i}", "csgo", 30) for i in range(10)
         ]
 
         results = await asyncio.gather(*tasks)
@@ -1098,7 +1201,9 @@ class TestIntegration:
         assert "trend" in trends
 
         # Step 4: Estimate time to sell
-        time_estimate = await analyzer.estimate_time_to_sell("Test Item", "csgo", 10.0, 30)
+        time_estimate = await analyzer.estimate_time_to_sell(
+            "Test Item", "csgo", 10.0, 30
+        )
         assert "confidence" in time_estimate
 
         # Step 5: Evaluate arbitrage
@@ -1113,7 +1218,9 @@ class TestIntegration:
     ) -> None:
         """Test analyzing multiple items sequentially."""
         base_time = int(time.time())
-        sales = [{"price": {"amount": 1000}, "date": base_time - i * 3600} for i in range(10)]
+        sales = [
+            {"price": {"amount": 1000}, "date": base_time - i * 3600} for i in range(10)
+        ]
 
         mock_api.get_market_items.return_value = {"items": [{"itemId": "item123"}]}
         mock_api._request.return_value = {"sales": sales}

@@ -7,7 +7,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.utils.exceptions import APIError, AuthenticationError, RateLimitError, ValidationError
+from src.utils.exceptions import (
+    APIError,
+    AuthenticationError,
+    RateLimitError,
+    ValidationError,
+)
 from src.utils.telegram_error_handlers import BaseHandler, telegram_error_boundary
 
 
@@ -81,7 +86,9 @@ class TestTelegramErrorBoundary:
         with (
             patch("src.utils.telegram_error_handlers.set_user_context"),
             patch("src.utils.telegram_error_handlers.add_breadcrumb"),
-            patch("src.utils.telegram_error_handlers.capture_exception") as mock_capture,
+            patch(
+                "src.utils.telegram_error_handlers.capture_exception"
+            ) as mock_capture,
         ):
             await test_handler(mock_update, mock_context)
             mock_update.message.reply_text.assert_called_once()
@@ -123,7 +130,9 @@ class TestTelegramErrorBoundary:
         with (
             patch("src.utils.telegram_error_handlers.set_user_context"),
             patch("src.utils.telegram_error_handlers.add_breadcrumb"),
-            patch("src.utils.telegram_error_handlers.capture_exception") as mock_capture,
+            patch(
+                "src.utils.telegram_error_handlers.capture_exception"
+            ) as mock_capture,
         ):
             await test_handler(mock_update, mock_context)
             mock_update.message.reply_text.assert_called_once()
@@ -142,16 +151,18 @@ class TestTelegramErrorBoundary:
         with (
             patch("src.utils.telegram_error_handlers.set_user_context"),
             patch("src.utils.telegram_error_handlers.add_breadcrumb"),
-            patch("src.utils.telegram_error_handlers.capture_exception") as mock_capture,
+            patch(
+                "src.utils.telegram_error_handlers.capture_exception"
+            ) as mock_capture,
         ):
             await test_handler(mock_update, mock_context)
-            mock_update.message.reply_text.assert_called_once_with("Custom error message")
+            mock_update.message.reply_text.assert_called_once_with(
+                "Custom error message"
+            )
             mock_capture.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_callback_query_error_handling(
-        self, mock_context: MagicMock
-    ) -> None:
+    async def test_callback_query_error_handling(self, mock_context: MagicMock) -> None:
         """Test error handling for callback queries."""
         mock_update = MagicMock()
         mock_update.effective_user = MagicMock()
@@ -327,7 +338,9 @@ class TestBaseHandler:
 
         await handler.safe_reply(mock_update, "Test message")
 
-        mock_update.callback_query.message.reply_text.assert_called_once_with("Test message")
+        mock_update.callback_query.message.reply_text.assert_called_once_with(
+            "Test message"
+        )
         mock_update.callback_query.answer.assert_called_once()
 
     @pytest.mark.asyncio()
@@ -336,7 +349,9 @@ class TestBaseHandler:
     ) -> None:
         """Test safe_reply with additional kwargs."""
         await handler.safe_reply(mock_update, "Test message", parse_mode="HTML")
-        mock_update.message.reply_text.assert_called_once_with("Test message", parse_mode="HTML")
+        mock_update.message.reply_text.assert_called_once_with(
+            "Test message", parse_mode="HTML"
+        )
 
     @pytest.mark.asyncio()
     async def test_safe_reply_exception_handling(

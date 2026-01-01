@@ -122,10 +122,12 @@ class TestPriceSanityCheckerCheckPriceSanity:
     async def test_check_insufficient_history(self):
         """Test check with insufficient history."""
         db = MagicMock()
-        db.get_price_history = AsyncMock(return_value=[
-            {"price_usd": 50.0},
-            {"price_usd": 55.0},
-        ])
+        db.get_price_history = AsyncMock(
+            return_value=[
+                {"price_usd": 50.0},
+                {"price_usd": 55.0},
+            ]
+        )
 
         checker = PriceSanityChecker(database_manager=db)
 
@@ -155,12 +157,14 @@ class TestPriceSanityCheckerCheckPriceSanity:
     async def test_check_price_within_limit(self):
         """Test check passes when price is within limit."""
         db = MagicMock()
-        db.get_price_history = AsyncMock(return_value=[
-            {"price_usd": 100.0},
-            {"price_usd": 105.0},
-            {"price_usd": 95.0},
-            {"price_usd": 102.0},
-        ])
+        db.get_price_history = AsyncMock(
+            return_value=[
+                {"price_usd": 100.0},
+                {"price_usd": 105.0},
+                {"price_usd": 95.0},
+                {"price_usd": 102.0},
+            ]
+        )
 
         checker = PriceSanityChecker(database_manager=db)
 
@@ -178,11 +182,13 @@ class TestPriceSanityCheckerCheckPriceSanity:
     async def test_check_price_exceeds_limit(self):
         """Test check fails when price exceeds limit."""
         db = MagicMock()
-        db.get_price_history = AsyncMock(return_value=[
-            {"price_usd": 100.0},
-            {"price_usd": 100.0},
-            {"price_usd": 100.0},
-        ])
+        db.get_price_history = AsyncMock(
+            return_value=[
+                {"price_usd": 100.0},
+                {"price_usd": 100.0},
+                {"price_usd": 100.0},
+            ]
+        )
 
         checker = PriceSanityChecker(database_manager=db)
 
@@ -201,11 +207,13 @@ class TestPriceSanityCheckerCheckPriceSanity:
     async def test_check_sends_critical_alert(self):
         """Test that critical alert is sent on failure."""
         db = MagicMock()
-        db.get_price_history = AsyncMock(return_value=[
-            {"price_usd": 100.0},
-            {"price_usd": 100.0},
-            {"price_usd": 100.0},
-        ])
+        db.get_price_history = AsyncMock(
+            return_value=[
+                {"price_usd": 100.0},
+                {"price_usd": 100.0},
+                {"price_usd": 100.0},
+            ]
+        )
 
         notifier = MagicMock()
         notifier.send_message = AsyncMock()
@@ -377,11 +385,13 @@ class TestPriceSanityCheckerEdgeCases:
     async def test_zero_price_history(self):
         """Test handling zero values in price history."""
         db = MagicMock()
-        db.get_price_history = AsyncMock(return_value=[
-            {"price_usd": 0.01},
-            {"price_usd": 0.01},
-            {"price_usd": 0.01},
-        ])
+        db.get_price_history = AsyncMock(
+            return_value=[
+                {"price_usd": 0.01},
+                {"price_usd": 0.01},
+                {"price_usd": 0.01},
+            ]
+        )
 
         checker = PriceSanityChecker(database_manager=db)
 
@@ -396,11 +406,13 @@ class TestPriceSanityCheckerEdgeCases:
     async def test_boundary_price(self):
         """Test price exactly at boundary (50% above average)."""
         db = MagicMock()
-        db.get_price_history = AsyncMock(return_value=[
-            {"price_usd": 100.0},
-            {"price_usd": 100.0},
-            {"price_usd": 100.0},
-        ])
+        db.get_price_history = AsyncMock(
+            return_value=[
+                {"price_usd": 100.0},
+                {"price_usd": 100.0},
+                {"price_usd": 100.0},
+            ]
+        )
 
         checker = PriceSanityChecker(database_manager=db)
 
@@ -416,11 +428,13 @@ class TestPriceSanityCheckerEdgeCases:
     async def test_custom_game(self):
         """Test with custom game parameter."""
         db = MagicMock()
-        db.get_price_history = AsyncMock(return_value=[
-            {"price_usd": 10.0},
-            {"price_usd": 10.0},
-            {"price_usd": 10.0},
-        ])
+        db.get_price_history = AsyncMock(
+            return_value=[
+                {"price_usd": 10.0},
+                {"price_usd": 10.0},
+                {"price_usd": 10.0},
+            ]
+        )
 
         checker = PriceSanityChecker(database_manager=db)
 

@@ -14,7 +14,6 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-
 # Test fixtures
 
 
@@ -87,7 +86,9 @@ class TestGetUserInventory:
         assert call_args[1]["params"]["gameId"] == "dota2"
 
     @pytest.mark.asyncio()
-    async def test_get_user_inventory_with_pagination(self, inventory_mixin, mock_request):
+    async def test_get_user_inventory_with_pagination(
+        self, inventory_mixin, mock_request
+    ):
         """Test get_user_inventory with pagination parameters."""
         # Arrange
         mock_request.return_value = {"objects": [], "total": "0"}
@@ -123,7 +124,9 @@ class TestListUserInventory:
         assert call_args[1]["params"]["GameID"] == "a8db"
 
     @pytest.mark.asyncio()
-    async def test_list_user_inventory_with_game_id(self, inventory_mixin, mock_request):
+    async def test_list_user_inventory_with_game_id(
+        self, inventory_mixin, mock_request
+    ):
         """Test list_user_inventory with specific game ID."""
         # Arrange
         mock_request.return_value = {"objects": [], "total": "0"}
@@ -136,7 +139,9 @@ class TestListUserInventory:
         assert call_args[1]["params"]["GameID"] == "custom_game_id"
 
     @pytest.mark.asyncio()
-    async def test_list_user_inventory_with_pagination(self, inventory_mixin, mock_request):
+    async def test_list_user_inventory_with_pagination(
+        self, inventory_mixin, mock_request
+    ):
         """Test list_user_inventory with pagination."""
         # Arrange
         mock_request.return_value = {"objects": [], "total": "0"}
@@ -265,7 +270,7 @@ class TestSyncInventory:
 # TestInventoryEdgeCases
 
 
-class TestInventoryEdgeCases:
+class TestInventoryEdgeCasesExtended:
     """Tests for edge cases and error handling."""
 
     @pytest.mark.asyncio()
@@ -311,8 +316,8 @@ class TestInventoryEdgeCases:
 # =============================================================================
 
 
-class TestDepositAssets:
-    """Tests for deposit_assets method."""
+class TestDepositAssetsExtended:
+    """Extended tests for deposit_assets method."""
 
     @pytest.mark.asyncio()
     async def test_deposit_assets_success(self, inventory_mixin, mock_request):
@@ -346,7 +351,7 @@ class TestDepositAssets:
         assert result is not None
 
 
-class TestGetDepositStatus:
+class TestGetDepositStatusExtended:
     """Tests for get_deposit_status method."""
 
     @pytest.mark.asyncio()
@@ -381,7 +386,7 @@ class TestGetDepositStatus:
         assert result["status"] == "pending"
 
 
-class TestWithdrawAssets:
+class TestWithdrawAssetsExtended:
     """Tests for withdraw_assets method."""
 
     @pytest.mark.asyncio()
@@ -416,7 +421,7 @@ class TestWithdrawAssets:
         assert result["success"] is True
 
 
-class TestSyncInventory:
+class TestSyncInventoryExtended:
     """Tests for sync_inventory method."""
 
     @pytest.mark.asyncio()
@@ -457,7 +462,9 @@ class TestGetAllUserInventory:
     """Tests for get_all_user_inventory method."""
 
     @pytest.mark.asyncio()
-    async def test_get_all_inventory_with_pagination(self, inventory_mixin, mock_request):
+    async def test_get_all_inventory_with_pagination(
+        self, inventory_mixin, mock_request
+    ):
         """Test getting all inventory with automatic pagination."""
         # Arrange
         mock_request.side_effect = [
@@ -475,7 +482,9 @@ class TestGetAllUserInventory:
         assert mock_request.call_count >= 2
 
     @pytest.mark.asyncio()
-    async def test_get_all_inventory_respects_max_items(self, inventory_mixin, mock_request):
+    async def test_get_all_inventory_respects_max_items(
+        self, inventory_mixin, mock_request
+    ):
         """Test that max_items limit is respected."""
         # Arrange
         mock_request.side_effect = [
@@ -532,7 +541,9 @@ class TestInventoryEdgeCases:
         assert call_args[1]["params"]["offset"] == 10000
 
     @pytest.mark.asyncio()
-    async def test_list_inventory_with_custom_game_id(self, inventory_mixin, mock_request):
+    async def test_list_inventory_with_custom_game_id(
+        self, inventory_mixin, mock_request
+    ):
         """Test list inventory with custom game ID."""
         # Arrange
         mock_request.return_value = {"items": []}

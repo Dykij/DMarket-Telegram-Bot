@@ -165,7 +165,9 @@ class TestApplication:
         """Тест проверяет продолжение инициализации при ошибке API."""
         # Arrange
         mock_config.testing = False
-        mock_dmarket_api.get_balance = AsyncMock(side_effect=Exception("Connection failed"))
+        mock_dmarket_api.get_balance = AsyncMock(
+            side_effect=Exception("Connection failed")
+        )
         app = Application()
 
         # Act
@@ -215,7 +217,9 @@ class TestApplication:
             mock_bot.start.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_run_keyboard_interrupt(self, mock_config, mock_dmarket_api, mock_bot):
+    async def test_run_keyboard_interrupt(
+        self, mock_config, mock_dmarket_api, mock_bot
+    ):
         """Тест проверяет обработку KeyboardInterrupt во время запуска."""
         # Arrange
         app = Application()
@@ -235,7 +239,9 @@ class TestApplication:
         app.shutdown.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_shutdown_all_components(self, mock_database, mock_dmarket_api, mock_bot):
+    async def test_shutdown_all_components(
+        self, mock_database, mock_dmarket_api, mock_bot
+    ):
         """Test shutdown of all components."""
         app = Application()
         app.bot = mock_bot
@@ -249,7 +255,9 @@ class TestApplication:
         mock_database.close.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_shutdown_with_errors(self, mock_database, mock_dmarket_api, mock_bot):
+    async def test_shutdown_with_errors(
+        self, mock_database, mock_dmarket_api, mock_bot
+    ):
         """Тест проверяет, что shutdown перехватывает ошибки и не падает."""
         # Arrange
         app = Application()

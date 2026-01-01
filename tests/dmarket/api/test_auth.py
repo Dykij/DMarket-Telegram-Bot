@@ -399,7 +399,9 @@ class TestAuthEdgeCases:
 # =============================================================================
 
 
-@pytest.mark.skip(reason="Fixture targets_mixin not defined - tests moved to targets module")
+@pytest.mark.skip(
+    reason="Fixture targets_mixin not defined - tests moved to targets module"
+)
 class TestTargetsAPIAdditional:
     """Additional tests for targets_api to reach 95%."""
 
@@ -451,7 +453,9 @@ class TestTargetsAPIAdditional:
 class TestTradingAPIAdditional:
     """Additional tests for trading to reach 95%."""
 
-    @pytest.mark.skip(reason="Fixture trading_mixin not defined - tests moved to trading module")
+    @pytest.mark.skip(
+        reason="Fixture trading_mixin not defined - tests moved to trading module"
+    )
     @pytest.mark.asyncio()
     async def test_buy_item_with_price_limit(self, trading_mixin, mock_request):
         """Test buying item with price limit."""
@@ -468,7 +472,9 @@ class TestTradingAPIAdditional:
         # Assert
         assert result is not None
 
-    @pytest.mark.skip(reason="Fixture trading_mixin not defined - tests moved to trading module")
+    @pytest.mark.skip(
+        reason="Fixture trading_mixin not defined - tests moved to trading module"
+    )
     @pytest.mark.asyncio()
     async def test_sell_item_with_min_price(self, trading_mixin, mock_request):
         """Test selling item with minimum price."""
@@ -485,7 +491,9 @@ class TestTradingAPIAdditional:
         # Assert
         assert result is not None
 
-    @pytest.mark.skip(reason="Fixture trading_mixin not defined - tests moved to trading module")
+    @pytest.mark.skip(
+        reason="Fixture trading_mixin not defined - tests moved to trading module"
+    )
     @pytest.mark.asyncio()
     async def test_cancel_order_success(self, trading_mixin, mock_request):
         """Test canceling an order."""
@@ -502,7 +510,9 @@ class TestTradingAPIAdditional:
 class TestAuthAPIAdditional:
     """Additional tests for auth to reach 95%."""
 
-    @pytest.mark.skip(reason="Fixture auth_mixin not defined - tests moved to auth module")
+    @pytest.mark.skip(
+        reason="Fixture auth_mixin not defined - tests moved to auth module"
+    )
     def test_generate_signature_with_empty_body(self, auth_mixin):
         """Test signature generation with empty body."""
         # Arrange
@@ -521,7 +531,9 @@ class TestAuthAPIAdditional:
         # Assert
         assert result is not None
 
-    @pytest.mark.skip(reason="Fixture auth_mixin not defined - tests moved to auth module")
+    @pytest.mark.skip(
+        reason="Fixture auth_mixin not defined - tests moved to auth module"
+    )
     def test_generate_signature_with_special_characters(self, auth_mixin):
         """Test signature with special characters in path."""
         # Arrange

@@ -31,11 +31,7 @@ class TestArbitrageKeyboards:
         keyboard = get_arbitrage_keyboard()
 
         # Проверяем, что есть кнопка сканирования
-        buttons_flat = [
-            btn
-            for row in keyboard.inline_keyboard
-            for btn in row
-        ]
+        buttons_flat = [btn for row in keyboard.inline_keyboard for btn in row]
         scan_button = next(
             (btn for btn in buttons_flat if btn.callback_data == "arb_scan"),
             None,
@@ -51,11 +47,7 @@ class TestArbitrageKeyboards:
 
         assert isinstance(keyboard, InlineKeyboardMarkup)
         # Проверяем наличие кнопок быстрого и глубокого скана
-        buttons_flat = [
-            btn
-            for row in keyboard.inline_keyboard
-            for btn in row
-        ]
+        buttons_flat = [btn for row in keyboard.inline_keyboard for btn in row]
         callback_datas = [btn.callback_data for btn in buttons_flat]
         assert "arb_quick" in callback_datas
         assert "arb_deep" in callback_datas
@@ -66,11 +58,7 @@ class TestArbitrageKeyboards:
 
         keyboard = get_auto_arbitrage_keyboard()
 
-        buttons_flat = [
-            btn
-            for row in keyboard.inline_keyboard
-            for btn in row
-        ]
+        buttons_flat = [btn for row in keyboard.inline_keyboard for btn in row]
         callback_datas = [btn.callback_data for btn in buttons_flat]
         # Проверяем наличие кнопок запуска и остановки
         assert "auto_arb_start" in callback_datas
@@ -83,22 +71,16 @@ class TestArbitrageKeyboards:
 
         # С полными опциями
         kb_full = create_arbitrage_keyboard(include_auto=True, include_analysis=True)
-        buttons_full = [
-            btn
-            for row in kb_full.inline_keyboard
-            for btn in row
-        ]
+        buttons_full = [btn for row in kb_full.inline_keyboard for btn in row]
         callback_datas_full = [btn.callback_data for btn in buttons_full]
         assert "arb_auto" in callback_datas_full
         assert "arb_analysis" in callback_datas_full
 
         # Без авто-арбитража
-        kb_no_auto = create_arbitrage_keyboard(include_auto=False, include_analysis=True)
-        buttons_no_auto = [
-            btn
-            for row in kb_no_auto.inline_keyboard
-            for btn in row
-        ]
+        kb_no_auto = create_arbitrage_keyboard(
+            include_auto=False, include_analysis=True
+        )
+        buttons_no_auto = [btn for row in kb_no_auto.inline_keyboard for btn in row]
         callback_datas_no_auto = [btn.callback_data for btn in buttons_no_auto]
         assert "arb_auto" not in callback_datas_no_auto
 
@@ -107,11 +89,7 @@ class TestArbitrageKeyboards:
         from src.telegram_bot.keyboards.arbitrage import create_arbitrage_keyboard
 
         kb = create_arbitrage_keyboard(include_auto=True, include_analysis=False)
-        buttons = [
-            btn
-            for row in kb.inline_keyboard
-            for btn in row
-        ]
+        buttons = [btn for row in kb.inline_keyboard for btn in row]
         callback_datas = [btn.callback_data for btn in buttons]
         assert "arb_analysis" not in callback_datas
 
@@ -133,11 +111,7 @@ class TestArbitrageKeyboards:
 
         keyboard = get_marketplace_comparison_keyboard()
 
-        buttons_flat = [
-            btn
-            for row in keyboard.inline_keyboard
-            for btn in row
-        ]
+        buttons_flat = [btn for row in keyboard.inline_keyboard for btn in row]
         callback_datas = [btn.callback_data for btn in buttons_flat]
         assert "cmp_steam" in callback_datas
         assert "cmp_buff" in callback_datas
@@ -151,11 +125,7 @@ class TestArbitrageKeyboards:
 
         assert isinstance(keyboard, InlineKeyboardMarkup)
         # Должна быть хотя бы одна игра
-        buttons_flat = [
-            btn
-            for row in keyboard.inline_keyboard
-            for btn in row
-        ]
+        buttons_flat = [btn for row in keyboard.inline_keyboard for btn in row]
         # Проверяем наличие кнопки назад
         back_button = next(
             (btn for btn in buttons_flat if btn.callback_data == "arbitrage"),
@@ -169,11 +139,7 @@ class TestArbitrageKeyboards:
 
         keyboard = create_market_analysis_keyboard()
 
-        buttons_flat = [
-            btn
-            for row in keyboard.inline_keyboard
-            for btn in row
-        ]
+        buttons_flat = [btn for row in keyboard.inline_keyboard for btn in row]
         callback_datas = [btn.callback_data for btn in buttons_flat]
         assert "analysis_trends" in callback_datas
         assert "analysis_vol" in callback_datas
@@ -190,11 +156,7 @@ class TestMainKeyboards:
         keyboard = get_main_menu_keyboard()
 
         assert isinstance(keyboard, InlineKeyboardMarkup)
-        buttons_flat = [
-            btn
-            for row in keyboard.inline_keyboard
-            for btn in row
-        ]
+        buttons_flat = [btn for row in keyboard.inline_keyboard for btn in row]
         # Должны быть основные опции
         assert len(buttons_flat) >= 3
 
@@ -243,11 +205,7 @@ class TestSettingsKeyboards:
 
         assert isinstance(keyboard, InlineKeyboardMarkup)
         # Должны быть языковые опции
-        buttons_flat = [
-            btn
-            for row in keyboard.inline_keyboard
-            for btn in row
-        ]
+        buttons_flat = [btn for row in keyboard.inline_keyboard for btn in row]
         assert len(buttons_flat) >= 2
 
     def test_get_back_to_settings_keyboard(self):
@@ -266,11 +224,7 @@ class TestSettingsKeyboards:
         keyboard = create_confirm_keyboard()
 
         assert isinstance(keyboard, InlineKeyboardMarkup)
-        buttons_flat = [
-            btn
-            for row in keyboard.inline_keyboard
-            for btn in row
-        ]
+        buttons_flat = [btn for row in keyboard.inline_keyboard for btn in row]
         callback_datas = [btn.callback_data for btn in buttons_flat]
         # Должны быть кнопки подтверждения и отмены
         assert any("confirm" in cd or "yes" in cd for cd in callback_datas)
@@ -310,13 +264,11 @@ class TestAlertsKeyboards:
         keyboard = get_alert_actions_keyboard(alert_id="test_alert_123")
 
         assert isinstance(keyboard, InlineKeyboardMarkup)
-        buttons_flat = [
-            btn
-            for row in keyboard.inline_keyboard
-            for btn in row
-        ]
+        buttons_flat = [btn for row in keyboard.inline_keyboard for btn in row]
         # Должна быть кнопка с ID алерта
-        assert any("test_alert_123" in (btn.callback_data or "") for btn in buttons_flat)
+        assert any(
+            "test_alert_123" in (btn.callback_data or "") for btn in buttons_flat
+        )
 
     def test_create_price_alerts_keyboard(self):
         """Тест клавиатуры ценовых алертов."""
@@ -363,11 +315,7 @@ class TestFiltersKeyboards:
 
         assert isinstance(keyboard, InlineKeyboardMarkup)
         # Должны быть опции состояния (FN, MW, FT, WW, BS)
-        buttons_flat = [
-            btn
-            for row in keyboard.inline_keyboard
-            for btn in row
-        ]
+        buttons_flat = [btn for row in keyboard.inline_keyboard for btn in row]
         assert len(buttons_flat) >= 3
 
     def test_get_csgo_weapon_type_keyboard(self):
@@ -455,7 +403,9 @@ class TestWebAppKeyboards:
         """Тест WebApp клавиатуры с параметрами."""
         from src.telegram_bot.keyboards.webapp import get_webapp_keyboard
 
-        keyboard = get_webapp_keyboard(title="Test App", webapp_url="https://example.com")
+        keyboard = get_webapp_keyboard(
+            title="Test App", webapp_url="https://example.com"
+        )
 
         assert isinstance(keyboard, InlineKeyboardMarkup)
 

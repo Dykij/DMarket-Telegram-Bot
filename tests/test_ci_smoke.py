@@ -20,7 +20,9 @@ class TestEnvironmentSetup:
         actual_version = sys.version_info
 
         # Assert
-        assert actual_version >= required_version, f"Python 3.11+ required, got {actual_version}"
+        assert (
+            actual_version >= required_version
+        ), f"Python 3.11+ required, got {actual_version}"
 
     def test_essential_project_directories_exist(self):
         """Тест проверяет наличие всех необходимых директорий проекта."""

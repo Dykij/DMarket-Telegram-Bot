@@ -132,7 +132,9 @@ class TestHandleBacktestCommand:
         mock_update.message.reply_text.assert_called_once_with("❌ API not configured")
 
     @pytest.mark.asyncio()
-    async def test_command_default_days(self, backtest_handler, mock_update, mock_context):
+    async def test_command_default_days(
+        self, backtest_handler, mock_update, mock_context
+    ):
         """Test command with default days."""
         mock_context.args = []
 
@@ -143,7 +145,9 @@ class TestHandleBacktestCommand:
         assert "30 days" in call_args[0][0]
 
     @pytest.mark.asyncio()
-    async def test_command_custom_days(self, backtest_handler, mock_update, mock_context):
+    async def test_command_custom_days(
+        self, backtest_handler, mock_update, mock_context
+    ):
         """Test command with custom days."""
         mock_context.args = ["60"]
 
@@ -153,7 +157,9 @@ class TestHandleBacktestCommand:
         assert "60 days" in call_args[0][0]
 
     @pytest.mark.asyncio()
-    async def test_command_days_min_limit(self, backtest_handler, mock_update, mock_context):
+    async def test_command_days_min_limit(
+        self, backtest_handler, mock_update, mock_context
+    ):
         """Test command with days below minimum."""
         mock_context.args = ["3"]  # Below minimum of 7
 
@@ -163,7 +169,9 @@ class TestHandleBacktestCommand:
         assert "7 days" in call_args[0][0]
 
     @pytest.mark.asyncio()
-    async def test_command_days_max_limit(self, backtest_handler, mock_update, mock_context):
+    async def test_command_days_max_limit(
+        self, backtest_handler, mock_update, mock_context
+    ):
         """Test command with days above maximum."""
         mock_context.args = ["100"]  # Above maximum of 90
 
@@ -173,7 +181,9 @@ class TestHandleBacktestCommand:
         assert "90 days" in call_args[0][0]
 
     @pytest.mark.asyncio()
-    async def test_command_invalid_days(self, backtest_handler, mock_update, mock_context):
+    async def test_command_invalid_days(
+        self, backtest_handler, mock_update, mock_context
+    ):
         """Test command with invalid days (non-numeric)."""
         mock_context.args = ["invalid"]
 
@@ -184,7 +194,9 @@ class TestHandleBacktestCommand:
         assert "30 days" in call_args[0][0]
 
     @pytest.mark.asyncio()
-    async def test_command_shows_keyboard(self, backtest_handler, mock_update, mock_context):
+    async def test_command_shows_keyboard(
+        self, backtest_handler, mock_update, mock_context
+    ):
         """Test command shows inline keyboard."""
         await backtest_handler.handle_backtest_command(mock_update, mock_context)
 
@@ -193,7 +205,9 @@ class TestHandleBacktestCommand:
         assert call_kwargs["parse_mode"] == "Markdown"
 
     @pytest.mark.asyncio()
-    async def test_command_shows_initial_balance(self, mock_api, mock_update, mock_context):
+    async def test_command_shows_initial_balance(
+        self, mock_api, mock_update, mock_context
+    ):
         """Test command shows initial balance."""
         handler = BacktestHandler(api=mock_api, initial_balance=250.0)
 
@@ -230,7 +244,9 @@ class TestHandleCallback:
         assert result is None
 
     @pytest.mark.asyncio()
-    async def test_callback_results(self, backtest_handler, mock_callback_query, mock_context):
+    async def test_callback_results(
+        self, backtest_handler, mock_callback_query, mock_context
+    ):
         """Test callback for results."""
         update = MagicMock()
         update.callback_query = mock_callback_query
@@ -242,7 +258,9 @@ class TestHandleCallback:
         mock_callback_query.edit_message_text.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_callback_settings(self, backtest_handler, mock_callback_query, mock_context):
+    async def test_callback_settings(
+        self, backtest_handler, mock_callback_query, mock_context
+    ):
         """Test callback for settings."""
         update = MagicMock()
         update.callback_query = mock_callback_query
@@ -253,7 +271,9 @@ class TestHandleCallback:
         mock_callback_query.answer.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_callback_balance_change(self, backtest_handler, mock_callback_query, mock_context):
+    async def test_callback_balance_change(
+        self, backtest_handler, mock_callback_query, mock_context
+    ):
         """Test callback for balance change."""
         update = MagicMock()
         update.callback_query = mock_callback_query
@@ -282,7 +302,9 @@ class TestRunBacktest:
         assert "not configured" in call_args
 
     @pytest.mark.asyncio()
-    async def test_run_backtest_shows_loading(self, backtest_handler, mock_callback_query):
+    async def test_run_backtest_shows_loading(
+        self, backtest_handler, mock_callback_query
+    ):
         """Test run backtest shows loading message."""
         with patch.object(backtest_handler, "_api") as mock_api:
             mock_api.get_sales_history = AsyncMock(side_effect=Exception("Test"))
@@ -294,10 +316,16 @@ class TestRunBacktest:
             assert "Running backtest" in first_call[0][0]
 
     @pytest.mark.asyncio()
-    async def test_run_backtest_error_handling(self, backtest_handler, mock_callback_query):
+    async def test_run_backtest_error_handling(
+        self, backtest_handler, mock_callback_query
+    ):
         """Test error handling during backtest."""
-        with patch("src.telegram_bot.handlers.backtest_handler.HistoricalDataCollector") as mock_collector:
-            mock_collector.return_value.collect_batch = AsyncMock(side_effect=Exception("Test error"))
+        with patch(
+            "src.telegram_bot.handlers.backtest_handler.HistoricalDataCollector"
+        ) as mock_collector:
+            mock_collector.return_value.collect_batch = AsyncMock(
+                side_effect=Exception("Test error")
+            )
 
             await backtest_handler._run_backtest(mock_callback_query, "simple", 30)
 
@@ -330,7 +358,9 @@ class TestDisplayResult:
         return result
 
     @pytest.mark.asyncio()
-    async def test_display_positive_profit(self, backtest_handler, mock_callback_query, mock_result):
+    async def test_display_positive_profit(
+        self, backtest_handler, mock_callback_query, mock_result
+    ):
         """Test display with positive profit."""
         await backtest_handler._display_result(mock_callback_query, mock_result)
 
@@ -339,7 +369,9 @@ class TestDisplayResult:
         assert "📈" in call_args
 
     @pytest.mark.asyncio()
-    async def test_display_negative_profit(self, backtest_handler, mock_callback_query, mock_result):
+    async def test_display_negative_profit(
+        self, backtest_handler, mock_callback_query, mock_result
+    ):
         """Test display with negative profit."""
         mock_result.total_profit = Decimal("-15.0")
 
@@ -350,7 +382,9 @@ class TestDisplayResult:
         assert "📉" in call_args
 
     @pytest.mark.asyncio()
-    async def test_display_shows_stats(self, backtest_handler, mock_callback_query, mock_result):
+    async def test_display_shows_stats(
+        self, backtest_handler, mock_callback_query, mock_result
+    ):
         """Test display shows statistics."""
         await backtest_handler._display_result(mock_callback_query, mock_result)
 
@@ -377,7 +411,9 @@ class TestShowResults:
         assert "No backtests run yet" in call_args
 
     @pytest.mark.asyncio()
-    async def test_show_results_with_results(self, backtest_handler, mock_callback_query):
+    async def test_show_results_with_results(
+        self, backtest_handler, mock_callback_query
+    ):
         """Test show results with some results."""
         # Add mock results
         for i in range(3):

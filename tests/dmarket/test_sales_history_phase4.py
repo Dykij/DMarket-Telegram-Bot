@@ -54,7 +54,13 @@ class TestSalesHistoryTypesConstant:
 
     def test_all_types_present(self):
         """Test all expected types are present."""
-        expected_keys = {"last_day", "last_week", "last_month", "last_hour", "last_12_hours"}
+        expected_keys = {
+            "last_day",
+            "last_week",
+            "last_month",
+            "last_hour",
+            "last_12_hours",
+        }
         assert set(SALES_HISTORY_TYPES.keys()) == expected_keys
 
 
@@ -413,13 +419,14 @@ class TestDetectPriceAnomaliesExtended:
         with patch("src.dmarket.sales_history.get_item_sales_history") as mock:
             mock.return_value = sales
 
-            result = await detect_price_anomalies(
-                "Test", threshold_percent=30.0
-            )
+            result = await detect_price_anomalies("Test", threshold_percent=30.0)
 
             # Anomalies should be sorted by deviation descending
             if len(result["anomalies"]) >= 2:
-                assert result["anomalies"][0]["deviation_percent"] >= result["anomalies"][1]["deviation_percent"]
+                assert (
+                    result["anomalies"][0]["deviation_percent"]
+                    >= result["anomalies"][1]["deviation_percent"]
+                )
 
     @pytest.mark.asyncio()
     async def test_is_high_flag(self):
@@ -427,16 +434,14 @@ class TestDetectPriceAnomaliesExtended:
         sales = [
             {"price": 10.0, "timestamp": 100},
             {"price": 10.0, "timestamp": 101},
-            {"price": 5.0, "timestamp": 200},   # Low anomaly
+            {"price": 5.0, "timestamp": 200},  # Low anomaly
             {"price": 20.0, "timestamp": 300},  # High anomaly
         ]
 
         with patch("src.dmarket.sales_history.get_item_sales_history") as mock:
             mock.return_value = sales
 
-            result = await detect_price_anomalies(
-                "Test", threshold_percent=30.0
-            )
+            result = await detect_price_anomalies("Test", threshold_percent=30.0)
 
             # Check is_high flags
             for anomaly in result["anomalies"]:
@@ -594,7 +599,10 @@ class TestGetMarketTrendOverview:
             )
 
             # Should have categorized items correctly
-            assert len(result["up_trending_items"]) + len(result["down_trending_items"]) <= 2
+            assert (
+                len(result["up_trending_items"]) + len(result["down_trending_items"])
+                <= 2
+            )
 
     @pytest.mark.asyncio()
     async def test_timestamp_and_metadata(self):
@@ -658,7 +666,10 @@ class TestAnalyzeSalesHistoryExtended:
     async def test_custom_days(self):
         """Test analysis with custom days parameter."""
         with patch("src.dmarket.sales_history.get_sales_history") as mock:
-            mock.return_value = {"LastSales": [{"price": {"USD": 1000}, "date": 100}], "Total": 1}
+            mock.return_value = {
+                "LastSales": [{"price": {"USD": 1000}, "date": 100}],
+                "Total": 1,
+            }
 
             result = await analyze_sales_history("Test", days=30)
 
@@ -669,7 +680,10 @@ class TestAnalyzeSalesHistoryExtended:
     async def test_none_days(self):
         """Test analysis with None days defaults to 7."""
         with patch("src.dmarket.sales_history.get_sales_history") as mock:
-            mock.return_value = {"LastSales": [{"price": {"USD": 1000}, "date": 100}], "Total": 1}
+            mock.return_value = {
+                "LastSales": [{"price": {"USD": 1000}, "date": 100}],
+                "Total": 1,
+            }
 
             result = await analyze_sales_history("Test", days=None)
 
@@ -738,7 +752,9 @@ class TestGetArbitrageOpportunitiesWithSalesHistoryExtended:
         with patch("src.dmarket.arbitrage.find_arbitrage_items") as mock_arb:
             mock_arb.return_value = arbitrage_items
 
-            with patch("src.dmarket.sales_history.analyze_sales_history") as mock_analyze:
+            with patch(
+                "src.dmarket.sales_history.analyze_sales_history"
+            ) as mock_analyze:
                 mock_analyze.return_value = {"has_data": False}
 
                 result = await get_arbitrage_opportunities_with_sales_history()
@@ -754,7 +770,9 @@ class TestGetArbitrageOpportunitiesWithSalesHistoryExtended:
         with patch("src.dmarket.arbitrage.find_arbitrage_items") as mock_arb:
             mock_arb.return_value = arbitrage_items
 
-            with patch("src.dmarket.sales_history.analyze_sales_history") as mock_analyze:
+            with patch(
+                "src.dmarket.sales_history.analyze_sales_history"
+            ) as mock_analyze:
                 mock_analyze.return_value = {
                     "has_data": True,
                     "sales_per_day": 0.5,  # Below min threshold

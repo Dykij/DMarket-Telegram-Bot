@@ -162,22 +162,28 @@ class TestDailyReportSchedulerManualReport:
     async def test_send_manual_report(self):
         """Test sending manual report."""
         mock_database = MagicMock()
-        mock_database.get_trade_statistics = AsyncMock(return_value={
-            "total_trades": 10,
-            "successful_trades": 8,
-            "cancelled_trades": 1,
-            "failed_trades": 1,
-            "total_profit_usd": 50.0,
-            "avg_profit_percent": 5.0,
-        })
-        mock_database.get_error_statistics = AsyncMock(return_value={
-            "api_errors": {},
-            "critical_errors": 0,
-        })
-        mock_database.get_scan_statistics = AsyncMock(return_value={
-            "scans_performed": 100,
-            "opportunities_found": 25,
-        })
+        mock_database.get_trade_statistics = AsyncMock(
+            return_value={
+                "total_trades": 10,
+                "successful_trades": 8,
+                "cancelled_trades": 1,
+                "failed_trades": 1,
+                "total_profit_usd": 50.0,
+                "avg_profit_percent": 5.0,
+            }
+        )
+        mock_database.get_error_statistics = AsyncMock(
+            return_value={
+                "api_errors": {},
+                "critical_errors": 0,
+            }
+        )
+        mock_database.get_scan_statistics = AsyncMock(
+            return_value={
+                "scans_performed": 100,
+                "opportunities_found": 25,
+            }
+        )
 
         mock_bot = MagicMock()
         mock_bot.send_message = AsyncMock()
@@ -204,19 +210,23 @@ class TestDailyReportSchedulerGenerateReport:
     async def test_generate_and_send_report_success(self):
         """Test successful report generation and sending."""
         mock_database = MagicMock()
-        mock_database.get_trade_statistics = AsyncMock(return_value={
-            "total_trades": 5,
-            "successful_trades": 4,
-            "cancelled_trades": 1,
-            "failed_trades": 0,
-            "total_profit_usd": 25.0,
-            "avg_profit_percent": 5.0,
-        })
+        mock_database.get_trade_statistics = AsyncMock(
+            return_value={
+                "total_trades": 5,
+                "successful_trades": 4,
+                "cancelled_trades": 1,
+                "failed_trades": 0,
+                "total_profit_usd": 25.0,
+                "avg_profit_percent": 5.0,
+            }
+        )
         mock_database.get_error_statistics = AsyncMock(return_value={})
-        mock_database.get_scan_statistics = AsyncMock(return_value={
-            "scans_performed": 50,
-            "opportunities_found": 10,
-        })
+        mock_database.get_scan_statistics = AsyncMock(
+            return_value={
+                "scans_performed": 50,
+                "opportunities_found": 10,
+            }
+        )
 
         mock_bot = MagicMock()
         mock_bot.send_message = AsyncMock()
@@ -237,14 +247,16 @@ class TestDailyReportSchedulerGenerateReport:
     async def test_generate_report_with_no_trades(self):
         """Test report generation with no trades."""
         mock_database = MagicMock()
-        mock_database.get_trade_statistics = AsyncMock(return_value={
-            "total_trades": 0,
-            "successful_trades": 0,
-            "cancelled_trades": 0,
-            "failed_trades": 0,
-            "total_profit_usd": 0.0,
-            "avg_profit_percent": 0.0,
-        })
+        mock_database.get_trade_statistics = AsyncMock(
+            return_value={
+                "total_trades": 0,
+                "successful_trades": 0,
+                "cancelled_trades": 0,
+                "failed_trades": 0,
+                "total_profit_usd": 0.0,
+                "avg_profit_percent": 0.0,
+            }
+        )
         mock_database.get_error_statistics = AsyncMock(return_value={})
         mock_database.get_scan_statistics = AsyncMock(return_value={})
 
@@ -269,13 +281,15 @@ class TestDailyReportSchedulerGenerateReport:
         """Test report generation with API errors."""
         mock_database = MagicMock()
         mock_database.get_trade_statistics = AsyncMock(return_value={})
-        mock_database.get_error_statistics = AsyncMock(return_value={
-            "api_errors": {
-                "RateLimitError": 5,
-                "TimeoutError": 2,
-            },
-            "critical_errors": 1,
-        })
+        mock_database.get_error_statistics = AsyncMock(
+            return_value={
+                "api_errors": {
+                    "RateLimitError": 5,
+                    "TimeoutError": 2,
+                },
+                "critical_errors": 1,
+            }
+        )
         mock_database.get_scan_statistics = AsyncMock(return_value={})
 
         mock_bot = MagicMock()
@@ -305,9 +319,7 @@ class TestDailyReportSchedulerGenerateReport:
 
         mock_bot = MagicMock()
         # First call succeeds, second fails
-        mock_bot.send_message = AsyncMock(
-            side_effect=[None, Exception("Send failed")]
-        )
+        mock_bot.send_message = AsyncMock(side_effect=[None, Exception("Send failed")])
 
         scheduler = DailyReportScheduler(
             database=mock_database,
@@ -329,18 +341,24 @@ class TestDailyReportSchedulerCollectStatistics:
     async def test_collect_statistics_success(self):
         """Test successful statistics collection."""
         mock_database = MagicMock()
-        mock_database.get_trade_statistics = AsyncMock(return_value={
-            "total_trades": 10,
-            "successful_trades": 8,
-        })
-        mock_database.get_error_statistics = AsyncMock(return_value={
-            "api_errors": {"Error1": 2},
-            "critical_errors": 1,
-        })
-        mock_database.get_scan_statistics = AsyncMock(return_value={
-            "scans_performed": 50,
-            "opportunities_found": 10,
-        })
+        mock_database.get_trade_statistics = AsyncMock(
+            return_value={
+                "total_trades": 10,
+                "successful_trades": 8,
+            }
+        )
+        mock_database.get_error_statistics = AsyncMock(
+            return_value={
+                "api_errors": {"Error1": 2},
+                "critical_errors": 1,
+            }
+        )
+        mock_database.get_scan_statistics = AsyncMock(
+            return_value={
+                "scans_performed": 50,
+                "opportunities_found": 10,
+            }
+        )
 
         scheduler = DailyReportScheduler(
             database=mock_database,

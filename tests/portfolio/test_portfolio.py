@@ -444,7 +444,9 @@ class TestPortfolioAnalyzer:
         report = analyzer.analyze_diversification(sample_portfolio)
 
         # Knife is ~88% of portfolio, should trigger concentration risk
-        high_concentration = [r for r in report.concentration_risks if "Karambit" in r.item_title]
+        high_concentration = [
+            r for r in report.concentration_risks if "Karambit" in r.item_title
+        ]
         assert len(high_concentration) > 0 or len(report.concentration_risks) > 0
 
     def test_analyze_risk(self, analyzer, sample_portfolio):

@@ -174,9 +174,7 @@ async def send_buy_failed_notification(
     title = item.get("title", "Unknown Item")
     price = item.get("price", {}).get("USD", 0) / 100
 
-    message = (
-        f"❌ <b>Ошибка покупки</b>\n\n📦 <b>{title}</b>\n💰 Цена: ${price:.2f}\n\n⚠️ Ошибка: {error}"
-    )
+    message = f"❌ <b>Ошибка покупки</b>\n\n📦 <b>{title}</b>\n💰 Цена: ${price:.2f}\n\n⚠️ Ошибка: {error}"
 
     try:
         await bot.send_message(
@@ -226,7 +224,9 @@ async def send_sell_success_notification(
         profit = sell_price - buy_price
         profit_pct = (profit / buy_price) * 100 if buy_price > 0 else 0
         profit_emoji = "📈" if profit > 0 else "📉"
-        message += f"\n{profit_emoji} Прибыль: <b>${profit:.2f}</b> ({profit_pct:+.1f}%)\n"
+        message += (
+            f"\n{profit_emoji} Прибыль: <b>${profit:.2f}</b> ({profit_pct:+.1f}%)\n"
+        )
 
     if offer_id:
         message += f"📋 ID предложения: <code>{offer_id}</code>\n"

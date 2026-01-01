@@ -25,8 +25,7 @@ class TestPriceParsingFuzz:
     @given(
         price_str=st.text(
             alphabet=st.characters(
-                whitelist_categories=("Nd", "Pd", "Zs"),
-                whitelist_characters="$.,+-"
+                whitelist_categories=("Nd", "Pd", "Zs"), whitelist_characters="$.,+-"
             ),
             min_size=0,
             max_size=50,
@@ -51,9 +50,7 @@ class TestPriceParsingFuzz:
         result = parse_price(price_str)
         assert result is None or isinstance(result, (int, float))
 
-    @given(
-        cents=st.integers(min_value=-2**31, max_value=2**31)
-    )
+    @given(cents=st.integers(min_value=-(2**31), max_value=2**31))
     @settings(max_examples=100)
     def test_cents_to_dollars_conversion_handles_all_integers(self, cents: int) -> None:
         """Cents to dollars conversion should handle all integer values."""
@@ -70,7 +67,9 @@ class TestPriceParsingFuzz:
         assert abs(result) < float("inf")
 
     @given(
-        dollars=st.floats(allow_nan=False, allow_infinity=False, min_value=-1e12, max_value=1e12)
+        dollars=st.floats(
+            allow_nan=False, allow_infinity=False, min_value=-1e12, max_value=1e12
+        )
     )
     @settings(max_examples=100)
     def test_dollars_to_cents_roundtrip(self, dollars: float) -> None:
@@ -95,16 +94,20 @@ class TestItemDataFuzz:
     """Fuzz tests for item data parsing."""
 
     @given(
-        item_dict=st.fixed_dictionaries({
-            "title": st.text(min_size=0, max_size=200),
-            "price": st.fixed_dictionaries({
-                "USD": st.one_of(
-                    st.text(min_size=0, max_size=20),
-                    st.integers(),
-                    st.floats(allow_nan=False, allow_infinity=False),
-                )
-            }),
-        })
+        item_dict=st.fixed_dictionaries(
+            {
+                "title": st.text(min_size=0, max_size=200),
+                "price": st.fixed_dictionaries(
+                    {
+                        "USD": st.one_of(
+                            st.text(min_size=0, max_size=20),
+                            st.integers(),
+                            st.floats(allow_nan=False, allow_infinity=False),
+                        )
+                    }
+                ),
+            }
+        )
     )
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
     def test_item_price_extraction_never_crashes(self, item_dict: dict) -> None:
@@ -205,13 +208,17 @@ class TestBalanceParsingFuzz:
     @given(
         usd=st.one_of(
             st.text(min_size=0, max_size=30),
-            st.integers(min_value=-2**31, max_value=2**31),
-            st.floats(allow_nan=False, allow_infinity=False, min_value=-1e15, max_value=1e15),
+            st.integers(min_value=-(2**31), max_value=2**31),
+            st.floats(
+                allow_nan=False, allow_infinity=False, min_value=-1e15, max_value=1e15
+            ),
         ),
         available=st.one_of(
             st.text(min_size=0, max_size=30),
-            st.integers(min_value=-2**31, max_value=2**31),
-            st.floats(allow_nan=False, allow_infinity=False, min_value=-1e15, max_value=1e15),
+            st.integers(min_value=-(2**31), max_value=2**31),
+            st.floats(
+                allow_nan=False, allow_infinity=False, min_value=-1e15, max_value=1e15
+            ),
         ),
     )
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])

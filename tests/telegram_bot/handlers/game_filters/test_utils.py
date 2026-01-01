@@ -160,7 +160,7 @@ class TestUpdateFilters:
         context = MagicMock(spec=ContextTypes.DEFAULT_TYPE)
         context.user_data = {
             "filters": {"csgo": {"min_price": 1.0}},
-            "other_data": "preserved"
+            "other_data": "preserved",
         }
 
         update_filters(context, "csgo", {"min_price": 10.0})

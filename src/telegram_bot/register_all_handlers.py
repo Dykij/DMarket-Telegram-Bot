@@ -24,7 +24,6 @@ from src.telegram_bot.handlers.commands import (
     webapp_command,
 )
 
-
 if TYPE_CHECKING:
     from telegram.ext import Application
 
@@ -111,38 +110,46 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать intramarket_arbitrage обработчики: %s", e)
 
-    try:
-        from src.telegram_bot.handlers.game_filter_handlers import register_game_filter_handlers
-
-        register_game_filter_handlers(application)
-        logger.info("Game filter обработчики зарегистрированы")
-    except ImportError as e:
-        logger.warning(
-            "Не удалось импортировать game_filter обработчики: %s",
-            e,
-        )
-
-    try:
-        from src.telegram_bot.handlers.liquidity_settings_handler import register_liquidity_handlers
-
-        register_liquidity_handlers(application)
-        logger.info("Liquidity settings обработчики зарегистрированы")
-    except ImportError as e:
-        logger.warning(
-            "Не удалось импортировать liquidity_settings обработчики: %s",
-            e,
-        )
-
-    try:
-        from src.telegram_bot.handlers.settings_handlers import register_localization_handlers
-
-        register_localization_handlers(application)
-        logger.info("Localization обработчики зарегистрированы")
-    except ImportError as e:
-        logger.warning(
-            "Не удалось импортировать localization обработчики: %s",
-            e,
-        )
+    # NOTE: Временно отключено - функции register_* не реализованы в этих модулях
+    # TODO: Добавить функции регистрации в будущих обновлениях
+    # try:
+    #     from src.telegram_bot.handlers.game_filter_handlers import (
+    #         register_game_filter_handlers,
+    #     )
+    #
+    #     register_game_filter_handlers(application)
+    #     logger.info("Game filter обработчики зарегистрированы")
+    # except ImportError as e:
+    #     logger.warning(
+    #         "Не удалось импортировать game_filter обработчики: %s",
+    #         e,
+    #     )
+    #
+    # try:
+    #     from src.telegram_bot.handlers.liquidity_settings_handler import (
+    #         register_liquidity_handlers,
+    #     )
+    #
+    #     register_liquidity_handlers(application)
+    #     logger.info("Liquidity settings обработчики зарегистрированы")
+    # except ImportError as e:
+    #     logger.warning(
+    #         "Не удалось импортировать liquidity_settings обработчики: %s",
+    #         e,
+    #     )
+    #
+    # try:
+    #     from src.telegram_bot.handlers.settings_handlers import (
+    #         register_localization_handlers,
+    #     )
+    #
+    #     register_localization_handlers(application)
+    #     logger.info("Localization обработчики зарегистрированы")
+    # except ImportError as e:
+    #     logger.warning(
+    #         "Не удалось импортировать localization обработчики: %s",
+    #         e,
+    #     )
 
     try:
         from src.telegram_bot.handlers.target_handler import register_target_handlers
@@ -162,15 +169,19 @@ def register_all_handlers(application: "Application") -> None:
         logger.warning("Не удалось импортировать dashboard обработчики: %s", e)
 
     # Регистрация Notification Filters handlers
-    try:
-        from src.telegram_bot.handlers.notification_filters_handler import (
-            register_notification_filter_handlers,
-        )
-
-        register_notification_filter_handlers(application)
-        logger.info("Notification filter обработчики зарегистрированы")
-    except ImportError as e:
-        logger.warning("Не удалось импортировать notification filter обработчики: %s", e)
+    # NOTE: Временно отключено - функция register_* не реализована
+    # TODO: Добавить функцию регистрации в будущих обновлениях
+    # try:
+    #     from src.telegram_bot.handlers.notification_filters_handler import (
+    #         register_notification_filter_handlers,
+    #     )
+    #
+    #     register_notification_filter_handlers(application)
+    #     logger.info("Notification filter обработчики зарегистрированы")
+    # except ImportError as e:
+    #     logger.warning(
+    #         "Не удалось импортировать notification filter обработчики: %s", e
+    #     )
 
     # Регистрация Notification Digest handlers
     try:

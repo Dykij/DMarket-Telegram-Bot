@@ -210,7 +210,7 @@ class TestGetUserStatsExtended:
                     {},  # Missing profit
                     {"profit": 30.0},
                 ]
-            }
+            },
         )
 
         stats = dashboard.get_user_stats(user_id=123)
@@ -224,12 +224,10 @@ class TestGetUserStatsExtended:
         dashboard = ScannerDashboard()
 
         dashboard.add_scan_result(
-            user_id=1,
-            scan_data={"opportunities": [{"profit": 100.0}]}
+            user_id=1, scan_data={"opportunities": [{"profit": 100.0}]}
         )
         dashboard.add_scan_result(
-            user_id=2,
-            scan_data={"opportunities": [{"profit": 200.0}]}
+            user_id=2, scan_data={"opportunities": [{"profit": 200.0}]}
         )
 
         stats1 = dashboard.get_user_stats(user_id=1)
@@ -249,7 +247,7 @@ class TestGetUserStatsExtended:
                     {"profit": 20.0},
                     {"profit": 30.0},
                 ]
-            }
+            },
         )
 
         stats = dashboard.get_user_stats(user_id=123)
@@ -266,7 +264,7 @@ class TestGetUserStatsExtended:
                     {"profit": 0.0},
                     {"profit": 0.0},
                 ]
-            }
+            },
         )
 
         stats = dashboard.get_user_stats(user_id=123)
@@ -284,7 +282,7 @@ class TestGetUserStatsExtended:
                     {"profit": 10.55},
                     {"profit": 20.75},
                 ]
-            }
+            },
         )
 
         stats = dashboard.get_user_stats(user_id=123)
@@ -301,10 +299,7 @@ class TestMarkScanActiveExtended:
         dashboard = ScannerDashboard()
 
         dashboard.mark_scan_active(
-            user_id=123,
-            scan_id="test_scan",
-            level="pro",
-            game="dota2"
+            user_id=123, scan_id="test_scan", level="pro", game="dota2"
         )
 
         scan = dashboard.active_scans[123]
@@ -321,10 +316,7 @@ class TestMarkScanActiveExtended:
         games = ["csgo", "dota2", "tf2", "rust"]
         for i, game in enumerate(games):
             dashboard.mark_scan_active(
-                user_id=i,
-                scan_id=f"scan_{game}",
-                level="boost",
-                game=game
+                user_id=i, scan_id=f"scan_{game}", level="boost", game=game
             )
 
         for i, game in enumerate(games):
@@ -335,22 +327,17 @@ class TestMarkScanActiveExtended:
         dashboard = ScannerDashboard()
 
         dashboard.mark_scan_active(
-            user_id=123,
-            scan_id="first",
-            level="boost",
-            game="csgo"
+            user_id=123, scan_id="first", level="boost", game="csgo"
         )
         first_started = dashboard.active_scans[123]["started_at"]
 
         # Small delay to ensure different timestamp
         import time
+
         time.sleep(0.01)
 
         dashboard.mark_scan_active(
-            user_id=123,
-            scan_id="second",
-            level="advanced",
-            game="dota2"
+            user_id=123, scan_id="second", level="advanced", game="dota2"
         )
 
         assert dashboard.active_scans[123]["scan_id"] == "second"
@@ -366,7 +353,9 @@ class TestMarkScanCompleteExtended:
     def test_complete_sets_completed_at(self):
         """Test complete sets completed_at timestamp."""
         dashboard = ScannerDashboard()
-        dashboard.mark_scan_active(user_id=123, scan_id="test", level="boost", game="csgo")
+        dashboard.mark_scan_active(
+            user_id=123, scan_id="test", level="boost", game="csgo"
+        )
 
         before = datetime.now()
         dashboard.mark_scan_complete(user_id=123)
@@ -379,10 +368,7 @@ class TestMarkScanCompleteExtended:
         """Test complete preserves other fields."""
         dashboard = ScannerDashboard()
         dashboard.mark_scan_active(
-            user_id=123,
-            scan_id="test",
-            level="boost",
-            game="csgo"
+            user_id=123, scan_id="test", level="boost", game="csgo"
         )
 
         dashboard.mark_scan_complete(user_id=123)
@@ -397,10 +383,7 @@ class TestMarkScanCompleteExtended:
 
         for user_id in [1, 2, 3]:
             dashboard.mark_scan_active(
-                user_id=user_id,
-                scan_id=f"scan_{user_id}",
-                level="boost",
-                game="csgo"
+                user_id=user_id, scan_id=f"scan_{user_id}", level="boost", game="csgo"
             )
 
         dashboard.mark_scan_complete(user_id=2)
@@ -417,10 +400,7 @@ class TestGetActiveScanExtended:
         """Test get_active_scan returns reference to dict."""
         dashboard = ScannerDashboard()
         dashboard.mark_scan_active(
-            user_id=123,
-            scan_id="test",
-            level="boost",
-            game="csgo"
+            user_id=123, scan_id="test", level="boost", game="csgo"
         )
 
         scan = dashboard.get_active_scan(user_id=123)
@@ -433,10 +413,7 @@ class TestGetActiveScanExtended:
         """Test get_active_scan after completing scan."""
         dashboard = ScannerDashboard()
         dashboard.mark_scan_active(
-            user_id=123,
-            scan_id="test",
-            level="boost",
-            game="csgo"
+            user_id=123, scan_id="test", level="boost", game="csgo"
         )
         dashboard.mark_scan_complete(user_id=123)
 
@@ -500,7 +477,10 @@ class TestGetDashboardKeyboardExtended:
         keyboard = get_dashboard_keyboard()
 
         active_button = keyboard.inline_keyboard[1][0]
-        assert f"{DASHBOARD_ACTION}_{DASHBOARD_ACTIVE_SCANS}" == active_button.callback_data
+        assert (
+            f"{DASHBOARD_ACTION}_{DASHBOARD_ACTIVE_SCANS}"
+            == active_button.callback_data
+        )
 
     def test_history_button_callback_data(self):
         """Test history button has correct callback data."""
@@ -518,7 +498,12 @@ class TestFormatStatsMessageExtended:
 
     def test_format_message_has_header(self):
         """Test formatted message has header."""
-        stats = {"total_scans": 0, "total_opportunities": 0, "avg_profit": 0, "max_profit": 0}
+        stats = {
+            "total_scans": 0,
+            "total_opportunities": 0,
+            "avg_profit": 0,
+            "max_profit": 0,
+        }
         message = format_stats_message(stats)
 
         assert "📊 *Ваша статистика*" in message
@@ -530,7 +515,7 @@ class TestFormatStatsMessageExtended:
             "total_opportunities": 10,
             "avg_profit": 15.0,
             "max_profit": 25.0,
-            "last_scan_time": None
+            "last_scan_time": None,
         }
         message = format_stats_message(stats)
 
@@ -547,7 +532,7 @@ class TestFormatStatsMessageExtended:
             "total_opportunities": 1,
             "avg_profit": 12.34,
             "max_profit": 56.78,
-            "last_scan_time": None
+            "last_scan_time": None,
         }
         message = format_stats_message(stats)
 
@@ -561,7 +546,7 @@ class TestFormatStatsMessageExtended:
             "total_opportunities": 1,
             "avg_profit": 0,
             "max_profit": 0,
-            "last_scan_time": datetime.now() - timedelta(seconds=60)
+            "last_scan_time": datetime.now() - timedelta(seconds=60),
         }
         message = format_stats_message(stats)
 
@@ -574,7 +559,7 @@ class TestFormatStatsMessageExtended:
             "total_opportunities": 1,
             "avg_profit": 0,
             "max_profit": 0,
-            "last_scan_time": datetime.now() - timedelta(hours=1)
+            "last_scan_time": datetime.now() - timedelta(hours=1),
         }
         message = format_stats_message(stats)
 
@@ -587,7 +572,7 @@ class TestFormatStatsMessageExtended:
             "total_opportunities": 1,
             "avg_profit": 0,
             "max_profit": 0,
-            "last_scan_time": datetime.now() - timedelta(days=1)
+            "last_scan_time": datetime.now() - timedelta(days=1),
         }
         message = format_stats_message(stats)
 
@@ -713,10 +698,7 @@ class TestShowDashboardExtended:
         """Test show_dashboard formats active scan info."""
         # Set up active scan
         dashboard.mark_scan_active(
-            user_id=123,
-            scan_id="test_scan",
-            level="boost",
-            game="csgo"
+            user_id=123, scan_id="test_scan", level="boost", game="csgo"
         )
 
         await show_dashboard(mock_update_with_query, mock_context)
@@ -874,10 +856,7 @@ class TestShowActiveScansExtended:
     async def test_show_active_scans_with_active(self, mock_update, mock_context):
         """Test show_active_scans when there is an active scan."""
         dashboard.mark_scan_active(
-            user_id=123,
-            scan_id="test",
-            level="boost",
-            game="csgo"
+            user_id=123, scan_id="test", level="boost", game="csgo"
         )
 
         await show_active_scans(mock_update, mock_context)
@@ -894,10 +873,7 @@ class TestShowActiveScansExtended:
     async def test_show_active_scans_completed_status(self, mock_update, mock_context):
         """Test show_active_scans with completed status."""
         dashboard.mark_scan_active(
-            user_id=123,
-            scan_id="test",
-            level="standard",
-            game="dota2"
+            user_id=123, scan_id="test", level="standard", game="dota2"
         )
         dashboard.mark_scan_complete(user_id=123)
 
@@ -965,7 +941,7 @@ class TestShowHistoryExtended:
         dashboard.scan_history.clear()
         dashboard.add_scan_result(
             user_id=123,
-            scan_data={"level": "boost", "opportunities": [{"profit": 10.0}]}
+            scan_data={"level": "boost", "opportunities": [{"profit": 10.0}]},
         )
 
         await show_history(mock_update, mock_context)
@@ -984,8 +960,7 @@ class TestShowHistoryExtended:
 
         for i in range(15):
             dashboard.add_scan_result(
-                user_id=123,
-                scan_data={"level": f"level_{i}", "opportunities": []}
+                user_id=123, scan_data={"level": f"level_{i}", "opportunities": []}
             )
 
         await show_history(mock_update, mock_context)
@@ -1072,7 +1047,9 @@ class TestShowChartsExtended:
         loading_msg = MagicMock()
         loading_msg.edit_text = AsyncMock()
         loading_msg.delete = AsyncMock()
-        mock_update.callback_query.message.reply_text = AsyncMock(return_value=loading_msg)
+        mock_update.callback_query.message.reply_text = AsyncMock(
+            return_value=loading_msg
+        )
 
         await show_charts(mock_update, mock_context)
 
@@ -1107,7 +1084,11 @@ class TestRegisterDashboardHandlers:
         for call in calls:
             handler = call[0][0]
             if hasattr(handler, "pattern"):
-                patterns.append(handler.pattern.pattern if hasattr(handler.pattern, "pattern") else str(handler.pattern))
+                patterns.append(
+                    handler.pattern.pattern
+                    if hasattr(handler.pattern, "pattern")
+                    else str(handler.pattern)
+                )
 
         assert len(calls) == 7
 
@@ -1140,9 +1121,9 @@ class TestDashboardEdgeCases:
             user_id=123,
             scan_data={
                 "level": "буст",  # Russian
-                "game": "ксго",   # Russian
-                "opportunities": [{"name": "АК-47 | Редлайн"}]
-            }
+                "game": "ксго",  # Russian
+                "opportunities": [{"name": "АК-47 | Редлайн"}],
+            },
         )
 
         assert len(dash.scan_history) == 1
@@ -1154,10 +1135,7 @@ class TestDashboardEdgeCases:
         large_id = 999999999999
 
         dash.mark_scan_active(
-            user_id=large_id,
-            scan_id="test",
-            level="boost",
-            game="csgo"
+            user_id=large_id, scan_id="test", level="boost", game="csgo"
         )
 
         assert large_id in dash.active_scans
@@ -1166,12 +1144,7 @@ class TestDashboardEdgeCases:
         """Test with zero user ID."""
         dash = ScannerDashboard()
 
-        dash.mark_scan_active(
-            user_id=0,
-            scan_id="test",
-            level="boost",
-            game="csgo"
-        )
+        dash.mark_scan_active(user_id=0, scan_id="test", level="boost", game="csgo")
 
         assert 0 in dash.active_scans
 
@@ -1179,12 +1152,7 @@ class TestDashboardEdgeCases:
         """Test with negative user ID."""
         dash = ScannerDashboard()
 
-        dash.mark_scan_active(
-            user_id=-1,
-            scan_id="test",
-            level="boost",
-            game="csgo"
-        )
+        dash.mark_scan_active(user_id=-1, scan_id="test", level="boost", game="csgo")
 
         assert -1 in dash.active_scans
 
@@ -1193,10 +1161,7 @@ class TestDashboardEdgeCases:
         dash = ScannerDashboard()
 
         dash.mark_scan_active(
-            user_id=123,
-            scan_id="scan-123_test@!#$%",
-            level="boost",
-            game="csgo"
+            user_id=123, scan_id="scan-123_test@!#$%", level="boost", game="csgo"
         )
 
         assert dash.active_scans[123]["scan_id"] == "scan-123_test@!#$%"
@@ -1206,10 +1171,7 @@ class TestDashboardEdgeCases:
         dash = ScannerDashboard()
 
         opportunities = [{"profit": float(i)} for i in range(1000)]
-        dash.add_scan_result(
-            user_id=123,
-            scan_data={"opportunities": opportunities}
-        )
+        dash.add_scan_result(user_id=123, scan_data={"opportunities": opportunities})
 
         stats = dash.get_user_stats(user_id=123)
         assert stats["total_opportunities"] == 1000
@@ -1219,8 +1181,7 @@ class TestDashboardEdgeCases:
         dash = ScannerDashboard()
 
         dash.add_scan_result(
-            user_id=123,
-            scan_data={"opportunities": [{"profit": 999999.99}]}
+            user_id=123, scan_data={"opportunities": [{"profit": 999999.99}]}
         )
 
         stats = dash.get_user_stats(user_id=123)
@@ -1231,8 +1192,7 @@ class TestDashboardEdgeCases:
         dash = ScannerDashboard()
 
         dash.add_scan_result(
-            user_id=123,
-            scan_data={"opportunities": [{"profit": 0.0001}]}
+            user_id=123, scan_data={"opportunities": [{"profit": 0.0001}]}
         )
 
         stats = dash.get_user_stats(user_id=123)
@@ -1252,10 +1212,7 @@ class TestDashboardIntegration:
 
         # Start scan
         dash.mark_scan_active(
-            user_id=user_id,
-            scan_id="scan_001",
-            level="standard",
-            game="csgo"
+            user_id=user_id, scan_id="scan_001", level="standard", game="csgo"
         )
         assert dash.get_active_scan(user_id)["status"] == "running"
 
@@ -1264,8 +1221,8 @@ class TestDashboardIntegration:
             user_id=user_id,
             scan_data={
                 "level": "standard",
-                "opportunities": [{"profit": 15.0}, {"profit": 25.0}]
-            }
+                "opportunities": [{"profit": 15.0}, {"profit": 25.0}],
+            },
         )
 
         # Complete
@@ -1287,17 +1244,14 @@ class TestDashboardIntegration:
         # Each user starts and completes a scan
         for user_id in users:
             dash.mark_scan_active(
-                user_id=user_id,
-                scan_id=f"scan_{user_id}",
-                level="boost",
-                game="csgo"
+                user_id=user_id, scan_id=f"scan_{user_id}", level="boost", game="csgo"
             )
             dash.add_scan_result(
                 user_id=user_id,
                 scan_data={
                     "level": "boost",
-                    "opportunities": [{"profit": float(user_id * 10)}]
-                }
+                    "opportunities": [{"profit": float(user_id * 10)}],
+                },
             )
             dash.mark_scan_complete(user_id)
 
@@ -1317,8 +1271,8 @@ class TestDashboardIntegration:
                 user_id=user_id,
                 scan_data={
                     "level": f"level_{i}",
-                    "opportunities": [{"profit": float(i + 1)}]
-                }
+                    "opportunities": [{"profit": float(i + 1)}],
+                },
             )
 
         stats = dash.get_user_stats(user_id)

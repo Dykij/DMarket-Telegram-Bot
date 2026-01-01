@@ -131,7 +131,9 @@ class ArbitrageScanner:
         """Установить время жизни кеша."""
         self._scanner_cache.ttl = value
 
-    def _get_cached_results(self, cache_key: tuple[Any, ...]) -> list[dict[str, Any]] | None:
+    def _get_cached_results(
+        self, cache_key: tuple[Any, ...]
+    ) -> list[dict[str, Any]] | None:
         """Получает результаты из кеша через ScannerCache.
 
         Args:
@@ -144,7 +146,9 @@ class ArbitrageScanner:
         # ScannerCache.get() сам конвертирует tuple в string через _make_key()
         return self._scanner_cache.get(cache_key)
 
-    def _save_to_cache(self, cache_key: str | tuple[Any, ...], items: list[dict[str, Any]]) -> None:
+    def _save_to_cache(
+        self, cache_key: str | tuple[Any, ...], items: list[dict[str, Any]]
+    ) -> None:
         """Сохраняет результаты в кеш через ScannerCache.
 
         Args:
@@ -324,7 +328,9 @@ class ArbitrageScanner:
 
                 # Фильтруем через анализатор ликвидности
                 # Это добавит метрики ликвидности и удалит неликвидные предметы
-                results = await self.liquidity_analyzer.filter_liquid_items(candidates, game=game)
+                results = await self.liquidity_analyzer.filter_liquid_items(
+                    candidates, game=game
+                )
             else:
                 # Если фильтр выключен, просто берем топ по прибыли
                 results = items
@@ -553,16 +559,23 @@ class ArbitrageScanner:
                     diagnosis = "auth_error"
                     display_message = "Ошибка авторизации: проверьте ключи API"
                 elif (
-                    "ключи" in str(error_message).lower() or "api key" in str(error_message).lower()
+                    "ключи" in str(error_message).lower()
+                    or "api key" in str(error_message).lower()
                 ):
                     diagnosis = "missing_keys"
                     display_message = "Отсутствуют ключи API"
                 elif (
-                    "timeout" in str(error_message).lower() or "время" in str(error_message).lower()
+                    "timeout" in str(error_message).lower()
+                    or "время" in str(error_message).lower()
                 ):
                     diagnosis = "timeout_error"
-                    display_message = "Таймаут при запросе баланса: возможны проблемы с сетью"
-                elif "404" in str(error_message) or "не найден" in str(error_message).lower():
+                    display_message = (
+                        "Таймаут при запросе баланса: возможны проблемы с сетью"
+                    )
+                elif (
+                    "404" in str(error_message)
+                    or "не найден" in str(error_message).lower()
+                ):
                     diagnosis = "endpoint_error"
                     display_message = "Ошибка API: эндпоинт баланса недоступен"
 
@@ -597,9 +610,7 @@ class ArbitrageScanner:
 
             # Формируем сообщение для пользователя
             if has_funds:
-                display_message = (
-                    f"Баланс DMarket: ${available_balance:.2f} USD (достаточно для арбитража)"
-                )
+                display_message = f"Баланс DMarket: ${available_balance:.2f} USD (достаточно для арбитража)"
             else:
                 # Различаем случаи полного отсутствия средств и недостаточного баланса
                 if available_balance <= 0:
@@ -1245,8 +1256,10 @@ class ArbitrageScanner:
                         return None
 
                     # Получаем описание ликвидности
-                    liquidity_description = self.liquidity_analyzer.get_liquidity_description(
-                        metrics.liquidity_score
+                    liquidity_description = (
+                        self.liquidity_analyzer.get_liquidity_description(
+                            metrics.liquidity_score
+                        )
                     )
 
                     # Добавляем данные ликвидности в результат
@@ -1287,7 +1300,9 @@ class ArbitrageScanner:
                             title=item_title,
                         )
 
-                        competition_level = competition.get("competition_level", "unknown")
+                        competition_level = competition.get(
+                            "competition_level", "unknown"
+                        )
                         total_orders = competition.get("total_orders", 0)
                         total_amount = competition.get("total_amount", 0)
 
@@ -1310,7 +1325,9 @@ class ArbitrageScanner:
                         }
 
                 except Exception as e:
-                    logger.debug(f"Ошибка проверки конкуренции для '{item.get('title')}': {e}")
+                    logger.debug(
+                        f"Ошибка проверки конкуренции для '{item.get('title')}': {e}"
+                    )
                     # При ошибке продолжаем без данных о конкуренции
 
         except Exception as e:

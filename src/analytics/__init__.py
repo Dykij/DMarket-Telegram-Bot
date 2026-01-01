@@ -6,7 +6,12 @@ Provides:
 - Performance analysis and reporting
 """
 
-from .backtester import Backtester, BacktestResult, SimpleArbitrageStrategy, TradingStrategy
+from .backtester import (
+    Backtester,
+    BacktestResult,
+    SimpleArbitrageStrategy,
+    TradingStrategy,
+)
 from .historical_data import HistoricalDataCollector, PricePoint
 
 

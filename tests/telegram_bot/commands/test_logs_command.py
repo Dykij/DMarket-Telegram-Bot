@@ -147,7 +147,9 @@ class TestNoLogFilesFound:
         mock_path.exists.return_value = True
         mock_path.glob.return_value = []
 
-        with patch("src.telegram_bot.commands.logs_command.Path", return_value=mock_path):
+        with patch(
+            "src.telegram_bot.commands.logs_command.Path", return_value=mock_path
+        ):
             # Act
             await logs_command(mock_update, mock_context)
 
@@ -174,9 +176,7 @@ class TestNoIntentLogsFound:
         log_file = tmp_path / "test.log"
         log_file.write_text('{"event": "other_event"}\n')
 
-        with patch(
-            "src.telegram_bot.commands.logs_command.Path"
-        ) as mock_path_class:
+        with patch("src.telegram_bot.commands.logs_command.Path") as mock_path_class:
             mock_log_dir = MagicMock()
             mock_log_dir.exists.return_value = True
 
@@ -216,9 +216,7 @@ class TestSuccessfulLogDisplayJSON:
         log_file = tmp_path / "test.log"
         log_file.write_text(json.dumps(sample_buy_intent_log) + "\n")
 
-        with patch(
-            "src.telegram_bot.commands.logs_command.Path"
-        ) as mock_path_class:
+        with patch("src.telegram_bot.commands.logs_command.Path") as mock_path_class:
             mock_log_dir = MagicMock()
             mock_log_dir.exists.return_value = True
             mock_log_dir.glob.return_value = [log_file]
@@ -232,7 +230,9 @@ class TestSuccessfulLogDisplayJSON:
         assert len(calls) >= 2
         # Check that the log content includes expected elements
         final_message = calls[-1][0][0]
-        assert "INTENT" in final_message or "BUY" in final_message or "📊" in final_message
+        assert (
+            "INTENT" in final_message or "BUY" in final_message or "📊" in final_message
+        )
 
     @pytest.mark.asyncio()
     async def test_logs_command_displays_sell_intent_logs(
@@ -243,9 +243,7 @@ class TestSuccessfulLogDisplayJSON:
         log_file = tmp_path / "test.log"
         log_file.write_text(json.dumps(sample_sell_intent_log) + "\n")
 
-        with patch(
-            "src.telegram_bot.commands.logs_command.Path"
-        ) as mock_path_class:
+        with patch("src.telegram_bot.commands.logs_command.Path") as mock_path_class:
             mock_log_dir = MagicMock()
             mock_log_dir.exists.return_value = True
             mock_log_dir.glob.return_value = [log_file]
@@ -260,21 +258,25 @@ class TestSuccessfulLogDisplayJSON:
 
     @pytest.mark.asyncio()
     async def test_logs_command_displays_mixed_intent_logs(
-        self, mock_update, mock_context, tmp_path,
-        sample_buy_intent_log, sample_sell_intent_log
+        self,
+        mock_update,
+        mock_context,
+        tmp_path,
+        sample_buy_intent_log,
+        sample_sell_intent_log,
     ):
         """Test that mixed BUY and SELL INTENT logs are displayed."""
         # Arrange
         log_file = tmp_path / "test.log"
         content = (
-            json.dumps(sample_buy_intent_log) + "\n" +
-            json.dumps(sample_sell_intent_log) + "\n"
+            json.dumps(sample_buy_intent_log)
+            + "\n"
+            + json.dumps(sample_sell_intent_log)
+            + "\n"
         )
         log_file.write_text(content)
 
-        with patch(
-            "src.telegram_bot.commands.logs_command.Path"
-        ) as mock_path_class:
+        with patch("src.telegram_bot.commands.logs_command.Path") as mock_path_class:
             mock_log_dir = MagicMock()
             mock_log_dir.exists.return_value = True
             mock_log_dir.glob.return_value = [log_file]
@@ -303,11 +305,11 @@ class TestSuccessfulLogDisplayPlainText:
         """Test that plain text BUY_INTENT logs are handled."""
         # Arrange
         log_file = tmp_path / "test.log"
-        log_file.write_text("2025-12-23 10:30:00 - BUY_INTENT: AK-47 | Redline at $25.50\n")
+        log_file.write_text(
+            "2025-12-23 10:30:00 - BUY_INTENT: AK-47 | Redline at $25.50\n"
+        )
 
-        with patch(
-            "src.telegram_bot.commands.logs_command.Path"
-        ) as mock_path_class:
+        with patch("src.telegram_bot.commands.logs_command.Path") as mock_path_class:
             mock_log_dir = MagicMock()
             mock_log_dir.exists.return_value = True
             mock_log_dir.glob.return_value = [log_file]
@@ -327,11 +329,11 @@ class TestSuccessfulLogDisplayPlainText:
         """Test that plain text SELL_INTENT logs are handled."""
         # Arrange
         log_file = tmp_path / "test.log"
-        log_file.write_text("2025-12-23 11:00:00 - SELL_INTENT: AWP | Asiimov at $45.00\n")
+        log_file.write_text(
+            "2025-12-23 11:00:00 - SELL_INTENT: AWP | Asiimov at $45.00\n"
+        )
 
-        with patch(
-            "src.telegram_bot.commands.logs_command.Path"
-        ) as mock_path_class:
+        with patch("src.telegram_bot.commands.logs_command.Path") as mock_path_class:
             mock_log_dir = MagicMock()
             mock_log_dir.exists.return_value = True
             mock_log_dir.glob.return_value = [log_file]
@@ -367,9 +369,7 @@ class TestLogLimiting:
             logs.append(json.dumps(log_entry))
         log_file.write_text("\n".join(logs) + "\n")
 
-        with patch(
-            "src.telegram_bot.commands.logs_command.Path"
-        ) as mock_path_class:
+        with patch("src.telegram_bot.commands.logs_command.Path") as mock_path_class:
             mock_log_dir = MagicMock()
             mock_log_dir.exists.return_value = True
             mock_log_dir.glob.return_value = [log_file]
@@ -401,13 +401,13 @@ class TestMessageChunking:
         logs = []
         for i in range(20):
             log_entry = sample_buy_intent_log.copy()
-            log_entry["item"] = f"Very Long Item Name That Takes Up Space - Item Number {i}"
+            log_entry["item"] = (
+                f"Very Long Item Name That Takes Up Space - Item Number {i}"
+            )
             logs.append(json.dumps(log_entry))
         log_file.write_text("\n".join(logs) + "\n")
 
-        with patch(
-            "src.telegram_bot.commands.logs_command.Path"
-        ) as mock_path_class:
+        with patch("src.telegram_bot.commands.logs_command.Path") as mock_path_class:
             mock_log_dir = MagicMock()
             mock_log_dir.exists.return_value = True
             mock_log_dir.glob.return_value = [log_file]
@@ -446,9 +446,7 @@ class TestDryRunVsLiveDisplay:
         log_file = tmp_path / "test.log"
         log_file.write_text(json.dumps(log_entry) + "\n")
 
-        with patch(
-            "src.telegram_bot.commands.logs_command.Path"
-        ) as mock_path_class:
+        with patch("src.telegram_bot.commands.logs_command.Path") as mock_path_class:
             mock_log_dir = MagicMock()
             mock_log_dir.exists.return_value = True
             mock_log_dir.glob.return_value = [log_file]
@@ -479,9 +477,7 @@ class TestDryRunVsLiveDisplay:
         log_file = tmp_path / "test.log"
         log_file.write_text(json.dumps(log_entry) + "\n")
 
-        with patch(
-            "src.telegram_bot.commands.logs_command.Path"
-        ) as mock_path_class:
+        with patch("src.telegram_bot.commands.logs_command.Path") as mock_path_class:
             mock_log_dir = MagicMock()
             mock_log_dir.exists.return_value = True
             mock_log_dir.glob.return_value = [log_file]
@@ -509,9 +505,7 @@ class TestErrorHandling:
     ):
         """Test that file read errors are handled gracefully."""
         # Arrange
-        with patch(
-            "src.telegram_bot.commands.logs_command.Path"
-        ) as mock_path_class:
+        with patch("src.telegram_bot.commands.logs_command.Path") as mock_path_class:
             mock_log_dir = MagicMock()
             mock_log_dir.exists.return_value = True
 
@@ -539,9 +533,7 @@ class TestErrorHandling:
         log_file = tmp_path / "test.log"
         log_file.write_text("not valid json\n")
 
-        with patch(
-            "src.telegram_bot.commands.logs_command.Path"
-        ) as mock_path_class:
+        with patch("src.telegram_bot.commands.logs_command.Path") as mock_path_class:
             mock_log_dir = MagicMock()
             mock_log_dir.exists.return_value = True
             mock_log_dir.glob.return_value = [log_file]
@@ -575,9 +567,7 @@ class TestMultipleLogFiles:
             log_entry["item"] = f"Item from file {i}"
             log_file.write_text(json.dumps(log_entry) + "\n")
 
-        with patch(
-            "src.telegram_bot.commands.logs_command.Path"
-        ) as mock_path_class:
+        with patch("src.telegram_bot.commands.logs_command.Path") as mock_path_class:
             mock_log_dir = MagicMock()
             mock_log_dir.exists.return_value = True
             mock_log_dir.glob.return_value = list(tmp_path.glob("*.log"))
@@ -604,9 +594,7 @@ class TestMultipleLogFiles:
             log_file.write_text(json.dumps(log_entry) + "\n")
             files.append(log_file)
 
-        with patch(
-            "src.telegram_bot.commands.logs_command.Path"
-        ) as mock_path_class:
+        with patch("src.telegram_bot.commands.logs_command.Path") as mock_path_class:
             mock_log_dir = MagicMock()
             mock_log_dir.exists.return_value = True
             mock_log_dir.glob.return_value = files
@@ -643,9 +631,7 @@ class TestEmojiDisplay:
         log_file = tmp_path / "test.log"
         log_file.write_text(json.dumps(log_entry) + "\n")
 
-        with patch(
-            "src.telegram_bot.commands.logs_command.Path"
-        ) as mock_path_class:
+        with patch("src.telegram_bot.commands.logs_command.Path") as mock_path_class:
             mock_log_dir = MagicMock()
             mock_log_dir.exists.return_value = True
             mock_log_dir.glob.return_value = [log_file]
@@ -675,9 +661,7 @@ class TestEmojiDisplay:
         log_file = tmp_path / "test.log"
         log_file.write_text(json.dumps(log_entry) + "\n")
 
-        with patch(
-            "src.telegram_bot.commands.logs_command.Path"
-        ) as mock_path_class:
+        with patch("src.telegram_bot.commands.logs_command.Path") as mock_path_class:
             mock_log_dir = MagicMock()
             mock_log_dir.exists.return_value = True
             mock_log_dir.glob.return_value = [log_file]

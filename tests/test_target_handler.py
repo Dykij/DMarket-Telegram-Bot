@@ -107,7 +107,9 @@ class TestStartTargetsMenu:
     """Тесты функции start_targets_menu."""
 
     @pytest.mark.asyncio()
-    async def test_start_targets_menu_sends_new_message(self, mock_update, mock_context):
+    async def test_start_targets_menu_sends_new_message(
+        self, mock_update, mock_context
+    ):
         """Тест отправки нового сообщения."""
         await start_targets_menu(mock_update, mock_context)
 
@@ -142,7 +144,9 @@ class TestHandleSmartTargets:
     """Тесты функции handle_smart_targets."""
 
     @pytest.mark.asyncio()
-    async def test_handle_smart_targets_no_query_returns_early(self, mock_update, mock_context):
+    async def test_handle_smart_targets_no_query_returns_early(
+        self, mock_update, mock_context
+    ):
         """Тест раннего возврата при отсутствии query."""
         mock_update.callback_query = None
 
@@ -199,7 +203,9 @@ class TestHandleCompetitionAnalysis:
     """Тесты функции handle_competition_analysis."""
 
     @pytest.mark.asyncio()
-    async def test_handle_competition_analysis_no_query(self, mock_update, mock_context):
+    async def test_handle_competition_analysis_no_query(
+        self, mock_update, mock_context
+    ):
         """Тест раннего возврата при отсутствии query."""
         mock_update.callback_query = None
 

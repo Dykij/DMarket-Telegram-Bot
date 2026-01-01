@@ -823,7 +823,9 @@ class TestResultDisplay:
     """Tests for result display functions."""
 
     @pytest.mark.asyncio()
-    async def test_show_price_changes_results_empty(self, mock_callback_query, mock_context):
+    async def test_show_price_changes_results_empty(
+        self, mock_callback_query, mock_context
+    ):
         """Test showing price changes with empty results."""
         from src.telegram_bot.handlers.market_analysis_handler import (
             show_price_changes_results,
@@ -839,7 +841,9 @@ class TestResultDisplay:
             await show_price_changes_results(mock_callback_query, mock_context, "csgo")
 
     @pytest.mark.asyncio()
-    async def test_show_trending_items_results_empty(self, mock_callback_query, mock_context):
+    async def test_show_trending_items_results_empty(
+        self, mock_callback_query, mock_context
+    ):
         """Test showing trending items with empty results."""
         from src.telegram_bot.handlers.market_analysis_handler import (
             show_trending_items_results,
@@ -855,7 +859,9 @@ class TestResultDisplay:
             await show_trending_items_results(mock_callback_query, mock_context, "csgo")
 
     @pytest.mark.asyncio()
-    async def test_show_volatility_results_empty(self, mock_callback_query, mock_context):
+    async def test_show_volatility_results_empty(
+        self, mock_callback_query, mock_context
+    ):
         """Test showing volatility with empty results."""
         from src.telegram_bot.handlers.market_analysis_handler import (
             show_volatility_results,

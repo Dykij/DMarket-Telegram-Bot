@@ -208,7 +208,10 @@ class TestMarketAnalyzer:
     def test_detect_patterns(self):
         """Test pattern detection."""
         analyzer = MarketAnalyzer()
-        timestamps = [(datetime.now(UTC) - timedelta(days=x)).timestamp() for x in range(10, 0, -1)]
+        timestamps = [
+            (datetime.now(UTC) - timedelta(days=x)).timestamp()
+            for x in range(10, 0, -1)
+        ]
 
         # Test breakout pattern
         breakout_prices = [10.0, 10.1, 10.2, 10.1, 10.3, 10.2, 10.1, 10.4, 11.0, 12.0]

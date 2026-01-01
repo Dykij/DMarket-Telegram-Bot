@@ -115,7 +115,9 @@ class TestSecurityConfig:
 
     def test_security_config_with_users(self):
         """Тест создания SecurityConfig с пользователями."""
-        config = SecurityConfig(allowed_users=[123, 456, "user1"], admin_users=[789, "admin1"])
+        config = SecurityConfig(
+            allowed_users=[123, 456, "user1"], admin_users=[789, "admin1"]
+        )
         assert 123 in config.allowed_users
         assert 456 in config.allowed_users
         assert "user1" in config.allowed_users

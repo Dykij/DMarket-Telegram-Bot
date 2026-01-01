@@ -84,7 +84,11 @@ class TestAlertsCommand:
 
             mock_update.message.reply_text.assert_called_once()
             call_args = mock_update.message.reply_text.call_args
-            text = call_args.args[0] if call_args.args else call_args.kwargs.get("text", "")
+            text = (
+                call_args.args[0]
+                if call_args.args
+                else call_args.kwargs.get("text", "")
+            )
             assert "🔔" in text
 
     @pytest.mark.asyncio()
@@ -269,9 +273,13 @@ class TestUpdateAlertsKeyboard:
     """Тесты для функции update_alerts_keyboard."""
 
     @pytest.mark.asyncio()
-    async def test_update_alerts_keyboard_no_subscriptions(self, mock_update, mock_alerts_manager):
+    async def test_update_alerts_keyboard_no_subscriptions(
+        self, mock_update, mock_alerts_manager
+    ):
         """Тест обновления клавиатуры без подписок."""
-        from src.telegram_bot.handlers.market_alerts_handler import update_alerts_keyboard
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            update_alerts_keyboard,
+        )
 
         query = mock_update.callback_query
 
@@ -290,9 +298,14 @@ class TestUpdateAlertsKeyboard:
         self, mock_update, mock_alerts_manager
     ):
         """Тест обновления клавиатуры с активными подписками."""
-        from src.telegram_bot.handlers.market_alerts_handler import update_alerts_keyboard
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            update_alerts_keyboard,
+        )
 
-        mock_alerts_manager.get_user_subscriptions.return_value = ["price_changes", "trending"]
+        mock_alerts_manager.get_user_subscriptions.return_value = [
+            "price_changes",
+            "trending",
+        ]
         query = mock_update.callback_query
 
         with patch(
@@ -312,7 +325,9 @@ class TestShowUserAlertsList:
     @pytest.mark.asyncio()
     async def test_show_user_alerts_list_empty(self, mock_update):
         """Тест показа пустого списка оповещений."""
-        from src.telegram_bot.handlers.market_alerts_handler import show_user_alerts_list
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            show_user_alerts_list,
+        )
 
         query = mock_update.callback_query
 
@@ -327,7 +342,9 @@ class TestShowUserAlertsList:
     @pytest.mark.asyncio()
     async def test_show_user_alerts_list_with_alerts(self, mock_update):
         """Тест показа списка с оповещениями."""
-        from src.telegram_bot.handlers.market_alerts_handler import show_user_alerts_list
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            show_user_alerts_list,
+        )
 
         sample_alerts = [
             {
@@ -356,7 +373,9 @@ class TestShowUserAlertsList:
     @pytest.mark.asyncio()
     async def test_show_user_alerts_list_various_types(self, mock_update):
         """Тест показа оповещений разных типов."""
-        from src.telegram_bot.handlers.market_alerts_handler import show_user_alerts_list
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            show_user_alerts_list,
+        )
 
         sample_alerts = [
             {
@@ -395,7 +414,9 @@ class TestShowCreateAlertForm:
     @pytest.mark.asyncio()
     async def test_show_create_alert_form(self, mock_update):
         """Тест показа формы создания оповещения."""
-        from src.telegram_bot.handlers.market_alerts_handler import show_create_alert_form
+        from src.telegram_bot.handlers.market_alerts_handler import (
+            show_create_alert_form,
+        )
 
         query = mock_update.callback_query
 
@@ -408,7 +429,9 @@ class TestShowAlertsSettings:
     """Тесты для функции show_alerts_settings."""
 
     @pytest.mark.asyncio()
-    async def test_show_alerts_settings_with_subscriptions(self, mock_update, mock_alerts_manager):
+    async def test_show_alerts_settings_with_subscriptions(
+        self, mock_update, mock_alerts_manager
+    ):
         """Тест показа настроек с активными подписками."""
         from src.telegram_bot.handlers.market_alerts_handler import show_alerts_settings
 
@@ -420,7 +443,9 @@ class TestShowAlertsSettings:
         query.edit_message_text.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_show_alerts_settings_no_subscriptions(self, mock_update, mock_alerts_manager):
+    async def test_show_alerts_settings_no_subscriptions(
+        self, mock_update, mock_alerts_manager
+    ):
         """Тест показа настроек без подписок."""
         from src.telegram_bot.handlers.market_alerts_handler import show_alerts_settings
 
@@ -436,7 +461,9 @@ class TestAlertsCallbackAdditional:
     """Дополнительные тесты для alerts_callback."""
 
     @pytest.mark.asyncio()
-    async def test_alerts_callback_settings(self, mock_update, mock_context, mock_alerts_manager):
+    async def test_alerts_callback_settings(
+        self, mock_update, mock_context, mock_alerts_manager
+    ):
         """Тест перехода к настройкам."""
         mock_update.callback_query.data = "alerts:settings"
 
@@ -453,13 +480,17 @@ class TestAlertsCallbackAdditional:
         """Тест перехода к форме создания оповещения."""
         mock_update.callback_query.data = "alerts:create_alert"
 
-        with patch("src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager"):
+        with patch(
+            "src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager"
+        ):
             await alerts_callback(mock_update, mock_context)
 
             mock_update.callback_query.edit_message_text.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_alerts_callback_remove_alert_success(self, mock_update, mock_context):
+    async def test_alerts_callback_remove_alert_success(
+        self, mock_update, mock_context
+    ):
         """Тест успешного удаления оповещения."""
         mock_update.callback_query.data = "alerts:remove_alert:alert_123"
 
@@ -479,7 +510,9 @@ class TestAlertsCallbackAdditional:
             mock_update.callback_query.answer.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_alerts_callback_remove_alert_failure(self, mock_update, mock_context):
+    async def test_alerts_callback_remove_alert_failure(
+        self, mock_update, mock_context
+    ):
         """Тест неудачного удаления оповещения."""
         mock_update.callback_query.data = "alerts:remove_alert:alert_123"
 
@@ -506,19 +539,33 @@ class TestAlertsCallbackAdditional:
         mock_update.callback_query.answer.assert_called_with("Неверный формат данных")
 
     @pytest.mark.asyncio()
-    async def test_alerts_callback_toggle_invalid_format(self, mock_update, mock_context):
+    async def test_alerts_callback_toggle_invalid_format(
+        self, mock_update, mock_context
+    ):
         """Тест toggle без указания типа оповещения."""
         mock_update.callback_query.data = "alerts:toggle"  # Нет типа
 
-        with patch("src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager"):
+        with patch(
+            "src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager"
+        ):
             await alerts_callback(mock_update, mock_context)
 
-            mock_update.callback_query.answer.assert_called_with("Неверный формат данных")
-        with patch("src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager"):
+            mock_update.callback_query.answer.assert_called_with(
+                "Неверный формат данных"
+            )
+        with patch(
+            "src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager"
+        ):
             await alerts_callback(mock_update, mock_context)
 
-            mock_update.callback_query.answer.assert_called_with("Неверный формат данных")
-        with patch("src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager"):
+            mock_update.callback_query.answer.assert_called_with(
+                "Неверный формат данных"
+            )
+        with patch(
+            "src.telegram_bot.handlers.market_alerts_handler.get_alerts_manager"
+        ):
             await alerts_callback(mock_update, mock_context)
 
-            mock_update.callback_query.answer.assert_called_with("Неверный формат данных")
+            mock_update.callback_query.answer.assert_called_with(
+                "Неверный формат данных"
+            )

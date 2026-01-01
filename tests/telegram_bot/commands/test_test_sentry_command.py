@@ -137,7 +137,9 @@ class TestSentryCommandAuthorization:
             assert "администратор" in call_text.lower()
 
     @pytest.mark.asyncio()
-    async def test_allows_admin_in_production(self, mock_update, mock_context, mock_config):
+    async def test_allows_admin_in_production(
+        self, mock_update, mock_context, mock_config
+    ):
         """Test that admin users are allowed in production mode."""
         # Arrange
         mock_config.debug = False  # Production mode
@@ -147,9 +149,13 @@ class TestSentryCommandAuthorization:
                 "src.telegram_bot.commands.test_sentry_command.Config.load",
                 return_value=mock_config,
             ),
-            patch("src.telegram_bot.commands.test_sentry_command.add_command_breadcrumb"),
+            patch(
+                "src.telegram_bot.commands.test_sentry_command.add_command_breadcrumb"
+            ),
             patch("src.telegram_bot.commands.test_sentry_command.set_user_context"),
-            patch("src.telegram_bot.commands.test_sentry_command.add_trading_breadcrumb"),
+            patch(
+                "src.telegram_bot.commands.test_sentry_command.add_trading_breadcrumb"
+            ),
             patch("src.telegram_bot.commands.test_sentry_command.add_api_breadcrumb"),
             patch("src.telegram_bot.commands.test_sentry_command.add_error_breadcrumb"),
             patch("src.telegram_bot.commands.test_sentry_command.sentry_sdk"),
@@ -158,8 +164,12 @@ class TestSentryCommandAuthorization:
             await sentry_command_handler(mock_update, mock_context)
 
             # Assert - should not reject
-            call_texts = [call.args[0] for call in mock_update.message.reply_text.call_args_list]
-            assert not any("❌" in text and "администратор" in text.lower() for text in call_texts)
+            call_texts = [
+                call.args[0] for call in mock_update.message.reply_text.call_args_list
+            ]
+            assert not any(
+                "❌" in text and "администратор" in text.lower() for text in call_texts
+            )
 
     @pytest.mark.asyncio()
     async def test_allows_any_user_in_debug_mode(
@@ -175,9 +185,13 @@ class TestSentryCommandAuthorization:
                 "src.telegram_bot.commands.test_sentry_command.Config.load",
                 return_value=mock_config,
             ),
-            patch("src.telegram_bot.commands.test_sentry_command.add_command_breadcrumb"),
+            patch(
+                "src.telegram_bot.commands.test_sentry_command.add_command_breadcrumb"
+            ),
             patch("src.telegram_bot.commands.test_sentry_command.set_user_context"),
-            patch("src.telegram_bot.commands.test_sentry_command.add_trading_breadcrumb"),
+            patch(
+                "src.telegram_bot.commands.test_sentry_command.add_trading_breadcrumb"
+            ),
             patch("src.telegram_bot.commands.test_sentry_command.add_api_breadcrumb"),
             patch("src.telegram_bot.commands.test_sentry_command.add_error_breadcrumb"),
             patch("src.telegram_bot.commands.test_sentry_command.sentry_sdk"),
@@ -186,8 +200,12 @@ class TestSentryCommandAuthorization:
             await sentry_command_handler(mock_update, mock_context)
 
             # Assert - should not reject
-            call_texts = [call.args[0] for call in mock_update.message.reply_text.call_args_list]
-            assert not any("❌" in text and "администратор" in text.lower() for text in call_texts)
+            call_texts = [
+                call.args[0] for call in mock_update.message.reply_text.call_args_list
+            ]
+            assert not any(
+                "❌" in text and "администратор" in text.lower() for text in call_texts
+            )
 
 
 # ============================================================================
@@ -230,7 +248,9 @@ class TestSentryTestTypes:
     """Tests for different test type selections."""
 
     @pytest.mark.asyncio()
-    async def test_runs_all_tests_by_default(self, mock_update, mock_context, mock_config):
+    async def test_runs_all_tests_by_default(
+        self, mock_update, mock_context, mock_config
+    ):
         """Test that 'all' tests run when no argument provided."""
         # Arrange
         mock_context.args = []
@@ -240,7 +260,9 @@ class TestSentryTestTypes:
                 "src.telegram_bot.commands.test_sentry_command.Config.load",
                 return_value=mock_config,
             ),
-            patch("src.telegram_bot.commands.test_sentry_command.add_command_breadcrumb"),
+            patch(
+                "src.telegram_bot.commands.test_sentry_command.add_command_breadcrumb"
+            ),
             patch("src.telegram_bot.commands.test_sentry_command.set_user_context"),
             patch(
                 "src.telegram_bot.commands.test_sentry_command._test_breadcrumbs"
@@ -265,7 +287,9 @@ class TestSentryTestTypes:
             mock_division_error.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_runs_only_breadcrumbs_test(self, mock_update, mock_context, mock_config):
+    async def test_runs_only_breadcrumbs_test(
+        self, mock_update, mock_context, mock_config
+    ):
         """Test running only breadcrumbs test."""
         # Arrange
         mock_context.args = ["breadcrumbs"]
@@ -275,7 +299,9 @@ class TestSentryTestTypes:
                 "src.telegram_bot.commands.test_sentry_command.Config.load",
                 return_value=mock_config,
             ),
-            patch("src.telegram_bot.commands.test_sentry_command.add_command_breadcrumb"),
+            patch(
+                "src.telegram_bot.commands.test_sentry_command.add_command_breadcrumb"
+            ),
             patch("src.telegram_bot.commands.test_sentry_command.set_user_context"),
             patch(
                 "src.telegram_bot.commands.test_sentry_command._test_breadcrumbs"
@@ -302,7 +328,9 @@ class TestSentryTestTypes:
                 "src.telegram_bot.commands.test_sentry_command.Config.load",
                 return_value=mock_config,
             ),
-            patch("src.telegram_bot.commands.test_sentry_command.add_command_breadcrumb"),
+            patch(
+                "src.telegram_bot.commands.test_sentry_command.add_command_breadcrumb"
+            ),
             patch("src.telegram_bot.commands.test_sentry_command.set_user_context"),
             patch(
                 "src.telegram_bot.commands.test_sentry_command._test_breadcrumbs"
@@ -349,8 +377,12 @@ class TestBreadcrumbsFunction:
         """Test that _test_breadcrumbs adds API breadcrumbs."""
         # Arrange
         with (
-            patch("src.telegram_bot.commands.test_sentry_command.add_trading_breadcrumb"),
-            patch("src.telegram_bot.commands.test_sentry_command.add_api_breadcrumb") as mock_api,
+            patch(
+                "src.telegram_bot.commands.test_sentry_command.add_trading_breadcrumb"
+            ),
+            patch(
+                "src.telegram_bot.commands.test_sentry_command.add_api_breadcrumb"
+            ) as mock_api,
             patch("asyncio.sleep", new_callable=AsyncMock),
         ):
             # Act
@@ -364,7 +396,9 @@ class TestBreadcrumbsFunction:
         """Test that _test_breadcrumbs sends success message."""
         # Arrange
         with (
-            patch("src.telegram_bot.commands.test_sentry_command.add_trading_breadcrumb"),
+            patch(
+                "src.telegram_bot.commands.test_sentry_command.add_trading_breadcrumb"
+            ),
             patch("src.telegram_bot.commands.test_sentry_command.add_api_breadcrumb"),
             patch("asyncio.sleep", new_callable=AsyncMock),
         ):
@@ -387,7 +421,9 @@ class TestSimpleErrorFunction:
         # Arrange
         with (
             patch("src.telegram_bot.commands.test_sentry_command.add_error_breadcrumb"),
-            patch("src.telegram_bot.commands.test_sentry_command.sentry_sdk") as mock_sentry,
+            patch(
+                "src.telegram_bot.commands.test_sentry_command.sentry_sdk"
+            ) as mock_sentry,
         ):
             # Act
             await _test_simple_error(mock_update)
@@ -420,10 +456,14 @@ class TestApiErrorFunction:
         """Test that _test_api_error captures exception in Sentry."""
         # Arrange
         with (
-            patch("src.telegram_bot.commands.test_sentry_command.add_trading_breadcrumb"),
+            patch(
+                "src.telegram_bot.commands.test_sentry_command.add_trading_breadcrumb"
+            ),
             patch("src.telegram_bot.commands.test_sentry_command.add_api_breadcrumb"),
             patch("src.telegram_bot.commands.test_sentry_command.add_error_breadcrumb"),
-            patch("src.telegram_bot.commands.test_sentry_command.sentry_sdk") as mock_sentry,
+            patch(
+                "src.telegram_bot.commands.test_sentry_command.sentry_sdk"
+            ) as mock_sentry,
         ):
             # Act
             await _test_api_error(mock_update, user_id=123456789)
@@ -441,7 +481,9 @@ class TestDivisionErrorFunction:
         # Arrange
         with (
             patch("src.telegram_bot.commands.test_sentry_command.add_error_breadcrumb"),
-            patch("src.telegram_bot.commands.test_sentry_command.sentry_sdk") as mock_sentry,
+            patch(
+                "src.telegram_bot.commands.test_sentry_command.sentry_sdk"
+            ) as mock_sentry,
         ):
             # Act
             await _test_division_error(mock_update)
@@ -473,7 +515,9 @@ class TestSentryInfoCommand:
         # No assertions - just ensure no exception
 
     @pytest.mark.asyncio()
-    async def test_shows_initialized_status_when_sentry_active(self, mock_update, mock_context):
+    async def test_shows_initialized_status_when_sentry_active(
+        self, mock_update, mock_context
+    ):
         """Test showing initialized status when Sentry is active."""
         # Arrange
         with patch(
@@ -491,7 +535,9 @@ class TestSentryInfoCommand:
             assert "/test_sentry" in call_text
 
     @pytest.mark.asyncio()
-    async def test_shows_not_initialized_when_sentry_inactive(self, mock_update, mock_context):
+    async def test_shows_not_initialized_when_sentry_inactive(
+        self, mock_update, mock_context
+    ):
         """Test showing not initialized status when Sentry is inactive."""
         # Arrange
         with patch(
@@ -518,7 +564,9 @@ class TestErrorHandling:
     """Tests for error handling in test_sentry_command."""
 
     @pytest.mark.asyncio()
-    async def test_handles_exception_during_tests(self, mock_update, mock_context, mock_config):
+    async def test_handles_exception_during_tests(
+        self, mock_update, mock_context, mock_config
+    ):
         """Test handling of exceptions during test execution."""
         # Arrange
         mock_context.args = ["breadcrumbs"]
@@ -528,7 +576,9 @@ class TestErrorHandling:
                 "src.telegram_bot.commands.test_sentry_command.Config.load",
                 return_value=mock_config,
             ),
-            patch("src.telegram_bot.commands.test_sentry_command.add_command_breadcrumb"),
+            patch(
+                "src.telegram_bot.commands.test_sentry_command.add_command_breadcrumb"
+            ),
             patch("src.telegram_bot.commands.test_sentry_command.set_user_context"),
             patch(
                 "src.telegram_bot.commands.test_sentry_command._test_breadcrumbs",
@@ -539,7 +589,9 @@ class TestErrorHandling:
             await sentry_command_handler(mock_update, mock_context)
 
             # Assert - should catch error and send message
-            call_texts = [call.args[0] for call in mock_update.message.reply_text.call_args_list]
+            call_texts = [
+                call.args[0] for call in mock_update.message.reply_text.call_args_list
+            ]
             assert any("❌" in text and "Ошибка" in text for text in call_texts)
 
 

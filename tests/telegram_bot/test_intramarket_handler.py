@@ -345,11 +345,14 @@ class TestHandleIntramarketCallback:
         ]
 
         # Создаем мок для pagination_manager и API client
-        with patch(
-            "src.telegram_bot.handlers.intramarket_arbitrage_handler.pagination_manager",
-        ) as mock_pagination, patch(
-            "src.telegram_bot.handlers.intramarket_arbitrage_handler.create_api_client_from_env",
-            return_value=AsyncMock(),
+        with (
+            patch(
+                "src.telegram_bot.handlers.intramarket_arbitrage_handler.pagination_manager",
+            ) as mock_pagination,
+            patch(
+                "src.telegram_bot.handlers.intramarket_arbitrage_handler.create_api_client_from_env",
+                return_value=AsyncMock(),
+            ),
         ):
             # Настраиваем возврат get_page для пагинации
             mock_pagination.get_page.return_value = (

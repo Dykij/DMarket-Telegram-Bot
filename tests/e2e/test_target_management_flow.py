@@ -179,14 +179,18 @@ class TestTargetCreationFlow:
         assert save_call.kwargs["price"] == target_price
 
         # Act: Step 6 - Send notification
-        await mock_notification_service.send_target_created(user_id=user_id, target_details=result)
+        await mock_notification_service.send_target_created(
+            user_id=user_id, target_details=result
+        )
 
         # Assert: Notification sent
         mock_notification_service.send_target_created.assert_called_once()
 
     @pytest.mark.asyncio()
     @pytest.mark.e2e()
-    async def test_create_target_validates_price_range(self, mock_dmarket_api, mock_database):
+    async def test_create_target_validates_price_range(
+        self, mock_dmarket_api, mock_database
+    ):
         """Test that target creation validates price range.
 
         Flow:
@@ -301,7 +305,9 @@ class TestTargetViewingFlow:
 
     @pytest.mark.asyncio()
     @pytest.mark.e2e()
-    async def test_targets_synced_with_api_status(self, mock_dmarket_api, mock_database):
+    async def test_targets_synced_with_api_status(
+        self, mock_dmarket_api, mock_database
+    ):
         """Test that local targets are synced with API status.
 
         Flow:
@@ -366,14 +372,18 @@ class TestTargetDeletionFlow:
         mock_database.delete_target.assert_called_once()
 
         # Act: Send notification
-        await mock_notification_service.send_target_deleted(user_id=user_id, target_id=target_id)
+        await mock_notification_service.send_target_deleted(
+            user_id=user_id, target_id=target_id
+        )
 
         # Assert: Notification sent
         mock_notification_service.send_target_deleted.assert_called_once()
 
     @pytest.mark.asyncio()
     @pytest.mark.e2e()
-    async def test_delete_nonexistent_target_handled(self, mock_dmarket_api, mock_database):
+    async def test_delete_nonexistent_target_handled(
+        self, mock_dmarket_api, mock_database
+    ):
         """Test deletion of non-existent target is handled gracefully.
 
         Flow:
@@ -384,13 +394,17 @@ class TestTargetDeletionFlow:
         from src.dmarket.targets import TargetManager
 
         # Arrange
-        mock_dmarket_api.delete_target = AsyncMock(side_effect=Exception("Target not found"))
+        mock_dmarket_api.delete_target = AsyncMock(
+            side_effect=Exception("Target not found")
+        )
 
         manager = TargetManager(api_client=mock_dmarket_api, database=mock_database)
 
         # Act & Assert
         with pytest.raises(Exception) as exc_info:
-            await manager.delete_target(user_id=123456789, target_id="invalid_target_id")
+            await manager.delete_target(
+                user_id=123456789, target_id="invalid_target_id"
+            )
 
         assert "not found" in str(exc_info.value).lower()
 
@@ -450,7 +464,9 @@ class TestTargetFilledNotificationFlow:
 
         # Assert: Notification sent
         if filled_targets:
-            assert mock_notification_service.send_target_filled.call_count == len(filled_targets)
+            assert mock_notification_service.send_target_filled.call_count == len(
+                filled_targets
+            )
 
 
 # ============================================================================
@@ -463,7 +479,9 @@ class TestBatchTargetOperations:
 
     @pytest.mark.asyncio()
     @pytest.mark.e2e()
-    async def test_create_multiple_targets_parallel(self, mock_dmarket_api, mock_database):
+    async def test_create_multiple_targets_parallel(
+        self, mock_dmarket_api, mock_database
+    ):
         """Test creating multiple targets in parallel.
 
         Flow:
@@ -488,7 +506,10 @@ class TestBatchTargetOperations:
         # Act: Create targets in parallel
         tasks = [
             manager.create_target(
-                user_id=user_id, item_title=item["title"], price=item["price"], game="csgo"
+                user_id=user_id,
+                item_title=item["title"],
+                price=item["price"],
+                game="csgo",
             )
             for item in target_items
         ]
@@ -497,7 +518,9 @@ class TestBatchTargetOperations:
         # Assert: All created successfully
         assert len(results) == len(target_items)
         for result in results:
-            assert not isinstance(result, Exception), f"Target creation failed: {result}"
+            assert not isinstance(
+                result, Exception
+            ), f"Target creation failed: {result}"
             assert result["success"] is True
 
     @pytest.mark.asyncio()
@@ -518,7 +541,9 @@ class TestBatchTargetOperations:
         target_ids = ["target_123", "target_456", "target_789"]
 
         # Act: Batch delete
-        results = await manager.delete_targets_batch(user_id=user_id, target_ids=target_ids)
+        results = await manager.delete_targets_batch(
+            user_id=user_id, target_ids=target_ids
+        )
 
         # Assert: All deleted
         assert len(results) == len(target_ids)

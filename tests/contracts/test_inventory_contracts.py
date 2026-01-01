@@ -121,7 +121,9 @@ class TestUserInventoryContract:
         expected_body = dmarket_contracts.user_inventory_response()
 
         (
-            pact_interaction.upon_receiving("a request for inventory items not on market")
+            pact_interaction.upon_receiving(
+                "a request for inventory items not on market"
+            )
             .given("user has items not on market")
             .with_request(
                 method="GET",

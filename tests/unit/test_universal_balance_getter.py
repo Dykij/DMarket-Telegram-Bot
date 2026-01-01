@@ -177,10 +177,14 @@ class TestTryEndpointsForBalance:
     @pytest.mark.asyncio()
     async def test_first_endpoint_success(self, balance_getter, mock_api_client):
         """Test successful response from first endpoint."""
-        mock_api_client._request.return_value = {"usd": {"amount": 1000, "available": 800}}
+        mock_api_client._request.return_value = {
+            "usd": {"amount": 1000, "available": 800}
+        }
 
         endpoints = ["/endpoint1", "/endpoint2"]
-        response, endpoint, error = await balance_getter._try_endpoints_for_balance(endpoints)
+        response, endpoint, error = await balance_getter._try_endpoints_for_balance(
+            endpoints
+        )
 
         assert response is not None
         assert endpoint == "/endpoint1"
@@ -196,7 +200,9 @@ class TestTryEndpointsForBalance:
         ]
 
         endpoints = ["/endpoint1", "/endpoint2"]
-        response, endpoint, error = await balance_getter._try_endpoints_for_balance(endpoints)
+        response, endpoint, error = await balance_getter._try_endpoints_for_balance(
+            endpoints
+        )
 
         assert response is not None
         assert endpoint == "/endpoint2"
@@ -208,7 +214,9 @@ class TestTryEndpointsForBalance:
         mock_api_client._request.side_effect = Exception("All endpoints failed")
 
         endpoints = ["/endpoint1", "/endpoint2"]
-        response, endpoint, error = await balance_getter._try_endpoints_for_balance(endpoints)
+        response, endpoint, error = await balance_getter._try_endpoints_for_balance(
+            endpoints
+        )
 
         assert response is None
         assert endpoint is None
@@ -247,7 +255,9 @@ class TestIsAuthError:
             ("OTHER_ERROR", 500, False),
         ),
     )
-    def test_auth_error_detection(self, balance_getter, error_code, status_code, expected):
+    def test_auth_error_detection(
+        self, balance_getter, error_code, status_code, expected
+    ):
         """Test authentication error detection."""
         result = balance_getter._is_auth_error(error_code, status_code)
         assert result is expected
@@ -336,7 +346,9 @@ class TestDetermineStatusCode:
             ("Unknown error", 500),
         ),
     )
-    def test_status_code_determination(self, balance_getter, error_message, expected_code):
+    def test_status_code_determination(
+        self, balance_getter, error_message, expected_code
+    ):
         """Test status code determination from error message."""
         code = balance_getter._determine_status_code(error_message)
         assert code == expected_code
@@ -355,7 +367,9 @@ class TestDetermineErrorCode:
             ("Unknown error", "REQUEST_FAILED"),
         ),
     )
-    def test_error_code_determination(self, balance_getter, error_message, expected_code):
+    def test_error_code_determination(
+        self, balance_getter, error_message, expected_code
+    ):
         """Test error code determination from error message."""
         code = balance_getter._determine_error_code(error_message)
         assert code == expected_code
@@ -376,7 +390,9 @@ class TestGetBalance:
         assert result["error_code"] == "MISSING_API_KEYS"
 
     @pytest.mark.asyncio()
-    async def test_get_balance_via_direct_request(self, balance_getter, mock_api_client):
+    async def test_get_balance_via_direct_request(
+        self, balance_getter, mock_api_client
+    ):
         """Test successful balance retrieval via direct request."""
         mock_api_client.direct_balance_request.return_value = {
             "success": True,
@@ -390,10 +406,14 @@ class TestGetBalance:
         assert result["available_balance"] == 8.0
 
     @pytest.mark.asyncio()
-    async def test_get_balance_fallback_to_internal(self, balance_getter, mock_api_client):
+    async def test_get_balance_fallback_to_internal(
+        self, balance_getter, mock_api_client
+    ):
         """Test fallback to internal endpoints when direct request fails."""
         mock_api_client.direct_balance_request.return_value = None
-        mock_api_client._request.return_value = {"usd": {"amount": 1500, "available": 1200}}
+        mock_api_client._request.return_value = {
+            "usd": {"amount": 1500, "available": 1200}
+        }
 
         result = await balance_getter.get_balance()
 
@@ -409,7 +429,10 @@ class TestGetBalance:
         result = await balance_getter.get_balance()
 
         assert result["error"] is True
-        assert result["error_code"] in {"EXCEPTION", "REQUEST_FAILED"}  # Either is valid
+        assert result["error_code"] in {
+            "EXCEPTION",
+            "REQUEST_FAILED",
+        }  # Either is valid
 
 
 class TestIntegration:

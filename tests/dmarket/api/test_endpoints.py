@@ -41,12 +41,20 @@ class TestEndpointsConstants:
 
     def test_v110_endpoints(self):
         """Test V1.1.0 marketplace API endpoints."""
-        assert Endpoints.AGGREGATED_PRICES_POST == "/marketplace-api/v1/aggregated-prices"
+        assert (
+            Endpoints.AGGREGATED_PRICES_POST == "/marketplace-api/v1/aggregated-prices"
+        )
         assert Endpoints.TARGETS_BY_TITLE == "/marketplace-api/v1/targets-by-title"
-        assert Endpoints.USER_TARGETS_CREATE == "/marketplace-api/v1/user-targets/create"
+        assert (
+            Endpoints.USER_TARGETS_CREATE == "/marketplace-api/v1/user-targets/create"
+        )
         assert Endpoints.USER_TARGETS_LIST == "/marketplace-api/v1/user-targets"
-        assert Endpoints.USER_TARGETS_DELETE == "/marketplace-api/v1/user-targets/delete"
-        assert Endpoints.USER_TARGETS_CLOSED == "/marketplace-api/v1/user-targets/closed"
+        assert (
+            Endpoints.USER_TARGETS_DELETE == "/marketplace-api/v1/user-targets/delete"
+        )
+        assert (
+            Endpoints.USER_TARGETS_CLOSED == "/marketplace-api/v1/user-targets/closed"
+        )
         assert Endpoints.USER_OFFERS_CREATE == "/marketplace-api/v1/user-offers/create"
         assert Endpoints.USER_OFFERS_CLOSED == "/marketplace-api/v1/user-offers/closed"
 
@@ -60,9 +68,14 @@ class TestEndpointsConstants:
     def test_deprecated_endpoints(self):
         """Test deprecated endpoints exist with correct path."""
         # This endpoint is deprecated - use AGGREGATED_PRICES_POST instead
-        assert Endpoints.AGGREGATED_PRICES_DEPRECATED == "/price-aggregator/v1/aggregated-prices"
+        assert (
+            Endpoints.AGGREGATED_PRICES_DEPRECATED
+            == "/price-aggregator/v1/aggregated-prices"
+        )
         # Verify the recommended endpoint is different
-        assert Endpoints.AGGREGATED_PRICES_POST != Endpoints.AGGREGATED_PRICES_DEPRECATED
+        assert (
+            Endpoints.AGGREGATED_PRICES_POST != Endpoints.AGGREGATED_PRICES_DEPRECATED
+        )
 
 
 class TestStatusConstants:
@@ -142,8 +155,7 @@ class TestBuildUrl:
     def test_build_url_with_query_params(self):
         """Test building URL with query parameters."""
         url = Endpoints.build_url(
-            Endpoints.MARKET_ITEMS,
-            query_params={"gameId": "a8db", "limit": 100}
+            Endpoints.MARKET_ITEMS, query_params={"gameId": "a8db", "limit": 100}
         )
         assert "https://api.dmarket.com/exchange/v1/market/items?" in url
         assert "gameId=a8db" in url
@@ -153,7 +165,7 @@ class TestBuildUrl:
         """Test that None values are filtered from query params."""
         url = Endpoints.build_url(
             Endpoints.MARKET_ITEMS,
-            query_params={"gameId": "a8db", "limit": None, "offset": 0}
+            query_params={"gameId": "a8db", "limit": None, "offset": 0},
         )
         assert "limit=" not in url
         assert "gameId=a8db" in url
@@ -163,7 +175,7 @@ class TestBuildUrl:
         """Test building URL with path parameters."""
         url = Endpoints.build_url(
             Endpoints.TARGETS_BY_TITLE + "/{game_id}/{title}",
-            path_params={"game_id": "a8db", "title": "AK-47"}
+            path_params={"game_id": "a8db", "title": "AK-47"},
         )
         assert "a8db" in url
         assert "AK-47" in url

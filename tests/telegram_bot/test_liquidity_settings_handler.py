@@ -83,8 +83,12 @@ def mock_context():
 @pytest.fixture(autouse=True)
 def reset_profile_manager():
     """Сбрасывает профиль пользователя перед каждым тестом."""
-    with patch("src.telegram_bot.handlers.liquidity_settings_handler.profile_manager") as mock_pm:
-        mock_pm.get_profile.return_value = {"liquidity_settings": DEFAULT_LIQUIDITY_SETTINGS.copy()}
+    with patch(
+        "src.telegram_bot.handlers.liquidity_settings_handler.profile_manager"
+    ) as mock_pm:
+        mock_pm.get_profile.return_value = {
+            "liquidity_settings": DEFAULT_LIQUIDITY_SETTINGS.copy()
+        }
         mock_pm.update_profile = MagicMock()
         yield mock_pm
 
@@ -108,7 +112,9 @@ def test_get_liquidity_settings_existing(reset_profile_manager):
         "min_sales_per_week": 10,
         "max_time_to_sell_days": 5,
     }
-    reset_profile_manager.get_profile.return_value = {"liquidity_settings": custom_settings}
+    reset_profile_manager.get_profile.return_value = {
+        "liquidity_settings": custom_settings
+    }
 
     settings = get_liquidity_settings(123456789)
 
@@ -131,7 +137,9 @@ def test_update_liquidity_settings(reset_profile_manager):
 
 
 @pytest.mark.asyncio()
-async def test_liquidity_settings_command(mock_update, mock_context, reset_profile_manager):
+async def test_liquidity_settings_command(
+    mock_update, mock_context, reset_profile_manager
+):
     """Тест команды /liquidity_settings."""
     await liquidity_settings_command(mock_update, mock_context)
 
@@ -142,7 +150,9 @@ async def test_liquidity_settings_command(mock_update, mock_context, reset_profi
 
 
 @pytest.mark.asyncio()
-async def test_toggle_liquidity_filter(mock_callback_update, mock_context, reset_profile_manager):
+async def test_toggle_liquidity_filter(
+    mock_callback_update, mock_context, reset_profile_manager
+):
     """Тест переключения фильтра ликвидности."""
     await toggle_liquidity_filter(mock_callback_update, mock_context)
 
@@ -151,7 +161,9 @@ async def test_toggle_liquidity_filter(mock_callback_update, mock_context, reset
 
 
 @pytest.mark.asyncio()
-async def test_reset_liquidity_settings(mock_callback_update, mock_context, reset_profile_manager):
+async def test_reset_liquidity_settings(
+    mock_callback_update, mock_context, reset_profile_manager
+):
     """Тест сброса настроек на значения по умолчанию."""
     # Устанавливаем кастомные настройки
     reset_profile_manager.get_profile.return_value = {

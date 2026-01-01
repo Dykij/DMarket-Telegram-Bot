@@ -243,7 +243,11 @@ class TestMarketAnalyzerPrediction:
         assert "signals" in result
         if "rsi" in result["signals"]:
             rsi_signal = result["signals"]["rsi"]
-            assert rsi_signal["signal"] in {SignalType.BUY, SignalType.SELL, SignalType.HOLD}
+            assert rsi_signal["signal"] in {
+                SignalType.BUY,
+                SignalType.SELL,
+                SignalType.HOLD,
+            }
 
     def test_predict_price_drop_with_high_threshold(
         self, analyzer: MarketAnalyzer
@@ -251,7 +255,9 @@ class TestMarketAnalyzerPrediction:
         """Test prediction with high confidence threshold."""
         now = datetime.now(UTC)
         history = [
-            PricePoint(now - timedelta(days=i), price=100 + np.sin(i / 5) * 10, volume=100)
+            PricePoint(
+                now - timedelta(days=i), price=100 + np.sin(i / 5) * 10, volume=100
+            )
             for i in range(50)
         ]
         result = analyzer.predict_price_drop(history, threshold=0.99)
@@ -321,9 +327,7 @@ class TestMarketAnalyzerLiquidity:
         """Create market analyzer."""
         return MarketAnalyzer(min_data_points=10)
 
-    def test_analyze_liquidity_with_high_volume(
-        self, analyzer: MarketAnalyzer
-    ) -> None:
+    def test_analyze_liquidity_with_high_volume(self, analyzer: MarketAnalyzer) -> None:
         """Test liquidity analysis with high volume."""
         now = datetime.now(UTC)
         history = [
@@ -397,7 +401,9 @@ class TestMarketAnalyzerInsights:
         now = datetime.now(UTC)
         # Create conditions for strong buy
         history = [
-            PricePoint(now - timedelta(days=49 - i), price=100 + i * 0.5, volume=100 + i * 10)
+            PricePoint(
+                now - timedelta(days=49 - i), price=100 + i * 0.5, volume=100 + i * 10
+            )
             for i in range(50)
         ]
         # Current price below fair price
@@ -425,7 +431,8 @@ class TestMarketAnalyzerInsights:
         now = datetime.now(UTC)
         # Create neutral conditions
         history = [
-            PricePoint(now - timedelta(days=i), price=100, volume=100) for i in range(50)
+            PricePoint(now - timedelta(days=i), price=100, volume=100)
+            for i in range(50)
         ]
         # Current price at fair price
         result = analyzer.generate_trading_insights(history, current_price=100.0)
@@ -483,7 +490,8 @@ class TestMarketAnalyzerLogging:
         analyzer = MarketAnalyzer(min_data_points=10)
         now = datetime.now(UTC)
         history = [
-            PricePoint(now - timedelta(days=i), price=100, volume=100) for i in range(15)
+            PricePoint(now - timedelta(days=i), price=100, volume=100)
+            for i in range(15)
         ]
 
         with patch("src.utils.market_analytics.logger") as mock_logger:
@@ -496,7 +504,8 @@ class TestMarketAnalyzerLogging:
         analyzer = MarketAnalyzer(min_data_points=10)
         now = datetime.now(UTC)
         history = [
-            PricePoint(now - timedelta(days=i), price=100, volume=100) for i in range(15)
+            PricePoint(now - timedelta(days=i), price=100, volume=100)
+            for i in range(15)
         ]
 
         with patch("src.utils.market_analytics.logger") as mock_logger:
@@ -547,7 +556,9 @@ class TestEdgeCasesAndBoundaries:
         now = datetime.now(UTC)
         # Create prices where short MA is exactly 2% above long MA
         history = [
-            PricePoint(now - timedelta(days=30 - i), price=100 + (i * 0.066), volume=100)
+            PricePoint(
+                now - timedelta(days=30 - i), price=100 + (i * 0.066), volume=100
+            )
             for i in range(31)
         ]
         trend = analyzer.detect_trend(history)

@@ -234,7 +234,9 @@ class TestEdgeCases:
                     # Check that at least one emoji exists
                     value = LOCALIZATIONS[lang_code][key]
                     # Basic check for emoji-like characters
-                    assert any(ord(c) > 127 for c in value), f"No emoji in {lang_code}.{key}"
+                    assert any(
+                        ord(c) > 127 for c in value
+                    ), f"No emoji in {lang_code}.{key}"
 
     def test_format_placeholders_consistent(self):
         """Test that format placeholders are consistent across languages."""

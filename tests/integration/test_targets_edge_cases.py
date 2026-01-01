@@ -134,7 +134,11 @@ class TestTargetsEdgeCases:
             method="POST",
             json={
                 "Result": [
-                    {"TargetID": f"target_{i}", "Title": f"Item {i}", "Status": "Created"}
+                    {
+                        "TargetID": f"target_{i}",
+                        "Title": f"Item {i}",
+                        "Status": "Created",
+                    }
                     for i in range(10)
                 ]
             },
@@ -228,7 +232,9 @@ class TestTargetsEdgeCases:
             },
         )
 
-        result = await mock_dmarket_api.delete_targets(target_ids=["nonexistent_target"])
+        result = await mock_dmarket_api.delete_targets(
+            target_ids=["nonexistent_target"]
+        )
 
         # API должен обработать ошибку
         assert result is not None
@@ -242,7 +248,9 @@ class TestTargetsEdgeCases:
         import re
 
         httpx_mock.add_response(
-            url=re.compile(r"https://api\.dmarket\.com/marketplace-api/v1/user-targets\?.*"),
+            url=re.compile(
+                r"https://api\.dmarket\.com/marketplace-api/v1/user-targets\?.*"
+            ),
             method="GET",
             json={
                 "Items": [
@@ -278,7 +286,9 @@ class TestTargetsEdgeCases:
 
         # Первая страница
         httpx_mock.add_response(
-            url=re.compile(r"https://api\.dmarket\.com/marketplace-api/v1/user-targets\?.*"),
+            url=re.compile(
+                r"https://api\.dmarket\.com/marketplace-api/v1/user-targets\?.*"
+            ),
             method="GET",
             json={
                 "Items": [
@@ -299,7 +309,9 @@ class TestTargetsEdgeCases:
 
         # Вторая страница
         httpx_mock.add_response(
-            url=re.compile(r"https://api\.dmarket\.com/marketplace-api/v1/user-targets\?.*"),
+            url=re.compile(
+                r"https://api\.dmarket\.com/marketplace-api/v1/user-targets\?.*"
+            ),
             method="GET",
             json={
                 "Items": [
@@ -366,7 +378,9 @@ class TestTargetsEdgeCases:
         import re
 
         httpx_mock.add_response(
-            url=re.compile(r"https://api\.dmarket\.com/marketplace-api/v1/user-targets/closed\?.*"),
+            url=re.compile(
+                r"https://api\.dmarket\.com/marketplace-api/v1/user-targets/closed\?.*"
+            ),
             method="GET",
             json={
                 "Trades": [
@@ -386,7 +400,9 @@ class TestTargetsEdgeCases:
         )
 
         # get_closed_targets doesn't take game parameter
-        result = await mock_dmarket_api.get_closed_targets(status="successful", limit=50)
+        result = await mock_dmarket_api.get_closed_targets(
+            status="successful", limit=50
+        )
 
         assert result is not None
         assert "Trades" in result

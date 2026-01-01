@@ -53,7 +53,10 @@ class TestJsonDumps:
         data = {
             "user": {
                 "id": 123,
-                "items": [{"name": "Item1", "price": 10.0}, {"name": "Item2", "price": 20.0}],
+                "items": [
+                    {"name": "Item1", "price": 10.0},
+                    {"name": "Item2", "price": 20.0},
+                ],
             }
         }
 
@@ -207,7 +210,11 @@ class TestJsonLoad:
         """Тест чтения JSON из файла."""
         # Arrange
         data = '{"name": "File Item", "price": 30.0}'
-        fp = io.BytesIO(data.encode("utf-8")) if json_utils.ORJSON_AVAILABLE else io.StringIO(data)
+        fp = (
+            io.BytesIO(data.encode("utf-8"))
+            if json_utils.ORJSON_AVAILABLE
+            else io.StringIO(data)
+        )
 
         # Act
         result = json_utils.load(fp)
@@ -221,7 +228,11 @@ class TestJsonLoad:
         """Тест чтения списка из файла."""
         # Arrange
         data = '["a", "b", "c"]'
-        fp = io.BytesIO(data.encode("utf-8")) if json_utils.ORJSON_AVAILABLE else io.StringIO(data)
+        fp = (
+            io.BytesIO(data.encode("utf-8"))
+            if json_utils.ORJSON_AVAILABLE
+            else io.StringIO(data)
+        )
 
         # Act
         result = json_utils.load(fp)

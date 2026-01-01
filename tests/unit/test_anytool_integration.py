@@ -30,7 +30,9 @@ def mock_api_client():
             ]
         }
     )
-    client.get_item_by_id = AsyncMock(return_value={"title": "Test Item", "price": {"USD": "1000"}})
+    client.get_item_by_id = AsyncMock(
+        return_value={"title": "Test Item", "price": {"USD": "1000"}}
+    )
     return client
 
 
@@ -172,7 +174,9 @@ class TestAnyToolClient:
     @pytest.mark.asyncio()
     async def test_call_tool_scan_arbitrage(self, anytool_client):
         """Тест вызова scan_arbitrage через AnyTool."""
-        with patch("src.dmarket.arbitrage_scanner.ArbitrageScanner") as mock_scanner_class:
+        with patch(
+            "src.dmarket.arbitrage_scanner.ArbitrageScanner"
+        ) as mock_scanner_class:
             mock_scanner = AsyncMock()
             mock_scanner.scan_level = AsyncMock(
                 return_value=[
@@ -212,7 +216,9 @@ class TestAnyToolClient:
         """Тест вызова create_target через AnyTool."""
         with patch("src.dmarket.targets.TargetManager") as mock_tm_class:
             mock_tm = AsyncMock()
-            mock_tm.create_target = AsyncMock(return_value={"target_id": "test_target_123"})
+            mock_tm.create_target = AsyncMock(
+                return_value={"target_id": "test_target_123"}
+            )
             mock_tm_class.return_value = mock_tm
 
             result = await anytool_client.call_tool(

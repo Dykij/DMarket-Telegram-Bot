@@ -197,7 +197,9 @@ class TestMarketDataCacheModel:
         game = "csgo"
         data_type = "items"
 
-        expected_repr = f"<MarketDataCache(key='{cache_key}', game='{game}', type='{data_type}')>"
+        expected_repr = (
+            f"<MarketDataCache(key='{cache_key}', game='{game}', type='{data_type}')>"
+        )
 
         cache = MagicMock()
         cache.__repr__ = MagicMock(return_value=expected_repr)

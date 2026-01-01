@@ -206,9 +206,7 @@ class TestGetItemPriceHistory:
     async def test_get_price_history_missing_fields(self, mock_api):
         """Тест обработки отсутствующих полей."""
         mock_api._request.return_value = {
-            "sales": [
-                {"date": "2024-01-01T00:00:00"}  # Нет price и volume
-            ]
+            "sales": [{"date": "2024-01-01T00:00:00"}]  # Нет price и volume
         }
 
         result = await get_item_price_history(mock_api, "item123")
@@ -277,7 +275,13 @@ class TestCalculatePriceStatistics:
         """Тест что результат содержит требуемые поля."""
         result = calculate_price_statistics([])
 
-        required_fields = ["avg_price", "min_price", "max_price", "volatility", "volume"]
+        required_fields = [
+            "avg_price",
+            "min_price",
+            "max_price",
+            "volatility",
+            "volume",
+        ]
         for field in required_fields:
             assert field in result
 
@@ -318,7 +322,10 @@ class TestCacheManagement:
             "last_update": time.time(),
         }
 
-        assert _price_history_cache["item1_7"]["data"] != _price_history_cache["item2_7"]["data"]
+        assert (
+            _price_history_cache["item1_7"]["data"]
+            != _price_history_cache["item2_7"]["data"]
+        )
 
 
 class TestPriceConversion:
@@ -465,7 +472,9 @@ class TestCalculatePriceTrend:
 
         # Assert - trend should be stable or show minimal change
         assert result["trend"] in {"stable", "upward", "downward"}
-        assert abs(result["change_percent"]) < 10  # Less than 10% change indicates stable
+        assert (
+            abs(result["change_percent"]) < 10
+        )  # Less than 10% change indicates stable
 
     @pytest.mark.asyncio()
     async def test_calculate_trend_empty_history(self, mock_api):
@@ -546,22 +555,30 @@ class TestFindUndervaluedItems:
     async def test_find_undervalued_items_success(self, mock_api):
         """Test successful finding of undervalued items."""
         # Arrange
-        mock_api.get_market_items = AsyncMock(return_value={
-            "objects": [
-                {
-                    "itemId": "item1",
-                    "title": "AK-47 | Redline",
-                    "price": {"amount": 1000},  # $10 current price
-                }
-            ]
-        })
-        mock_api._request = AsyncMock(return_value={
-            "sales": [
-                {"date": "2024-01-01T00:00:00", "price": 1500, "volume": 1},  # avg $15
-                {"date": "2024-01-02T00:00:00", "price": 1600, "volume": 1},
-                {"date": "2024-01-03T00:00:00", "price": 1500, "volume": 1},
-            ]
-        })
+        mock_api.get_market_items = AsyncMock(
+            return_value={
+                "objects": [
+                    {
+                        "itemId": "item1",
+                        "title": "AK-47 | Redline",
+                        "price": {"amount": 1000},  # $10 current price
+                    }
+                ]
+            }
+        )
+        mock_api._request = AsyncMock(
+            return_value={
+                "sales": [
+                    {
+                        "date": "2024-01-01T00:00:00",
+                        "price": 1500,
+                        "volume": 1,
+                    },  # avg $15
+                    {"date": "2024-01-02T00:00:00", "price": 1600, "volume": 1},
+                    {"date": "2024-01-03T00:00:00", "price": 1500, "volume": 1},
+                ]
+            }
+        )
 
         # Act
         result = await find_undervalued_items(
@@ -616,20 +633,28 @@ class TestFindUndervaluedItems:
     async def test_find_undervalued_items_filters_by_discount(self, mock_api):
         """Test that items are filtered by discount threshold."""
         # Arrange
-        mock_api.get_market_items = AsyncMock(return_value={
-            "objects": [
-                {
-                    "itemId": "item1",
-                    "title": "Item 1",
-                    "price": {"amount": 500},  # $5 - 50% below avg
-                }
-            ]
-        })
-        mock_api._request = AsyncMock(return_value={
-            "sales": [
-                {"date": "2024-01-01T00:00:00", "price": 1000, "volume": 1},  # avg $10
-            ]
-        })
+        mock_api.get_market_items = AsyncMock(
+            return_value={
+                "objects": [
+                    {
+                        "itemId": "item1",
+                        "title": "Item 1",
+                        "price": {"amount": 500},  # $5 - 50% below avg
+                    }
+                ]
+            }
+        )
+        mock_api._request = AsyncMock(
+            return_value={
+                "sales": [
+                    {
+                        "date": "2024-01-01T00:00:00",
+                        "price": 1000,
+                        "volume": 1,
+                    },  # avg $10
+                ]
+            }
+        )
 
         # Act
         result = await find_undervalued_items(
@@ -655,11 +680,13 @@ class TestFindUndervaluedItems:
             for i in range(20)
         ]
         mock_api.get_market_items = AsyncMock(return_value={"objects": objects})
-        mock_api._request = AsyncMock(return_value={
-            "sales": [
-                {"date": "2024-01-01T00:00:00", "price": 2000, "volume": 1},
-            ]
-        })
+        mock_api._request = AsyncMock(
+            return_value={
+                "sales": [
+                    {"date": "2024-01-01T00:00:00", "price": 2000, "volume": 1},
+                ]
+            }
+        )
 
         # Act
         result = await find_undervalued_items(
@@ -680,14 +707,12 @@ class TestAnalyzeSupplyDemand:
     async def test_analyze_supply_demand_high_liquidity(self, mock_api):
         """Test high liquidity detection."""
         # Arrange
-        mock_api._request = AsyncMock(return_value={
-            "offers": [
-                {"price": 1000, "id": f"sell{i}"} for i in range(10)
-            ],
-            "targets": [
-                {"price": 950, "id": f"buy{i}"} for i in range(10)
-            ],
-        })
+        mock_api._request = AsyncMock(
+            return_value={
+                "offers": [{"price": 1000, "id": f"sell{i}"} for i in range(10)],
+                "targets": [{"price": 950, "id": f"buy{i}"} for i in range(10)],
+            }
+        )
 
         # Act
         result = await analyze_supply_demand(mock_api, "item123")
@@ -701,14 +726,16 @@ class TestAnalyzeSupplyDemand:
     async def test_analyze_supply_demand_medium_liquidity(self, mock_api):
         """Test medium liquidity detection."""
         # Arrange - spread must be < 20% and have > 2 buy/sell offers
-        mock_api._request = AsyncMock(return_value={
-            "offers": [
-                {"price": 1000, "id": f"sell{i}"} for i in range(3)  # Min sell: $10
-            ],
-            "targets": [
-                {"price": 900, "id": f"buy{i}"} for i in range(3)  # Max buy: $9
-            ],
-        })
+        mock_api._request = AsyncMock(
+            return_value={
+                "offers": [
+                    {"price": 1000, "id": f"sell{i}"} for i in range(3)  # Min sell: $10
+                ],
+                "targets": [
+                    {"price": 900, "id": f"buy{i}"} for i in range(3)  # Max buy: $9
+                ],
+            }
+        )
         # Spread: (10-9)/10 * 100 = 10% < 20%, so medium liquidity
 
         # Act
@@ -721,14 +748,12 @@ class TestAnalyzeSupplyDemand:
     async def test_analyze_supply_demand_low_liquidity(self, mock_api):
         """Test low liquidity detection."""
         # Arrange
-        mock_api._request = AsyncMock(return_value={
-            "offers": [
-                {"price": 1000, "id": "sell1"}
-            ],
-            "targets": [
-                {"price": 500, "id": "buy1"}
-            ],
-        })
+        mock_api._request = AsyncMock(
+            return_value={
+                "offers": [{"price": 1000, "id": "sell1"}],
+                "targets": [{"price": 500, "id": "buy1"}],
+            }
+        )
 
         # Act
         result = await analyze_supply_demand(mock_api, "item123")
@@ -767,14 +792,16 @@ class TestAnalyzeSupplyDemand:
     async def test_analyze_supply_demand_spread_calculation(self, mock_api):
         """Test spread calculation."""
         # Arrange
-        mock_api._request = AsyncMock(return_value={
-            "offers": [
-                {"price": 1000, "id": "sell1"},  # Min sell: $10
-            ],
-            "targets": [
-                {"price": 900, "id": "buy1"},  # Max buy: $9
-            ],
-        })
+        mock_api._request = AsyncMock(
+            return_value={
+                "offers": [
+                    {"price": 1000, "id": "sell1"},  # Min sell: $10
+                ],
+                "targets": [
+                    {"price": 900, "id": "buy1"},  # Max buy: $9
+                ],
+            }
+        )
 
         # Act
         result = await analyze_supply_demand(mock_api, "item123")

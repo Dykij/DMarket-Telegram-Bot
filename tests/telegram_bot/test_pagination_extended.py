@@ -9,7 +9,6 @@ This module contains tests for src/telegram_bot/pagination.py covering:
 Target: 25+ tests to achieve 70%+ coverage
 """
 
-
 from src.telegram_bot.pagination import PaginationManager
 
 

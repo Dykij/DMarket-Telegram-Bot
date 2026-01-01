@@ -85,7 +85,9 @@ class TestStartCommand:
         assert "DMarket" in call_args
 
     @pytest.mark.asyncio()
-    async def test_start_command_logs_user_interaction(self, mock_update, mock_context, mock_user):
+    async def test_start_command_logs_user_interaction(
+        self, mock_update, mock_context, mock_user
+    ):
         """Test that /start command logs user interaction."""
         # Arrange
         with patch("src.telegram_bot.commands.basic_commands.logger") as mock_logger:
@@ -167,7 +169,9 @@ class TestHelpCommand:
     """Tests for the /help command."""
 
     @pytest.mark.asyncio()
-    async def test_help_command_sends_command_list(self, mock_update, mock_context, mock_message):
+    async def test_help_command_sends_command_list(
+        self, mock_update, mock_context, mock_message
+    ):
         """Test that /help command sends list of available commands."""
         # Act
         await help_command(mock_update, mock_context)
@@ -183,7 +187,9 @@ class TestHelpCommand:
         assert "/arbitrage" in call_args
 
     @pytest.mark.asyncio()
-    async def test_help_command_logs_user_interaction(self, mock_update, mock_context, mock_user):
+    async def test_help_command_logs_user_interaction(
+        self, mock_update, mock_context, mock_user
+    ):
         """Test that /help command logs user interaction."""
         # Arrange
         with patch("src.telegram_bot.commands.basic_commands.logger") as mock_logger:

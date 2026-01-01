@@ -22,7 +22,9 @@ async def test_enqueue_and_process(notification_queue, mock_bot):
     await notification_queue.start()
 
     # Enqueue a message
-    await notification_queue.enqueue(chat_id=123, text="Test message", priority=Priority.HIGH)
+    await notification_queue.enqueue(
+        chat_id=123, text="Test message", priority=Priority.HIGH
+    )
 
     # Wait a bit for processing
     await asyncio.sleep(0.1)

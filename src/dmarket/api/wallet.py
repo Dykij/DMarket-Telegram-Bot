@@ -125,9 +125,13 @@ class WalletOperationsMixin:
                 usd_available_str = response.get("usdAvailableToWithdraw", usd_str)
 
                 usd_amount = float(usd_str) if usd_str else 0
-                usd_available = float(usd_available_str) if usd_available_str else usd_amount
+                usd_available = (
+                    float(usd_available_str) if usd_available_str else usd_amount
+                )
                 usd_total = usd_amount
-                logger.info(f"Parsed balance from official format: ${usd_amount / 100:.2f} USD")
+                logger.info(
+                    f"Parsed balance from official format: ${usd_amount / 100:.2f} USD"
+                )
 
             # Format 1: Alternative format with funds.usdWallet
             elif "funds" in response:
@@ -135,16 +139,26 @@ class WalletOperationsMixin:
                 if isinstance(funds, dict) and "usdWallet" in funds:
                     wallet = funds["usdWallet"]
                     usd_amount = float(wallet.get("balance", 0)) * 100
-                    usd_available = float(wallet.get("availableBalance", usd_amount / 100)) * 100
-                    usd_total = float(wallet.get("totalBalance", usd_amount / 100)) * 100
-                    logger.info(f"Parsed balance from funds.usdWallet: ${usd_amount / 100:.2f} USD")
+                    usd_available = (
+                        float(wallet.get("availableBalance", usd_amount / 100)) * 100
+                    )
+                    usd_total = (
+                        float(wallet.get("totalBalance", usd_amount / 100)) * 100
+                    )
+                    logger.info(
+                        f"Parsed balance from funds.usdWallet: ${usd_amount / 100:.2f} USD"
+                    )
 
             # Format 2: Simple balance/available/total format
-            elif "balance" in response and isinstance(response["balance"], (int, float, str)):
+            elif "balance" in response and isinstance(
+                response["balance"], (int, float, str)
+            ):
                 usd_amount = float(response["balance"]) * 100
                 usd_available = float(response.get("available", usd_amount / 100)) * 100
                 usd_total = float(response.get("total", usd_amount / 100)) * 100
-                logger.info(f"Parsed balance from simple format: ${usd_amount / 100:.2f} USD")
+                logger.info(
+                    f"Parsed balance from simple format: ${usd_amount / 100:.2f} USD"
+                )
 
             # Format 3: Legacy usdAvailableToWithdraw only
             elif "usdAvailableToWithdraw" in response:
@@ -155,7 +169,9 @@ class WalletOperationsMixin:
                     usd_available = float(usd_value) * 100
                 usd_amount = usd_available
                 usd_total = usd_available
-                logger.info(f"Parsed balance from legacy format: ${usd_amount / 100:.2f} USD")
+                logger.info(
+                    f"Parsed balance from legacy format: ${usd_amount / 100:.2f} USD"
+                )
 
         except (ValueError, TypeError, KeyError) as e:
             logger.warning(f"Error parsing balance from response: {e}")
@@ -236,15 +252,20 @@ class WalletOperationsMixin:
                 logger.debug(f"🔍 Direct API response: {direct_response}")
 
                 if direct_response and direct_response.get("success", False):
-                    logger.info("✅ Successfully got balance via direct REST API request")
+                    logger.info(
+                        "✅ Successfully got balance via direct REST API request"
+                    )
                     balance_data = direct_response.get("data", {})
                     logger.debug(f"📊 Balance data: {balance_data}")
 
                     usd_amount = balance_data.get("balance", 0) * 100
                     usd_available = (
-                        balance_data.get("available", balance_data.get("balance", 0)) * 100
+                        balance_data.get("available", balance_data.get("balance", 0))
+                        * 100
                     )
-                    usd_total = balance_data.get("total", balance_data.get("balance", 0)) * 100
+                    usd_total = (
+                        balance_data.get("total", balance_data.get("balance", 0)) * 100
+                    )
                     usd_locked = balance_data.get("locked", 0) * 100
                     usd_trade_protected = balance_data.get("trade_protected", 0) * 100
 
@@ -281,13 +302,15 @@ class WalletOperationsMixin:
                 self.ENDPOINT_BALANCE_LEGACY,
             ]
 
-            response, successful_endpoint, last_error = await self._try_endpoints_for_balance(
-                endpoints
+            response, successful_endpoint, last_error = (
+                await self._try_endpoints_for_balance(endpoints)
             )
 
             if not response:
                 error_message = (
-                    str(last_error) if last_error else "Failed to get balance from any endpoint"
+                    str(last_error)
+                    if last_error
+                    else "Failed to get balance from any endpoint"
                 )
                 logger.error(f"Critical error getting balance: {error_message}")
 
@@ -301,11 +324,15 @@ class WalletOperationsMixin:
                     status_code = 401
                     error_code = "UNAUTHORIZED"
 
-                return self._create_error_response(error_message, status_code, error_code)
+                return self._create_error_response(
+                    error_message, status_code, error_code
+                )
 
             if response and ("error" in response or "code" in response):
                 error_code = response.get("code", "unknown")
-                error_message = response.get("message", response.get("error", "Unknown error"))
+                error_message = response.get(
+                    "message", response.get("error", "Unknown error")
+                )
                 status_code = response.get("status", response.get("status_code", 500))
 
                 logger.error(
@@ -322,15 +349,23 @@ class WalletOperationsMixin:
                         error_code="UNAUTHORIZED",
                     )
 
-                return self._create_error_response(error_message, status_code, error_code)
+                return self._create_error_response(
+                    error_message, status_code, error_code
+                )
 
             logger.info(f"🔍 RAW BALANCE API RESPONSE (get_balance): {response}")
-            logger.info(f"Analyzing balance response from {successful_endpoint}: {response}")
+            logger.info(
+                f"Analyzing balance response from {successful_endpoint}: {response}"
+            )
 
-            usd_amount, usd_available, usd_total = self._parse_balance_from_response(response)
+            usd_amount, usd_available, usd_total = self._parse_balance_from_response(
+                response
+            )
 
             if usd_amount == 0 and usd_available == 0 and usd_total == 0:
-                logger.warning(f"Could not parse balance data from known formats: {response}")
+                logger.warning(
+                    f"Could not parse balance data from known formats: {response}"
+                )
 
             result = self._create_balance_response(
                 usd_amount=usd_amount,
@@ -429,9 +464,13 @@ class WalletOperationsMixin:
                     elif len(secret_key_str) >= 64:
                         secret_key_bytes = bytes.fromhex(secret_key_str[:64])
                     else:
-                        secret_key_bytes = secret_key_str.encode("utf-8")[:32].ljust(32, b"\0")
+                        secret_key_bytes = secret_key_str.encode("utf-8")[:32].ljust(
+                            32, b"\0"
+                        )
                 except Exception as conv_error:
-                    logger.exception(f"Error converting secret key in direct request: {conv_error}")
+                    logger.exception(
+                        f"Error converting secret key in direct request: {conv_error}"
+                    )
                     raise
 
                 signing_key = nacl.signing.SigningKey(secret_key_bytes)
@@ -473,8 +512,8 @@ class WalletOperationsMixin:
                         logger.info(f"Successful direct request to {endpoint}")
                         logger.info(f"🔍 RAW BALANCE API RESPONSE: {response_data}")
 
-                        usd_amount, usd_available, usd_total = self._parse_balance_from_response(
-                            response_data
+                        usd_amount, usd_available, usd_total = (
+                            self._parse_balance_from_response(response_data)
                         )
 
                         return {
@@ -487,7 +526,9 @@ class WalletOperationsMixin:
                             },
                         }
                 except Exception as parse_error:
-                    logger.exception(f"Error parsing direct balance response: {parse_error}")
+                    logger.exception(
+                        f"Error parsing direct balance response: {parse_error}"
+                    )
 
             logger.warning(
                 f"Direct balance request failed with status {response.status_code}: {response.text}"

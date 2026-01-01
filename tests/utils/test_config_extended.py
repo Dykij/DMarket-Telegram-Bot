@@ -27,6 +27,7 @@ class TestConfigValidation:
 
     def test_validate_telegram_token_format(self) -> None:
         """Тест валидации формата токена Telegram."""
+
         def validate_telegram_token(token: str) -> bool:
             if not token:
                 return False
@@ -44,6 +45,7 @@ class TestConfigValidation:
 
     def test_validate_api_key_format(self) -> None:
         """Тест валидации формата API ключа."""
+
         def validate_api_key(key: str) -> bool:
             if not key:
                 return False
@@ -58,6 +60,7 @@ class TestConfigValidation:
 
     def test_validate_database_url(self) -> None:
         """Тест валидации URL базы данных."""
+
         def validate_database_url(url: str) -> bool:
             valid_prefixes = ["postgresql://", "sqlite://", "mysql://"]
             return any(url.startswith(prefix) for prefix in valid_prefixes)
@@ -69,6 +72,7 @@ class TestConfigValidation:
 
     def test_validate_redis_url(self) -> None:
         """Тест валидации URL Redis."""
+
         def validate_redis_url(url: str) -> bool:
             return url.startswith(("redis://", "rediss://"))
 
@@ -113,6 +117,7 @@ class TestEnvironmentVariables:
 
     def test_get_env_bool(self) -> None:
         """Тест получения булевой переменной."""
+
         def get_bool_env(name: str, default: bool = False) -> bool:
             value = os.environ.get(name, str(default)).lower()
             return value in {"true", "1", "yes", "on"}
@@ -128,6 +133,7 @@ class TestEnvironmentVariables:
 
     def test_get_env_int(self) -> None:
         """Тест получения числовой переменной."""
+
         def get_int_env(name: str, default: int = 0) -> int:
             try:
                 return int(os.environ.get(name, str(default)))
@@ -144,6 +150,7 @@ class TestEnvironmentVariables:
 
     def test_get_env_list(self) -> None:
         """Тест получения списка из переменной."""
+
         def get_list_env(name: str, default: list[str] | None = None) -> list[str]:
             value = os.environ.get(name, "")
             if not value:
@@ -163,9 +170,8 @@ class TestConfigMerging:
 
     def test_merge_dicts(self) -> None:
         """Тест слияния словарей."""
-        def merge_configs(
-            base: dict, override: dict
-        ) -> dict:
+
+        def merge_configs(base: dict, override: dict) -> dict:
             result = base.copy()
             for key, value in override.items():
                 if (
@@ -260,6 +266,7 @@ class TestSecurityConfig:
 
     def test_sensitive_fields_masked(self) -> None:
         """Тест маскировки чувствительных полей."""
+
         def mask_sensitive(config: dict, sensitive_keys: list[str]) -> dict:
             masked = config.copy()
             for key in sensitive_keys:
@@ -360,7 +367,7 @@ class TestDMarketConfig:
         assert config.rate_limit == 60
 
 
-class TestSecurityConfig:
+class TestSecurityConfigExtended:
     """Tests for SecurityConfig dataclass."""
 
     def test_default_values(self):
@@ -463,7 +470,9 @@ dmarket:
 database:
   url: "sqlite:///test.db"
 """
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".yaml", delete=False
+        ) as f:
             f.write(yaml_content)
             f.flush()
             try:

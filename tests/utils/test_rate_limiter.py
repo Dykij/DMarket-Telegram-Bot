@@ -5,7 +5,11 @@ from unittest.mock import patch
 
 import pytest
 
-from src.utils.rate_limiter import BASE_RETRY_DELAY, DMARKET_API_RATE_LIMITS, RateLimiter
+from src.utils.rate_limiter import (
+    BASE_RETRY_DELAY,
+    DMARKET_API_RATE_LIMITS,
+    RateLimiter,
+)
 
 
 class TestRateLimiterInit:

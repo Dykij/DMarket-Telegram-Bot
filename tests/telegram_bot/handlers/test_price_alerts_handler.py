@@ -126,13 +126,17 @@ class TestPriceAlertsHandlerInit:
 
     def test_init_stores_api_client(self, mock_api_client):
         """Должен сохранять API клиент."""
-        with patch("src.telegram_bot.handlers.price_alerts_handler.RealtimePriceWatcher"):
+        with patch(
+            "src.telegram_bot.handlers.price_alerts_handler.RealtimePriceWatcher"
+        ):
             handler = PriceAlertsHandler(mock_api_client)
             assert handler.api_client == mock_api_client
 
     def test_init_creates_price_watcher(self, mock_api_client):
         """Должен создавать price_watcher."""
-        with patch("src.telegram_bot.handlers.price_alerts_handler.RealtimePriceWatcher") as mock_watcher:
+        with patch(
+            "src.telegram_bot.handlers.price_alerts_handler.RealtimePriceWatcher"
+        ) as mock_watcher:
             handler = PriceAlertsHandler(mock_api_client)
             mock_watcher.assert_called_once_with(mock_api_client)
 
@@ -189,34 +193,52 @@ class TestHandlePriceAlertsCommand:
     """Тесты для метода handle_price_alerts_command."""
 
     @pytest.mark.asyncio()
-    async def test_returns_none_if_no_message(self, price_alerts_handler, mock_update, mock_context):
+    async def test_returns_none_if_no_message(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен возвращать None если нет сообщения."""
         mock_update.message = None
-        result = await price_alerts_handler.handle_price_alerts_command(mock_update, mock_context)
+        result = await price_alerts_handler.handle_price_alerts_command(
+            mock_update, mock_context
+        )
         assert result is None
 
     @pytest.mark.asyncio()
-    async def test_ensures_watcher_started(self, price_alerts_handler, mock_update, mock_context):
+    async def test_ensures_watcher_started(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен запускать watcher."""
-        await price_alerts_handler.handle_price_alerts_command(mock_update, mock_context)
+        await price_alerts_handler.handle_price_alerts_command(
+            mock_update, mock_context
+        )
         price_alerts_handler.price_watcher.start.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_sends_keyboard_with_list_and_add_buttons(self, price_alerts_handler, mock_update, mock_context):
+    async def test_sends_keyboard_with_list_and_add_buttons(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен отправлять клавиатуру со списком и добавлением."""
-        await price_alerts_handler.handle_price_alerts_command(mock_update, mock_context)
+        await price_alerts_handler.handle_price_alerts_command(
+            mock_update, mock_context
+        )
 
         call_args = mock_update.message.reply_text.call_args
-        reply_markup = call_args.kwargs.get("reply_markup") or call_args[1].get("reply_markup")
+        reply_markup = call_args.kwargs.get("reply_markup") or call_args[1].get(
+            "reply_markup"
+        )
 
         button_texts = [btn.text for row in reply_markup.inline_keyboard for btn in row]
         assert "📋 Список оповещений" in button_texts
         assert "➕ Добавить оповещение" in button_texts
 
     @pytest.mark.asyncio()
-    async def test_uses_markdown_parse_mode(self, price_alerts_handler, mock_update, mock_context):
+    async def test_uses_markdown_parse_mode(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен использовать Markdown parse mode."""
-        await price_alerts_handler.handle_price_alerts_command(mock_update, mock_context)
+        await price_alerts_handler.handle_price_alerts_command(
+            mock_update, mock_context
+        )
 
         call_args = mock_update.message.reply_text.call_args
         assert call_args.kwargs.get("parse_mode") == "Markdown"
@@ -229,20 +251,28 @@ class TestHandleAlertListCallback:
     """Тесты для метода handle_alert_list_callback."""
 
     @pytest.mark.asyncio()
-    async def test_returns_none_if_no_query(self, price_alerts_handler, mock_update, mock_context):
+    async def test_returns_none_if_no_query(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен возвращать None если нет callback_query."""
         mock_update.callback_query = None
-        result = await price_alerts_handler.handle_alert_list_callback(mock_update, mock_context)
+        result = await price_alerts_handler.handle_alert_list_callback(
+            mock_update, mock_context
+        )
         assert result is None
 
     @pytest.mark.asyncio()
-    async def test_answers_callback_query(self, price_alerts_handler, mock_update, mock_context):
+    async def test_answers_callback_query(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен отвечать на callback_query."""
         await price_alerts_handler.handle_alert_list_callback(mock_update, mock_context)
         mock_update.callback_query.answer.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_returns_none_if_no_effective_user(self, price_alerts_handler, mock_update, mock_context):
+    async def test_returns_none_if_no_effective_user(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен возвращать None если нет effective_user."""
         mock_update.effective_user = None
         await price_alerts_handler.handle_alert_list_callback(mock_update, mock_context)
@@ -250,7 +280,9 @@ class TestHandleAlertListCallback:
         assert mock_update.callback_query.edit_message_text.call_count == 0
 
     @pytest.mark.asyncio()
-    async def test_returns_none_if_no_user_data(self, price_alerts_handler, mock_update, mock_context):
+    async def test_returns_none_if_no_user_data(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен возвращать None если нет user_data."""
         mock_context.user_data = None
         await price_alerts_handler.handle_alert_list_callback(mock_update, mock_context)
@@ -258,7 +290,9 @@ class TestHandleAlertListCallback:
         mock_update.callback_query.edit_message_text.assert_not_called()
 
     @pytest.mark.asyncio()
-    async def test_shows_empty_message_if_no_alerts(self, price_alerts_handler, mock_update, mock_context):
+    async def test_shows_empty_message_if_no_alerts(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен показывать сообщение если нет оповещений."""
         mock_context.user_data = {}
         await price_alerts_handler.handle_alert_list_callback(mock_update, mock_context)
@@ -268,7 +302,9 @@ class TestHandleAlertListCallback:
         assert "У вас пока нет активных оповещений" in message
 
     @pytest.mark.asyncio()
-    async def test_shows_alerts_list(self, price_alerts_handler, mock_update, mock_context):
+    async def test_shows_alerts_list(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен показывать список оповещений."""
         mock_context.user_data = {
             "price_alerts": {
@@ -287,7 +323,9 @@ class TestHandleAlertListCallback:
         assert "25.00" in message
 
     @pytest.mark.asyncio()
-    async def test_shows_delete_buttons_for_alerts(self, price_alerts_handler, mock_update, mock_context):
+    async def test_shows_delete_buttons_for_alerts(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен показывать кнопки удаления для оповещений."""
         mock_context.user_data = {
             "price_alerts": {
@@ -313,27 +351,39 @@ class TestHandleAddAlertCallback:
     """Тесты для метода handle_add_alert_callback."""
 
     @pytest.mark.asyncio()
-    async def test_returns_end_if_no_query(self, price_alerts_handler, mock_update, mock_context):
+    async def test_returns_end_if_no_query(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен возвращать END если нет callback_query."""
         mock_update.callback_query = None
-        result = await price_alerts_handler.handle_add_alert_callback(mock_update, mock_context)
+        result = await price_alerts_handler.handle_add_alert_callback(
+            mock_update, mock_context
+        )
         assert result == ConversationHandler.END
 
     @pytest.mark.asyncio()
-    async def test_returns_end_if_no_effective_user(self, price_alerts_handler, mock_update, mock_context):
+    async def test_returns_end_if_no_effective_user(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен возвращать END если нет effective_user."""
         mock_update.effective_user = None
-        result = await price_alerts_handler.handle_add_alert_callback(mock_update, mock_context)
+        result = await price_alerts_handler.handle_add_alert_callback(
+            mock_update, mock_context
+        )
         assert result == ConversationHandler.END
 
     @pytest.mark.asyncio()
-    async def test_answers_callback_query(self, price_alerts_handler, mock_update, mock_context):
+    async def test_answers_callback_query(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен отвечать на callback_query."""
         await price_alerts_handler.handle_add_alert_callback(mock_update, mock_context)
         mock_update.callback_query.answer.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_initializes_temp_data_for_user(self, price_alerts_handler, mock_update, mock_context):
+    async def test_initializes_temp_data_for_user(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен инициализировать временные данные для пользователя."""
         await price_alerts_handler.handle_add_alert_callback(mock_update, mock_context)
         user_id = str(mock_update.effective_user.id)
@@ -341,13 +391,19 @@ class TestHandleAddAlertCallback:
         assert price_alerts_handler._user_temp_data[user_id] == {}
 
     @pytest.mark.asyncio()
-    async def test_returns_item_name_state(self, price_alerts_handler, mock_update, mock_context):
+    async def test_returns_item_name_state(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен возвращать состояние ITEM_NAME."""
-        result = await price_alerts_handler.handle_add_alert_callback(mock_update, mock_context)
+        result = await price_alerts_handler.handle_add_alert_callback(
+            mock_update, mock_context
+        )
         assert result == ITEM_NAME
 
     @pytest.mark.asyncio()
-    async def test_edits_message_with_instructions(self, price_alerts_handler, mock_update, mock_context):
+    async def test_edits_message_with_instructions(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен редактировать сообщение с инструкциями."""
         await price_alerts_handler.handle_add_alert_callback(mock_update, mock_context)
 
@@ -363,28 +419,42 @@ class TestHandleItemNameInput:
     """Тесты для метода handle_item_name_input."""
 
     @pytest.mark.asyncio()
-    async def test_returns_end_if_no_effective_user(self, price_alerts_handler, mock_update, mock_context):
+    async def test_returns_end_if_no_effective_user(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен возвращать END если нет effective_user."""
         mock_update.effective_user = None
-        result = await price_alerts_handler.handle_item_name_input(mock_update, mock_context)
+        result = await price_alerts_handler.handle_item_name_input(
+            mock_update, mock_context
+        )
         assert result == ConversationHandler.END
 
     @pytest.mark.asyncio()
-    async def test_returns_end_if_no_message(self, price_alerts_handler, mock_update, mock_context):
+    async def test_returns_end_if_no_message(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен возвращать END если нет message."""
         mock_update.message = None
-        result = await price_alerts_handler.handle_item_name_input(mock_update, mock_context)
+        result = await price_alerts_handler.handle_item_name_input(
+            mock_update, mock_context
+        )
         assert result == ConversationHandler.END
 
     @pytest.mark.asyncio()
-    async def test_returns_end_if_no_message_text(self, price_alerts_handler, mock_update, mock_context):
+    async def test_returns_end_if_no_message_text(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен возвращать END если нет text."""
         mock_update.message.text = None
-        result = await price_alerts_handler.handle_item_name_input(mock_update, mock_context)
+        result = await price_alerts_handler.handle_item_name_input(
+            mock_update, mock_context
+        )
         assert result == ConversationHandler.END
 
     @pytest.mark.asyncio()
-    async def test_saves_item_name_to_temp_data(self, price_alerts_handler, mock_update, mock_context):
+    async def test_saves_item_name_to_temp_data(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен сохранять название предмета во временные данные."""
         user_id = str(mock_update.effective_user.id)
         price_alerts_handler._user_temp_data[user_id] = {}
@@ -392,10 +462,15 @@ class TestHandleItemNameInput:
 
         await price_alerts_handler.handle_item_name_input(mock_update, mock_context)
 
-        assert price_alerts_handler._user_temp_data[user_id]["item_name"] == "AWP | Asiimov (Field-Tested)"
+        assert (
+            price_alerts_handler._user_temp_data[user_id]["item_name"]
+            == "AWP | Asiimov (Field-Tested)"
+        )
 
     @pytest.mark.asyncio()
-    async def test_strips_whitespace_from_item_name(self, price_alerts_handler, mock_update, mock_context):
+    async def test_strips_whitespace_from_item_name(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен убирать пробелы из названия предмета."""
         user_id = str(mock_update.effective_user.id)
         price_alerts_handler._user_temp_data[user_id] = {}
@@ -403,20 +478,29 @@ class TestHandleItemNameInput:
 
         await price_alerts_handler.handle_item_name_input(mock_update, mock_context)
 
-        assert price_alerts_handler._user_temp_data[user_id]["item_name"] == "AWP | Asiimov"
+        assert (
+            price_alerts_handler._user_temp_data[user_id]["item_name"]
+            == "AWP | Asiimov"
+        )
 
     @pytest.mark.asyncio()
-    async def test_returns_alert_price_state(self, price_alerts_handler, mock_update, mock_context):
+    async def test_returns_alert_price_state(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен возвращать состояние ALERT_PRICE."""
         user_id = str(mock_update.effective_user.id)
         price_alerts_handler._user_temp_data[user_id] = {}
 
-        result = await price_alerts_handler.handle_item_name_input(mock_update, mock_context)
+        result = await price_alerts_handler.handle_item_name_input(
+            mock_update, mock_context
+        )
 
         assert result == ALERT_PRICE
 
     @pytest.mark.asyncio()
-    async def test_sends_reply_with_item_name(self, price_alerts_handler, mock_update, mock_context):
+    async def test_sends_reply_with_item_name(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен отправлять ответ с названием предмета."""
         user_id = str(mock_update.effective_user.id)
         price_alerts_handler._user_temp_data[user_id] = {}
@@ -436,24 +520,36 @@ class TestHandleAlertPriceInput:
     """Тесты для метода handle_alert_price_input."""
 
     @pytest.mark.asyncio()
-    async def test_returns_end_if_no_effective_user(self, price_alerts_handler, mock_update, mock_context):
+    async def test_returns_end_if_no_effective_user(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен возвращать END если нет effective_user."""
         mock_update.effective_user = None
-        result = await price_alerts_handler.handle_alert_price_input(mock_update, mock_context)
+        result = await price_alerts_handler.handle_alert_price_input(
+            mock_update, mock_context
+        )
         assert result == ConversationHandler.END
 
     @pytest.mark.asyncio()
-    async def test_returns_end_if_no_message(self, price_alerts_handler, mock_update, mock_context):
+    async def test_returns_end_if_no_message(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен возвращать END если нет message."""
         mock_update.message = None
-        result = await price_alerts_handler.handle_alert_price_input(mock_update, mock_context)
+        result = await price_alerts_handler.handle_alert_price_input(
+            mock_update, mock_context
+        )
         assert result == ConversationHandler.END
 
     @pytest.mark.asyncio()
-    async def test_returns_end_if_no_message_text(self, price_alerts_handler, mock_update, mock_context):
+    async def test_returns_end_if_no_message_text(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен возвращать END если нет text."""
         mock_update.message.text = None
-        result = await price_alerts_handler.handle_alert_price_input(mock_update, mock_context)
+        result = await price_alerts_handler.handle_alert_price_input(
+            mock_update, mock_context
+        )
         assert result == ConversationHandler.END
 
 
@@ -468,7 +564,9 @@ class TestEdgeCases:
         assert CALLBACK_REMOVE_ALERT.endswith(":")
 
     @pytest.mark.asyncio()
-    async def test_multiple_alerts_displayed(self, price_alerts_handler, mock_update, mock_context):
+    async def test_multiple_alerts_displayed(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Должен отображать несколько оповещений."""
         mock_context.user_data = {
             "price_alerts": {
@@ -492,7 +590,9 @@ class TestEdgeCases:
         assert "Item 2" in message
 
     @pytest.mark.asyncio()
-    async def test_condition_below_displays_correctly(self, price_alerts_handler, mock_update, mock_context):
+    async def test_condition_below_displays_correctly(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Условие 'below' должно отображаться как ≤."""
         mock_context.user_data = {
             "price_alerts": {
@@ -510,7 +610,9 @@ class TestEdgeCases:
         assert "≤" in message
 
     @pytest.mark.asyncio()
-    async def test_condition_above_displays_correctly(self, price_alerts_handler, mock_update, mock_context):
+    async def test_condition_above_displays_correctly(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Условие 'above' должно отображаться как ≥."""
         mock_context.user_data = {
             "price_alerts": {
@@ -528,7 +630,9 @@ class TestEdgeCases:
         assert "≥" in message
 
     @pytest.mark.asyncio()
-    async def test_price_formatted_with_two_decimals(self, price_alerts_handler, mock_update, mock_context):
+    async def test_price_formatted_with_two_decimals(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Цена должна форматироваться с двумя знаками после запятой."""
         mock_context.user_data = {
             "price_alerts": {
@@ -553,24 +657,35 @@ class TestIntegration:
     """Интеграционные тесты."""
 
     @pytest.mark.asyncio()
-    async def test_full_add_alert_flow_step_1(self, price_alerts_handler, mock_update, mock_context):
+    async def test_full_add_alert_flow_step_1(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Полный flow добавления оповещения - шаг 1."""
         mock_update.callback_query.data = CALLBACK_ADD_ALERT
 
-        result = await price_alerts_handler.handle_add_alert_callback(mock_update, mock_context)
+        result = await price_alerts_handler.handle_add_alert_callback(
+            mock_update, mock_context
+        )
 
         assert result == ITEM_NAME
         user_id = str(mock_update.effective_user.id)
         assert user_id in price_alerts_handler._user_temp_data
 
     @pytest.mark.asyncio()
-    async def test_full_add_alert_flow_step_2(self, price_alerts_handler, mock_update, mock_context):
+    async def test_full_add_alert_flow_step_2(
+        self, price_alerts_handler, mock_update, mock_context
+    ):
         """Полный flow добавления оповещения - шаг 2."""
         user_id = str(mock_update.effective_user.id)
         price_alerts_handler._user_temp_data[user_id] = {}
         mock_update.message.text = "AWP | Dragon Lore"
 
-        result = await price_alerts_handler.handle_item_name_input(mock_update, mock_context)
+        result = await price_alerts_handler.handle_item_name_input(
+            mock_update, mock_context
+        )
 
         assert result == ALERT_PRICE
-        assert price_alerts_handler._user_temp_data[user_id]["item_name"] == "AWP | Dragon Lore"
+        assert (
+            price_alerts_handler._user_temp_data[user_id]["item_name"]
+            == "AWP | Dragon Lore"
+        )

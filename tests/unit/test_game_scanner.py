@@ -116,7 +116,9 @@ class TestGameScannerInitialization:
         assert scanner.total_scans == 0
         assert scanner.total_items_found == 0
 
-    def test_init_with_liquidity_filter(self, mock_cache_manager, mock_liquidity_analyzer):
+    def test_init_with_liquidity_filter(
+        self, mock_cache_manager, mock_liquidity_analyzer
+    ):
         """Test initialization with liquidity filter."""
         scanner = GameScanner(
             cache_manager=mock_cache_manager,
@@ -315,7 +317,9 @@ class TestBuiltinFunctions:
         assert len(result) == 1
 
     @patch("src.dmarket.game_scanner.arbitrage_boost")
-    def test_find_items_builtin_handles_exception(self, mock_arbitrage_boost, game_scanner):
+    def test_find_items_builtin_handles_exception(
+        self, mock_arbitrage_boost, game_scanner
+    ):
         """Test handling exception in built-in functions."""
         mock_arbitrage_boost.side_effect = Exception("API Error")
 
@@ -368,7 +372,9 @@ class TestScanMethod:
     """Test main scan() method."""
 
     @patch("src.dmarket.game_scanner.rate_limiter")
-    async def test_scan_with_cache_hit(self, mock_rate_limiter, game_scanner, mock_cache_manager):
+    async def test_scan_with_cache_hit(
+        self, mock_rate_limiter, game_scanner, mock_cache_manager
+    ):
         """Test scan with cache hit."""
         cached_data = [{"title": "Cached Item"}]
         mock_cache_manager._get_cached_results.return_value = cached_data

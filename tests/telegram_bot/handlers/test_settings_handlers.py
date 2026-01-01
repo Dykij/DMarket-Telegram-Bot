@@ -86,7 +86,10 @@ class TestGetUserProfile:
     def test_new_profile_has_default_language(self):
         """Новый профиль должен иметь русский язык по умолчанию."""
         profile = get_user_profile(999)
-        assert profile.get("language") == "ru" or profile.get("settings", {}).get("language") == "ru"
+        assert (
+            profile.get("language") == "ru"
+            or profile.get("settings", {}).get("language") == "ru"
+        )
 
     @patch("src.telegram_bot.handlers.settings_handlers.USER_PROFILES", {})
     def test_new_profile_has_trade_settings(self):
@@ -104,6 +107,7 @@ class TestGetUserProfile:
         """Должен возвращать существующий профиль."""
         # Use patched fallback function
         from src.telegram_bot.handlers.settings_handlers import USER_PROFILES
+
         profile = USER_PROFILES.get("123", {})
         if profile:
             assert profile.get("language") == "en"
@@ -117,7 +121,10 @@ class TestGetUserProfile:
     def test_auto_trading_disabled_by_default(self):
         """Автоторговля должна быть отключена по умолчанию."""
         profile = get_user_profile(999)
-        assert profile.get("auto_trading_enabled") is False or "auto_trading_enabled" not in profile
+        assert (
+            profile.get("auto_trading_enabled") is False
+            or "auto_trading_enabled" not in profile
+        )
 
 
 # ======================== get_localized_text Tests ========================
@@ -127,7 +134,10 @@ class TestGetLocalizedText:
     """Тесты для функции get_localized_text."""
 
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
-    @patch("src.telegram_bot.handlers.settings_handlers.LOCALIZATIONS", {"ru": {"test_key": "Тестовый текст"}})
+    @patch(
+        "src.telegram_bot.handlers.settings_handlers.LOCALIZATIONS",
+        {"ru": {"test_key": "Тестовый текст"}},
+    )
     def test_returns_localized_text(self, mock_get_profile):
         """Должен возвращать локализованный текст."""
         mock_get_profile.return_value = {"language": "ru"}
@@ -176,7 +186,10 @@ class TestGetLocalizedText:
         assert result == "English"
 
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
-    @patch("src.telegram_bot.handlers.settings_handlers.LOCALIZATIONS", {"ru": {"test": "Русский"}})
+    @patch(
+        "src.telegram_bot.handlers.settings_handlers.LOCALIZATIONS",
+        {"ru": {"test": "Русский"}},
+    )
     def test_defaults_to_russian_for_unknown_language(self, mock_get_profile):
         """Должен использовать русский для неизвестного языка."""
         mock_get_profile.return_value = {"language": "unknown"}
@@ -192,7 +205,10 @@ class TestSaveUserProfiles:
 
     @patch("builtins.open")
     @patch("json.dump")
-    @patch("src.telegram_bot.handlers.settings_handlers.USER_PROFILES", {"123": {"language": "ru"}})
+    @patch(
+        "src.telegram_bot.handlers.settings_handlers.USER_PROFILES",
+        {"123": {"language": "ru"}},
+    )
     def test_saves_profiles_to_file(self, mock_json_dump, mock_open):
         """Должен сохранять профили в файл."""
         mock_file = MagicMock()
@@ -240,7 +256,9 @@ class TestSettingsCommand:
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     @patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
-    async def test_sends_settings_message(self, mock_keyboard, mock_localized, mock_update, mock_context):
+    async def test_sends_settings_message(
+        self, mock_keyboard, mock_localized, mock_update, mock_context
+    ):
         """Должен отправлять сообщение с настройками."""
         mock_localized.return_value = "Настройки"
         mock_keyboard.return_value = MagicMock()
@@ -252,7 +270,9 @@ class TestSettingsCommand:
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     @patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
-    async def test_uses_localized_text(self, mock_keyboard, mock_localized, mock_update, mock_context):
+    async def test_uses_localized_text(
+        self, mock_keyboard, mock_localized, mock_update, mock_context
+    ):
         """Должен использовать локализованный текст."""
         mock_localized.return_value = "Текст настроек"
         mock_keyboard.return_value = MagicMock()
@@ -266,7 +286,9 @@ class TestSettingsCommand:
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     @patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
-    async def test_includes_keyboard(self, mock_keyboard, mock_localized, mock_update, mock_context):
+    async def test_includes_keyboard(
+        self, mock_keyboard, mock_localized, mock_update, mock_context
+    ):
         """Должен включать клавиатуру."""
         mock_localized.return_value = "Settings"
         mock_kb = MagicMock()
@@ -294,7 +316,9 @@ class TestSettingsCallback:
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     @patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
-    async def test_answers_callback_query(self, mock_keyboard, mock_localized, mock_update, mock_context):
+    async def test_answers_callback_query(
+        self, mock_keyboard, mock_localized, mock_update, mock_context
+    ):
         """Должен отвечать на callback_query."""
         mock_localized.return_value = "Settings"
         mock_keyboard.return_value = MagicMock()
@@ -314,7 +338,9 @@ class TestSettingsCallback:
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     @patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
-    async def test_handles_settings_callback(self, mock_keyboard, mock_localized, mock_update, mock_context):
+    async def test_handles_settings_callback(
+        self, mock_keyboard, mock_localized, mock_update, mock_context
+    ):
         """Должен обрабатывать callback 'settings'."""
         mock_localized.return_value = "Настройки"
         mock_keyboard.return_value = MagicMock()
@@ -328,7 +354,10 @@ class TestSettingsCallback:
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     @patch("src.telegram_bot.handlers.settings_handlers.get_language_keyboard")
-    @patch("src.telegram_bot.handlers.settings_handlers.LANGUAGES", {"ru": "Русский", "en": "English"})
+    @patch(
+        "src.telegram_bot.handlers.settings_handlers.LANGUAGES",
+        {"ru": "Русский", "en": "English"},
+    )
     async def test_handles_settings_language_callback(
         self, mock_keyboard, mock_localized, mock_profile, mock_update, mock_context
     ):
@@ -347,9 +376,18 @@ class TestSettingsCallback:
     @patch("src.telegram_bot.handlers.settings_handlers.save_user_profiles")
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     @patch("src.telegram_bot.handlers.settings_handlers.get_back_to_settings_keyboard")
-    @patch("src.telegram_bot.handlers.settings_handlers.LANGUAGES", {"ru": "Русский", "en": "English"})
+    @patch(
+        "src.telegram_bot.handlers.settings_handlers.LANGUAGES",
+        {"ru": "Русский", "en": "English"},
+    )
     async def test_handles_language_change_callback(
-        self, mock_keyboard, mock_localized, mock_save, mock_profile, mock_update, mock_context
+        self,
+        mock_keyboard,
+        mock_localized,
+        mock_save,
+        mock_profile,
+        mock_update,
+        mock_context,
     ):
         """Должен обрабатывать callback изменения языка."""
         mock_profile.return_value = {"language": "ru"}
@@ -364,9 +402,14 @@ class TestSettingsCallback:
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.get_back_to_settings_keyboard")
-    async def test_handles_settings_api_keys_callback(self, mock_keyboard, mock_profile, mock_update, mock_context):
+    async def test_handles_settings_api_keys_callback(
+        self, mock_keyboard, mock_profile, mock_update, mock_context
+    ):
         """Должен обрабатывать callback 'settings_api_keys'."""
-        mock_profile.return_value = {"api_key": "pk_12345_67890", "api_secret": "sk_abc_xyz"}
+        mock_profile.return_value = {
+            "api_key": "pk_12345_67890",
+            "api_secret": "sk_abc_xyz",
+        }
         mock_keyboard.return_value = MagicMock()
         mock_update.callback_query.data = "settings_api_keys"
 
@@ -379,9 +422,14 @@ class TestSettingsCallback:
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.get_back_to_settings_keyboard")
-    async def test_api_key_is_masked(self, mock_keyboard, mock_profile, mock_update, mock_context):
+    async def test_api_key_is_masked(
+        self, mock_keyboard, mock_profile, mock_update, mock_context
+    ):
         """API ключ должен быть скрыт частично."""
-        mock_profile.return_value = {"api_key": "pk_1234567890abcdef", "api_secret": "sk_secret123"}
+        mock_profile.return_value = {
+            "api_key": "pk_1234567890abcdef",
+            "api_secret": "sk_secret123",
+        }
         mock_keyboard.return_value = MagicMock()
         mock_update.callback_query.data = "settings_api_keys"
 
@@ -389,7 +437,9 @@ class TestSettingsCallback:
 
         call_args = mock_update.callback_query.edit_message_text.call_args
         message = call_args.kwargs.get("text", "")
-        assert "pk_1234567890abcdef" not in message  # Полный ключ не должен отображаться
+        assert (
+            "pk_1234567890abcdef" not in message
+        )  # Полный ключ не должен отображаться
         assert "..." in message  # Должен быть скрыт
 
     @pytest.mark.asyncio()
@@ -398,7 +448,13 @@ class TestSettingsCallback:
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     @patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
     async def test_handles_toggle_trading_callback(
-        self, mock_keyboard, mock_localized, mock_save, mock_profile, mock_update, mock_context
+        self,
+        mock_keyboard,
+        mock_localized,
+        mock_save,
+        mock_profile,
+        mock_update,
+        mock_context,
     ):
         """Должен обрабатывать callback переключения автоторговли."""
         profile = {"auto_trading_enabled": False}
@@ -415,7 +471,9 @@ class TestSettingsCallback:
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.get_risk_profile_keyboard")
-    async def test_handles_settings_limits_callback(self, mock_keyboard, mock_profile, mock_update, mock_context):
+    async def test_handles_settings_limits_callback(
+        self, mock_keyboard, mock_profile, mock_update, mock_context
+    ):
         """Должен обрабатывать callback 'settings_limits'."""
         mock_profile.return_value = {
             "trade_settings": {
@@ -447,7 +505,9 @@ class TestEdgeCases:
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.get_back_to_settings_keyboard")
     @pytest.mark.asyncio()
-    async def test_empty_api_key_displayed_correctly(self, mock_keyboard, mock_profile, mock_update, mock_context):
+    async def test_empty_api_key_displayed_correctly(
+        self, mock_keyboard, mock_profile, mock_update, mock_context
+    ):
         """Пустой API ключ должен отображаться как 'Не установлен'."""
         mock_profile.return_value = {"api_key": "", "api_secret": ""}
         mock_keyboard.return_value = MagicMock()
@@ -462,7 +522,9 @@ class TestEdgeCases:
     @patch("src.telegram_bot.handlers.settings_handlers.get_user_profile")
     @patch("src.telegram_bot.handlers.settings_handlers.get_risk_profile_keyboard")
     @pytest.mark.asyncio()
-    async def test_missing_trade_settings(self, mock_keyboard, mock_profile, mock_update, mock_context):
+    async def test_missing_trade_settings(
+        self, mock_keyboard, mock_profile, mock_update, mock_context
+    ):
         """Должен обрабатывать отсутствующие настройки торговли."""
         mock_profile.return_value = {}
         mock_keyboard.return_value = MagicMock()
@@ -477,7 +539,9 @@ class TestEdgeCases:
     @patch("src.telegram_bot.handlers.settings_handlers.get_language_keyboard")
     @patch("src.telegram_bot.handlers.settings_handlers.LANGUAGES", {})
     @pytest.mark.asyncio()
-    async def test_handles_unsupported_language(self, mock_keyboard, mock_profile, mock_update, mock_context):
+    async def test_handles_unsupported_language(
+        self, mock_keyboard, mock_profile, mock_update, mock_context
+    ):
         """Должен обрабатывать неподдерживаемый язык."""
         mock_profile.return_value = {"language": "unsupported"}
         mock_keyboard.return_value = MagicMock()
@@ -495,7 +559,13 @@ class TestEdgeCases:
     @patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
     @pytest.mark.asyncio()
     async def test_toggle_trading_off(
-        self, mock_keyboard, mock_localized, mock_save, mock_profile, mock_update, mock_context
+        self,
+        mock_keyboard,
+        mock_localized,
+        mock_save,
+        mock_profile,
+        mock_update,
+        mock_context,
     ):
         """Должен выключать автоторговлю если она была включена."""
         profile = {"auto_trading_enabled": True}
@@ -524,7 +594,9 @@ class TestIntegration:
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     @patch("src.telegram_bot.handlers.settings_handlers.get_settings_keyboard")
-    async def test_full_settings_flow(self, mock_keyboard, mock_localized, mock_update, mock_context):
+    async def test_full_settings_flow(
+        self, mock_keyboard, mock_localized, mock_update, mock_context
+    ):
         """Полный flow работы с настройками."""
         mock_localized.return_value = "Настройки"
         mock_keyboard.return_value = MagicMock()
@@ -543,9 +615,18 @@ class TestIntegration:
     @patch("src.telegram_bot.handlers.settings_handlers.save_user_profiles")
     @patch("src.telegram_bot.handlers.settings_handlers.get_localized_text")
     @patch("src.telegram_bot.handlers.settings_handlers.get_back_to_settings_keyboard")
-    @patch("src.telegram_bot.handlers.settings_handlers.LANGUAGES", {"ru": "Русский", "en": "English"})
+    @patch(
+        "src.telegram_bot.handlers.settings_handlers.LANGUAGES",
+        {"ru": "Русский", "en": "English"},
+    )
     async def test_language_change_flow(
-        self, mock_keyboard, mock_localized, mock_save, mock_profile, mock_update, mock_context
+        self,
+        mock_keyboard,
+        mock_localized,
+        mock_save,
+        mock_profile,
+        mock_update,
+        mock_context,
     ):
         """Flow изменения языка."""
         profile = {"language": "ru"}

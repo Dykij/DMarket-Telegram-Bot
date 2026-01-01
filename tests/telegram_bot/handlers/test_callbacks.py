@@ -595,7 +595,9 @@ class TestButtonCallbackHandler:
 
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.callbacks.get_game_selection_keyboard")
-    async def test_routes_search_callback(self, mock_get_keyboard, mock_update, mock_context):
+    async def test_routes_search_callback(
+        self, mock_get_keyboard, mock_update, mock_context
+    ):
         """Тест маршрутизации callback_data='search'."""
         # Arrange
         from src.telegram_bot.handlers.callbacks import button_callback_handler
@@ -617,7 +619,9 @@ class TestButtonCallbackHandler:
 
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.callbacks.arbitrage_callback_impl")
-    async def test_routes_arbitrage_callback(self, mock_arbitrage_impl, mock_update, mock_context):
+    async def test_routes_arbitrage_callback(
+        self, mock_arbitrage_impl, mock_update, mock_context
+    ):
         """Тест маршрутизации callback_data='arbitrage'."""
         # Arrange
         from src.telegram_bot.handlers.callbacks import button_callback_handler
@@ -647,7 +651,9 @@ class TestButtonCallbackHandler:
 
         # Assert
         mock_update.callback_query.answer.assert_called_once()
-        mock_dmarket_impl.assert_called_once_with(mock_update, mock_context, mode="normal")
+        mock_dmarket_impl.assert_called_once_with(
+            mock_update, mock_context, mode="normal"
+        )
 
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.callbacks.handle_game_selected_impl")
@@ -665,11 +671,15 @@ class TestButtonCallbackHandler:
 
         # Assert
         mock_update.callback_query.answer.assert_called_once()
-        mock_game_selected.assert_called_once_with(mock_update, mock_context, game="csgo")
+        mock_game_selected.assert_called_once_with(
+            mock_update, mock_context, game="csgo"
+        )
 
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.callbacks.handle_arbitrage_pagination")
-    async def test_routes_pagination_next_page(self, mock_pagination, mock_update, mock_context):
+    async def test_routes_pagination_next_page(
+        self, mock_pagination, mock_update, mock_context
+    ):
         """Тест маршрутизации пагинации (следующая страница)."""
         # Arrange
         from src.telegram_bot.handlers.callbacks import button_callback_handler
@@ -687,7 +697,9 @@ class TestButtonCallbackHandler:
 
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.callbacks.handle_arbitrage_pagination")
-    async def test_routes_pagination_prev_page(self, mock_pagination, mock_update, mock_context):
+    async def test_routes_pagination_prev_page(
+        self, mock_pagination, mock_update, mock_context
+    ):
         """Тест маршрутизации пагинации (предыдущая страница)."""
         # Arrange
         from src.telegram_bot.handlers.callbacks import button_callback_handler
@@ -705,7 +717,9 @@ class TestButtonCallbackHandler:
 
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.callbacks.get_back_to_arbitrage_keyboard")
-    async def test_handles_unknown_callback(self, mock_get_keyboard, mock_update, mock_context):
+    async def test_handles_unknown_callback(
+        self, mock_get_keyboard, mock_update, mock_context
+    ):
         """Тест обработки неизвестного callback_data."""
         # Arrange
         from src.telegram_bot.handlers.callbacks import button_callback_handler
@@ -727,7 +741,9 @@ class TestButtonCallbackHandler:
 
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.callbacks.get_back_to_arbitrage_keyboard")
-    async def test_handles_exception_gracefully(self, mock_get_keyboard, mock_update, mock_context):
+    async def test_handles_exception_gracefully(
+        self, mock_get_keyboard, mock_update, mock_context
+    ):
         """Тест обработки исключений в роутере."""
         # Arrange
         from src.telegram_bot.handlers.callbacks import button_callback_handler

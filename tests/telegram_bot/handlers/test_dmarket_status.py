@@ -44,10 +44,16 @@ class TestDMarketStatusBasic:
     async def test_with_profile_keys(self, mock_update, mock_context):
         """Тест с ключами из профиля."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -60,7 +66,11 @@ class TestDMarketStatusBasic:
             api_instance._close_client = AsyncMock()
             mock_api.return_value = api_instance
 
-            mock_balance.return_value = {"error": False, "balance": 100.0, "has_funds": True}
+            mock_balance.return_value = {
+                "error": False,
+                "balance": 100.0,
+                "has_funds": True,
+            }
 
             await dmarket_status_impl(mock_update, mock_context)
 
@@ -73,11 +83,17 @@ class TestDMarketStatusBasic:
     async def test_with_env_keys(self, mock_update, mock_context):
         """Тест с ключами из переменных окружения."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("os.getenv") as mock_getenv,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {}
             mock_text.return_value = "Checking..."
@@ -95,7 +111,11 @@ class TestDMarketStatusBasic:
             api_instance._close_client = AsyncMock()
             mock_api.return_value = api_instance
 
-            mock_balance.return_value = {"error": False, "balance": 50.0, "has_funds": True}
+            mock_balance.return_value = {
+                "error": False,
+                "balance": 50.0,
+                "has_funds": True,
+            }
 
             await dmarket_status_impl(mock_update, mock_context)
 
@@ -107,8 +127,12 @@ class TestDMarketStatusBasic:
     async def test_without_keys(self, mock_update, mock_context):
         """Тест без API ключей."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("os.getenv") as mock_getenv,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
         ):
@@ -138,10 +162,16 @@ class TestDMarketStatusErrors:
     async def test_401_error(self, mock_update, mock_context):
         """Тест обработки 401 ошибки."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "wrong", "api_secret": "wrong"}
             mock_text.return_value = "Checking..."
@@ -162,16 +192,25 @@ class TestDMarketStatusErrors:
             status_msg.edit_text.assert_called_once()
             call_text = status_msg.edit_text.call_args[0][0]
             assert "❌" in call_text
-            assert "авторизации" in call_text.lower() or "unauthorized" in call_text.lower()
+            assert (
+                "авторизации" in call_text.lower()
+                or "unauthorized" in call_text.lower()
+            )
 
     @pytest.mark.asyncio()
     async def test_api_error(self, mock_update, mock_context):
         """Тест обработки APIError."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -197,10 +236,16 @@ class TestDMarketStatusErrors:
     async def test_general_exception(self, mock_update, mock_context):
         """Тест обработки общего исключения."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("src.telegram_bot.handlers.dmarket_status.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."
@@ -232,9 +277,13 @@ class TestDMarketStatusIntegration:
     async def test_custom_status_message(self, mock_update, mock_context):
         """Тест с кастомным status_message."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
             patch("src.dmarket.dmarket_api.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
 
@@ -245,9 +294,15 @@ class TestDMarketStatusIntegration:
             api_instance._close_client = AsyncMock()
             mock_api.return_value = api_instance
 
-            mock_balance.return_value = {"error": False, "balance": 50.0, "has_funds": True}
+            mock_balance.return_value = {
+                "error": False,
+                "balance": 50.0,
+                "has_funds": True,
+            }
 
-            await dmarket_status_impl(mock_update, mock_context, status_message=custom_msg)
+            await dmarket_status_impl(
+                mock_update, mock_context, status_message=custom_msg
+            )
 
             mock_update.message.reply_text.assert_not_called()
             custom_msg.edit_text.assert_called_once()
@@ -256,10 +311,16 @@ class TestDMarketStatusIntegration:
     async def test_client_always_closed(self, mock_update, mock_context):
         """Тест что клиент всегда закрывается."""
         with (
-            patch("src.telegram_bot.handlers.dmarket_status.get_user_profile") as mock_profile,
-            patch("src.telegram_bot.handlers.dmarket_status.get_localized_text") as mock_text,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_user_profile"
+            ) as mock_profile,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.get_localized_text"
+            ) as mock_text,
             patch("src.telegram_bot.handlers.dmarket_status.DMarketAPI") as mock_api,
-            patch("src.telegram_bot.handlers.dmarket_status.check_user_balance") as mock_balance,
+            patch(
+                "src.telegram_bot.handlers.dmarket_status.check_user_balance"
+            ) as mock_balance,
         ):
             mock_profile.return_value = {"api_key": "key", "api_secret": "secret"}
             mock_text.return_value = "Checking..."

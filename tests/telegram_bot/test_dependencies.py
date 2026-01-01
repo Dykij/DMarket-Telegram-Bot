@@ -73,12 +73,14 @@ class TestGetDMarketApi:
 
     def test_returns_from_container_if_bot_data_empty(self, mock_context):
         """Тест получения API из DI контейнера."""
-        init_container({
-            "dmarket": {
-                "public_key": "test",
-                "secret_key": "test",
-            },
-        })
+        init_container(
+            {
+                "dmarket": {
+                    "public_key": "test",
+                    "secret_key": "test",
+                },
+            }
+        )
 
         result = get_dmarket_api(mock_context)
 
@@ -95,12 +97,14 @@ class TestGetArbitrageScanner:
 
     def test_returns_scanner_from_container(self, mock_context):
         """Тест получения сканера из контейнера."""
-        init_container({
-            "dmarket": {
-                "public_key": "test",
-                "secret_key": "test",
-            },
-        })
+        init_container(
+            {
+                "dmarket": {
+                    "public_key": "test",
+                    "secret_key": "test",
+                },
+            }
+        )
 
         scanner = get_arbitrage_scanner(mock_context)
 
@@ -127,12 +131,14 @@ class TestGetTargetManager:
 
     def test_returns_manager_from_container(self, mock_context):
         """Тест получения менеджера из контейнера."""
-        init_container({
-            "dmarket": {
-                "public_key": "test",
-                "secret_key": "test",
-            },
-        })
+        init_container(
+            {
+                "dmarket": {
+                    "public_key": "test",
+                    "secret_key": "test",
+                },
+            }
+        )
 
         manager = get_target_manager(mock_context)
 
@@ -186,9 +192,11 @@ class TestGetDatabase:
 
     def test_returns_from_container_if_bot_data_empty(self, mock_context):
         """Тест получения БД из контейнера."""
-        init_container({
-            "database": {"url": "sqlite:///:memory:"},
-        })
+        init_container(
+            {
+                "database": {"url": "sqlite:///:memory:"},
+            }
+        )
 
         result = get_database(mock_context)
 

@@ -33,7 +33,9 @@ class TestRetryOnFailure:
     async def test_async_function_retries_on_network_error(self):
         """Test that async function retries on NetworkError."""
         # Arrange
-        mock_func = AsyncMock(side_effect=[NetworkError("Connection failed"), "success"])
+        mock_func = AsyncMock(
+            side_effect=[NetworkError("Connection failed"), "success"]
+        )
 
         @retry_on_failure(max_attempts=3, min_wait=0.1, max_wait=0.2)
         async def test_func():

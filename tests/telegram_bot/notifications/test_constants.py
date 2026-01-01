@@ -279,19 +279,28 @@ class TestNotificationPriorities:
     def test_priority_ordering_logical(self):
         """Test that priority ordering makes logical sense."""
         # Critical should be higher than trading
-        assert NOTIFICATION_PRIORITIES["critical_shutdown"] > NOTIFICATION_PRIORITIES["buy_success"]
+        assert (
+            NOTIFICATION_PRIORITIES["critical_shutdown"]
+            > NOTIFICATION_PRIORITIES["buy_success"]
+        )
 
         # Trading notifications should be higher than market alerts
-        assert NOTIFICATION_PRIORITIES["buy_success"] > NOTIFICATION_PRIORITIES["arbitrage"]
+        assert (
+            NOTIFICATION_PRIORITIES["buy_success"]
+            > NOTIFICATION_PRIORITIES["arbitrage"]
+        )
 
         # Arbitrage should be higher than simple price changes
-        assert NOTIFICATION_PRIORITIES["arbitrage"] > NOTIFICATION_PRIORITIES["price_drop"]
+        assert (
+            NOTIFICATION_PRIORITIES["arbitrage"] > NOTIFICATION_PRIORITIES["price_drop"]
+        )
 
     def test_priorities_match_notification_types(self):
         """Test that all notification types have priorities defined."""
         for notification_type in NOTIFICATION_TYPES:
-            assert notification_type in NOTIFICATION_PRIORITIES, \
-                f"{notification_type} should have a priority defined"
+            assert (
+                notification_type in NOTIFICATION_PRIORITIES
+            ), f"{notification_type} should have a priority defined"
 
 
 # =============================================================================
@@ -363,7 +372,9 @@ class TestConstantsEdgeCases:
     def test_priorities_range(self):
         """Test that all priorities are within expected range (1-100)."""
         for key, value in NOTIFICATION_PRIORITIES.items():
-            assert 1 <= value <= 100, f"{key} priority {value} should be between 1 and 100"
+            assert (
+                1 <= value <= 100
+            ), f"{key} priority {value} should be between 1 and 100"
 
     def test_quiet_hours_span(self):
         """Test quiet hours span calculation."""
@@ -390,4 +401,6 @@ class TestConstantsEdgeCases:
         language = DEFAULT_USER_SETTINGS["language"]
         valid_languages = ["ru", "en", "es", "de", "fr", "uk", "zh"]
 
-        assert language in valid_languages, f"Language {language} should be a valid code"
+        assert (
+            language in valid_languages
+        ), f"Language {language} should be a valid code"

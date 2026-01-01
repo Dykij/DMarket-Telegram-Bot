@@ -133,7 +133,9 @@ async def test_find_price_anomalies_empty_items(mock_dmarket_api):
 
 
 @pytest.mark.asyncio()
-async def test_find_price_anomalies_filter_by_price(mock_dmarket_api, sample_market_items):
+async def test_find_price_anomalies_filter_by_price(
+    mock_dmarket_api, sample_market_items
+):
     """Тест фильтрации по цене."""
     mock_dmarket_api.get_market_items.return_value = sample_market_items
 
@@ -175,11 +177,15 @@ async def test_find_price_anomalies_csgo_filters(mock_dmarket_api):
     )
 
     # Стикеры должны быть отфильтрованы
-    assert all("Sticker" not in r.get("item_to_buy", {}).get("title", "") for r in results)
+    assert all(
+        "Sticker" not in r.get("item_to_buy", {}).get("title", "") for r in results
+    )
 
 
 @pytest.mark.asyncio()
-async def test_find_price_anomalies_sorts_by_profit(mock_dmarket_api, sample_market_items):
+async def test_find_price_anomalies_sorts_by_profit(
+    mock_dmarket_api, sample_market_items
+):
     """Тест сортировки по проценту прибыли."""
     mock_dmarket_api.get_market_items.return_value = sample_market_items
 
@@ -191,7 +197,9 @@ async def test_find_price_anomalies_sorts_by_profit(mock_dmarket_api, sample_mar
     # Проверяем сортировку по убыванию прибыли
     if len(results) > 1:
         for i in range(len(results) - 1):
-            assert results[i]["profit_percentage"] >= results[i + 1]["profit_percentage"]
+            assert (
+                results[i]["profit_percentage"] >= results[i + 1]["profit_percentage"]
+            )
 
 
 # ======================== Тесты find_trending_items ========================
@@ -399,12 +407,16 @@ async def test_find_mispriced_rare_items_dota2_traits(mock_dmarket_api):
 
     # Проверяем обнаружение Arcana
     if results:
-        arcana_traits = [t for t in results[0]["rare_traits"] if "Arcana" in t or "Exalted" in t]
+        arcana_traits = [
+            t for t in results[0]["rare_traits"] if "Arcana" in t or "Exalted" in t
+        ]
         assert arcana_traits
 
 
 @pytest.mark.asyncio()
-async def test_find_mispriced_rare_items_price_filter(mock_dmarket_api, sample_rare_items):
+async def test_find_mispriced_rare_items_price_filter(
+    mock_dmarket_api, sample_rare_items
+):
     """Тест фильтрации по цене."""
     mock_dmarket_api.get_market_items.return_value = sample_rare_items
 
@@ -422,7 +434,9 @@ async def test_find_mispriced_rare_items_price_filter(mock_dmarket_api, sample_r
 
 
 @pytest.mark.asyncio()
-async def test_find_mispriced_rare_items_sorts_by_discount(mock_dmarket_api, sample_rare_items):
+async def test_find_mispriced_rare_items_sorts_by_discount(
+    mock_dmarket_api, sample_rare_items
+):
     """Тест сортировки по проценту скидки."""
     mock_dmarket_api.get_market_items.return_value = sample_rare_items
 
@@ -435,7 +449,8 @@ async def test_find_mispriced_rare_items_sorts_by_discount(mock_dmarket_api, sam
     if len(results) > 1:
         for i in range(len(results) - 1):
             assert (
-                results[i]["price_difference_percent"] >= results[i + 1]["price_difference_percent"]
+                results[i]["price_difference_percent"]
+                >= results[i + 1]["price_difference_percent"]
             )
 
 
@@ -482,7 +497,9 @@ async def test_scan_for_intramarket_opportunities_multiple_games(
 
 
 @pytest.mark.asyncio()
-async def test_scan_for_intramarket_opportunities_selective(mock_dmarket_api, sample_market_items):
+async def test_scan_for_intramarket_opportunities_selective(
+    mock_dmarket_api, sample_market_items
+):
     """Тест выборочного сканирования (только аномалии)."""
     mock_dmarket_api.get_market_items.return_value = sample_market_items
 

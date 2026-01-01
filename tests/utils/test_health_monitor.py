@@ -125,7 +125,9 @@ class TestHealthMonitor:
     def mock_redis(self) -> MagicMock:
         """Create mock Redis cache."""
         redis = MagicMock()
-        redis.health_check = AsyncMock(return_value={"redis_ping": True, "connected": True})
+        redis.health_check = AsyncMock(
+            return_value={"redis_ping": True, "connected": True}
+        )
         return redis
 
     @pytest.fixture()
@@ -156,7 +158,9 @@ class TestHealthMonitor:
         self, monitor: HealthMonitor, mock_database: MagicMock
     ) -> None:
         """Test database health check when unhealthy."""
-        mock_database.get_db_status = AsyncMock(side_effect=Exception("Connection failed"))
+        mock_database.get_db_status = AsyncMock(
+            side_effect=Exception("Connection failed")
+        )
 
         result = await monitor.check_database()
 
@@ -176,7 +180,9 @@ class TestHealthMonitor:
         assert "not configured" in result.message
 
     @pytest.mark.asyncio()
-    async def test_check_redis_healthy(self, monitor: HealthMonitor, mock_redis: MagicMock) -> None:
+    async def test_check_redis_healthy(
+        self, monitor: HealthMonitor, mock_redis: MagicMock
+    ) -> None:
         """Test Redis health check when healthy."""
         result = await monitor.check_redis()
 
@@ -266,7 +272,10 @@ class TestHealthMonitor:
         """Test Telegram API health check when healthy."""
         mock_response = MagicMock()
         mock_response.status_code = 200
-        mock_response.json.return_value = {"ok": True, "result": {"username": "test_bot"}}
+        mock_response.json.return_value = {
+            "ok": True,
+            "result": {"username": "test_bot"},
+        }
 
         with patch("httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.return_value.get = AsyncMock(
@@ -493,7 +502,12 @@ class TestHealthMonitorIntegration:
 
         # Summary should be available
         summary = monitor.get_status_summary()
-        assert summary["overall_status"] in {"healthy", "degraded", "unhealthy", "unknown"}
+        assert summary["overall_status"] in {
+            "healthy",
+            "degraded",
+            "unhealthy",
+            "unknown",
+        }
 
 
 class TestHealthMonitorExtended:
@@ -510,7 +524,9 @@ class TestHealthMonitorExtended:
     def mock_redis(self) -> MagicMock:
         """Create mock Redis cache."""
         redis = MagicMock()
-        redis.health_check = AsyncMock(return_value={"redis_ping": True, "connected": True})
+        redis.health_check = AsyncMock(
+            return_value={"redis_ping": True, "connected": True}
+        )
         return redis
 
     @pytest.fixture()
@@ -680,7 +696,9 @@ class TestHealthMonitorExtended:
         assert call_count >= 1
 
     @pytest.mark.asyncio()
-    async def test_get_overall_status_with_unknown(self, monitor: HealthMonitor) -> None:
+    async def test_get_overall_status_with_unknown(
+        self, monitor: HealthMonitor
+    ) -> None:
         """Test overall status when some services are unknown."""
         monitor._last_results = {
             "database": HealthCheckResult("database", ServiceStatus.HEALTHY, 10.0),
@@ -729,7 +747,9 @@ class TestHealthMonitorExtended:
         assert summary["success_counts"]["database"] == 5
 
     @pytest.mark.asyncio()
-    async def test_stop_heartbeat_when_not_running(self, monitor: HealthMonitor) -> None:
+    async def test_stop_heartbeat_when_not_running(
+        self, monitor: HealthMonitor
+    ) -> None:
         """Test stopping heartbeat when not running."""
         # Should not raise error
         await monitor.stop_heartbeat()

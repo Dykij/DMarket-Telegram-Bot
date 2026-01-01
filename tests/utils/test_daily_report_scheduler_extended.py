@@ -246,9 +246,15 @@ class TestCollectStatisticsEdgeCases:
         """Test statistics collection when database methods return errors."""
         database = MagicMock()
         # Simulate methods that raise errors
-        database.get_trade_statistics = AsyncMock(side_effect=RuntimeError("Method error"))
-        database.get_error_statistics = AsyncMock(side_effect=RuntimeError("Method error"))
-        database.get_scan_statistics = AsyncMock(side_effect=RuntimeError("Method error"))
+        database.get_trade_statistics = AsyncMock(
+            side_effect=RuntimeError("Method error")
+        )
+        database.get_error_statistics = AsyncMock(
+            side_effect=RuntimeError("Method error")
+        )
+        database.get_scan_statistics = AsyncMock(
+            side_effect=RuntimeError("Method error")
+        )
 
         scheduler = DailyReportScheduler(
             database=database,
@@ -639,7 +645,9 @@ class TestSchedulerIntegration:
 
         # Verify report content
         call_args = bot.send_message.call_args_list[0]
-        report_text = call_args.kwargs.get("text", call_args.args[1] if len(call_args.args) > 1 else "")
+        report_text = call_args.kwargs.get(
+            "text", call_args.args[1] if len(call_args.args) > 1 else ""
+        )
 
         assert "📊 Ежедневный отчёт" in report_text
         assert "Сделок: 50" in report_text

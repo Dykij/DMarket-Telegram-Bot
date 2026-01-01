@@ -105,14 +105,14 @@ class TestArbitrageCoreBasics:
         await fetch_market_items(
             game="csgo",
             price_from=5.0,  # $5
-            price_to=10.0,   # $10
+            price_to=10.0,  # $10
             dmarket_api=mock_api,
         )
 
         # Verify prices converted to cents
         call_kwargs = mock_api.get_market_items.call_args.kwargs
         assert call_kwargs["price_from"] == 500  # 500 cents
-        assert call_kwargs["price_to"] == 1000   # 1000 cents
+        assert call_kwargs["price_to"] == 1000  # 1000 cents
 
     @pytest.mark.asyncio()
     async def test_fetch_market_items_empty_response(self) -> None:
@@ -183,7 +183,7 @@ class TestArbitrageLevelFunctions:
 
             assert len(mock_calls) == 1
             args = mock_calls[0][0]
-            assert args[0] == 5   # min_profit
+            assert args[0] == 5  # min_profit
             assert args[1] == 20  # max_profit
             assert args[2] == "tf2"
         finally:
@@ -209,7 +209,7 @@ class TestArbitrageLevelFunctions:
 
             assert len(mock_calls) == 1
             args = mock_calls[0][0]
-            assert args[0] == 20   # min_profit
+            assert args[0] == 20  # min_profit
             assert args[1] == 100  # max_profit
             assert args[2] == "rust"
         finally:
@@ -392,17 +392,14 @@ class TestFindArbitrageOpportunitiesAsync:
         from src.dmarket.arbitrage import core
 
         cached_data = [
-            {"item_title": f"Item{i}", "profit_percentage": float(i)}
-            for i in range(20)
+            {"item_title": f"Item{i}", "profit_percentage": float(i)} for i in range(20)
         ]
 
         original_get = core.get_cached_results
         core.get_cached_results = lambda key: cached_data
 
         try:
-            result = await core.find_arbitrage_opportunities_async(
-                max_results=5
-            )
+            result = await core.find_arbitrage_opportunities_async(max_results=5)
             assert len(result) <= 5
         finally:
             core.get_cached_results = original_get

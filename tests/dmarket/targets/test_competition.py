@@ -18,9 +18,9 @@ class TestAnalyzeTargetCompetition:
 
         mock_api = AsyncMock()
         mock_api.get_targets_by_title = AsyncMock(return_value=[])
-        mock_api.get_aggregated_prices_bulk = AsyncMock(return_value={
-            "aggregatedPrices": [{"offerBestPrice": 1000}]
-        })
+        mock_api.get_aggregated_prices_bulk = AsyncMock(
+            return_value={"aggregatedPrices": [{"offerBestPrice": 1000}]}
+        )
 
         result = await analyze_target_competition(mock_api, "csgo", "AK-47 | Redline")
 
@@ -39,9 +39,9 @@ class TestAnalyzeTargetCompetition:
 
         mock_api = AsyncMock()
         mock_api.get_targets_by_title = AsyncMock(return_value=[])
-        mock_api.get_aggregated_prices_bulk = AsyncMock(return_value={
-            "aggregatedPrices": [{"offerBestPrice": 1000}]
-        })
+        mock_api.get_aggregated_prices_bulk = AsyncMock(
+            return_value={"aggregatedPrices": [{"offerBestPrice": 1000}]}
+        )
 
         result = await analyze_target_competition(mock_api, "csgo", "Test Item")
 
@@ -55,14 +55,16 @@ class TestAnalyzeTargetCompetition:
         from src.dmarket.targets.competition import analyze_target_competition
 
         mock_api = AsyncMock()
-        mock_api.get_targets_by_title = AsyncMock(return_value=[
-            {"price": "500"},
-            {"price": "550"},
-            {"price": "600"},
-        ])
-        mock_api.get_aggregated_prices_bulk = AsyncMock(return_value={
-            "aggregatedPrices": [{"offerBestPrice": 1000}]
-        })
+        mock_api.get_targets_by_title = AsyncMock(
+            return_value=[
+                {"price": "500"},
+                {"price": "550"},
+                {"price": "600"},
+            ]
+        )
+        mock_api.get_aggregated_prices_bulk = AsyncMock(
+            return_value={"aggregatedPrices": [{"offerBestPrice": 1000}]}
+        )
 
         result = await analyze_target_competition(mock_api, "csgo", "Test Item")
 
@@ -76,12 +78,12 @@ class TestAnalyzeTargetCompetition:
 
         mock_api = AsyncMock()
         # 10 competitors = medium competition
-        mock_api.get_targets_by_title = AsyncMock(return_value=[
-            {"price": str(i * 100)} for i in range(10)
-        ])
-        mock_api.get_aggregated_prices_bulk = AsyncMock(return_value={
-            "aggregatedPrices": [{"offerBestPrice": 2000}]
-        })
+        mock_api.get_targets_by_title = AsyncMock(
+            return_value=[{"price": str(i * 100)} for i in range(10)]
+        )
+        mock_api.get_aggregated_prices_bulk = AsyncMock(
+            return_value={"aggregatedPrices": [{"offerBestPrice": 2000}]}
+        )
 
         result = await analyze_target_competition(mock_api, "csgo", "Test Item")
 
@@ -95,12 +97,12 @@ class TestAnalyzeTargetCompetition:
 
         mock_api = AsyncMock()
         # 20 competitors = high competition
-        mock_api.get_targets_by_title = AsyncMock(return_value=[
-            {"price": str(i * 50)} for i in range(20)
-        ])
-        mock_api.get_aggregated_prices_bulk = AsyncMock(return_value={
-            "aggregatedPrices": [{"offerBestPrice": 2000}]
-        })
+        mock_api.get_targets_by_title = AsyncMock(
+            return_value=[{"price": str(i * 50)} for i in range(20)]
+        )
+        mock_api.get_aggregated_prices_bulk = AsyncMock(
+            return_value={"aggregatedPrices": [{"offerBestPrice": 2000}]}
+        )
 
         result = await analyze_target_competition(mock_api, "csgo", "Test Item")
 
@@ -113,14 +115,16 @@ class TestAnalyzeTargetCompetition:
         from src.dmarket.targets.competition import analyze_target_competition
 
         mock_api = AsyncMock()
-        mock_api.get_targets_by_title = AsyncMock(return_value=[
-            {"price": "100"},
-            {"price": "200"},
-            {"price": "300"},
-        ])
-        mock_api.get_aggregated_prices_bulk = AsyncMock(return_value={
-            "aggregatedPrices": [{"offerBestPrice": 500}]
-        })
+        mock_api.get_targets_by_title = AsyncMock(
+            return_value=[
+                {"price": "100"},
+                {"price": "200"},
+                {"price": "300"},
+            ]
+        )
+        mock_api.get_aggregated_prices_bulk = AsyncMock(
+            return_value={"aggregatedPrices": [{"offerBestPrice": 500}]}
+        )
 
         result = await analyze_target_competition(mock_api, "csgo", "Test Item")
 
@@ -132,14 +136,16 @@ class TestAnalyzeTargetCompetition:
         from src.dmarket.targets.competition import analyze_target_competition
 
         mock_api = AsyncMock()
-        mock_api.get_targets_by_title = AsyncMock(return_value=[
-            {"price": "100"},
-            {"price": "200"},
-            {"price": "300"},
-        ])
-        mock_api.get_aggregated_prices_bulk = AsyncMock(return_value={
-            "aggregatedPrices": [{"offerBestPrice": 500}]
-        })
+        mock_api.get_targets_by_title = AsyncMock(
+            return_value=[
+                {"price": "100"},
+                {"price": "200"},
+                {"price": "300"},
+            ]
+        )
+        mock_api.get_aggregated_prices_bulk = AsyncMock(
+            return_value={"aggregatedPrices": [{"offerBestPrice": 500}]}
+        )
 
         result = await analyze_target_competition(mock_api, "csgo", "Test Item")
 
@@ -180,12 +186,14 @@ class TestAnalyzeTargetCompetition:
         from src.dmarket.targets.competition import analyze_target_competition
 
         mock_api = AsyncMock()
-        mock_api.get_targets_by_title = AsyncMock(return_value=[
-            {"price": "500"},
-        ])
-        mock_api.get_aggregated_prices_bulk = AsyncMock(return_value={
-            "aggregatedPrices": [{"offerBestPrice": 1000}]  # $10.00
-        })
+        mock_api.get_targets_by_title = AsyncMock(
+            return_value=[
+                {"price": "500"},
+            ]
+        )
+        mock_api.get_aggregated_prices_bulk = AsyncMock(
+            return_value={"aggregatedPrices": [{"offerBestPrice": 1000}]}  # $10.00
+        )
 
         result = await analyze_target_competition(mock_api, "csgo", "Test Item")
 
@@ -202,13 +210,15 @@ class TestAssessCompetition:
         from src.dmarket.targets.competition import assess_competition
 
         mock_api = AsyncMock()
-        mock_api.get_buy_orders_competition = AsyncMock(return_value={
-            "total_orders": 2,
-            "total_amount": 5,
-            "competition_level": "low",
-            "best_price": 10.0,
-            "average_price": 9.0,
-        })
+        mock_api.get_buy_orders_competition = AsyncMock(
+            return_value={
+                "total_orders": 2,
+                "total_amount": 5,
+                "competition_level": "low",
+                "best_price": 10.0,
+                "average_price": 9.0,
+            }
+        )
 
         result = await assess_competition(mock_api, "csgo", "Test Item")
 
@@ -225,15 +235,19 @@ class TestAssessCompetition:
         from src.dmarket.targets.competition import assess_competition
 
         mock_api = AsyncMock()
-        mock_api.get_buy_orders_competition = AsyncMock(return_value={
-            "total_orders": 2,
-            "total_amount": 3,
-            "competition_level": "low",
-            "best_price": 5.0,
-            "average_price": 4.5,
-        })
+        mock_api.get_buy_orders_competition = AsyncMock(
+            return_value={
+                "total_orders": 2,
+                "total_amount": 3,
+                "competition_level": "low",
+                "best_price": 5.0,
+                "average_price": 4.5,
+            }
+        )
 
-        result = await assess_competition(mock_api, "csgo", "Test Item", max_competition=3)
+        result = await assess_competition(
+            mock_api, "csgo", "Test Item", max_competition=3
+        )
 
         assert result["should_proceed"] is True
 
@@ -243,15 +257,19 @@ class TestAssessCompetition:
         from src.dmarket.targets.competition import assess_competition
 
         mock_api = AsyncMock()
-        mock_api.get_buy_orders_competition = AsyncMock(return_value={
-            "total_orders": 10,
-            "total_amount": 50,
-            "competition_level": "high",
-            "best_price": 5.0,
-            "average_price": 4.5,
-        })
+        mock_api.get_buy_orders_competition = AsyncMock(
+            return_value={
+                "total_orders": 10,
+                "total_amount": 50,
+                "competition_level": "high",
+                "best_price": 5.0,
+                "average_price": 4.5,
+            }
+        )
 
-        result = await assess_competition(mock_api, "csgo", "Test Item", max_competition=3)
+        result = await assess_competition(
+            mock_api, "csgo", "Test Item", max_competition=3
+        )
 
         assert result["should_proceed"] is False
 
@@ -261,13 +279,15 @@ class TestAssessCompetition:
         from src.dmarket.targets.competition import assess_competition
 
         mock_api = AsyncMock()
-        mock_api.get_buy_orders_competition = AsyncMock(return_value={
-            "total_orders": 0,
-            "total_amount": 0,
-            "competition_level": "none",
-            "best_price": 0.0,
-            "average_price": 0.0,
-        })
+        mock_api.get_buy_orders_competition = AsyncMock(
+            return_value={
+                "total_orders": 0,
+                "total_amount": 0,
+                "competition_level": "none",
+                "best_price": 0.0,
+                "average_price": 0.0,
+            }
+        )
 
         result = await assess_competition(mock_api, "csgo", "Test Item")
 
@@ -281,15 +301,19 @@ class TestAssessCompetition:
         from src.dmarket.targets.competition import assess_competition
 
         mock_api = AsyncMock()
-        mock_api.get_buy_orders_competition = AsyncMock(return_value={
-            "total_orders": 2,
-            "total_amount": 3,
-            "competition_level": "low",
-            "best_price": 10.0,
-            "average_price": 9.0,
-        })
+        mock_api.get_buy_orders_competition = AsyncMock(
+            return_value={
+                "total_orders": 2,
+                "total_amount": 3,
+                "competition_level": "low",
+                "best_price": 10.0,
+                "average_price": 9.0,
+            }
+        )
 
-        result = await assess_competition(mock_api, "csgo", "Test Item", max_competition=3)
+        result = await assess_competition(
+            mock_api, "csgo", "Test Item", max_competition=3
+        )
 
         # Should suggest price above best_price
         assert result["suggested_price"] is not None
@@ -301,7 +325,9 @@ class TestAssessCompetition:
         from src.dmarket.targets.competition import assess_competition
 
         mock_api = AsyncMock()
-        mock_api.get_buy_orders_competition = AsyncMock(side_effect=Exception("API Error"))
+        mock_api.get_buy_orders_competition = AsyncMock(
+            side_effect=Exception("API Error")
+        )
 
         result = await assess_competition(mock_api, "csgo", "Test Item")
 
@@ -315,13 +341,15 @@ class TestAssessCompetition:
         from src.dmarket.targets.competition import assess_competition
 
         mock_api = AsyncMock()
-        mock_api.get_buy_orders_competition = AsyncMock(return_value={
-            "total_orders": 0,
-            "total_amount": 0,
-            "competition_level": "none",
-            "best_price": 0.0,
-            "average_price": 0.0,
-        })
+        mock_api.get_buy_orders_competition = AsyncMock(
+            return_value={
+                "total_orders": 0,
+                "total_amount": 0,
+                "competition_level": "none",
+                "best_price": 0.0,
+                "average_price": 0.0,
+            }
+        )
 
         await assess_competition(mock_api, "csgo", "Test Item", price_threshold=100.0)
 
@@ -402,13 +430,15 @@ class TestFilterLowCompetitionItems:
         from src.dmarket.targets.competition import filter_low_competition_items
 
         mock_api = AsyncMock()
-        mock_api.get_buy_orders_competition = AsyncMock(return_value={
-            "total_orders": 0,
-            "total_amount": 0,
-            "competition_level": "none",
-            "best_price": 0.0,
-            "average_price": 0.0,
-        })
+        mock_api.get_buy_orders_competition = AsyncMock(
+            return_value={
+                "total_orders": 0,
+                "total_amount": 0,
+                "competition_level": "none",
+                "best_price": 0.0,
+                "average_price": 0.0,
+            }
+        )
 
         items = [
             {"title": "Item 1"},
@@ -429,13 +459,15 @@ class TestFilterLowCompetitionItems:
         from src.dmarket.targets.competition import filter_low_competition_items
 
         mock_api = AsyncMock()
-        mock_api.get_buy_orders_competition = AsyncMock(return_value={
-            "total_orders": 1,
-            "total_amount": 1,
-            "competition_level": "low",
-            "best_price": 5.0,
-            "average_price": 5.0,
-        })
+        mock_api.get_buy_orders_competition = AsyncMock(
+            return_value={
+                "total_orders": 1,
+                "total_amount": 1,
+                "competition_level": "low",
+                "best_price": 5.0,
+                "average_price": 5.0,
+            }
+        )
 
         items = [{"title": "Test Item", "price": 100}]
 
@@ -454,13 +486,15 @@ class TestFilterLowCompetitionItems:
         from src.dmarket.targets.competition import filter_low_competition_items
 
         mock_api = AsyncMock()
-        mock_api.get_buy_orders_competition = AsyncMock(return_value={
-            "total_orders": 0,
-            "total_amount": 0,
-            "competition_level": "none",
-            "best_price": 0.0,
-            "average_price": 0.0,
-        })
+        mock_api.get_buy_orders_competition = AsyncMock(
+            return_value={
+                "total_orders": 0,
+                "total_amount": 0,
+                "competition_level": "none",
+                "best_price": 0.0,
+                "average_price": 0.0,
+            }
+        )
 
         items = [{"title": f"Item {i}"} for i in range(3)]
 
@@ -494,13 +528,15 @@ class TestFilterLowCompetitionItems:
         from src.dmarket.targets.competition import filter_low_competition_items
 
         mock_api = AsyncMock()
-        mock_api.get_buy_orders_competition = AsyncMock(return_value={
-            "total_orders": 5,  # 5 orders
-            "total_amount": 10,
-            "competition_level": "medium",
-            "best_price": 5.0,
-            "average_price": 4.5,
-        })
+        mock_api.get_buy_orders_competition = AsyncMock(
+            return_value={
+                "total_orders": 5,  # 5 orders
+                "total_amount": 10,
+                "competition_level": "medium",
+                "best_price": 5.0,
+                "average_price": 4.5,
+            }
+        )
 
         items = [{"title": "Test Item"}]
 

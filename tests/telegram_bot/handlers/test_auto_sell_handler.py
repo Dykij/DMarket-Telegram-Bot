@@ -142,7 +142,9 @@ class TestStatusCallback:
     """Tests for status callback."""
 
     @pytest.mark.asyncio()
-    async def test_show_status(self, handler, mock_query, mock_context, mock_auto_seller):
+    async def test_show_status(
+        self, handler, mock_query, mock_context, mock_auto_seller
+    ):
         """Test status display."""
         mock_auto_seller.get_statistics.return_value = {
             "active_sales": 5,
@@ -190,7 +192,9 @@ class TestConfigCallback:
     """Tests for config callback."""
 
     @pytest.mark.asyncio()
-    async def test_show_config(self, handler, mock_query, mock_context, mock_auto_seller):
+    async def test_show_config(
+        self, handler, mock_query, mock_context, mock_auto_seller
+    ):
         """Test config display."""
         update = MagicMock()
         update.callback_query = mock_query
@@ -297,7 +301,9 @@ class TestCancelSaleCallback:
     """Tests for cancel sale callback."""
 
     @pytest.mark.asyncio()
-    async def test_cancel_sale_success(self, handler, mock_query, mock_context, mock_auto_seller):
+    async def test_cancel_sale_success(
+        self, handler, mock_query, mock_context, mock_auto_seller
+    ):
         """Test successful sale cancellation."""
         mock_auto_seller.cancel_sale = AsyncMock(return_value=True)
 
@@ -312,7 +318,9 @@ class TestCancelSaleCallback:
         assert "cancelled" in text
 
     @pytest.mark.asyncio()
-    async def test_cancel_sale_failure(self, handler, mock_query, mock_context, mock_auto_seller):
+    async def test_cancel_sale_failure(
+        self, handler, mock_query, mock_context, mock_auto_seller
+    ):
         """Test failed sale cancellation."""
         mock_auto_seller.cancel_sale = AsyncMock(return_value=False)
 
@@ -381,7 +389,9 @@ class TestBackCallback:
     """Tests for back callback."""
 
     @pytest.mark.asyncio()
-    async def test_back_to_main_menu(self, handler, mock_query, mock_context, mock_auto_seller):
+    async def test_back_to_main_menu(
+        self, handler, mock_query, mock_context, mock_auto_seller
+    ):
         """Test returning to main menu."""
         update = MagicMock()
         update.callback_query = mock_query

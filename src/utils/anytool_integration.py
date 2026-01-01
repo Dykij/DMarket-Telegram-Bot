@@ -163,7 +163,9 @@ class AnyToolClient:
             )
 
             min_profit = arguments.get("min_profit", 0.5)
-            filtered = [opp for opp in opportunities if opp.get("profit", 0) >= min_profit]
+            filtered = [
+                opp for opp in opportunities if opp.get("profit", 0) >= min_profit
+            ]
 
             return {
                 "success": True,

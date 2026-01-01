@@ -24,7 +24,9 @@ from src.dmarket.targets import TargetManager, validate_attributes
 def mock_api_client():
     """Создает мок DMarket API клиента."""
     api = MagicMock()
-    api.create_target = AsyncMock(return_value={"success": True, "targetId": "target_123"})
+    api.create_target = AsyncMock(
+        return_value={"success": True, "targetId": "target_123"}
+    )
     api.get_user_targets = AsyncMock(return_value={"objects": []})
     api.delete_target = AsyncMock(return_value={"success": True})
     api.get_market_items = AsyncMock(return_value={"objects": []})
@@ -56,14 +58,18 @@ class TestInitialization:
 
     def test_init_with_liquidity_filter_enabled(self, mock_api_client):
         """Тест инициализации с включенным фильтром ликвидности."""
-        manager = TargetManager(api_client=mock_api_client, enable_liquidity_filter=True)
+        manager = TargetManager(
+            api_client=mock_api_client, enable_liquidity_filter=True
+        )
 
         assert manager.enable_liquidity_filter is True
         assert manager.liquidity_analyzer is not None
 
     def test_init_with_liquidity_filter_disabled(self, mock_api_client):
         """Тест инициализации с выключенным фильтром ликвидности."""
-        manager = TargetManager(api_client=mock_api_client, enable_liquidity_filter=False)
+        manager = TargetManager(
+            api_client=mock_api_client, enable_liquidity_filter=False
+        )
 
         assert manager.enable_liquidity_filter is False
         assert manager.liquidity_analyzer is None
@@ -115,7 +121,9 @@ class TestCreateTarget:
     async def test_create_target_zero_price_raises_error(self, target_manager):
         """Тест что нулевая цена вызывает ошибку."""
         with pytest.raises(ValueError, match="больше 0"):
-            await target_manager.create_target(game="csgo", title="AK-47 | Redline (FT)", price=0.0)
+            await target_manager.create_target(
+                game="csgo", title="AK-47 | Redline (FT)", price=0.0
+            )
 
     @pytest.mark.asyncio()
     async def test_create_target_negative_price_raises_error(self, target_manager):
@@ -144,7 +152,9 @@ class TestCreateTarget:
     @pytest.mark.asyncio()
     async def test_create_target_calls_api(self, target_manager, mock_api_client):
         """Тест что метод вызывает API."""
-        await target_manager.create_target(game="csgo", title="AK-47 | Redline (FT)", price=10.0)
+        await target_manager.create_target(
+            game="csgo", title="AK-47 | Redline (FT)", price=10.0
+        )
 
         mock_api_client.create_target.assert_called_once()
 
@@ -154,7 +164,9 @@ class TestCreateTarget:
         games = ["csgo", "dota2", "tf2", "rust"]
 
         for game in games:
-            result = await target_manager.create_target(game=game, title="Test Item", price=10.0)
+            result = await target_manager.create_target(
+                game=game, title="Test Item", price=10.0
+            )
             assert result["success"] is True
 
     @pytest.mark.asyncio()
@@ -185,7 +197,9 @@ class TestCreateTarget:
         assert result["success"] is True
 
     @pytest.mark.asyncio()
-    async def test_create_target_whitespace_only_title_raises_error(self, target_manager):
+    async def test_create_target_whitespace_only_title_raises_error(
+        self, target_manager
+    ):
         """Тест что название из пробелов вызывает ошибку."""
         with pytest.raises(ValueError, match="не может быть пустым"):
             await target_manager.create_target(game="csgo", title="   ", price=10.0)
@@ -234,7 +248,9 @@ class TestGetTargets:
         """Тест что get_targets_by_title возвращает список."""
         target_manager.api.get_targets_by_title = AsyncMock(return_value={"items": []})
 
-        result = await target_manager.get_targets_by_title(game="csgo", title="AK-47 | Redline")
+        result = await target_manager.get_targets_by_title(
+            game="csgo", title="AK-47 | Redline"
+        )
 
         assert isinstance(result, list)
 
@@ -308,7 +324,9 @@ class TestDeleteTargets:
     async def test_delete_all_targets_returns_dict(self, target_manager):
         """Тест что delete_all_targets возвращает словарь."""
         target_manager.api.get_user_targets = AsyncMock(
-            return_value={"objects": [{"TargetID": "target_1"}, {"TargetID": "target_2"}]}
+            return_value={
+                "objects": [{"TargetID": "target_1"}, {"TargetID": "target_2"}]
+            }
         )
 
         result = await target_manager.delete_all_targets()
@@ -340,7 +358,9 @@ class TestDeleteTargets:
         """Тест пакетного удаления таргетов."""
         # Создаем 10 таргетов для удаления
         targets = [{"TargetID": f"target_{i}"} for i in range(10)]
-        target_manager.api.get_user_targets = AsyncMock(return_value={"objects": targets})
+        target_manager.api.get_user_targets = AsyncMock(
+            return_value={"objects": targets}
+        )
 
         result = await target_manager.delete_all_targets()
 
@@ -465,7 +485,9 @@ class TestCompetitionAnalysis:
             }
         )
 
-        result = await target_manager.assess_competition(game="csgo", title="AK-47 | Redline (FT)")
+        result = await target_manager.assess_competition(
+            game="csgo", title="AK-47 | Redline (FT)"
+        )
 
         assert isinstance(result, dict)
 
@@ -500,7 +522,9 @@ class TestCompetitionAnalysis:
             }
         )
 
-        result = await target_manager.assess_competition(game="csgo", title="Popular Item")
+        result = await target_manager.assess_competition(
+            game="csgo", title="Popular Item"
+        )
 
         assert isinstance(result, dict)
         assert result["should_proceed"] is False
@@ -524,7 +548,9 @@ class TestCompetitionAnalysis:
             }
         )
 
-        result = await target_manager.filter_low_competition_items(game="csgo", items=items)
+        result = await target_manager.filter_low_competition_items(
+            game="csgo", items=items
+        )
 
         assert isinstance(result, list)
 
@@ -554,9 +580,13 @@ class TestCompetitionAnalysis:
                 "average_price": 45.0,
             }
 
-        target_manager.api.get_buy_orders_competition = AsyncMock(side_effect=mock_competition)
+        target_manager.api.get_buy_orders_competition = AsyncMock(
+            side_effect=mock_competition
+        )
 
-        result = await target_manager.filter_low_competition_items(game="csgo", items=items)
+        result = await target_manager.filter_low_competition_items(
+            game="csgo", items=items
+        )
 
         assert isinstance(result, list)
         # Low competition items should be kept
@@ -565,7 +595,9 @@ class TestCompetitionAnalysis:
     @pytest.mark.asyncio()
     async def test_filter_low_competition_items_empty_list(self, target_manager):
         """Тест фильтрации пустого списка."""
-        result = await target_manager.filter_low_competition_items(game="csgo", items=[])
+        result = await target_manager.filter_low_competition_items(
+            game="csgo", items=[]
+        )
 
         assert result == []
 
@@ -587,7 +619,9 @@ class TestCompetitionAnalysis:
             }
         )
 
-        result = await target_manager.filter_low_competition_items(game="csgo", items=items, max_competition=20)
+        result = await target_manager.filter_low_competition_items(
+            game="csgo", items=items, max_competition=20
+        )
 
         assert isinstance(result, list)
 
@@ -691,19 +725,20 @@ class TestSmartTargets:
         """Тест что create_smart_targets возвращает список."""
         items = [{"title": "Item 1", "price": 10.0}]
 
-        result = await target_manager.create_smart_targets(game="csgo", items=items, max_targets=5)
+        result = await target_manager.create_smart_targets(
+            game="csgo", items=items, max_targets=5
+        )
 
         assert isinstance(result, list)
 
     @pytest.mark.asyncio()
     async def test_create_smart_targets_with_max_targets(self, target_manager):
         """Тест создания умных таргетов с лимитом."""
-        items = [
-            {"title": f"Item {i}", "price": 10.0 + i}
-            for i in range(10)
-        ]
+        items = [{"title": f"Item {i}", "price": 10.0 + i} for i in range(10)]
 
-        result = await target_manager.create_smart_targets(game="csgo", items=items, max_targets=3)
+        result = await target_manager.create_smart_targets(
+            game="csgo", items=items, max_targets=3
+        )
 
         assert isinstance(result, list)
         assert len(result) <= 3
@@ -713,6 +748,8 @@ class TestSmartTargets:
         """Тест создания умных таргетов когда нет предметов."""
         items = []
 
-        result = await target_manager.create_smart_targets(game="csgo", items=items, max_targets=5)
+        result = await target_manager.create_smart_targets(
+            game="csgo", items=items, max_targets=5
+        )
 
         assert result == []

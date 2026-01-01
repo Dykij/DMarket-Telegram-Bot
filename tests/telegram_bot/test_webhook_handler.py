@@ -214,7 +214,9 @@ class TestWebhookFailover:
         return handler
 
     @pytest.fixture()
-    def failover(self, mock_bot_app: MagicMock, mock_webhook_handler: MagicMock) -> WebhookFailover:
+    def failover(
+        self, mock_bot_app: MagicMock, mock_webhook_handler: MagicMock
+    ) -> WebhookFailover:
         """Create WebhookFailover instance."""
         return WebhookFailover(
             bot_app=mock_bot_app,
@@ -287,7 +289,9 @@ class TestWebhookFailover:
         await failover.stop()
 
     @pytest.mark.asyncio()
-    async def test_stop(self, failover: WebhookFailover, mock_webhook_handler: MagicMock) -> None:
+    async def test_stop(
+        self, failover: WebhookFailover, mock_webhook_handler: MagicMock
+    ) -> None:
         """Test stopping failover manager."""
         await failover.start_with_failover()
         await failover.stop()
@@ -310,7 +314,9 @@ class TestWebhookFailover:
         mock_webhook_handler.is_running = False
 
         # Wait for failover loop to detect failure
-        await asyncio.sleep(failover.health_check_interval * (failover.failure_threshold + 1))
+        await asyncio.sleep(
+            failover.health_check_interval * (failover.failure_threshold + 1)
+        )
 
         # Should have switched to polling
         assert failover.current_mode == "polling"
@@ -324,7 +330,9 @@ class TestWebhookFailover:
         mock_webhook_handler: MagicMock,
     ) -> None:
         """Test handling exception in webhook setup."""
-        mock_webhook_handler.start = AsyncMock(side_effect=Exception("Connection error"))
+        mock_webhook_handler.start = AsyncMock(
+            side_effect=Exception("Connection error")
+        )
 
         result = await failover._try_webhook_mode()
 

@@ -352,9 +352,7 @@ class TestAuditLoggerExtended:
         mock_session.execute.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_search_logs_with_string_event_type(
-        self, audit_logger, mock_session
-    ):
+    async def test_search_logs_with_string_event_type(self, audit_logger, mock_session):
         """Test search_logs with string event type."""
         mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = []
@@ -485,7 +483,10 @@ class TestAuditEventTypeComplete:
         assert AuditEventType.ADMIN_USER_BAN.value == "admin_user_ban"
         assert AuditEventType.ADMIN_USER_UNBAN.value == "admin_user_unban"
         assert AuditEventType.ADMIN_RATE_LIMIT_CHANGE.value == "admin_rate_limit_change"
-        assert AuditEventType.ADMIN_FEATURE_FLAG_CHANGE.value == "admin_feature_flag_change"
+        assert (
+            AuditEventType.ADMIN_FEATURE_FLAG_CHANGE.value
+            == "admin_feature_flag_change"
+        )
 
     def test_user_events(self):
         """Test user related events."""

@@ -221,7 +221,9 @@ class TestCheckBalance:
     @pytest.mark.asyncio()
     async def test_check_balance_below_minimum(self, trader, mock_api):
         """Test balance check just below minimum."""
-        mock_api.get_balance.return_value = {"usd": str(int((DEFAULT_MIN_BALANCE - 0.01) * 100))}
+        mock_api.get_balance.return_value = {
+            "usd": str(int((DEFAULT_MIN_BALANCE - 0.01) * 100))
+        }
 
         has_funds, _balance = await trader.check_balance()
 
@@ -554,7 +556,9 @@ class TestFindProfitableItems:
         )
 
     @pytest.mark.asyncio()
-    async def test_find_profitable_items_uses_instance_min_profit(self, trader, mock_api):
+    async def test_find_profitable_items_uses_instance_min_profit(
+        self, trader, mock_api
+    ):
         """Test that instance min_profit_percentage is used when not specified."""
         trader.min_profit_percentage = 8.0
         mock_api.get_all_market_items.return_value = []
@@ -580,7 +584,9 @@ class TestFindProfitableItems:
             assert result[0]["profit_percentage"] >= result[1]["profit_percentage"]
 
     @pytest.mark.asyncio()
-    async def test_find_profitable_items_single_item_not_opportunity(self, trader, mock_api):
+    async def test_find_profitable_items_single_item_not_opportunity(
+        self, trader, mock_api
+    ):
         """Test that single items are not considered opportunities."""
         mock_api.get_all_market_items.return_value = [
             {"title": "UniqueItem", "price": {"USD": "1000"}, "itemId": "1"},
@@ -667,7 +673,11 @@ class TestExecuteArbitrageTrade:
         mock_api.get_balance.return_value = {"usd": "50000"}
         trader.max_trade_value = 100.0
 
-        with patch.object(trader, "purchase_item", return_value={"success": False, "error": "Item sold"}):
+        with patch.object(
+            trader,
+            "purchase_item",
+            return_value={"success": False, "error": "Item sold"},
+        ):
             item = {
                 "name": "Test Item",
                 "buy_price": 10.0,
@@ -689,8 +699,16 @@ class TestExecuteArbitrageTrade:
         mock_api.get_balance.return_value = {"usd": "50000"}
         trader.max_trade_value = 100.0
 
-        with patch.object(trader, "purchase_item", return_value={"success": True, "new_item_id": "456"}):
-            with patch.object(trader, "list_item_for_sale", return_value={"success": False, "error": "List error"}):
+        with patch.object(
+            trader,
+            "purchase_item",
+            return_value={"success": True, "new_item_id": "456"},
+        ):
+            with patch.object(
+                trader,
+                "list_item_for_sale",
+                return_value={"success": False, "error": "List error"},
+            ):
                 item = {
                     "name": "Test Item",
                     "buy_price": 10.0,
@@ -712,8 +730,14 @@ class TestExecuteArbitrageTrade:
         mock_api.get_balance.return_value = {"usd": "50000"}
         trader.max_trade_value = 100.0
 
-        with patch.object(trader, "purchase_item", return_value={"success": True, "new_item_id": "456"}):
-            with patch.object(trader, "list_item_for_sale", return_value={"success": True}):
+        with patch.object(
+            trader,
+            "purchase_item",
+            return_value={"success": True, "new_item_id": "456"},
+        ):
+            with patch.object(
+                trader, "list_item_for_sale", return_value={"success": True}
+            ):
                 item = {
                     "name": "Test Item",
                     "buy_price": 10.0,
@@ -737,8 +761,14 @@ class TestExecuteArbitrageTrade:
         trader.max_trade_value = 100.0
         trader.daily_traded = 0.0
 
-        with patch.object(trader, "purchase_item", return_value={"success": True, "new_item_id": "456"}):
-            with patch.object(trader, "list_item_for_sale", return_value={"success": True}):
+        with patch.object(
+            trader,
+            "purchase_item",
+            return_value={"success": True, "new_item_id": "456"},
+        ):
+            with patch.object(
+                trader, "list_item_for_sale", return_value={"success": True}
+            ):
                 item = {
                     "name": "Test Item",
                     "buy_price": 25.0,
@@ -760,8 +790,14 @@ class TestExecuteArbitrageTrade:
         trader.max_trade_value = 100.0
         trader.transaction_history = []
 
-        with patch.object(trader, "purchase_item", return_value={"success": True, "new_item_id": "456"}):
-            with patch.object(trader, "list_item_for_sale", return_value={"success": True}):
+        with patch.object(
+            trader,
+            "purchase_item",
+            return_value={"success": True, "new_item_id": "456"},
+        ):
+            with patch.object(
+                trader, "list_item_for_sale", return_value={"success": True}
+            ):
                 item = {
                     "name": "Test Item",
                     "buy_price": 10.0,
@@ -784,8 +820,14 @@ class TestExecuteArbitrageTrade:
         trader.max_trade_value = 100.0
         trader.error_count = 5
 
-        with patch.object(trader, "purchase_item", return_value={"success": True, "new_item_id": "456"}):
-            with patch.object(trader, "list_item_for_sale", return_value={"success": True}):
+        with patch.object(
+            trader,
+            "purchase_item",
+            return_value={"success": True, "new_item_id": "456"},
+        ):
+            with patch.object(
+                trader, "list_item_for_sale", return_value={"success": True}
+            ):
                 item = {
                     "name": "Test Item",
                     "buy_price": 10.0,
@@ -1188,9 +1230,7 @@ class TestPurchaseItem:
     @pytest.mark.asyncio()
     async def test_purchase_item_success(self, trader, mock_api):
         """Test successful purchase."""
-        mock_api._request.return_value = {
-            "items": [{"itemId": "new_456"}]
-        }
+        mock_api._request.return_value = {"items": [{"itemId": "new_456"}]}
 
         result = await trader.purchase_item("123", 25.0)
 
@@ -1201,9 +1241,7 @@ class TestPurchaseItem:
     @pytest.mark.asyncio()
     async def test_purchase_item_error_in_response(self, trader, mock_api):
         """Test purchase with error in response."""
-        mock_api._request.return_value = {
-            "error": {"message": "Item already sold"}
-        }
+        mock_api._request.return_value = {"error": {"message": "Item already sold"}}
 
         result = await trader.purchase_item("123", 25.0)
 
@@ -1275,9 +1313,7 @@ class TestListItemForSale:
     @pytest.mark.asyncio()
     async def test_list_item_error_in_response(self, trader, mock_api):
         """Test listing with error in response."""
-        mock_api._request.return_value = {
-            "error": {"message": "Invalid item ID"}
-        }
+        mock_api._request.return_value = {"error": {"message": "Invalid item ID"}}
 
         result = await trader.list_item_for_sale("123", 30.0)
 
@@ -1388,8 +1424,18 @@ class TestTraderEdgeCases:
     async def test_unicode_item_name(self, trader, mock_api):
         """Test handling unicode in item names."""
         mock_api.get_all_market_items.return_value = [
-            {"title": "测试物品 🎮", "price": {"USD": "1000"}, "itemId": "1", "extra": {}},
-            {"title": "测试物品 🎮", "price": {"USD": "1200"}, "itemId": "2", "extra": {}},
+            {
+                "title": "测试物品 🎮",
+                "price": {"USD": "1000"},
+                "itemId": "1",
+                "extra": {},
+            },
+            {
+                "title": "测试物品 🎮",
+                "price": {"USD": "1200"},
+                "itemId": "2",
+                "extra": {},
+            },
         ]
 
         result = await trader.find_profitable_items()
@@ -1418,8 +1464,18 @@ class TestTraderEdgeCases:
     async def test_very_small_price(self, trader, mock_api):
         """Test handling very small prices."""
         mock_api.get_all_market_items.return_value = [
-            {"title": "Item1", "price": {"USD": "1"}, "itemId": "1", "extra": {}},  # $0.01
-            {"title": "Item1", "price": {"USD": "2"}, "itemId": "2", "extra": {}},  # $0.02
+            {
+                "title": "Item1",
+                "price": {"USD": "1"},
+                "itemId": "1",
+                "extra": {},
+            },  # $0.01
+            {
+                "title": "Item1",
+                "price": {"USD": "2"},
+                "itemId": "2",
+                "extra": {},
+            },  # $0.02
         ]
 
         result = await trader.find_profitable_items(min_price=0.01, max_price=0.05)
@@ -1459,8 +1515,14 @@ class TestTraderIntegration:
         # Setup
         mock_api.get_balance.return_value = {"usd": "50000"}
 
-        with patch.object(trader, "purchase_item", return_value={"success": True, "new_item_id": "new_123"}):
-            with patch.object(trader, "list_item_for_sale", return_value={"success": True}):
+        with patch.object(
+            trader,
+            "purchase_item",
+            return_value={"success": True, "new_item_id": "new_123"},
+        ):
+            with patch.object(
+                trader, "list_item_for_sale", return_value={"success": True}
+            ):
                 # Execute trade
                 item = {
                     "name": "Test Item",
@@ -1658,7 +1720,9 @@ class TestAutoTradingLoop:
 
         with patch.object(trader, "_can_trade_now", return_value=True):
             with patch.object(trader, "find_profitable_items", return_value=items):
-                with patch.object(trader, "execute_arbitrage_trade", side_effect=mock_execute):
+                with patch.object(
+                    trader, "execute_arbitrage_trade", side_effect=mock_execute
+                ):
                     with patch("asyncio.sleep", return_value=None):
                         await trader._auto_trading_loop("csgo", 5.0, 1)
 

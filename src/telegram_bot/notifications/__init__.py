@@ -63,7 +63,11 @@ from .checker import (
 )
 
 # Constants
-from .constants import DEFAULT_USER_SETTINGS, NOTIFICATION_PRIORITIES, NOTIFICATION_TYPES
+from .constants import (
+    DEFAULT_USER_SETTINGS,
+    NOTIFICATION_PRIORITIES,
+    NOTIFICATION_TYPES,
+)
 
 # Formatters
 from .formatters import (

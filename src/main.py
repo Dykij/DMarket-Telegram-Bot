@@ -10,9 +10,11 @@ import os
 import signal
 import sys
 
-from telegram.ext import Application as TelegramApplication, ApplicationBuilder
+from telegram.ext import Application as TelegramApplication
+from telegram.ext import ApplicationBuilder
 
 from src.dmarket.dmarket_api import DMarketAPI
+from src.telegram_bot.health_check import health_check_server
 from src.telegram_bot.notifier import send_crash_notification, send_critical_shutdown_notification
 from src.telegram_bot.register_all_handlers import register_all_handlers
 from src.utils.config import Config
@@ -21,7 +23,6 @@ from src.utils.database import DatabaseManager
 from src.utils.logging_utils import BotLogger, setup_logging
 from src.utils.sentry_integration import init_sentry
 from src.utils.state_manager import StateManager
-
 
 logger = logging.getLogger(__name__)
 bot_logger = BotLogger(__name__)
@@ -128,7 +129,31 @@ class Application:
             builder = ApplicationBuilder().token(
                 self.config.bot.token,
             )
+
+            # Enable persistence (best practice)
+            if not self.config.testing:
+                from telegram.ext import PicklePersistence
+
+                persistence_path = "data/bot_persistence.pickle"
+                os.makedirs("data", exist_ok=True)
+                builder.persistence(PicklePersistence(filepath=persistence_path))
+                logger.info(f"Persistence enabled: {persistence_path}")
+
             self.bot = builder.build()
+
+            # Clear pending updates on start (best practice)
+            if not self.config.testing:
+                try:
+                    logger.info("Clearing pending updates...")
+                    updates = await self.bot.bot.get_updates(timeout=5)
+                    if updates:
+                        last_id = updates[-1].update_id
+                        await self.bot.bot.get_updates(offset=last_id + 1, timeout=1)
+                        logger.info(f"Cleared {len(updates)} pending updates")
+                    else:
+                        logger.info("No pending updates to clear")
+                except Exception as e:
+                    logger.warning(f"Failed to clear pending updates: {e}")
 
             # Store dependencies in bot_data
             self.bot.bot_data["config"] = self.config
@@ -208,6 +233,10 @@ class Application:
 
             # Setup signal handlers
             self._setup_signal_handlers()
+            
+            # Start health check server
+            health_check_server.update_status("starting")
+            health_check_server.start()
 
             logger.info("Starting DMarket Telegram Bot...")
 
@@ -222,6 +251,7 @@ class Application:
                 if self.bot.updater is not None:
                     await self.bot.updater.start_polling()
                 logger.info("Bot polling started")
+                health_check_server.update_status("running")
 
             # Wait for shutdown signal
             logger.info("Bot is running. Press Ctrl+C to stop.")
@@ -255,6 +285,7 @@ class Application:
     async def shutdown(self) -> None:
         """Gracefully shutdown the application."""
         logger.info("Shutting down application...")
+        health_check_server.update_status("stopping")
 
         try:
             # Stop Daily Report Scheduler
@@ -284,6 +315,9 @@ class Application:
                 logger.info("Closing database connections...")
                 await self.database.close()
                 logger.info("Database connections closed")
+            
+            # Stop health check server
+            health_check_server.stop()
 
         except Exception as e:
             logger.exception(f"Error during shutdown: {e}")
@@ -448,6 +482,4 @@ if __name__ == "__main__":
         asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
     # Run the application
-    asyncio.run(main())
-    asyncio.run(main())
     asyncio.run(main())

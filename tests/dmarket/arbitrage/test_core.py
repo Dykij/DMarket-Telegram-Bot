@@ -67,8 +67,12 @@ class TestFetchMarketItems:
         mock_dmarket_module = MagicMock()
         mock_dmarket_module.DMarketAPI = MagicMock()
 
-        with patch.dict("sys.modules", {"src.dmarket.dmarket_api": mock_dmarket_module}):
-            with patch.dict("os.environ", {"DMARKET_PUBLIC_KEY": "", "DMARKET_SECRET_KEY": ""}):
+        with patch.dict(
+            "sys.modules", {"src.dmarket.dmarket_api": mock_dmarket_module}
+        ):
+            with patch.dict(
+                "os.environ", {"DMARKET_PUBLIC_KEY": "", "DMARKET_SECRET_KEY": ""}
+            ):
                 from src.dmarket.arbitrage.core import fetch_market_items
 
                 result = await fetch_market_items(game="csgo", limit=10)
@@ -85,7 +89,9 @@ class TestFetchMarketItems:
         mock_dmarket_module = MagicMock()
         mock_dmarket_module.DMarketAPI = MagicMock()
 
-        with patch.dict("sys.modules", {"src.dmarket.dmarket_api": mock_dmarket_module}):
+        with patch.dict(
+            "sys.modules", {"src.dmarket.dmarket_api": mock_dmarket_module}
+        ):
             from src.dmarket.arbitrage.core import fetch_market_items
 
             await fetch_market_items(
@@ -100,7 +106,7 @@ class TestFetchMarketItems:
                 game="dota2",
                 limit=50,
                 price_from=500,  # Converted to cents
-                price_to=5000,   # Converted to cents
+                price_to=5000,  # Converted to cents
             )
 
     @pytest.mark.asyncio()
@@ -114,7 +120,9 @@ class TestFetchMarketItems:
         mock_dmarket_module = MagicMock()
         mock_dmarket_module.DMarketAPI = MagicMock()
 
-        with patch.dict("sys.modules", {"src.dmarket.dmarket_api": mock_dmarket_module}):
+        with patch.dict(
+            "sys.modules", {"src.dmarket.dmarket_api": mock_dmarket_module}
+        ):
             from src.dmarket.arbitrage.core import fetch_market_items
 
             result = await fetch_market_items(game="csgo", dmarket_api=mock_api)
@@ -143,13 +151,17 @@ class TestFindArbitrageAsync:
             }
         ]
 
-        with patch(
-            "src.dmarket.arbitrage.core.fetch_market_items",
-            AsyncMock(return_value=mock_items),
-        ), patch(
-            "src.dmarket.arbitrage.core.get_cached_results",
-            return_value=None,
-        ), patch("src.dmarket.arbitrage.core.save_to_cache"):
+        with (
+            patch(
+                "src.dmarket.arbitrage.core.fetch_market_items",
+                AsyncMock(return_value=mock_items),
+            ),
+            patch(
+                "src.dmarket.arbitrage.core.get_cached_results",
+                return_value=None,
+            ),
+            patch("src.dmarket.arbitrage.core.save_to_cache"),
+        ):
             results = await _find_arbitrage_async(
                 min_profit=1.0,
                 max_profit=10.0,
@@ -183,13 +195,17 @@ class TestFindArbitrageAsync:
         """Test _find_arbitrage_async with no items."""
         from src.dmarket.arbitrage.core import _find_arbitrage_async
 
-        with patch(
-            "src.dmarket.arbitrage.core.fetch_market_items",
-            AsyncMock(return_value=[]),
-        ), patch(
-            "src.dmarket.arbitrage.core.get_cached_results",
-            return_value=None,
-        ), patch("src.dmarket.arbitrage.core.save_to_cache"):
+        with (
+            patch(
+                "src.dmarket.arbitrage.core.fetch_market_items",
+                AsyncMock(return_value=[]),
+            ),
+            patch(
+                "src.dmarket.arbitrage.core.get_cached_results",
+                return_value=None,
+            ),
+            patch("src.dmarket.arbitrage.core.save_to_cache"),
+        ):
             results = await _find_arbitrage_async(
                 min_profit=1.0,
                 max_profit=5.0,
@@ -336,13 +352,17 @@ class TestFindArbitrageOpportunitiesAsync:
             }
         ]
 
-        with patch(
-            "src.dmarket.arbitrage.core.fetch_market_items",
-            AsyncMock(return_value=mock_items),
-        ), patch(
-            "src.dmarket.arbitrage.core.get_cached_results",
-            return_value=None,
-        ), patch("src.dmarket.arbitrage.core.save_to_cache"):
+        with (
+            patch(
+                "src.dmarket.arbitrage.core.fetch_market_items",
+                AsyncMock(return_value=mock_items),
+            ),
+            patch(
+                "src.dmarket.arbitrage.core.get_cached_results",
+                return_value=None,
+            ),
+            patch("src.dmarket.arbitrage.core.save_to_cache"),
+        ):
             results = await find_arbitrage_opportunities_async(
                 min_profit_percentage=5.0,
                 max_results=10,
@@ -375,12 +395,15 @@ class TestFindArbitrageOpportunitiesAsync:
         """Test find_arbitrage_opportunities_async handles exceptions."""
         from src.dmarket.arbitrage.core import find_arbitrage_opportunities_async
 
-        with patch(
-            "src.dmarket.arbitrage.core.fetch_market_items",
-            AsyncMock(side_effect=Exception("API Error")),
-        ), patch(
-            "src.dmarket.arbitrage.core.get_cached_results",
-            return_value=None,
+        with (
+            patch(
+                "src.dmarket.arbitrage.core.fetch_market_items",
+                AsyncMock(side_effect=Exception("API Error")),
+            ),
+            patch(
+                "src.dmarket.arbitrage.core.get_cached_results",
+                return_value=None,
+            ),
         ):
             results = await find_arbitrage_opportunities_async()
 
@@ -409,13 +432,17 @@ class TestItemProcessing:
             }
         ]
 
-        with patch(
-            "src.dmarket.arbitrage.core.fetch_market_items",
-            AsyncMock(return_value=mock_items),
-        ), patch(
-            "src.dmarket.arbitrage.core.get_cached_results",
-            return_value=None,
-        ), patch("src.dmarket.arbitrage.core.save_to_cache"):
+        with (
+            patch(
+                "src.dmarket.arbitrage.core.fetch_market_items",
+                AsyncMock(return_value=mock_items),
+            ),
+            patch(
+                "src.dmarket.arbitrage.core.get_cached_results",
+                return_value=None,
+            ),
+            patch("src.dmarket.arbitrage.core.save_to_cache"),
+        ):
             results = await _find_arbitrage_async(0.1, 10.0, "csgo")
 
         # Results processing depends on actual profit calculation
@@ -434,13 +461,17 @@ class TestItemProcessing:
             }
         ]
 
-        with patch(
-            "src.dmarket.arbitrage.core.fetch_market_items",
-            AsyncMock(return_value=mock_items),
-        ), patch(
-            "src.dmarket.arbitrage.core.get_cached_results",
-            return_value=None,
-        ), patch("src.dmarket.arbitrage.core.save_to_cache"):
+        with (
+            patch(
+                "src.dmarket.arbitrage.core.fetch_market_items",
+                AsyncMock(return_value=mock_items),
+            ),
+            patch(
+                "src.dmarket.arbitrage.core.get_cached_results",
+                return_value=None,
+            ),
+            patch("src.dmarket.arbitrage.core.save_to_cache"),
+        ):
             results = await _find_arbitrage_async(0.1, 10.0, "csgo")
 
         assert isinstance(results, list)
@@ -465,13 +496,17 @@ class TestItemProcessing:
             },
         ]
 
-        with patch(
-            "src.dmarket.arbitrage.core.fetch_market_items",
-            AsyncMock(return_value=mock_items),
-        ), patch(
-            "src.dmarket.arbitrage.core.get_cached_results",
-            return_value=None,
-        ), patch("src.dmarket.arbitrage.core.save_to_cache"):
+        with (
+            patch(
+                "src.dmarket.arbitrage.core.fetch_market_items",
+                AsyncMock(return_value=mock_items),
+            ),
+            patch(
+                "src.dmarket.arbitrage.core.get_cached_results",
+                return_value=None,
+            ),
+            patch("src.dmarket.arbitrage.core.save_to_cache"),
+        ):
             results = await _find_arbitrage_async(0.1, 10.0, "csgo")
 
         assert isinstance(results, list)
@@ -505,21 +540,27 @@ class TestResultSorting:
             },
         ]
 
-        with patch(
-            "src.dmarket.arbitrage.core.fetch_market_items",
-            AsyncMock(return_value=mock_items),
-        ), patch(
-            "src.dmarket.arbitrage.core.get_cached_results",
-            return_value=None,
-        ), patch("src.dmarket.arbitrage.core.save_to_cache"):
+        with (
+            patch(
+                "src.dmarket.arbitrage.core.fetch_market_items",
+                AsyncMock(return_value=mock_items),
+            ),
+            patch(
+                "src.dmarket.arbitrage.core.get_cached_results",
+                return_value=None,
+            ),
+            patch("src.dmarket.arbitrage.core.save_to_cache"),
+        ):
             results = await _find_arbitrage_async(0.1, 100.0, "csgo")
 
         # If there are results, they should be sorted
         if len(results) > 1:
             profits = [
-                float(r["profit"].replace("$", ""))
-                if isinstance(r.get("profit"), str)
-                else r.get("profit", 0)
+                (
+                    float(r["profit"].replace("$", ""))
+                    if isinstance(r.get("profit"), str)
+                    else r.get("profit", 0)
+                )
                 for r in results
             ]
             assert profits == sorted(profits, reverse=True)

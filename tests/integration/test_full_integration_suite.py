@@ -66,7 +66,9 @@ class TestEndToEndWorkflows:
 
         # Mock the actual create_targets method from API
         with patch.object(api, "create_targets") as mock_create:
-            mock_create.return_value = {"Result": [{"TargetID": "123", "Status": "Active"}]}
+            mock_create.return_value = {
+                "Result": [{"TargetID": "123", "Status": "Active"}]
+            }
 
             # Act - Создание таргета через mock
             result = {"success": True, "targetId": "123"}
@@ -153,7 +155,10 @@ class TestEndToEndWorkflows:
         }
 
         def should_notify(profit: float, prefs: dict) -> bool:
-            return prefs["notifications_enabled"] and profit >= prefs["arbitrage_threshold"]
+            return (
+                prefs["notifications_enabled"]
+                and profit >= prefs["arbitrage_threshold"]
+            )
 
         # Act
         result = should_notify(15.0, user_preferences)

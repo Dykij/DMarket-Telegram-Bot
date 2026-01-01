@@ -132,7 +132,9 @@ class TestChangelogGenerator:
         generator = ChangelogGenerator()
 
         with patch.object(generator, "get_commits") as mock_get:
-            mock_get.return_value = ["abc1234|2025-12-14 10:00:00|feat(api): add endpoint"]
+            mock_get.return_value = [
+                "abc1234|2025-12-14 10:00:00|feat(api): add endpoint"
+            ]
 
             changelog = generator.generate()
 

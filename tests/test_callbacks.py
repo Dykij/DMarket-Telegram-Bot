@@ -123,12 +123,16 @@ class TestMainCallbackHandler:
         mock_update.callback_query.answer.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_handler_dispatches_to_correct_handler(self, mock_update, mock_context):
+    async def test_handler_dispatches_to_correct_handler(
+        self, mock_update, mock_context
+    ):
         """Test handler dispatches to correct callback handler."""
         mock_update.callback_query.data = "balance"
 
         # Mock dmarket_status_impl which is called by _handle_balance_callback
-        with patch("src.telegram_bot.handlers.callbacks_refactored.dmarket_status_impl") as mock_status:
+        with patch(
+            "src.telegram_bot.handlers.callbacks_refactored.dmarket_status_impl"
+        ) as mock_status:
             mock_status.return_value = None
             await button_callback_handler(mock_update, mock_context)
 
@@ -136,7 +140,9 @@ class TestMainCallbackHandler:
             mock_status.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_handler_handles_exception_gracefully(self, mock_update, mock_context):
+    async def test_handler_handles_exception_gracefully(
+        self, mock_update, mock_context
+    ):
         """Test handler handles exceptions gracefully."""
         mock_update.callback_query.data = "balance"
 
@@ -176,7 +182,8 @@ class TestBalanceCallback:
     async def test_balance_calls_status_impl(self, mock_update, mock_context):
         """Test balance handler calls dmarket_status_impl."""
         with patch(
-            "src.telegram_bot.handlers.callbacks_refactored.dmarket_status_impl", new=AsyncMock()
+            "src.telegram_bot.handlers.callbacks_refactored.dmarket_status_impl",
+            new=AsyncMock(),
         ) as mock_status:
             await _handle_balance_callback(mock_update, mock_context)
             mock_status.assert_called_once()
@@ -195,7 +202,9 @@ class TestSearchCallback:
         # Should not raise exception
 
     @pytest.mark.asyncio()
-    async def test_search_edits_message_with_game_selection(self, mock_update, mock_context):
+    async def test_search_edits_message_with_game_selection(
+        self, mock_update, mock_context
+    ):
         """Test search handler shows game selection."""
         await _handle_search_callback(mock_update, mock_context)
 
@@ -251,7 +260,9 @@ class TestSettingsCallbacks:
         assert "Настройки" in call_args[0][0]
 
     @pytest.mark.asyncio()
-    async def test_settings_api_keys_shows_instructions(self, mock_update, mock_context):
+    async def test_settings_api_keys_shows_instructions(
+        self, mock_update, mock_context
+    ):
         """Test API keys settings shows instructions."""
         mock_update.callback_query.data = "settings_api_keys"
 
@@ -303,7 +314,9 @@ class TestTemporaryUnavailableCallbacks:
         handler = _get_handler_for_callback("auto_stats")
         await handler(mock_update, mock_context)
 
-        mock_update.callback_query.answer.assert_called_with("⚠️ Функция временно недоступна.")
+        mock_update.callback_query.answer.assert_called_with(
+            "⚠️ Функция временно недоступна."
+        )
 
 
 class TestErrorHandling:
@@ -313,7 +326,9 @@ class TestErrorHandling:
     async def test_handler_catches_edit_message_error(self, mock_update, mock_context):
         """Test handler catches error when editing message fails."""
         mock_update.callback_query.data = "balance"
-        mock_update.callback_query.edit_message_text.side_effect = Exception("Edit failed")
+        mock_update.callback_query.edit_message_text.side_effect = Exception(
+            "Edit failed"
+        )
 
         with patch(
             "src.telegram_bot.handlers.callbacks_refactored._handle_balance_callback",
@@ -341,7 +356,9 @@ def test_refactoring_metrics():
 
     source = inspect.getsource(button_callback_handler)
     lines = [
-        line for line in source.split("\n") if line.strip() and not line.strip().startswith("#")
+        line
+        for line in source.split("\n")
+        if line.strip() and not line.strip().startswith("#")
     ]
 
     # Main logic should be < 50 lines (excluding docstring)
@@ -350,5 +367,7 @@ def test_refactoring_metrics():
     # Should have many small helper functions
     from src.telegram_bot.handlers import callbacks_refactored
 
-    handlers = [name for name in dir(callbacks_refactored) if name.startswith("_handle_")]
+    handlers = [
+        name for name in dir(callbacks_refactored) if name.startswith("_handle_")
+    ]
     assert len(handlers) > 15, f"Expected 15+ helper handlers, got {len(handlers)}"

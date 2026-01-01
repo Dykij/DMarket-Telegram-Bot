@@ -18,7 +18,10 @@ from src.telegram_bot.keyboards import (
     get_marketplace_comparison_keyboard,
     get_modern_arbitrage_keyboard,
 )
-from src.telegram_bot.utils.formatters import format_best_opportunities, format_dmarket_results
+from src.telegram_bot.utils.formatters import (
+    format_best_opportunities,
+    format_dmarket_results,
+)
 from src.utils.exceptions import handle_exceptions
 from src.utils.logging_utils import get_logger
 
@@ -33,7 +36,9 @@ SELECTING_GAME, SELECTING_MODE, CONFIRMING_ACTION = range(3)
 
 
 @handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка в обработчике арбитража", reraise=False
+    logger_instance=logger,
+    default_error_message="Ошибка в обработчике арбитража",
+    reraise=False,
 )
 async def arbitrage_callback_impl(
     update: Update,
@@ -64,7 +69,9 @@ async def arbitrage_callback_impl(
     # Если у пользователя есть настройка современного UI, используем её
     use_modern_ui = user_data.get("use_modern_ui", False)
 
-    keyboard = get_modern_arbitrage_keyboard() if use_modern_ui else get_arbitrage_keyboard()
+    keyboard = (
+        get_modern_arbitrage_keyboard() if use_modern_ui else get_arbitrage_keyboard()
+    )
 
     await query.edit_message_text(
         text="🔍 <b>Выберите режим арбитража:</b>",
@@ -77,7 +84,9 @@ async def arbitrage_callback_impl(
 
 
 @handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка при поиске арбитража", reraise=False
+    logger_instance=logger,
+    default_error_message="Ошибка при поиске арбитража",
+    reraise=False,
 )
 async def handle_dmarket_arbitrage_impl(
     query: CallbackQuery,
@@ -145,7 +154,10 @@ async def handle_dmarket_arbitrage_impl(
 
     # Если получены результаты
     if results:
-        from src.telegram_bot.pagination import format_paginated_results, pagination_manager
+        from src.telegram_bot.pagination import (
+            format_paginated_results,
+            pagination_manager,
+        )
 
         # Подготавливаем пагинацию результатов
         user_id = query.from_user.id
@@ -197,24 +209,26 @@ async def handle_dmarket_arbitrage_impl(
                 keyboard.append(pagination_row)
 
         # Добавляем кнопки действий с результатами и меню
-        keyboard.extend([
+        keyboard.extend(
             [
-                InlineKeyboardButton(
-                    "📊 Подробный анализ",
-                    callback_data=f"analyze:{mode}",
-                ),
-                InlineKeyboardButton(
-                    "🔄 Обновить",
-                    callback_data=f"refresh:{mode}",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    "🌐 Открыть DMarket",
-                    web_app={"url": "https://dmarket.com"},
-                ),
-            ],
-        ])
+                [
+                    InlineKeyboardButton(
+                        "📊 Подробный анализ",
+                        callback_data=f"analyze:{mode}",
+                    ),
+                    InlineKeyboardButton(
+                        "🔄 Обновить",
+                        callback_data=f"refresh:{mode}",
+                    ),
+                ],
+                [
+                    InlineKeyboardButton(
+                        "🌐 Открыть DMarket",
+                        web_app={"url": "https://dmarket.com"},
+                    ),
+                ],
+            ]
+        )
 
         # Добавляем стандартные кнопки меню арбитража
         arbitrage_keyboard = get_arbitrage_keyboard().inline_keyboard
@@ -336,7 +350,9 @@ async def handle_best_opportunities_impl(
 
 
 @handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка при выборе игры", reraise=False
+    logger_instance=logger,
+    default_error_message="Ошибка при выборе игры",
+    reraise=False,
 )
 async def handle_game_selection_impl(
     query: CallbackQuery,
@@ -376,7 +392,9 @@ async def handle_game_selection_impl(
 
 
 @handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка при обработке выбора игры", reraise=False
+    logger_instance=logger,
+    default_error_message="Ошибка при обработке выбора игры",
+    reraise=False,
 )
 async def handle_game_selected_impl(
     query: CallbackQuery,
@@ -411,7 +429,9 @@ async def handle_game_selected_impl(
     # Отправляем сообщение с подтверждением выбора
     game_name = GAMES.get(game, game)
     await query.edit_message_text(
-        text=(f"✅ <b>Выбрана игра:</b> {game_name}\n\nТеперь выберите режим арбитража:"),
+        text=(
+            f"✅ <b>Выбрана игра:</b> {game_name}\n\nТеперь выберите режим арбитража:"
+        ),
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML,
     )
@@ -421,7 +441,9 @@ async def handle_game_selected_impl(
 
 
 @handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка при сравнении площадок", reraise=False
+    logger_instance=logger,
+    default_error_message="Ошибка при сравнении площадок",
+    reraise=False,
 )
 async def handle_market_comparison_impl(
     query: CallbackQuery,

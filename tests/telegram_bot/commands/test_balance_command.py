@@ -175,7 +175,9 @@ class TestBalanceCommandInitialization:
             assert call_kwargs["username"] == "test_user"
 
     @pytest.mark.asyncio()
-    async def test_extracts_user_from_message(self, mock_message, mock_context, mock_api_client):
+    async def test_extracts_user_from_message(
+        self, mock_message, mock_context, mock_api_client
+    ):
         """Test correct user extraction from Message."""
         # Arrange
         mock_message.reply_text.return_value = AsyncMock()
@@ -208,7 +210,9 @@ class TestBalanceCommandInitialization:
             assert call_kwargs["user_id"] == 123456789
 
     @pytest.mark.asyncio()
-    async def test_extracts_user_from_update(self, mock_update, mock_context, mock_api_client):
+    async def test_extracts_user_from_update(
+        self, mock_update, mock_context, mock_api_client
+    ):
         """Test correct user extraction from Update."""
         # Arrange
         mock_update.message.reply_text.return_value = AsyncMock()
@@ -338,7 +342,9 @@ class TestSuccessfulBalanceRetrieval:
                 "has_funds": True,
                 "error": False,
             }
-            mock_api_client.get_account_details.return_value = {"username": "RichPlayer"}
+            mock_api_client.get_account_details.return_value = {
+                "username": "RichPlayer"
+            }
             mock_api_client.get_active_offers.return_value = {"total": 15}
 
             # Act
@@ -370,7 +376,9 @@ class TestSuccessfulBalanceRetrieval:
                 "has_funds": True,
                 "error": False,
             }
-            mock_api_client.get_account_details.return_value = {"username": "TestPlayer"}
+            mock_api_client.get_account_details.return_value = {
+                "username": "TestPlayer"
+            }
             mock_api_client.get_active_offers.return_value = {"total": 0}
 
             # Act
@@ -402,7 +410,9 @@ class TestSuccessfulBalanceRetrieval:
                 "has_funds": True,
                 "error": False,
             }
-            mock_api_client.get_account_details.return_value = {"username": "TestPlayer"}
+            mock_api_client.get_account_details.return_value = {
+                "username": "TestPlayer"
+            }
             mock_api_client.get_active_offers.return_value = {"total": 0}
 
             # Act
@@ -433,7 +443,9 @@ class TestSuccessfulBalanceRetrieval:
                 "has_funds": False,
                 "error": False,
             }
-            mock_api_client.get_account_details.return_value = {"username": "TestPlayer"}
+            mock_api_client.get_account_details.return_value = {
+                "username": "TestPlayer"
+            }
             mock_api_client.get_active_offers.return_value = {"total": 0}
 
             # Act
@@ -562,7 +574,9 @@ class TestAPIErrorHandling:
                 return_value="API Connection Failed",
             ),
         ):
-            mock_api_client.get_user_balance.side_effect = APIError("Connection timeout")
+            mock_api_client.get_user_balance.side_effect = APIError(
+                "Connection timeout"
+            )
 
             # Act
             await check_balance_command(mock_callback_query, mock_context)
@@ -584,7 +598,9 @@ class TestClientCreationErrors:
     """Tests for API client creation errors."""
 
     @pytest.mark.asyncio()
-    async def test_handles_failed_client_creation_callback(self, mock_callback_query, mock_context):
+    async def test_handles_failed_client_creation_callback(
+        self, mock_callback_query, mock_context
+    ):
         """Test handling when API client creation fails (CallbackQuery)."""
         # Arrange
         with (
@@ -606,7 +622,9 @@ class TestClientCreationErrors:
             assert "DMarket API" in final_text
 
     @pytest.mark.asyncio()
-    async def test_handles_failed_client_creation_message(self, mock_message, mock_context):
+    async def test_handles_failed_client_creation_message(
+        self, mock_message, mock_context
+    ):
         """Test handling when API client creation fails (Message)."""
         # Arrange
         processing_msg = AsyncMock()
@@ -652,7 +670,9 @@ class TestGenericExceptionHandling:
             ),
             patch("src.telegram_bot.commands.balance_command.add_command_breadcrumb"),
         ):
-            mock_api_client.get_user_balance.side_effect = Exception("404 endpoint not found")
+            mock_api_client.get_user_balance.side_effect = Exception(
+                "404 endpoint not found"
+            )
 
             # Act
             await check_balance_command(mock_callback_query, mock_context)
@@ -676,7 +696,9 @@ class TestGenericExceptionHandling:
             ),
             patch("src.telegram_bot.commands.balance_command.add_command_breadcrumb"),
         ):
-            mock_api_client.get_user_balance.side_effect = Exception("401 unauthorized access")
+            mock_api_client.get_user_balance.side_effect = Exception(
+                "401 unauthorized access"
+            )
 
             # Act
             await check_balance_command(mock_callback_query, mock_context)
@@ -700,7 +722,9 @@ class TestGenericExceptionHandling:
             ),
             patch("src.telegram_bot.commands.balance_command.add_command_breadcrumb"),
         ):
-            mock_api_client.get_user_balance.side_effect = ValueError("Unexpected error occurred")
+            mock_api_client.get_user_balance.side_effect = ValueError(
+                "Unexpected error occurred"
+            )
 
             # Act
             await check_balance_command(mock_callback_query, mock_context)
@@ -930,7 +954,8 @@ class TestWarningMessages:
                 "недостаточно средств для",
             ]
             assert not any(
-                indicator.lower() in final_text.lower() for indicator in warning_indicators
+                indicator.lower() in final_text.lower()
+                for indicator in warning_indicators
             )
 
 
@@ -954,7 +979,9 @@ class TestTimestampHandling:
                 return_value=mock_api_client,
             ),
             patch("src.telegram_bot.commands.balance_command.add_command_breadcrumb"),
-            patch("src.telegram_bot.commands.balance_command.datetime") as mock_datetime,
+            patch(
+                "src.telegram_bot.commands.balance_command.datetime"
+            ) as mock_datetime,
         ):
             # Mock datetime to return fixed time
             fixed_time = datetime(2025, 12, 15, 14, 30, 45)

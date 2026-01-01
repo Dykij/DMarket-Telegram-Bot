@@ -72,11 +72,13 @@ def mock_context() -> MagicMock:
 def mock_api() -> AsyncMock:
     """Create a mock DMarket API client."""
     api = AsyncMock()
-    api._request = AsyncMock(return_value={
-        "title": "Test Item",
-        "gameId": "csgo",
-        "price": {"USD": "1000"},
-    })
+    api._request = AsyncMock(
+        return_value={
+            "title": "Test Item",
+            "gameId": "csgo",
+            "price": {"USD": "1000"},
+        }
+    )
     return api
 
 
@@ -188,7 +190,10 @@ class TestHandleAlertCallback:
         mock_callback_update.callback_query.data = "disable_alert:alert_123"
 
         with patch.object(
-            __import__("src.telegram_bot.notifications.handlers", fromlist=["remove_price_alert"]),
+            __import__(
+                "src.telegram_bot.notifications.handlers",
+                fromlist=["remove_price_alert"],
+            ),
             "remove_price_alert",
             new=AsyncMock(return_value=True),
         ) as mock_remove:
@@ -208,7 +213,10 @@ class TestHandleAlertCallback:
         mock_callback_update.callback_query.data = "disable_alert:alert_123"
 
         with patch.object(
-            __import__("src.telegram_bot.notifications.handlers", fromlist=["remove_price_alert"]),
+            __import__(
+                "src.telegram_bot.notifications.handlers",
+                fromlist=["remove_price_alert"],
+            ),
             "remove_price_alert",
             new=AsyncMock(return_value=True),
         ):

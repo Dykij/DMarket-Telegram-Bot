@@ -117,10 +117,12 @@ def configure_test_logging(
             if json_format:
                 processors.append(structlog.processors.JSONRenderer())
             else:
-                processors.extend([
-                    structlog.processors.UnicodeDecoder(),
-                    structlog.dev.ConsoleRenderer(colors=sys.stdout.isatty()),
-                ])
+                processors.extend(
+                    [
+                        structlog.processors.UnicodeDecoder(),
+                        structlog.dev.ConsoleRenderer(colors=sys.stdout.isatty()),
+                    ]
+                )
 
             structlog.configure(
                 processors=processors,
@@ -155,9 +157,7 @@ def pytest_configure(config: Config) -> None:
     config.addinivalue_line(
         "markers", "log_level(level): Set logging level for this test"
     )
-    config.addinivalue_line(
-        "markers", "quiet_logs: Suppress all logs during this test"
-    )
+    config.addinivalue_line("markers", "quiet_logs: Suppress all logs during this test")
     config.addinivalue_line(
         "markers", "verbose_logs: Show all DEBUG logs during this test"
     )
@@ -358,12 +358,14 @@ def mock_sentry() -> Generator[MagicMock, None, None]:
     """
     from unittest.mock import patch
 
-    with patch("sentry_sdk.capture_exception") as mock_capture_exception, \
-         patch("sentry_sdk.capture_message") as mock_capture_message, \
-         patch("sentry_sdk.add_breadcrumb") as mock_add_breadcrumb, \
-         patch("sentry_sdk.set_user") as mock_set_user, \
-         patch("sentry_sdk.push_scope") as mock_push_scope, \
-         patch("sentry_sdk.is_initialized", return_value=False):
+    with (
+        patch("sentry_sdk.capture_exception") as mock_capture_exception,
+        patch("sentry_sdk.capture_message") as mock_capture_message,
+        patch("sentry_sdk.add_breadcrumb") as mock_add_breadcrumb,
+        patch("sentry_sdk.set_user") as mock_set_user,
+        patch("sentry_sdk.push_scope") as mock_push_scope,
+        patch("sentry_sdk.is_initialized", return_value=False),
+    ):
 
         mock_sentry_obj = MagicMock()
         mock_sentry_obj.capture_exception = mock_capture_exception
@@ -462,8 +464,7 @@ class LogAssertions:
         filter_str = f" (filters: {', '.join(filters)})" if filters else ""
 
         all_messages = "\n".join(
-            f"  [{r.levelname}] {r.name}: {r.message}"
-            for r in caplog.records
+            f"  [{r.levelname}] {r.name}: {r.message}" for r in caplog.records
         )
         pytest.fail(
             f"Expected log message containing '{message}'{filter_str} not found.\n"

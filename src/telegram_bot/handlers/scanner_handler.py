@@ -100,7 +100,9 @@ def format_scanner_item(result: dict[str, Any]) -> str:
         else:
             # Фоллбэк на старый формат
             time_days = liquidity_data.get("time_to_sell_days", 0.0)
-            liquidity_text = f"\n💧 Ликвидность: {emoji} {score:.0f}/100 (~{time_days:.1f} дней)"
+            liquidity_text = (
+                f"\n💧 Ликвидность: {emoji} {score:.0f}/100 (~{time_days:.1f} дней)"
+            )
 
     return (
         f"🎯 *{title}*\n"
@@ -213,7 +215,9 @@ async def start_scanner_menu(
 
 
 @handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка при сканировании уровня", reraise=False
+    logger_instance=logger,
+    default_error_message="Ошибка при сканировании уровня",
+    reraise=False,
 )
 @handle_exceptions(
     logger_instance=logger,
@@ -370,7 +374,9 @@ async def handle_level_scan(
 
 
 @handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка при получении обзора рынка", reraise=False
+    logger_instance=logger,
+    default_error_message="Ошибка при получении обзора рынка",
+    reraise=False,
 )
 async def handle_market_overview(
     update: Update,
@@ -473,7 +479,9 @@ async def handle_market_overview(
 
 
 @handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка пагинации сканера", reraise=False
+    logger_instance=logger,
+    default_error_message="Ошибка пагинации сканера",
+    reraise=False,
 )
 async def handle_scanner_pagination(
     update: Update,
@@ -539,7 +547,9 @@ async def handle_scanner_pagination(
 
 
 @handle_exceptions(
-    logger_instance=logger, default_error_message="Ошибка в обработчике сканера", reraise=False
+    logger_instance=logger,
+    default_error_message="Ошибка в обработчике сканера",
+    reraise=False,
 )
 async def handle_scanner_callback(
     update: Update,

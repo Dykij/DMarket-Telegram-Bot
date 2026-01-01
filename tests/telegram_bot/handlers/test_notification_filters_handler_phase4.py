@@ -181,7 +181,10 @@ class TestNotificationFiltersClass:
 
     def test_notification_filters_init(self):
         """Test NotificationFilters initialization."""
-        with patch.dict("sys.modules", {"src.telegram_bot.handlers.notification_filters_handler": MagicMock()}):
+        with patch.dict(
+            "sys.modules",
+            {"src.telegram_bot.handlers.notification_filters_handler": MagicMock()},
+        ):
             # Create instance manually mimicking class behavior
             filters_manager = {"_filters": {}}
             assert filters_manager["_filters"] == {}
@@ -201,6 +204,7 @@ class TestNotificationFiltersClass:
     def test_get_user_filters_returns_copy(self):
         """Test get_user_filters returns a copy."""
         import copy as copy_module
+
         original = {"games": ["csgo"], "min_profit_percent": 5.0}
         copied = copy_module.deepcopy(original)
         copied["games"].append("dota2")
@@ -230,7 +234,9 @@ class TestNotificationFiltersClass:
         default_filters = {
             "notification_types": list(NOTIFICATION_TYPES.keys()),
         }
-        assert set(default_filters["notification_types"]) == set(NOTIFICATION_TYPES.keys())
+        assert set(default_filters["notification_types"]) == set(
+            NOTIFICATION_TYPES.keys()
+        )
 
     def test_default_filters_min_profit_is_five_percent(self):
         """Test default min_profit_percent is 5.0."""
@@ -333,9 +339,7 @@ class TestUpdateUserFilters:
 
     def test_update_user_filters_merges_with_existing(self):
         """Test update_user_filters merges with existing."""
-        filters_storage = {
-            12345: {"games": ["csgo"], "min_profit_percent": 5.0}
-        }
+        filters_storage = {12345: {"games": ["csgo"], "min_profit_percent": 5.0}}
 
         update = {"min_profit_percent": 10.0}
         filters_storage[12345].update(update)
@@ -401,7 +405,9 @@ class TestShowNotificationFiltersHandler:
             "notification_types": ["arbitrage", "price_drop"],
         }
 
-        enabled_status = "✅ Включены" if user_filters.get("enabled") else "❌ Выключены"
+        enabled_status = (
+            "✅ Включены" if user_filters.get("enabled") else "❌ Выключены"
+        )
         games_count = len(user_filters.get("games", []))
         min_profit = user_filters.get("min_profit_percent", 5.0)
         levels_count = len(user_filters.get("levels", []))
@@ -477,9 +483,7 @@ class TestShowGamesFilterHandler:
     @pytest.mark.asyncio()
     async def test_show_games_filter_includes_back_button(self):
         """Test show_games_filter includes back button."""
-        keyboard = [
-            ["⬅️ Назад"]
-        ]
+        keyboard = [["⬅️ Назад"]]
         assert any("Назад" in btn for row in keyboard for btn in row)
 
 
@@ -868,21 +872,18 @@ class TestIntegration:
         notification_type = "arbitrage"
 
         should_notify = (
-            filters["enabled"] and
-            game in filters["games"] and
-            profit >= filters["min_profit_percent"] and
-            level in filters["levels"] and
-            notification_type in filters["notification_types"]
+            filters["enabled"]
+            and game in filters["games"]
+            and profit >= filters["min_profit_percent"]
+            and level in filters["levels"]
+            and notification_type in filters["notification_types"]
         )
 
         assert should_notify is True
 
         # Test non-matching game
         game = "rust"
-        should_notify = (
-            filters["enabled"] and
-            game in filters["games"]
-        )
+        should_notify = filters["enabled"] and game in filters["games"]
         assert should_notify is False
 
     def test_reset_restores_all_defaults(self):

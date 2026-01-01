@@ -69,7 +69,9 @@ class TestSafeMigrator:
 
     def test_run_alembic_command_real(self):
         """Тест реальной команды alembic."""
-        migrator = SafeMigrator(database_url="sqlite+aiosqlite:///:memory:", dry_run=False)
+        migrator = SafeMigrator(
+            database_url="sqlite+aiosqlite:///:memory:", dry_run=False
+        )
 
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
@@ -96,11 +98,15 @@ class TestSafeMigrator:
     @pytest.mark.asyncio()
     async def test_create_backup_real(self):
         """Тест реального создания бэкапа."""
-        migrator = SafeMigrator(database_url="sqlite+aiosqlite:///:memory:", dry_run=False)
+        migrator = SafeMigrator(
+            database_url="sqlite+aiosqlite:///:memory:", dry_run=False
+        )
 
         with patch("scripts.safe_migrate.DatabaseBackup") as mock_backup_class:
             mock_backup_instance = AsyncMock()
-            mock_backup_instance.create_backup = AsyncMock(return_value=Path("backup_20251214.sql"))
+            mock_backup_instance.create_backup = AsyncMock(
+                return_value=Path("backup_20251214.sql")
+            )
             mock_backup_class.return_value = mock_backup_instance
 
             backup_file = await migrator.create_backup()

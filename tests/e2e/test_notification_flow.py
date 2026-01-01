@@ -41,7 +41,9 @@ async def test_notification_delivery_flow(notification_system):
     }
 
     # Act: Add notification to queue
-    await queue.add({"type": "arbitrage_opportunity", "user_id": 123456789, "data": opportunity})
+    await queue.add(
+        {"type": "arbitrage_opportunity", "user_id": 123456789, "data": opportunity}
+    )
 
     # Act: Process queue
     await notifier.process_queue()
@@ -65,11 +67,13 @@ async def test_batch_notification_flow(notification_system):
 
     # Act: Add multiple notifications
     for i in range(5):
-        await queue.add({
-            "type": "price_alert",
-            "user_id": 123456789,
-            "data": {"item": f"Item {i}", "price": 10 + i},
-        })
+        await queue.add(
+            {
+                "type": "price_alert",
+                "user_id": 123456789,
+                "data": {"item": f"Item {i}", "price": 10 + i},
+            }
+        )
 
     # Act: Process all
     await notifier.process_queue()
@@ -118,19 +122,23 @@ async def test_notification_filtering_flow(notification_system):
     user_filter = {"min_profit_margin": 10.0}
 
     # Act: Add notifications with different profits
-    await queue.add({
-        "type": "arbitrage_opportunity",
-        "user_id": 123456789,
-        "data": {"profit_margin": 5.0},  # Below threshold
-        "filters": user_filter,
-    })
+    await queue.add(
+        {
+            "type": "arbitrage_opportunity",
+            "user_id": 123456789,
+            "data": {"profit_margin": 5.0},  # Below threshold
+            "filters": user_filter,
+        }
+    )
 
-    await queue.add({
-        "type": "arbitrage_opportunity",
-        "user_id": 123456789,
-        "data": {"profit_margin": 15.0},  # Above threshold
-        "filters": user_filter,
-    })
+    await queue.add(
+        {
+            "type": "arbitrage_opportunity",
+            "user_id": 123456789,
+            "data": {"profit_margin": 15.0},  # Above threshold
+            "filters": user_filter,
+        }
+    )
 
     # Act: Process
     await notifier.process_queue()

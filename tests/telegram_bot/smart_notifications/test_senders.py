@@ -121,12 +121,15 @@ class TestSendPriceAlertNotification:
         sample_user_prefs,
     ):
         """Test sending price alert with notification queue."""
-        with patch(
-            f"{SENDERS_MODULE}.format_market_item",
-            return_value="Formatted item",
-        ), patch(
-            f"{SENDERS_MODULE}.record_notification",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                f"{SENDERS_MODULE}.format_market_item",
+                return_value="Formatted item",
+            ),
+            patch(
+                f"{SENDERS_MODULE}.record_notification",
+                new_callable=AsyncMock,
+            ),
         ):
             # Act
             await send_price_alert_notification(
@@ -151,12 +154,15 @@ class TestSendPriceAlertNotification:
         sample_user_prefs,
     ):
         """Test sending price alert directly via bot when no queue."""
-        with patch(
-            f"{SENDERS_MODULE}.format_market_item",
-            return_value="Formatted item",
-        ), patch(
-            f"{SENDERS_MODULE}.record_notification",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                f"{SENDERS_MODULE}.format_market_item",
+                return_value="Formatted item",
+            ),
+            patch(
+                f"{SENDERS_MODULE}.record_notification",
+                new_callable=AsyncMock,
+            ),
         ):
             # Act
             await send_price_alert_notification(
@@ -193,12 +199,15 @@ class TestSendPriceAlertNotification:
             "one_time": False,
         }
 
-        with patch(
-            f"{SENDERS_MODULE}.format_market_item",
-            return_value="Item info",
-        ), patch(
-            f"{SENDERS_MODULE}.record_notification",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                f"{SENDERS_MODULE}.format_market_item",
+                return_value="Item info",
+            ),
+            patch(
+                f"{SENDERS_MODULE}.record_notification",
+                new_callable=AsyncMock,
+            ),
         ):
             # Act
             await send_price_alert_notification(
@@ -239,12 +248,15 @@ class TestSendPriceAlertNotification:
             "one_time": False,
         }
 
-        with patch(
-            f"{SENDERS_MODULE}.format_market_item",
-            return_value="Item info",
-        ), patch(
-            f"{SENDERS_MODULE}.record_notification",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                f"{SENDERS_MODULE}.format_market_item",
+                return_value="Item info",
+            ),
+            patch(
+                f"{SENDERS_MODULE}.record_notification",
+                new_callable=AsyncMock,
+            ),
         ):
             # Act
             await send_price_alert_notification(
@@ -286,14 +298,16 @@ class TestSendPriceAlertNotification:
             "active": True,
         }
 
-        with patch(
-            f"{SENDERS_MODULE}.format_market_item",
-            return_value="Item info",
-        ), patch(
-            f"{SENDERS_MODULE}.record_notification",
-            new_callable=AsyncMock,
-        ), patch(
-            f"{SENDERS_MODULE}.save_user_preferences"
+        with (
+            patch(
+                f"{SENDERS_MODULE}.format_market_item",
+                return_value="Item info",
+            ),
+            patch(
+                f"{SENDERS_MODULE}.record_notification",
+                new_callable=AsyncMock,
+            ),
+            patch(f"{SENDERS_MODULE}.save_user_preferences"),
         ):
             # Act
             await send_price_alert_notification(
@@ -350,15 +364,19 @@ class TestSendMarketOpportunityNotification:
         self, mock_bot, mock_notification_queue, sample_opportunity, sample_user_prefs
     ):
         """Test sending opportunity notification with queue."""
-        with patch(
-            f"{SENDERS_MODULE}.format_opportunities",
-            return_value="Formatted opportunity",
-        ), patch(
-            f"{SENDERS_MODULE}.split_long_message",
-            return_value=["Message"],
-        ), patch(
-            f"{SENDERS_MODULE}.record_notification",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                f"{SENDERS_MODULE}.format_opportunities",
+                return_value="Formatted opportunity",
+            ),
+            patch(
+                f"{SENDERS_MODULE}.split_long_message",
+                return_value=["Message"],
+            ),
+            patch(
+                f"{SENDERS_MODULE}.record_notification",
+                new_callable=AsyncMock,
+            ),
         ):
             # Act
             await send_market_opportunity_notification(
@@ -377,15 +395,19 @@ class TestSendMarketOpportunityNotification:
         self, mock_bot, sample_opportunity, sample_user_prefs
     ):
         """Test sending opportunity notification directly via bot."""
-        with patch(
-            f"{SENDERS_MODULE}.format_opportunities",
-            return_value="Formatted opportunity",
-        ), patch(
-            f"{SENDERS_MODULE}.split_long_message",
-            return_value=["Message"],
-        ), patch(
-            f"{SENDERS_MODULE}.record_notification",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                f"{SENDERS_MODULE}.format_opportunities",
+                return_value="Formatted opportunity",
+            ),
+            patch(
+                f"{SENDERS_MODULE}.split_long_message",
+                return_value=["Message"],
+            ),
+            patch(
+                f"{SENDERS_MODULE}.record_notification",
+                new_callable=AsyncMock,
+            ),
         ):
             # Act
             await send_market_opportunity_notification(
@@ -411,15 +433,19 @@ class TestSendMarketOpportunityNotification:
             },
         }
 
-        with patch(
-            f"{SENDERS_MODULE}.format_opportunities",
-            return_value="Formatted",
-        ), patch(
-            f"{SENDERS_MODULE}.split_long_message",
-            return_value=["Message"],
-        ), patch(
-            f"{SENDERS_MODULE}.record_notification",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                f"{SENDERS_MODULE}.format_opportunities",
+                return_value="Formatted",
+            ),
+            patch(
+                f"{SENDERS_MODULE}.split_long_message",
+                return_value=["Message"],
+            ),
+            patch(
+                f"{SENDERS_MODULE}.record_notification",
+                new_callable=AsyncMock,
+            ),
         ):
             # Act
             await send_market_opportunity_notification(
@@ -486,12 +512,15 @@ class TestSendMarketOpportunityNotification:
         """Test send_market_opportunity_notification handles exceptions gracefully."""
         mock_notification_queue.enqueue = AsyncMock(side_effect=Exception("Test error"))
 
-        with patch(
-            f"{SENDERS_MODULE}.format_opportunities",
-            return_value="Formatted",
-        ), patch(
-            f"{SENDERS_MODULE}.split_long_message",
-            return_value=["Message"],
+        with (
+            patch(
+                f"{SENDERS_MODULE}.format_opportunities",
+                return_value="Formatted",
+            ),
+            patch(
+                f"{SENDERS_MODULE}.split_long_message",
+                return_value=["Message"],
+            ),
         ):
             # Act - should not raise exception
             await send_market_opportunity_notification(
@@ -507,15 +536,19 @@ class TestSendMarketOpportunityNotification:
         self, mock_bot, mock_notification_queue, sample_opportunity, sample_user_prefs
     ):
         """Test opportunity notification splits long messages."""
-        with patch(
-            f"{SENDERS_MODULE}.format_opportunities",
-            return_value="A" * 5000,  # Very long message
-        ), patch(
-            f"{SENDERS_MODULE}.split_long_message",
-            return_value=["Part 1", "Part 2", "Part 3"],  # Split into 3 parts
-        ), patch(
-            f"{SENDERS_MODULE}.record_notification",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                f"{SENDERS_MODULE}.format_opportunities",
+                return_value="A" * 5000,  # Very long message
+            ),
+            patch(
+                f"{SENDERS_MODULE}.split_long_message",
+                return_value=["Part 1", "Part 2", "Part 3"],  # Split into 3 parts
+            ),
+            patch(
+                f"{SENDERS_MODULE}.record_notification",
+                new_callable=AsyncMock,
+            ),
         ):
             # Act
             await send_market_opportunity_notification(
@@ -595,7 +628,9 @@ class TestNotifyUser:
         assert call_args.kwargs.get("reply_markup") == markup
 
     @pytest.mark.asyncio()
-    async def test_notify_user_handles_exception(self, mock_bot, mock_notification_queue):
+    async def test_notify_user_handles_exception(
+        self, mock_bot, mock_notification_queue
+    ):
         """Test notify_user returns False on exception."""
         mock_notification_queue.enqueue = AsyncMock(side_effect=Exception("Test error"))
 

@@ -1,6 +1,5 @@
 """Tests for telegram_bot market_alerts module."""
 
-
 import pytest
 
 
@@ -31,7 +30,7 @@ class TestMarketAlertsBasicFunctionality:
     def test_module_is_importable(self):
         """Test module basic import."""
         try:
-            from src.telegram_bot import market_alerts
+            import src.telegram_bot.market_alerts as _  # noqa: F401
 
             assert True
         except ImportError:
@@ -73,8 +72,10 @@ class TestNotificationQueue:
         queue = NotificationQueue(bot=bot)
 
         # Check for common methods
-        assert hasattr(queue, "add_notification") or hasattr(queue, "add") or hasattr(
-            queue, "__init__"
+        assert (
+            hasattr(queue, "add_notification")
+            or hasattr(queue, "add")
+            or hasattr(queue, "__init__")
         )
 
 

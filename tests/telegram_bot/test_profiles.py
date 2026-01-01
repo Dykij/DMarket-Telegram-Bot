@@ -22,7 +22,9 @@ class TestSaveUserProfiles:
         }
 
         with patch.object(profiles, "USER_PROFILES", test_profiles):
-            with patch.object(profiles, "USER_PROFILES_FILE", str(tmp_path / "profiles.json")):
+            with patch.object(
+                profiles, "USER_PROFILES_FILE", str(tmp_path / "profiles.json")
+            ):
                 profiles.save_user_profiles()
 
                 # Check file was created and contains correct data
@@ -40,7 +42,9 @@ class TestSaveUserProfiles:
         }
 
         with patch.object(profiles, "USER_PROFILES", test_profiles):
-            with patch.object(profiles, "USER_PROFILES_FILE", str(tmp_path / "profiles.json")):
+            with patch.object(
+                profiles, "USER_PROFILES_FILE", str(tmp_path / "profiles.json")
+            ):
                 profiles.save_user_profiles()
 
                 # Verify UTF-8 content
@@ -56,10 +60,14 @@ class TestSaveUserProfiles:
         test_profiles = {"123": {"key": "value"}}
 
         with patch.object(profiles, "USER_PROFILES", test_profiles):
-            with patch.object(profiles, "USER_PROFILES_FILE", str(tmp_path / "profiles.json")):
+            with patch.object(
+                profiles, "USER_PROFILES_FILE", str(tmp_path / "profiles.json")
+            ):
                 profiles.save_user_profiles()
 
-                content = pathlib.Path(tmp_path / "profiles.json").read_text(encoding="utf-8")
+                content = pathlib.Path(tmp_path / "profiles.json").read_text(
+                    encoding="utf-8"
+                )
 
                 # Should be formatted with indentation
                 assert "\n" in content
@@ -78,7 +86,9 @@ class TestSaveUserProfiles:
         from src.telegram_bot import profiles
 
         with patch.object(profiles, "USER_PROFILES", {}):
-            with patch.object(profiles, "USER_PROFILES_FILE", str(tmp_path / "profiles.json")):
+            with patch.object(
+                profiles, "USER_PROFILES_FILE", str(tmp_path / "profiles.json")
+            ):
                 profiles.save_user_profiles()
 
                 with open(tmp_path / "profiles.json", encoding="utf-8") as f:

@@ -101,6 +101,7 @@ class TestUserProfileManager:
 
         # DATA_DIR should exist (created during init)
         from src.telegram_bot.user_profiles import DATA_DIR
+
         assert DATA_DIR.exists()
 
     def test_get_profile_creates_default(self) -> None:
@@ -475,6 +476,7 @@ class TestRequireAccessLevelDecorator:
     @pytest.mark.asyncio()
     async def test_decorator_no_user(self) -> None:
         """Test decorator handles no effective user."""
+
         @require_access_level("view_balance")
         async def test_handler(update, context):
             return "success"

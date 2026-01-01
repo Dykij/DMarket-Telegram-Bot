@@ -203,14 +203,18 @@ class TestDatabaseCachedQueries:
     async def test_concurrent_cached_queries(self, db_manager):
         """Тест конкурентных кэшируемых запросов."""
         # Create user
-        await db_manager.get_or_create_user(telegram_id=123456789, username="concurrent_user")
+        await db_manager.get_or_create_user(
+            telegram_id=123456789, username="concurrent_user"
+        )
 
         # Prime the cache with first query
         first_result = await db_manager.get_user_by_telegram_id_cached(123456789)
         assert first_result is not None
 
         # Multiple concurrent queries (cache should be populated now)
-        tasks = [db_manager.get_user_by_telegram_id_cached(123456789) for _ in range(20)]
+        tasks = [
+            db_manager.get_user_by_telegram_id_cached(123456789) for _ in range(20)
+        ]
         results = await asyncio.gather(*tasks)
 
         # All should return the same user
@@ -271,7 +275,9 @@ class TestCachePerformance:
         # Create 10 users
         user_ids = []
         for i in range(10):
-            user = await db_manager.get_or_create_user(telegram_id=100000 + i, username=f"user_{i}")
+            user = await db_manager.get_or_create_user(
+                telegram_id=100000 + i, username=f"user_{i}"
+            )
             user_ids.append(user.telegram_id)
 
         # Query each user twice (first should cache, second should hit cache)
@@ -295,7 +301,9 @@ class TestCacheConsistency:
     async def test_cache_consistency_after_update(self, db_manager):
         """Тест консистентности после обновления данных."""
         # Create user
-        user = await db_manager.get_or_create_user(telegram_id=123456789, username="original_name")
+        user = await db_manager.get_or_create_user(
+            telegram_id=123456789, username="original_name"
+        )
 
         # Cache it
         cached_1 = await db_manager.get_user_by_telegram_id_cached(123456789)
@@ -317,7 +325,9 @@ class TestCacheConsistency:
     async def test_cache_does_not_return_stale_data_after_delete(self, db_manager):
         """Тест, что кэш не возвращает устаревшие данные после удаления."""
         # Create user
-        await db_manager.get_or_create_user(telegram_id=123456789, username="to_be_deleted")
+        await db_manager.get_or_create_user(
+            telegram_id=123456789, username="to_be_deleted"
+        )
 
         # Cache it
         cached_1 = await db_manager.get_user_by_telegram_id_cached(123456789)

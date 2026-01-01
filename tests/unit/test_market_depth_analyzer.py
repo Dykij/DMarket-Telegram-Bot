@@ -75,9 +75,13 @@ class TestMarketDepthAnalysis:
     """Test main analysis functionality."""
 
     @pytest.mark.asyncio()
-    async def test_analyze_with_provided_items(self, mock_api, sample_aggregated_prices):
+    async def test_analyze_with_provided_items(
+        self, mock_api, sample_aggregated_prices
+    ):
         """Test analysis with provided item list."""
-        mock_api.get_aggregated_prices_bulk = AsyncMock(return_value=sample_aggregated_prices)
+        mock_api.get_aggregated_prices_bulk = AsyncMock(
+            return_value=sample_aggregated_prices
+        )
 
         analyzer = MarketDepthAnalyzer(dmarket_api=mock_api)
 
@@ -99,7 +103,9 @@ class TestMarketDepthAnalysis:
     ):
         """Test analysis fetches popular items when none provided."""
         mock_api.get_market_items = AsyncMock(return_value=sample_market_items)
-        mock_api.get_aggregated_prices_bulk = AsyncMock(return_value=sample_aggregated_prices)
+        mock_api.get_aggregated_prices_bulk = AsyncMock(
+            return_value=sample_aggregated_prices
+        )
 
         analyzer = MarketDepthAnalyzer(dmarket_api=mock_api)
 
@@ -124,7 +130,9 @@ class TestMarketDepthAnalysis:
     @pytest.mark.asyncio()
     async def test_analyze_handles_api_error(self, mock_api):
         """Test analysis handles API errors gracefully."""
-        mock_api.get_aggregated_prices_bulk = AsyncMock(side_effect=Exception("API Error"))
+        mock_api.get_aggregated_prices_bulk = AsyncMock(
+            side_effect=Exception("API Error")
+        )
 
         analyzer = MarketDepthAnalyzer(dmarket_api=mock_api)
 
@@ -296,7 +304,9 @@ class TestBackwardCompatibility:
     @pytest.mark.asyncio()
     async def test_legacy_function_wrapper(self, mock_api, sample_aggregated_prices):
         """Test legacy analyze_market_depth function."""
-        mock_api.get_aggregated_prices_bulk = AsyncMock(return_value=sample_aggregated_prices)
+        mock_api.get_aggregated_prices_bulk = AsyncMock(
+            return_value=sample_aggregated_prices
+        )
 
         result = await analyze_market_depth(
             game="csgo",
@@ -377,7 +387,9 @@ class TestEdgeCases:
     @pytest.mark.asyncio()
     async def test_analyze_with_invalid_aggregated_response(self, mock_api):
         """Test handling of invalid aggregated prices response."""
-        mock_api.get_aggregated_prices_bulk = AsyncMock(return_value={"invalid": "response"})
+        mock_api.get_aggregated_prices_bulk = AsyncMock(
+            return_value={"invalid": "response"}
+        )
 
         analyzer = MarketDepthAnalyzer(dmarket_api=mock_api)
 

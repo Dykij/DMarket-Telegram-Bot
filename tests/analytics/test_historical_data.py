@@ -155,8 +155,12 @@ class TestPriceHistory:
         """Test PriceHistory creation with points."""
         now = datetime.now(UTC)
         points = [
-            PricePoint(game="csgo", title="Item", price=Decimal("10.00"), timestamp=now),
-            PricePoint(game="csgo", title="Item", price=Decimal("12.00"), timestamp=now),
+            PricePoint(
+                game="csgo", title="Item", price=Decimal("10.00"), timestamp=now
+            ),
+            PricePoint(
+                game="csgo", title="Item", price=Decimal("12.00"), timestamp=now
+            ),
         ]
 
         ph = PriceHistory(game="csgo", title="Item", points=points)
@@ -174,7 +178,9 @@ class TestPriceHistory:
             game="csgo",
             title="Item",
             points=[
-                PricePoint(game="csgo", title="Item", price=Decimal("10.00"), timestamp=now),
+                PricePoint(
+                    game="csgo", title="Item", price=Decimal("10.00"), timestamp=now
+                ),
             ],
         )
         assert ph.average_price == Decimal("10.00")
@@ -186,9 +192,15 @@ class TestPriceHistory:
             game="csgo",
             title="Item",
             points=[
-                PricePoint(game="csgo", title="Item", price=Decimal("10.00"), timestamp=now),
-                PricePoint(game="csgo", title="Item", price=Decimal("20.00"), timestamp=now),
-                PricePoint(game="csgo", title="Item", price=Decimal("30.00"), timestamp=now),
+                PricePoint(
+                    game="csgo", title="Item", price=Decimal("10.00"), timestamp=now
+                ),
+                PricePoint(
+                    game="csgo", title="Item", price=Decimal("20.00"), timestamp=now
+                ),
+                PricePoint(
+                    game="csgo", title="Item", price=Decimal("30.00"), timestamp=now
+                ),
             ],
         )
         assert ph.average_price == Decimal("20.00")
@@ -205,9 +217,15 @@ class TestPriceHistory:
             game="csgo",
             title="Item",
             points=[
-                PricePoint(game="csgo", title="Item", price=Decimal("15.00"), timestamp=now),
-                PricePoint(game="csgo", title="Item", price=Decimal("10.00"), timestamp=now),
-                PricePoint(game="csgo", title="Item", price=Decimal("25.00"), timestamp=now),
+                PricePoint(
+                    game="csgo", title="Item", price=Decimal("15.00"), timestamp=now
+                ),
+                PricePoint(
+                    game="csgo", title="Item", price=Decimal("10.00"), timestamp=now
+                ),
+                PricePoint(
+                    game="csgo", title="Item", price=Decimal("25.00"), timestamp=now
+                ),
             ],
         )
         assert ph.min_price == Decimal("10.00")
@@ -224,9 +242,15 @@ class TestPriceHistory:
             game="csgo",
             title="Item",
             points=[
-                PricePoint(game="csgo", title="Item", price=Decimal("15.00"), timestamp=now),
-                PricePoint(game="csgo", title="Item", price=Decimal("10.00"), timestamp=now),
-                PricePoint(game="csgo", title="Item", price=Decimal("25.00"), timestamp=now),
+                PricePoint(
+                    game="csgo", title="Item", price=Decimal("15.00"), timestamp=now
+                ),
+                PricePoint(
+                    game="csgo", title="Item", price=Decimal("10.00"), timestamp=now
+                ),
+                PricePoint(
+                    game="csgo", title="Item", price=Decimal("25.00"), timestamp=now
+                ),
             ],
         )
         assert ph.max_price == Decimal("25.00")
@@ -243,9 +267,27 @@ class TestPriceHistory:
             game="csgo",
             title="Item",
             points=[
-                PricePoint(game="csgo", title="Item", price=Decimal("10.00"), timestamp=now, volume=5),
-                PricePoint(game="csgo", title="Item", price=Decimal("10.00"), timestamp=now, volume=3),
-                PricePoint(game="csgo", title="Item", price=Decimal("10.00"), timestamp=now, volume=7),
+                PricePoint(
+                    game="csgo",
+                    title="Item",
+                    price=Decimal("10.00"),
+                    timestamp=now,
+                    volume=5,
+                ),
+                PricePoint(
+                    game="csgo",
+                    title="Item",
+                    price=Decimal("10.00"),
+                    timestamp=now,
+                    volume=3,
+                ),
+                PricePoint(
+                    game="csgo",
+                    title="Item",
+                    price=Decimal("10.00"),
+                    timestamp=now,
+                    volume=7,
+                ),
             ],
         )
         assert ph.total_volume == 15
@@ -262,7 +304,9 @@ class TestPriceHistory:
             game="csgo",
             title="Item",
             points=[
-                PricePoint(game="csgo", title="Item", price=Decimal("10.00"), timestamp=now),
+                PricePoint(
+                    game="csgo", title="Item", price=Decimal("10.00"), timestamp=now
+                ),
             ],
         )
         assert ph.price_volatility == 0.0
@@ -274,8 +318,12 @@ class TestPriceHistory:
             game="csgo",
             title="Item",
             points=[
-                PricePoint(game="csgo", title="Item", price=Decimal("10.00"), timestamp=now),
-                PricePoint(game="csgo", title="Item", price=Decimal("10.00"), timestamp=now),
+                PricePoint(
+                    game="csgo", title="Item", price=Decimal("10.00"), timestamp=now
+                ),
+                PricePoint(
+                    game="csgo", title="Item", price=Decimal("10.00"), timestamp=now
+                ),
             ],
         )
         assert ph.price_volatility == 0.0
@@ -287,8 +335,12 @@ class TestPriceHistory:
             game="csgo",
             title="Item",
             points=[
-                PricePoint(game="csgo", title="Item", price=Decimal("10.00"), timestamp=now),
-                PricePoint(game="csgo", title="Item", price=Decimal("20.00"), timestamp=now),
+                PricePoint(
+                    game="csgo", title="Item", price=Decimal("10.00"), timestamp=now
+                ),
+                PricePoint(
+                    game="csgo", title="Item", price=Decimal("20.00"), timestamp=now
+                ),
             ],
         )
         volatility = ph.price_volatility
@@ -303,8 +355,12 @@ class TestPriceHistory:
             game="csgo",
             title="Item",
             points=[
-                PricePoint(game="csgo", title="Item", price=Decimal("0.00"), timestamp=now),
-                PricePoint(game="csgo", title="Item", price=Decimal("0.00"), timestamp=now),
+                PricePoint(
+                    game="csgo", title="Item", price=Decimal("0.00"), timestamp=now
+                ),
+                PricePoint(
+                    game="csgo", title="Item", price=Decimal("0.00"), timestamp=now
+                ),
             ],
         )
         assert ph.price_volatility == 0.0
@@ -323,7 +379,9 @@ class TestHistoricalDataCollector:
         """Create mock API client."""
         api = MagicMock()
         api.get_sales_history = AsyncMock(return_value={"sales": []})
-        api.get_aggregated_prices_bulk = AsyncMock(return_value={"aggregatedPrices": []})
+        api.get_aggregated_prices_bulk = AsyncMock(
+            return_value={"aggregatedPrices": []}
+        )
         return api
 
     @pytest.fixture()
@@ -446,7 +504,9 @@ class TestHistoricalDataCollector:
         assert len(result.points) == 3
 
     @pytest.mark.asyncio()
-    async def test_collect_from_sales_history_timestamp_formats(self, collector, mock_api):
+    async def test_collect_from_sales_history_timestamp_formats(
+        self, collector, mock_api
+    ):
         """Test parsing different timestamp formats."""
         mock_api.get_sales_history.return_value = {
             "sales": [
@@ -476,6 +536,7 @@ class TestHistoricalDataCollector:
     @pytest.mark.asyncio()
     async def test_collect_batch_with_errors(self, collector, mock_api):
         """Test batch collection handles individual errors."""
+
         def side_effect(game, title, period):
             if title == "BadItem":
                 raise Exception("Error")
@@ -483,7 +544,9 @@ class TestHistoricalDataCollector:
 
         mock_api.get_sales_history.side_effect = side_effect
 
-        results = await collector.collect_batch("csgo", ["Item1", "BadItem", "Item2"], days=30)
+        results = await collector.collect_batch(
+            "csgo", ["Item1", "BadItem", "Item2"], days=30
+        )
 
         # Should have results for successful items
         assert "Item1" in results
@@ -537,9 +600,7 @@ class TestHistoricalDataCollector:
     async def test_collect_from_aggregated_title_mismatch(self, collector, mock_api):
         """Test aggregated collection when title doesn't match."""
         mock_api.get_aggregated_prices_bulk.return_value = {
-            "aggregatedPrices": [
-                {"title": "Different Item", "offerBestPrice": 5000}
-            ]
+            "aggregatedPrices": [{"title": "Different Item", "offerBestPrice": 5000}]
         }
 
         result = await collector.collect_price_history("csgo", "Target Item", days=30)

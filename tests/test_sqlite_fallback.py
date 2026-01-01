@@ -90,7 +90,9 @@ class TestSQLiteFallback:
             await session.refresh(user)
 
             # Проверяем, что пользователь сохранен
-            result = await session.execute(select(User).filter_by(telegram_id=123456789))
+            result = await session.execute(
+                select(User).filter_by(telegram_id=123456789)
+            )
             saved_user = result.scalar_one_or_none()
             assert saved_user is not None
             assert saved_user.username == "test_user"
@@ -125,7 +127,9 @@ class TestSQLiteFallback:
             await session.refresh(target)
 
             # Проверяем, что таргет сохранен
-            result = await session.execute(select(Target).filter_by(title="AK-47 | Redline"))
+            result = await session.execute(
+                select(Target).filter_by(title="AK-47 | Redline")
+            )
             saved_target = result.scalar_one_or_none()
             assert saved_target is not None
             assert saved_target.price == pytest.approx(10.50)
@@ -160,7 +164,9 @@ class TestSQLiteFallback:
             await session.commit()
 
             # Проверяем количество таргетов пользователя
-            result = await session.execute(select(Target).filter_by(user_id=user.telegram_id))
+            result = await session.execute(
+                select(Target).filter_by(user_id=user.telegram_id)
+            )
             targets = result.scalars().all()
             assert len(targets) == 3
         finally:
@@ -258,7 +264,9 @@ class TestSQLiteFallback:
             await session1.refresh(user)
 
             # Читаем во второй сессии
-            result = await session2.execute(select(User).filter_by(telegram_id=101010101))
+            result = await session2.execute(
+                select(User).filter_by(telegram_id=101010101)
+            )
             read_user = result.scalar_one_or_none()
             assert read_user is not None
             assert read_user.username == "concurrent_test_user"
@@ -283,7 +291,9 @@ class TestSQLiteFallback:
             await session.commit()
 
             # Проверяем, что все пользователи сохранены
-            result = await session.execute(select(User).where(User.telegram_id >= 200000000))
+            result = await session.execute(
+                select(User).where(User.telegram_id >= 200000000)
+            )
             saved_users = result.scalars().all()
             assert len(saved_users) == 10
         finally:
@@ -305,7 +315,9 @@ class TestSQLiteFallback:
             await session.commit()
 
             # Тест фильтрации по telegram_id
-            result = await session.execute(select(User).where(User.telegram_id > 300000002))
+            result = await session.execute(
+                select(User).where(User.telegram_id > 300000002)
+            )
             filtered_users = result.scalars().all()
             assert len(filtered_users) == 2
         finally:
@@ -429,11 +441,15 @@ class TestSQLiteIntegration:
             await session.commit()
 
             # 3. Читаем данные
-            result = await session.execute(select(User).filter_by(telegram_id=999999999))
+            result = await session.execute(
+                select(User).filter_by(telegram_id=999999999)
+            )
             read_user = result.scalar_one_or_none()
             assert read_user is not None
 
-            result = await session.execute(select(Target).filter_by(user_id=user.telegram_id))
+            result = await session.execute(
+                select(Target).filter_by(user_id=user.telegram_id)
+            )
             targets = result.scalars().all()
             assert len(targets) == 3
 
@@ -447,7 +463,9 @@ class TestSQLiteIntegration:
             await session.commit()
 
             # 6. Проверяем удаление
-            result = await session.execute(select(Target).filter_by(user_id=user.telegram_id))
+            result = await session.execute(
+                select(Target).filter_by(user_id=user.telegram_id)
+            )
             remaining_targets = result.scalars().all()
             assert len(remaining_targets) == 0
         finally:

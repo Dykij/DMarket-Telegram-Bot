@@ -61,7 +61,9 @@ class TestLiquidityAnalyzer:
     """Тесты для LiquidityAnalyzer."""
 
     @pytest.mark.asyncio()
-    async def test_analyzer_initialization(self, liquidity_analyzer: LiquidityAnalyzer) -> None:
+    async def test_analyzer_initialization(
+        self, liquidity_analyzer: LiquidityAnalyzer
+    ) -> None:
         """Тест инициализации анализатора."""
         assert liquidity_analyzer.min_sales_per_week == 10.0
         assert liquidity_analyzer.max_time_to_sell_days == 7.0
@@ -91,7 +93,9 @@ class TestLiquidityAnalyzer:
 
         mock_api_client.get_market_best_offers = AsyncMock(
             return_value={
-                "objects": [{"itemId": f"item_{i}"} for i in range(20)]  # 20 предложений
+                "objects": [
+                    {"itemId": f"item_{i}"} for i in range(20)
+                ]  # 20 предложений
             }
         )
 
@@ -121,7 +125,9 @@ class TestLiquidityAnalyzer:
                 "sales": [
                     {
                         "price": 5000,
-                        "date": int((datetime.now() - timedelta(days=i * 10)).timestamp()),
+                        "date": int(
+                            (datetime.now() - timedelta(days=i * 10)).timestamp()
+                        ),
                     }
                     for i in range(3)  # Только 3 продажи за 30 дней
                 ]
@@ -130,7 +136,9 @@ class TestLiquidityAnalyzer:
 
         mock_api_client.get_market_best_offers = AsyncMock(
             return_value={
-                "objects": [{"itemId": f"item_{i}"} for i in range(80)]  # 80 предложений
+                "objects": [
+                    {"itemId": f"item_{i}"} for i in range(80)
+                ]  # 80 предложений
             }
         )
 
@@ -210,7 +218,9 @@ class TestLiquidityAnalyzer:
         assert liquid_items[1]["title"] == "AWP | Asiimov (Field-Tested)"
 
     @pytest.mark.asyncio()
-    async def test_calculate_sales_per_week(self, liquidity_analyzer: LiquidityAnalyzer) -> None:
+    async def test_calculate_sales_per_week(
+        self, liquidity_analyzer: LiquidityAnalyzer
+    ) -> None:
         """Тест расчета продаж в неделю."""
         sales_history = [{"price": 1000, "date": 1234567890} for _ in range(21)]
 
@@ -222,7 +232,9 @@ class TestLiquidityAnalyzer:
         assert 4.5 <= sales_per_week <= 5.5
 
     @pytest.mark.asyncio()
-    async def test_calculate_avg_time_to_sell(self, liquidity_analyzer: LiquidityAnalyzer) -> None:
+    async def test_calculate_avg_time_to_sell(
+        self, liquidity_analyzer: LiquidityAnalyzer
+    ) -> None:
         """Тест расчета среднего времени продажи."""
         now = int(datetime.now().timestamp())
         sales_history = [
@@ -236,7 +248,9 @@ class TestLiquidityAnalyzer:
         assert 0.5 <= avg_time <= 1.5
 
     @pytest.mark.asyncio()
-    async def test_calculate_price_stability(self, liquidity_analyzer: LiquidityAnalyzer) -> None:
+    async def test_calculate_price_stability(
+        self, liquidity_analyzer: LiquidityAnalyzer
+    ) -> None:
         """Тест расчета стабильности цены."""
         # Стабильные цены (разброс 5%)
         stable_history = [{"price": 1000 + i * 10, "date": 123456} for i in range(10)]
@@ -245,13 +259,17 @@ class TestLiquidityAnalyzer:
         assert stability > 0.80  # Высокая стабильность
 
         # Нестабильные цены (разброс 50%)
-        unstable_history = [{"price": 1000 + i * 100, "date": 123456} for i in range(10)]
+        unstable_history = [
+            {"price": 1000 + i * 100, "date": 123456} for i in range(10)
+        ]
 
         instability = liquidity_analyzer._calculate_price_stability(unstable_history)
         assert instability < 0.85  # Низкая стабильность (скорректировано)
 
     @pytest.mark.asyncio()
-    async def test_calculate_market_depth(self, liquidity_analyzer: LiquidityAnalyzer) -> None:
+    async def test_calculate_market_depth(
+        self, liquidity_analyzer: LiquidityAnalyzer
+    ) -> None:
         """Тест расчета глубины рынка."""
         sales_history = [{"price": 1000, "date": 123456} for _ in range(50)]
 
@@ -261,7 +279,9 @@ class TestLiquidityAnalyzer:
         assert isinstance(depth, float)
 
     @pytest.mark.asyncio()
-    async def test_calculate_liquidity_score(self, liquidity_analyzer: LiquidityAnalyzer) -> None:
+    async def test_calculate_liquidity_score(
+        self, liquidity_analyzer: LiquidityAnalyzer
+    ) -> None:
         """Тест расчета общего liquidity score."""
         # Идеальные параметры
         score_high = liquidity_analyzer._calculate_liquidity_score(
@@ -309,7 +329,9 @@ class TestLiquidityAnalyzer:
         assert is_liquid_low is False
 
     @pytest.mark.asyncio()
-    async def test_get_liquidity_description(self, liquidity_analyzer: LiquidityAnalyzer) -> None:
+    async def test_get_liquidity_description(
+        self, liquidity_analyzer: LiquidityAnalyzer
+    ) -> None:
         """Тест получения описания ликвидности."""
         desc_high = liquidity_analyzer.get_liquidity_description(85.0)
         assert "🟢" in desc_high
@@ -330,7 +352,9 @@ class TestLiquidityAnalyzer:
         mock_api_client: AsyncMock,
     ) -> None:
         """Тест обработки пустой истории продаж."""
-        mock_api_client.get_sales_history_aggregator = AsyncMock(return_value={"sales": []})
+        mock_api_client.get_sales_history_aggregator = AsyncMock(
+            return_value={"sales": []}
+        )
         mock_api_client.get_market_best_offers = AsyncMock(return_value={"objects": []})
 
         metrics = await liquidity_analyzer.analyze_item_liquidity(
@@ -348,7 +372,9 @@ class TestLiquidityAnalyzer:
         mock_api_client: AsyncMock,
     ) -> None:
         """Тест обработки ошибок API."""
-        mock_api_client.get_sales_history_aggregator = AsyncMock(side_effect=Exception("API Error"))
+        mock_api_client.get_sales_history_aggregator = AsyncMock(
+            side_effect=Exception("API Error")
+        )
         mock_api_client.get_market_best_offers = AsyncMock(return_value={"objects": []})
 
         # Должен вернуть метрики с is_liquid=False при ошибке
@@ -376,11 +402,18 @@ class TestLiquidityAnalyzer:
         current_time = time.time()
 
         # Страница 1: 20 элементов
-        page1 = {"sales": [{"date": current_time - i * 3600, "price": 100} for i in range(20)]}
+        page1 = {
+            "sales": [
+                {"date": current_time - i * 3600, "price": 100} for i in range(20)
+            ]
+        }
 
         # Страница 2: 20 элементов (полная страница, должен запросить следующую)
         page2 = {
-            "sales": [{"date": current_time - (20 + i) * 3600, "price": 100} for i in range(20)]
+            "sales": [
+                {"date": current_time - (20 + i) * 3600, "price": 100}
+                for i in range(20)
+            ]
         }
 
         # Страница 3: пустая (конец)

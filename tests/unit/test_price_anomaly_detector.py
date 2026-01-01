@@ -73,7 +73,9 @@ class TestFetchMarketItems:
     @pytest.mark.asyncio()
     async def test_fetch_returns_items_on_success(self, mock_api_client):
         """Test returns items from API response."""
-        mock_api_client.get_market_items = AsyncMock(return_value={"items": [{"title": "Test"}]})
+        mock_api_client.get_market_items = AsyncMock(
+            return_value={"items": [{"title": "Test"}]}
+        )
 
         items = await _fetch_market_items(mock_api_client, "csgo", 1.0, 100.0)
 
@@ -299,7 +301,9 @@ class TestFindPriceAnomalies:
     @pytest.mark.asyncio()
     async def test_finds_anomalies_successfully(self, mock_api_client, sample_items):
         """Test finds price anomalies successfully."""
-        mock_api_client.get_market_items = AsyncMock(return_value={"items": sample_items})
+        mock_api_client.get_market_items = AsyncMock(
+            return_value={"items": sample_items}
+        )
 
         anomalies = await find_price_anomalies(
             game="csgo",
@@ -341,10 +345,12 @@ class TestFindPriceAnomalies:
         # Create many anomalies
         items = []
         for i in range(20):
-            items.append({
-                "title": "Test Item",
-                "price": {"amount": 1000 + i * 100},
-            })
+            items.append(
+                {
+                    "title": "Test Item",
+                    "price": {"amount": 1000 + i * 100},
+                }
+            )
 
         mock_api_client.get_market_items = AsyncMock(return_value={"items": items})
 

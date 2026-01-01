@@ -13,7 +13,6 @@ Phase 4: Расширенные тесты для dmarket_api.py (Часть 2/3
 - Эндпоинты: 4 теста
 """
 
-
 import httpx
 import pytest
 

@@ -158,8 +158,23 @@ class TestTechnicalIndicatorsRSIPhase4:
 
     def test_rsi_with_alternating_gains_losses(self) -> None:
         """Test RSI with perfectly alternating gains and losses."""
-        prices = [10.0, 11.0, 10.0, 11.0, 10.0, 11.0, 10.0, 11.0, 10.0, 11.0,
-                  10.0, 11.0, 10.0, 11.0, 10.0]
+        prices = [
+            10.0,
+            11.0,
+            10.0,
+            11.0,
+            10.0,
+            11.0,
+            10.0,
+            11.0,
+            10.0,
+            11.0,
+            10.0,
+            11.0,
+            10.0,
+            11.0,
+            10.0,
+        ]
         result = TechnicalIndicators.rsi(prices)
 
         assert result is not None
@@ -168,8 +183,23 @@ class TestTechnicalIndicatorsRSIPhase4:
 
     def test_rsi_with_single_large_gain(self) -> None:
         """Test RSI with single large gain among small changes."""
-        prices = [10.0, 10.1, 10.2, 10.1, 10.0, 10.1, 10.2, 50.0,  # Large gain
-                  50.1, 50.0, 50.1, 50.0, 50.1, 50.0, 50.1]
+        prices = [
+            10.0,
+            10.1,
+            10.2,
+            10.1,
+            10.0,
+            10.1,
+            10.2,
+            50.0,  # Large gain
+            50.1,
+            50.0,
+            50.1,
+            50.0,
+            50.1,
+            50.0,
+            50.1,
+        ]
         result = TechnicalIndicators.rsi(prices)
 
         assert result is not None
@@ -177,8 +207,23 @@ class TestTechnicalIndicatorsRSIPhase4:
 
     def test_rsi_with_single_large_loss(self) -> None:
         """Test RSI with single large loss among small changes."""
-        prices = [50.0, 50.1, 50.2, 50.1, 50.0, 50.1, 50.2, 10.0,  # Large loss
-                  10.1, 10.0, 10.1, 10.0, 10.1, 10.0, 10.1]
+        prices = [
+            50.0,
+            50.1,
+            50.2,
+            50.1,
+            50.0,
+            50.1,
+            50.2,
+            10.0,  # Large loss
+            10.1,
+            10.0,
+            10.1,
+            10.0,
+            10.1,
+            10.0,
+            10.1,
+        ]
         result = TechnicalIndicators.rsi(prices)
 
         assert result is not None
@@ -370,7 +415,9 @@ class TestTechnicalIndicatorsEMAPhase4:
 
         # Multiplier = 2 / (period + 1) = 2 / 4 = 0.5
         expected_multiplier = 2 / (period + 1)
-        expected_second = (20.0 * expected_multiplier) + (10.0 * (1 - expected_multiplier))
+        expected_second = (20.0 * expected_multiplier) + (
+            10.0 * (1 - expected_multiplier)
+        )
 
         assert abs(result[1] - expected_second) < 0.0001
 
@@ -466,9 +513,9 @@ class TestMarketAnalyzerFairPricePhase4:
         # Create prices with varying volumes
         history = [
             PricePoint(now - timedelta(days=0), price=100, volume=1000),  # High volume
-            PricePoint(now - timedelta(days=1), price=200, volume=100),   # Low volume
+            PricePoint(now - timedelta(days=1), price=200, volume=100),  # Low volume
             PricePoint(now - timedelta(days=2), price=100, volume=1000),  # High volume
-            PricePoint(now - timedelta(days=3), price=200, volume=100),   # Low volume
+            PricePoint(now - timedelta(days=3), price=200, volume=100),  # Low volume
             PricePoint(now - timedelta(days=4), price=100, volume=1000),  # High volume
         ]
         result = analyzer.calculate_fair_price(history, method="volume_weighted")
@@ -583,7 +630,9 @@ class TestMarketAnalyzerPredictPriceDropPhase4:
         """Test predict_price_drop result has all required keys."""
         now = datetime.now(UTC)
         history = [
-            PricePoint(now - timedelta(days=i), price=100 + np.sin(i / 5) * 10, volume=100)
+            PricePoint(
+                now - timedelta(days=i), price=100 + np.sin(i / 5) * 10, volume=100
+            )
             for i in range(50)
         ]
         result = analyzer.predict_price_drop(history)
@@ -616,7 +665,9 @@ class TestMarketAnalyzerPredictPriceDropPhase4:
         """Test predict_price_drop includes Bollinger Bands signal."""
         now = datetime.now(UTC)
         history = [
-            PricePoint(now - timedelta(days=i), price=100 + np.sin(i / 3) * 10, volume=100)
+            PricePoint(
+                now - timedelta(days=i), price=100 + np.sin(i / 3) * 10, volume=100
+            )
             for i in range(50)
         ]
         result = analyzer.predict_price_drop(history)
@@ -650,7 +701,9 @@ class TestMarketAnalyzerPredictPriceDropPhase4:
         """Test predict_price_drop recommendation is valid."""
         now = datetime.now(UTC)
         history = [
-            PricePoint(now - timedelta(days=i), price=100 + np.sin(i / 5) * 10, volume=100)
+            PricePoint(
+                now - timedelta(days=i), price=100 + np.sin(i / 5) * 10, volume=100
+            )
             for i in range(50)
         ]
         result = analyzer.predict_price_drop(history)
@@ -675,7 +728,9 @@ class TestMarketAnalyzerSupportResistancePhase4:
         """Test support levels are sorted ascending, resistance descending."""
         now = datetime.now(UTC)
         history = [
-            PricePoint(now - timedelta(days=i), price=100 + np.sin(i / 3) * 20, volume=100)
+            PricePoint(
+                now - timedelta(days=i), price=100 + np.sin(i / 3) * 20, volume=100
+            )
             for i in range(50)
         ]
         result = analyzer.calculate_support_resistance(history, window=3)
@@ -689,7 +744,9 @@ class TestMarketAnalyzerSupportResistancePhase4:
         """Test support/resistance levels have no duplicates."""
         now = datetime.now(UTC)
         history = [
-            PricePoint(now - timedelta(days=i), price=100 + np.sin(i / 3) * 10, volume=100)
+            PricePoint(
+                now - timedelta(days=i), price=100 + np.sin(i / 3) * 10, volume=100
+            )
             for i in range(50)
         ]
         result = analyzer.calculate_support_resistance(history, window=3)
@@ -719,7 +776,9 @@ class TestMarketAnalyzerSupportResistancePhase4:
         """Test support/resistance with large window size."""
         now = datetime.now(UTC)
         history = [
-            PricePoint(now - timedelta(days=i), price=100 + np.sin(i / 5) * 10, volume=100)
+            PricePoint(
+                now - timedelta(days=i), price=100 + np.sin(i / 5) * 10, volume=100
+            )
             for i in range(100)
         ]
         result = analyzer.calculate_support_resistance(history, window=20)
@@ -760,8 +819,7 @@ class TestMarketAnalyzerLiquidityPhase4:
             for i in range(10)
         ]
         low_volume_history = [
-            PricePoint(now - timedelta(days=i), price=100, volume=10)
-            for i in range(10)
+            PricePoint(now - timedelta(days=i), price=100, volume=10) for i in range(10)
         ]
 
         high_result = analyzer.analyze_liquidity(high_volume_history)
@@ -805,7 +863,10 @@ class TestMarketAnalyzerLiquidityPhase4:
         result = analyzer.analyze_liquidity(history, recent_period=10)
 
         # Should detect increasing volume trend
-        assert result["volume_trend"] in {TrendDirection.BULLISH, TrendDirection.NEUTRAL}
+        assert result["volume_trend"] in {
+            TrendDirection.BULLISH,
+            TrendDirection.NEUTRAL,
+        }
 
 
 # ==============================================================================
@@ -826,12 +887,16 @@ class TestMarketAnalyzerInsightsPhase4:
         now = datetime.now(UTC)
         # Create bullish conditions
         history = [
-            PricePoint(now - timedelta(days=49 - i), price=100 + i * 0.3, volume=100 + i * 5)
+            PricePoint(
+                now - timedelta(days=49 - i), price=100 + i * 0.3, volume=100 + i * 5
+            )
             for i in range(50)
         ]
         result = analyzer.generate_trading_insights(history, current_price=80.0)
 
-        assert result["overall"]["score"] > 0 or result["overall"]["recommendation"] in {"BUY", "STRONG BUY"}
+        assert result["overall"]["score"] > 0 or result["overall"][
+            "recommendation"
+        ] in {"BUY", "STRONG BUY"}
 
     def test_insights_overall_score_negative(self, analyzer: MarketAnalyzer) -> None:
         """Test insights overall score can be negative."""
@@ -910,7 +975,7 @@ class TestMarketAnalyticsEdgeCasesPhase4:
 
     def test_macd_with_exponential_growth(self) -> None:
         """Test MACD with exponential price growth."""
-        prices = [100.0 * (1.01 ** i) for i in range(50)]
+        prices = [100.0 * (1.01**i) for i in range(50)]
         result = TechnicalIndicators.macd(prices)
 
         assert result is not None
@@ -1031,7 +1096,10 @@ class TestMarketAnalyticsIntegrationPhase4:
         # All results should be identical
         first_result = results[0]
         for result in results[1:]:
-            assert result["overall"]["recommendation"] == first_result["overall"]["recommendation"]
+            assert (
+                result["overall"]["recommendation"]
+                == first_result["overall"]["recommendation"]
+            )
             assert result["overall"]["score"] == first_result["overall"]["score"]
 
     def test_analysis_with_real_world_pattern(self) -> None:
@@ -1054,7 +1122,9 @@ class TestMarketAnalyticsIntegrationPhase4:
             prices.append(price)
 
         history = [
-            PricePoint(now - timedelta(days=59 - i), price=prices[i], volume=100 + i * 5)
+            PricePoint(
+                now - timedelta(days=59 - i), price=prices[i], volume=100 + i * 5
+            )
             for i in range(60)
         ]
 

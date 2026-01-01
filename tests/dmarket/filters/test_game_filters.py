@@ -240,8 +240,16 @@ class TestApplyFiltersToItems:
     def test_apply_filters_cs2_exterior(self):
         """Test filtering CSGO items by exterior."""
         items = [
-            {"price": {"USD": 1000}, "title": "FN Item", "extra": {"exterior": "Factory New"}},
-            {"price": {"USD": 800}, "title": "FT Item", "extra": {"exterior": "Field-Tested"}},
+            {
+                "price": {"USD": 1000},
+                "title": "FN Item",
+                "extra": {"exterior": "Factory New"},
+            },
+            {
+                "price": {"USD": 800},
+                "title": "FT Item",
+                "extra": {"exterior": "Field-Tested"},
+            },
         ]
         result = apply_filters_to_items(items, "csgo", {"exterior": "Factory New"})
         assert len(result) == 1

@@ -123,10 +123,7 @@ class TestRetryOnFailure:
         call_count = 0
 
         @retry_on_failure(
-            max_attempts=3,
-            min_wait=0.1,
-            max_wait=0.2,
-            retry_on=(ValueError,)
+            max_attempts=3, min_wait=0.1, max_wait=0.2, retry_on=(ValueError,)
         )
         async def custom_retry():
             nonlocal call_count
@@ -147,6 +144,7 @@ class TestRetryApiCall:
     @pytest.mark.asyncio()
     async def test_api_call_success(self):
         """Test API call succeeds on first attempt."""
+
         @retry_api_call(max_attempts=3)
         async def api_call():
             return {"data": "response"}
@@ -229,6 +227,7 @@ class TestRetryDecoratorParameters:
     @pytest.mark.asyncio()
     async def test_default_parameters(self):
         """Test decorator works with default parameters."""
+
         @retry_on_failure()
         async def default_retry():
             return "default"
@@ -266,27 +265,32 @@ class TestRetryDecoratorFunctionType:
 
     def test_sync_function_detection(self):
         """Test that sync functions are properly wrapped."""
+
         @retry_on_failure(max_attempts=3)
         def sync_func():
             return "sync"
 
         # Should be wrapped as sync (not coroutine)
         import inspect
+
         assert not inspect.iscoroutinefunction(sync_func)
 
     def test_async_function_detection(self):
         """Test that async functions are properly wrapped."""
+
         @retry_on_failure(max_attempts=3)
         async def async_func():
             return "async"
 
         # Should be wrapped as async (coroutine)
         import inspect
+
         assert inspect.iscoroutinefunction(async_func)
 
     @pytest.mark.asyncio()
     async def test_async_function_preserves_signature(self):
         """Test that async function signature is preserved."""
+
         @retry_on_failure(max_attempts=3)
         async def func_with_args(a: int, b: str, c: float = 1.0) -> dict:
             return {"a": a, "b": b, "c": c}

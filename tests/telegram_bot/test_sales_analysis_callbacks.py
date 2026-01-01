@@ -94,14 +94,27 @@ class TestSalesHistoryCallback:
                 {
                     "MarketHashName": "AK-47 | Redline",
                     "Sales": [
-                        {"Timestamp": 1703001600, "Price": 25.50, "Currency": "USD", "OrderType": "Buy"},
-                        {"Timestamp": 1703002600, "Price": 26.00, "Currency": "USD", "OrderType": "Sell"},
-                    ]
+                        {
+                            "Timestamp": 1703001600,
+                            "Price": 25.50,
+                            "Currency": "USD",
+                            "OrderType": "Buy",
+                        },
+                        {
+                            "Timestamp": 1703002600,
+                            "Price": 26.00,
+                            "Currency": "USD",
+                            "OrderType": "Sell",
+                        },
+                    ],
                 }
             ]
         }
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.get_sales_history", new_callable=AsyncMock) as mock_get:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.get_sales_history",
+            new_callable=AsyncMock,
+        ) as mock_get:
             mock_get.return_value = mock_sales_data
 
             await handle_sales_history_callback(mock_update, mock_context)
@@ -113,7 +126,10 @@ class TestSalesHistoryCallback:
         """Test handles API error in response."""
         mock_update.callback_query.data = "sales_history:TestItem"
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.get_sales_history", new_callable=AsyncMock) as mock_get:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.get_sales_history",
+            new_callable=AsyncMock,
+        ) as mock_get:
             mock_get.return_value = {"Error": "API rate limit exceeded"}
 
             await handle_sales_history_callback(mock_update, mock_context)
@@ -126,7 +142,10 @@ class TestSalesHistoryCallback:
         """Test handles no sales data for item."""
         mock_update.callback_query.data = "sales_history:RareItem"
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.get_sales_history", new_callable=AsyncMock) as mock_get:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.get_sales_history",
+            new_callable=AsyncMock,
+        ) as mock_get:
             mock_get.return_value = {"LastSales": []}
 
             await handle_sales_history_callback(mock_update, mock_context)
@@ -139,7 +158,10 @@ class TestSalesHistoryCallback:
         """Test handles APIError exception."""
         mock_update.callback_query.data = "sales_history:TestItem"
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.get_sales_history", new_callable=AsyncMock) as mock_get:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.get_sales_history",
+            new_callable=AsyncMock,
+        ) as mock_get:
             mock_get.side_effect = APIError("Network error", status_code=500)
 
             await handle_sales_history_callback(mock_update, mock_context)
@@ -151,7 +173,10 @@ class TestSalesHistoryCallback:
         """Test handles general exception."""
         mock_update.callback_query.data = "sales_history:TestItem"
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.get_sales_history", new_callable=AsyncMock) as mock_get:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.get_sales_history",
+            new_callable=AsyncMock,
+        ) as mock_get:
             mock_get.side_effect = ValueError("Unexpected error")
 
             await handle_sales_history_callback(mock_update, mock_context)
@@ -206,10 +231,13 @@ class TestLiquidityCallback:
                 "offers_count": 50,
                 "lowest_price": 20.0,
                 "highest_price": 30.0,
-            }
+            },
         }
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.analyze_item_liquidity", new_callable=AsyncMock) as mock_analyze:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.analyze_item_liquidity",
+            new_callable=AsyncMock,
+        ) as mock_analyze:
             mock_analyze.return_value = mock_analysis
 
             await handle_liquidity_callback(mock_update, mock_context)
@@ -221,11 +249,12 @@ class TestLiquidityCallback:
         """Test handles item with no sales data."""
         mock_update.callback_query.data = "liquidity:RareItem"
 
-        mock_analysis = {
-            "sales_analysis": {"has_data": False}
-        }
+        mock_analysis = {"sales_analysis": {"has_data": False}}
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.analyze_item_liquidity", new_callable=AsyncMock) as mock_analyze:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.analyze_item_liquidity",
+            new_callable=AsyncMock,
+        ) as mock_analyze:
             mock_analyze.return_value = mock_analysis
 
             await handle_liquidity_callback(mock_update, mock_context)
@@ -242,11 +271,24 @@ class TestLiquidityCallback:
         mock_analysis = {
             "liquidity_score": 3,
             "liquidity_category": "Средняя",
-            "sales_analysis": {"has_data": True, "price_trend": "stable", "sales_per_day": 1.0, "sales_volume": 10, "avg_price": 5.0},
-            "market_data": {"offers_count": 5, "lowest_price": 4.0, "highest_price": 6.0}
+            "sales_analysis": {
+                "has_data": True,
+                "price_trend": "stable",
+                "sales_per_day": 1.0,
+                "sales_volume": 10,
+                "avg_price": 5.0,
+            },
+            "market_data": {
+                "offers_count": 5,
+                "lowest_price": 4.0,
+                "highest_price": 6.0,
+            },
         }
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.analyze_item_liquidity", new_callable=AsyncMock) as mock_analyze:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.analyze_item_liquidity",
+            new_callable=AsyncMock,
+        ) as mock_analyze:
             mock_analyze.return_value = mock_analysis
 
             await handle_liquidity_callback(mock_update, mock_context)
@@ -262,11 +304,24 @@ class TestLiquidityCallback:
         mock_analysis = {
             "liquidity_score": 6,
             "liquidity_category": "Высокая",
-            "sales_analysis": {"has_data": True, "price_trend": "up", "sales_per_day": 20.0, "sales_volume": 300, "avg_price": 50.0},
-            "market_data": {"offers_count": 100, "lowest_price": 45.0, "highest_price": 55.0}
+            "sales_analysis": {
+                "has_data": True,
+                "price_trend": "up",
+                "sales_per_day": 20.0,
+                "sales_volume": 300,
+                "avg_price": 50.0,
+            },
+            "market_data": {
+                "offers_count": 100,
+                "lowest_price": 45.0,
+                "highest_price": 55.0,
+            },
         }
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.analyze_item_liquidity", new_callable=AsyncMock) as mock_analyze:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.analyze_item_liquidity",
+            new_callable=AsyncMock,
+        ) as mock_analyze:
             mock_analyze.return_value = mock_analysis
 
             await handle_liquidity_callback(mock_update, mock_context)
@@ -317,12 +372,13 @@ class TestRefreshSalesCallback:
             "sales_volume": 100,
             "sales_per_day": 7.0,
             "period_days": 14,
-            "recent_sales": [
-                {"date": "2024-01-15", "price": 25.0, "currency": "USD"}
-            ]
+            "recent_sales": [{"date": "2024-01-15", "price": 25.0, "currency": "USD"}],
         }
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.analyze_sales_history", new_callable=AsyncMock) as mock_analyze:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.analyze_sales_history",
+            new_callable=AsyncMock,
+        ) as mock_analyze:
             mock_analyze.return_value = mock_analysis
 
             await handle_refresh_sales_callback(mock_update, mock_context)
@@ -334,7 +390,10 @@ class TestRefreshSalesCallback:
         """Test handles no data response."""
         mock_update.callback_query.data = "refresh_sales:TestItem"
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.analyze_sales_history", new_callable=AsyncMock) as mock_analyze:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.analyze_sales_history",
+            new_callable=AsyncMock,
+        ) as mock_analyze:
             mock_analyze.return_value = {"has_data": False}
 
             await handle_refresh_sales_callback(mock_update, mock_context)
@@ -368,11 +427,24 @@ class TestRefreshLiquidityCallback:
         mock_analysis = {
             "liquidity_score": 5,
             "liquidity_category": "Высокая",
-            "sales_analysis": {"has_data": True, "price_trend": "stable", "sales_per_day": 5.0, "sales_volume": 50, "avg_price": 10.0},
-            "market_data": {"offers_count": 20, "lowest_price": 8.0, "highest_price": 12.0}
+            "sales_analysis": {
+                "has_data": True,
+                "price_trend": "stable",
+                "sales_per_day": 5.0,
+                "sales_volume": 50,
+                "avg_price": 10.0,
+            },
+            "market_data": {
+                "offers_count": 20,
+                "lowest_price": 8.0,
+                "highest_price": 12.0,
+            },
         }
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.analyze_item_liquidity", new_callable=AsyncMock) as mock_analyze:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.analyze_item_liquidity",
+            new_callable=AsyncMock,
+        ) as mock_analyze:
             mock_analyze.return_value = mock_analysis
 
             await handle_refresh_liquidity_callback(mock_update, mock_context)
@@ -420,11 +492,14 @@ class TestAllArbitrageSalesCallback:
                 "profit_percent": 10.0,
                 "buy_price": 50.0,
                 "sell_price": 55.0,
-                "sales_analysis": {"price_trend": "up", "sales_per_day": 15.0}
+                "sales_analysis": {"price_trend": "up", "sales_per_day": 15.0},
             }
         ]
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.enhanced_arbitrage_search", new_callable=AsyncMock) as mock_search:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.enhanced_arbitrage_search",
+            new_callable=AsyncMock,
+        ) as mock_search:
             mock_search.return_value = mock_results
 
             await handle_all_arbitrage_sales_callback(mock_update, mock_context)
@@ -436,7 +511,10 @@ class TestAllArbitrageSalesCallback:
         """Test handles no arbitrage opportunities found."""
         mock_update.callback_query.data = "all_arbitrage_sales:csgo"
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.enhanced_arbitrage_search", new_callable=AsyncMock) as mock_search:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.enhanced_arbitrage_search",
+            new_callable=AsyncMock,
+        ) as mock_search:
             mock_search.return_value = []
 
             await handle_all_arbitrage_sales_callback(mock_update, mock_context)
@@ -457,12 +535,15 @@ class TestAllArbitrageSalesCallback:
                 "profit_percent": 10.0,
                 "buy_price": 50.0,
                 "sell_price": 55.0,
-                "sales_analysis": {"price_trend": "stable", "sales_per_day": 5.0}
+                "sales_analysis": {"price_trend": "stable", "sales_per_day": 5.0},
             }
             for i in range(15)
         ]
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.enhanced_arbitrage_search", new_callable=AsyncMock) as mock_search:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.enhanced_arbitrage_search",
+            new_callable=AsyncMock,
+        ) as mock_search:
             mock_search.return_value = mock_results
 
             await handle_all_arbitrage_sales_callback(mock_update, mock_context)
@@ -510,7 +591,7 @@ class TestSetupSalesFiltersCallback:
                 "min_profit": 2.0,
                 "min_profit_percent": 10.0,
                 "min_sales_per_day": 0.5,
-                "price_trend": "up"
+                "price_trend": "up",
             }
         }
 
@@ -568,17 +649,30 @@ class TestAllVolumeStatsCallback:
         mock_stats = {
             "count": 50,
             "items": [
-                {"item_name": "Item 1", "sales_per_day": 10.0, "avg_price": 25.0, "price_trend": "up"},
-                {"item_name": "Item 2", "sales_per_day": 5.0, "avg_price": 15.0, "price_trend": "stable"}
+                {
+                    "item_name": "Item 1",
+                    "sales_per_day": 10.0,
+                    "avg_price": 25.0,
+                    "price_trend": "up",
+                },
+                {
+                    "item_name": "Item 2",
+                    "sales_per_day": 5.0,
+                    "avg_price": 15.0,
+                    "price_trend": "stable",
+                },
             ],
             "summary": {
                 "up_trend_count": 20,
                 "down_trend_count": 10,
-                "stable_trend_count": 20
-            }
+                "stable_trend_count": 20,
+            },
         }
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.get_sales_volume_stats", new_callable=AsyncMock) as mock_get:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.get_sales_volume_stats",
+            new_callable=AsyncMock,
+        ) as mock_get:
             mock_get.return_value = mock_stats
 
             await handle_all_volume_stats_callback(mock_update, mock_context)
@@ -590,7 +684,10 @@ class TestAllVolumeStatsCallback:
         """Test handles no items in stats."""
         mock_update.callback_query.data = "all_volume_stats:csgo"
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.get_sales_volume_stats", new_callable=AsyncMock) as mock_get:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.get_sales_volume_stats",
+            new_callable=AsyncMock,
+        ) as mock_get:
             mock_get.return_value = {"items": []}
 
             await handle_all_volume_stats_callback(mock_update, mock_context)
@@ -631,7 +728,10 @@ class TestRefreshVolumeStatsCallback:
         """Test updates context and delegates to handler."""
         mock_update.callback_query.data = "refresh_volume_stats:dota2"
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.handle_sales_volume_stats", new_callable=AsyncMock) as mock_handler:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.handle_sales_volume_stats",
+            new_callable=AsyncMock,
+        ) as mock_handler:
             await handle_refresh_volume_stats_callback(mock_update, mock_context)
 
             # Should update context
@@ -707,7 +807,10 @@ class TestRefreshArbitrageSalesCallback:
         """Test updates context and delegates to handler."""
         mock_update.callback_query.data = "refresh_arbitrage_sales:rust"
 
-        with patch("src.telegram_bot.sales_analysis_callbacks.handle_arbitrage_with_sales", new_callable=AsyncMock) as mock_handler:
+        with patch(
+            "src.telegram_bot.sales_analysis_callbacks.handle_arbitrage_with_sales",
+            new_callable=AsyncMock,
+        ) as mock_handler:
             await handle_refresh_arbitrage_sales_callback(mock_update, mock_context)
 
             # Should update context

@@ -452,9 +452,7 @@ class TestReactiveDMarketWebSocketInit:
         mock_api_client.public_key = "test_public_key"
 
         ws = ReactiveDMarketWebSocket(
-            api_client=mock_api_client,
-            auto_reconnect=True,
-            max_reconnect_attempts=5
+            api_client=mock_api_client, auto_reconnect=True, max_reconnect_attempts=5
         )
 
         assert ws.api_client == mock_api_client

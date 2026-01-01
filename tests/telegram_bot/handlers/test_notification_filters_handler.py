@@ -611,7 +611,14 @@ class TestToggleTypeFilter:
         # Remove arbitrage first
         manager.update_user_filters(
             user_id,
-            {"notification_types": ["price_drop", "price_rise", "trending", "good_deal"]},
+            {
+                "notification_types": [
+                    "price_drop",
+                    "price_rise",
+                    "trending",
+                    "good_deal",
+                ]
+            },
         )
 
         # Toggle arbitrage on

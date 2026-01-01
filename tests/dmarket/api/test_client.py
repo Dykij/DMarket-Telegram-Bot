@@ -293,7 +293,9 @@ class TestDMarketClientRequests:
         mock_httpx_client.get.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_get_request_with_params(self, client, mock_httpx_client, mock_response):
+    async def test_get_request_with_params(
+        self, client, mock_httpx_client, mock_response
+    ):
         """Test GET request with query parameters."""
         # Arrange
         client._client = mock_httpx_client
@@ -326,7 +328,9 @@ class TestDMarketClientRequests:
         mock_httpx_client.post.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_post_request_with_body(self, client, mock_httpx_client, mock_response):
+    async def test_post_request_with_body(
+        self, client, mock_httpx_client, mock_response
+    ):
         """Test POST request with JSON body."""
         # Arrange
         client._client = mock_httpx_client
@@ -342,7 +346,9 @@ class TestDMarketClientRequests:
         mock_httpx_client.post.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_delete_request_success(self, client, mock_httpx_client, mock_response):
+    async def test_delete_request_success(
+        self, client, mock_httpx_client, mock_response
+    ):
         """Test successful DELETE request."""
         # Arrange
         client._client = mock_httpx_client
@@ -373,7 +379,9 @@ class TestDMarketClientRequests:
         mock_httpx_client.put.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_request_includes_auth_headers(self, client, mock_httpx_client, mock_response):
+    async def test_request_includes_auth_headers(
+        self, client, mock_httpx_client, mock_response
+    ):
         """Test that requests include authentication headers."""
         # Arrange
         client._client = mock_httpx_client
@@ -396,7 +404,9 @@ class TestDMarketClientRequests:
         # Arrange
         client._client = mock_httpx_client
         client.max_retries = 0
-        mock_httpx_client.get = AsyncMock(side_effect=httpx.TimeoutException("Request timeout"))
+        mock_httpx_client.get = AsyncMock(
+            side_effect=httpx.TimeoutException("Request timeout")
+        )
 
         # Act
         result = await client._request("GET", "/test")
@@ -412,7 +422,9 @@ class TestDMarketClientRequests:
         # Arrange
         client._client = mock_httpx_client
         client.max_retries = 0
-        mock_httpx_client.get = AsyncMock(side_effect=httpx.ConnectError("Connection failed"))
+        mock_httpx_client.get = AsyncMock(
+            side_effect=httpx.ConnectError("Connection failed")
+        )
 
         # Act
         result = await client._request("GET", "/test")
@@ -518,7 +530,9 @@ class TestDMarketClientRateLimiting:
         assert hasattr(client.rate_limiter, "wait_if_needed")
 
     @pytest.mark.asyncio()
-    async def test_rate_limiter_respects_429_retry_after(self, client, mock_httpx_client):
+    async def test_rate_limiter_respects_429_retry_after(
+        self, client, mock_httpx_client
+    ):
         """Test that rate limiter respects 429 Retry-After header."""
         # Arrange
         client._client = mock_httpx_client
@@ -543,7 +557,9 @@ class TestDMarketClientRateLimiting:
             )
         )
 
-        mock_httpx_client.get = AsyncMock(side_effect=[mock_429_response, mock_success_response])
+        mock_httpx_client.get = AsyncMock(
+            side_effect=[mock_429_response, mock_success_response]
+        )
 
         # Act - Mock asyncio.sleep to speed up test while verifying Retry-After is respected
         with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
@@ -607,7 +623,9 @@ class TestDMarketClientRateLimiting:
         assert result.get("error") is True or result.get("success") is True
 
     @pytest.mark.asyncio()
-    async def test_request_waits_for_rate_limiter(self, client, mock_httpx_client, mock_response):
+    async def test_request_waits_for_rate_limiter(
+        self, client, mock_httpx_client, mock_response
+    ):
         """Test that request waits for rate limiter before executing."""
         # Arrange
         client._client = mock_httpx_client
@@ -687,7 +705,9 @@ class TestDMarketClientRetry:
             )
         )
 
-        mock_httpx_client.get = AsyncMock(side_effect=[mock_502_response, mock_response])
+        mock_httpx_client.get = AsyncMock(
+            side_effect=[mock_502_response, mock_response]
+        )
 
         # Act
         with patch("asyncio.sleep", new_callable=AsyncMock):
@@ -715,7 +735,9 @@ class TestDMarketClientRetry:
             )
         )
 
-        mock_httpx_client.get = AsyncMock(side_effect=[mock_503_response, mock_response])
+        mock_httpx_client.get = AsyncMock(
+            side_effect=[mock_503_response, mock_response]
+        )
 
         # Act
         with patch("asyncio.sleep", new_callable=AsyncMock):
@@ -725,7 +747,9 @@ class TestDMarketClientRetry:
         assert mock_httpx_client.get.call_count == 2
 
     @pytest.mark.asyncio()
-    async def test_retry_on_connection_error(self, client, mock_httpx_client, mock_response):
+    async def test_retry_on_connection_error(
+        self, client, mock_httpx_client, mock_response
+    ):
         """Test retry logic on connection error."""
         # Arrange
         client._client = mock_httpx_client
@@ -753,7 +777,9 @@ class TestDMarketClientRetry:
         client._client = mock_httpx_client
         client.max_retries = 1
 
-        mock_httpx_client.get = AsyncMock(side_effect=httpx.ConnectError("Connection failed"))
+        mock_httpx_client.get = AsyncMock(
+            side_effect=httpx.ConnectError("Connection failed")
+        )
 
         # Act
         with patch("asyncio.sleep", new_callable=AsyncMock):
@@ -765,7 +791,9 @@ class TestDMarketClientRetry:
         assert "message" in result
 
     @pytest.mark.asyncio()
-    async def test_retry_with_exponential_backoff(self, client, mock_httpx_client, mock_response):
+    async def test_retry_with_exponential_backoff(
+        self, client, mock_httpx_client, mock_response
+    ):
         """Test that retry uses exponential backoff."""
         # Arrange
         client._client = mock_httpx_client
@@ -856,7 +884,9 @@ class TestDMarketClientRetry:
         client._client = mock_httpx_client
         client.max_retries = 2
 
-        mock_httpx_client.get = AsyncMock(side_effect=httpx.ConnectError("Connection failed"))
+        mock_httpx_client.get = AsyncMock(
+            side_effect=httpx.ConnectError("Connection failed")
+        )
 
         # Act
         with patch("asyncio.sleep", new_callable=AsyncMock):
@@ -921,7 +951,9 @@ class TestDMarketClientCache:
         await client.clear_cache_for_endpoint(endpoint)
 
     @pytest.mark.asyncio()
-    async def test_cached_response_returned_for_get(self, client, mock_httpx_client, mock_response):
+    async def test_cached_response_returned_for_get(
+        self, client, mock_httpx_client, mock_response
+    ):
         """Test that cached response is returned for subsequent GET requests."""
         # Arrange
         client._client = mock_httpx_client
@@ -940,7 +972,9 @@ class TestDMarketClientCache:
         assert mock_httpx_client.get.call_count >= 1
 
     @pytest.mark.asyncio()
-    async def test_cache_hit_returns_cached_data(self, client, mock_httpx_client, mock_response):
+    async def test_cache_hit_returns_cached_data(
+        self, client, mock_httpx_client, mock_response
+    ):
         """Test that cache hit returns cached data without making new request."""
         # Arrange
         from src.dmarket.api.cache import get_cache_key, save_to_cache
@@ -1105,7 +1139,9 @@ class TestDMarketClientCircuitBreaker:
     """Tests for circuit breaker error handling."""
 
     @pytest.mark.asyncio()
-    async def test_request_handles_circuit_breaker_open(self, client, mock_httpx_client):
+    async def test_request_handles_circuit_breaker_open(
+        self, client, mock_httpx_client
+    ):
         """Test handling of CircuitBreakerError."""
         # Arrange
         from circuitbreaker import CircuitBreakerError
@@ -1127,7 +1163,9 @@ class TestDMarketClientEdgeCases:
     """Tests for additional edge cases to reach 95%+ coverage."""
 
     @pytest.mark.asyncio()
-    async def test_cache_save_is_actually_called(self, client, mock_httpx_client, mock_response):
+    async def test_cache_save_is_actually_called(
+        self, client, mock_httpx_client, mock_response
+    ):
         """Test that cache save function is actually invoked for cacheable GET requests."""
         # Arrange
         from unittest.mock import patch

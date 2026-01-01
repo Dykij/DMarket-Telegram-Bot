@@ -178,7 +178,10 @@ class TestNotificationFilteringIntegration:
         mock_user_settings["daily_count"] = 5
 
         # Already at limit
-        at_limit = mock_user_settings["daily_count"] >= mock_user_settings["max_alerts_per_day"]
+        at_limit = (
+            mock_user_settings["daily_count"]
+            >= mock_user_settings["max_alerts_per_day"]
+        )
         assert at_limit is True
 
 
@@ -198,7 +201,9 @@ class TestNotificationFormattingIntegration:
         # Format message
         message = "📉 Падение цены!\n"
         message += f"🎮 {notification['item']}\n"
-        message += f"💰 ${notification['old_price']:.2f} → ${notification['new_price']:.2f}\n"
+        message += (
+            f"💰 ${notification['old_price']:.2f} → ${notification['new_price']:.2f}\n"
+        )
         message += f"📊 Изменение: {notification['change_percent']:.1f}%"
 
         assert "📉" in message
@@ -215,9 +220,7 @@ class TestNotificationFormattingIntegration:
         message += f"🎮 {notification['item']}\n"
         message += f"📊 Покупка: ${notification['buy_price']:.2f}\n"
         message += f"📈 Продажа: ${notification['sell_price']:.2f}\n"
-        message += (
-            f"💵 Прибыль: ${notification['profit']:.2f} ({notification['profit_percent']:.1f}%)"
-        )
+        message += f"💵 Прибыль: ${notification['profit']:.2f} ({notification['profit_percent']:.1f}%)"
 
         assert "💰" in message
         assert notification["item"] in message
@@ -265,11 +268,13 @@ class TestNotificationDeliveryIntegration:
 
         user_id = 123456789
         message = "Test notification"
-        keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("View Details", callback_data="view_details")]
-        ])
+        keyboard = InlineKeyboardMarkup(
+            [[InlineKeyboardButton("View Details", callback_data="view_details")]]
+        )
 
-        await mock_bot.send_message(chat_id=user_id, text=message, reply_markup=keyboard)
+        await mock_bot.send_message(
+            chat_id=user_id, text=message, reply_markup=keyboard
+        )
 
         assert mock_bot.send_message.called
 

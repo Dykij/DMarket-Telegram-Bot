@@ -224,7 +224,9 @@ async def test_get_targets_by_title(mock_api_client):
     manager = TargetManager(mock_api_client)
 
     # Получаем таргеты по названию
-    result = await manager.get_targets_by_title(game="csgo", title="AWP | Asiimov (Field-Tested)")
+    result = await manager.get_targets_by_title(
+        game="csgo", title="AWP | Asiimov (Field-Tested)"
+    )
 
     # Проверки
     assert isinstance(result, list)
@@ -273,7 +275,9 @@ async def test_delete_all_targets(mock_api_client):
     # Настройка моков - используем lowercase keys
     mock_api_client.get_user_targets = AsyncMock(
         return_value={
-            "items": [{"targetId": "target123", "title": "AWP", "price": {"amount": 5000}}]
+            "items": [
+                {"targetId": "target123", "title": "AWP", "price": {"amount": 5000}}
+            ]
         }
     )
     mock_api_client.delete_target = AsyncMock(return_value={"success": True})

@@ -73,14 +73,16 @@ class TestDMarketProviders:
     @pytest.fixture()
     def container(self):
         """Создать контейнер с тестовой конфигурацией."""
-        return init_container({
-            "dmarket": {
-                "public_key": "test_public",
-                "secret_key": "test_secret",
-                "api_url": "https://api.dmarket.com",
-            },
-            "database": {"url": "sqlite:///:memory:"},
-        })
+        return init_container(
+            {
+                "dmarket": {
+                    "public_key": "test_public",
+                    "secret_key": "test_secret",
+                    "api_url": "https://api.dmarket.com",
+                },
+                "database": {"url": "sqlite:///:memory:"},
+            }
+        )
 
     def test_dmarket_api_is_singleton(self, container):
         """Тест что DMarketAPI создается как singleton."""
@@ -125,10 +127,12 @@ class TestCacheProviders:
     @pytest.fixture()
     def container(self):
         """Создать контейнер."""
-        return init_container({
-            "cache": {"max_size": 500, "default_ttl": 120},
-            "redis": {"url": None},
-        })
+        return init_container(
+            {
+                "cache": {"max_size": 500, "default_ttl": 120},
+                "redis": {"url": None},
+            }
+        )
 
     def test_memory_cache_is_singleton(self, container):
         """Тест что memory cache - singleton."""
@@ -151,10 +155,12 @@ class TestDatabaseProviders:
     @pytest.fixture()
     def container(self):
         """Создать контейнер."""
-        return init_container({
-            "database": {"url": "sqlite:///:memory:"},
-            "debug": False,
-        })
+        return init_container(
+            {
+                "database": {"url": "sqlite:///:memory:"},
+                "debug": False,
+            }
+        )
 
     def test_database_is_singleton(self, container):
         """Тест что database manager - singleton."""
@@ -169,9 +175,11 @@ class TestContainerOverrides:
 
     def test_override_dmarket_api(self):
         """Тест переопределения DMarket API для тестов."""
-        container = init_container({
-            "dmarket": {"public_key": "test"},
-        })
+        container = init_container(
+            {
+                "dmarket": {"public_key": "test"},
+            }
+        )
 
         # Создать mock API
         mock_api = AsyncMock()
@@ -189,9 +197,11 @@ class TestContainerOverrides:
 
     def test_override_propagates_to_dependents(self):
         """Тест что переопределение влияет на зависимые компоненты."""
-        container = init_container({
-            "dmarket": {"public_key": "test"},
-        })
+        container = init_container(
+            {
+                "dmarket": {"public_key": "test"},
+            }
+        )
 
         mock_api = AsyncMock()
         container.dmarket_api.override(mock_api)
@@ -212,12 +222,14 @@ class TestProtocolCompliance:
 
     def test_dmarket_api_implements_protocol(self):
         """Тест что DMarketAPI реализует Protocol."""
-        container = init_container({
-            "dmarket": {
-                "public_key": "test",
-                "secret_key": "test",
-            },
-        })
+        container = init_container(
+            {
+                "dmarket": {
+                    "public_key": "test",
+                    "secret_key": "test",
+                },
+            }
+        )
 
         api = container.dmarket_api()
         # DMarketAPI должен соответствовать IDMarketAPI Protocol

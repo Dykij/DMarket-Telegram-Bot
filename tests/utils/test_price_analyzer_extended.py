@@ -176,7 +176,11 @@ class TestFindUndervaluedItems:
         """Test finding undervalued items."""
         mock_api.get_market_items.return_value = {
             "objects": [
-                {"itemId": "item1", "title": "Test Item", "price": {"amount": 800}},  # $8
+                {
+                    "itemId": "item1",
+                    "title": "Test Item",
+                    "price": {"amount": 800},
+                },  # $8
             ]
         }
         # Mock price history showing item is undervalued
@@ -189,7 +193,11 @@ class TestFindUndervaluedItems:
         }
 
         result = await find_undervalued_items(
-            mock_api, game="csgo", price_from=1.0, price_to=100.0, discount_threshold=20.0
+            mock_api,
+            game="csgo",
+            price_from=1.0,
+            price_to=100.0,
+            discount_threshold=20.0,
         )
 
         assert isinstance(result, list)
@@ -379,7 +387,9 @@ class TestGetInvestmentRecommendations:
         """Test that recommendations return max 10 items."""
         mock_api.get_market_items.return_value = {"objects": []}
 
-        result = await get_investment_recommendations(mock_api, game="csgo", budget=1000.0)
+        result = await get_investment_recommendations(
+            mock_api, game="csgo", budget=1000.0
+        )
 
         assert len(result) <= 10
 
@@ -605,7 +615,9 @@ class TestEdgeCases:
             "sales": [{"date": "2024-01-01T00:00:00", "price": 1000, "volume": 5}]
         }
 
-        result = await find_undervalued_items(mock_api, game="csgo", discount_threshold=20.0)
+        result = await find_undervalued_items(
+            mock_api, game="csgo", discount_threshold=20.0
+        )
 
         # Should not include items with negative discount
         assert all(item.get("discount", 0) >= 0 for item in result) if result else True
@@ -635,9 +647,7 @@ class TestEdgeCases:
         }
 
         # Simulate concurrent requests
-        tasks = [
-            calculate_price_trend(mock_api, f"item{i}", days=7) for i in range(10)
-        ]
+        tasks = [calculate_price_trend(mock_api, f"item{i}", days=7) for i in range(10)]
 
         results = await asyncio.gather(*tasks)
 

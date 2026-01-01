@@ -70,13 +70,18 @@ class TestGetBalance:
         """Тест что get_balance использует правильный эндпоинт."""
         mock_response = {"usd": "5000", "usdAvailableToWithdraw": "5000"}
 
-        with patch.object(dmarket_api, "_request", return_value=mock_response) as mock_req:
+        with patch.object(
+            dmarket_api, "_request", return_value=mock_response
+        ) as mock_req:
             await dmarket_api.get_balance()
 
             # Проверяем что вызвали с эндпоинтом баланса
             call_args = mock_req.call_args
             assert call_args is not None
-            assert "/balance" in call_args[0][1] or call_args[0][1] == dmarket_api.ENDPOINT_BALANCE
+            assert (
+                "/balance" in call_args[0][1]
+                or call_args[0][1] == dmarket_api.ENDPOINT_BALANCE
+            )
 
     @pytest.mark.asyncio()
     async def test_get_balance_with_zero_balance(self, dmarket_api):
@@ -114,7 +119,9 @@ class TestGetBalance:
         """Тест что результат кэшируется."""
         mock_response = {"usd": "5000", "usdAvailableToWithdraw": "5000"}
 
-        with patch.object(dmarket_api, "_request", return_value=mock_response) as mock_req:
+        with patch.object(
+            dmarket_api, "_request", return_value=mock_response
+        ) as mock_req:
             # Первый вызов
             await dmarket_api.get_balance()
             # Второй вызов
@@ -128,7 +135,9 @@ class TestGetBalance:
         """Тест что используется GET метод."""
         mock_response = {"usd": "5000"}
 
-        with patch.object(dmarket_api, "_request", return_value=mock_response) as mock_req:
+        with patch.object(
+            dmarket_api, "_request", return_value=mock_response
+        ) as mock_req:
             await dmarket_api.get_balance()
 
             # Проверяем что первый аргумент - это "GET"
@@ -166,14 +175,17 @@ class TestGetMarketItems:
         """Тест передачи параметра game."""
         mock_response = {"objects": [], "total": {"items": 0}}
 
-        with patch.object(dmarket_api, "_request", return_value=mock_response) as mock_req:
+        with patch.object(
+            dmarket_api, "_request", return_value=mock_response
+        ) as mock_req:
             await dmarket_api.get_market_items(game="csgo")
 
             # Проверяем что game передан в параметрах
             call_kwargs = mock_req.call_args.kwargs if mock_req.call_args else {}
             if "params" in call_kwargs:
                 assert (
-                    "gameId" in call_kwargs["params"] or call_kwargs["params"].get("game") == "csgo"
+                    "gameId" in call_kwargs["params"]
+                    or call_kwargs["params"].get("game") == "csgo"
                 )
 
     @pytest.mark.asyncio()
@@ -181,7 +193,9 @@ class TestGetMarketItems:
         """Тест с параметром limit."""
         mock_response = {"objects": [], "total": {"items": 0}}
 
-        with patch.object(dmarket_api, "_request", return_value=mock_response) as mock_req:
+        with patch.object(
+            dmarket_api, "_request", return_value=mock_response
+        ) as mock_req:
             await dmarket_api.get_market_items(game="csgo", limit=50)
 
             call_kwargs = mock_req.call_args.kwargs if mock_req.call_args else {}
@@ -194,8 +208,12 @@ class TestGetMarketItems:
         """Тест с фильтрами по цене."""
         mock_response = {"objects": [], "total": {"items": 0}}
 
-        with patch.object(dmarket_api, "_request", return_value=mock_response) as mock_req:
-            await dmarket_api.get_market_items(game="csgo", price_from=1000, price_to=5000)
+        with patch.object(
+            dmarket_api, "_request", return_value=mock_response
+        ) as mock_req:
+            await dmarket_api.get_market_items(
+                game="csgo", price_from=1000, price_to=5000
+            )
 
             call_kwargs = mock_req.call_args.kwargs if mock_req.call_args else {}
             if "params" in call_kwargs:
@@ -208,7 +226,9 @@ class TestGetMarketItems:
         """Тест использования правильного эндпоинта."""
         mock_response = {"objects": []}
 
-        with patch.object(dmarket_api, "_request", return_value=mock_response) as mock_req:
+        with patch.object(
+            dmarket_api, "_request", return_value=mock_response
+        ) as mock_req:
             await dmarket_api.get_market_items(game="csgo")
 
             call_args = mock_req.call_args
@@ -240,7 +260,9 @@ class TestGetMarketItems:
         """Тест кэширования результатов."""
         mock_response = {"objects": [{"title": "Item"}]}
 
-        with patch.object(dmarket_api, "_request", return_value=mock_response) as mock_req:
+        with patch.object(
+            dmarket_api, "_request", return_value=mock_response
+        ) as mock_req:
             # Два одинаковых запроса
             await dmarket_api.get_market_items(game="csgo")
             await dmarket_api.get_market_items(game="csgo")
@@ -278,19 +300,25 @@ class TestGetUserInventory:
         """Тест использования правильного эндпоинта."""
         mock_response = {"objects": []}
 
-        with patch.object(dmarket_api, "_request", return_value=mock_response) as mock_req:
+        with patch.object(
+            dmarket_api, "_request", return_value=mock_response
+        ) as mock_req:
             await dmarket_api.get_user_inventory()
 
             call_args = mock_req.call_args
             assert call_args is not None
-            assert "/inventory" in call_args[0][1] or "/user/inventory" in call_args[0][1]
+            assert (
+                "/inventory" in call_args[0][1] or "/user/inventory" in call_args[0][1]
+            )
 
     @pytest.mark.asyncio()
     async def test_get_user_inventory_with_game_filter(self, dmarket_api):
         """Тест с фильтром по игре."""
         mock_response = {"objects": []}
 
-        with patch.object(dmarket_api, "_request", return_value=mock_response) as mock_req:
+        with patch.object(
+            dmarket_api, "_request", return_value=mock_response
+        ) as mock_req:
             await dmarket_api.get_user_inventory(game="csgo")
 
             call_kwargs = mock_req.call_args.kwargs if mock_req.call_args else {}
@@ -312,7 +340,9 @@ class TestGetUserInventory:
         """Тест с параметром limit."""
         mock_response = {"objects": []}
 
-        with patch.object(dmarket_api, "_request", return_value=mock_response) as mock_req:
+        with patch.object(
+            dmarket_api, "_request", return_value=mock_response
+        ) as mock_req:
             await dmarket_api.get_user_inventory(limit=100)
 
             call_kwargs = mock_req.call_args.kwargs if mock_req.call_args else {}

@@ -66,7 +66,9 @@ class TestArbitrageLevels:
         # Act & Assert
         for level_name, level_config in levels.ARBITRAGE_LEVELS.items():
             for field in required_fields:
-                assert field in level_config, f"Level '{level_name}' missing field '{field}'"
+                assert (
+                    field in level_config
+                ), f"Level '{level_name}' missing field '{field}'"
 
     def test_boost_level_config(self):
         """Тест конфигурации уровня boost."""
@@ -109,14 +111,15 @@ class TestArbitrageLevels:
 
         # Act
         min_profits = [
-            levels.ARBITRAGE_LEVELS[level]["min_profit_percent"] for level in level_order
+            levels.ARBITRAGE_LEVELS[level]["min_profit_percent"]
+            for level in level_order
         ]
 
         # Assert
         for i in range(len(min_profits) - 1):
-            assert min_profits[i] <= min_profits[i + 1], (
-                f"Profit percentages should increase: {level_order[i]} -> {level_order[i + 1]}"
-            )
+            assert (
+                min_profits[i] <= min_profits[i + 1]
+            ), f"Profit percentages should increase: {level_order[i]} -> {level_order[i + 1]}"
 
 
 class TestGetLevelConfig:
@@ -203,9 +206,9 @@ class TestGetPriceRangeForLevel:
         # Act & Assert
         for level in all_levels:
             min_price, max_price = levels.get_price_range_for_level(level)
-            assert min_price < max_price, (
-                f"Invalid price range for level '{level}': {min_price} >= {max_price}"
-            )
+            assert (
+                min_price < max_price
+            ), f"Invalid price range for level '{level}': {min_price} >= {max_price}"
 
 
 class TestGetAllLevels:
@@ -335,9 +338,9 @@ class TestLevelConsistency:
             name = config["name"]
             # Проверяем наличие эмодзи или специальных символов Unicode
             has_emoji = any(ord(char) > 0x2000 for char in name)
-            assert has_emoji, (
-                f"Level '{level}' name '{name}' should contain emoji or special Unicode char"
-            )
+            assert (
+                has_emoji
+            ), f"Level '{level}' name '{name}' should contain emoji or special Unicode char"
 
     def test_descriptions_are_in_english(self):
         """Тест что все описания на английском."""
@@ -349,9 +352,9 @@ class TestLevelConsistency:
             description = levels.get_level_description(level)
             # Проверяем отсутствие кириллицы
             has_cyrillic = any("\u0400" <= char <= "\u04ff" for char in description)
-            assert not has_cyrillic, (
-                f"Level '{level}' description should be in English, got: {description}"
-            )
+            assert (
+                not has_cyrillic
+            ), f"Level '{level}' description should be in English, got: {description}"
 
     def test_price_ranges_dont_overlap_significantly(self):
         """Тест что ценовые диапазоны уровней логично разнесены."""
@@ -367,6 +370,6 @@ class TestLevelConsistency:
             next_min, _next_max = ranges[i + 1]
 
             # Проверяем что минимальная цена следующего уровня больше или равна текущей
-            assert next_min >= current_min, (
-                f"Level {level_order[i + 1]} min price should be >= {level_order[i]} min price"
-            )
+            assert (
+                next_min >= current_min
+            ), f"Level {level_order[i + 1]} min price should be >= {level_order[i]} min price"

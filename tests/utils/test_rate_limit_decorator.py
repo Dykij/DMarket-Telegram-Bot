@@ -252,7 +252,9 @@ class TestRateLimitEdgeCases:
 
         # Assert
         assert result == "success"
-        mock_logger.warning.assert_called_once_with("rate_limiter_not_found", user_id=12345)
+        mock_logger.warning.assert_called_once_with(
+            "rate_limiter_not_found", user_id=12345
+        )
 
     @pytest.mark.asyncio()
     async def test_decorator_with_default_action(
@@ -275,7 +277,9 @@ class TestRateLimitEdgeCases:
         mock_rate_limiter.check_limit.assert_called_once_with(12345, "default", 1)
 
     @pytest.mark.asyncio()
-    async def test_decorator_with_custom_cost(self, mock_update, mock_context, mock_rate_limiter):
+    async def test_decorator_with_custom_cost(
+        self, mock_update, mock_context, mock_rate_limiter
+    ):
         """Test that decorator uses custom cost parameter."""
         # Arrange
         mock_context.bot_data.user_rate_limiter = mock_rate_limiter

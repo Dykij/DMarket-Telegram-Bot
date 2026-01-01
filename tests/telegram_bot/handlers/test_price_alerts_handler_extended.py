@@ -62,7 +62,9 @@ class TestPriceAlertTypes:
 
         mock_context.args = ["item123", "drop", "10"]
 
-        with patch("src.telegram_bot.handlers.price_alerts_handler.create_price_alert") as mock_create:
+        with patch(
+            "src.telegram_bot.handlers.price_alerts_handler.create_price_alert"
+        ) as mock_create:
             mock_create.return_value = {"id": "alert1", "type": "drop"}
             await handle_create_alert_command(mock_update, mock_context)
 
@@ -77,7 +79,9 @@ class TestPriceAlertTypes:
 
         mock_context.args = ["item123", "rise", "20"]
 
-        with patch("src.telegram_bot.handlers.price_alerts_handler.create_price_alert") as mock_create:
+        with patch(
+            "src.telegram_bot.handlers.price_alerts_handler.create_price_alert"
+        ) as mock_create:
             mock_create.return_value = {"id": "alert2", "type": "rise"}
             await handle_create_alert_command(mock_update, mock_context)
 
@@ -92,7 +96,9 @@ class TestPriceAlertTypes:
 
         mock_context.args = ["item123", "threshold", "50"]
 
-        with patch("src.telegram_bot.handlers.price_alerts_handler.create_price_alert") as mock_create:
+        with patch(
+            "src.telegram_bot.handlers.price_alerts_handler.create_price_alert"
+        ) as mock_create:
             mock_create.return_value = {"id": "alert3", "type": "threshold"}
             await handle_create_alert_command(mock_update, mock_context)
 
@@ -109,14 +115,21 @@ class TestAlertManagement:
             handle_list_alerts_command,
         )
 
-        with patch("src.telegram_bot.handlers.price_alerts_handler.get_user_alerts") as mock_get:
+        with patch(
+            "src.telegram_bot.handlers.price_alerts_handler.get_user_alerts"
+        ) as mock_get:
             mock_get.return_value = []
             await handle_list_alerts_command(mock_update, mock_context)
 
         mock_update.message.reply_text.assert_called()
         call_args = mock_update.message.reply_text.call_args
         text = call_args[0][0]
-        assert "no" in text.lower() or "пусто" in text.lower() or "empty" in text.lower() or "нет" in text.lower()
+        assert (
+            "no" in text.lower()
+            or "пусто" in text.lower()
+            or "empty" in text.lower()
+            or "нет" in text.lower()
+        )
 
     @pytest.mark.asyncio()
     async def test_list_alerts_with_data(self, mock_update, mock_context):
@@ -130,7 +143,9 @@ class TestAlertManagement:
             {"id": "alert2", "item": "Item 2", "type": "rise", "threshold": 20},
         ]
 
-        with patch("src.telegram_bot.handlers.price_alerts_handler.get_user_alerts") as mock_get:
+        with patch(
+            "src.telegram_bot.handlers.price_alerts_handler.get_user_alerts"
+        ) as mock_get:
             mock_get.return_value = mock_alerts
             await handle_list_alerts_command(mock_update, mock_context)
 
@@ -145,7 +160,9 @@ class TestAlertManagement:
 
         mock_context.args = ["alert1"]
 
-        with patch("src.telegram_bot.handlers.price_alerts_handler.delete_alert") as mock_delete:
+        with patch(
+            "src.telegram_bot.handlers.price_alerts_handler.delete_alert"
+        ) as mock_delete:
             mock_delete.return_value = True
             await handle_delete_alert_command(mock_update, mock_context)
 
@@ -160,7 +177,9 @@ class TestAlertManagement:
 
         mock_context.args = ["nonexistent"]
 
-        with patch("src.telegram_bot.handlers.price_alerts_handler.delete_alert") as mock_delete:
+        with patch(
+            "src.telegram_bot.handlers.price_alerts_handler.delete_alert"
+        ) as mock_delete:
             mock_delete.return_value = False
             await handle_delete_alert_command(mock_update, mock_context)
 
@@ -179,7 +198,9 @@ class TestAlertCallbacks:
 
         mock_callback_update.callback_query.data = "alert:view:alert1"
 
-        with patch("src.telegram_bot.handlers.price_alerts_handler.get_alert_by_id") as mock_get:
+        with patch(
+            "src.telegram_bot.handlers.price_alerts_handler.get_alert_by_id"
+        ) as mock_get:
             mock_get.return_value = {
                 "id": "alert1",
                 "item": "Test Item",
@@ -199,7 +220,9 @@ class TestAlertCallbacks:
 
         mock_callback_update.callback_query.data = "alert:delete:alert1"
 
-        with patch("src.telegram_bot.handlers.price_alerts_handler.delete_alert") as mock_delete:
+        with patch(
+            "src.telegram_bot.handlers.price_alerts_handler.delete_alert"
+        ) as mock_delete:
             mock_delete.return_value = True
             await handle_alert_callback(mock_callback_update, mock_context)
 
@@ -214,7 +237,9 @@ class TestAlertCallbacks:
 
         mock_callback_update.callback_query.data = "alert:toggle:alert1"
 
-        with patch("src.telegram_bot.handlers.price_alerts_handler.toggle_alert") as mock_toggle:
+        with patch(
+            "src.telegram_bot.handlers.price_alerts_handler.toggle_alert"
+        ) as mock_toggle:
             mock_toggle.return_value = True
             await handle_alert_callback(mock_callback_update, mock_context)
 
@@ -383,7 +408,9 @@ class TestEdgeCases:
 
         mock_context.args = ["item_with_<special>&chars", "drop", "10"]
 
-        with patch("src.telegram_bot.handlers.price_alerts_handler.create_price_alert") as mock_create:
+        with patch(
+            "src.telegram_bot.handlers.price_alerts_handler.create_price_alert"
+        ) as mock_create:
             mock_create.return_value = {"id": "alert1"}
             await handle_create_alert_command(mock_update, mock_context)
 
@@ -398,7 +425,9 @@ class TestEdgeCases:
 
         mock_context.args = ["предмет_тест", "drop", "10"]
 
-        with patch("src.telegram_bot.handlers.price_alerts_handler.create_price_alert") as mock_create:
+        with patch(
+            "src.telegram_bot.handlers.price_alerts_handler.create_price_alert"
+        ) as mock_create:
             mock_create.return_value = {"id": "alert1"}
             await handle_create_alert_command(mock_update, mock_context)
 
@@ -413,7 +442,9 @@ class TestEdgeCases:
 
         mock_context.args = ["item123", "drop", "999999999"]
 
-        with patch("src.telegram_bot.handlers.price_alerts_handler.create_price_alert") as mock_create:
+        with patch(
+            "src.telegram_bot.handlers.price_alerts_handler.create_price_alert"
+        ) as mock_create:
             mock_create.return_value = {"id": "alert1"}
             await handle_create_alert_command(mock_update, mock_context)
 
@@ -428,7 +459,9 @@ class TestEdgeCases:
 
         mock_context.args = ["item123", "drop", "10.5"]
 
-        with patch("src.telegram_bot.handlers.price_alerts_handler.create_price_alert") as mock_create:
+        with patch(
+            "src.telegram_bot.handlers.price_alerts_handler.create_price_alert"
+        ) as mock_create:
             mock_create.return_value = {"id": "alert1"}
             await handle_create_alert_command(mock_update, mock_context)
 

@@ -21,7 +21,9 @@ class TestSmartNotifierImports:
 
             # Verify deprecation warning was issued
             assert len(w) >= 1
-            assert any(issubclass(warning.category, DeprecationWarning) for warning in w)
+            assert any(
+                issubclass(warning.category, DeprecationWarning) for warning in w
+            )
 
     def test_exports_constants(self):
         """Test that module exports required constants."""

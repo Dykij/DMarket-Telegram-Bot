@@ -6,7 +6,6 @@ Tests for reactive WebSocket functionality including:
 - WebSocket client
 """
 
-
 import pytest
 
 from src.utils.reactive_websocket import (

@@ -4,7 +4,6 @@ This module tests the API error handling utilities including
 handle_response and retry_request functions.
 """
 
-
 import pytest
 
 from src.utils.api_error_handling import (
@@ -24,6 +23,7 @@ class TestRetryRequest:
     @pytest.mark.asyncio()
     async def test_retry_request_success_first_try(self):
         """Test successful request on first try."""
+
         async def success_func():
             return {"success": True}
 
@@ -43,7 +43,9 @@ class TestRetryRequest:
                 raise APIError("Temporary error", status_code=500)
             return {"success": True}
 
-        result = await retry_request(retry_then_success, max_retries=3, retry_delay=0.01)
+        result = await retry_request(
+            retry_then_success, max_retries=3, retry_delay=0.01
+        )
 
         assert result == {"success": True}
         assert call_count == 2
@@ -51,6 +53,7 @@ class TestRetryRequest:
     @pytest.mark.asyncio()
     async def test_retry_request_exhausts_retries(self):
         """Test request fails after exhausting retries."""
+
         async def always_fails():
             raise APIError("Always fails", status_code=500)
 
@@ -69,13 +72,16 @@ class TestRetryRequest:
                 raise NetworkError("Network failed")
             return {"data": "recovered"}
 
-        result = await retry_request(network_error_then_success, max_retries=3, retry_delay=0.01)
+        result = await retry_request(
+            network_error_then_success, max_retries=3, retry_delay=0.01
+        )
 
         assert result == {"data": "recovered"}
 
     @pytest.mark.asyncio()
     async def test_retry_request_with_args(self):
         """Test retry_request passes positional arguments."""
+
         async def func_with_args(a, b):
             return a + b
 
@@ -86,6 +92,7 @@ class TestRetryRequest:
     @pytest.mark.asyncio()
     async def test_retry_request_with_kwargs(self):
         """Test retry_request passes keyword arguments."""
+
         async def func_with_kwargs(x, y=10):
             return x * y
 

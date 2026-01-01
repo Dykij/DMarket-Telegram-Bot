@@ -264,9 +264,7 @@ class TestBatchProcessingPerformance:
             return [{"result": item["id"]} for item in batch]
 
         # Act
-        results = await optimizer.process_items_batched(
-            items, mock_process
-        )
+        results = await optimizer.process_items_batched(items, mock_process)
 
         # Assert
         assert len(results) == 50, f"Expected 50 results, got {len(results)}"

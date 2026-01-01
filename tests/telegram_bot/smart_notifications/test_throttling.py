@@ -29,6 +29,7 @@ class TestShouldThrottleNotification:
         from src.telegram_bot.smart_notifications.throttling import (
             should_throttle_notification,
         )
+
         current_hour = dt.now().hour
 
         # Use modulo to handle hour wraparound
@@ -59,6 +60,7 @@ class TestShouldThrottleNotification:
         from src.telegram_bot.smart_notifications.throttling import (
             should_throttle_notification,
         )
+
         current_hour = dt.now().hour
         # Set quiet hours to exclude current hour
         quiet_start = (current_hour + 12) % 24
@@ -88,6 +90,7 @@ class TestShouldThrottleNotification:
         from src.telegram_bot.smart_notifications.throttling import (
             should_throttle_notification,
         )
+
         current_hour = dt.now().hour
         # Ensure we're outside quiet hours
         quiet_start = (current_hour + 12) % 24
@@ -122,6 +125,7 @@ class TestShouldThrottleNotification:
         from src.telegram_bot.smart_notifications.throttling import (
             should_throttle_notification,
         )
+
         current_hour = dt.now().hour
         # Ensure we're outside quiet hours
         quiet_start = (current_hour + 12) % 24
@@ -156,6 +160,7 @@ class TestShouldThrottleNotification:
         from src.telegram_bot.smart_notifications.throttling import (
             should_throttle_notification,
         )
+
         current_hour = dt.now().hour
         # Ensure we're outside quiet hours
         quiet_start = (current_hour + 12) % 24
@@ -194,6 +199,7 @@ class TestShouldThrottleNotification:
         from src.telegram_bot.smart_notifications.throttling import (
             should_throttle_notification,
         )
+
         current_hour = dt.now().hour
         # Ensure we're outside quiet hours
         quiet_start = (current_hour + 12) % 24
@@ -229,6 +235,7 @@ class TestShouldThrottleNotification:
         from src.telegram_bot.smart_notifications.throttling import (
             should_throttle_notification,
         )
+
         current_hour = dt.now().hour
         # Ensure we're outside quiet hours
         quiet_start = (current_hour + 12) % 24
@@ -295,12 +302,15 @@ class TestRecordNotification:
             }
         }
 
-        with patch(
-            "src.telegram_bot.smart_notifications.throttling.get_user_preferences",
-            return_value=user_prefs,
-        ), patch(
-            "src.telegram_bot.smart_notifications.throttling.save_user_preferences"
-        ) as mock_save:
+        with (
+            patch(
+                "src.telegram_bot.smart_notifications.throttling.get_user_preferences",
+                return_value=user_prefs,
+            ),
+            patch(
+                "src.telegram_bot.smart_notifications.throttling.save_user_preferences"
+            ) as mock_save,
+        ):
             await record_notification(
                 user_id=123,
                 notification_type="price_alert",
@@ -320,11 +330,14 @@ class TestRecordNotification:
             }
         }
 
-        with patch(
-            "src.telegram_bot.smart_notifications.throttling.get_user_preferences",
-            return_value=user_prefs,
-        ), patch(
-            "src.telegram_bot.smart_notifications.throttling.save_user_preferences"
+        with (
+            patch(
+                "src.telegram_bot.smart_notifications.throttling.get_user_preferences",
+                return_value=user_prefs,
+            ),
+            patch(
+                "src.telegram_bot.smart_notifications.throttling.save_user_preferences"
+            ),
         ):
             await record_notification(
                 user_id=123,
@@ -339,15 +352,16 @@ class TestRecordNotification:
         """Test record_notification creates last_notification dict if missing."""
         from src.telegram_bot.smart_notifications.throttling import record_notification
 
-        user_prefs = {
-            "123": {}  # No last_notification key
-        }
+        user_prefs = {"123": {}}  # No last_notification key
 
-        with patch(
-            "src.telegram_bot.smart_notifications.throttling.get_user_preferences",
-            return_value=user_prefs,
-        ), patch(
-            "src.telegram_bot.smart_notifications.throttling.save_user_preferences"
+        with (
+            patch(
+                "src.telegram_bot.smart_notifications.throttling.get_user_preferences",
+                return_value=user_prefs,
+            ),
+            patch(
+                "src.telegram_bot.smart_notifications.throttling.save_user_preferences"
+            ),
         ):
             await record_notification(
                 user_id=123,
@@ -364,12 +378,15 @@ class TestRecordNotification:
 
         user_prefs = {}  # No users
 
-        with patch(
-            "src.telegram_bot.smart_notifications.throttling.get_user_preferences",
-            return_value=user_prefs,
-        ), patch(
-            "src.telegram_bot.smart_notifications.throttling.save_user_preferences"
-        ) as mock_save:
+        with (
+            patch(
+                "src.telegram_bot.smart_notifications.throttling.get_user_preferences",
+                return_value=user_prefs,
+            ),
+            patch(
+                "src.telegram_bot.smart_notifications.throttling.save_user_preferences"
+            ) as mock_save,
+        ):
             await record_notification(
                 user_id=123,
                 notification_type="price_alert",
@@ -391,11 +408,14 @@ class TestRecordNotification:
 
         before_time = time.time()
 
-        with patch(
-            "src.telegram_bot.smart_notifications.throttling.get_user_preferences",
-            return_value=user_prefs,
-        ), patch(
-            "src.telegram_bot.smart_notifications.throttling.save_user_preferences"
+        with (
+            patch(
+                "src.telegram_bot.smart_notifications.throttling.get_user_preferences",
+                return_value=user_prefs,
+            ),
+            patch(
+                "src.telegram_bot.smart_notifications.throttling.save_user_preferences"
+            ),
         ):
             await record_notification(
                 user_id=123,

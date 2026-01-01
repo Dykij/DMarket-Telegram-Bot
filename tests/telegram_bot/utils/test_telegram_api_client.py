@@ -16,13 +16,16 @@ class TestSetupApiClient:
         """Test setup_api_client creates client with valid env vars."""
         from src.telegram_bot.utils.api_client import setup_api_client
 
-        with patch.dict(
-            os.environ,
-            {
-                "DMARKET_PUBLIC_KEY": "test_public_key",
-                "DMARKET_SECRET_KEY": "test_secret_key",
-            },
-        ), patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "DMARKET_PUBLIC_KEY": "test_public_key",
+                    "DMARKET_SECRET_KEY": "test_secret_key",
+                },
+            ),
+            patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api,
+        ):
             mock_instance = MagicMock()
             mock_api.return_value = mock_instance
 
@@ -70,14 +73,17 @@ class TestSetupApiClient:
         """Test setup_api_client uses custom API URL from env."""
         from src.telegram_bot.utils.api_client import setup_api_client
 
-        with patch.dict(
-            os.environ,
-            {
-                "DMARKET_PUBLIC_KEY": "test_public",
-                "DMARKET_SECRET_KEY": "test_secret",
-                "DMARKET_API_URL": "https://custom.api.url",
-            },
-        ), patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "DMARKET_PUBLIC_KEY": "test_public",
+                    "DMARKET_SECRET_KEY": "test_secret",
+                    "DMARKET_API_URL": "https://custom.api.url",
+                },
+            ),
+            patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api,
+        ):
             mock_api.return_value = MagicMock()
 
             setup_api_client()
@@ -89,13 +95,16 @@ class TestSetupApiClient:
         """Test setup_api_client uses default API URL when not specified."""
         from src.telegram_bot.utils.api_client import setup_api_client
 
-        with patch.dict(
-            os.environ,
-            {
-                "DMARKET_PUBLIC_KEY": "test_public",
-                "DMARKET_SECRET_KEY": "test_secret",
-            },
-        ), patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "DMARKET_PUBLIC_KEY": "test_public",
+                    "DMARKET_SECRET_KEY": "test_secret",
+                },
+            ),
+            patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api,
+        ):
             mock_api.return_value = MagicMock()
 
             setup_api_client()
@@ -107,13 +116,16 @@ class TestSetupApiClient:
         """Test setup_api_client sets max_retries parameter."""
         from src.telegram_bot.utils.api_client import setup_api_client
 
-        with patch.dict(
-            os.environ,
-            {
-                "DMARKET_PUBLIC_KEY": "test_public",
-                "DMARKET_SECRET_KEY": "test_secret",
-            },
-        ), patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "DMARKET_PUBLIC_KEY": "test_public",
+                    "DMARKET_SECRET_KEY": "test_secret",
+                },
+            ),
+            patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api,
+        ):
             mock_api.return_value = MagicMock()
 
             setup_api_client()
@@ -125,13 +137,16 @@ class TestSetupApiClient:
         """Test setup_api_client sets connection_timeout parameter."""
         from src.telegram_bot.utils.api_client import setup_api_client
 
-        with patch.dict(
-            os.environ,
-            {
-                "DMARKET_PUBLIC_KEY": "test_public",
-                "DMARKET_SECRET_KEY": "test_secret",
-            },
-        ), patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "DMARKET_PUBLIC_KEY": "test_public",
+                    "DMARKET_SECRET_KEY": "test_secret",
+                },
+            ),
+            patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api,
+        ):
             mock_api.return_value = MagicMock()
 
             setup_api_client()
@@ -143,13 +158,16 @@ class TestSetupApiClient:
         """Test setup_api_client enables caching."""
         from src.telegram_bot.utils.api_client import setup_api_client
 
-        with patch.dict(
-            os.environ,
-            {
-                "DMARKET_PUBLIC_KEY": "test_public",
-                "DMARKET_SECRET_KEY": "test_secret",
-            },
-        ), patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "DMARKET_PUBLIC_KEY": "test_public",
+                    "DMARKET_SECRET_KEY": "test_secret",
+                },
+            ),
+            patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api,
+        ):
             mock_api.return_value = MagicMock()
 
             setup_api_client()
@@ -161,13 +179,16 @@ class TestSetupApiClient:
         """Test setup_api_client handles exceptions during creation."""
         from src.telegram_bot.utils.api_client import setup_api_client
 
-        with patch.dict(
-            os.environ,
-            {
-                "DMARKET_PUBLIC_KEY": "test_public",
-                "DMARKET_SECRET_KEY": "test_secret",
-            },
-        ), patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "DMARKET_PUBLIC_KEY": "test_public",
+                    "DMARKET_SECRET_KEY": "test_secret",
+                },
+            ),
+            patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api,
+        ):
             mock_api.side_effect = Exception("Creation failed")
 
             result = setup_api_client()
@@ -241,10 +262,13 @@ class TestSetupApiClientWithKeys:
         """Test setup_api_client_with_keys uses API URL from env."""
         from src.telegram_bot.utils.api_client import setup_api_client_with_keys
 
-        with patch.dict(
-            os.environ,
-            {"DMARKET_API_URL": "https://custom.url"},
-        ), patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api:
+        with (
+            patch.dict(
+                os.environ,
+                {"DMARKET_API_URL": "https://custom.url"},
+            ),
+            patch("src.telegram_bot.utils.api_client.DMarketAPI") as mock_api,
+        ):
             mock_api.return_value = MagicMock()
 
             setup_api_client_with_keys("public", "secret")

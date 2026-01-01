@@ -141,7 +141,9 @@ class TestMetricsCollector:
 
     def test_record_target_created(self) -> None:
         """Test recording target creation."""
-        with patch("src.utils.prometheus_exporter.targets_created_total") as mock_counter:
+        with patch(
+            "src.utils.prometheus_exporter.targets_created_total"
+        ) as mock_counter:
             from src.utils.prometheus_exporter import MetricsCollector
 
             MetricsCollector.record_target_created("csgo", 123)
@@ -258,7 +260,9 @@ class TestMetricsCollector:
     def test_get_metrics(self) -> None:
         """Test getting metrics in Prometheus format."""
         with patch("src.utils.prometheus_exporter.generate_latest") as mock_generate:
-            mock_generate.return_value = b"# HELP metric\n# TYPE metric gauge\nmetric 1.0"
+            mock_generate.return_value = (
+                b"# HELP metric\n# TYPE metric gauge\nmetric 1.0"
+            )
 
             from src.utils.prometheus_exporter import MetricsCollector
 

@@ -191,7 +191,9 @@ class SecretsManager:
 
 
 def migrate_env_to_encrypted(
-    env_file: str = ".env", master_password: str = None, output_file: str = ".env.encrypted"
+    env_file: str = ".env",
+    master_password: str = None,
+    output_file: str = ".env.encrypted",
 ) -> None:
     """Migrate plain .env file to encrypted format.
 

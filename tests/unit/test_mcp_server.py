@@ -34,7 +34,9 @@ def mock_api_client():
             ]
         }
     )
-    client.get_item_by_id = AsyncMock(return_value={"title": "Test Item", "price": {"USD": "1000"}})
+    client.get_item_by_id = AsyncMock(
+        return_value={"title": "Test Item", "price": {"USD": "1000"}}
+    )
     return client
 
 
@@ -178,7 +180,9 @@ class TestDMarketMCPServer:
         """Тест создания таргета."""
         with patch("src.mcp_server.dmarket_mcp.TargetManager") as mock_tm_class:
             mock_tm = AsyncMock()
-            mock_tm.create_target = AsyncMock(return_value={"target_id": "test_target_123"})
+            mock_tm.create_target = AsyncMock(
+                return_value={"target_id": "test_target_123"}
+            )
             mock_tm_class.return_value = mock_tm
 
             result = await mcp_server._create_target(
@@ -293,7 +297,9 @@ class TestMCPServerErrorHandling:
     @pytest.mark.asyncio()
     async def test_get_market_items_error_handling(self, mcp_server, mock_api_client):
         """Тест обработки ошибок при получении предметов."""
-        mock_api_client.get_market_items = AsyncMock(side_effect=Exception("Network Error"))
+        mock_api_client.get_market_items = AsyncMock(
+            side_effect=Exception("Network Error")
+        )
 
         with pytest.raises(Exception, match="Network Error"):
             await mcp_server._get_market_items(game="csgo")
@@ -301,7 +307,9 @@ class TestMCPServerErrorHandling:
     @pytest.mark.asyncio()
     async def test_get_item_details_error_handling(self, mcp_server, mock_api_client):
         """Тест обработки ошибок при получении деталей предмета."""
-        mock_api_client.get_item_by_id = AsyncMock(side_effect=Exception("Item Not Found"))
+        mock_api_client.get_item_by_id = AsyncMock(
+            side_effect=Exception("Item Not Found")
+        )
 
         with pytest.raises(Exception, match="Item Not Found"):
             await mcp_server._get_item_details(item_id="invalid_id")

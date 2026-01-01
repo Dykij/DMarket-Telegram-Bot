@@ -605,7 +605,9 @@ async def test_get_market_items_with_aggregated_prices_cache(
     mock_api_client.get_market_items = AsyncMock(
         return_value={"objects": [{"itemId": "cached_item"}]}
     )
-    mock_api_client.get_aggregated_prices = AsyncMock(return_value={"aggregatedPrices": []})
+    mock_api_client.get_aggregated_prices = AsyncMock(
+        return_value={"aggregatedPrices": []}
+    )
 
     finder = SmartMarketFinder(mock_api_client)
 
@@ -803,7 +805,9 @@ def test_generate_notes_low_liquidity(mock_api_client):
 
     item = {"extra": {"popularity": 0.2}}
 
-    notes = finder._generate_notes(item, profit=5.0, profit_percent=10.0, liquidity=30.0)
+    notes = finder._generate_notes(
+        item, profit=5.0, profit_percent=10.0, liquidity=30.0
+    )
 
     assert any("низкая ликвидность" in note.lower() for note in notes)
 
@@ -833,7 +837,9 @@ def test_determine_opportunity_type_target_opportunity(mock_api_client):
 
 
 @pytest.mark.asyncio()
-async def test_find_best_opportunities_filters_low_confidence(mock_api_client, sample_market_item):
+async def test_find_best_opportunities_filters_low_confidence(
+    mock_api_client, sample_market_item
+):
     """Тест фильтрации возможностей с низкой уверенностью."""
     # Настройка моков
     mock_api_client._request = AsyncMock(
@@ -855,7 +861,9 @@ async def test_find_best_opportunities_filters_low_confidence(mock_api_client, s
 
 
 @pytest.mark.asyncio()
-async def test_find_best_opportunities_filters_by_type(mock_api_client, sample_market_item):
+async def test_find_best_opportunities_filters_by_type(
+    mock_api_client, sample_market_item
+):
     """Тест фильтрации возможностей по типу."""
     # Настройка моков
     mock_api_client._request = AsyncMock(
@@ -890,7 +898,9 @@ async def test_find_underpriced_items_with_discount(mock_api_client):
     mock_api_client._request = AsyncMock(return_value={"objects": [item]})
 
     finder = SmartMarketFinder(mock_api_client)
-    underpriced = await finder.find_underpriced_items(game="csgo", min_discount_percent=30.0)
+    underpriced = await finder.find_underpriced_items(
+        game="csgo", min_discount_percent=30.0
+    )
 
     assert len(underpriced) > 0
     if underpriced:
@@ -937,7 +947,9 @@ async def test_find_target_opportunities_no_profit(mock_api_client):
     )
 
     finder = SmartMarketFinder(mock_api_client)
-    opportunities = await finder.find_target_opportunities(game="csgo", min_spread_percent=1.0)
+    opportunities = await finder.find_target_opportunities(
+        game="csgo", min_spread_percent=1.0
+    )
 
     # Не должно быть возможностей с отрицательной прибылью
     for opp in opportunities:
@@ -965,7 +977,9 @@ async def test_find_quick_flip_filters_high_risk(mock_api_client):
 
     with patch.object(finder, "find_underpriced_items", return_value=[high_risk_opp]):
         # Запрашиваем только низкий риск
-        opportunities = await finder.find_quick_flip_opportunities(game="csgo", max_risk="low")
+        opportunities = await finder.find_quick_flip_opportunities(
+            game="csgo", max_risk="low"
+        )
 
         # Предмет с высоким риском должен быть отфильтрован
         assert len(opportunities) == 0
@@ -1056,12 +1070,16 @@ def test_calculate_confidence_with_suggested_price(mock_api_client):
         "suggestedPrice": {"USD": "5000"},
     }
 
-    score_with = finder._calculate_confidence_score(item_with_suggested, profit_percent=10.0)
+    score_with = finder._calculate_confidence_score(
+        item_with_suggested, profit_percent=10.0
+    )
 
     # Без suggestedPrice
     item_without_suggested = {"extra": {"popularity": 0.5}}
 
-    score_without = finder._calculate_confidence_score(item_without_suggested, profit_percent=10.0)
+    score_without = finder._calculate_confidence_score(
+        item_without_suggested, profit_percent=10.0
+    )
 
     # С suggested должна быть выше
     assert score_with > score_without
@@ -1088,7 +1106,9 @@ def test_determine_risk_level_medium(mock_api_client):
     finder = SmartMarketFinder(mock_api_client)
 
     # Средние показатели
-    risk = finder._determine_risk_level(profit_percent=15.0, liquidity=60.0, confidence=65.0)
+    risk = finder._determine_risk_level(
+        profit_percent=15.0, liquidity=60.0, confidence=65.0
+    )
 
     assert risk == "medium"
 
@@ -1157,7 +1177,9 @@ async def test_find_best_opportunities_sorts_by_confidence(mock_api_client):
         },
     ]
 
-    mock_api_client._request = AsyncMock(side_effect=[{"objects": items}, {"aggregatedPrices": []}])
+    mock_api_client._request = AsyncMock(
+        side_effect=[{"objects": items}, {"aggregatedPrices": []}]
+    )
 
     finder = SmartMarketFinder(mock_api_client)
     opportunities = await finder.find_best_opportunities(game="csgo", limit=10)

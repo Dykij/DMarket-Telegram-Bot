@@ -80,8 +80,18 @@ class TestArbitrageScanningFeature:
 
         # When: scan standard level
         mock_opportunities = [
-            {"item": "AK-47", "buy_price": 10.0, "sell_price": 12.0, "profit_percent": 8.0},
-            {"item": "M4A4", "buy_price": 15.0, "sell_price": 18.0, "profit_percent": 7.5},
+            {
+                "item": "AK-47",
+                "buy_price": 10.0,
+                "sell_price": 12.0,
+                "profit_percent": 8.0,
+            },
+            {
+                "item": "M4A4",
+                "buy_price": 15.0,
+                "sell_price": 18.0,
+                "profit_percent": 7.5,
+            },
         ]
 
         def mock_scan(level: str, game: str) -> list:
@@ -145,9 +155,7 @@ class TestArbitrageScanningFeature:
 
         # When: combine and sort
         sorted_opportunities = sorted(
-            all_opportunities,
-            key=operator.itemgetter("profit_percent"),
-            reverse=True
+            all_opportunities, key=operator.itemgetter("profit_percent"), reverse=True
         )
 
         # Then
@@ -194,15 +202,14 @@ class TestArbitrageScanningFeature:
         min_price, max_price = 1.0, 50.0
         all_opportunities = [
             {"item": "A", "buy_price": 10.0},
-            {"item": "B", "buy_price": 0.5},   # Should be filtered
+            {"item": "B", "buy_price": 0.5},  # Should be filtered
             {"item": "C", "buy_price": 45.0},
             {"item": "D", "buy_price": 100.0},  # Should be filtered
         ]
 
         # When: apply filter
         filtered = [
-            o for o in all_opportunities
-            if min_price <= o["buy_price"] <= max_price
+            o for o in all_opportunities if min_price <= o["buy_price"] <= max_price
         ]
 
         # Then
@@ -404,7 +411,9 @@ class TestTradingOperationsFeature:
         listing_price = 1500.0
 
         # When
-        def create_listing(user: dict, item: dict, price: float) -> tuple[bool, str, dict]:
+        def create_listing(
+            user: dict, item: dict, price: float
+        ) -> tuple[bool, str, dict]:
             if item in user["inventory"]:
                 listing = {"item": item, "price": price, "status": "active"}
                 return True, f"Listed {item['name']} for ${price:.2f}", listing
@@ -494,7 +503,9 @@ class TestNotificationManagementFeature:
         target_price = 40.0
 
         # When
-        def set_price_alert(user: dict, item: dict, target: float) -> tuple[bool, str, dict]:
+        def set_price_alert(
+            user: dict, item: dict, target: float
+        ) -> tuple[bool, str, dict]:
             alert = {
                 "item": item["name"],
                 "target_price": target,
@@ -503,7 +514,9 @@ class TestNotificationManagementFeature:
             }
             return True, f"Alert set for {item['name']} at ${target:.2f}", alert
 
-        success, message, alert = set_price_alert(authenticated_user, item, target_price)
+        success, message, alert = set_price_alert(
+            authenticated_user, item, target_price
+        )
 
         # Then
         assert success

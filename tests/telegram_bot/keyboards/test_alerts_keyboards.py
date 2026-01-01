@@ -281,9 +281,7 @@ class TestCreatePriceAlertsKeyboard:
         result = create_price_alerts_keyboard([])
 
         # Should have at least create and back buttons
-        all_texts = [
-            btn.text for row in result.inline_keyboard for btn in row
-        ]
+        all_texts = [btn.text for row in result.inline_keyboard for btn in row]
         assert any("Создать" in text for text in all_texts)
 
     def test_single_alert_displayed(self):
@@ -301,7 +299,9 @@ class TestCreatePriceAlertsKeyboard:
 
         # Find the alert button
         alert_buttons = [
-            btn for row in result.inline_keyboard for btn in row
+            btn
+            for row in result.inline_keyboard
+            for btn in row
             if btn.callback_data and btn.callback_data.startswith("alert_view_")
         ]
         assert len(alert_buttons) == 1
@@ -420,7 +420,9 @@ class TestCreatePriceAlertsKeyboard:
 
         # Find pagination buttons
         all_callbacks = [
-            btn.callback_data for row in result.inline_keyboard for btn in row
+            btn.callback_data
+            for row in result.inline_keyboard
+            for btn in row
             if btn.callback_data
         ]
         assert any("alerts_page_" in cb for cb in all_callbacks)
@@ -428,14 +430,22 @@ class TestCreatePriceAlertsKeyboard:
     def test_first_page_no_previous_button(self):
         """Test that first page has no previous button."""
         alerts = [
-            {"id": f"alert_{i}", "item_name": f"Item {i}", "target_price": 10.0, "type": "below", "active": True}
+            {
+                "id": f"alert_{i}",
+                "item_name": f"Item {i}",
+                "target_price": 10.0,
+                "type": "below",
+                "active": True,
+            }
             for i in range(10)
         ]
         result = create_price_alerts_keyboard(alerts, page=1, page_size=5)
 
         # Check for previous page button (should not exist)
         all_callbacks = [
-            btn.callback_data for row in result.inline_keyboard for btn in row
+            btn.callback_data
+            for row in result.inline_keyboard
+            for btn in row
             if btn.callback_data
         ]
         assert "alerts_page_0" not in all_callbacks
@@ -443,14 +453,22 @@ class TestCreatePriceAlertsKeyboard:
     def test_last_page_no_next_button(self):
         """Test that last page has no next button."""
         alerts = [
-            {"id": f"alert_{i}", "item_name": f"Item {i}", "target_price": 10.0, "type": "below", "active": True}
+            {
+                "id": f"alert_{i}",
+                "item_name": f"Item {i}",
+                "target_price": 10.0,
+                "type": "below",
+                "active": True,
+            }
             for i in range(10)
         ]
         result = create_price_alerts_keyboard(alerts, page=2, page_size=5)
 
         # Check for next page button (should not exist)
         all_callbacks = [
-            btn.callback_data for row in result.inline_keyboard for btn in row
+            btn.callback_data
+            for row in result.inline_keyboard
+            for btn in row
             if btn.callback_data
         ]
         assert "alerts_page_3" not in all_callbacks
@@ -458,13 +476,21 @@ class TestCreatePriceAlertsKeyboard:
     def test_middle_page_has_both_navigation_buttons(self):
         """Test that middle page has both prev and next buttons."""
         alerts = [
-            {"id": f"alert_{i}", "item_name": f"Item {i}", "target_price": 10.0, "type": "below", "active": True}
+            {
+                "id": f"alert_{i}",
+                "item_name": f"Item {i}",
+                "target_price": 10.0,
+                "type": "below",
+                "active": True,
+            }
             for i in range(15)
         ]
         result = create_price_alerts_keyboard(alerts, page=2, page_size=5)
 
         all_callbacks = [
-            btn.callback_data for row in result.inline_keyboard for btn in row
+            btn.callback_data
+            for row in result.inline_keyboard
+            for btn in row
             if btn.callback_data
         ]
         # Should have page 1 (prev) and page 3 (next)
@@ -475,9 +501,7 @@ class TestCreatePriceAlertsKeyboard:
         """Test that 'Delete all' button exists."""
         result = create_price_alerts_keyboard([])
 
-        all_texts = [
-            btn.text for row in result.inline_keyboard for btn in row
-        ]
+        all_texts = [btn.text for row in result.inline_keyboard for btn in row]
         assert any("Удалить все" in text for text in all_texts)
 
     def test_back_button_exists(self):

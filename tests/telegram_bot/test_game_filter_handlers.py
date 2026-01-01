@@ -309,7 +309,9 @@ async def test_handle_game_filters(mock_filter_factory, mock_update, mock_contex
 
 @patch("src.telegram_bot.handlers.game_filter_handlers.FilterFactory")
 @pytest.mark.asyncio()
-async def test_handle_select_game_filter_callback(mock_filter_factory, mock_update, mock_context):
+async def test_handle_select_game_filter_callback(
+    mock_filter_factory, mock_update, mock_context
+):
     """Тест обработчика выбора типа фильтра."""
     # Настраиваем мок FilterFactory
     mock_filter = MagicMock()
@@ -328,7 +330,9 @@ async def test_handle_select_game_filter_callback(mock_filter_factory, mock_upda
 
 @patch("src.telegram_bot.handlers.game_filter_handlers.FilterFactory")
 @pytest.mark.asyncio()
-async def test_handle_set_category_callback(mock_filter_factory, mock_update, mock_context):
+async def test_handle_set_category_callback(
+    mock_filter_factory, mock_update, mock_context
+):
     """Тест обработчика установки категории."""
     # Настраиваем мок FilterFactory
     mock_filter = MagicMock()
@@ -348,7 +352,9 @@ async def test_handle_set_category_callback(mock_filter_factory, mock_update, mo
 
 @patch("src.telegram_bot.handlers.game_filter_handlers.FilterFactory")
 @pytest.mark.asyncio()
-async def test_handle_set_rarity_callback(mock_filter_factory, mock_update, mock_context):
+async def test_handle_set_rarity_callback(
+    mock_filter_factory, mock_update, mock_context
+):
     """Тест обработчика установки редкости."""
     # Настраиваем мок FilterFactory
     mock_filter = MagicMock()
@@ -368,7 +374,9 @@ async def test_handle_set_rarity_callback(mock_filter_factory, mock_update, mock
 
 @patch("src.telegram_bot.handlers.game_filter_handlers.FilterFactory")
 @pytest.mark.asyncio()
-async def test_handle_set_exterior_callback(mock_filter_factory, mock_update, mock_context):
+async def test_handle_set_exterior_callback(
+    mock_filter_factory, mock_update, mock_context
+):
     """Тест обработчика установки внешнего вида."""
     # Настраиваем мок FilterFactory
     mock_filter = MagicMock()
@@ -408,7 +416,9 @@ async def test_handle_set_hero_callback(mock_filter_factory, mock_update, mock_c
 
 @patch("src.telegram_bot.handlers.game_filter_handlers.FilterFactory")
 @pytest.mark.asyncio()
-async def test_handle_back_to_filters_callback(mock_filter_factory, mock_update, mock_context):
+async def test_handle_back_to_filters_callback(
+    mock_filter_factory, mock_update, mock_context
+):
     """Тест обработчика возврата к фильтрам."""
     # Настраиваем мок FilterFactory
     mock_filter = MagicMock()
@@ -437,7 +447,9 @@ async def test_handle_price_range_callback_csgo(mock_update, mock_context):
     mock_update.callback_query.data = "price_range:csgo"
 
     # Вызываем обработчик
-    from src.telegram_bot.handlers.game_filter_handlers import handle_price_range_callback
+    from src.telegram_bot.handlers.game_filter_handlers import (
+        handle_price_range_callback,
+    )
 
     await handle_price_range_callback(mock_update, mock_context)
 
@@ -451,7 +463,9 @@ async def test_handle_price_range_callback_csgo(mock_update, mock_context):
 
 
 @pytest.mark.asyncio()
-async def test_handle_price_range_callback_with_existing_filters(mock_update, mock_context):
+async def test_handle_price_range_callback_with_existing_filters(
+    mock_update, mock_context
+):
     """Тест обработчика диапазона цен с существующими фильтрами."""
     # Устанавливаем существующие фильтры
     mock_context.user_data["filters"] = {
@@ -465,7 +479,9 @@ async def test_handle_price_range_callback_with_existing_filters(mock_update, mo
     mock_update.callback_query.data = "price_range:csgo"
 
     # Вызываем обработчик
-    from src.telegram_bot.handlers.game_filter_handlers import handle_price_range_callback
+    from src.telegram_bot.handlers.game_filter_handlers import (
+        handle_price_range_callback,
+    )
 
     await handle_price_range_callback(mock_update, mock_context)
 
@@ -481,7 +497,9 @@ async def test_handle_float_range_callback_csgo(mock_update, mock_context):
     mock_update.callback_query.data = "float_range:csgo"
 
     # Вызываем обработчик
-    from src.telegram_bot.handlers.game_filter_handlers import handle_float_range_callback
+    from src.telegram_bot.handlers.game_filter_handlers import (
+        handle_float_range_callback,
+    )
 
     await handle_float_range_callback(mock_update, mock_context)
 
@@ -501,7 +519,9 @@ async def test_handle_float_range_callback_non_csgo_game(mock_update, mock_conte
     mock_update.callback_query.data = "float_range:dota2"
 
     # Вызываем обработчик
-    from src.telegram_bot.handlers.game_filter_handlers import handle_float_range_callback
+    from src.telegram_bot.handlers.game_filter_handlers import (
+        handle_float_range_callback,
+    )
 
     await handle_float_range_callback(mock_update, mock_context)
 
@@ -517,7 +537,9 @@ async def test_handle_set_category_callback_csgo(mock_update, mock_context):
     mock_update.callback_query.data = "set_category:csgo"
 
     # Вызываем обработчик
-    from src.telegram_bot.handlers.game_filter_handlers import handle_set_category_callback
+    from src.telegram_bot.handlers.game_filter_handlers import (
+        handle_set_category_callback,
+    )
 
     await handle_set_category_callback(mock_update, mock_context)
 
@@ -537,7 +559,9 @@ async def test_handle_set_category_callback_rust(mock_update, mock_context):
     mock_update.callback_query.data = "set_category:rust"
 
     # Вызываем обработчик
-    from src.telegram_bot.handlers.game_filter_handlers import handle_set_category_callback
+    from src.telegram_bot.handlers.game_filter_handlers import (
+        handle_set_category_callback,
+    )
 
     await handle_set_category_callback(mock_update, mock_context)
 
@@ -552,7 +576,9 @@ async def test_handle_set_rarity_callback_dota2(mock_update, mock_context):
     mock_update.callback_query.data = "set_rarity:dota2"
 
     # Вызываем обработчик
-    from src.telegram_bot.handlers.game_filter_handlers import handle_set_rarity_callback
+    from src.telegram_bot.handlers.game_filter_handlers import (
+        handle_set_rarity_callback,
+    )
 
     await handle_set_rarity_callback(mock_update, mock_context)
 
@@ -568,7 +594,9 @@ async def test_handle_set_exterior_callback_csgo(mock_update, mock_context):
     mock_update.callback_query.data = "set_exterior:csgo"
 
     # Вызываем обработчик
-    from src.telegram_bot.handlers.game_filter_handlers import handle_set_exterior_callback
+    from src.telegram_bot.handlers.game_filter_handlers import (
+        handle_set_exterior_callback,
+    )
 
     await handle_set_exterior_callback(mock_update, mock_context)
 
@@ -613,7 +641,9 @@ async def test_handle_set_class_callback_tf2(mock_update, mock_context):
 
 @patch("src.telegram_bot.handlers.game_filter_handlers.FilterFactory")
 @pytest.mark.asyncio()
-async def test_handle_filter_callback_price_range(mock_filter_factory, mock_update, mock_context):
+async def test_handle_filter_callback_price_range(
+    mock_filter_factory, mock_update, mock_context
+):
     """Тест установки диапазона цен через handle_filter_callback."""
     # Настраиваем мок FilterFactory
     mock_filter = MagicMock()
@@ -665,7 +695,9 @@ async def test_handle_filter_callback_price_range_reset(
 
 @patch("src.telegram_bot.handlers.game_filter_handlers.FilterFactory")
 @pytest.mark.asyncio()
-async def test_handle_filter_callback_float_range(mock_filter_factory, mock_update, mock_context):
+async def test_handle_filter_callback_float_range(
+    mock_filter_factory, mock_update, mock_context
+):
     """Тест установки диапазона float через handle_filter_callback."""
     # Настраиваем мок FilterFactory
     mock_filter = MagicMock()
@@ -742,7 +774,9 @@ async def test_handle_filter_callback_category_reset(
 
 @patch("src.telegram_bot.handlers.game_filter_handlers.FilterFactory")
 @pytest.mark.asyncio()
-async def test_handle_filter_callback_rarity_reset(mock_filter_factory, mock_update, mock_context):
+async def test_handle_filter_callback_rarity_reset(
+    mock_filter_factory, mock_update, mock_context
+):
     """Тест сброса редкости через handle_filter_callback."""
     # Настраиваем мок FilterFactory
     mock_filter = MagicMock()

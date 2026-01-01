@@ -8,9 +8,10 @@ global:
     environment: 'production'
 
 scrape_configs:
+  # Telegram Bot metrics (health check server)
   - job_name: 'dmarket-bot'
     static_configs:
-      - targets: ['bot:8000']
+      - targets: ['bot:8080']  # Updated to port 8080
     metrics_path: '/metrics'
     scrape_interval: 10s
 

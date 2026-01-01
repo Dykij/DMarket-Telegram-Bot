@@ -45,9 +45,7 @@ class TestStartCommand:
     """Тесты для команды /start."""
 
     @pytest.mark.asyncio()
-    async def test_start_command_sends_welcome_message(
-        self, mock_update, mock_context
-    ):
+    async def test_start_command_sends_welcome_message(self, mock_update, mock_context):
         """Тест отправки приветственного сообщения."""
         from src.telegram_bot.handlers.commands import start_command
 
@@ -59,9 +57,7 @@ class TestStartCommand:
         assert mock_update.message.reply_text.call_count >= 1
 
     @pytest.mark.asyncio()
-    async def test_start_command_sets_keyboard_enabled(
-        self, mock_update, mock_context
-    ):
+    async def test_start_command_sets_keyboard_enabled(self, mock_update, mock_context):
         """Тест установки флага keyboard_enabled."""
         from src.telegram_bot.handlers.commands import start_command
 
@@ -71,9 +67,7 @@ class TestStartCommand:
         assert mock_context.user_data.get("keyboard_enabled") is True
 
     @pytest.mark.asyncio()
-    async def test_start_command_returns_early_without_message(
-        self, mock_context
-    ):
+    async def test_start_command_returns_early_without_message(self, mock_context):
         """Тест раннего возврата если нет сообщения."""
         from src.telegram_bot.handlers.commands import start_command
 
@@ -88,9 +82,7 @@ class TestHelpCommand:
     """Тесты для команды /help."""
 
     @pytest.mark.asyncio()
-    async def test_help_command_sends_help_text(
-        self, mock_update, mock_context
-    ):
+    async def test_help_command_sends_help_text(self, mock_update, mock_context):
         """Тест отправки текста справки."""
         from src.telegram_bot.handlers.commands import help_command
 
@@ -103,9 +95,7 @@ class TestHelpCommand:
         assert "команды" in call_args[0][0].lower() or "команды" in str(call_args)
 
     @pytest.mark.asyncio()
-    async def test_help_command_returns_early_without_message(
-        self, mock_context
-    ):
+    async def test_help_command_returns_early_without_message(self, mock_context):
         """Тест раннего возврата если нет сообщения."""
         from src.telegram_bot.handlers.commands import help_command
 
@@ -119,9 +109,7 @@ class TestWebappCommand:
     """Тесты для команды /webapp."""
 
     @pytest.mark.asyncio()
-    async def test_webapp_command_sends_webapp_link(
-        self, mock_update, mock_context
-    ):
+    async def test_webapp_command_sends_webapp_link(self, mock_update, mock_context):
         """Тест отправки ссылки на WebApp."""
         from src.telegram_bot.handlers.commands import webapp_command
 
@@ -130,9 +118,7 @@ class TestWebappCommand:
         assert mock_update.message.reply_text.called
 
     @pytest.mark.asyncio()
-    async def test_webapp_command_returns_early_without_message(
-        self, mock_context
-    ):
+    async def test_webapp_command_returns_early_without_message(self, mock_context):
         """Тест раннего возврата если нет сообщения."""
         from src.telegram_bot.handlers.commands import webapp_command
 
@@ -146,9 +132,7 @@ class TestArbitrageCommand:
     """Тесты для команды /arbitrage."""
 
     @pytest.mark.asyncio()
-    async def test_arbitrage_command_shows_menu(
-        self, mock_update, mock_context
-    ):
+    async def test_arbitrage_command_shows_menu(self, mock_update, mock_context):
         """Тест показа меню арбитража."""
         from src.telegram_bot.handlers.commands import arbitrage_command
 
@@ -157,9 +141,7 @@ class TestArbitrageCommand:
         assert mock_update.message.reply_text.called
 
     @pytest.mark.asyncio()
-    async def test_arbitrage_command_returns_early_without_message(
-        self, mock_context
-    ):
+    async def test_arbitrage_command_returns_early_without_message(self, mock_context):
         """Тест раннего возврата если нет сообщения."""
         from src.telegram_bot.handlers.commands import arbitrage_command
 
@@ -173,9 +155,7 @@ class TestDashboardCommand:
     """Тесты для команды dashboard."""
 
     @pytest.mark.asyncio()
-    async def test_dashboard_command_shows_dashboard(
-        self, mock_update, mock_context
-    ):
+    async def test_dashboard_command_shows_dashboard(self, mock_update, mock_context):
         """Тест показа дашборда."""
         from src.telegram_bot.handlers.commands import dashboard_command
 
@@ -189,9 +169,7 @@ class TestMarketsCommand:
     """Тесты для команды markets."""
 
     @pytest.mark.asyncio()
-    async def test_markets_command_shows_markets(
-        self, mock_update, mock_context
-    ):
+    async def test_markets_command_shows_markets(self, mock_update, mock_context):
         """Тест показа списка площадок."""
         from src.telegram_bot.handlers.commands import markets_command
 
@@ -200,9 +178,7 @@ class TestMarketsCommand:
         assert mock_update.message.reply_text.called
 
     @pytest.mark.asyncio()
-    async def test_markets_command_returns_early_without_message(
-        self, mock_context
-    ):
+    async def test_markets_command_returns_early_without_message(self, mock_context):
         """Тест раннего возврата если нет сообщения."""
         from src.telegram_bot.handlers.commands import markets_command
 
@@ -216,13 +192,13 @@ class TestDmarketStatusCommand:
     """Тесты для команды dmarket_status."""
 
     @pytest.mark.asyncio()
-    async def test_dmarket_status_command_shows_status(
-        self, mock_update, mock_context
-    ):
+    async def test_dmarket_status_command_shows_status(self, mock_update, mock_context):
         """Тест показа статуса DMarket."""
         from src.telegram_bot.handlers.commands import dmarket_status_command
 
-        with patch("src.telegram_bot.handlers.commands.dmarket_status_impl") as mock_impl:
+        with patch(
+            "src.telegram_bot.handlers.commands.dmarket_status_impl"
+        ) as mock_impl:
             mock_impl.return_value = None
 
             await dmarket_status_command(mock_update, mock_context)
@@ -232,9 +208,7 @@ class TestHandleTextButtons:
     """Тесты для обработчика текстовых кнопок."""
 
     @pytest.mark.asyncio()
-    async def test_handle_text_buttons_arbitrage(
-        self, mock_update, mock_context
-    ):
+    async def test_handle_text_buttons_arbitrage(self, mock_update, mock_context):
         """Тест обработки кнопки арбитража."""
         from src.telegram_bot.handlers.commands import handle_text_buttons
 
@@ -243,9 +217,7 @@ class TestHandleTextButtons:
         await handle_text_buttons(mock_update, mock_context)
 
     @pytest.mark.asyncio()
-    async def test_handle_text_buttons_targets(
-        self, mock_update, mock_context
-    ):
+    async def test_handle_text_buttons_targets(self, mock_update, mock_context):
         """Тест обработки кнопки таргетов."""
         from src.telegram_bot.handlers.commands import handle_text_buttons
 
@@ -254,9 +226,7 @@ class TestHandleTextButtons:
         await handle_text_buttons(mock_update, mock_context)
 
     @pytest.mark.asyncio()
-    async def test_handle_text_buttons_settings(
-        self, mock_update, mock_context
-    ):
+    async def test_handle_text_buttons_settings(self, mock_update, mock_context):
         """Тест обработки кнопки настроек."""
         from src.telegram_bot.handlers.commands import handle_text_buttons
 
@@ -269,9 +239,7 @@ class TestCommandErrorHandling:
     """Тесты обработки ошибок в командах."""
 
     @pytest.mark.asyncio()
-    async def test_start_command_handles_exception(
-        self, mock_update, mock_context
-    ):
+    async def test_start_command_handles_exception(self, mock_update, mock_context):
         """Тест обработки исключения в start_command."""
         from src.telegram_bot.handlers.commands import start_command
 
@@ -285,9 +253,7 @@ class TestCommandErrorHandling:
             pass
 
     @pytest.mark.asyncio()
-    async def test_help_command_handles_exception(
-        self, mock_update, mock_context
-    ):
+    async def test_help_command_handles_exception(self, mock_update, mock_context):
         """Тест обработки исключения в help_command."""
         from src.telegram_bot.handlers.commands import help_command
 

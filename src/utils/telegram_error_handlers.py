@@ -12,8 +12,17 @@ from typing import Any
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from src.utils.exceptions import APIError, AuthenticationError, RateLimitError, ValidationError
-from src.utils.sentry_integration import add_breadcrumb, capture_exception, set_user_context
+from src.utils.exceptions import (
+    APIError,
+    AuthenticationError,
+    RateLimitError,
+    ValidationError,
+)
+from src.utils.sentry_integration import (
+    add_breadcrumb,
+    capture_exception,
+    set_user_context,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -144,7 +153,9 @@ def telegram_error_boundary(
                         "user_id": user_id,
                     },
                 )
-                error_message = "❌ Ошибка аутентификации. Проверьте API ключи в /settings"
+                error_message = (
+                    "❌ Ошибка аутентификации. Проверьте API ключи в /settings"
+                )
                 if update.message:
                     await update.message.reply_text(error_message)
                 elif update.callback_query:
@@ -170,7 +181,9 @@ def telegram_error_boundary(
                     },
                 )
                 retry_after = getattr(e, "retry_after", 60)
-                error_message = f"⏳ Превышен лимит запросов. Попробуйте через {retry_after} секунд"
+                error_message = (
+                    f"⏳ Превышен лимит запросов. Попробуйте через {retry_after} секунд"
+                )
                 if update.message:
                     await update.message.reply_text(error_message)
                 elif update.callback_query:
@@ -187,7 +200,9 @@ def telegram_error_boundary(
                         "status_code": getattr(e, "status_code", None),
                     },
                 )
-                error_message = "❌ Ошибка при обращении к API DMarket. Попробуйте позже"
+                error_message = (
+                    "❌ Ошибка при обращении к API DMarket. Попробуйте позже"
+                )
                 if update.message:
                     await update.message.reply_text(error_message)
                 elif update.callback_query:
@@ -221,7 +236,9 @@ def telegram_error_boundary(
                 if update.message:
                     await update.message.reply_text(user_friendly_message)
                 elif update.callback_query:
-                    await update.callback_query.answer(user_friendly_message, show_alert=True)
+                    await update.callback_query.answer(
+                        user_friendly_message, show_alert=True
+                    )
 
                 # Capture in Sentry
                 capture_exception(

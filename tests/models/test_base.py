@@ -222,7 +222,9 @@ class TestToDictMethod:
         mock_model.value = 42
 
         # Manually call to_dict logic (since MagicMock doesn't inherit Base)
-        result = {c.name: getattr(mock_model, c.name) for c in mock_model.__table__.columns}
+        result = {
+            c.name: getattr(mock_model, c.name) for c in mock_model.__table__.columns
+        }
 
         # Assert
         assert result == {"id": 1, "name": "test", "value": 42}
@@ -242,7 +244,9 @@ class TestToDictMethod:
         mock_model.optional_field = None
 
         # Act
-        result = {c.name: getattr(mock_model, c.name) for c in mock_model.__table__.columns}
+        result = {
+            c.name: getattr(mock_model, c.name) for c in mock_model.__table__.columns
+        }
 
         # Assert
         assert result["optional_field"] is None
@@ -269,7 +273,9 @@ class TestToDictMethod:
         mock_model.uuid_col = test_uuid
 
         # Act
-        result = {c.name: getattr(mock_model, c.name) for c in mock_model.__table__.columns}
+        result = {
+            c.name: getattr(mock_model, c.name) for c in mock_model.__table__.columns
+        }
 
         # Assert
         assert result["int_col"] == 42
@@ -319,7 +325,9 @@ class TestBaseEdgeCases:
         mock_model.__table__.columns = []
 
         # Act
-        result = {c.name: getattr(mock_model, c.name) for c in mock_model.__table__.columns}
+        result = {
+            c.name: getattr(mock_model, c.name) for c in mock_model.__table__.columns
+        }
 
         # Assert
         assert result == {}
@@ -336,14 +344,17 @@ class TestModuleImports:
     def test_sqlite_uuid_importable(self):
         """Test SQLiteUUID is importable."""
         from src.models.base import SQLiteUUID
+
         assert SQLiteUUID is not None
 
     def test_uuid_type_importable(self):
         """Test UUIDType is importable."""
         from src.models.base import UUIDType
+
         assert UUIDType is not None
 
     def test_base_importable(self):
         """Test Base is importable."""
         from src.models.base import Base
+
         assert Base is not None

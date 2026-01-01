@@ -254,9 +254,7 @@ class TestNotificationFlow:
         }
 
         # Format message
-        message = (
-            f"📉 {alert_data['item']}: ${alert_data['old_price']} → ${alert_data['new_price']}"
-        )
+        message = f"📉 {alert_data['item']}: ${alert_data['old_price']} → ${alert_data['new_price']}"
 
         assert "📉" in message
         assert "AK-47" in message
@@ -389,7 +387,9 @@ class TestCompleteUserJourney:
 
     @pytest.mark.asyncio()
     @pytest.mark.e2e()
-    async def test_new_user_first_scan_journey(self, mock_update, mock_context, mock_bot):
+    async def test_new_user_first_scan_journey(
+        self, mock_update, mock_context, mock_bot
+    ):
         """Test journey: new user → registration → first scan."""
         from src.telegram_bot.commands.basic_commands import start_command
 
@@ -404,7 +404,9 @@ class TestCompleteUserJourney:
 
         # Step 4: User performs first scan
         mock_api = mock_context.bot_data["dmarket_api"]
-        mock_api.get_market_items = AsyncMock(return_value={"objects": [], "total": "0"})
+        mock_api.get_market_items = AsyncMock(
+            return_value={"objects": [], "total": "0"}
+        )
 
         result = await mock_api.get_market_items("csgo")
         assert "objects" in result
@@ -428,7 +430,9 @@ class TestCompleteUserJourney:
         assert len(items.get("objects", [])) > 0
 
         # Step 3: Create target
-        mock_api.create_target = AsyncMock(return_value={"targetId": "123", "status": "active"})
+        mock_api.create_target = AsyncMock(
+            return_value={"targetId": "123", "status": "active"}
+        )
         target = await mock_api.create_target(title="Test", price=100)
         assert "targetId" in target
 
@@ -456,7 +460,11 @@ class TestMultiGameScanFlow:
         mock_api.get_market_items = AsyncMock(
             return_value={
                 "objects": [
-                    {"title": "AK-47 | Redline", "price": {"USD": "1500"}, "gameId": "a8db"},
+                    {
+                        "title": "AK-47 | Redline",
+                        "price": {"USD": "1500"},
+                        "gameId": "a8db",
+                    },
                 ],
                 "total": "1",
             }
@@ -554,7 +562,10 @@ class TestAPIKeyManagementFlow:
     async def test_revoke_api_keys_flow(self, mock_context):
         """Test API key revocation flow."""
         # Set and then revoke keys
-        mock_context.user_data["api_keys"] = {"public_key": "test", "secret_key": "test"}
+        mock_context.user_data["api_keys"] = {
+            "public_key": "test",
+            "secret_key": "test",
+        }
 
         # Revoke
         mock_context.user_data["api_keys"] = None

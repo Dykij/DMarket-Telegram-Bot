@@ -146,6 +146,7 @@ class TestPortfolioManagerInit:
     def test_init_with_config(self, mock_api_client):
         """Test initialization with custom config."""
         from src.dmarket.portfolio_manager import PortfolioConfig
+
         config = PortfolioConfig(
             max_single_item_percent=20.0,
         )
@@ -165,7 +166,9 @@ class TestGetPortfolioSnapshot:
     """Tests for get_portfolio_snapshot method."""
 
     @pytest.mark.asyncio()
-    async def test_get_snapshot_empty_portfolio(self, portfolio_manager, mock_api_client):
+    async def test_get_snapshot_empty_portfolio(
+        self, portfolio_manager, mock_api_client
+    ):
         """Test getting snapshot of empty portfolio."""
         mock_api_client.get_user_inventory.return_value = {"objects": []}
         mock_api_client.get_user_offers.return_value = {"objects": []}
@@ -178,7 +181,9 @@ class TestGetPortfolioSnapshot:
         assert snapshot.cash_balance == 100.0  # 10000 cents = $100
 
     @pytest.mark.asyncio()
-    async def test_get_snapshot_with_inventory_items(self, portfolio_manager, mock_api_client):
+    async def test_get_snapshot_with_inventory_items(
+        self, portfolio_manager, mock_api_client
+    ):
         """Test snapshot with inventory items."""
         mock_api_client.get_user_inventory.return_value = {
             "objects": [
@@ -200,7 +205,9 @@ class TestGetPortfolioSnapshot:
         assert len(snapshot.assets) >= 0  # May include inventory items
 
     @pytest.mark.asyncio()
-    async def test_get_snapshot_with_listed_items(self, portfolio_manager, mock_api_client):
+    async def test_get_snapshot_with_listed_items(
+        self, portfolio_manager, mock_api_client
+    ):
         """Test snapshot with listed items."""
         mock_api_client.get_user_inventory.return_value = {"objects": []}
         mock_api_client.get_user_offers.return_value = {
@@ -237,7 +244,9 @@ class TestGetPortfolioSnapshot:
         assert mock_api_client.get_balance.call_count >= 2
 
     @pytest.mark.asyncio()
-    async def test_get_snapshot_api_error_handled(self, portfolio_manager, mock_api_client):
+    async def test_get_snapshot_api_error_handled(
+        self, portfolio_manager, mock_api_client
+    ):
         """Test handling of API errors gracefully."""
         mock_api_client.get_balance.side_effect = Exception("API Error")
 
@@ -408,7 +417,9 @@ class TestAnalyzeRisk:
     """Tests for analyze_risk method."""
 
     @pytest.mark.asyncio()
-    async def test_analyze_risk_empty_portfolio(self, portfolio_manager, mock_api_client):
+    async def test_analyze_risk_empty_portfolio(
+        self, portfolio_manager, mock_api_client
+    ):
         """Test risk analysis of empty portfolio."""
         mock_api_client.get_user_inventory.return_value = {"objects": []}
         mock_api_client.get_user_offers.return_value = {"objects": []}
@@ -422,7 +433,9 @@ class TestAnalyzeRisk:
         assert risk.overall_risk in list(RiskLevel)
 
     @pytest.mark.asyncio()
-    async def test_analyze_risk_with_concentration(self, portfolio_manager, mock_api_client):
+    async def test_analyze_risk_with_concentration(
+        self, portfolio_manager, mock_api_client
+    ):
         """Test risk analysis detects concentration."""
         # Create a concentrated portfolio
         mock_api_client.get_user_inventory.return_value = {
@@ -446,7 +459,9 @@ class TestAnalyzeRisk:
         assert risk is not None
 
     @pytest.mark.asyncio()
-    async def test_analyze_risk_uses_provided_snapshot(self, portfolio_manager, mock_api_client):
+    async def test_analyze_risk_uses_provided_snapshot(
+        self, portfolio_manager, mock_api_client
+    ):
         """Test that provided snapshot is used."""
         mock_api_client.get_balance.return_value = {"usd": 5000, "dmc": 0}
 
@@ -478,7 +493,9 @@ class TestGetRebalancingRecommendations:
     """Tests for get_rebalancing_recommendations method."""
 
     @pytest.mark.asyncio()
-    async def test_recommendations_empty_portfolio(self, portfolio_manager, mock_api_client):
+    async def test_recommendations_empty_portfolio(
+        self, portfolio_manager, mock_api_client
+    ):
         """Test recommendations for empty portfolio."""
         mock_api_client.get_user_inventory.return_value = {"objects": []}
         mock_api_client.get_user_offers.return_value = {"objects": []}
@@ -490,7 +507,9 @@ class TestGetRebalancingRecommendations:
         assert isinstance(recommendations, list)
 
     @pytest.mark.asyncio()
-    async def test_recommendations_concentrated_portfolio(self, portfolio_manager, mock_api_client):
+    async def test_recommendations_concentrated_portfolio(
+        self, portfolio_manager, mock_api_client
+    ):
         """Test recommendations for concentrated portfolio."""
         # Single expensive item
         mock_api_client.get_user_inventory.return_value = {
@@ -659,7 +678,9 @@ class TestEdgeCases:
     """Tests for edge cases and error handling."""
 
     @pytest.mark.asyncio()
-    async def test_portfolio_with_zero_balance(self, portfolio_manager, mock_api_client):
+    async def test_portfolio_with_zero_balance(
+        self, portfolio_manager, mock_api_client
+    ):
         """Test portfolio with zero cash balance."""
         mock_api_client.get_user_inventory.return_value = {"objects": []}
         mock_api_client.get_user_offers.return_value = {"objects": []}
@@ -671,7 +692,9 @@ class TestEdgeCases:
         assert snapshot.cash_balance == 0
 
     @pytest.mark.asyncio()
-    async def test_portfolio_with_large_values(self, portfolio_manager, mock_api_client):
+    async def test_portfolio_with_large_values(
+        self, portfolio_manager, mock_api_client
+    ):
         """Test portfolio with very large values."""
         mock_api_client.get_user_inventory.return_value = {
             "objects": [
@@ -692,7 +715,9 @@ class TestEdgeCases:
         assert snapshot is not None
 
     @pytest.mark.asyncio()
-    async def test_portfolio_with_unicode_titles(self, portfolio_manager, mock_api_client):
+    async def test_portfolio_with_unicode_titles(
+        self, portfolio_manager, mock_api_client
+    ):
         """Test handling Unicode characters in item titles."""
         mock_api_client.get_user_inventory.return_value = {
             "objects": [

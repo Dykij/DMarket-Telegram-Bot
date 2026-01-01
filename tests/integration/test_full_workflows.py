@@ -64,7 +64,9 @@ class TestFullArbitrageWorkflow:
         scanner = ArbitrageScanner(api_client=mock_dmarket_api)
 
         market_response = {
-            "objects": [{"itemId": f"item_{i}", "title": f"Item {i}"} for i in range(5)],
+            "objects": [
+                {"itemId": f"item_{i}", "title": f"Item {i}"} for i in range(5)
+            ],
             "cursor": "",
         }
 
@@ -75,10 +77,14 @@ class TestFullArbitrageWorkflow:
             assert "standard" in all_results
             assert "medium" in all_results
 
-    async def test_user_persistence_workflow(self, test_database: DatabaseManager) -> None:
+    async def test_user_persistence_workflow(
+        self, test_database: DatabaseManager
+    ) -> None:
         """Test user creation and retrieval across operations."""
         # Create user
-        user1 = await test_database.get_or_create_user(telegram_id=111, username="user1")
+        user1 = await test_database.get_or_create_user(
+            telegram_id=111, username="user1"
+        )
         assert user1.telegram_id == 111
 
         # Get same user
@@ -86,14 +92,18 @@ class TestFullArbitrageWorkflow:
         assert user2.id == user1.id
 
         # Create different user
-        user3 = await test_database.get_or_create_user(telegram_id=222, username="user2")
+        user3 = await test_database.get_or_create_user(
+            telegram_id=222, username="user2"
+        )
         assert user3.id != user1.id
 
 
 class TestErrorRecoveryWorkflows:
     """Test error recovery in complete workflows."""
 
-    async def test_scan_with_partial_api_failure(self, mock_dmarket_api: DMarketAPI) -> None:
+    async def test_scan_with_partial_api_failure(
+        self, mock_dmarket_api: DMarketAPI
+    ) -> None:
         """Test scan continues after partial API failures."""
         import httpx
 
@@ -121,7 +131,9 @@ class TestErrorRecoveryWorkflows:
             opportunities = await scanner.scan_level(level="standard", game="csgo")
             assert isinstance(opportunities, list)
 
-    async def test_database_transaction_rollback(self, test_database: DatabaseManager) -> None:
+    async def test_database_transaction_rollback(
+        self, test_database: DatabaseManager
+    ) -> None:
         """Test database transaction rollback on error."""
         try:
             # Attempt invalid operation
@@ -134,14 +146,18 @@ class TestErrorRecoveryWorkflows:
             pass
 
         # Database should still be usable
-        valid_user = await test_database.get_or_create_user(telegram_id=123, username="valid_user")
+        valid_user = await test_database.get_or_create_user(
+            telegram_id=123, username="valid_user"
+        )
         assert valid_user is not None
 
 
 class TestConcurrentOperations:
     """Test concurrent operation scenarios."""
 
-    async def test_concurrent_user_creation(self, test_database: DatabaseManager) -> None:
+    async def test_concurrent_user_creation(
+        self, test_database: DatabaseManager
+    ) -> None:
         """Test concurrent user creation doesn't create duplicates."""
         import asyncio
 
@@ -151,7 +167,9 @@ class TestConcurrentOperations:
             )
 
         # Create different users concurrently (avoid race condition)
-        users = await asyncio.gather(create_user(999001), create_user(999002), create_user(999003))
+        users = await asyncio.gather(
+            create_user(999001), create_user(999002), create_user(999003)
+        )
 
         # Should all be different users
         assert users[0].telegram_id != users[1].telegram_id
@@ -208,7 +226,9 @@ class TestBalanceWorkflows:
     async def test_balance_check_workflow(self, test_database: DatabaseManager) -> None:
         """Test complete balance check workflow."""
         # Create user for balance tracking
-        user = await test_database.get_or_create_user(telegram_id=7777, username="balance_test")
+        user = await test_database.get_or_create_user(
+            telegram_id=7777, username="balance_test"
+        )
         assert user is not None
 
         # Simulate balance data
@@ -222,10 +242,14 @@ class TestBalanceWorkflows:
         assert balance_data["available_balance"] == 150.50
         assert balance_data["has_funds"] is True
 
-    async def test_balance_insufficient_workflow(self, test_database: DatabaseManager) -> None:
+    async def test_balance_insufficient_workflow(
+        self, test_database: DatabaseManager
+    ) -> None:
         """Test workflow when balance is insufficient."""
         # Create user
-        user = await test_database.get_or_create_user(telegram_id=8888, username="low_balance")
+        user = await test_database.get_or_create_user(
+            telegram_id=8888, username="low_balance"
+        )
         assert user is not None
 
         # Simulate insufficient balance
@@ -250,7 +274,9 @@ class TestNotificationWorkflows:
     ) -> None:
         """Test price alert trigger workflow."""
         # Create user
-        user = await test_database.get_or_create_user(telegram_id=12345, username="test")
+        user = await test_database.get_or_create_user(
+            telegram_id=12345, username="test"
+        )
 
         # Mock price data
         current_price = {"price": {"USD": "1000"}}
@@ -283,7 +309,9 @@ class TestNotificationWorkflows:
 class TestTargetWorkflows:
     """Test target-related workflows."""
 
-    async def test_create_and_monitor_target(self, mock_dmarket_api: DMarketAPI) -> None:
+    async def test_create_and_monitor_target(
+        self, mock_dmarket_api: DMarketAPI
+    ) -> None:
         """Test creating and monitoring a target."""
         # Create targets (correct method name)
         create_response = {"created": [{"targetId": "target_123", "status": "active"}]}
@@ -334,7 +362,9 @@ class TestFilterWorkflows:
             assert len(filtered) == 1
             assert filtered[0]["title"] == "CS Item"
 
-    async def test_price_range_filter_application(self, mock_dmarket_api: DMarketAPI) -> None:
+    async def test_price_range_filter_application(
+        self, mock_dmarket_api: DMarketAPI
+    ) -> None:
         """Test applying price range filter."""
         market_response = {
             "objects": [
@@ -363,10 +393,14 @@ class TestFilterWorkflows:
 class TestDataPersistenceWorkflows:
     """Test data persistence workflows."""
 
-    async def test_user_settings_persistence(self, test_database: DatabaseManager) -> None:
+    async def test_user_settings_persistence(
+        self, test_database: DatabaseManager
+    ) -> None:
         """Test user settings are persisted correctly."""
         # Create user
-        user = await test_database.get_or_create_user(telegram_id=55555, username="settings_test")
+        user = await test_database.get_or_create_user(
+            telegram_id=55555, username="settings_test"
+        )
         assert user is not None
 
         # Update settings
@@ -376,10 +410,14 @@ class TestDataPersistenceWorkflows:
         retrieved_user = await test_database.get_or_create_user(telegram_id=55555)
         assert retrieved_user.id == user.id
 
-    async def test_scan_history_persistence(self, test_database: DatabaseManager) -> None:
+    async def test_scan_history_persistence(
+        self, test_database: DatabaseManager
+    ) -> None:
         """Test scan history is persisted correctly."""
         # Create user first
-        user = await test_database.get_or_create_user(telegram_id=66666, username="history_test")
+        user = await test_database.get_or_create_user(
+            telegram_id=66666, username="history_test"
+        )
         assert user is not None
 
         # Mock scan data

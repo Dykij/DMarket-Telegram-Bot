@@ -9,7 +9,14 @@
 
 import time
 
-from prometheus_client import Counter, Gauge, Histogram, Info, generate_latest, make_asgi_app
+from prometheus_client import (
+    Counter,
+    Gauge,
+    Histogram,
+    Info,
+    generate_latest,
+    make_asgi_app,
+)
 
 
 # =============================================================================
@@ -235,7 +242,9 @@ def track_arbitrage_scan(game: str, level: str, opportunities_count: int) -> Non
         level: Arbitrage level
         opportunities_count: Number of opportunities found
     """
-    arbitrage_opportunities_found.labels(game=game, level=level).inc(opportunities_count)
+    arbitrage_opportunities_found.labels(game=game, level=level).inc(
+        opportunities_count
+    )
 
 
 def set_active_users(count: int) -> None:

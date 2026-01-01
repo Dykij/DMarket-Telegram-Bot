@@ -23,7 +23,9 @@ from src.dmarket.dmarket_api import DMarketAPI
 def mock_api_client():
     """Создает мок DMarketAPI клиента."""
     api = MagicMock(spec=DMarketAPI)
-    api.get_balance = AsyncMock(return_value={"usd": "10000", "error": False, "balance": 100.0})
+    api.get_balance = AsyncMock(
+        return_value={"usd": "10000", "error": False, "balance": 100.0}
+    )
     api.get_market_items = AsyncMock(
         return_value={
             "objects": [
@@ -320,7 +322,9 @@ def test_standardize_items_trader_format(scanner):
         }
     ]
 
-    result = scanner._standardize_items(items, "dota2", min_profit=0.5, max_profit=100.0)
+    result = scanner._standardize_items(
+        items, "dota2", min_profit=0.5, max_profit=100.0
+    )
 
     assert len(result) == 1
     assert result[0]["title"] == "Trader Item"
@@ -366,7 +370,9 @@ async def test_scan_multiple_games_success(scanner):
         mock_scan.return_value = [{"item": "test"}]
 
         games = ["csgo", "dota2"]
-        result = await scanner.scan_multiple_games(games, "medium", max_items_per_game=5)
+        result = await scanner.scan_multiple_games(
+            games, "medium", max_items_per_game=5
+        )
 
     assert len(result) == 2
     assert "csgo" in result
@@ -410,7 +416,9 @@ async def test_check_user_balance_success(scanner):
     """Тест успешной проверки баланса."""
     # Мокируем _request для возврата баланса в центах
     # Формат: {"usd": {"available": 10050, "frozen": 0}} = $100.50
-    scanner.api_client._request = AsyncMock(return_value={"usd": {"available": 10050, "frozen": 0}})
+    scanner.api_client._request = AsyncMock(
+        return_value={"usd": {"available": 10050, "frozen": 0}}
+    )
 
     result = await scanner.check_user_balance()
 
@@ -611,7 +619,9 @@ async def test_find_best_opportunities_min_level(scanner):
     with patch.object(scanner, "scan_all_levels", new_callable=AsyncMock) as mock_scan:
         mock_scan.return_value = all_levels_data
 
-        result = await scanner.find_best_opportunities("csgo", top_n=10, min_level="medium")
+        result = await scanner.find_best_opportunities(
+            "csgo", top_n=10, min_level="medium"
+        )
 
     # Не должно быть предметов из boost и standard
     for item in result:
@@ -632,7 +642,9 @@ async def test_find_best_opportunities_max_level(scanner):
     with patch.object(scanner, "scan_all_levels", new_callable=AsyncMock) as mock_scan:
         mock_scan.return_value = all_levels_data
 
-        result = await scanner.find_best_opportunities("csgo", top_n=10, max_level="medium")
+        result = await scanner.find_best_opportunities(
+            "csgo", top_n=10, max_level="medium"
+        )
 
     # Не должно быть предметов из advanced и pro
     for item in result:
@@ -799,7 +811,9 @@ async def test_analyze_item_no_profit(scanner):
 async def test_full_arbitrage_workflow(scanner):
     """Интеграционный тест: полный цикл арбитража."""
     # Мокируем _request для check_user_balance
-    scanner.api_client._request = AsyncMock(return_value={"usd": {"available": 10000, "frozen": 0}})
+    scanner.api_client._request = AsyncMock(
+        return_value={"usd": {"available": 10000, "frozen": 0}}
+    )
 
     # 1. Сканирование игры
     with (
@@ -919,7 +933,9 @@ async def test_liquidity_analyzer_initialized_when_enabled(mock_api_client):
 @pytest.mark.asyncio()
 async def test_liquidity_analyzer_not_initialized_when_disabled(mock_api_client):
     """Тест что LiquidityAnalyzer не инициализируется при отключенном фильтре."""
-    scanner = ArbitrageScanner(api_client=mock_api_client, enable_liquidity_filter=False)
+    scanner = ArbitrageScanner(
+        api_client=mock_api_client, enable_liquidity_filter=False
+    )
 
     await scanner.get_api_client()
 
@@ -1048,7 +1064,9 @@ async def test_analyze_item_filters_by_time_to_sell(mock_api_client):
 @pytest.mark.asyncio()
 async def test_analyze_item_without_liquidity_filter(mock_api_client):
     """Тест что без фильтра ликвидности предметы не анализируются."""
-    scanner = ArbitrageScanner(api_client=mock_api_client, enable_liquidity_filter=False)
+    scanner = ArbitrageScanner(
+        api_client=mock_api_client, enable_liquidity_filter=False
+    )
 
     await scanner.get_api_client()
 

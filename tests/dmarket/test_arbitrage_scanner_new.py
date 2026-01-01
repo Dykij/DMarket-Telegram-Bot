@@ -88,7 +88,9 @@ class TestArbitrageLevels:
 
         for level_name, level_config in ARBITRAGE_LEVELS.items():
             # Проверяем наличие хотя бы min_profit_percent
-            assert "min_profit_percent" in level_config, f"Уровень {level_name} не имеет ключа min_profit_percent"
+            assert (
+                "min_profit_percent" in level_config
+            ), f"Уровень {level_name} не имеет ключа min_profit_percent"
 
     def test_boost_level_exists(self):
         """Тест существования уровня boost."""

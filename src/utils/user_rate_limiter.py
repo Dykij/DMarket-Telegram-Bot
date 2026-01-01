@@ -40,7 +40,9 @@ class UserRateLimiter:
         "target_create": RateLimitConfig(requests=5, window=60),  # 5 таргетов/мин
         "target_delete": RateLimitConfig(requests=10, window=60),  # 10 удалений/мин
         "balance": RateLimitConfig(requests=20, window=60),  # 20 проверок баланса/мин
-        "portfolio": RateLimitConfig(requests=15, window=60),  # 15 проверок портфолио/мин
+        "portfolio": RateLimitConfig(
+            requests=15, window=60
+        ),  # 15 проверок портфолио/мин
         "settings": RateLimitConfig(requests=5, window=60),  # 5 изменений настроек/мин
         "default": RateLimitConfig(requests=30, window=60, burst=40),  # 30 команд/мин
     }
@@ -173,7 +175,9 @@ class UserRateLimiter:
             window_start = now - config.window
 
             # Очистить старые записи
-            self._local_cache[key] = [ts for ts in self._local_cache[key] if ts > window_start]
+            self._local_cache[key] = [
+                ts for ts in self._local_cache[key] if ts > window_start
+            ]
 
             current_count = len(self._local_cache[key])
 
@@ -255,7 +259,9 @@ class UserRateLimiter:
                         del self._local_cache[key]
                 else:
                     # Удалить все ключи пользователя
-                    keys_to_delete = [k for k in self._local_cache if k.startswith(f"{user_id}:")]
+                    keys_to_delete = [
+                        k for k in self._local_cache if k.startswith(f"{user_id}:")
+                    ]
                     for key in keys_to_delete:
                         del self._local_cache[key]
 

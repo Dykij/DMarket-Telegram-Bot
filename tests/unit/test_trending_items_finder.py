@@ -12,7 +12,11 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.dmarket.trending_items_finder import TrendingItemsFinder, TrendMetrics, find_trending_items
+from src.dmarket.trending_items_finder import (
+    TrendingItemsFinder,
+    TrendMetrics,
+    find_trending_items,
+)
 
 
 @pytest.fixture()

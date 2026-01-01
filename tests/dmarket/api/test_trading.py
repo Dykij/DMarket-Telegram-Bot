@@ -141,7 +141,9 @@ class TestBuyItem:
         mock_request.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_buy_item_converts_price_to_cents(self, trading_mixin_live, mock_request):
+    async def test_buy_item_converts_price_to_cents(
+        self, trading_mixin_live, mock_request
+    ):
         """Test that price is converted to cents for API call."""
         # Arrange
         mock_request.return_value = {"success": True}

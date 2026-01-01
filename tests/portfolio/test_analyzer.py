@@ -641,8 +641,8 @@ class TestPortfolioAnalyzerPrivateMethods:
     def test_calculate_volatility_score_single_item(self, analyzer):
         """Test volatility score with single item."""
         item = PortfolioItem(
-                item_id="item_auto",
-                title="Item",
+            item_id="item_auto",
+            title="Item",
             game="csgo",
             quantity=1,
             buy_price=Decimal("10.00"),
@@ -667,8 +667,8 @@ class TestPortfolioAnalyzerPrivateMethods:
     def test_calculate_liquidity_score_zero_value(self, analyzer):
         """Test liquidity score with zero value."""
         item = PortfolioItem(
-                item_id="item_auto",
-                title="Item",
+            item_id="item_auto",
+            title="Item",
             game="csgo",
             quantity=1,
             buy_price=Decimal(0),

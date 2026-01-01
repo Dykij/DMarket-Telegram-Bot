@@ -90,7 +90,9 @@ class TestWalletErrorResponse:
         error_code = "NOT_FOUND"
 
         # Act
-        result = wallet_client._create_error_response(error_message, status_code, error_code)
+        result = wallet_client._create_error_response(
+            error_message, status_code, error_code
+        )
 
         # Assert
         assert result["error"] is True
@@ -132,7 +134,9 @@ class TestWalletBalanceResponse:
         usd_total = 12000  # 120 USD in cents
 
         # Act
-        result = wallet_client._create_balance_response(usd_amount, usd_available, usd_total)
+        result = wallet_client._create_balance_response(
+            usd_amount, usd_available, usd_total
+        )
 
         # Assert
         assert result["balance"] == 100.0
@@ -205,7 +209,9 @@ class TestWalletParseBalance:
         }
 
         # Act
-        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = (
+            wallet_client._parse_balance_from_response(response)
+        )
 
         # Assert
         assert usd_amount == 10000.0
@@ -226,7 +232,9 @@ class TestWalletParseBalance:
         }
 
         # Act
-        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = (
+            wallet_client._parse_balance_from_response(response)
+        )
 
         # Assert
         assert usd_amount == 5000.0  # Converted to cents
@@ -243,7 +251,9 @@ class TestWalletParseBalance:
         }
 
         # Act
-        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = (
+            wallet_client._parse_balance_from_response(response)
+        )
 
         # Assert
         assert usd_amount == 2500.0  # Converted to cents
@@ -258,7 +268,9 @@ class TestWalletParseBalance:
         }
 
         # Act
-        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = (
+            wallet_client._parse_balance_from_response(response)
+        )
 
         # Assert
         assert usd_amount == 1550.0  # Converted to cents
@@ -271,7 +283,9 @@ class TestWalletParseBalance:
         response: dict[str, Any] = {}
 
         # Act
-        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = (
+            wallet_client._parse_balance_from_response(response)
+        )
 
         # Assert
         assert usd_amount == 0.0
@@ -287,7 +301,9 @@ class TestWalletParseBalance:
         }
 
         # Act
-        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = (
+            wallet_client._parse_balance_from_response(response)
+        )
 
         # Assert
         assert usd_amount == 0.0
@@ -303,7 +319,9 @@ class TestWalletParseBalance:
         }
 
         # Act
-        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = (
+            wallet_client._parse_balance_from_response(response)
+        )
 
         # Assert
         assert usd_amount == 5000.0
@@ -320,7 +338,9 @@ class TestWalletParseBalance:
         }
 
         # Act
-        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = (
+            wallet_client._parse_balance_from_response(response)
+        )
 
         # Assert
         assert usd_amount == 1000.0
@@ -471,7 +491,9 @@ class TestWalletGetBalance:
         assert call_count >= 1  # Should try at least one endpoint
 
     @pytest.mark.asyncio()
-    async def test_get_balance_via_direct_request(self, wallet_client, mock_httpx_client):
+    async def test_get_balance_via_direct_request(
+        self, wallet_client, mock_httpx_client
+    ):
         """Test balance retrieval via direct_balance_request."""
         # Arrange
         wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
@@ -501,7 +523,9 @@ class TestWalletDirectBalanceRequest:
     """Tests for direct_balance_request method."""
 
     @pytest.mark.asyncio()
-    async def test_direct_balance_request_success(self, wallet_client, mock_httpx_client):
+    async def test_direct_balance_request_success(
+        self, wallet_client, mock_httpx_client
+    ):
         """Test successful direct balance request."""
         # Arrange
         wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
@@ -524,7 +548,9 @@ class TestWalletDirectBalanceRequest:
         assert result["data"]["available"] == 180.0
 
     @pytest.mark.asyncio()
-    async def test_direct_balance_request_parses_response(self, wallet_client, mock_httpx_client):
+    async def test_direct_balance_request_parses_response(
+        self, wallet_client, mock_httpx_client
+    ):
         """Test that direct request parses response correctly."""
         # Arrange
         wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
@@ -552,7 +578,9 @@ class TestWalletDirectBalanceRequest:
         assert result["data"]["balance"] == 75.0
 
     @pytest.mark.asyncio()
-    async def test_direct_balance_request_handles_error(self, wallet_client, mock_httpx_client):
+    async def test_direct_balance_request_handles_error(
+        self, wallet_client, mock_httpx_client
+    ):
         """Test handling of errors in direct balance request."""
         # Arrange
         wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
@@ -572,11 +600,15 @@ class TestWalletDirectBalanceRequest:
         assert "500" in result["error"]
 
     @pytest.mark.asyncio()
-    async def test_direct_balance_request_http_error(self, wallet_client, mock_httpx_client):
+    async def test_direct_balance_request_http_error(
+        self, wallet_client, mock_httpx_client
+    ):
         """Test handling of HTTP errors in direct request."""
         # Arrange
         wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
-        mock_httpx_client.get = AsyncMock(side_effect=httpx.HTTPError("Connection failed"))
+        mock_httpx_client.get = AsyncMock(
+            side_effect=httpx.HTTPError("Connection failed")
+        )
 
         # Act
         result = await wallet_client.direct_balance_request()
@@ -681,7 +713,9 @@ class TestWalletGetBalanceSuccessPath:
         mock_httpx_client.get = AsyncMock(return_value=mock_response)
 
         # Mock _request to fail so direct_balance_request is the successful path
-        wallet_client._request = AsyncMock(return_value={"error": "Not found", "code": "NOT_FOUND"})
+        wallet_client._request = AsyncMock(
+            return_value={"error": "Not found", "code": "NOT_FOUND"}
+        )
 
         # Act
         result = await wallet_client.get_balance()
@@ -755,7 +789,9 @@ class TestWalletParseBalanceEdgeCases:
         }
 
         # Act
-        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = (
+            wallet_client._parse_balance_from_response(response)
+        )
 
         # Assert
         assert usd_amount == 2550.0
@@ -770,7 +806,9 @@ class TestWalletParseBalanceEdgeCases:
         }
 
         # Act
-        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = (
+            wallet_client._parse_balance_from_response(response)
+        )
 
         # Assert
         assert usd_amount == 0.0
@@ -885,14 +923,18 @@ class TestWalletErrorHandling:
         }
 
         # Act
-        usd_amount, usd_available, _ = wallet_client._parse_balance_from_response(response)
+        usd_amount, usd_available, _ = wallet_client._parse_balance_from_response(
+            response
+        )
 
         # Assert
         assert usd_amount == 150000.0
         assert usd_available == 150000.0
 
     @pytest.mark.asyncio()
-    async def test_get_balance_handles_404_error(self, wallet_client, mock_httpx_client):
+    async def test_get_balance_handles_404_error(
+        self, wallet_client, mock_httpx_client
+    ):
         """Test handling of 404 error with proper error code."""
         # Arrange
         wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
@@ -984,7 +1026,9 @@ class TestWalletErrorHandling:
         assert result["code"] == "SERVER_ERROR"
 
     @pytest.mark.asyncio()
-    async def test_get_balance_with_unauthorized_error_code(self, wallet_client, mock_httpx_client):
+    async def test_get_balance_with_unauthorized_error_code(
+        self, wallet_client, mock_httpx_client
+    ):
         """Test handling of Unauthorized error code from API."""
         # Arrange
         wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
@@ -1025,7 +1069,9 @@ class TestWalletSecretKeyConversion:
     """Tests for different secret key format conversions in direct requests."""
 
     @pytest.mark.asyncio()
-    async def test_direct_request_with_base64_secret_key(self, wallet_client, mock_httpx_client):
+    async def test_direct_request_with_base64_secret_key(
+        self, wallet_client, mock_httpx_client
+    ):
         """Test direct balance request with base64-encoded secret key."""
         # Arrange
         import base64
@@ -1050,7 +1096,9 @@ class TestWalletSecretKeyConversion:
         assert result["success"] is True
 
     @pytest.mark.asyncio()
-    async def test_direct_request_with_short_secret_key(self, wallet_client, mock_httpx_client):
+    async def test_direct_request_with_short_secret_key(
+        self, wallet_client, mock_httpx_client
+    ):
         """Test direct balance request with short secret key (padded)."""
         # Arrange
         wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
@@ -1073,7 +1121,9 @@ class TestWalletSecretKeyConversion:
         assert result["success"] is True
 
     @pytest.mark.asyncio()
-    async def test_direct_request_with_long_hex_secret_key(self, wallet_client, mock_httpx_client):
+    async def test_direct_request_with_long_hex_secret_key(
+        self, wallet_client, mock_httpx_client
+    ):
         """Test direct balance request with long hex secret key (truncated)."""
         # Arrange
         wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
@@ -1140,7 +1190,9 @@ class TestWalletLegacyKeyFormats:
         }
 
         # Act
-        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = (
+            wallet_client._parse_balance_from_response(response)
+        )
 
         # Assert
         assert usd_amount == 15000.0
@@ -1148,7 +1200,9 @@ class TestWalletLegacyKeyFormats:
         assert usd_total == 18000.0
 
     @pytest.mark.asyncio()
-    async def test_get_balance_handles_general_exception(self, wallet_client, mock_httpx_client):
+    async def test_get_balance_handles_general_exception(
+        self, wallet_client, mock_httpx_client
+    ):
         """Test handling of general exception during balance retrieval."""
         # Arrange
         wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
@@ -1179,7 +1233,9 @@ class TestWalletLegacyKeyFormats:
         }
 
         # Act
-        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = (
+            wallet_client._parse_balance_from_response(response)
+        )
 
         # Assert - should return zeros on parse error
         assert usd_amount == 0.0
@@ -1194,7 +1250,9 @@ class TestWalletLegacyKeyFormats:
         }
 
         # Act
-        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = (
+            wallet_client._parse_balance_from_response(response)
+        )
 
         # Assert - should return zeros on parse error
         assert usd_amount == 0.0
@@ -1211,7 +1269,9 @@ class TestWalletLegacyKeyFormats:
         }
 
         # Act
-        usd_amount, usd_available, usd_total = wallet_client._parse_balance_from_response(response)
+        usd_amount, usd_available, usd_total = (
+            wallet_client._parse_balance_from_response(response)
+        )
 
         # Assert - should return zeros on parse error
         assert usd_amount == 0.0
@@ -1225,7 +1285,9 @@ class TestWalletLegacyKeyFormats:
         """Test exception handling with 404 in error message."""
         # Arrange
         wallet_client._get_client = AsyncMock(return_value=mock_httpx_client)
-        mock_httpx_client.get = AsyncMock(side_effect=Exception("404 resource not found"))
+        mock_httpx_client.get = AsyncMock(
+            side_effect=Exception("404 resource not found")
+        )
 
         # Mock _try_endpoints_for_balance to also raise 404 exception
         async def mock_try_endpoints(*args, **kwargs):
@@ -1271,7 +1333,7 @@ class TestWalletLegacyKeyFormats:
 # =============================================================================
 
 
-class TestWalletUserProfile:
+class TestWalletUserProfileExtended:
     """Tests for get_user_profile method."""
 
     @pytest.mark.asyncio()
@@ -1337,8 +1399,7 @@ class TestWalletAccountDetails:
         # Assert
         assert result == expected_details
         wallet_client._request.assert_called_once_with(
-            "GET",
-            wallet_client.ENDPOINT_ACCOUNT_DETAILS
+            "GET", wallet_client.ENDPOINT_ACCOUNT_DETAILS
         )
 
     @pytest.mark.asyncio()
@@ -1346,9 +1407,8 @@ class TestWalletAccountDetails:
         """Test handling of timeout when getting account details."""
         # Arrange
         import asyncio
-        wallet_client._request = AsyncMock(
-            side_effect=TimeoutError("Request timeout")
-        )
+
+        wallet_client._request = AsyncMock(side_effect=TimeoutError("Request timeout"))
 
         # Act & Assert
         with pytest.raises(asyncio.TimeoutError):

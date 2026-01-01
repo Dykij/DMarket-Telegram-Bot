@@ -281,11 +281,16 @@ class TestDatabaseOperationsEdgeCases:
         try:
             # Create user with full info
             await db_manager.get_or_create_user(
-                telegram_id=444555666, username="original", first_name="John", last_name="Doe"
+                telegram_id=444555666,
+                username="original",
+                first_name="John",
+                last_name="Doe",
             )
 
             # Update with only first name
-            user2 = await db_manager.get_or_create_user(telegram_id=444555666, first_name="Jane")
+            user2 = await db_manager.get_or_create_user(
+                telegram_id=444555666, first_name="Jane"
+            )
 
             # Should keep original last name
             assert user2.first_name == "Jane"
@@ -319,7 +324,10 @@ class TestDatabaseOperationsEdgeCases:
         try:
             # Save with only required fields
             await db_manager.save_market_data(
-                item_id="minimal_item", game="csgo", item_name="Minimal Test Item", price_usd=5.0
+                item_id="minimal_item",
+                game="csgo",
+                item_name="Minimal Test Item",
+                price_usd=5.0,
             )
 
             # Should complete successfully with defaults

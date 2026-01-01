@@ -466,6 +466,7 @@ class TestReactiveDMarketWebSocketHandleMessage:
     async def test_handle_message_without_type(self, reactive_ws):
         """Test handling of message without type."""
         import json
+
         message = json.dumps({"data": "test"})
 
         # Should not raise
@@ -479,10 +480,7 @@ class TestReactiveDMarketWebSocketHandleMessage:
         observer = MagicMock()
         reactive_ws.observables[EventType.BALANCE_UPDATE].subscribe(observer)
 
-        message = json.dumps({
-            "type": "balance:update",
-            "data": {"balance": 100}
-        })
+        message = json.dumps({"type": "balance:update", "data": {"balance": 100}})
 
         await reactive_ws._handle_message(message)
 
@@ -496,10 +494,7 @@ class TestReactiveDMarketWebSocketHandleMessage:
         all_events_observer = MagicMock()
         reactive_ws.all_events.subscribe(all_events_observer)
 
-        message = json.dumps({
-            "type": "unknown:event",
-            "data": {}
-        })
+        message = json.dumps({"type": "unknown:event", "data": {}})
 
         await reactive_ws._handle_message(message)
 
@@ -515,11 +510,9 @@ class TestReactiveDMarketWebSocketHandleMessage:
         sub = Subscription("test:topic")
         reactive_ws.subscriptions["test:topic"] = sub
 
-        message = json.dumps({
-            "type": "balance:update",
-            "topic": "test:topic",
-            "data": {}
-        })
+        message = json.dumps(
+            {"type": "balance:update", "topic": "test:topic", "data": {}}
+        )
 
         await reactive_ws._handle_message(message)
 

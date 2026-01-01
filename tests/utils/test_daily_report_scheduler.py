@@ -263,18 +263,24 @@ class TestDailyReportSchedulerCollectStatistics:
     async def test_collect_statistics_with_data(self):
         """Test collect_statistics with actual data."""
         database = MagicMock()
-        database.get_trade_statistics = AsyncMock(return_value={
-            "total_trades": 15,
-            "successful_trades": 12,
-        })
-        database.get_error_statistics = AsyncMock(return_value={
-            "api_errors": {"rate_limit": 5},
-            "critical_errors": 1,
-        })
-        database.get_scan_statistics = AsyncMock(return_value={
-            "scans_performed": 50,
-            "opportunities_found": 10,
-        })
+        database.get_trade_statistics = AsyncMock(
+            return_value={
+                "total_trades": 15,
+                "successful_trades": 12,
+            }
+        )
+        database.get_error_statistics = AsyncMock(
+            return_value={
+                "api_errors": {"rate_limit": 5},
+                "critical_errors": 1,
+            }
+        )
+        database.get_scan_statistics = AsyncMock(
+            return_value={
+                "scans_performed": 50,
+                "opportunities_found": 10,
+            }
+        )
 
         scheduler = DailyReportScheduler(
             database=database,

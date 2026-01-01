@@ -18,10 +18,18 @@ class TestNotificationTypes:
         from src.telegram_bot.constants import NOTIFICATION_TYPES
 
         required_keys = [
-            "price_drop", "price_rise", "volume_increase",
-            "good_deal", "arbitrage", "trend_change",
-            "buy_intent", "buy_success", "buy_failed",
-            "sell_success", "sell_failed", "critical_shutdown",
+            "price_drop",
+            "price_rise",
+            "volume_increase",
+            "good_deal",
+            "arbitrage",
+            "trend_change",
+            "buy_intent",
+            "buy_success",
+            "buy_failed",
+            "sell_success",
+            "sell_failed",
+            "critical_shutdown",
         ]
         for key in required_keys:
             assert key in NOTIFICATION_TYPES
@@ -43,7 +51,9 @@ class TestNotificationTypes:
             assert len(value) > 0
             # Эмодзи обычно имеют код > 127
             first_char_code = ord(value[0])
-            assert first_char_code > 127, f"Key {key} value {value} does not start with emoji"
+            assert (
+                first_char_code > 127
+            ), f"Key {key} value {value} does not start with emoji"
 
 
 class TestPriceCacheTtl:
@@ -149,16 +159,30 @@ class TestNotificationPriorities:
         from src.telegram_bot.constants import NOTIFICATION_PRIORITIES
 
         # critical_shutdown > buy_success > good_deal > trend_change
-        assert NOTIFICATION_PRIORITIES["critical_shutdown"] > NOTIFICATION_PRIORITIES["buy_success"]
-        assert NOTIFICATION_PRIORITIES["buy_success"] > NOTIFICATION_PRIORITIES["good_deal"]
-        assert NOTIFICATION_PRIORITIES["good_deal"] > NOTIFICATION_PRIORITIES["trend_change"]
+        assert (
+            NOTIFICATION_PRIORITIES["critical_shutdown"]
+            > NOTIFICATION_PRIORITIES["buy_success"]
+        )
+        assert (
+            NOTIFICATION_PRIORITIES["buy_success"]
+            > NOTIFICATION_PRIORITIES["good_deal"]
+        )
+        assert (
+            NOTIFICATION_PRIORITIES["good_deal"]
+            > NOTIFICATION_PRIORITIES["trend_change"]
+        )
 
     def test_notification_priorities_match_types(self):
         """Тест что приоритеты соответствуют типам уведомлений."""
-        from src.telegram_bot.constants import NOTIFICATION_PRIORITIES, NOTIFICATION_TYPES
+        from src.telegram_bot.constants import (
+            NOTIFICATION_PRIORITIES,
+            NOTIFICATION_TYPES,
+        )
 
         for key in NOTIFICATION_PRIORITIES:
-            assert key in NOTIFICATION_TYPES, f"Priority key {key} not in NOTIFICATION_TYPES"
+            assert (
+                key in NOTIFICATION_TYPES
+            ), f"Priority key {key} not in NOTIFICATION_TYPES"
 
 
 class TestPathConstants:
@@ -270,14 +294,18 @@ class TestArbitrageModes:
         for mode, description in ARBITRAGE_MODES.items():
             assert len(description) > 0
             first_char = ord(description[0])
-            assert first_char > 127, f"Mode {mode} description does not start with emoji"
+            assert (
+                first_char > 127
+            ), f"Mode {mode} description does not start with emoji"
 
     def test_arbitrage_modes_values_contain_price_range(self):
         """Тест что все режимы содержат ценовой диапазон."""
         from src.telegram_bot.constants import ARBITRAGE_MODES
 
         for mode, description in ARBITRAGE_MODES.items():
-            assert "$" in description, f"Mode {mode} description does not contain price range"
+            assert (
+                "$" in description
+            ), f"Mode {mode} description does not contain price range"
 
 
 class TestPriceAlertStorageKeys:
@@ -333,7 +361,10 @@ class TestConstantsIntegration:
 
     def test_notification_types_and_priorities_consistency(self):
         """Тест консистентности типов и приоритетов уведомлений."""
-        from src.telegram_bot.constants import NOTIFICATION_PRIORITIES, NOTIFICATION_TYPES
+        from src.telegram_bot.constants import (
+            NOTIFICATION_PRIORITIES,
+            NOTIFICATION_TYPES,
+        )
 
         # Все типы должны иметь приоритеты
         for ntype in NOTIFICATION_TYPES:
@@ -345,8 +376,12 @@ class TestConstantsIntegration:
 
         for lang_code in LANGUAGES:
             assert len(lang_code) == 2, f"Invalid language code: {lang_code}"
-            assert lang_code.isalpha(), f"Language code should be alphabetic: {lang_code}"
-            assert lang_code.islower(), f"Language code should be lowercase: {lang_code}"
+            assert (
+                lang_code.isalpha()
+            ), f"Language code should be alphabetic: {lang_code}"
+            assert (
+                lang_code.islower()
+            ), f"Language code should be lowercase: {lang_code}"
 
     def test_page_sizes_logical(self):
         """Тест логичности размеров страниц."""

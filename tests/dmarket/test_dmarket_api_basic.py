@@ -173,7 +173,8 @@ class TestDMarketAPIEndpoints:
         """Тест endpoints для маркета."""
         assert DMarketAPI.ENDPOINT_MARKET_ITEMS == "/exchange/v1/market/items"
         assert (
-            DMarketAPI.ENDPOINT_MARKET_PRICE_AGGREGATED == "/exchange/v1/market/aggregated-prices"
+            DMarketAPI.ENDPOINT_MARKET_PRICE_AGGREGATED
+            == "/exchange/v1/market/aggregated-prices"
         )
 
     def test_user_endpoints(self):

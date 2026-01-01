@@ -106,7 +106,9 @@ class TestSendApiChangeNotification:
             field4: float
 
         try:
-            TestModel(field1=123, field2="invalid", field3="not_bool", field4="not_float")
+            TestModel(
+                field1=123, field2="invalid", field3="not_bool", field4="not_float"
+            )
         except ValidationError as e:
             validation_error = e
 
@@ -174,7 +176,10 @@ class TestValidateResponseDecorator:
         async def test_func() -> dict[str, Any]:
             return {"status": 123, "value": "invalid"}  # Invalid types
 
-        with patch("src.dmarket.api_validator.send_api_change_notification", new_callable=AsyncMock):
+        with patch(
+            "src.dmarket.api_validator.send_api_change_notification",
+            new_callable=AsyncMock,
+        ):
             result = await test_func()
             # Should return original data for backward compatibility
             assert result == {"status": 123, "value": "invalid"}
@@ -214,7 +219,10 @@ class TestValidateResponseDecorator:
                 return {"status": 123, "value": "invalid"}
 
         obj = TestClass()
-        with patch("src.dmarket.api_validator.send_api_change_notification", new_callable=AsyncMock) as mock_notify:
+        with patch(
+            "src.dmarket.api_validator.send_api_change_notification",
+            new_callable=AsyncMock,
+        ) as mock_notify:
             await obj.test_method()
             # Should have been called with the notifier from instance
             mock_notify.assert_called_once()
@@ -462,7 +470,9 @@ class TestDecoratorPreservesFunction:
             status: str
 
         @validate_response(TestModel, endpoint="/test")
-        async def my_func(arg1: str, arg2: int, *, kwarg1: str = "default") -> dict[str, Any]:
+        async def my_func(
+            arg1: str, arg2: int, *, kwarg1: str = "default"
+        ) -> dict[str, Any]:
             return {"status": f"{arg1}-{arg2}-{kwarg1}"}
 
         result = await my_func("hello", 42, kwarg1="world")

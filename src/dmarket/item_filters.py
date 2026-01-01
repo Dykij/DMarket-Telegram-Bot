@@ -315,7 +315,12 @@ class ItemFilters:
 
         for item in items:
             # Get item name from different possible fields
-            item_name = item.get("title") or item.get("name") or item.get("market_hash_name") or ""
+            item_name = (
+                item.get("title")
+                or item.get("name")
+                or item.get("market_hash_name")
+                or ""
+            )
 
             # Skip blacklisted items
             if self.is_item_blacklisted(item_name):
@@ -331,7 +336,9 @@ class ItemFilters:
 
                 # Check price range
                 if price < min_price or price > max_price:
-                    logger.debug(f"Filtered out item outside price range: {item_name} (${price})")
+                    logger.debug(
+                        f"Filtered out item outside price range: {item_name} (${price})"
+                    )
                     continue
 
             filtered.append(item)
@@ -358,7 +365,9 @@ class ItemFilters:
             Tuple of (is_valid, reason_if_invalid)
 
         """
-        item_name = item.get("title") or item.get("name") or item.get("market_hash_name") or ""
+        item_name = (
+            item.get("title") or item.get("name") or item.get("market_hash_name") or ""
+        )
 
         # Check blacklist
         if self.is_item_blacklisted(item_name):
@@ -370,7 +379,10 @@ class ItemFilters:
         if avg_price is not None:
             min_avg = filters.get("min_avg_price", 0.50)
             if avg_price < min_avg:
-                return False, f"Average price ${avg_price:.2f} below minimum ${min_avg:.2f}"
+                return (
+                    False,
+                    f"Average price ${avg_price:.2f} below minimum ${min_avg:.2f}",
+                )
 
         # Check sales volume
         if sales_volume is not None:
@@ -382,7 +394,10 @@ class ItemFilters:
         if liquidity_score is not None:
             min_liquidity = filters.get("min_liquidity_score", 30)
             if liquidity_score < min_liquidity:
-                return False, f"Liquidity score {liquidity_score:.1f} below minimum {min_liquidity}"
+                return (
+                    False,
+                    f"Liquidity score {liquidity_score:.1f} below minimum {min_liquidity}",
+                )
 
         # Check price deviation from average
         if avg_price is not None:

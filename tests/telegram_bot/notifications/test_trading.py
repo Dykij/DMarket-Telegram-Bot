@@ -75,12 +75,15 @@ class TestSendBuyIntentNotification:
         # Arrange
         user_id = 123456789
 
-        with patch(
-            "src.telegram_bot.notifications.trading.can_send_notification",
-            return_value=True,
-        ), patch(
-            "src.telegram_bot.notifications.trading.increment_notification_count"
-        ) as mock_increment:
+        with (
+            patch(
+                "src.telegram_bot.notifications.trading.can_send_notification",
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.notifications.trading.increment_notification_count"
+            ) as mock_increment,
+        ):
             # Act
             result = await send_buy_intent_notification(
                 bot=mock_bot,
@@ -108,11 +111,14 @@ class TestSendBuyIntentNotification:
         user_id = 123456789
         reason = "Price dropped 20% below average"
 
-        with patch(
-            "src.telegram_bot.notifications.trading.can_send_notification",
-            return_value=True,
-        ), patch(
-            "src.telegram_bot.notifications.trading.increment_notification_count"
+        with (
+            patch(
+                "src.telegram_bot.notifications.trading.can_send_notification",
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.notifications.trading.increment_notification_count"
+            ),
         ):
             # Act
             result = await send_buy_intent_notification(
@@ -137,11 +143,14 @@ class TestSendBuyIntentNotification:
         user_id = 123456789
         callback_data = "item_123"
 
-        with patch(
-            "src.telegram_bot.notifications.trading.can_send_notification",
-            return_value=True,
-        ), patch(
-            "src.telegram_bot.notifications.trading.increment_notification_count"
+        with (
+            patch(
+                "src.telegram_bot.notifications.trading.can_send_notification",
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.notifications.trading.increment_notification_count"
+            ),
         ):
             # Act
             result = await send_buy_intent_notification(
@@ -163,11 +172,14 @@ class TestSendBuyIntentNotification:
         # Arrange
         user_id = 123456789
 
-        with patch(
-            "src.telegram_bot.notifications.trading.can_send_notification",
-            return_value=True,
-        ), patch(
-            "src.telegram_bot.notifications.trading.increment_notification_count"
+        with (
+            patch(
+                "src.telegram_bot.notifications.trading.can_send_notification",
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.notifications.trading.increment_notification_count"
+            ),
         ):
             # Act
             result = await send_buy_intent_notification(
@@ -209,11 +221,14 @@ class TestSendBuyIntentNotification:
         # Arrange
         user_id = 123456789
 
-        with patch(
-            "src.telegram_bot.notifications.trading.can_send_notification",
-            return_value=True,
-        ), patch(
-            "src.telegram_bot.notifications.trading.increment_notification_count"
+        with (
+            patch(
+                "src.telegram_bot.notifications.trading.can_send_notification",
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.notifications.trading.increment_notification_count"
+            ),
         ):
             # Act
             result = await send_buy_intent_notification(
@@ -255,11 +270,14 @@ class TestSendBuyIntentNotification:
         # Arrange
         user_id = 123456789
 
-        with patch(
-            "src.telegram_bot.notifications.trading.can_send_notification",
-            return_value=True,
-        ), patch(
-            "src.telegram_bot.notifications.trading.increment_notification_count"
+        with (
+            patch(
+                "src.telegram_bot.notifications.trading.can_send_notification",
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.notifications.trading.increment_notification_count"
+            ),
         ):
             # Act
             result = await send_buy_intent_notification(
@@ -853,11 +871,14 @@ class TestEdgeCases:
             "game": "csgo",
         }
 
-        with patch(
-            "src.telegram_bot.notifications.trading.can_send_notification",
-            return_value=True,
-        ), patch(
-            "src.telegram_bot.notifications.trading.increment_notification_count"
+        with (
+            patch(
+                "src.telegram_bot.notifications.trading.can_send_notification",
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.notifications.trading.increment_notification_count"
+            ),
         ):
             # Act
             result = await send_buy_intent_notification(
@@ -882,11 +903,14 @@ class TestEdgeCases:
             "game": "csgo",
         }
 
-        with patch(
-            "src.telegram_bot.notifications.trading.can_send_notification",
-            return_value=True,
-        ), patch(
-            "src.telegram_bot.notifications.trading.increment_notification_count"
+        with (
+            patch(
+                "src.telegram_bot.notifications.trading.can_send_notification",
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.notifications.trading.increment_notification_count"
+            ),
         ):
             # Act - Should not raise despite HTML chars
             result = await send_buy_intent_notification(
@@ -909,11 +933,14 @@ class TestEdgeCases:
             "game": "csgo",
         }
 
-        with patch(
-            "src.telegram_bot.notifications.trading.can_send_notification",
-            return_value=True,
-        ), patch(
-            "src.telegram_bot.notifications.trading.increment_notification_count"
+        with (
+            patch(
+                "src.telegram_bot.notifications.trading.can_send_notification",
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.notifications.trading.increment_notification_count"
+            ),
         ):
             # Act
             result = await send_buy_intent_notification(
@@ -936,11 +963,14 @@ class TestEdgeCases:
             "game": "csgo",
         }
 
-        with patch(
-            "src.telegram_bot.notifications.trading.can_send_notification",
-            return_value=True,
-        ), patch(
-            "src.telegram_bot.notifications.trading.increment_notification_count"
+        with (
+            patch(
+                "src.telegram_bot.notifications.trading.can_send_notification",
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.notifications.trading.increment_notification_count"
+            ),
         ):
             # Act
             result = await send_buy_intent_notification(

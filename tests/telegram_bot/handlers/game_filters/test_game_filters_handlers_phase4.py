@@ -835,8 +835,14 @@ class TestHandleFilterValueCallback:
         query.answer.assert_called_once()
         query.edit_message_text.assert_called_once()
         # Check filters were updated
-        assert context.user_data.get("filters", {}).get("csgo", {}).get("min_price") == 10.0
-        assert context.user_data.get("filters", {}).get("csgo", {}).get("max_price") == 50.0
+        assert (
+            context.user_data.get("filters", {}).get("csgo", {}).get("min_price")
+            == 10.0
+        )
+        assert (
+            context.user_data.get("filters", {}).get("csgo", {}).get("max_price")
+            == 50.0
+        )
 
     @pytest.mark.asyncio()
     async def test_sets_category_filter(self) -> None:
@@ -859,7 +865,10 @@ class TestHandleFilterValueCallback:
 
         query.answer.assert_called_once()
         query.edit_message_text.assert_called_once()
-        assert context.user_data.get("filters", {}).get("csgo", {}).get("category") == "Knife"
+        assert (
+            context.user_data.get("filters", {}).get("csgo", {}).get("category")
+            == "Knife"
+        )
 
     @pytest.mark.asyncio()
     async def test_resets_category_filter(self) -> None:
@@ -880,7 +889,9 @@ class TestHandleFilterValueCallback:
 
         await handle_filter_value_callback(update, context)
 
-        assert context.user_data.get("filters", {}).get("csgo", {}).get("category") is None
+        assert (
+            context.user_data.get("filters", {}).get("csgo", {}).get("category") is None
+        )
 
     @pytest.mark.asyncio()
     async def test_toggles_stattrak_filter(self) -> None:
@@ -901,7 +912,9 @@ class TestHandleFilterValueCallback:
 
         await handle_filter_value_callback(update, context)
 
-        assert context.user_data.get("filters", {}).get("csgo", {}).get("stattrak") is True
+        assert (
+            context.user_data.get("filters", {}).get("csgo", {}).get("stattrak") is True
+        )
 
 
 class TestEdgeCases:
@@ -1046,11 +1059,16 @@ class TestUtilsFunctions:
 
         update_filters(context, "csgo", {"min_price": 100.0})
 
-        assert context.user_data.get("filters", {}).get("csgo", {}).get("min_price") == 100.0
+        assert (
+            context.user_data.get("filters", {}).get("csgo", {}).get("min_price")
+            == 100.0
+        )
 
     def test_get_game_filter_keyboard_csgo(self) -> None:
         """Test get_game_filter_keyboard for CSGO."""
-        from src.telegram_bot.handlers.game_filters.utils import get_game_filter_keyboard
+        from src.telegram_bot.handlers.game_filters.utils import (
+            get_game_filter_keyboard,
+        )
 
         keyboard = get_game_filter_keyboard("csgo")
 
@@ -1059,7 +1077,9 @@ class TestUtilsFunctions:
 
     def test_get_game_filter_keyboard_dota2(self) -> None:
         """Test get_game_filter_keyboard for Dota 2."""
-        from src.telegram_bot.handlers.game_filters.utils import get_game_filter_keyboard
+        from src.telegram_bot.handlers.game_filters.utils import (
+            get_game_filter_keyboard,
+        )
 
         keyboard = get_game_filter_keyboard("dota2")
 
@@ -1068,7 +1088,9 @@ class TestUtilsFunctions:
 
     def test_get_game_filter_keyboard_tf2(self) -> None:
         """Test get_game_filter_keyboard for TF2."""
-        from src.telegram_bot.handlers.game_filters.utils import get_game_filter_keyboard
+        from src.telegram_bot.handlers.game_filters.utils import (
+            get_game_filter_keyboard,
+        )
 
         keyboard = get_game_filter_keyboard("tf2")
 
@@ -1077,7 +1099,9 @@ class TestUtilsFunctions:
 
     def test_get_game_filter_keyboard_rust(self) -> None:
         """Test get_game_filter_keyboard for Rust."""
-        from src.telegram_bot.handlers.game_filters.utils import get_game_filter_keyboard
+        from src.telegram_bot.handlers.game_filters.utils import (
+            get_game_filter_keyboard,
+        )
 
         keyboard = get_game_filter_keyboard("rust")
 
@@ -1096,7 +1120,9 @@ class TestUtilsFunctions:
 
     def test_build_api_params_for_game(self) -> None:
         """Test build_api_params_for_game function."""
-        from src.telegram_bot.handlers.game_filters.utils import build_api_params_for_game
+        from src.telegram_bot.handlers.game_filters.utils import (
+            build_api_params_for_game,
+        )
 
         filters = {"min_price": 10.0, "max_price": 100.0}
 

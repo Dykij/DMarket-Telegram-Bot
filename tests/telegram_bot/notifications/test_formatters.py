@@ -17,6 +17,7 @@ from __future__ import annotations
 # Test format_price function
 # =============================================================================
 
+
 class TestFormatPrice:
     """Tests for format_price function."""
 
@@ -73,6 +74,7 @@ class TestFormatPrice:
 # Test format_profit function
 # =============================================================================
 
+
 class TestFormatProfit:
     """Tests for format_profit function."""
 
@@ -107,9 +109,7 @@ class TestFormatProfit:
         """Test formatting profit without percentage."""
         from src.telegram_bot.notifications.formatters import format_profit
 
-        result = format_profit(
-            buy_price=10.0, sell_price=15.0, include_percent=False
-        )
+        result = format_profit(buy_price=10.0, sell_price=15.0, include_percent=False)
 
         assert "%" not in result
 
@@ -126,6 +126,7 @@ class TestFormatProfit:
 # =============================================================================
 # Test format_item_brief function
 # =============================================================================
+
 
 class TestFormatItemBrief:
     """Tests for format_item_brief function."""
@@ -190,6 +191,7 @@ class TestFormatItemBrief:
 # =============================================================================
 # Test format_alert_message function
 # =============================================================================
+
 
 class TestFormatAlertMessage:
     """Tests for format_alert_message function."""
@@ -306,6 +308,7 @@ class TestFormatAlertMessage:
 # Test format_alerts_list function
 # =============================================================================
 
+
 class TestFormatAlertsList:
     """Tests for format_alerts_list function."""
 
@@ -366,6 +369,7 @@ class TestFormatAlertsList:
 # Test format_user_settings function
 # =============================================================================
 
+
 class TestFormatUserSettings:
     """Tests for format_user_settings function."""
 
@@ -423,6 +427,7 @@ class TestFormatUserSettings:
 # Test NOTIFICATION_TYPES constant
 # =============================================================================
 
+
 class TestNotificationTypes:
     """Tests for NOTIFICATION_TYPES constant."""
 
@@ -462,6 +467,7 @@ class TestNotificationTypes:
 # =============================================================================
 # Module exports test
 # =============================================================================
+
 
 class TestFormattersModuleExports:
     """Tests for module exports."""

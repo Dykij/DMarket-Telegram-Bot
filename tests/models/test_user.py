@@ -260,7 +260,9 @@ class TestUserSettingsModel:
     def test_settings_to_dict(self, session):
         """Тест преобразования в словарь."""
         user_id = str(uuid4())
-        settings = UserSettings(user_id=user_id, default_game="dota2", min_profit_percent=7.5)
+        settings = UserSettings(
+            user_id=user_id, default_game="dota2", min_profit_percent=7.5
+        )
         session.add(settings)
         session.commit()
 

@@ -126,7 +126,9 @@ def test_create_price_history_chart_custom_title(chart_generator, sample_price_d
 
 def test_create_price_history_chart_custom_currency(chart_generator, sample_price_data):
     """Тест создания графика с кастомной валютой."""
-    result = chart_generator.create_price_history_chart(sample_price_data, currency="EUR")
+    result = chart_generator.create_price_history_chart(
+        sample_price_data, currency="EUR"
+    )
 
     assert isinstance(result, io.BytesIO)
 
@@ -154,7 +156,9 @@ def test_create_market_overview_chart_empty(chart_generator):
 def test_create_market_overview_chart_custom_title(chart_generator, sample_items_data):
     """Тест создания графика с кастомным заголовком."""
     title = "Top Market Items"
-    result = chart_generator.create_market_overview_chart(sample_items_data, title=title)
+    result = chart_generator.create_market_overview_chart(
+        sample_items_data, title=title
+    )
 
     assert isinstance(result, io.BytesIO)
 
@@ -291,7 +295,9 @@ def test_multiple_generators_isolation():
 
 def test_chart_generator_reusability(chart_generator):
     """Тест повторного использования генератора."""
-    data = [{"date": datetime.now().isoformat(), "price": 100 + i * 10} for i in range(3)]
+    data = [
+        {"date": datetime.now().isoformat(), "price": 100 + i * 10} for i in range(3)
+    ]
 
     # Создаем несколько графиков подряд
     chart1 = chart_generator.create_price_history_chart(data, title="Chart 1")
@@ -368,7 +374,9 @@ def test_chart_generation_performance(chart_generator):
 
 def test_multiple_charts_generation_performance(chart_generator):
     """Тест производительности создания нескольких графиков."""
-    data = [{"date": datetime.now().isoformat(), "price": 100 + i * 5} for i in range(10)]
+    data = [
+        {"date": datetime.now().isoformat(), "price": 100 + i * 5} for i in range(10)
+    ]
 
     import time
 

@@ -64,14 +64,14 @@ def sample_user_data():
             "settings": {
                 "enabled": True,
                 "min_profit_percent": 5.0,
-            }
+            },
         },
         "67890": {
             "alerts": [],
             "settings": {
                 "enabled": False,
-            }
-        }
+            },
+        },
     }
 
 
@@ -188,7 +188,9 @@ class TestLoadUserAlerts:
         # Should not raise error, alerts should remain empty
         assert storage._user_alerts == {}
 
-    def test_load_preserves_reference(self, reset_singleton, sample_user_data, tmp_path):
+    def test_load_preserves_reference(
+        self, reset_singleton, sample_user_data, tmp_path
+    ):
         """Test that load preserves dictionary reference."""
         storage = AlertStorage()
         storage._alerts_file = tmp_path / "user_alerts.json"
@@ -232,7 +234,9 @@ class TestSaveUserAlerts:
 
         assert storage._alerts_file.exists()
 
-    def test_save_writes_correct_data(self, reset_singleton, sample_user_data, tmp_path):
+    def test_save_writes_correct_data(
+        self, reset_singleton, sample_user_data, tmp_path
+    ):
         """Test that save writes correct data to file."""
         storage = AlertStorage()
         storage._alerts_file = tmp_path / "alerts.json"
@@ -251,10 +255,12 @@ class TestSaveUserAlerts:
         storage._alerts_file = tmp_path / "unicode_alerts.json"
         storage._user_alerts = {
             "12345": {
-                "alerts": [{
-                    "title": "Тестовый предмет 测试项目",
-                    "type": "price_drop",
-                }]
+                "alerts": [
+                    {
+                        "title": "Тестовый предмет 测试项目",
+                        "type": "price_drop",
+                    }
+                ]
             }
         }
 
@@ -390,7 +396,7 @@ class TestStorageEdgeCases:
         for i in range(1000):
             large_data[str(i)] = {
                 "alerts": [{"id": f"alert_{j}"} for j in range(10)],
-                "settings": {"enabled": True}
+                "settings": {"enabled": True},
             }
 
         storage._user_alerts = large_data
@@ -438,17 +444,10 @@ class TestStorageEdgeCases:
 
         nested_data = {
             "12345": {
-                "alerts": [{
-                    "id": "alert1",
-                    "metadata": {
-                        "nested": {
-                            "deep": {
-                                "value": 42
-                            }
-                        }
-                    }
-                }],
-                "settings": {}
+                "alerts": [
+                    {"id": "alert1", "metadata": {"nested": {"deep": {"value": 42}}}}
+                ],
+                "settings": {},
             }
         }
 
@@ -459,7 +458,12 @@ class TestStorageEdgeCases:
         # Load back
         storage.load_user_alerts()
 
-        assert storage._user_alerts["12345"]["alerts"][0]["metadata"]["nested"]["deep"]["value"] == 42
+        assert (
+            storage._user_alerts["12345"]["alerts"][0]["metadata"]["nested"]["deep"][
+                "value"
+            ]
+            == 42
+        )
 
 
 # =============================================================================
@@ -476,11 +480,13 @@ class TestStorageIntegration:
 
         # Create
         user_data = storage.get_user_data(12345)
-        user_data["alerts"].append({
-            "id": "test_alert",
-            "item_id": "item1",
-            "type": "price_drop",
-        })
+        user_data["alerts"].append(
+            {
+                "id": "test_alert",
+                "item_id": "item1",
+                "type": "price_drop",
+            }
+        )
         storage.save_user_alerts()
 
         # Read

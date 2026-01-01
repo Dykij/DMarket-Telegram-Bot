@@ -830,7 +830,9 @@ class TestSubscribeToItem:
         watcher = RealtimePriceWatcher(mock_api)
         watcher.is_running = True
         watcher.websocket_client = MagicMock()
-        watcher.websocket_client.subscribe_to_item_updates = AsyncMock(return_value=True)
+        watcher.websocket_client.subscribe_to_item_updates = AsyncMock(
+            return_value=True
+        )
 
         result = await watcher.subscribe_to_item("item123")
         assert result is True
@@ -861,7 +863,9 @@ class TestSubscribeToMarketUpdates:
         watcher = RealtimePriceWatcher(mock_api)
         watcher.is_running = True
         watcher.websocket_client = MagicMock()
-        watcher.websocket_client.subscribe_to_market_updates = AsyncMock(return_value=True)
+        watcher.websocket_client.subscribe_to_market_updates = AsyncMock(
+            return_value=True
+        )
 
         result = await watcher.subscribe_to_market_updates("csgo")
         assert result is True

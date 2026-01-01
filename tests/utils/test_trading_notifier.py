@@ -17,8 +17,12 @@ class TestTradingNotifier:
     def mock_api_client(self) -> MagicMock:
         """Create mock API client."""
         client = MagicMock()
-        client.buy_item = AsyncMock(return_value={"success": True, "orderId": "test-order-123"})
-        client.sell_item = AsyncMock(return_value={"success": True, "orderId": "sell-order-456"})
+        client.buy_item = AsyncMock(
+            return_value={"success": True, "orderId": "test-order-123"}
+        )
+        client.sell_item = AsyncMock(
+            return_value={"success": True, "orderId": "sell-order-456"}
+        )
         return client
 
     @pytest.fixture()
@@ -33,7 +37,10 @@ class TestTradingNotifier:
 
     @pytest.fixture()
     def notifier(
-        self, mock_api_client: MagicMock, mock_bot: MagicMock, mock_notification_queue: MagicMock
+        self,
+        mock_api_client: MagicMock,
+        mock_bot: MagicMock,
+        mock_notification_queue: MagicMock,
     ) -> TradingNotifier:
         """Create TradingNotifier instance."""
         return TradingNotifier(
@@ -44,7 +51,10 @@ class TestTradingNotifier:
         )
 
     def test_init(
-        self, mock_api_client: MagicMock, mock_bot: MagicMock, mock_notification_queue: MagicMock
+        self,
+        mock_api_client: MagicMock,
+        mock_bot: MagicMock,
+        mock_notification_queue: MagicMock,
     ) -> None:
         """Test TradingNotifier initialization."""
         notifier = TradingNotifier(
@@ -91,10 +101,12 @@ class TestTradingNotifier:
         """Test successful buy with notifications."""
         with (
             patch(
-                "src.utils.trading_notifier.send_buy_intent_notification", new_callable=AsyncMock
+                "src.utils.trading_notifier.send_buy_intent_notification",
+                new_callable=AsyncMock,
             ) as mock_intent,
             patch(
-                "src.utils.trading_notifier.send_buy_success_notification", new_callable=AsyncMock
+                "src.utils.trading_notifier.send_buy_success_notification",
+                new_callable=AsyncMock,
             ) as mock_success,
         ):
             result = await notifier.buy_item_with_notifications(
@@ -124,10 +136,12 @@ class TestTradingNotifier:
 
         with (
             patch(
-                "src.utils.trading_notifier.send_buy_intent_notification", new_callable=AsyncMock
+                "src.utils.trading_notifier.send_buy_intent_notification",
+                new_callable=AsyncMock,
             ) as mock_intent,
             patch(
-                "src.utils.trading_notifier.send_buy_failed_notification", new_callable=AsyncMock
+                "src.utils.trading_notifier.send_buy_failed_notification",
+                new_callable=AsyncMock,
             ) as mock_failed,
         ):
             result = await notifier.buy_item_with_notifications(
@@ -150,10 +164,12 @@ class TestTradingNotifier:
 
         with (
             patch(
-                "src.utils.trading_notifier.send_buy_intent_notification", new_callable=AsyncMock
+                "src.utils.trading_notifier.send_buy_intent_notification",
+                new_callable=AsyncMock,
             ),
             patch(
-                "src.utils.trading_notifier.send_buy_failed_notification", new_callable=AsyncMock
+                "src.utils.trading_notifier.send_buy_failed_notification",
+                new_callable=AsyncMock,
             ) as mock_failed,
         ):
             with pytest.raises(Exception, match="Network error"):
@@ -187,7 +203,8 @@ class TestTradingNotifier:
     ) -> None:
         """Test successful sell with notifications."""
         with patch(
-            "src.utils.trading_notifier.send_sell_success_notification", new_callable=AsyncMock
+            "src.utils.trading_notifier.send_sell_success_notification",
+            new_callable=AsyncMock,
         ) as mock_success:
             result = await notifier.sell_item_with_notifications(
                 item_id="item-123",
@@ -259,7 +276,9 @@ class TestBuyWithNotifications:
     def mock_api_client(self) -> MagicMock:
         """Create mock API client."""
         client = MagicMock()
-        client.buy_item = AsyncMock(return_value={"success": True, "orderId": "test-order-123"})
+        client.buy_item = AsyncMock(
+            return_value={"success": True, "orderId": "test-order-123"}
+        )
         return client
 
     @pytest.fixture()
@@ -274,10 +293,12 @@ class TestBuyWithNotifications:
         """Test successful buy using helper function."""
         with (
             patch(
-                "src.utils.trading_notifier.send_buy_intent_notification", new_callable=AsyncMock
+                "src.utils.trading_notifier.send_buy_intent_notification",
+                new_callable=AsyncMock,
             ),
             patch(
-                "src.utils.trading_notifier.send_buy_success_notification", new_callable=AsyncMock
+                "src.utils.trading_notifier.send_buy_success_notification",
+                new_callable=AsyncMock,
             ),
         ):
             result = await buy_with_notifications(
@@ -303,10 +324,12 @@ class TestBuyWithNotifications:
 
         with (
             patch(
-                "src.utils.trading_notifier.send_buy_intent_notification", new_callable=AsyncMock
+                "src.utils.trading_notifier.send_buy_intent_notification",
+                new_callable=AsyncMock,
             ),
             patch(
-                "src.utils.trading_notifier.send_buy_success_notification", new_callable=AsyncMock
+                "src.utils.trading_notifier.send_buy_success_notification",
+                new_callable=AsyncMock,
             ),
         ):
             result = await buy_with_notifications(
@@ -330,7 +353,9 @@ class TestTradingNotifierProfitCalculation:
     def mock_api_client(self) -> MagicMock:
         """Create mock API client."""
         client = MagicMock()
-        client.buy_item = AsyncMock(return_value={"success": True, "orderId": "test-order-123"})
+        client.buy_item = AsyncMock(
+            return_value={"success": True, "orderId": "test-order-123"}
+        )
         return client
 
     @pytest.fixture()
@@ -351,10 +376,12 @@ class TestTradingNotifierProfitCalculation:
 
         with (
             patch(
-                "src.utils.trading_notifier.send_buy_intent_notification", new_callable=AsyncMock
+                "src.utils.trading_notifier.send_buy_intent_notification",
+                new_callable=AsyncMock,
             ) as mock_intent,
             patch(
-                "src.utils.trading_notifier.send_buy_success_notification", new_callable=AsyncMock
+                "src.utils.trading_notifier.send_buy_success_notification",
+                new_callable=AsyncMock,
             ),
         ):
             await notifier.buy_item_with_notifications(

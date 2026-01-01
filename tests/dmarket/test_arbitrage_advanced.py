@@ -193,20 +193,30 @@ class TestArbitrageTraderFindProfitableItems:
             {
                 "title": "Item 1",
                 "price": {"USD": 1000},  # $10 - buy price
-                "extra": {"popularity": 0.8, "category": "Rifle", "rarity": "Classified"},
+                "extra": {
+                    "popularity": 0.8,
+                    "category": "Rifle",
+                    "rarity": "Classified",
+                },
                 "itemId": "id1",
             },
             {
                 "title": "Item 1",
                 "price": {"USD": 1500},  # $15 - sell price
-                "extra": {"popularity": 0.8, "category": "Rifle", "rarity": "Classified"},
+                "extra": {
+                    "popularity": 0.8,
+                    "category": "Rifle",
+                    "rarity": "Classified",
+                },
                 "itemId": "id2",
             },
         ]
         mock_api_client.get_all_market_items.return_value = mock_items
 
         # Act
-        items = await trader.find_profitable_items(game="csgo", min_profit_percentage=10.0)
+        items = await trader.find_profitable_items(
+            game="csgo", min_profit_percentage=10.0
+        )
 
         # Assert
         assert len(items) == 1
@@ -216,7 +226,9 @@ class TestArbitrageTraderFindProfitableItems:
         assert item["sell_price"] == 15.0
         assert item["profit_percentage"] > 10.0
 
-    async def test_find_profitable_items_no_suggested_price(self, trader, mock_api_client):
+    async def test_find_profitable_items_no_suggested_price(
+        self, trader, mock_api_client
+    ):
         # Arrange - Test case with low profit margin
         mock_items = [
             {
@@ -235,7 +247,9 @@ class TestArbitrageTraderFindProfitableItems:
         mock_api_client.get_all_market_items.return_value = mock_items
 
         # Act
-        items = await trader.find_profitable_items(game="csgo", min_profit_percentage=5.0)
+        items = await trader.find_profitable_items(
+            game="csgo", min_profit_percentage=5.0
+        )
 
         # Assert
         assert len(items) == 1
@@ -266,7 +280,9 @@ class TestArbitrageTraderFindProfitableItems:
         # Assert
         assert len(items) == 0
 
-    async def test_find_profitable_items_item_processing_error(self, trader, mock_api_client):
+    async def test_find_profitable_items_item_processing_error(
+        self, trader, mock_api_client
+    ):
         # Arrange - Items with invalid price format
         mock_items = [
             {

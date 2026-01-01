@@ -406,7 +406,9 @@ class TestGetBalance:
             side_effect=Exception("API Error"),
         ):
             # Должен быть fallback механизм
-            with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+            with patch.object(
+                dmarket_api, "_request", new_callable=AsyncMock
+            ) as mock_request:
                 mock_request.return_value = None  # Все эндпоинты вернули None
 
                 result = await dmarket_api.get_balance()
@@ -912,7 +914,9 @@ class TestGetSuggestedPrice:
         }
 
         # Act
-        with patch.object(dmarket_api, "get_market_items", new_callable=AsyncMock) as mock_req:
+        with patch.object(
+            dmarket_api, "get_market_items", new_callable=AsyncMock
+        ) as mock_req:
             mock_req.return_value = mock_response
             result = await dmarket_api.get_suggested_price(
                 item_name="AK-47 | Redline (Field-Tested)", game="csgo"
@@ -928,7 +932,9 @@ class TestGetSuggestedPrice:
         mock_response = {"items": []}
 
         # Act
-        with patch.object(dmarket_api, "get_market_items", new_callable=AsyncMock) as mock_req:
+        with patch.object(
+            dmarket_api, "get_market_items", new_callable=AsyncMock
+        ) as mock_req:
             mock_req.return_value = mock_response
             result = await dmarket_api.get_suggested_price(
                 item_name="Nonexistent Item", game="csgo"
@@ -953,12 +959,16 @@ class TestRequestMethod:
         mock_response.status_code = 200
 
         # Act
-        with patch.object(dmarket_api, "_get_client", new_callable=AsyncMock) as mock_get_client:
+        with patch.object(
+            dmarket_api, "_get_client", new_callable=AsyncMock
+        ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.get = AsyncMock(return_value=mock_response)
             mock_get_client.return_value = mock_client
 
-            result = await dmarket_api._request("GET", "/test/endpoint", params={"key": "value"})
+            result = await dmarket_api._request(
+                "GET", "/test/endpoint", params={"key": "value"}
+            )
 
             # Assert
             assert result == {"success": True, "data": "test"}
@@ -973,12 +983,16 @@ class TestRequestMethod:
         mock_response.status_code = 201
 
         # Act
-        with patch.object(dmarket_api, "_get_client", new_callable=AsyncMock) as mock_get_client:
+        with patch.object(
+            dmarket_api, "_get_client", new_callable=AsyncMock
+        ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.post = AsyncMock(return_value=mock_response)
             mock_get_client.return_value = mock_client
 
-            result = await dmarket_api._request("POST", "/test/create", data={"name": "test"})
+            result = await dmarket_api._request(
+                "POST", "/test/create", data={"name": "test"}
+            )
 
             # Assert
             assert result == {"created": True}
@@ -998,11 +1012,15 @@ class TestRequestMethod:
         success_response.status_code = 200
 
         # Act
-        with patch.object(dmarket_api, "_get_client", new_callable=AsyncMock) as mock_get_client:
+        with patch.object(
+            dmarket_api, "_get_client", new_callable=AsyncMock
+        ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.get = AsyncMock(
                 side_effect=[
-                    httpx.HTTPStatusError("429", request=MagicMock(), response=error_response),
+                    httpx.HTTPStatusError(
+                        "429", request=MagicMock(), response=error_response
+                    ),
                     success_response,
                 ]
             )
@@ -1030,11 +1048,15 @@ class TestRequestMethod:
         success_response.status_code = 200
 
         # Act
-        with patch.object(dmarket_api, "_get_client", new_callable=AsyncMock) as mock_get_client:
+        with patch.object(
+            dmarket_api, "_get_client", new_callable=AsyncMock
+        ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.get = AsyncMock(
                 side_effect=[
-                    httpx.HTTPStatusError("500", request=MagicMock(), response=error_response),
+                    httpx.HTTPStatusError(
+                        "500", request=MagicMock(), response=error_response
+                    ),
                     success_response,
                 ]
             )
@@ -1059,7 +1081,9 @@ class TestRequestMethod:
         }
 
         # Act
-        with patch.object(dmarket_api, "_get_client", new_callable=AsyncMock) as mock_get_client:
+        with patch.object(
+            dmarket_api, "_get_client", new_callable=AsyncMock
+        ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.get = AsyncMock(
                 side_effect=httpx.HTTPStatusError(
@@ -1083,7 +1107,9 @@ class TestRequestMethod:
         success_response.status_code = 200
 
         # Act
-        with patch.object(dmarket_api, "_get_client", new_callable=AsyncMock) as mock_get_client:
+        with patch.object(
+            dmarket_api, "_get_client", new_callable=AsyncMock
+        ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.get = AsyncMock(
                 side_effect=[
@@ -1109,7 +1135,9 @@ class TestRequestMethod:
         error_response.text = "Unavailable"
 
         # Act
-        with patch.object(dmarket_api, "_get_client", new_callable=AsyncMock) as mock_get_client:
+        with patch.object(
+            dmarket_api, "_get_client", new_callable=AsyncMock
+        ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.get = AsyncMock(
                 side_effect=httpx.HTTPStatusError(
@@ -1145,7 +1173,9 @@ class TestRequestMethod:
         mock_response.raise_for_status = MagicMock()
 
         # Act
-        with patch.object(dmarket_api, "_get_client", new_callable=AsyncMock) as mock_get_client:
+        with patch.object(
+            dmarket_api, "_get_client", new_callable=AsyncMock
+        ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.get = AsyncMock(return_value=mock_response)
             mock_get_client.return_value = mock_client
@@ -1165,7 +1195,9 @@ class TestRequestMethod:
         mock_response.status_code = 200
 
         # Act
-        with patch.object(dmarket_api, "_get_client", new_callable=AsyncMock) as mock_get_client:
+        with patch.object(
+            dmarket_api, "_get_client", new_callable=AsyncMock
+        ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.delete = AsyncMock(return_value=mock_response)
             mock_get_client.return_value = mock_client
@@ -1184,7 +1216,9 @@ class TestRequestMethod:
         mock_response.status_code = 200
 
         # Act
-        with patch.object(dmarket_api, "_get_client", new_callable=AsyncMock) as mock_get_client:
+        with patch.object(
+            dmarket_api, "_get_client", new_callable=AsyncMock
+        ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.put = AsyncMock(return_value=mock_response)
             mock_get_client.return_value = mock_client
@@ -1203,10 +1237,16 @@ class TestHighLevelAPIMethods:
         """Тест успешного получения статуса депозита."""
         # Arrange
         deposit_id = "test_deposit_123"
-        mock_response = {"status": "completed", "amount": 1000, "deposit_id": deposit_id}
+        mock_response = {
+            "status": "completed",
+            "amount": 1000,
+            "deposit_id": deposit_id,
+        }
 
         # Mock _request to return success
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act
@@ -1235,7 +1275,9 @@ class TestHighLevelAPIMethods:
         }
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act
@@ -1256,11 +1298,15 @@ class TestHighLevelAPIMethods:
         game_id = "a8db"
         title = "AK-47 | Redline (FT)"
         mock_response = {
-            "sales": [{"price": "1250", "date": "2025-11-12", "txOperationType": "Offer"}]
+            "sales": [
+                {"price": "1250", "date": "2025-11-12", "txOperationType": "Offer"}
+            ]
         }
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act
@@ -1283,11 +1329,16 @@ class TestHighLevelAPIMethods:
         # Arrange
         game = "csgo"
         mock_response = {
-            "meta": {"categories": ["Rifle", "Knife"], "rarities": ["Covert", "Classified"]}
+            "meta": {
+                "categories": ["Rifle", "Knife"],
+                "rarities": ["Covert", "Classified"],
+            }
         }
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act
@@ -1306,13 +1357,19 @@ class TestHighLevelAPIMethods:
         game_id = "a8db"
         mock_response = {
             "Items": [
-                {"TargetID": "target_1", "Title": "AK-47 | Redline (FT)", "Price": {"Amount": 1200}}
+                {
+                    "TargetID": "target_1",
+                    "Title": "AK-47 | Redline (FT)",
+                    "Price": {"Amount": 1200},
+                }
             ],
             "Total": "1",
         }
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act
@@ -1339,7 +1396,9 @@ class TestHighLevelAPIMethods:
         }
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act
@@ -1363,7 +1422,9 @@ class TestHighLevelAPIMethods:
         mock_response = {"success": True, "offerId": offer_id}
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act
@@ -1386,7 +1447,9 @@ class TestHighLevelAPIMethods:
         mock_response = {"success": True}
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act
@@ -1413,11 +1476,15 @@ class TestHighLevelAPIMethods:
         }
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act
-            result = await dmarket_api.list_offers_by_title(game_id=game_id, title=title, limit=50)
+            result = await dmarket_api.list_offers_by_title(
+                game_id=game_id, title=title, limit=50
+            )
 
             # Assert
             assert result == mock_response
@@ -1439,7 +1506,9 @@ class TestHighLevelAPIMethods:
         }
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act
@@ -1475,7 +1544,9 @@ class TestHighLevelAPIMethods:
         }
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act
@@ -1507,7 +1578,9 @@ class TestHighLevelAPIMethods:
         }
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act
@@ -1537,7 +1610,9 @@ class TestHighLevelAPIMethods:
         }
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act
@@ -1548,7 +1623,9 @@ class TestHighLevelAPIMethods:
             call_args = mock_request.call_args
             assert call_args[0][0] == "GET"
             # Проверяем что путь содержит правильный формат (с URL encoding)
-            assert call_args[0][1].startswith(f"/marketplace-api/v1/targets-by-title/{game_id}/")
+            assert call_args[0][1].startswith(
+                f"/marketplace-api/v1/targets-by-title/{game_id}/"
+            )
 
     @pytest.mark.asyncio()
     async def test_list_user_inventory_api_success(self, dmarket_api):
@@ -1569,7 +1646,9 @@ class TestHighLevelAPIMethods:
         }
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act
@@ -1608,7 +1687,9 @@ class TestHighLevelAPIMethods:
         }
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act
@@ -1656,7 +1737,9 @@ class TestAdditionalMarketplaceMethods:
         }
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act
@@ -1691,7 +1774,9 @@ class TestAdditionalMarketplaceMethods:
         }
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act
@@ -1719,7 +1804,9 @@ class TestAdditionalMarketplaceMethods:
         periods = ["last_day", "last_week", "last_month", "last_year"]
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = {"prices": []}
 
             # Act & Assert для каждого периода
@@ -1746,7 +1833,9 @@ class TestAdditionalMarketplaceMethods:
         }
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act
@@ -1766,7 +1855,9 @@ class TestAdditionalMarketplaceMethods:
         mock_response = {"games": ["csgo"]}
 
         # Mock _request
-        with patch.object(dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            dmarket_api, "_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = mock_response
 
             # Act

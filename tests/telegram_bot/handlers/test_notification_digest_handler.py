@@ -624,8 +624,8 @@ class TestShowDigestMenu:
 
         # Assert
         call_args = mock_update.callback_query.edit_message_text.call_args
-        message_text = call_args.args[0] if call_args.args else call_args.kwargs.get(
-            "text", ""
+        message_text = (
+            call_args.args[0] if call_args.args else call_args.kwargs.get("text", "")
         )
         # Should contain status info
         assert "Статус" in message_text
@@ -691,8 +691,8 @@ class TestFrequencySettings:
         # Assert
         mock_update.callback_query.edit_message_text.assert_called_once()
         call_args = mock_update.callback_query.edit_message_text.call_args
-        message_text = call_args.args[0] if call_args.args else call_args.kwargs.get(
-            "text", ""
+        message_text = (
+            call_args.args[0] if call_args.args else call_args.kwargs.get("text", "")
         )
         assert "частот" in message_text.lower()
 
@@ -700,7 +700,9 @@ class TestFrequencySettings:
     async def test_set_frequency_hourly(self, mock_update, mock_context):
         """Test setting hourly frequency."""
         user_id = mock_update.effective_user.id
-        mock_update.callback_query.data = f"digest_set_freq_{DigestFrequency.HOURLY.value}"
+        mock_update.callback_query.data = (
+            f"digest_set_freq_{DigestFrequency.HOURLY.value}"
+        )
 
         # Act
         await set_frequency(mock_update, mock_context)
@@ -713,7 +715,9 @@ class TestFrequencySettings:
     async def test_set_frequency_daily(self, mock_update, mock_context):
         """Test setting daily frequency."""
         user_id = mock_update.effective_user.id
-        mock_update.callback_query.data = f"digest_set_freq_{DigestFrequency.DAILY.value}"
+        mock_update.callback_query.data = (
+            f"digest_set_freq_{DigestFrequency.DAILY.value}"
+        )
 
         # Act
         await set_frequency(mock_update, mock_context)
@@ -726,7 +730,9 @@ class TestFrequencySettings:
     async def test_set_frequency_weekly(self, mock_update, mock_context):
         """Test setting weekly frequency."""
         user_id = mock_update.effective_user.id
-        mock_update.callback_query.data = f"digest_set_freq_{DigestFrequency.WEEKLY.value}"
+        mock_update.callback_query.data = (
+            f"digest_set_freq_{DigestFrequency.WEEKLY.value}"
+        )
 
         # Act
         await set_frequency(mock_update, mock_context)
@@ -748,8 +754,8 @@ class TestGroupingModeHandlers:
         # Assert
         mock_update.callback_query.edit_message_text.assert_called_once()
         call_args = mock_update.callback_query.edit_message_text.call_args
-        message_text = call_args.args[0] if call_args.args else call_args.kwargs.get(
-            "text", ""
+        message_text = (
+            call_args.args[0] if call_args.args else call_args.kwargs.get("text", "")
         )
         assert "группировк" in message_text.lower()
 
@@ -813,8 +819,8 @@ class TestMinItemsConfiguration:
         # Assert
         mock_update.callback_query.edit_message_text.assert_called_once()
         call_args = mock_update.callback_query.edit_message_text.call_args
-        message_text = call_args.args[0] if call_args.args else call_args.kwargs.get(
-            "text", ""
+        message_text = (
+            call_args.args[0] if call_args.args else call_args.kwargs.get("text", "")
         )
         assert "минимальное" in message_text.lower()
 

@@ -24,7 +24,9 @@ class TestSmartNotificationsConstants:
 
     def test_default_user_preferences_defined(self):
         """Test default user preferences are defined."""
-        from src.telegram_bot.smart_notifications.constants import DEFAULT_USER_PREFERENCES
+        from src.telegram_bot.smart_notifications.constants import (
+            DEFAULT_USER_PREFERENCES,
+        )
 
         assert isinstance(DEFAULT_USER_PREFERENCES, dict)
         assert "enabled" in DEFAULT_USER_PREFERENCES
@@ -54,12 +56,14 @@ class TestSmartNotificationsUtils:
         """Test successful market data retrieval."""
         from src.telegram_bot.smart_notifications.utils import get_market_data_for_items
 
-        mock_api._request = AsyncMock(return_value={
-            "items": [
-                {"itemId": "item_1", "price": {"USD": "1000"}, "title": "Item 1"},
-                {"itemId": "item_2", "price": {"USD": "2000"}, "title": "Item 2"},
-            ]
-        })
+        mock_api._request = AsyncMock(
+            return_value={
+                "items": [
+                    {"itemId": "item_1", "price": {"USD": "1000"}, "title": "Item 1"},
+                    {"itemId": "item_2", "price": {"USD": "2000"}, "title": "Item 2"},
+                ]
+            }
+        )
 
         result = await get_market_data_for_items(mock_api, ["item_1", "item_2"], "csgo")
 
@@ -224,8 +228,13 @@ class TestSmartNotificationsSenders:
         }
         user_prefs = {"chat_id": 123456, "enabled": True}
 
-        with patch("src.telegram_bot.smart_notifications.senders.format_market_item", return_value="Item info"):
-            with patch("src.telegram_bot.smart_notifications.senders.record_notification"):
+        with patch(
+            "src.telegram_bot.smart_notifications.senders.format_market_item",
+            return_value="Item info",
+        ):
+            with patch(
+                "src.telegram_bot.smart_notifications.senders.record_notification"
+            ):
                 await send_price_alert_notification(
                     mock_bot, 123456, alert, item_data, 12.0, user_prefs
                 )
@@ -248,8 +257,13 @@ class TestSmartNotificationsSenders:
         }
         user_prefs = {"chat_id": 789012, "enabled": True}
 
-        with patch("src.telegram_bot.smart_notifications.senders.format_opportunities", return_value="Opportunity"):
-            with patch("src.telegram_bot.smart_notifications.senders.record_notification"):
+        with patch(
+            "src.telegram_bot.smart_notifications.senders.format_opportunities",
+            return_value="Opportunity",
+        ):
+            with patch(
+                "src.telegram_bot.smart_notifications.senders.record_notification"
+            ):
                 await send_market_opportunity_notification(
                     mock_bot, 789012, opportunity, user_prefs
                 )

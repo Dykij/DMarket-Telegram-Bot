@@ -530,7 +530,9 @@ class TestGetApiKeyInputKeyboard:
         second_row = result.inline_keyboard[1]
         where_button = second_row[0]
 
-        assert "ключи" in where_button.text.lower() or "найти" in where_button.text.lower()
+        assert (
+            "ключи" in where_button.text.lower() or "найти" in where_button.text.lower()
+        )
         assert where_button.url is not None
         assert "dmarket.com" in where_button.url
 

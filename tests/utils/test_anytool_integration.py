@@ -333,7 +333,9 @@ class TestExecuteTool:
         from src.utils.anytool_integration import AnyToolClient
 
         mock_api = AsyncMock()
-        mock_api.get_item_by_id = AsyncMock(return_value={"id": "123", "name": "Test Item"})
+        mock_api.get_item_by_id = AsyncMock(
+            return_value={"id": "123", "name": "Test Item"}
+        )
 
         client = AnyToolClient(api_client=mock_api)
 

@@ -119,9 +119,7 @@ class TestValidateAttributes:
         """Test validation with both floatPartValue and paintSeed."""
         from src.dmarket.targets.validators import validate_attributes
 
-        validate_attributes(
-            "csgo", {"floatPartValue": 0.3, "paintSeed": 500}
-        )
+        validate_attributes("csgo", {"floatPartValue": 0.3, "paintSeed": 500})
 
     def test_validate_attributes_float_boundary_0(self) -> None:
         """Test validation at float boundary 0."""

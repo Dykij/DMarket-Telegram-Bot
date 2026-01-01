@@ -61,6 +61,7 @@ class TestSimpleBatchProcessorProcessing:
     @pytest.mark.asyncio()
     async def test_process_empty_list(self, processor):
         """Test processing empty list."""
+
         async def process_fn(batch):
             return batch
 
@@ -104,7 +105,9 @@ class TestSimpleBatchProcessorProcessing:
         async def progress_callback(processed, total):
             progress_updates.append((processed, total))
 
-        await processor.process_in_batches(items, process_fn, progress_callback=progress_callback)
+        await processor.process_in_batches(
+            items, process_fn, progress_callback=progress_callback
+        )
 
         # Should have progress updates
         assert len(progress_updates) > 0
@@ -125,7 +128,9 @@ class TestSimpleBatchProcessorProcessing:
         async def error_callback(error, failed_batch):
             errors.append((str(error), failed_batch))
 
-        await processor.process_in_batches(items, process_fn, error_callback=error_callback)
+        await processor.process_in_batches(
+            items, process_fn, error_callback=error_callback
+        )
 
         # Should have captured the error
         assert len(errors) > 0
@@ -200,6 +205,7 @@ class TestSimpleBatchProcessorConcurrency:
         processor = SimpleBatchProcessor(batch_size=2, delay_between_batches=0.1)
 
         import time
+
         start = time.time()
 
         async def process_fn(batch):
@@ -218,6 +224,7 @@ class TestSimpleBatchProcessorConcurrency:
         processor = SimpleBatchProcessor(batch_size=10, delay_between_batches=1.0)
 
         import time
+
         start = time.time()
 
         async def process_fn(batch):
@@ -486,7 +493,7 @@ class TestProgressTrackerUpdate:
         tracker = ProgressTracker(total=100, update_interval=10)
 
         # Act & Assert
-        assert tracker.update(5) is None   # Below interval
+        assert tracker.update(5) is None  # Below interval
         assert tracker.update(10) is not None  # At interval
         assert tracker.update(15) is None  # Below next interval
         assert tracker.update(20) is not None  # At next interval
@@ -614,11 +621,13 @@ class TestChunkedApiCalls:
         """Test chunked API calls with multiple chunks."""
         # Arrange
         items = [1, 2, 3, 4, 5, 6]
-        api_call_fn = AsyncMock(side_effect=[
-            [10, 20],
-            [30, 40],
-            [50, 60],
-        ])
+        api_call_fn = AsyncMock(
+            side_effect=[
+                [10, 20],
+                [30, 40],
+                [50, 60],
+            ]
+        )
 
         # Act
         results = await chunked_api_calls(items, api_call_fn, chunk_size=2, delay=0.001)
@@ -658,10 +667,12 @@ class TestChunkedApiCalls:
         """Test chunked API calls raises exception on API error."""
         # Arrange
         items = [1, 2, 3, 4]
-        api_call_fn = AsyncMock(side_effect=[
-            [10, 20],
-            ValueError("API error"),
-        ])
+        api_call_fn = AsyncMock(
+            side_effect=[
+                [10, 20],
+                ValueError("API error"),
+            ]
+        )
 
         # Act & Assert
         with pytest.raises(ValueError, match="API error"):

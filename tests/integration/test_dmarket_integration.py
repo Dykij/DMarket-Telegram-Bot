@@ -49,7 +49,9 @@ async def test_get_market_items_integration(api_client):
     }
 
     with patch.object(api_client, "_request", return_value=mock_response):
-        items = await api_client.get_market_items(game="csgo", price_from=500, price_to=2000)
+        items = await api_client.get_market_items(
+            game="csgo", price_from=500, price_to=2000
+        )
 
         assert items is not None
         assert "objects" in items
@@ -61,7 +63,9 @@ async def test_get_market_items_integration(api_client):
 async def test_rate_limit_handling_integration(api_client):
     """Test rate limit error handling."""
     with patch.object(api_client, "_request") as mock_request:
-        mock_request.side_effect = RateLimitError(message="Rate limit exceeded", retry_after=60)
+        mock_request.side_effect = RateLimitError(
+            message="Rate limit exceeded", retry_after=60
+        )
 
         with pytest.raises(RateLimitError) as exc_info:
             await api_client.get_balance()

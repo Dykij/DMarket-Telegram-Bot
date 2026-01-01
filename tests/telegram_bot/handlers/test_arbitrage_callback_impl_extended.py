@@ -112,7 +112,9 @@ class TestArbitrageCallbackImplEdgeCases:
         assert result is None
 
     @pytest.mark.asyncio()
-    async def test_arbitrage_callback_impl_no_effective_chat(self, mock_update, mock_context):
+    async def test_arbitrage_callback_impl_no_effective_chat(
+        self, mock_update, mock_context
+    ):
         """Test arbitrage_callback_impl when effective_chat is None."""
         mock_update.effective_chat = None
         mock_context.user_data = {"use_modern_ui": False}
@@ -143,7 +145,9 @@ class TestArbitrageCallbackImplEdgeCases:
             mock_keyboard.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_arbitrage_callback_impl_empty_user_data(self, mock_update, mock_context):
+    async def test_arbitrage_callback_impl_empty_user_data(
+        self, mock_update, mock_context
+    ):
         """Test arbitrage_callback_impl with empty user_data."""
         mock_context.user_data = None
 
@@ -186,7 +190,9 @@ class TestHandleDmarketArbitrageImplModes:
         ):
             mock_mid.return_value = mock_arbitrage_results
             mock_pagination.add_items_for_user = MagicMock()
-            mock_pagination.get_page = MagicMock(return_value=(mock_arbitrage_results, 0, 1))
+            mock_pagination.get_page = MagicMock(
+                return_value=(mock_arbitrage_results, 0, 1)
+            )
 
             await handle_dmarket_arbitrage_impl(query, mock_context, "mid")
 
@@ -214,7 +220,9 @@ class TestHandleDmarketArbitrageImplModes:
         ):
             mock_pro.return_value = mock_arbitrage_results
             mock_pagination.add_items_for_user = MagicMock()
-            mock_pagination.get_page = MagicMock(return_value=(mock_arbitrage_results, 0, 1))
+            mock_pagination.get_page = MagicMock(
+                return_value=(mock_arbitrage_results, 0, 1)
+            )
 
             await handle_dmarket_arbitrage_impl(query, mock_context, "pro")
 
@@ -246,7 +254,9 @@ class TestHandleDmarketArbitrageImplGames:
         ):
             mock_boost.return_value = mock_arbitrage_results
             mock_pagination.add_items_for_user = MagicMock()
-            mock_pagination.get_page = MagicMock(return_value=(mock_arbitrage_results, 0, 1))
+            mock_pagination.get_page = MagicMock(
+                return_value=(mock_arbitrage_results, 0, 1)
+            )
 
             await handle_dmarket_arbitrage_impl(query, mock_context, "boost")
 
@@ -273,7 +283,9 @@ class TestHandleDmarketArbitrageImplGames:
         ):
             mock_boost.return_value = mock_arbitrage_results
             mock_pagination.add_items_for_user = MagicMock()
-            mock_pagination.get_page = MagicMock(return_value=(mock_arbitrage_results, 0, 1))
+            mock_pagination.get_page = MagicMock(
+                return_value=(mock_arbitrage_results, 0, 1)
+            )
 
             await handle_dmarket_arbitrage_impl(query, mock_context, "boost")
 
@@ -300,7 +312,9 @@ class TestHandleDmarketArbitrageImplGames:
         ):
             mock_boost.return_value = mock_arbitrage_results
             mock_pagination.add_items_for_user = MagicMock()
-            mock_pagination.get_page = MagicMock(return_value=(mock_arbitrage_results, 0, 1))
+            mock_pagination.get_page = MagicMock(
+                return_value=(mock_arbitrage_results, 0, 1)
+            )
 
             await handle_dmarket_arbitrage_impl(query, mock_context, "boost")
 
@@ -406,7 +420,9 @@ class TestHandleDmarketArbitrageImplEmptyResults:
             query.edit_message_text.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_handle_dmarket_arbitrage_none_results(self, mock_update, mock_context):
+    async def test_handle_dmarket_arbitrage_none_results(
+        self, mock_update, mock_context
+    ):
         """Test handle_dmarket_arbitrage_impl with None results."""
         query = mock_update.callback_query
         mock_context.user_data = {"current_game": "csgo"}
@@ -523,7 +539,9 @@ class TestHandleGameSelectionImpl:
     """Tests for handle_game_selection_impl."""
 
     @pytest.mark.asyncio()
-    async def test_handle_game_selection_no_message_chat(self, mock_update, mock_context):
+    async def test_handle_game_selection_no_message_chat(
+        self, mock_update, mock_context
+    ):
         """Test handle_game_selection_impl when message.chat is None."""
         query = mock_update.callback_query
         query.message = None
@@ -574,7 +592,9 @@ class TestHandleGameSelectedImpl:
             assert mock_context.user_data["current_game"] == "rust"
 
     @pytest.mark.asyncio()
-    async def test_handle_game_selected_initializes_user_data(self, mock_update, mock_context):
+    async def test_handle_game_selected_initializes_user_data(
+        self, mock_update, mock_context
+    ):
         """Test handle_game_selected_impl initializes user_data if None."""
         query = mock_update.callback_query
         mock_context.user_data = None
@@ -612,7 +632,9 @@ class TestHandleMarketComparisonImpl:
             query.edit_message_text.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_handle_market_comparison_no_message_chat(self, mock_update, mock_context):
+    async def test_handle_market_comparison_no_message_chat(
+        self, mock_update, mock_context
+    ):
         """Test handle_market_comparison_impl when message.chat is None."""
         query = mock_update.callback_query
         query.message = None
@@ -671,9 +693,7 @@ class TestErrorHandling:
             await handle_dmarket_arbitrage_impl(query, mock_context, "boost")
 
     @pytest.mark.asyncio()
-    async def test_handle_best_opportunities_api_error(
-        self, mock_update, mock_context
-    ):
+    async def test_handle_best_opportunities_api_error(self, mock_update, mock_context):
         """Test handle_best_opportunities_impl with API error."""
         query = mock_update.callback_query
         mock_context.user_data = {"current_game": "csgo"}

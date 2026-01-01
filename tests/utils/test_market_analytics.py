@@ -145,7 +145,9 @@ class TestTechnicalIndicatorsMACD:
     def test_macd_custom_periods(self) -> None:
         """Test MACD with custom periods."""
         prices = [100 + np.sin(i / 5) * 10 for i in range(50)]
-        result = TechnicalIndicators.macd(prices, fast_period=8, slow_period=20, signal_period=5)
+        result = TechnicalIndicators.macd(
+            prices, fast_period=8, slow_period=20, signal_period=5
+        )
 
         assert result is not None
         assert "macd" in result
@@ -228,7 +230,9 @@ class TestMarketAnalyzer:
             for i in range(50, -1, -1)  # 51 data points
         ]
 
-    def test_calculate_fair_price_insufficient_data(self, analyzer: MarketAnalyzer) -> None:
+    def test_calculate_fair_price_insufficient_data(
+        self, analyzer: MarketAnalyzer
+    ) -> None:
         """Test fair price with insufficient data."""
         history = [PricePoint(datetime.now(UTC), 10.0, 100) for _ in range(5)]
         result = analyzer.calculate_fair_price(history)
@@ -304,19 +308,28 @@ class TestMarketAnalyzer:
         """Test neutral trend detection."""
         now = datetime.now(UTC)
         # Flat prices
-        history = [PricePoint(now - timedelta(days=i), price=100, volume=100) for i in range(31)]
+        history = [
+            PricePoint(now - timedelta(days=i), price=100, volume=100)
+            for i in range(31)
+        ]
         trend = analyzer.detect_trend(history)
         assert trend == TrendDirection.NEUTRAL
 
     def test_detect_trend_insufficient_data(self, analyzer: MarketAnalyzer) -> None:
         """Test trend detection with insufficient data."""
-        history = [PricePoint(datetime.now(UTC), price=100, volume=100) for _ in range(5)]
+        history = [
+            PricePoint(datetime.now(UTC), price=100, volume=100) for _ in range(5)
+        ]
         trend = analyzer.detect_trend(history)
         assert trend == TrendDirection.NEUTRAL
 
-    def test_predict_price_drop_insufficient_data(self, analyzer: MarketAnalyzer) -> None:
+    def test_predict_price_drop_insufficient_data(
+        self, analyzer: MarketAnalyzer
+    ) -> None:
         """Test price drop prediction with insufficient data."""
-        history = [PricePoint(datetime.now(UTC), price=100, volume=100) for _ in range(5)]
+        history = [
+            PricePoint(datetime.now(UTC), price=100, volume=100) for _ in range(5)
+        ]
         result = analyzer.predict_price_drop(history)
 
         assert result["prediction"] is False
@@ -338,7 +351,9 @@ class TestMarketAnalyzer:
         self, analyzer: MarketAnalyzer
     ) -> None:
         """Test support/resistance with insufficient data."""
-        history = [PricePoint(datetime.now(UTC), price=100, volume=100) for _ in range(5)]
+        history = [
+            PricePoint(datetime.now(UTC), price=100, volume=100) for _ in range(5)
+        ]
         result = analyzer.calculate_support_resistance(history)
 
         assert result == {"support": [], "resistance": []}
@@ -373,7 +388,9 @@ class TestMarketAnalyzer:
         assert "avg_daily_volume" in result
         assert "volume_consistency" in result
 
-    def test_analyze_liquidity_bullish_volume_trend(self, analyzer: MarketAnalyzer) -> None:
+    def test_analyze_liquidity_bullish_volume_trend(
+        self, analyzer: MarketAnalyzer
+    ) -> None:
         """Test liquidity analysis with increasing volume trend."""
         now = datetime.now(UTC)
         # Volume increasing over time - most recent has highest volume
@@ -403,22 +420,28 @@ class TestMarketAnalyzer:
         assert "liquidity" in result
         assert "overall" in result
 
-    def test_generate_trading_insights_overpriced(self, analyzer: MarketAnalyzer) -> None:
+    def test_generate_trading_insights_overpriced(
+        self, analyzer: MarketAnalyzer
+    ) -> None:
         """Test trading insights for overpriced item."""
         now = datetime.now(UTC)
         history = [
-            PricePoint(now - timedelta(days=i), price=100, volume=100) for i in range(50)
+            PricePoint(now - timedelta(days=i), price=100, volume=100)
+            for i in range(50)
         ]
         # Current price significantly above fair price
         result = analyzer.generate_trading_insights(history, current_price=150.0)
 
         assert result["fair_price"]["is_overpriced"] is True
 
-    def test_generate_trading_insights_underpriced(self, analyzer: MarketAnalyzer) -> None:
+    def test_generate_trading_insights_underpriced(
+        self, analyzer: MarketAnalyzer
+    ) -> None:
         """Test trading insights for underpriced item."""
         now = datetime.now(UTC)
         history = [
-            PricePoint(now - timedelta(days=i), price=100, volume=100) for i in range(50)
+            PricePoint(now - timedelta(days=i), price=100, volume=100)
+            for i in range(50)
         ]
         # Current price significantly below fair price
         result = analyzer.generate_trading_insights(history, current_price=80.0)
@@ -439,7 +462,9 @@ class TestMarketAnalyzerEdgeCases:
         analyzer = MarketAnalyzer(min_data_points=10)
         now = datetime.now(UTC)
         history = [
-            PricePoint(now - timedelta(days=i), price=100 + np.sin(i / 3) * 10, volume=100)
+            PricePoint(
+                now - timedelta(days=i), price=100 + np.sin(i / 3) * 10, volume=100
+            )
             for i in range(50)
         ]
 

@@ -262,9 +262,11 @@ class TestApplicationInitialize:
         mock_config.dmarket.secret_key = "test"
         mock_config.dmarket.api_url = "https://api.dmarket.com"
 
-        with patch.object(app, "config", mock_config), patch(
-            "src.main.Config.load", return_value=mock_config
-        ), pytest.raises(ValueError, match="token"):
+        with (
+            patch.object(app, "config", mock_config),
+            patch("src.main.Config.load", return_value=mock_config),
+            pytest.raises(ValueError, match="token"),
+        ):
             await app.initialize()
 
 

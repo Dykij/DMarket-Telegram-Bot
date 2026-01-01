@@ -245,7 +245,9 @@ class DMarketContracts:
                     "suggestedPrice": {
                         "USD": PactMatchers.regex(r"^\d+$", "1300"),
                     },
-                    "imageUrl": PactMatchers.regex(r"^https?://", "https://example.com/img.png"),
+                    "imageUrl": PactMatchers.regex(
+                        r"^https?://", "https://example.com/img.png"
+                    ),
                     "extra": {
                         "category": PactMatchers.like("Rifle"),
                         "exterior": PactMatchers.like("Field-Tested"),
@@ -298,7 +300,9 @@ class DMarketContracts:
                 {
                     "TargetID": PactMatchers.like("new_target_123"),
                     "Title": PactMatchers.like("AK-47 | Redline (Field-Tested)"),
-                    "Status": PactMatchers.regex(r"^(Created|Updated|Error)$", "Created"),
+                    "Status": PactMatchers.regex(
+                        r"^(Created|Updated|Error)$", "Created"
+                    ),
                 },
                 minimum=1,
             ),
@@ -316,7 +320,9 @@ class DMarketContracts:
                 {
                     "ItemID": PactMatchers.like("inv_item_123"),
                     "Title": PactMatchers.like("AK-47 | Redline (Field-Tested)"),
-                    "Image": PactMatchers.regex(r"^https?://", "https://example.com/img.png"),
+                    "Image": PactMatchers.regex(
+                        r"^https?://", "https://example.com/img.png"
+                    ),
                     "Price": {
                         "USD": PactMatchers.regex(r"^\d+$", "1300"),
                     },
@@ -354,7 +360,9 @@ class DMarketContracts:
         }
 
     @staticmethod
-    def error_response(code: str = "ERROR", message: str = "An error occurred") -> dict[str, Any]:
+    def error_response(
+        code: str = "ERROR", message: str = "An error occurred"
+    ) -> dict[str, Any]:
         """Expected error response structure.
 
         Args:
@@ -496,7 +504,9 @@ try:
 
             # Add request headers if present
             if headers:
-                self._interaction = self._interaction.with_headers(headers, part="Request")
+                self._interaction = self._interaction.with_headers(
+                    headers, part="Request"
+                )
 
             # Add request body if present
             if body is not None:
@@ -520,7 +530,9 @@ try:
 
             # Add response headers if present
             if headers:
-                self._interaction = self._interaction.with_headers(headers, part="Response")
+                self._interaction = self._interaction.with_headers(
+                    headers, part="Response"
+                )
 
             # Add response body if present
             if body is not None:

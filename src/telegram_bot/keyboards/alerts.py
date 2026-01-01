@@ -158,7 +158,9 @@ def create_price_alerts_keyboard(
     if total_pages > 1:
         nav_row = []
         if page > 1:
-            nav_row.append(InlineKeyboardButton(text="◀️", callback_data=f"alerts_page_{page - 1}"))
+            nav_row.append(
+                InlineKeyboardButton(text="◀️", callback_data=f"alerts_page_{page - 1}")
+            )
         nav_row.append(
             InlineKeyboardButton(
                 text=f"📄 {page}/{total_pages}",
@@ -166,11 +168,23 @@ def create_price_alerts_keyboard(
             )
         )
         if page < total_pages:
-            nav_row.append(InlineKeyboardButton(text="▶️", callback_data=f"alerts_page_{page + 1}"))
+            nav_row.append(
+                InlineKeyboardButton(text="▶️", callback_data=f"alerts_page_{page + 1}")
+            )
         keyboard.append(nav_row)
 
     # Основные действия
-    keyboard.extend(([InlineKeyboardButton(text="➕ Создать", callback_data="alert_create"), InlineKeyboardButton(text="🗑️ Удалить все", callback_data="alert_delete_all")], [InlineKeyboardButton(text="◀️ Назад", callback_data=CB_BACK)]))
+    keyboard.extend(
+        (
+            [
+                InlineKeyboardButton(text="➕ Создать", callback_data="alert_create"),
+                InlineKeyboardButton(
+                    text="🗑️ Удалить все", callback_data="alert_delete_all"
+                ),
+            ],
+            [InlineKeyboardButton(text="◀️ Назад", callback_data=CB_BACK)],
+        )
+    )
 
     return InlineKeyboardMarkup(keyboard)
 

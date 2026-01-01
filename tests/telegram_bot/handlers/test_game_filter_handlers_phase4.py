@@ -73,8 +73,15 @@ class TestDefaultFiltersStructure:
 
         csgo_filters = DEFAULT_FILTERS["csgo"]
         expected_keys = [
-            "min_price", "max_price", "float_min", "float_max",
-            "category", "rarity", "exterior", "stattrak", "souvenir"
+            "min_price",
+            "max_price",
+            "float_min",
+            "float_max",
+            "category",
+            "rarity",
+            "exterior",
+            "stattrak",
+            "souvenir",
         ]
         for key in expected_keys:
             assert key in csgo_filters
@@ -84,7 +91,15 @@ class TestDefaultFiltersStructure:
         from src.telegram_bot.handlers.game_filter_handlers import DEFAULT_FILTERS
 
         dota2_filters = DEFAULT_FILTERS["dota2"]
-        expected_keys = ["min_price", "max_price", "hero", "rarity", "slot", "quality", "tradable"]
+        expected_keys = [
+            "min_price",
+            "max_price",
+            "hero",
+            "rarity",
+            "slot",
+            "quality",
+            "tradable",
+        ]
         for key in expected_keys:
             assert key in dota2_filters
 
@@ -94,8 +109,14 @@ class TestDefaultFiltersStructure:
 
         tf2_filters = DEFAULT_FILTERS["tf2"]
         expected_keys = [
-            "min_price", "max_price", "class", "quality", "type",
-            "effect", "killstreak", "australium"
+            "min_price",
+            "max_price",
+            "class",
+            "quality",
+            "type",
+            "effect",
+            "killstreak",
+            "australium",
         ]
         for key in expected_keys:
             assert key in tf2_filters
@@ -139,9 +160,7 @@ class TestGetCurrentFilters:
         from src.telegram_bot.handlers.game_filter_handlers import get_current_filters
 
         mock_context.user_data = {
-            "filters": {
-                "csgo": {"min_price": 5.0, "max_price": 100.0}
-            }
+            "filters": {"csgo": {"min_price": 5.0, "max_price": 100.0}}
         }
         filters = get_current_filters(mock_context, "csgo")
 
@@ -174,11 +193,7 @@ class TestGetCurrentFilters:
         """Test that get_current_filters returns a copy, not reference."""
         from src.telegram_bot.handlers.game_filter_handlers import get_current_filters
 
-        mock_context.user_data = {
-            "filters": {
-                "csgo": {"min_price": 5.0}
-            }
-        }
+        mock_context.user_data = {"filters": {"csgo": {"min_price": 5.0}}}
         filters1 = get_current_filters(mock_context, "csgo")
         filters1["min_price"] = 999.0
 
@@ -223,9 +238,7 @@ class TestUpdateFilters:
         )
 
         mock_context.user_data = {
-            "filters": {
-                "csgo": {"min_price": 5.0, "category": "Knife"}
-            }
+            "filters": {"csgo": {"min_price": 5.0, "category": "Knife"}}
         }
 
         # Update with only min_price
@@ -252,7 +265,9 @@ class TestGetGameFilterKeyboard:
 
     def test_keyboard_csgo_has_float_range(self):
         """Test CSGO keyboard has float range option."""
-        from src.telegram_bot.handlers.game_filter_handlers import get_game_filter_keyboard
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            get_game_filter_keyboard,
+        )
 
         keyboard = get_game_filter_keyboard("csgo")
 
@@ -269,7 +284,9 @@ class TestGetGameFilterKeyboard:
 
     def test_keyboard_csgo_has_stattrak(self):
         """Test CSGO keyboard has StatTrak option."""
-        from src.telegram_bot.handlers.game_filter_handlers import get_game_filter_keyboard
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            get_game_filter_keyboard,
+        )
 
         keyboard = get_game_filter_keyboard("csgo")
         all_buttons = [b.callback_data for row in keyboard.inline_keyboard for b in row]
@@ -278,7 +295,9 @@ class TestGetGameFilterKeyboard:
 
     def test_keyboard_dota2_has_hero(self):
         """Test Dota 2 keyboard has hero selection."""
-        from src.telegram_bot.handlers.game_filter_handlers import get_game_filter_keyboard
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            get_game_filter_keyboard,
+        )
 
         keyboard = get_game_filter_keyboard("dota2")
         all_buttons = [b.callback_data for row in keyboard.inline_keyboard for b in row]
@@ -287,7 +306,9 @@ class TestGetGameFilterKeyboard:
 
     def test_keyboard_tf2_has_class(self):
         """Test TF2 keyboard has class selection."""
-        from src.telegram_bot.handlers.game_filter_handlers import get_game_filter_keyboard
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            get_game_filter_keyboard,
+        )
 
         keyboard = get_game_filter_keyboard("tf2")
         all_buttons = [b.callback_data for row in keyboard.inline_keyboard for b in row]
@@ -296,7 +317,9 @@ class TestGetGameFilterKeyboard:
 
     def test_keyboard_rust_has_category(self):
         """Test Rust keyboard has category selection."""
-        from src.telegram_bot.handlers.game_filter_handlers import get_game_filter_keyboard
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            get_game_filter_keyboard,
+        )
 
         keyboard = get_game_filter_keyboard("rust")
         all_buttons = [b.callback_data for row in keyboard.inline_keyboard for b in row]
@@ -305,31 +328,43 @@ class TestGetGameFilterKeyboard:
 
     def test_keyboard_all_games_have_price_range(self):
         """Test all games have price range option."""
-        from src.telegram_bot.handlers.game_filter_handlers import get_game_filter_keyboard
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            get_game_filter_keyboard,
+        )
 
         for game in ["csgo", "dota2", "tf2", "rust"]:
             keyboard = get_game_filter_keyboard(game)
-            all_buttons = [b.callback_data for row in keyboard.inline_keyboard for b in row]
+            all_buttons = [
+                b.callback_data for row in keyboard.inline_keyboard for b in row
+            ]
 
             assert any("price_range" in str(data) for data in all_buttons)
 
     def test_keyboard_all_games_have_reset(self):
         """Test all games have reset option."""
-        from src.telegram_bot.handlers.game_filter_handlers import get_game_filter_keyboard
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            get_game_filter_keyboard,
+        )
 
         for game in ["csgo", "dota2", "tf2", "rust"]:
             keyboard = get_game_filter_keyboard(game)
-            all_buttons = [b.callback_data for row in keyboard.inline_keyboard for b in row]
+            all_buttons = [
+                b.callback_data for row in keyboard.inline_keyboard for b in row
+            ]
 
             assert any("reset" in str(data) for data in all_buttons)
 
     def test_keyboard_all_games_have_back(self):
         """Test all games have back button."""
-        from src.telegram_bot.handlers.game_filter_handlers import get_game_filter_keyboard
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            get_game_filter_keyboard,
+        )
 
         for game in ["csgo", "dota2", "tf2", "rust"]:
             keyboard = get_game_filter_keyboard(game)
-            all_buttons = [b.callback_data for row in keyboard.inline_keyboard for b in row]
+            all_buttons = [
+                b.callback_data for row in keyboard.inline_keyboard for b in row
+            ]
 
             assert any("back_to_filters" in str(data) for data in all_buttons)
 
@@ -339,7 +374,9 @@ class TestGetFilterDescription:
 
     def test_filter_description_empty_filters(self):
         """Test filter description with empty filters."""
-        from src.telegram_bot.handlers.game_filter_handlers import get_filter_description
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            get_filter_description,
+        )
 
         description = get_filter_description("csgo", {})
 
@@ -348,7 +385,9 @@ class TestGetFilterDescription:
 
     def test_filter_description_with_price_range(self):
         """Test filter description includes price range."""
-        from src.telegram_bot.handlers.game_filter_handlers import get_filter_description
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            get_filter_description,
+        )
 
         filters = {"min_price": 10.0, "max_price": 100.0}
         description = get_filter_description("csgo", filters)
@@ -361,7 +400,9 @@ class TestBuildApiParamsForGame:
 
     def test_build_params_csgo_basic(self):
         """Test building API params for CSGO."""
-        from src.telegram_bot.handlers.game_filter_handlers import build_api_params_for_game
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            build_api_params_for_game,
+        )
 
         filters = {"min_price": 10.0, "max_price": 100.0}
         params = build_api_params_for_game("csgo", filters)
@@ -370,7 +411,9 @@ class TestBuildApiParamsForGame:
 
     def test_build_params_dota2_basic(self):
         """Test building API params for Dota 2."""
-        from src.telegram_bot.handlers.game_filter_handlers import build_api_params_for_game
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            build_api_params_for_game,
+        )
 
         filters = {"hero": "Pudge", "rarity": "Mythical"}
         params = build_api_params_for_game("dota2", filters)
@@ -469,7 +512,9 @@ class TestHandlePriceRangeCallback:
     @pytest.mark.asyncio()
     async def test_price_range_callback_basic(self, mock_update, mock_context):
         """Test basic price range callback."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_price_range_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_price_range_callback,
+        )
 
         mock_update.callback_query.data = "price_range:csgo"
 
@@ -484,7 +529,9 @@ class TestHandlePriceRangeCallback:
     @pytest.mark.asyncio()
     async def test_price_range_no_query(self, mock_update, mock_context):
         """Test price range with no query."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_price_range_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_price_range_callback,
+        )
 
         mock_update.callback_query = None
         await handle_price_range_callback(mock_update, mock_context)
@@ -496,7 +543,9 @@ class TestHandleFloatRangeCallback:
     @pytest.mark.asyncio()
     async def test_float_range_callback_csgo(self, mock_update, mock_context):
         """Test float range callback for CSGO."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_float_range_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_float_range_callback,
+        )
 
         mock_update.callback_query.data = "float_range:csgo"
 
@@ -508,7 +557,9 @@ class TestHandleFloatRangeCallback:
     @pytest.mark.asyncio()
     async def test_float_range_callback_non_csgo(self, mock_update, mock_context):
         """Test float range callback for non-CSGO game."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_float_range_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_float_range_callback,
+        )
 
         mock_update.callback_query.data = "float_range:dota2"
 
@@ -524,7 +575,9 @@ class TestHandleSetCategoryCallback:
     @pytest.mark.asyncio()
     async def test_set_category_csgo(self, mock_update, mock_context):
         """Test set category callback for CSGO."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_set_category_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_set_category_callback,
+        )
 
         mock_update.callback_query.data = "set_category:csgo"
 
@@ -536,7 +589,9 @@ class TestHandleSetCategoryCallback:
     @pytest.mark.asyncio()
     async def test_set_category_rust(self, mock_update, mock_context):
         """Test set category callback for Rust."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_set_category_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_set_category_callback,
+        )
 
         mock_update.callback_query.data = "set_category:rust"
 
@@ -552,7 +607,9 @@ class TestHandleSetRarityCallback:
     @pytest.mark.asyncio()
     async def test_set_rarity_csgo(self, mock_update, mock_context):
         """Test set rarity callback for CSGO."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_set_rarity_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_set_rarity_callback,
+        )
 
         mock_update.callback_query.data = "set_rarity:csgo"
 
@@ -564,7 +621,9 @@ class TestHandleSetRarityCallback:
     @pytest.mark.asyncio()
     async def test_set_rarity_dota2(self, mock_update, mock_context):
         """Test set rarity callback for Dota 2."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_set_rarity_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_set_rarity_callback,
+        )
 
         mock_update.callback_query.data = "set_rarity:dota2"
 
@@ -576,7 +635,9 @@ class TestHandleSetRarityCallback:
     @pytest.mark.asyncio()
     async def test_set_rarity_tf2_empty_list(self, mock_update, mock_context):
         """Test set rarity callback for TF2 (no rarity list)."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_set_rarity_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_set_rarity_callback,
+        )
 
         mock_update.callback_query.data = "set_rarity:tf2"
 
@@ -590,7 +651,9 @@ class TestHandleSetExteriorCallback:
     @pytest.mark.asyncio()
     async def test_set_exterior_csgo(self, mock_update, mock_context):
         """Test set exterior callback for CSGO."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_set_exterior_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_set_exterior_callback,
+        )
 
         mock_update.callback_query.data = "set_exterior:csgo"
 
@@ -602,7 +665,9 @@ class TestHandleSetExteriorCallback:
     @pytest.mark.asyncio()
     async def test_set_exterior_non_csgo(self, mock_update, mock_context):
         """Test set exterior callback for non-CSGO game."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_set_exterior_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_set_exterior_callback,
+        )
 
         mock_update.callback_query.data = "set_exterior:dota2"
 
@@ -618,7 +683,9 @@ class TestHandleSetHeroCallback:
     @pytest.mark.asyncio()
     async def test_set_hero_dota2(self, mock_update, mock_context):
         """Test set hero callback for Dota 2."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_set_hero_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_set_hero_callback,
+        )
 
         mock_update.callback_query.data = "set_hero:dota2"
 
@@ -630,7 +697,9 @@ class TestHandleSetHeroCallback:
     @pytest.mark.asyncio()
     async def test_set_hero_non_dota2(self, mock_update, mock_context):
         """Test set hero callback for non-Dota 2 game."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_set_hero_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_set_hero_callback,
+        )
 
         mock_update.callback_query.data = "set_hero:csgo"
 
@@ -646,7 +715,9 @@ class TestHandleSetClassCallback:
     @pytest.mark.asyncio()
     async def test_set_class_tf2(self, mock_update, mock_context):
         """Test set class callback for TF2."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_set_class_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_set_class_callback,
+        )
 
         mock_update.callback_query.data = "set_class:tf2"
 
@@ -658,7 +729,9 @@ class TestHandleSetClassCallback:
     @pytest.mark.asyncio()
     async def test_set_class_non_tf2(self, mock_update, mock_context):
         """Test set class callback for non-TF2 game."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_set_class_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_set_class_callback,
+        )
 
         mock_update.callback_query.data = "set_class:csgo"
 
@@ -674,13 +747,18 @@ class TestHandleFilterCallback:
     @pytest.mark.asyncio()
     async def test_filter_callback_price_range(self, mock_update, mock_context):
         """Test filter callback for price range."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_filter_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_filter_callback,
+        )
 
         # Format: filter:price_range:min:max:game
         mock_update.callback_query.data = "filter:price_range:10:50:csgo"
 
         # Mock handle_select_game_filter_callback to avoid the re-parsing issue
-        with patch("src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback", new_callable=AsyncMock):
+        with patch(
+            "src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback",
+            new_callable=AsyncMock,
+        ):
             await handle_filter_callback(mock_update, mock_context)
 
         # Should update filters
@@ -691,7 +769,9 @@ class TestHandleFilterCallback:
     @pytest.mark.asyncio()
     async def test_filter_callback_price_range_reset(self, mock_update, mock_context):
         """Test filter callback for price range reset."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_filter_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_filter_callback,
+        )
 
         # First set some filters
         mock_context.user_data = {
@@ -700,7 +780,10 @@ class TestHandleFilterCallback:
         # Format: filter:price_range:reset:game
         mock_update.callback_query.data = "filter:price_range:reset:csgo"
 
-        with patch("src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback", new_callable=AsyncMock):
+        with patch(
+            "src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback",
+            new_callable=AsyncMock,
+        ):
             await handle_filter_callback(mock_update, mock_context)
 
         # Price range should be reset
@@ -709,12 +792,17 @@ class TestHandleFilterCallback:
     @pytest.mark.asyncio()
     async def test_filter_callback_float_range(self, mock_update, mock_context):
         """Test filter callback for float range."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_filter_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_filter_callback,
+        )
 
         # Format: filter:float_range:min:max:game
         mock_update.callback_query.data = "filter:float_range:0.00:0.07:csgo"
 
-        with patch("src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback", new_callable=AsyncMock):
+        with patch(
+            "src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback",
+            new_callable=AsyncMock,
+        ):
             await handle_filter_callback(mock_update, mock_context)
 
         assert mock_context.user_data["filters"]["csgo"]["float_min"] == 0.0
@@ -723,12 +811,17 @@ class TestHandleFilterCallback:
     @pytest.mark.asyncio()
     async def test_filter_callback_category(self, mock_update, mock_context):
         """Test filter callback for category."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_filter_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_filter_callback,
+        )
 
         # Format: filter:category:value:game
         mock_update.callback_query.data = "filter:category:Rifle:csgo"
 
-        with patch("src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback", new_callable=AsyncMock):
+        with patch(
+            "src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback",
+            new_callable=AsyncMock,
+        ):
             await handle_filter_callback(mock_update, mock_context)
 
         assert mock_context.user_data["filters"]["csgo"]["category"] == "Rifle"
@@ -736,12 +829,17 @@ class TestHandleFilterCallback:
     @pytest.mark.asyncio()
     async def test_filter_callback_rarity(self, mock_update, mock_context):
         """Test filter callback for rarity."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_filter_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_filter_callback,
+        )
 
         # Format: filter:rarity:value:game
         mock_update.callback_query.data = "filter:rarity:Covert:csgo"
 
-        with patch("src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback", new_callable=AsyncMock):
+        with patch(
+            "src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback",
+            new_callable=AsyncMock,
+        ):
             await handle_filter_callback(mock_update, mock_context)
 
         assert mock_context.user_data["filters"]["csgo"]["rarity"] == "Covert"
@@ -749,12 +847,17 @@ class TestHandleFilterCallback:
     @pytest.mark.asyncio()
     async def test_filter_callback_exterior(self, mock_update, mock_context):
         """Test filter callback for exterior."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_filter_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_filter_callback,
+        )
 
         # Format: filter:exterior:value:game
         mock_update.callback_query.data = "filter:exterior:Factory New:csgo"
 
-        with patch("src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback", new_callable=AsyncMock):
+        with patch(
+            "src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback",
+            new_callable=AsyncMock,
+        ):
             await handle_filter_callback(mock_update, mock_context)
 
         assert mock_context.user_data["filters"]["csgo"]["exterior"] == "Factory New"
@@ -762,12 +865,17 @@ class TestHandleFilterCallback:
     @pytest.mark.asyncio()
     async def test_filter_callback_hero(self, mock_update, mock_context):
         """Test filter callback for hero."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_filter_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_filter_callback,
+        )
 
         # Format: filter:hero:value:game
         mock_update.callback_query.data = "filter:hero:Pudge:dota2"
 
-        with patch("src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback", new_callable=AsyncMock):
+        with patch(
+            "src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback",
+            new_callable=AsyncMock,
+        ):
             await handle_filter_callback(mock_update, mock_context)
 
         assert mock_context.user_data["filters"]["dota2"]["hero"] == "Pudge"
@@ -775,26 +883,38 @@ class TestHandleFilterCallback:
     @pytest.mark.asyncio()
     async def test_filter_callback_class(self, mock_update, mock_context):
         """Test filter callback for class."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_filter_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_filter_callback,
+        )
 
         # Format: filter:class:value:game
         mock_update.callback_query.data = "filter:class:Scout:tf2"
 
-        with patch("src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback", new_callable=AsyncMock):
+        with patch(
+            "src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback",
+            new_callable=AsyncMock,
+        ):
             await handle_filter_callback(mock_update, mock_context)
 
         assert mock_context.user_data["filters"]["tf2"]["class"] == "Scout"
 
     @pytest.mark.asyncio()
-    async def test_filter_callback_boolean_toggle_stattrak(self, mock_update, mock_context):
+    async def test_filter_callback_boolean_toggle_stattrak(
+        self, mock_update, mock_context
+    ):
         """Test filter callback for boolean toggle (StatTrak)."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_filter_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_filter_callback,
+        )
 
         mock_context.user_data = {"filters": {"csgo": {"stattrak": False}}}
         # Format: filter:stattrak:toggle:game
         mock_update.callback_query.data = "filter:stattrak:toggle:csgo"
 
-        with patch("src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback", new_callable=AsyncMock):
+        with patch(
+            "src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback",
+            new_callable=AsyncMock,
+        ):
             await handle_filter_callback(mock_update, mock_context)
 
         # Should toggle stattrak to True
@@ -814,7 +934,10 @@ class TestHandleFilterCallback:
         # Format: filter:reset:all:game
         mock_update.callback_query.data = "filter:reset:all:csgo"
 
-        with patch("src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback", new_callable=AsyncMock):
+        with patch(
+            "src.telegram_bot.handlers.game_filter_handlers.handle_select_game_filter_callback",
+            new_callable=AsyncMock,
+        ):
             await handle_filter_callback(mock_update, mock_context)
 
         # Filters should be reset to defaults
@@ -823,7 +946,9 @@ class TestHandleFilterCallback:
     @pytest.mark.asyncio()
     async def test_filter_callback_invalid_format(self, mock_update, mock_context):
         """Test filter callback with invalid data format."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_filter_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_filter_callback,
+        )
 
         mock_update.callback_query.data = "filter:x"  # Too short
 
@@ -840,7 +965,9 @@ class TestHandleBackToFiltersCallback:
     @pytest.mark.asyncio()
     async def test_back_to_filters_main(self, mock_update, mock_context):
         """Test back to filters with main target."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_back_to_filters_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_back_to_filters_callback,
+        )
 
         mock_update.callback_query.data = "back_to_filters:main"
 
@@ -851,7 +978,9 @@ class TestHandleBackToFiltersCallback:
     @pytest.mark.asyncio()
     async def test_back_to_filters_no_data(self, mock_update, mock_context):
         """Test back to filters with no target."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_back_to_filters_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_back_to_filters_callback,
+        )
 
         mock_update.callback_query.data = "back_to_filters"
 
@@ -864,7 +993,9 @@ class TestHandleBackToFiltersCallback:
     @pytest.mark.asyncio()
     async def test_back_to_filters_unknown_type(self, mock_update, mock_context):
         """Test back to filters with unknown type."""
-        from src.telegram_bot.handlers.game_filter_handlers import handle_back_to_filters_callback
+        from src.telegram_bot.handlers.game_filter_handlers import (
+            handle_back_to_filters_callback,
+        )
 
         mock_update.callback_query.data = "back_to_filters:unknown"
 
@@ -882,8 +1013,17 @@ class TestConstantsContent:
         """Test TF2 classes includes all 9 classes."""
         from src.telegram_bot.handlers.game_filter_handlers import TF2_CLASSES
 
-        expected = ["Scout", "Soldier", "Pyro", "Demoman", "Heavy",
-                    "Engineer", "Medic", "Sniper", "Spy"]
+        expected = [
+            "Scout",
+            "Soldier",
+            "Pyro",
+            "Demoman",
+            "Heavy",
+            "Engineer",
+            "Medic",
+            "Sniper",
+            "Spy",
+        ]
         for cls in expected:
             assert cls in TF2_CLASSES
 

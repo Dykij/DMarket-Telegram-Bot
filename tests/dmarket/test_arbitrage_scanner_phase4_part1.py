@@ -24,7 +24,12 @@ def mock_api_client():
     """Создает мок DMarketAPI клиента."""
     api = MagicMock(spec=DMarketAPI)
     api.get_balance = AsyncMock(
-        return_value={"usd": "10000", "error": False, "balance": 100.0, "has_funds": True}
+        return_value={
+            "usd": "10000",
+            "error": False,
+            "balance": 100.0,
+            "has_funds": True,
+        }
     )
     api.get_market_items = AsyncMock(
         return_value={
@@ -39,7 +44,9 @@ def mock_api_client():
             "total": 1,
         }
     )
-    api._request = AsyncMock(return_value={"usd": "10000", "usdAvailableToWithdraw": "10000"})
+    api._request = AsyncMock(
+        return_value={"usd": "10000", "usdAvailableToWithdraw": "10000"}
+    )
     return api
 
 
@@ -138,7 +145,9 @@ class TestItemAnalysis:
             "suggestedPrice": {"USD": "1200"},
         }
 
-        with patch.object(scanner, "_analyze_item", new_callable=AsyncMock) as mock_analyze:
+        with patch.object(
+            scanner, "_analyze_item", new_callable=AsyncMock
+        ) as mock_analyze:
             mock_analyze.return_value = {"valid": True, "profit": 200}
 
             result = await scanner._analyze_item(item)
@@ -156,7 +165,9 @@ class TestItemAnalysis:
             "suggestedPrice": {"USD": "1300"},
         }
 
-        with patch.object(scanner, "_analyze_item", new_callable=AsyncMock) as mock_analyze:
+        with patch.object(
+            scanner, "_analyze_item", new_callable=AsyncMock
+        ) as mock_analyze:
             mock_analyze.return_value = {"profit": 300, "profit_percent": 30.0}
 
             result = await scanner._analyze_item(item)
@@ -169,7 +180,9 @@ class TestItemAnalysis:
         """Тест анализа предмета без цены."""
         item = {"itemId": "item_001", "title": "Test Item"}
 
-        with patch.object(scanner, "_analyze_item", new_callable=AsyncMock) as mock_analyze:
+        with patch.object(
+            scanner, "_analyze_item", new_callable=AsyncMock
+        ) as mock_analyze:
             mock_analyze.return_value = None
 
             result = await scanner._analyze_item(item)
@@ -187,7 +200,9 @@ class TestItemAnalysis:
             "suggestedPrice": {"USD": "1000"},
         }
 
-        with patch.object(scanner, "_analyze_item", new_callable=AsyncMock) as mock_analyze:
+        with patch.object(
+            scanner, "_analyze_item", new_callable=AsyncMock
+        ) as mock_analyze:
             mock_analyze.return_value = {"profit": 0}
 
             result = await scanner._analyze_item(item)
@@ -204,7 +219,9 @@ class TestItemAnalysis:
             "suggestedPrice": {"USD": "800"},
         }
 
-        with patch.object(scanner, "_analyze_item", new_callable=AsyncMock) as mock_analyze:
+        with patch.object(
+            scanner, "_analyze_item", new_callable=AsyncMock
+        ) as mock_analyze:
             mock_analyze.return_value = None  # Не должен возвращать убыточные предметы
 
             result = await scanner._analyze_item(item)
@@ -224,7 +241,9 @@ class TestItemAnalysis:
             for i in range(5)
         ]
 
-        with patch.object(scanner, "_analyze_item", new_callable=AsyncMock) as mock_analyze:
+        with patch.object(
+            scanner, "_analyze_item", new_callable=AsyncMock
+        ) as mock_analyze:
             mock_analyze.return_value = {"profit": 200}
 
             for item in items:
@@ -236,7 +255,9 @@ class TestItemAnalysis:
         """Тест обработки исключений при анализе."""
         item = {"itemId": "item_001"}
 
-        with patch.object(scanner, "_analyze_item", new_callable=AsyncMock) as mock_analyze:
+        with patch.object(
+            scanner, "_analyze_item", new_callable=AsyncMock
+        ) as mock_analyze:
             mock_analyze.side_effect = Exception("Analysis failed")
 
             with pytest.raises(Exception):
@@ -253,7 +274,9 @@ class TestItemAnalysis:
             "extra": {"floatValue": 0.25, "category": "Rifle"},
         }
 
-        with patch.object(scanner, "_analyze_item", new_callable=AsyncMock) as mock_analyze:
+        with patch.object(
+            scanner, "_analyze_item", new_callable=AsyncMock
+        ) as mock_analyze:
             mock_analyze.return_value = {"valid": True, "profit": 200}
 
             result = await scanner._analyze_item(item)
@@ -281,7 +304,9 @@ class TestItemAnalysis:
             {"title": "Item 3", "buy_price": 10.0, "profit": 0.5},
         ]
 
-        result = scanner._standardize_items(items, "csgo", min_profit=1.0, max_profit=10.0)
+        result = scanner._standardize_items(
+            items, "csgo", min_profit=1.0, max_profit=10.0
+        )
 
         # Должен отфильтровать предметы вне диапазона прибыли
         assert len(result) <= len(items)
@@ -331,7 +356,9 @@ class TestStatisticsAndOverview:
     @pytest.mark.asyncio()
     async def test_get_market_overview_returns_data(self, scanner):
         """Тест что get_market_overview возвращает данные."""
-        with patch.object(scanner, "get_market_overview", new_callable=AsyncMock) as mock_overview:
+        with patch.object(
+            scanner, "get_market_overview", new_callable=AsyncMock
+        ) as mock_overview:
             mock_overview.return_value = {"total_items": 100, "avg_price": 50.0}
 
             overview = await scanner.get_market_overview("csgo")
@@ -344,7 +371,9 @@ class TestStatisticsAndOverview:
         """Тест обзора рынка для нескольких игр."""
         games = ["csgo", "dota2", "rust"]
 
-        with patch.object(scanner, "get_market_overview", new_callable=AsyncMock) as mock_overview:
+        with patch.object(
+            scanner, "get_market_overview", new_callable=AsyncMock
+        ) as mock_overview:
             mock_overview.return_value = {"total_items": 50}
 
             for game in games:
@@ -354,7 +383,9 @@ class TestStatisticsAndOverview:
     @pytest.mark.asyncio()
     async def test_find_best_opportunities_returns_list(self, scanner):
         """Тест что find_best_opportunities возвращает список."""
-        with patch.object(scanner, "find_best_opportunities", new_callable=AsyncMock) as mock_find:
+        with patch.object(
+            scanner, "find_best_opportunities", new_callable=AsyncMock
+        ) as mock_find:
             mock_find.return_value = [
                 {"item": "Item 1", "profit": 10.0},
                 {"item": "Item 2", "profit": 15.0},
@@ -367,7 +398,9 @@ class TestStatisticsAndOverview:
     @pytest.mark.asyncio()
     async def test_find_best_opportunities_sorted_by_profit(self, scanner):
         """Тест что лучшие возможности отсортированы по прибыли."""
-        with patch.object(scanner, "find_best_opportunities", new_callable=AsyncMock) as mock_find:
+        with patch.object(
+            scanner, "find_best_opportunities", new_callable=AsyncMock
+        ) as mock_find:
             mock_find.return_value = [
                 {"item": "Item 1", "profit": 20.0},
                 {"item": "Item 2", "profit": 15.0},
@@ -382,7 +415,9 @@ class TestStatisticsAndOverview:
     @pytest.mark.asyncio()
     async def test_scan_all_levels_returns_results_for_each_level(self, scanner):
         """Тест что scan_all_levels возвращает результаты для каждого уровня."""
-        with patch.object(scanner, "scan_all_levels", new_callable=AsyncMock) as mock_scan:
+        with patch.object(
+            scanner, "scan_all_levels", new_callable=AsyncMock
+        ) as mock_scan:
             mock_scan.return_value = {
                 "boost": [{"item": "Item 1"}],
                 "standard": [{"item": "Item 2"}],

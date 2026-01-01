@@ -43,9 +43,13 @@ class TestFetchBalance:
     """Tests for _fetch_balance method."""
 
     @pytest.mark.asyncio()
-    async def test_fetch_balance_calls_api_correctly(self, balance_checker, mock_api_client):
+    async def test_fetch_balance_calls_api_correctly(
+        self, balance_checker, mock_api_client
+    ):
         """Test that fetch_balance calls API with correct parameters."""
-        mock_api_client._request.return_value = {"usd": {"available": 1000, "frozen": 0}}
+        mock_api_client._request.return_value = {
+            "usd": {"available": 1000, "frozen": 0}
+        }
 
         result = await balance_checker._fetch_balance()
 
@@ -141,7 +145,9 @@ class TestDiagnoseError:
             ("Unknown error", "unknown_error"),
         ),
     )
-    def test_diagnose_various_errors(self, balance_checker, error_message, expected_diagnosis):
+    def test_diagnose_various_errors(
+        self, balance_checker, error_message, expected_diagnosis
+    ):
         """Test error diagnosis for various error messages."""
         diagnosis = balance_checker._diagnose_error(error_message)
         assert diagnosis == expected_diagnosis
@@ -160,7 +166,9 @@ class TestGetErrorDisplayMessage:
             ("unknown_error", "Ошибка"),
         ),
     )
-    def test_display_messages_for_diagnoses(self, balance_checker, diagnosis, expected_contains):
+    def test_display_messages_for_diagnoses(
+        self, balance_checker, diagnosis, expected_contains
+    ):
         """Test display messages contain expected text."""
         message = balance_checker._get_error_display_message(diagnosis)
         assert expected_contains.lower() in message.lower()
@@ -323,7 +331,9 @@ class TestCheckBalance:
         assert result["available_balance"] == 10.0
 
     @pytest.mark.asyncio()
-    async def test_check_balance_handles_exception(self, balance_checker, mock_api_client):
+    async def test_check_balance_handles_exception(
+        self, balance_checker, mock_api_client
+    ):
         """Test that check_balance handles exceptions gracefully."""
         mock_api_client._request.side_effect = Exception("Network error")
 
@@ -369,7 +379,9 @@ class TestIntegration:
         assert "авторизации" in result["display_message"]
 
     @pytest.mark.asyncio()
-    async def test_full_flow_with_empty_response(self, balance_checker, mock_api_client):
+    async def test_full_flow_with_empty_response(
+        self, balance_checker, mock_api_client
+    ):
         """Test complete flow when API returns empty response."""
         mock_api_client._request.return_value = None
 

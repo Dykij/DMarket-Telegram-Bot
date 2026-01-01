@@ -48,7 +48,10 @@ class TestConstants:
             current_level = levels[i]
             next_level = levels[i + 1]
             # Either equal or increasing
-            assert MIN_PROFIT_THRESHOLDS[current_level] <= MIN_PROFIT_THRESHOLDS[next_level]
+            assert (
+                MIN_PROFIT_THRESHOLDS[current_level]
+                <= MIN_PROFIT_THRESHOLDS[next_level]
+            )
 
 
 class TestCalculateProfit:

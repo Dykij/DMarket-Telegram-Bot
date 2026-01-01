@@ -151,10 +151,7 @@ class TestGetItemSalesHistory:
             mock_cache.return_value = [{"price": 10.0, "timestamp": 123456}]
 
             result = await get_item_sales_history(
-                item_name="Test Item",
-                game="csgo",
-                period="24h",
-                use_cache=True
+                item_name="Test Item", game="csgo", period="24h", use_cache=True
             )
 
             assert len(result) == 1
@@ -174,7 +171,7 @@ class TestGetItemSalesHistory:
                 game="csgo",
                 period="invalid",  # Invalid period
                 use_cache=True,
-                dmarket_api=mock_api
+                dmarket_api=mock_api,
             )
             # Should not raise error, defaults to 24h
 
@@ -200,7 +197,7 @@ class TestDetectPriceAnomalies:
         sales = [
             {"price": 10.0, "timestamp": 100},
             {"price": 10.5, "timestamp": 200},
-            {"price": 9.5, "timestamp": 300}
+            {"price": 9.5, "timestamp": 300},
         ]
 
         with patch("src.dmarket.sales_history.get_item_sales_history") as mock:
@@ -219,7 +216,7 @@ class TestDetectPriceAnomalies:
         sales = [
             {"price": 10.0, "timestamp": 100},
             {"price": 10.0, "timestamp": 200},
-            {"price": 50.0, "timestamp": 300}  # Outlier
+            {"price": 50.0, "timestamp": 300},  # Outlier
         ]
 
         with patch("src.dmarket.sales_history.get_item_sales_history") as mock:
@@ -253,7 +250,7 @@ class TestCalculatePriceTrend:
         sales = [
             {"price": 10.0, "timestamp": 100},
             {"price": 10.2, "timestamp": 200},
-            {"price": 10.1, "timestamp": 300}
+            {"price": 10.1, "timestamp": 300},
         ]
 
         with patch("src.dmarket.sales_history.get_item_sales_history") as mock:
@@ -269,7 +266,7 @@ class TestCalculatePriceTrend:
         sales = [
             {"price": 10.0, "timestamp": 100},
             {"price": 12.0, "timestamp": 200},
-            {"price": 15.0, "timestamp": 300}
+            {"price": 15.0, "timestamp": 300},
         ]
 
         with patch("src.dmarket.sales_history.get_item_sales_history") as mock:
@@ -286,7 +283,7 @@ class TestCalculatePriceTrend:
         sales = [
             {"price": 15.0, "timestamp": 100},
             {"price": 12.0, "timestamp": 200},
-            {"price": 10.0, "timestamp": 300}
+            {"price": 10.0, "timestamp": 300},
         ]
 
         with patch("src.dmarket.sales_history.get_item_sales_history") as mock:
@@ -313,9 +310,9 @@ class TestGetSalesHistory:
     async def test_get_sales_history_with_api_client(self):
         """Test with API client."""
         mock_api = AsyncMock()
-        mock_api.request = AsyncMock(return_value={
-            "LastSales": [{"price": {"USD": 1000}}]
-        })
+        mock_api.request = AsyncMock(
+            return_value={"LastSales": [{"price": {"USD": 1000}}]}
+        )
 
         result = await get_sales_history(["Test Item"], api_client=mock_api)
 
@@ -353,7 +350,7 @@ class TestAnalyzeSalesHistory:
         """Test analysis with sales data."""
         sales = [
             {"price": {"USD": 1000}, "date": 100},
-            {"price": {"USD": 1100}, "date": 200}
+            {"price": {"USD": 1100}, "date": 200},
         ]
 
         with patch("src.dmarket.sales_history.get_sales_history") as mock:
@@ -370,7 +367,7 @@ class TestAnalyzeSalesHistory:
         """Test analysis detects upward price trend."""
         sales = [
             {"price": {"USD": 1000}, "date": 100},
-            {"price": {"USD": 1500}, "date": 200}  # 50% increase
+            {"price": {"USD": 1500}, "date": 200},  # 50% increase
         ]
 
         with patch("src.dmarket.sales_history.get_sales_history") as mock:
@@ -402,9 +399,7 @@ class TestExecuteApiRequest:
         mock_api.request = AsyncMock(return_value={"data": "test"})
 
         result = await execute_api_request(
-            endpoint="/test",
-            params={"key": "value"},
-            api_client=mock_api
+            endpoint="/test", params={"key": "value"}, api_client=mock_api
         )
 
         assert result["data"] == "test"
@@ -429,19 +424,17 @@ class TestGetArbitrageOpportunitiesWithSalesHistory:
         """Test getting filtered arbitrage opportunities."""
         arbitrage_items = [
             {"market_hash_name": "Item1", "profit": 5.0},
-            {"market_hash_name": "Item2", "profit": 10.0}
+            {"market_hash_name": "Item2", "profit": 10.0},
         ]
 
-        analysis = {
-            "has_data": True,
-            "sales_per_day": 2.0,
-            "price_trend": "stable"
-        }
+        analysis = {"has_data": True, "sales_per_day": 2.0, "price_trend": "stable"}
 
         with patch("src.dmarket.arbitrage.find_arbitrage_items") as mock_arb:
             mock_arb.return_value = arbitrage_items
 
-            with patch("src.dmarket.sales_history.analyze_sales_history") as mock_analyze:
+            with patch(
+                "src.dmarket.sales_history.analyze_sales_history"
+            ) as mock_analyze:
                 mock_analyze.return_value = analysis
 
                 result = await get_arbitrage_opportunities_with_sales_history(
@@ -449,30 +442,34 @@ class TestGetArbitrageOpportunitiesWithSalesHistory:
                 )
 
                 # Both items should pass the filter
-                assert len(result) >= 0  # May be empty depending on filter implementation
+                assert (
+                    len(result) >= 0
+                )  # May be empty depending on filter implementation
 
     @pytest.mark.asyncio()
     async def test_get_opportunities_price_trend_filter(self):
         """Test filtering by price trend."""
-        arbitrage_items = [
-            {"market_hash_name": "Item1", "profit": 5.0}
-        ]
+        arbitrage_items = [{"market_hash_name": "Item1", "profit": 5.0}]
 
         analysis = {
             "has_data": True,
             "sales_per_day": 2.0,
-            "price_trend": "down"  # Not matching filter
+            "price_trend": "down",  # Not matching filter
         }
 
         with patch("src.dmarket.arbitrage.find_arbitrage_items") as mock_arb:
             mock_arb.return_value = arbitrage_items
 
-            with patch("src.dmarket.sales_history.analyze_sales_history") as mock_analyze:
+            with patch(
+                "src.dmarket.sales_history.analyze_sales_history"
+            ) as mock_analyze:
                 mock_analyze.return_value = analysis
 
                 result = await get_arbitrage_opportunities_with_sales_history(
                     min_sales_per_day=1.0,
-                    price_trend_filter="up"  # Filter for upward trend
+                    price_trend_filter="up",  # Filter for upward trend
                 )
 
-                assert len(result) >= 0  # May be empty depending on filter implementation
+                assert (
+                    len(result) >= 0
+                )  # May be empty depending on filter implementation

@@ -109,7 +109,9 @@ class TestFetchMarketItems:
     @pytest.mark.asyncio()
     async def test_fetch_without_api_and_keys(self):
         """Test fetch without API and environment keys."""
-        with patch.dict("os.environ", {"DMARKET_PUBLIC_KEY": "", "DMARKET_SECRET_KEY": ""}):
+        with patch.dict(
+            "os.environ", {"DMARKET_PUBLIC_KEY": "", "DMARKET_SECRET_KEY": ""}
+        ):
             result = await fetch_market_items("csgo")
             assert result == []
 
@@ -118,7 +120,9 @@ class TestFetchMarketItems:
         """Test fetch with provided API client."""
         mock_api = AsyncMock()
         mock_api.get_market_items = AsyncMock(
-            return_value={"objects": [{"title": "Test Item", "price": {"amount": 1000}}]}
+            return_value={
+                "objects": [{"title": "Test Item", "price": {"amount": 1000}}]
+            }
         )
         mock_api.__aenter__ = AsyncMock(return_value=mock_api)
         mock_api.__aexit__ = AsyncMock(return_value=None)
@@ -172,7 +176,9 @@ class TestFindArbitrageAsync:
             }
         ]
 
-        with patch("src.dmarket.arbitrage.core.fetch_market_items", return_value=mock_items):
+        with patch(
+            "src.dmarket.arbitrage.core.fetch_market_items", return_value=mock_items
+        ):
             result = await _find_arbitrage_async(1, 10, "csgo")
 
             # May be empty if no profitable items found
@@ -288,7 +294,10 @@ class TestFindArbitrageItems:
             }
         ]
 
-        with patch("src.dmarket.arbitrage.search.arbitrage_mid_async", return_value=dict_results):
+        with patch(
+            "src.dmarket.arbitrage.search.arbitrage_mid_async",
+            return_value=dict_results,
+        ):
             result = await find_arbitrage_items("csgo", mode="mid")
 
             assert len(result) >= 0  # Results may be filtered
@@ -404,7 +413,9 @@ class TestArbitrageTrader:
     async def test_trader_check_trading_limits_within(self):
         """Test trading limits within bounds."""
         mock_api = self._create_mock_api()
-        trader = ArbitrageTrader(api_client=mock_api, max_trade_value=100.0, daily_limit=500.0)
+        trader = ArbitrageTrader(
+            api_client=mock_api, max_trade_value=100.0, daily_limit=500.0
+        )
         trader.daily_traded = 0.0
 
         result = await trader._check_trading_limits(50.0)

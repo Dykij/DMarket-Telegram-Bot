@@ -98,7 +98,9 @@ async def test_arbitrage_callback_impl_shows_menu(mock_update, mock_context):
 
         assert result == SELECTING_MODE
         mock_update.callback_query.answer.assert_called_once()
-        mock_update.effective_chat.send_action.assert_called_once_with(ChatAction.TYPING)
+        mock_update.effective_chat.send_action.assert_called_once_with(
+            ChatAction.TYPING
+        )
 
 
 @pytest.mark.asyncio()
@@ -122,7 +124,9 @@ async def test_handle_dmarket_arbitrage_boost_success(
     ):
         mock_boost.return_value = mock_arbitrage_results
         mock_pagination.add_items_for_user = MagicMock()
-        mock_pagination.get_page = MagicMock(return_value=(mock_arbitrage_results, 0, 1))
+        mock_pagination.get_page = MagicMock(
+            return_value=(mock_arbitrage_results, 0, 1)
+        )
 
         await handle_dmarket_arbitrage_impl(query, mock_context, "boost")
 
@@ -146,7 +150,9 @@ async def test_handle_dmarket_arbitrage_rate_limit_error(mock_update, mock_conte
         "src.dmarket.arbitrage.arbitrage_boost_async",
         new_callable=AsyncMock,
     ) as mock_boost:
-        mock_boost.side_effect = APIError(message="Rate limit exceeded", status_code=429)
+        mock_boost.side_effect = APIError(
+            message="Rate limit exceeded", status_code=429
+        )
 
         # Декоратор теперь отправляет ошибку пользователю вместо reraise
         await handle_dmarket_arbitrage_impl(query, mock_context, "boost")

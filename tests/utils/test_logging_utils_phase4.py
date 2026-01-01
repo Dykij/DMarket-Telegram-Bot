@@ -157,11 +157,14 @@ class TestJSONFormatterPhase4:
     def test_format_with_exception_traceback(self, formatter):
         """Test format includes full traceback for exceptions."""
         try:
+
             def inner_func():
                 raise ValueError("Inner error")
+
             inner_func()
         except ValueError:
             import sys
+
             exc_info = sys.exc_info()
 
         record = logging.LogRecord(
@@ -183,6 +186,7 @@ class TestJSONFormatterPhase4:
 
     def test_format_with_custom_object_in_extra(self, formatter):
         """Test format with custom object in extra field."""
+
         class CustomObject:
             def __str__(self):
                 return "CustomObject<test>"
@@ -255,8 +259,7 @@ class TestColoredFormatterPhase4:
     def test_format_with_datefmt(self):
         """Test format with custom date format."""
         formatter = ColoredFormatter(
-            "%(asctime)s - %(levelname)s - %(message)s",
-            datefmt="%Y-%m-%d"
+            "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d"
         )
 
         record = logging.LogRecord(
@@ -272,6 +275,7 @@ class TestColoredFormatterPhase4:
         result = formatter.format(record)
         # Date should be in format YYYY-MM-DD
         import re
+
         assert re.search(r"\d{4}-\d{2}-\d{2}", result)
 
     def test_colors_dict_has_all_required_keys(self):
@@ -299,6 +303,7 @@ class TestSetupSentryPhase4:
 
     def test_filter_sensitive_headers_logic(self):
         """Test the filter sensitive data logic for headers."""
+
         # Define the filter function inline (same logic as in setup_sentry)
         def filter_sensitive_data(event, hint):
             """Filter sensitive data from Sentry events."""
@@ -314,7 +319,8 @@ class TestSetupSentryPhase4:
             if "extra" in event:
                 for key in list(event["extra"].keys()):
                     if any(
-                        sensitive in key.lower() for sensitive in ["password", "secret", "token", "key"]
+                        sensitive in key.lower()
+                        for sensitive in ["password", "secret", "token", "key"]
                     ):
                         event["extra"][key] = "[Filtered]"
 
@@ -344,11 +350,13 @@ class TestSetupSentryPhase4:
 
     def test_filter_sensitive_extra_logic(self):
         """Test the filter sensitive data logic for extra fields."""
+
         def filter_sensitive_data(event, hint):
             if "extra" in event:
                 for key in list(event["extra"].keys()):
                     if any(
-                        sensitive in key.lower() for sensitive in ["password", "secret", "token", "key"]
+                        sensitive in key.lower()
+                        for sensitive in ["password", "secret", "token", "key"]
                     ):
                         event["extra"][key] = "[Filtered]"
             return event
@@ -381,15 +389,22 @@ class TestSetupSentryPhase4:
 
     def test_filter_handles_missing_keys(self):
         """Test filter function handles events with missing keys."""
+
         def filter_sensitive_data(event, hint):
             if "request" in event:
                 headers = event["request"].get("headers", {})
                 for key in list(headers.keys()):
-                    if any(sensitive in key.lower() for sensitive in ["api", "token", "key", "secret", "auth"]):
+                    if any(
+                        sensitive in key.lower()
+                        for sensitive in ["api", "token", "key", "secret", "auth"]
+                    ):
                         headers[key] = "[Filtered]"
             if "extra" in event:
                 for key in list(event["extra"].keys()):
-                    if any(sensitive in key.lower() for sensitive in ["password", "secret", "token", "key"]):
+                    if any(
+                        sensitive in key.lower()
+                        for sensitive in ["password", "secret", "token", "key"]
+                    ):
                         event["extra"][key] = "[Filtered]"
             return event
 
@@ -400,11 +415,15 @@ class TestSetupSentryPhase4:
 
     def test_filter_handles_empty_headers(self):
         """Test filter function handles empty headers."""
+
         def filter_sensitive_data(event, hint):
             if "request" in event:
                 headers = event["request"].get("headers", {})
                 for key in list(headers.keys()):
-                    if any(sensitive in key.lower() for sensitive in ["api", "token", "key", "secret", "auth"]):
+                    if any(
+                        sensitive in key.lower()
+                        for sensitive in ["api", "token", "key", "secret", "auth"]
+                    ):
                         headers[key] = "[Filtered]"
             return event
 
@@ -414,15 +433,26 @@ class TestSetupSentryPhase4:
 
     def test_filter_handles_no_sensitive_data(self):
         """Test filter function with no sensitive data."""
+
         def filter_sensitive_data(event, hint):
             if "request" in event:
                 headers = event["request"].get("headers", {})
                 for key in list(headers.keys()):
-                    if any(sensitive in key.lower() for sensitive in ["api", "token", "key", "secret", "auth"]):
+                    if any(
+                        sensitive in key.lower()
+                        for sensitive in ["api", "token", "key", "secret", "auth"]
+                    ):
                         headers[key] = "[Filtered]"
             return event
 
-        event = {"request": {"headers": {"Content-Type": "application/json", "Accept": "application/json"}}}
+        event = {
+            "request": {
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                }
+            }
+        }
         result = filter_sensitive_data(event, {})
         assert result["request"]["headers"]["Content-Type"] == "application/json"
         assert result["request"]["headers"]["Accept"] == "application/json"
@@ -432,6 +462,7 @@ class TestSetupSentryPhase4:
         # Just verify the function signature accepts these parameters
         # without actually calling setup_sentry (which requires dependencies)
         import inspect
+
         sig = inspect.signature(setup_sentry)
         params = list(sig.parameters.keys())
 
@@ -515,7 +546,8 @@ class TestSetupLoggingPhase4:
 
             root_logger = logging.getLogger()
             rotating_handlers = [
-                h for h in root_logger.handlers
+                h
+                for h in root_logger.handlers
                 if isinstance(h, logging.handlers.RotatingFileHandler)
             ]
 
@@ -550,8 +582,10 @@ class TestSetupLoggingPhase4:
         # Should have console handler
         root_logger = logging.getLogger()
         stream_handlers = [
-            h for h in root_logger.handlers
-            if isinstance(h, logging.StreamHandler) and not isinstance(h, logging.FileHandler)
+            h
+            for h in root_logger.handlers
+            if isinstance(h, logging.StreamHandler)
+            and not isinstance(h, logging.FileHandler)
         ]
         assert len(stream_handlers) > 0
 
@@ -609,7 +643,9 @@ class TestSetupStructlogPhase4:
 
         # Last processor should be JSONRenderer for JSON format
         # Check that it was added
-        processor_types = [type(p).__name__ for p in processors if hasattr(p, "__class__")]
+        processor_types = [
+            type(p).__name__ for p in processors if hasattr(p, "__class__")
+        ]
         # At least some processors should exist
         assert len(processors) > 0
 
@@ -895,7 +931,10 @@ class TestGetLoggerPhase4:
         # Child should be different instance
         assert parent_logger is not child_logger
         # But child's parent should be parent_logger
-        assert child_logger.parent is parent_logger or child_logger.parent.name == parent_logger.name
+        assert (
+            child_logger.parent is parent_logger
+            or child_logger.parent.name == parent_logger.name
+        )
 
     def test_get_logger_level_inheritance(self):
         """Test get_logger respects level inheritance."""

@@ -58,7 +58,9 @@ class ScanCheckpoint(StateManagerBase):
     processed_items = Column(Integer, default=0)
     total_items = Column(Integer, nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
-    extra_data = Column(JSON, default={})  # Changed from JSONB to JSON for SQLite compatibility
+    extra_data = Column(
+        JSON, default={}
+    )  # Changed from JSONB to JSON for SQLite compatibility
     status = Column(String(20), default="in_progress")
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(

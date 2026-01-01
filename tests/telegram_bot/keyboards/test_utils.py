@@ -207,7 +207,9 @@ class TestBuildMenu:
         buttons = [InlineKeyboardButton(str(i), callback_data=str(i)) for i in range(4)]
         header = [InlineKeyboardButton("Header", callback_data="header")]
         footer = [InlineKeyboardButton("Footer", callback_data="footer")]
-        result = build_menu(buttons, n_cols=2, header_buttons=header, footer_buttons=footer)
+        result = build_menu(
+            buttons, n_cols=2, header_buttons=header, footer_buttons=footer
+        )
         assert len(result) == 4
         assert result[0][0].text == "Header"
         assert result[-1][0].text == "Footer"
@@ -274,7 +276,9 @@ class TestButtonCreation:
 
     def test_buttons_order_preserved(self):
         """Тест что порядок кнопок сохраняется."""
-        buttons = [InlineKeyboardButton(str(i), callback_data=str(i)) for i in range(1, 7)]
+        buttons = [
+            InlineKeyboardButton(str(i), callback_data=str(i)) for i in range(1, 7)
+        ]
         result = build_menu(buttons, n_cols=3)
         # Проверяем порядок в первой строке
         assert result[0][0].text == "1"

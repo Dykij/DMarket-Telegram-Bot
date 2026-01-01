@@ -42,7 +42,9 @@ class TestArbitrageScannerRefactored:
     async def test_scan_game_handles_errors_gracefully(self, scanner):
         """Test error handling in scan_game."""
         # Arrange
-        with patch.object(scanner, "_find_arbitrage_items", side_effect=Exception("API Error")):
+        with patch.object(
+            scanner, "_find_arbitrage_items", side_effect=Exception("API Error")
+        ):
             # Act
             results = await scanner.scan_game("csgo", "medium")
 
@@ -159,7 +161,9 @@ class TestArbitrageScannerRefactored:
 
     def test_find_items_builtin_calls_correct_function(self, scanner):
         """Test that built-in functions are called correctly."""
-        with patch("src.dmarket.arbitrage_scanner_refactored.arbitrage_mid") as mock_mid:
+        with patch(
+            "src.dmarket.arbitrage_scanner_refactored.arbitrage_mid"
+        ) as mock_mid:
             mock_mid.return_value = [{"name": "Item1"}]
 
             results = scanner._find_items_builtin("csgo", "medium")

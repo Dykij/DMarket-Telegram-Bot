@@ -48,12 +48,15 @@ class TestSendBuyIntentNotification:
     @pytest.mark.asyncio()
     async def test_send_buy_intent_success(self, mock_bot, sample_item):
         """Test successful buy intent notification."""
-        with patch(
-            "src.telegram_bot.notifications.trading.can_send_notification",
-            return_value=True,
-        ), patch(
-            "src.telegram_bot.notifications.trading.increment_notification_count"
-        ) as mock_increment:
+        with (
+            patch(
+                "src.telegram_bot.notifications.trading.can_send_notification",
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.notifications.trading.increment_notification_count"
+            ) as mock_increment,
+        ):
             result = await send_buy_intent_notification(
                 bot=mock_bot,
                 user_id=123456,
@@ -83,10 +86,15 @@ class TestSendBuyIntentNotification:
     @pytest.mark.asyncio()
     async def test_send_buy_intent_message_format(self, mock_bot, sample_item):
         """Test buy intent message formatting."""
-        with patch(
-            "src.telegram_bot.notifications.trading.can_send_notification",
-            return_value=True,
-        ), patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with (
+            patch(
+                "src.telegram_bot.notifications.trading.can_send_notification",
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.notifications.trading.increment_notification_count"
+            ),
+        ):
             await send_buy_intent_notification(
                 bot=mock_bot, user_id=123456, item=sample_item, reason="Test reason"
             )
@@ -103,10 +111,15 @@ class TestSendBuyIntentNotification:
     @pytest.mark.asyncio()
     async def test_send_buy_intent_with_callback_data(self, mock_bot, sample_item):
         """Test buy intent with callback data creates keyboard."""
-        with patch(
-            "src.telegram_bot.notifications.trading.can_send_notification",
-            return_value=True,
-        ), patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with (
+            patch(
+                "src.telegram_bot.notifications.trading.can_send_notification",
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.notifications.trading.increment_notification_count"
+            ),
+        ):
             await send_buy_intent_notification(
                 bot=mock_bot,
                 user_id=123456,
@@ -122,10 +135,15 @@ class TestSendBuyIntentNotification:
     @pytest.mark.asyncio()
     async def test_send_buy_intent_without_callback_data(self, mock_bot, sample_item):
         """Test buy intent without callback data has no keyboard."""
-        with patch(
-            "src.telegram_bot.notifications.trading.can_send_notification",
-            return_value=True,
-        ), patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with (
+            patch(
+                "src.telegram_bot.notifications.trading.can_send_notification",
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.notifications.trading.increment_notification_count"
+            ),
+        ):
             await send_buy_intent_notification(
                 bot=mock_bot, user_id=123456, item=sample_item, callback_data=None
             )
@@ -155,10 +173,15 @@ class TestSendBuyIntentNotification:
         """Test buy intent with missing title."""
         item = {"price": {"USD": 1000}, "game": "csgo"}
 
-        with patch(
-            "src.telegram_bot.notifications.trading.can_send_notification",
-            return_value=True,
-        ), patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with (
+            patch(
+                "src.telegram_bot.notifications.trading.can_send_notification",
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.notifications.trading.increment_notification_count"
+            ),
+        ):
             await send_buy_intent_notification(bot=mock_bot, user_id=123456, item=item)
 
             call_args = mock_bot.send_message.call_args
@@ -173,7 +196,9 @@ class TestSendBuySuccessNotification:
     @pytest.mark.asyncio()
     async def test_send_buy_success_basic(self, mock_bot, sample_item):
         """Test basic buy success notification."""
-        with patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with patch(
+            "src.telegram_bot.notifications.trading.increment_notification_count"
+        ):
             result = await send_buy_success_notification(
                 bot=mock_bot, user_id=123456, item=sample_item, buy_price=15.50
             )
@@ -184,7 +209,9 @@ class TestSendBuySuccessNotification:
     @pytest.mark.asyncio()
     async def test_send_buy_success_with_order_id(self, mock_bot, sample_item):
         """Test buy success with order ID."""
-        with patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with patch(
+            "src.telegram_bot.notifications.trading.increment_notification_count"
+        ):
             await send_buy_success_notification(
                 bot=mock_bot,
                 user_id=123456,
@@ -201,7 +228,9 @@ class TestSendBuySuccessNotification:
     @pytest.mark.asyncio()
     async def test_send_buy_success_message_format(self, mock_bot, sample_item):
         """Test buy success message formatting."""
-        with patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with patch(
+            "src.telegram_bot.notifications.trading.increment_notification_count"
+        ):
             await send_buy_success_notification(
                 bot=mock_bot, user_id=123456, item=sample_item, buy_price=15.50
             )
@@ -231,7 +260,9 @@ class TestSendBuyFailedNotification:
     @pytest.mark.asyncio()
     async def test_send_buy_failed_basic(self, mock_bot, sample_item):
         """Test basic buy failed notification."""
-        with patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with patch(
+            "src.telegram_bot.notifications.trading.increment_notification_count"
+        ):
             result = await send_buy_failed_notification(
                 bot=mock_bot,
                 user_id=123456,
@@ -245,7 +276,9 @@ class TestSendBuyFailedNotification:
     @pytest.mark.asyncio()
     async def test_send_buy_failed_message_format(self, mock_bot, sample_item):
         """Test buy failed message formatting."""
-        with patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with patch(
+            "src.telegram_bot.notifications.trading.increment_notification_count"
+        ):
             await send_buy_failed_notification(
                 bot=mock_bot,
                 user_id=123456,
@@ -281,7 +314,9 @@ class TestSendSellSuccessNotification:
     @pytest.mark.asyncio()
     async def test_send_sell_success_basic(self, mock_bot, sample_item):
         """Test basic sell success notification."""
-        with patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with patch(
+            "src.telegram_bot.notifications.trading.increment_notification_count"
+        ):
             result = await send_sell_success_notification(
                 bot=mock_bot,
                 user_id=123456,
@@ -295,7 +330,9 @@ class TestSendSellSuccessNotification:
     @pytest.mark.asyncio()
     async def test_send_sell_success_with_profit(self, mock_bot, sample_item):
         """Test sell success with profit calculation."""
-        with patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with patch(
+            "src.telegram_bot.notifications.trading.increment_notification_count"
+        ):
             await send_sell_success_notification(
                 bot=mock_bot,
                 user_id=123456,
@@ -314,7 +351,9 @@ class TestSendSellSuccessNotification:
     @pytest.mark.asyncio()
     async def test_send_sell_success_with_loss(self, mock_bot, sample_item):
         """Test sell success with loss (negative profit)."""
-        with patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with patch(
+            "src.telegram_bot.notifications.trading.increment_notification_count"
+        ):
             await send_sell_success_notification(
                 bot=mock_bot,
                 user_id=123456,
@@ -332,7 +371,9 @@ class TestSendSellSuccessNotification:
     @pytest.mark.asyncio()
     async def test_send_sell_success_with_offer_id(self, mock_bot, sample_item):
         """Test sell success with offer ID."""
-        with patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with patch(
+            "src.telegram_bot.notifications.trading.increment_notification_count"
+        ):
             await send_sell_success_notification(
                 bot=mock_bot,
                 user_id=123456,
@@ -349,7 +390,9 @@ class TestSendSellSuccessNotification:
     @pytest.mark.asyncio()
     async def test_send_sell_success_message_format(self, mock_bot, sample_item):
         """Test sell success message formatting."""
-        with patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with patch(
+            "src.telegram_bot.notifications.trading.increment_notification_count"
+        ):
             await send_sell_success_notification(
                 bot=mock_bot,
                 user_id=123456,
@@ -535,10 +578,15 @@ class TestHTMLParsing:
     @pytest.mark.asyncio()
     async def test_notifications_use_html_parse_mode(self, mock_bot, sample_item):
         """Test that all notifications use HTML parse mode."""
-        with patch(
-            "src.telegram_bot.notifications.trading.can_send_notification",
-            return_value=True,
-        ), patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with (
+            patch(
+                "src.telegram_bot.notifications.trading.can_send_notification",
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.notifications.trading.increment_notification_count"
+            ),
+        ):
             await send_buy_intent_notification(
                 bot=mock_bot, user_id=123456, item=sample_item
             )
@@ -549,7 +597,9 @@ class TestHTMLParsing:
     @pytest.mark.asyncio()
     async def test_buy_success_html_format(self, mock_bot, sample_item):
         """Test buy success uses HTML formatting."""
-        with patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with patch(
+            "src.telegram_bot.notifications.trading.increment_notification_count"
+        ):
             await send_buy_success_notification(
                 bot=mock_bot, user_id=123456, item=sample_item, buy_price=15.50
             )
@@ -566,10 +616,15 @@ class TestEdgeCases:
         """Test handling of item with zero price."""
         item = {"title": "Free Item", "price": {"USD": 0}, "game": "csgo"}
 
-        with patch(
-            "src.telegram_bot.notifications.trading.can_send_notification",
-            return_value=True,
-        ), patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with (
+            patch(
+                "src.telegram_bot.notifications.trading.can_send_notification",
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.notifications.trading.increment_notification_count"
+            ),
+        ):
             await send_buy_intent_notification(bot=mock_bot, user_id=123456, item=item)
 
             call_args = mock_bot.send_message.call_args
@@ -582,10 +637,15 @@ class TestEdgeCases:
         """Test handling of item with missing price."""
         item = {"title": "Item", "game": "csgo"}  # No price field
 
-        with patch(
-            "src.telegram_bot.notifications.trading.can_send_notification",
-            return_value=True,
-        ), patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with (
+            patch(
+                "src.telegram_bot.notifications.trading.can_send_notification",
+                return_value=True,
+            ),
+            patch(
+                "src.telegram_bot.notifications.trading.increment_notification_count"
+            ),
+        ):
             await send_buy_intent_notification(bot=mock_bot, user_id=123456, item=item)
 
             call_args = mock_bot.send_message.call_args
@@ -596,7 +656,9 @@ class TestEdgeCases:
     @pytest.mark.asyncio()
     async def test_sell_with_zero_buy_price(self, mock_bot, sample_item):
         """Test sell success with zero buy price (no profit calculation)."""
-        with patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with patch(
+            "src.telegram_bot.notifications.trading.increment_notification_count"
+        ):
             await send_sell_success_notification(
                 bot=mock_bot,
                 user_id=123456,
@@ -611,7 +673,9 @@ class TestEdgeCases:
     @pytest.mark.asyncio()
     async def test_empty_error_message(self, mock_bot, sample_item):
         """Test buy failed with empty error message."""
-        with patch("src.telegram_bot.notifications.trading.increment_notification_count"):
+        with patch(
+            "src.telegram_bot.notifications.trading.increment_notification_count"
+        ):
             await send_buy_failed_notification(
                 bot=mock_bot, user_id=123456, item=sample_item, error=""
             )

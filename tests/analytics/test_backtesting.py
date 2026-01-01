@@ -14,7 +14,11 @@ from src.analytics.backtester import (
     Trade,
     TradeType,
 )
-from src.analytics.historical_data import HistoricalDataCollector, PriceHistory, PricePoint
+from src.analytics.historical_data import (
+    HistoricalDataCollector,
+    PriceHistory,
+    PricePoint,
+)
 
 
 class TestPricePoint:
@@ -130,7 +134,9 @@ class TestHistoricalDataCollector:
         """Create mock API client."""
         api = MagicMock()
         api.get_sales_history = AsyncMock(return_value={"sales": []})
-        api.get_aggregated_prices_bulk = AsyncMock(return_value={"aggregatedPrices": []})
+        api.get_aggregated_prices_bulk = AsyncMock(
+            return_value={"aggregatedPrices": []}
+        )
         return api
 
     @pytest.fixture()
@@ -280,7 +286,9 @@ class TestSimpleArbitrageStrategy:
                 PricePoint("csgo", "Test Item", Decimal(10), datetime.now(UTC)),
             ],
         )
-        positions = {"Test Item": Position("Test Item", 1, Decimal(9), datetime.now(UTC))}
+        positions = {
+            "Test Item": Position("Test Item", 1, Decimal(9), datetime.now(UTC))
+        }
 
         should_buy, _, _ = strategy.should_buy(
             history,
@@ -413,7 +421,9 @@ class TestBacktester:
                 # Day 2: Price drops to 9 (10% below - good buy)
                 PricePoint("csgo", "Test Item", Decimal(9), now - timedelta(days=2)),
                 # Day 3: Price rises to 11.50 (above sell target)
-                PricePoint("csgo", "Test Item", Decimal("11.50"), now - timedelta(days=1)),
+                PricePoint(
+                    "csgo", "Test Item", Decimal("11.50"), now - timedelta(days=1)
+                ),
             ],
         )
 

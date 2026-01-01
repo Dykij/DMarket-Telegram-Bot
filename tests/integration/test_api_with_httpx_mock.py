@@ -296,7 +296,9 @@ class TestDMarketAPIWithHTTPXMock:
             }
         ]
 
-        result = await mock_dmarket_api.create_targets(game_id="csgo", targets=targets_data)
+        result = await mock_dmarket_api.create_targets(
+            game_id="csgo", targets=targets_data
+        )
 
         assert result is not None
         assert "Result" in result
@@ -326,7 +328,9 @@ class TestDMarketAPIWithHTTPXMock:
             }
         ]
 
-        result = await mock_dmarket_api.create_targets(game_id="csgo", targets=targets_data)
+        result = await mock_dmarket_api.create_targets(
+            game_id="csgo", targets=targets_data
+        )
 
         # API должен обработать ошибку и вернуть результат
         assert result is not None

@@ -93,7 +93,9 @@ class TestGetUserPreferences:
         result = get_user_preferences()
         assert result == {}
 
-    def test_get_user_preferences_with_data(self, reset_preferences, sample_preferences):
+    def test_get_user_preferences_with_data(
+        self, reset_preferences, sample_preferences
+    ):
         """Test getting user preferences with existing data."""
         import src.telegram_bot.smart_notifications.preferences as prefs_module
         from src.telegram_bot.smart_notifications.preferences import (
@@ -162,7 +164,9 @@ class TestLoadUserPreferences:
         assert get_user_preferences() == {}
         assert get_active_alerts() == {}
 
-    def test_load_preferences_success(self, reset_preferences, sample_preferences, sample_alerts):
+    def test_load_preferences_success(
+        self, reset_preferences, sample_preferences, sample_alerts
+    ):
         """Test successful preferences loading."""
         from src.telegram_bot.smart_notifications.preferences import (
             get_active_alerts,
@@ -369,7 +373,9 @@ class TestUpdateUserPreferences:
         assert "99999" in prefs
 
     @pytest.mark.asyncio()
-    async def test_update_nested_preferences(self, reset_preferences, sample_preferences):
+    async def test_update_nested_preferences(
+        self, reset_preferences, sample_preferences
+    ):
         """Test updating nested dictionary preferences."""
         import src.telegram_bot.smart_notifications.preferences as prefs_module
         from src.telegram_bot.smart_notifications.preferences import (
@@ -417,7 +423,9 @@ class TestGetUserPrefs:
         result = get_user_prefs(99999)
         assert result == {}
 
-    def test_get_user_prefs_type_conversion(self, reset_preferences, sample_preferences):
+    def test_get_user_prefs_type_conversion(
+        self, reset_preferences, sample_preferences
+    ):
         """Test that user_id is converted to string."""
         import src.telegram_bot.smart_notifications.preferences as prefs_module
         from src.telegram_bot.smart_notifications.preferences import (

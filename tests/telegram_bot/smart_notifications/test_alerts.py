@@ -126,7 +126,9 @@ class TestCreateAlert:
         assert len(alerts["99999"]) == 1
 
     @pytest.mark.asyncio()
-    async def test_create_alert_with_all_parameters(self, reset_alerts, sample_user_preferences):
+    async def test_create_alert_with_all_parameters(
+        self, reset_alerts, sample_user_preferences
+    ):
         """Test alert creation with all parameters."""
         from src.telegram_bot.smart_notifications.alerts import create_alert
         import src.telegram_bot.smart_notifications.preferences as prefs_module
@@ -158,7 +160,9 @@ class TestCreateAlert:
         assert created_alert["active"] is True
 
     @pytest.mark.asyncio()
-    async def test_create_alert_default_values(self, reset_alerts, sample_user_preferences):
+    async def test_create_alert_default_values(
+        self, reset_alerts, sample_user_preferences
+    ):
         """Test alert creation with default values."""
         from src.telegram_bot.smart_notifications.alerts import create_alert
         import src.telegram_bot.smart_notifications.preferences as prefs_module
@@ -334,7 +338,9 @@ class TestAlertEdgeCases:
     """Edge case tests for alerts module."""
 
     @pytest.mark.asyncio()
-    async def test_create_alert_uuid_uniqueness(self, reset_alerts, sample_user_preferences):
+    async def test_create_alert_uuid_uniqueness(
+        self, reset_alerts, sample_user_preferences
+    ):
         """Test that each alert gets a unique ID."""
         from src.telegram_bot.smart_notifications.alerts import create_alert
         import src.telegram_bot.smart_notifications.preferences as prefs_module
@@ -351,7 +357,9 @@ class TestAlertEdgeCases:
         assert len(alert_ids) == 100
 
     @pytest.mark.asyncio()
-    async def test_create_alert_with_special_characters(self, reset_alerts, sample_user_preferences):
+    async def test_create_alert_with_special_characters(
+        self, reset_alerts, sample_user_preferences
+    ):
         """Test creating alert with special characters in item name."""
         from src.telegram_bot.smart_notifications.alerts import create_alert
         import src.telegram_bot.smart_notifications.preferences as prefs_module

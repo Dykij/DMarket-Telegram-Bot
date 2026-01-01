@@ -221,7 +221,9 @@ class TestGameFilterUtils:
 
     def test_get_game_filter_keyboard_csgo(self):
         """Test generating keyboard for CSGO filters."""
-        from src.telegram_bot.handlers.game_filters.utils import get_game_filter_keyboard
+        from src.telegram_bot.handlers.game_filters.utils import (
+            get_game_filter_keyboard,
+        )
 
         keyboard = get_game_filter_keyboard("csgo")
 
@@ -238,7 +240,9 @@ class TestGameFilterUtils:
 
     def test_get_game_filter_keyboard_dota2(self):
         """Test generating keyboard for Dota 2 filters."""
-        from src.telegram_bot.handlers.game_filters.utils import get_game_filter_keyboard
+        from src.telegram_bot.handlers.game_filters.utils import (
+            get_game_filter_keyboard,
+        )
 
         keyboard = get_game_filter_keyboard("dota2")
 
@@ -252,7 +256,9 @@ class TestGameFilterUtils:
 
     def test_get_game_filter_keyboard_tf2(self):
         """Test generating keyboard for TF2 filters."""
-        from src.telegram_bot.handlers.game_filters.utils import get_game_filter_keyboard
+        from src.telegram_bot.handlers.game_filters.utils import (
+            get_game_filter_keyboard,
+        )
 
         keyboard = get_game_filter_keyboard("tf2")
 
@@ -266,7 +272,9 @@ class TestGameFilterUtils:
 
     def test_get_game_filter_keyboard_rust(self):
         """Test generating keyboard for Rust filters."""
-        from src.telegram_bot.handlers.game_filters.utils import get_game_filter_keyboard
+        from src.telegram_bot.handlers.game_filters.utils import (
+            get_game_filter_keyboard,
+        )
 
         keyboard = get_game_filter_keyboard("rust")
 
@@ -380,7 +388,9 @@ class TestGameFilterHandlers:
         assert "Float" in call_args.kwargs["text"]
 
     @pytest.mark.asyncio()
-    async def test_handle_float_range_callback_non_csgo(self, mock_update, mock_context):
+    async def test_handle_float_range_callback_non_csgo(
+        self, mock_update, mock_context
+    ):
         """Test float range callback for non-CSGO game shows error."""
         from src.telegram_bot.handlers.game_filters.handlers import (
             handle_float_range_callback,
@@ -436,7 +446,9 @@ class TestGameFilterHandlers:
         assert "внешнего вида" in call_args.kwargs["text"]
 
     @pytest.mark.asyncio()
-    async def test_handle_set_exterior_callback_non_csgo(self, mock_update, mock_context):
+    async def test_handle_set_exterior_callback_non_csgo(
+        self, mock_update, mock_context
+    ):
         """Test exterior callback for non-CSGO shows error."""
         from src.telegram_bot.handlers.game_filters.handlers import (
             handle_set_exterior_callback,

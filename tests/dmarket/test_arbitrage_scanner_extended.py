@@ -29,7 +29,9 @@ from src.dmarket.arbitrage_scanner import ARBITRAGE_LEVELS, GAME_IDS, ArbitrageS
 def mock_api_client():
     """Создает мок DMarketAPI клиента."""
     api = MagicMock()
-    api.get_balance = AsyncMock(return_value={"usd": "10000", "error": False, "balance": 100.0})
+    api.get_balance = AsyncMock(
+        return_value={"usd": "10000", "error": False, "balance": 100.0}
+    )
     api.get_market_items = AsyncMock(
         return_value={
             "objects": [
@@ -81,7 +83,9 @@ def scanner_with_filters(mock_api_client):
         ("pro", 20.0, (100.0, 1000.0)),
     ),
 )
-def test_get_level_config_all_levels(scanner, level, expected_min_profit, expected_price_range):
+def test_get_level_config_all_levels(
+    scanner, level, expected_min_profit, expected_price_range
+):
     """Тест конфигурации для каждого уровня арбитража."""
     config = scanner.get_level_config(level)
 
@@ -251,7 +255,9 @@ async def test_find_arbitrage_opportunities_async_function(scanner):
             return_value=[{"item": "test", "profit": 5.0}],
         ),
     ):
-        result = await find_arbitrage_opportunities_async("csgo", "medium", max_items=10)
+        result = await find_arbitrage_opportunities_async(
+            "csgo", "medium", max_items=10
+        )
 
         assert isinstance(result, list)
 
@@ -465,7 +471,9 @@ async def test_scan_multiple_games_with_mixed_results(scanner):
 @pytest.mark.asyncio()
 async def test_scan_level_with_very_large_max_results(scanner):
     """Тест scan_level с очень большим max_results."""
-    scanner.api_client.get_market_items = AsyncMock(return_value={"objects": [], "total": 0})
+    scanner.api_client.get_market_items = AsyncMock(
+        return_value={"objects": [], "total": 0}
+    )
 
     result = await scanner.scan_level("boost", "csgo", max_results=10000)
 
@@ -573,7 +581,9 @@ def test_get_level_stats_structure(scanner):
 async def test_find_best_opportunities_empty_results(scanner):
     """Тест find_best_opportunities когда нет возможностей."""
     # Мокаем scan_level напрямую вместо scan_all_levels
-    scanner.api_client.get_market_items = AsyncMock(return_value={"objects": [], "total": 0})
+    scanner.api_client.get_market_items = AsyncMock(
+        return_value={"objects": [], "total": 0}
+    )
 
     result = await scanner.find_best_opportunities("csgo", top_n=10)
 
@@ -585,7 +595,9 @@ async def test_find_best_opportunities_empty_results(scanner):
 async def test_find_best_opportunities_returns_list(scanner):
     """Тест что find_best_opportunities возвращает список."""
     # Мокаем API для возврата пустых результатов
-    scanner.api_client.get_market_items = AsyncMock(return_value={"objects": [], "total": 0})
+    scanner.api_client.get_market_items = AsyncMock(
+        return_value={"objects": [], "total": 0}
+    )
 
     result = await scanner.find_best_opportunities("csgo", top_n=5)
 
@@ -663,7 +675,9 @@ def test_arbitrage_levels_profit_increases():
 
     for level_name, config in levels:
         current_profit = config["min_profit_percent"]
-        assert current_profit >= prev_profit, f"Profit should increase with level: {level_name}"
+        assert (
+            current_profit >= prev_profit
+        ), f"Profit should increase with level: {level_name}"
         prev_profit = current_profit
 
 
@@ -675,7 +689,9 @@ def test_arbitrage_levels_profit_increases():
 @pytest.mark.asyncio()
 async def test_multiple_concurrent_scan_level_calls(scanner):
     """Тест множественных одновременных вызовов scan_level."""
-    scanner.api_client.get_market_items = AsyncMock(return_value={"objects": [], "total": 0})
+    scanner.api_client.get_market_items = AsyncMock(
+        return_value={"objects": [], "total": 0}
+    )
     scanner._analyze_item = AsyncMock(return_value=None)
 
     # Запускаем несколько scan_level одновременно

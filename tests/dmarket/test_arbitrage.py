@@ -844,13 +844,22 @@ class TestArbitrageTraderAutoTrading:
 
         with (
             patch.object(
-                trader, "check_balance", new_callable=AsyncMock, return_value=(True, 100.0)
+                trader,
+                "check_balance",
+                new_callable=AsyncMock,
+                return_value=(True, 100.0),
             ),
             patch.object(
-                trader, "_check_trading_limits", new_callable=AsyncMock, return_value=True
+                trader,
+                "_check_trading_limits",
+                new_callable=AsyncMock,
+                return_value=True,
             ),
             patch.object(
-                trader, "purchase_item", new_callable=AsyncMock, return_value=mock_buy_error
+                trader,
+                "purchase_item",
+                new_callable=AsyncMock,
+                return_value=mock_buy_error,
             ),
             patch.object(trader, "_handle_trading_error", new_callable=AsyncMock),
         ):
@@ -1587,8 +1596,12 @@ class TestCacheIntegration:
         ) as mock_fetch:
             mock_fetch.return_value = mock_items
 
-            await _find_arbitrage_async(0.0, 100.0, game="csgo", price_from=1.0, price_to=10.0)
-            await _find_arbitrage_async(0.0, 100.0, game="csgo", price_from=10.0, price_to=50.0)
+            await _find_arbitrage_async(
+                0.0, 100.0, game="csgo", price_from=1.0, price_to=10.0
+            )
+            await _find_arbitrage_async(
+                0.0, 100.0, game="csgo", price_from=10.0, price_to=50.0
+            )
 
             assert mock_fetch.call_count == 2
 
@@ -1921,7 +1934,10 @@ class TestFindArbitrageOpportunitiesAsyncLiquidity:
         """Тест: средняя популярность (0.4-0.7) использует стандартную
         комиссию."""
         import src.dmarket.arbitrage
-        from src.dmarket.arbitrage import DEFAULT_FEE, find_arbitrage_opportunities_async
+        from src.dmarket.arbitrage import (
+            DEFAULT_FEE,
+            find_arbitrage_opportunities_async,
+        )
 
         src.dmarket.arbitrage._arbitrage_cache.clear()
 
@@ -2059,7 +2075,9 @@ class TestFindProfitableItems:
             patch.object(
                 trader.api, "get_all_market_items", new_callable=AsyncMock
             ) as mock_get_items,
-            patch.object(trader.api, "__aenter__", new_callable=AsyncMock) as mock_aenter,
+            patch.object(
+                trader.api, "__aenter__", new_callable=AsyncMock
+            ) as mock_aenter,
             patch.object(trader.api, "__aexit__", new_callable=AsyncMock) as mock_aexit,
         ):
             mock_get_items.return_value = mock_items

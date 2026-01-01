@@ -116,7 +116,9 @@ class TestAdminAuthorization:
     """Tests for admin authorization checks."""
 
     @pytest.mark.asyncio()
-    async def test_rejects_non_admin_user(self, mock_update, mock_context, mock_non_admin_user):
+    async def test_rejects_non_admin_user(
+        self, mock_update, mock_context, mock_non_admin_user
+    ):
         """Test that non-admin users are rejected."""
         # Arrange
         mock_update.effective_user = mock_non_admin_user
@@ -149,7 +151,9 @@ class TestAdminAuthorization:
         assert "администратор" not in first_text.lower() or "📊" in first_text
 
     @pytest.mark.asyncio()
-    async def test_uses_allowed_users_if_admin_users_empty(self, mock_update, mock_context):
+    async def test_uses_allowed_users_if_admin_users_empty(
+        self, mock_update, mock_context
+    ):
         """Test fallback to allowed_users if admin_users is empty."""
         # Arrange
         mock_context.bot_data["config"].security.admin_users = []
@@ -250,7 +254,9 @@ class TestDaysParameterValidation:
         mock_scheduler.send_manual_report.assert_called_once_with(days=1)
 
     @pytest.mark.asyncio()
-    async def test_accepts_valid_days_argument(self, mock_update, mock_context, mock_scheduler):
+    async def test_accepts_valid_days_argument(
+        self, mock_update, mock_context, mock_scheduler
+    ):
         """Test that valid days argument is accepted."""
         # Arrange
         status_msg = AsyncMock()
@@ -335,7 +341,9 @@ class TestReportGeneration:
     """Tests for report generation functionality."""
 
     @pytest.mark.asyncio()
-    async def test_sends_status_message_during_generation(self, mock_update, mock_context):
+    async def test_sends_status_message_during_generation(
+        self, mock_update, mock_context
+    ):
         """Test that status message is sent during report generation."""
         # Arrange
         status_msg = AsyncMock()
@@ -352,7 +360,9 @@ class TestReportGeneration:
         assert "Генерация" in call_text
 
     @pytest.mark.asyncio()
-    async def test_updates_status_on_success(self, mock_update, mock_context, mock_scheduler):
+    async def test_updates_status_on_success(
+        self, mock_update, mock_context, mock_scheduler
+    ):
         """Test that status is updated on successful report generation."""
         # Arrange
         status_msg = AsyncMock()
@@ -395,7 +405,9 @@ class TestErrorHandling:
     """Tests for error handling scenarios."""
 
     @pytest.mark.asyncio()
-    async def test_handles_scheduler_exception(self, mock_update, mock_context, mock_scheduler):
+    async def test_handles_scheduler_exception(
+        self, mock_update, mock_context, mock_scheduler
+    ):
         """Test handling of exception from scheduler."""
         # Arrange
         status_msg = AsyncMock()
@@ -414,7 +426,9 @@ class TestErrorHandling:
         assert "Scheduler error" in call_text
 
     @pytest.mark.asyncio()
-    async def test_logs_error_on_scheduler_failure(self, mock_update, mock_context, mock_scheduler):
+    async def test_logs_error_on_scheduler_failure(
+        self, mock_update, mock_context, mock_scheduler
+    ):
         """Test that errors are logged on scheduler failure."""
         # Arrange
         status_msg = AsyncMock()
@@ -422,7 +436,9 @@ class TestErrorHandling:
         mock_update.message.reply_text.return_value = status_msg
         mock_scheduler.send_manual_report.side_effect = Exception("Test error")
 
-        with patch("src.telegram_bot.commands.daily_report_command.logger") as mock_logger:
+        with patch(
+            "src.telegram_bot.commands.daily_report_command.logger"
+        ) as mock_logger:
             # Act
             await daily_report_command(mock_update, mock_context)
 
@@ -430,14 +446,18 @@ class TestErrorHandling:
             mock_logger.exception.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_logs_success_on_report_sent(self, mock_update, mock_context, mock_scheduler):
+    async def test_logs_success_on_report_sent(
+        self, mock_update, mock_context, mock_scheduler
+    ):
         """Test that success is logged when report is sent."""
         # Arrange
         status_msg = AsyncMock()
         status_msg.edit_text = AsyncMock()
         mock_update.message.reply_text.return_value = status_msg
 
-        with patch("src.telegram_bot.commands.daily_report_command.logger") as mock_logger:
+        with patch(
+            "src.telegram_bot.commands.daily_report_command.logger"
+        ) as mock_logger:
             # Act
             await daily_report_command(mock_update, mock_context)
 
@@ -454,7 +474,9 @@ class TestConfigEdgeCases:
     """Tests for configuration edge cases."""
 
     @pytest.mark.asyncio()
-    async def test_handles_missing_config(self, mock_update, mock_context, mock_non_admin_user):
+    async def test_handles_missing_config(
+        self, mock_update, mock_context, mock_non_admin_user
+    ):
         """Test handling when config is None."""
         # Arrange
         mock_context.bot_data["config"] = None

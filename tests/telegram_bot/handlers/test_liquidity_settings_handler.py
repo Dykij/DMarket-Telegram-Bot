@@ -30,6 +30,7 @@ from src.telegram_bot.handlers.liquidity_settings_handler import (
 # Test Fixtures
 # ============================================================================
 
+
 @pytest.fixture()
 def mock_update():
     """Create a mock Update object."""
@@ -68,7 +69,9 @@ def mock_context():
 @pytest.fixture()
 def mock_profile_manager():
     """Create a mock profile manager."""
-    with patch("src.telegram_bot.handlers.liquidity_settings_handler.profile_manager") as mock_pm:
+    with patch(
+        "src.telegram_bot.handlers.liquidity_settings_handler.profile_manager"
+    ) as mock_pm:
         mock_pm.get_profile = MagicMock(return_value={})
         mock_pm.update_profile = MagicMock()
         yield mock_pm
@@ -77,6 +80,7 @@ def mock_profile_manager():
 # ============================================================================
 # Test DEFAULT_LIQUIDITY_SETTINGS
 # ============================================================================
+
 
 class TestDefaultLiquiditySettings:
     """Test default liquidity settings constant."""
@@ -108,6 +112,7 @@ class TestDefaultLiquiditySettings:
 # ============================================================================
 # Test get_liquidity_settings
 # ============================================================================
+
 
 class TestGetLiquiditySettings:
     """Tests for get_liquidity_settings function."""
@@ -149,6 +154,7 @@ class TestGetLiquiditySettings:
 # Test update_liquidity_settings
 # ============================================================================
 
+
 class TestUpdateLiquiditySettings:
     """Tests for update_liquidity_settings function."""
 
@@ -176,10 +182,13 @@ class TestUpdateLiquiditySettings:
             "liquidity_settings": DEFAULT_LIQUIDITY_SETTINGS.copy()
         }
 
-        update_liquidity_settings(123456789, {
-            "min_liquidity_score": 80,
-            "min_sales_per_week": 15,
-        })
+        update_liquidity_settings(
+            123456789,
+            {
+                "min_liquidity_score": 80,
+                "min_sales_per_week": 15,
+            },
+        )
 
         mock_profile_manager.update_profile.assert_called()
 
@@ -187,6 +196,7 @@ class TestUpdateLiquiditySettings:
 # ============================================================================
 # Test get_liquidity_settings_keyboard
 # ============================================================================
+
 
 class TestGetLiquiditySettingsKeyboard:
     """Tests for get_liquidity_settings_keyboard function."""
@@ -200,9 +210,7 @@ class TestGetLiquiditySettingsKeyboard:
         """Test keyboard has min score button."""
         keyboard = get_liquidity_settings_keyboard()
         buttons = [
-            button.callback_data
-            for row in keyboard.inline_keyboard
-            for button in row
+            button.callback_data for row in keyboard.inline_keyboard for button in row
         ]
         assert "liquidity_set_min_score" in buttons
 
@@ -210,9 +218,7 @@ class TestGetLiquiditySettingsKeyboard:
         """Test keyboard has min sales button."""
         keyboard = get_liquidity_settings_keyboard()
         buttons = [
-            button.callback_data
-            for row in keyboard.inline_keyboard
-            for button in row
+            button.callback_data for row in keyboard.inline_keyboard for button in row
         ]
         assert "liquidity_set_min_sales" in buttons
 
@@ -220,9 +226,7 @@ class TestGetLiquiditySettingsKeyboard:
         """Test keyboard has max time button."""
         keyboard = get_liquidity_settings_keyboard()
         buttons = [
-            button.callback_data
-            for row in keyboard.inline_keyboard
-            for button in row
+            button.callback_data for row in keyboard.inline_keyboard for button in row
         ]
         assert "liquidity_set_max_time" in buttons
 
@@ -230,9 +234,7 @@ class TestGetLiquiditySettingsKeyboard:
         """Test keyboard has toggle button."""
         keyboard = get_liquidity_settings_keyboard()
         buttons = [
-            button.callback_data
-            for row in keyboard.inline_keyboard
-            for button in row
+            button.callback_data for row in keyboard.inline_keyboard for button in row
         ]
         assert "liquidity_toggle" in buttons
 
@@ -240,9 +242,7 @@ class TestGetLiquiditySettingsKeyboard:
         """Test keyboard has reset button."""
         keyboard = get_liquidity_settings_keyboard()
         buttons = [
-            button.callback_data
-            for row in keyboard.inline_keyboard
-            for button in row
+            button.callback_data for row in keyboard.inline_keyboard for button in row
         ]
         assert "liquidity_reset" in buttons
 
@@ -250,9 +250,7 @@ class TestGetLiquiditySettingsKeyboard:
         """Test keyboard has back button."""
         keyboard = get_liquidity_settings_keyboard()
         buttons = [
-            button.callback_data
-            for row in keyboard.inline_keyboard
-            for button in row
+            button.callback_data for row in keyboard.inline_keyboard for button in row
         ]
         assert "back_to_settings" in buttons
 
@@ -261,11 +259,14 @@ class TestGetLiquiditySettingsKeyboard:
 # Test liquidity_settings_command
 # ============================================================================
 
+
 class TestLiquiditySettingsCommand:
     """Tests for liquidity_settings_command function."""
 
     @pytest.mark.asyncio()
-    async def test_command_shows_settings(self, mock_update, mock_context, mock_profile_manager):
+    async def test_command_shows_settings(
+        self, mock_update, mock_context, mock_profile_manager
+    ):
         """Test command shows current settings."""
         mock_profile_manager.get_profile.return_value = {
             "liquidity_settings": DEFAULT_LIQUIDITY_SETTINGS.copy()
@@ -276,7 +277,9 @@ class TestLiquiditySettingsCommand:
         mock_update.message.reply_text.assert_called_once()
 
     @pytest.mark.asyncio()
-    async def test_command_shows_enabled_status(self, mock_update, mock_context, mock_profile_manager):
+    async def test_command_shows_enabled_status(
+        self, mock_update, mock_context, mock_profile_manager
+    ):
         """Test command shows enabled status with emoji."""
         mock_profile_manager.get_profile.return_value = {
             "liquidity_settings": DEFAULT_LIQUIDITY_SETTINGS.copy()
@@ -289,13 +292,13 @@ class TestLiquiditySettingsCommand:
         assert "✅" in text  # Enabled
 
     @pytest.mark.asyncio()
-    async def test_command_shows_disabled_status(self, mock_update, mock_context, mock_profile_manager):
+    async def test_command_shows_disabled_status(
+        self, mock_update, mock_context, mock_profile_manager
+    ):
         """Test command shows disabled status with emoji."""
         settings = DEFAULT_LIQUIDITY_SETTINGS.copy()
         settings["enabled"] = False
-        mock_profile_manager.get_profile.return_value = {
-            "liquidity_settings": settings
-        }
+        mock_profile_manager.get_profile.return_value = {"liquidity_settings": settings}
 
         await liquidity_settings_command(mock_update, mock_context)
 
@@ -304,7 +307,9 @@ class TestLiquiditySettingsCommand:
         assert "❌" in text  # Disabled
 
     @pytest.mark.asyncio()
-    async def test_command_returns_without_user(self, mock_context, mock_profile_manager):
+    async def test_command_returns_without_user(
+        self, mock_context, mock_profile_manager
+    ):
         """Test command returns early without user."""
         update = MagicMock(spec=Update)
         update.effective_user = None
@@ -315,7 +320,9 @@ class TestLiquiditySettingsCommand:
         update.message.reply_text.assert_not_called()
 
     @pytest.mark.asyncio()
-    async def test_command_returns_without_message(self, mock_context, mock_profile_manager):
+    async def test_command_returns_without_message(
+        self, mock_context, mock_profile_manager
+    ):
         """Test command returns early without message."""
         update = MagicMock(spec=Update)
         update.effective_user = MagicMock()
@@ -326,7 +333,9 @@ class TestLiquiditySettingsCommand:
         # Should not raise
 
     @pytest.mark.asyncio()
-    async def test_command_uses_html_parse_mode(self, mock_update, mock_context, mock_profile_manager):
+    async def test_command_uses_html_parse_mode(
+        self, mock_update, mock_context, mock_profile_manager
+    ):
         """Test command uses HTML parse mode."""
         mock_profile_manager.get_profile.return_value = {
             "liquidity_settings": DEFAULT_LIQUIDITY_SETTINGS.copy()
@@ -342,24 +351,27 @@ class TestLiquiditySettingsCommand:
 # Test toggle_liquidity_filter
 # ============================================================================
 
+
 class TestToggleLiquidityFilter:
     """Tests for toggle_liquidity_filter function."""
 
     @pytest.mark.asyncio()
-    async def test_toggle_enables_filter(self, mock_update_with_callback, mock_context, mock_profile_manager):
+    async def test_toggle_enables_filter(
+        self, mock_update_with_callback, mock_context, mock_profile_manager
+    ):
         """Test toggling filter from disabled to enabled."""
         settings = DEFAULT_LIQUIDITY_SETTINGS.copy()
         settings["enabled"] = False
-        mock_profile_manager.get_profile.return_value = {
-            "liquidity_settings": settings
-        }
+        mock_profile_manager.get_profile.return_value = {"liquidity_settings": settings}
 
         await toggle_liquidity_filter(mock_update_with_callback, mock_context)
 
         mock_update_with_callback.callback_query.answer.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_toggle_disables_filter(self, mock_update_with_callback, mock_context, mock_profile_manager):
+    async def test_toggle_disables_filter(
+        self, mock_update_with_callback, mock_context, mock_profile_manager
+    ):
         """Test toggling filter from enabled to disabled."""
         mock_profile_manager.get_profile.return_value = {
             "liquidity_settings": DEFAULT_LIQUIDITY_SETTINGS.copy()
@@ -385,11 +397,14 @@ class TestToggleLiquidityFilter:
 # Test reset_liquidity_settings
 # ============================================================================
 
+
 class TestResetLiquiditySettings:
     """Tests for reset_liquidity_settings function."""
 
     @pytest.mark.asyncio()
-    async def test_reset_restores_defaults(self, mock_update_with_callback, mock_context, mock_profile_manager):
+    async def test_reset_restores_defaults(
+        self, mock_update_with_callback, mock_context, mock_profile_manager
+    ):
         """Test reset restores default settings."""
         custom_settings = {
             "enabled": False,
@@ -406,7 +421,9 @@ class TestResetLiquiditySettings:
         mock_update_with_callback.callback_query.answer.assert_called()
 
     @pytest.mark.asyncio()
-    async def test_reset_shows_confirmation(self, mock_update_with_callback, mock_context, mock_profile_manager):
+    async def test_reset_shows_confirmation(
+        self, mock_update_with_callback, mock_context, mock_profile_manager
+    ):
         """Test reset shows confirmation message."""
         mock_profile_manager.get_profile.return_value = {
             "liquidity_settings": DEFAULT_LIQUIDITY_SETTINGS.copy()
@@ -422,25 +439,32 @@ class TestResetLiquiditySettings:
 # Test Input Prompts
 # ============================================================================
 
+
 class TestInputPrompts:
     """Tests for input prompt functions."""
 
     @pytest.mark.asyncio()
-    async def test_min_score_prompt_sets_flag(self, mock_update_with_callback, mock_context):
+    async def test_min_score_prompt_sets_flag(
+        self, mock_update_with_callback, mock_context
+    ):
         """Test min score prompt sets awaiting flag."""
         await set_min_liquidity_score_prompt(mock_update_with_callback, mock_context)
 
         assert mock_context.user_data.get("awaiting_liquidity_score") is True
 
     @pytest.mark.asyncio()
-    async def test_min_sales_prompt_sets_flag(self, mock_update_with_callback, mock_context):
+    async def test_min_sales_prompt_sets_flag(
+        self, mock_update_with_callback, mock_context
+    ):
         """Test min sales prompt sets awaiting flag."""
         await set_min_sales_per_week_prompt(mock_update_with_callback, mock_context)
 
         assert mock_context.user_data.get("awaiting_sales_per_week") is True
 
     @pytest.mark.asyncio()
-    async def test_max_time_prompt_sets_flag(self, mock_update_with_callback, mock_context):
+    async def test_max_time_prompt_sets_flag(
+        self, mock_update_with_callback, mock_context
+    ):
         """Test max time prompt sets awaiting flag."""
         await set_max_time_to_sell_prompt(mock_update_with_callback, mock_context)
 
@@ -462,11 +486,14 @@ class TestInputPrompts:
 # Test process_liquidity_value_input
 # ============================================================================
 
+
 class TestProcessLiquidityValueInput:
     """Tests for process_liquidity_value_input function."""
 
     @pytest.mark.asyncio()
-    async def test_process_valid_liquidity_score(self, mock_update, mock_context, mock_profile_manager):
+    async def test_process_valid_liquidity_score(
+        self, mock_update, mock_context, mock_profile_manager
+    ):
         """Test processing valid liquidity score."""
         mock_context.user_data["awaiting_liquidity_score"] = True
         mock_update.message.text = "75"
@@ -480,7 +507,9 @@ class TestProcessLiquidityValueInput:
         assert mock_context.user_data.get("awaiting_liquidity_score") is False
 
     @pytest.mark.asyncio()
-    async def test_process_invalid_liquidity_score_range(self, mock_update, mock_context, mock_profile_manager):
+    async def test_process_invalid_liquidity_score_range(
+        self, mock_update, mock_context, mock_profile_manager
+    ):
         """Test processing invalid liquidity score (out of range)."""
         mock_context.user_data["awaiting_liquidity_score"] = True
         mock_update.message.text = "150"  # Invalid: > 100
@@ -491,7 +520,9 @@ class TestProcessLiquidityValueInput:
         assert "Ошибка" in call_args[0][0]
 
     @pytest.mark.asyncio()
-    async def test_process_valid_sales_per_week(self, mock_update, mock_context, mock_profile_manager):
+    async def test_process_valid_sales_per_week(
+        self, mock_update, mock_context, mock_profile_manager
+    ):
         """Test processing valid sales per week."""
         mock_context.user_data["awaiting_sales_per_week"] = True
         mock_update.message.text = "10"
@@ -505,7 +536,9 @@ class TestProcessLiquidityValueInput:
         assert mock_context.user_data.get("awaiting_sales_per_week") is False
 
     @pytest.mark.asyncio()
-    async def test_process_negative_sales_rejected(self, mock_update, mock_context, mock_profile_manager):
+    async def test_process_negative_sales_rejected(
+        self, mock_update, mock_context, mock_profile_manager
+    ):
         """Test processing negative sales value is rejected."""
         mock_context.user_data["awaiting_sales_per_week"] = True
         mock_update.message.text = "-5"
@@ -516,7 +549,9 @@ class TestProcessLiquidityValueInput:
         assert "Ошибка" in call_args[0][0]
 
     @pytest.mark.asyncio()
-    async def test_process_valid_time_to_sell(self, mock_update, mock_context, mock_profile_manager):
+    async def test_process_valid_time_to_sell(
+        self, mock_update, mock_context, mock_profile_manager
+    ):
         """Test processing valid time to sell."""
         mock_context.user_data["awaiting_time_to_sell"] = True
         mock_update.message.text = "5"
@@ -530,7 +565,9 @@ class TestProcessLiquidityValueInput:
         assert mock_context.user_data.get("awaiting_time_to_sell") is False
 
     @pytest.mark.asyncio()
-    async def test_process_zero_time_rejected(self, mock_update, mock_context, mock_profile_manager):
+    async def test_process_zero_time_rejected(
+        self, mock_update, mock_context, mock_profile_manager
+    ):
         """Test processing zero time value is rejected."""
         mock_context.user_data["awaiting_time_to_sell"] = True
         mock_update.message.text = "0"
@@ -576,6 +613,7 @@ class TestProcessLiquidityValueInput:
 # ============================================================================
 # Test cancel_liquidity_input
 # ============================================================================
+
 
 class TestCancelLiquidityInput:
     """Tests for cancel_liquidity_input function."""
@@ -630,11 +668,14 @@ class TestCancelLiquidityInput:
 # Test Edge Cases
 # ============================================================================
 
+
 class TestEdgeCases:
     """Tests for edge cases in liquidity settings handlers."""
 
     @pytest.mark.asyncio()
-    async def test_boundary_liquidity_score_zero(self, mock_update, mock_context, mock_profile_manager):
+    async def test_boundary_liquidity_score_zero(
+        self, mock_update, mock_context, mock_profile_manager
+    ):
         """Test boundary value: liquidity score 0."""
         mock_context.user_data["awaiting_liquidity_score"] = True
         mock_update.message.text = "0"
@@ -648,7 +689,9 @@ class TestEdgeCases:
         assert mock_context.user_data.get("awaiting_liquidity_score") is False
 
     @pytest.mark.asyncio()
-    async def test_boundary_liquidity_score_hundred(self, mock_update, mock_context, mock_profile_manager):
+    async def test_boundary_liquidity_score_hundred(
+        self, mock_update, mock_context, mock_profile_manager
+    ):
         """Test boundary value: liquidity score 100."""
         mock_context.user_data["awaiting_liquidity_score"] = True
         mock_update.message.text = "100"
@@ -662,7 +705,9 @@ class TestEdgeCases:
         assert mock_context.user_data.get("awaiting_liquidity_score") is False
 
     @pytest.mark.asyncio()
-    async def test_boundary_negative_liquidity_score(self, mock_update, mock_context, mock_profile_manager):
+    async def test_boundary_negative_liquidity_score(
+        self, mock_update, mock_context, mock_profile_manager
+    ):
         """Test boundary value: negative liquidity score rejected."""
         mock_context.user_data["awaiting_liquidity_score"] = True
         mock_update.message.text = "-1"
@@ -680,12 +725,12 @@ class TestEdgeCases:
         assert total_buttons == 6  # 6 buttons total
 
     @pytest.mark.asyncio()
-    async def test_multiple_toggles(self, mock_update_with_callback, mock_context, mock_profile_manager):
+    async def test_multiple_toggles(
+        self, mock_update_with_callback, mock_context, mock_profile_manager
+    ):
         """Test multiple rapid toggles."""
         settings = DEFAULT_LIQUIDITY_SETTINGS.copy()
-        mock_profile_manager.get_profile.return_value = {
-            "liquidity_settings": settings
-        }
+        mock_profile_manager.get_profile.return_value = {"liquidity_settings": settings}
 
         for _ in range(3):
             await toggle_liquidity_filter(mock_update_with_callback, mock_context)

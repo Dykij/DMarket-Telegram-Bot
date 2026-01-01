@@ -185,7 +185,9 @@ class TestAPISecurityRateLimiting:
 
         # Assert
         # Второй запрос должен был подождать минимум ~1 секунду
-        assert elapsed >= 0.9, f"Должна быть задержка между запросами, прошло {elapsed}s"
+        assert (
+            elapsed >= 0.9
+        ), f"Должна быть задержка между запросами, прошло {elapsed}s"
 
 
 class TestAPISecurityEncryption:
@@ -543,7 +545,10 @@ def sanitize_sql_input(text: str) -> str:
 def sanitize_html(text: str) -> str:
     """Санитизация HTML для предотвращения XSS."""
     return (
-        text.replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;").replace("'", "&#x27;")
+        text.replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+        .replace("'", "&#x27;")
     )
 
 
