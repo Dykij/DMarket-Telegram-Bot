@@ -64,6 +64,18 @@ def scanner_no_client():
     return ArbitrageScanner()
 
 
+@pytest.fixture()
+def level_test_data():
+    """Данные для тестирования find_best_opportunities с правильным форматом."""
+    return {
+        "boost": [{"title": "boost1", "profit_percent": 2.0}],
+        "standard": [{"title": "std1", "profit_percent": 6.0}],
+        "medium": [{"title": "med1", "profit_percent": 12.0}],
+        "advanced": [{"title": "adv1", "profit_percent": 20.0}],
+        "pro": [{"title": "pro1", "profit_percent": 35.0}],
+    }
+
+
 # ============================================================================
 # Тесты инициализации
 # ============================================================================
@@ -584,19 +596,13 @@ async def test_scan_all_levels_one_fails(scanner):
 
 
 @pytest.mark.asyncio()
-async def test_find_best_opportunities_top_n(scanner):
+async def test_find_best_opportunities_top_n(scanner, level_test_data):
     """Тест поиска топ-N возможностей."""
-    all_levels_data = {
-        "boost": [{"item": "boost1", "profit_percent": 5.0}],
-        "standard": [{"item": "std1", "profit_percent": 8.0}],
-        "medium": [{"item": "med1", "profit_percent": 15.0}],
-        "advanced": [{"item": "adv1", "profit_percent": 20.0}],
-        "pro": [{"item": "pro1", "profit_percent": 50.0}],
-    }
+    async def mock_scan_level(level, game, max_results):
+        """Mock scan_level для возврата данных по уровню."""
+        return level_test_data.get(level, [])
 
-    with patch.object(scanner, "scan_all_levels", new_callable=AsyncMock) as mock_scan:
-        mock_scan.return_value = all_levels_data
-
+    with patch.object(scanner, "scan_level", side_effect=mock_scan_level):
         result = await scanner.find_best_opportunities("csgo", top_n=3)
 
     assert len(result) <= 3
@@ -606,20 +612,11 @@ async def test_find_best_opportunities_top_n(scanner):
 
 
 @pytest.mark.asyncio()
-async def test_find_best_opportunities_min_level(scanner):
+async def test_find_best_opportunities_min_level(scanner, level_test_data):
     """Тест фильтрации по минимальному уровню."""
-    # Данные для каждого уровня
-    level_data = {
-        "boost": [{"title": "boost1", "profit_percent": 2.0}],
-        "standard": [{"title": "std1", "profit_percent": 6.0}],
-        "medium": [{"title": "med1", "profit_percent": 12.0}],
-        "advanced": [{"title": "adv1", "profit_percent": 20.0}],
-        "pro": [{"title": "pro1", "profit_percent": 35.0}],
-    }
-
     async def mock_scan_level(level, game, max_results):
         """Mock scan_level для возврата данных по уровню."""
-        return level_data.get(level, [])
+        return level_test_data.get(level, [])
 
     with patch.object(scanner, "scan_level", side_effect=mock_scan_level):
         result = await scanner.find_best_opportunities(
@@ -635,20 +632,11 @@ async def test_find_best_opportunities_min_level(scanner):
 
 
 @pytest.mark.asyncio()
-async def test_find_best_opportunities_max_level(scanner):
+async def test_find_best_opportunities_max_level(scanner, level_test_data):
     """Тест фильтрации по максимальному уровню."""
-    # Данные для каждого уровня
-    level_data = {
-        "boost": [{"title": "boost1", "profit_percent": 2.0}],
-        "standard": [{"title": "std1", "profit_percent": 6.0}],
-        "medium": [{"title": "med1", "profit_percent": 12.0}],
-        "advanced": [{"title": "adv1", "profit_percent": 20.0}],
-        "pro": [{"title": "pro1", "profit_percent": 35.0}],
-    }
-
     async def mock_scan_level(level, game, max_results):
         """Mock scan_level для возврата данных по уровню."""
-        return level_data.get(level, [])
+        return level_test_data.get(level, [])
 
     with patch.object(scanner, "scan_level", side_effect=mock_scan_level):
         result = await scanner.find_best_opportunities(
