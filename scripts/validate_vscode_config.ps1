@@ -103,9 +103,9 @@ if ($codeCommand) {
         }
     }
 } else {
-    Write-Host "  ⚠️  'code' CLI не найдена" -ForegroundColor Yellow
-    Write-Host "     Установите: Ctrl+Shift+P → Shell Command: Install 'code' command in PATH" -ForegroundColor Gray
-    $warnings += "code CLI не установлена"
+    Write-Host "  ℹ️  'code' CLI не установлена (опционально)" -ForegroundColor Cyan
+    Write-Host "     Расширения можно установить через UI VS Code" -ForegroundColor Gray
+    Write-Host "     Или запустите: .\scripts\install_code_cli.ps1" -ForegroundColor Gray
 }
 
 # 5. Проверка pyproject.toml
