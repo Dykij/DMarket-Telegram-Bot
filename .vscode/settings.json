@@ -52,7 +52,7 @@
     "${workspaceFolder}/src"
   ],
   "python.analysis.indexing": true,
-  "python.languageServer": "None",
+  "python.languageServer": "Pylance",
   // ==================== Python Formatting (Ruff - replaces Black) ====================
   "[python]": {
     "editor.formatOnSave": true,
@@ -82,7 +82,7 @@
   "python.linting.enabled": true,
   "python.linting.mypyEnabled": true,
   "python.linting.mypyArgs": [
-    "--config-file=config/mypy.ini",
+    "--config-file=pyproject.toml",
     "--follow-imports=silent",
     "--show-error-codes",
     "--no-incremental"
