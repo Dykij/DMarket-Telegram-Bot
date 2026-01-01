@@ -608,47 +608,59 @@ async def test_find_best_opportunities_top_n(scanner):
 @pytest.mark.asyncio()
 async def test_find_best_opportunities_min_level(scanner):
     """Тест фильтрации по минимальному уровню."""
-    all_levels_data = {
-        "boost": [{"item": "boost1"}],
-        "standard": [{"item": "std1"}],
-        "medium": [{"item": "med1"}],
-        "advanced": [{"item": "adv1"}],
-        "pro": [{"item": "pro1"}],
+    # Данные для каждого уровня
+    level_data = {
+        "boost": [{"title": "boost1", "profit_percent": 2.0}],
+        "standard": [{"title": "std1", "profit_percent": 6.0}],
+        "medium": [{"title": "med1", "profit_percent": 12.0}],
+        "advanced": [{"title": "adv1", "profit_percent": 20.0}],
+        "pro": [{"title": "pro1", "profit_percent": 35.0}],
     }
 
-    with patch.object(scanner, "scan_all_levels", new_callable=AsyncMock) as mock_scan:
-        mock_scan.return_value = all_levels_data
+    async def mock_scan_level(level, game, max_results):
+        """Mock scan_level для возврата данных по уровню."""
+        return level_data.get(level, [])
 
+    with patch.object(scanner, "scan_level", side_effect=mock_scan_level):
         result = await scanner.find_best_opportunities(
             "csgo", top_n=10, min_level="medium"
         )
 
     # Не должно быть предметов из boost и standard
-    for item in result:
-        assert item["item"] not in {"boost1", "std1"}
+    titles = [item.get("title") for item in result]
+    assert "boost1" not in titles
+    assert "std1" not in titles
+    # Должны быть предметы из medium, advanced, pro
+    assert "med1" in titles or "adv1" in titles or "pro1" in titles
 
 
 @pytest.mark.asyncio()
 async def test_find_best_opportunities_max_level(scanner):
     """Тест фильтрации по максимальному уровню."""
-    all_levels_data = {
-        "boost": [{"item": "boost1"}],
-        "standard": [{"item": "std1"}],
-        "medium": [{"item": "med1"}],
-        "advanced": [{"item": "adv1"}],
-        "pro": [{"item": "pro1"}],
+    # Данные для каждого уровня
+    level_data = {
+        "boost": [{"title": "boost1", "profit_percent": 2.0}],
+        "standard": [{"title": "std1", "profit_percent": 6.0}],
+        "medium": [{"title": "med1", "profit_percent": 12.0}],
+        "advanced": [{"title": "adv1", "profit_percent": 20.0}],
+        "pro": [{"title": "pro1", "profit_percent": 35.0}],
     }
 
-    with patch.object(scanner, "scan_all_levels", new_callable=AsyncMock) as mock_scan:
-        mock_scan.return_value = all_levels_data
+    async def mock_scan_level(level, game, max_results):
+        """Mock scan_level для возврата данных по уровню."""
+        return level_data.get(level, [])
 
+    with patch.object(scanner, "scan_level", side_effect=mock_scan_level):
         result = await scanner.find_best_opportunities(
             "csgo", top_n=10, max_level="medium"
         )
 
     # Не должно быть предметов из advanced и pro
-    for item in result:
-        assert item["item"] not in {"adv1", "pro1"}
+    titles = [item.get("title") for item in result]
+    assert "adv1" not in titles
+    assert "pro1" not in titles
+    # Должны быть предметы из boost, standard, medium
+    assert "boost1" in titles or "std1" in titles or "med1" in titles
 
 
 # ============================================================================
