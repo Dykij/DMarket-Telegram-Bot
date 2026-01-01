@@ -317,10 +317,9 @@ async def test_handle_text_buttons_market_analysis_button(mock_update, mock_cont
     mock_update.message.reply_text.assert_called_once()
     call_args = mock_update.message.reply_text.call_args
 
-    # Проверяем содержимое
+    # Проверяем содержимое (теперь "Аналитика рынка")
     message_text = call_args[0][0]
-    assert "Анализ рынка" in message_text
-    assert "игру" in message_text
+    assert "Аналитика" in message_text or "Анализ" in message_text
 
     # Проверяем параметры
     assert call_args[1]["parse_mode"] == ParseMode.HTML
@@ -338,10 +337,9 @@ async def test_handle_text_buttons_settings_button(mock_update, mock_context):
     mock_update.message.reply_text.assert_called_once()
     call_args = mock_update.message.reply_text.call_args
 
-    # Проверяем содержимое
+    # Проверяем содержимое (теперь полноценное меню настроек)
     message_text = call_args[0][0]
     assert "Настройки" in message_text
-    assert "в разработке" in message_text
 
 
 @pytest.mark.asyncio()

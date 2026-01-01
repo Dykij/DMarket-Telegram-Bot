@@ -211,27 +211,78 @@ async def handle_text_buttons(
     text = update.message.text
 
     # Обрабатываем различные текстовые команды от клавиатуры
-    if text == "🔍 Арбитраж":
+    if text == "📊 Арбитраж" or text == "🔍 Арбитраж":
         await arbitrage_command(update, context)
-    elif text == "📊 Баланс":
+    elif text == "💰 Баланс" or text == "📊 Баланс":
         await dmarket_status_impl(
             update,
             context,
             status_message=update.message,
         )
-    elif text == "🌐 Открыть DMarket":
-        await webapp_command(update, context)
-    elif text == "📈 Анализ рынка":
+    elif text == "🎯 Таргеты":
+        from src.telegram_bot.keyboards import get_main_menu_keyboard
+        from telegram import InlineKeyboardButton, InlineKeyboardMarkup
         await update.message.reply_text(
-            "📊 <b>Анализ рынка</b>\n\nВыберите игру для анализа рыночных тенденций и цен:",
-            reply_markup=get_game_selection_keyboard(),
+            "🎯 <b>Таргеты (Buy Orders)</b>\n\n"
+            "Управление целевыми ордерами на покупку:\n\n"
+            "• Создайте таргет на нужный предмет\n"
+            "• Система автоматически выставит buy order\n"
+            "• Получайте уведомления о выполнении",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("➕ Создать таргет", callback_data="target_create")],
+                [InlineKeyboardButton("📋 Мои таргеты", callback_data="target_list")],
+                [InlineKeyboardButton("📊 Статистика", callback_data="target_stats")],
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_menu")],
+            ]),
             parse_mode=ParseMode.HTML,
         )
-    elif text == "⚙️ Настройки":
+    elif text == "📦 Инвентарь":
+        from telegram import InlineKeyboardButton, InlineKeyboardMarkup
         await update.message.reply_text(
-            "⚙️ <b>Настройки</b>\n\nФункция находится в разработке.",
+            "📦 <b>Ваш инвентарь</b>\n\n"
+            "⚠️ Для просмотра инвентаря необходимо настроить API ключи DMarket.",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("🔑 Настроить API", callback_data="settings_api")],
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_menu")],
+            ]),
             parse_mode=ParseMode.HTML,
-            reply_markup=get_modern_arbitrage_keyboard(),
+        )
+    elif text == "📈 Аналитика" or text == "📈 Анализ рынка":
+        from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+        await update.message.reply_text(
+            "📈 <b>Аналитика рынка</b>\n\n"
+            "Выберите раздел аналитики:",
+            reply_markup=InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton("📊 Тренды", callback_data="analysis_trends"),
+                    InlineKeyboardButton("💹 Волатильность", callback_data="analysis_vol"),
+                ],
+                [
+                    InlineKeyboardButton("🔥 Топ продаж", callback_data="analysis_top"),
+                    InlineKeyboardButton("📉 Падающие", callback_data="analysis_drop"),
+                ],
+                [InlineKeyboardButton("🎯 Рекомендации", callback_data="analysis_rec")],
+                [InlineKeyboardButton("◀️ Главное меню", callback_data="main_menu")],
+            ]),
+            parse_mode=ParseMode.HTML,
+        )
+    elif text == "🔔 Оповещения":
+        from src.telegram_bot.keyboards import get_alert_keyboard
+        await update.message.reply_text(
+            "🔔 <b>Управление оповещениями</b>\n\n"
+            "Настройте оповещения о изменении цен и "
+            "других рыночных событиях:",
+            reply_markup=get_alert_keyboard(),
+            parse_mode=ParseMode.HTML,
+        )
+    elif text == "🌐 Открыть DMarket":
+        await webapp_command(update, context)
+    elif text == "⚙️ Настройки":
+        from src.telegram_bot.keyboards import get_settings_keyboard
+        await update.message.reply_text(
+            "⚙️ <b>Настройки бота</b>\n\nВыберите раздел для настройки:",
+            reply_markup=get_settings_keyboard(),
+            parse_mode=ParseMode.HTML,
         )
     elif text == "❓ Помощь":
         await help_command(update, context)
