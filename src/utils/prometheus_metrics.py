@@ -278,6 +278,38 @@ rate_limit_usage = Gauge(
 )
 
 # =============================================================================
+# Circuit Breaker Metrics (Roadmap Task #10: NEW)
+# =============================================================================
+
+# Circuit breaker state
+circuit_breaker_state = Gauge(
+    "circuit_breaker_state",
+    "Circuit breaker state (0=closed, 1=half_open, 2=open)",
+    ["endpoint"],
+)
+
+# Circuit breaker failures
+circuit_breaker_failures_total = Counter(
+    "circuit_breaker_failures_total",
+    "Total number of circuit breaker failures",
+    ["endpoint"],
+)
+
+# Circuit breaker state changes
+circuit_breaker_state_changes_total = Counter(
+    "circuit_breaker_state_changes_total",
+    "Total number of circuit breaker state changes",
+    ["endpoint", "from_state", "to_state"],
+)
+
+# Circuit breaker calls
+circuit_breaker_calls_total = Counter(
+    "circuit_breaker_calls_total",
+    "Total number of calls through circuit breaker",
+    ["endpoint", "result"],  # result: success/failure/rejected
+)
+
+# =============================================================================
 # Utility Functions
 # =============================================================================
 
@@ -446,6 +478,73 @@ def set_bot_uptime(uptime_seconds: float) -> None:
         uptime_seconds: Uptime in seconds
     """
     bot_uptime_seconds.set(uptime_seconds)
+
+
+def track_circuit_breaker_state(endpoint: str, state: str) -> None:
+    """Track circuit breaker state change.
+    
+    Roadmap Task #10: NEW
+    
+    Args:
+        endpoint: Endpoint name (e.g., "dmarket_market", "dmarket_targets")
+        state: State name ("closed", "open", "half_open")
+    """
+    # Map state to numeric value for Gauge
+    state_mapping = {
+        "closed": 0,
+        "half_open": 1,
+        "open": 2,
+    }
+    
+    state_value = state_mapping.get(state.lower(), 0)
+    circuit_breaker_state.labels(endpoint=endpoint).set(state_value)
+
+
+def track_circuit_breaker_failure(endpoint: str) -> None:
+    """Track circuit breaker failure.
+    
+    Roadmap Task #10: NEW
+    
+    Args:
+        endpoint: Endpoint name
+    """
+    circuit_breaker_failures_total.labels(endpoint=endpoint).inc()
+
+
+def track_circuit_breaker_state_change(
+    endpoint: str,
+    from_state: str,
+    to_state: str,
+) -> None:
+    """Track circuit breaker state transition.
+    
+    Roadmap Task #10: NEW
+    
+    Args:
+        endpoint: Endpoint name
+        from_state: Previous state
+        to_state: New state
+    """
+    circuit_breaker_state_changes_total.labels(
+        endpoint=endpoint,
+        from_state=from_state,
+        to_state=to_state,
+    ).inc()
+
+
+def track_circuit_breaker_call(endpoint: str, result: str) -> None:
+    """Track circuit breaker call result.
+    
+    Roadmap Task #10: NEW
+    
+    Args:
+        endpoint: Endpoint name
+        result: Call result ("success", "failure", "rejected")
+    """
+    circuit_breaker_calls_total.labels(
+        endpoint=endpoint,
+        result=result,
+    ).inc()
 
 
 def set_active_users(count: int) -> None:

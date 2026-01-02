@@ -32,18 +32,18 @@ pytestmark = pytest.mark.skipif(
 
 class TestDMarketAPIValidation:
     """Automated validation of DMarket API v1.1.0 compatibility.
-    
+
     Roadmap Task #9: Daily automated checks for API changes.
     """
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_balance_endpoint_structure(
         self,
         pact_interaction,
         dmarket_contracts: type[DMarketContracts],
     ) -> None:
         """Test GET /market/api/v1/balance endpoint structure.
-        
+
         Critical: Balance is used for all trading decisions.
         Breaking change impact: HIGH
         """
@@ -73,14 +73,14 @@ class TestDMarketAPIValidation:
 
         assert pact_interaction is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_offers_endpoint_structure(
         self,
         pact_interaction,
         dmarket_contracts: type[DMarketContracts],
     ) -> None:
         """Test GET /market/api/v1/offers endpoint structure.
-        
+
         Critical: Offers are core to arbitrage scanning.
         Breaking change impact: CRITICAL
         """
@@ -120,14 +120,14 @@ class TestDMarketAPIValidation:
 
         assert pact_interaction is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_buy_offers_endpoint_structure(
         self,
         pact_interaction,
         dmarket_contracts: type[DMarketContracts],
     ) -> None:
         """Test POST /market/api/v1/buy-offers endpoint structure.
-        
+
         Critical: Buy orders are primary trading mechanism.
         Breaking change impact: CRITICAL
         """
@@ -175,14 +175,14 @@ class TestDMarketAPIValidation:
 
         assert pact_interaction is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_inventory_endpoint_structure(
         self,
         pact_interaction,
         dmarket_contracts: type[DMarketContracts],
     ) -> None:
         """Test GET /market/api/v1/inventory endpoint structure.
-        
+
         Critical: Inventory used for asset management.
         Breaking change impact: MEDIUM
         """
@@ -222,13 +222,13 @@ class TestDMarketAPIValidation:
 
         assert pact_interaction is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_api_status_codes(
         self,
         pact_interaction,
     ) -> None:
         """Test that API returns correct status codes.
-        
+
         Validates:
         - 200 for successful requests
         - 400 for bad requests
@@ -254,13 +254,13 @@ class TestDMarketAPIValidation:
 
         assert pact_interaction is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_api_rate_limit_response(
         self,
         pact_interaction,
     ) -> None:
         """Test that API returns 429 with Retry-After header.
-        
+
         Critical: Rate limiting is core to bot stability.
         Breaking change impact: HIGH
         """
@@ -288,7 +288,7 @@ class TestDMarketAPIValidation:
 
 class TestAPIBaselineComparison:
     """Compare API responses with baseline for change detection.
-    
+
     Roadmap Task #9: Detect API evolution through baseline comparison.
     """
 
@@ -301,7 +301,7 @@ class TestAPIBaselineComparison:
 
     def _save_baseline(self, endpoint: str, response: dict[str, Any]) -> None:
         """Save API response as baseline.
-        
+
         Args:
             endpoint: API endpoint name
             response: API response data
@@ -312,10 +312,10 @@ class TestAPIBaselineComparison:
 
     def _load_baseline(self, endpoint: str) -> dict[str, Any] | None:
         """Load baseline response for comparison.
-        
+
         Args:
             endpoint: API endpoint name
-            
+
         Returns:
             Baseline response or None if not exists
         """
@@ -332,11 +332,11 @@ class TestAPIBaselineComparison:
         current: dict[str, Any],
     ) -> list[str]:
         """Compare two API response structures.
-        
+
         Args:
             baseline: Baseline response
             current: Current response
-            
+
         Returns:
             List of differences found
         """
@@ -361,9 +361,7 @@ class TestAPIBaselineComparison:
             current_type = type(current[key]).__name__
 
             if baseline_type != current_type:
-                differences.append(
-                    f"Type changed for '{key}': {baseline_type} -> {current_type}"
-                )
+                differences.append(f"Type changed for '{key}': {baseline_type} -> {current_type}")
 
         return differences
 
@@ -386,9 +384,7 @@ class TestAPIBaselineComparison:
         if differences:
             # Save current as new baseline for review
             self._save_baseline("balance_new", current_response)
-            pytest.fail(
-                f"Balance endpoint structure changed:\n" + "\n".join(differences)
-            )
+            pytest.fail("Balance endpoint structure changed:\n" + "\n".join(differences))
 
     def test_offers_structure_unchanged(self):
         """Test that offers endpoint structure hasn't changed."""
@@ -417,6 +413,4 @@ class TestAPIBaselineComparison:
 
         if differences:
             self._save_baseline("offers_new", current_response)
-            pytest.fail(
-                f"Offers endpoint structure changed:\n" + "\n".join(differences)
-            )
+            pytest.fail("Offers endpoint structure changed:\n" + "\n".join(differences))
