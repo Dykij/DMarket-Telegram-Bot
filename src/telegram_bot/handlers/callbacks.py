@@ -448,6 +448,35 @@ async def button_callback_handler(
             # Показываем статистику автоарбитража
             await query.answer("⚠️ Статистика временно недоступна.")
 
+        # Backtesting callbacks
+        elif callback_data == "backtest_quick":
+            from src.telegram_bot.commands.backtesting_commands import run_quick_backtest
+            api = context.bot_data.get("dmarket_api")
+            if api:
+                await run_quick_backtest(update, context, api)
+            else:
+                await query.edit_message_text("❌ DMarket API недоступен")
+
+        elif callback_data == "backtest_standard":
+            from src.telegram_bot.commands.backtesting_commands import run_standard_backtest
+            api = context.bot_data.get("dmarket_api")
+            if api:
+                await run_standard_backtest(update, context, api)
+            else:
+                await query.edit_message_text("❌ DMarket API недоступен")
+
+        elif callback_data == "backtest_custom":
+            await query.edit_message_text(
+                "⚙️ <b>Custom Backtest Settings</b>\n\n"
+                "Custom backtesting coming soon!\n\n"
+                "You'll be able to configure:\n"
+                "• Date range\n"
+                "• Initial balance\n"
+                "• Strategy parameters\n"
+                "• Item selection",
+                parse_mode=ParseMode.HTML,
+            )
+
         elif callback_data.startswith("auto_trade:"):
             # Запускаем автоматическую торговлю для выбранного режима
             await query.answer("⚠️ Функция авто-торговли временно недоступна.")

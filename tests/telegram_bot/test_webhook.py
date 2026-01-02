@@ -281,3 +281,160 @@ def test_webhook_config_file_not_found():
             url="https://bot.example.com",
             key_path="/nonexistent/key.pem",
         )
+
+
+# ============================================================================
+# Tests: Additional Coverage for 90%+
+# ============================================================================
+
+
+@pytest.mark.asyncio()
+async def test_setup_webhook_with_certificate():
+    """Test setup_webhook with SSL certificate."""
+    import tempfile
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pem") as cert_file:
+        cert_path = cert_file.name
+        cert_file.write(b"-----BEGIN CERTIFICATE-----\nfake cert\n-----END CERTIFICATE-----")
+
+    try:
+        mock_app = MagicMock()
+        mock_app.bot.set_webhook = AsyncMock(return_value=True)
+
+        config = WebhookConfig(
+            url="https://bot.example.com",
+            cert_path=cert_path,
+        )
+
+        result = await setup_webhook(mock_app, config)
+
+        assert result is True
+        mock_app.bot.set_webhook.assert_called_once()
+
+        # Verify certificate was passed
+        call_kwargs = mock_app.bot.set_webhook.call_args.kwargs
+        assert call_kwargs["certificate"] is not None
+    finally:
+        os.unlink(cert_path)
+
+
+@pytest.mark.asyncio()
+async def test_setup_webhook_returns_false_when_telegram_returns_false():
+    """Test setup_webhook returns False when Telegram API returns False."""
+    mock_app = MagicMock()
+    mock_app.bot.set_webhook = AsyncMock(return_value=False)
+
+    config = WebhookConfig(url="https://bot.example.com")
+
+    result = await setup_webhook(mock_app, config)
+
+    assert result is False
+
+
+@pytest.mark.asyncio()
+async def test_stop_webhook_handles_errors():
+    """Test stop_webhook handles deletion errors gracefully."""
+    mock_app = MagicMock()
+    mock_app.bot.delete_webhook = AsyncMock(side_effect=Exception("API Error"))
+
+    # Should not raise exception
+    await stop_webhook(mock_app)
+
+
+@pytest.mark.asyncio()
+async def test_get_webhook_info_handles_errors():
+    """Test get_webhook_info handles API errors."""
+    mock_app = MagicMock()
+    mock_app.bot.get_webhook_info = AsyncMock(side_effect=Exception("API Error"))
+
+    info = await get_webhook_info(mock_app)
+
+    assert "error" in info
+    assert info["error"] == "API Error"
+
+
+@pytest.mark.asyncio()
+async def test_start_webhook_raises_on_setup_failure():
+    """Test start_webhook raises RuntimeError if webhook setup fails."""
+    from src.telegram_bot.webhook import start_webhook
+
+    mock_app = MagicMock()
+    mock_app.bot.set_webhook = AsyncMock(return_value=False)
+
+    config = WebhookConfig(url="https://bot.example.com")
+
+    with pytest.raises(RuntimeError, match="Failed to setup webhook"):
+        await start_webhook(mock_app, config)
+
+
+@pytest.mark.asyncio()
+async def test_start_webhook_raises_on_server_start_failure():
+    """Test start_webhook raises exception if server fails to start."""
+    from src.telegram_bot.webhook import start_webhook
+
+    mock_app = MagicMock()
+    mock_app.bot.set_webhook = AsyncMock(return_value=True)
+    mock_app.run_webhook = AsyncMock(side_effect=Exception("Server start failed"))
+
+    config = WebhookConfig(url="https://bot.example.com")
+
+    with pytest.raises(Exception, match="Server start failed"):
+        await start_webhook(mock_app, config)
+
+
+def test_webhook_config_from_env_with_all_parameters():
+    """Test WebhookConfig.from_env() with all environment variables."""
+    import tempfile
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pem") as cert_file:
+        cert_path = cert_file.name
+        cert_file.write(b"fake cert")
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".key") as key_file:
+        key_path = key_file.name
+        key_file.write(b"fake key")
+
+    try:
+        with patch.dict(
+            os.environ,
+            {
+                "WEBHOOK_URL": "https://bot.example.com",
+                "WEBHOOK_PORT": "443",
+                "WEBHOOK_LISTEN": "127.0.0.1",
+                "WEBHOOK_PATH": "custom-webhook",
+                "WEBHOOK_CERT": cert_path,
+                "WEBHOOK_KEY": key_path,
+                "WEBHOOK_SECRET": "my-secret-token",
+                "WEBHOOK_MAX_CONNECTIONS": "50",
+            },
+        ):
+            config = WebhookConfig.from_env()
+
+            assert config is not None
+            assert config.url == "https://bot.example.com"
+            assert config.port == 443
+            assert config.listen == "127.0.0.1"
+            assert config.url_path == "custom-webhook"
+            assert config.cert_path == cert_path
+            assert config.key_path == key_path
+            assert config.secret_token == "my-secret-token"
+            assert config.max_connections == 50
+    finally:
+        os.unlink(cert_path)
+        os.unlink(key_path)
+
+
+def test_should_use_polling_with_on():
+    """Test should_use_polling with 'on' value."""
+    with patch.dict(os.environ, {"USE_POLLING": "on"}):
+        assert should_use_polling() is True
+
+
+def test_webhook_config_custom_secret_token():
+    """Test WebhookConfig with custom secret token."""
+    config = WebhookConfig(
+        url="https://bot.example.com",
+        secret_token="my-custom-token-12345678901234567890",
+    )
+
+    assert config.secret_token == "my-custom-token-12345678901234567890"
