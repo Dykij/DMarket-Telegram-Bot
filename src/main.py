@@ -245,13 +245,42 @@ class Application:
                 await self.daily_report_scheduler.start()
                 logger.info("Daily Report Scheduler started")
 
-            # Start the bot
+            # Start the bot (webhook or polling)
             if self.bot:
                 await self.bot.start()
-                if self.bot.updater is not None:
-                    await self.bot.updater.start_polling()
-                logger.info("Bot polling started")
-                health_check_server.update_status("running")
+                
+                # Check if webhook mode is enabled (Roadmap Task #1)
+                from src.telegram_bot.webhook import (
+                    WebhookConfig,
+                    is_webhook_mode,
+                    should_use_polling,
+                    start_webhook,
+                )
+                
+                webhook_config = WebhookConfig.from_env()
+                
+                # Use webhook if configured and not explicitly disabled
+                if webhook_config and not should_use_polling():
+                    logger.info("🌐 Starting in WEBHOOK mode")
+                    try:
+                        # Start webhook (this blocks until shutdown)
+                        await start_webhook(self.bot, webhook_config)
+                        health_check_server.update_status("running")
+                    except Exception as e:
+                        logger.error(
+                            f"Failed to start webhook, falling back to polling: {e}"
+                        )
+                        # Fallback to polling
+                        if self.bot.updater is not None:
+                            await self.bot.updater.start_polling()
+                        logger.info("📡 Bot polling started (fallback)")
+                        health_check_server.update_status("running")
+                else:
+                    # Use polling (default for development)
+                    if self.bot.updater is not None:
+                        await self.bot.updater.start_polling()
+                    logger.info("📡 Bot polling started")
+                    health_check_server.update_status("running")
 
             # Wait for shutdown signal
             logger.info("Bot is running. Press Ctrl+C to stop.")

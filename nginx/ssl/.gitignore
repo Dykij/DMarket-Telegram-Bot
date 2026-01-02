@@ -1,0 +1,10 @@
+# Exclude all SSL certificates and keys
+*.pem
+*.crt
+*.key
+*.cert
+*.p12
+*.pfx
+
+# Keep README
+!README.md
