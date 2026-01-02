@@ -554,19 +554,18 @@ class TestGetAllMarketItems:
     async def test_get_all_market_items_success(self, market_mixin, mock_request):
         """Test getting all market items with pagination."""
         # Arrange
-        # First call returns items
+        # First call returns 100 items, second call returns 50 items
         mock_request.side_effect = [
             {"objects": [{"id": str(i)} for i in range(100)], "total": "150"},
             {"objects": [{"id": str(i)} for i in range(100, 150)], "total": "150"},
-            {"objects": [], "total": "150"},  # Last page
         ]
 
         # Act
         result = await market_mixin.get_all_market_items(game="csgo")
 
         # Assert
-        assert len(result) == 200  # 100 + 100 items
-        assert mock_request.call_count == 3
+        assert len(result) == 150  # 100 + 50 items
+        assert mock_request.call_count == 2
 
     @pytest.mark.asyncio()
     async def test_get_all_market_items_empty(self, market_mixin, mock_request):
@@ -820,37 +819,35 @@ class TestGetSuggestedPrice:
         """Test getting suggested price for item."""
         # Arrange
         mock_request.return_value = {
-            "suggestedPrice": "15000",
-            "confidence": "high",
+            "objects": [{"suggestedPrice": "15000"}],
+            "total": "1",
         }
 
         # Act
         result = await market_mixin.get_suggested_price(
-            title="AK-47 | Redline",
-            game_id="csgo",
+            item_name="AK-47 | Redline",
+            game="csgo",
         )
 
         # Assert
         assert result is not None
-        assert "suggestedPrice" in result
-        mock_request.assert_called_once()
+        # Returns float (150.00 = 15000 cents / 100)
+        assert result == 150.00
 
     @pytest.mark.asyncio()
-    async def test_get_suggested_price_with_exterior(self, market_mixin, mock_request):
-        """Test getting suggested price with exterior condition."""
+    async def test_get_suggested_price_not_found(self, market_mixin, mock_request):
+        """Test getting suggested price when item not found."""
         # Arrange
-        mock_request.return_value = {"suggestedPrice": "20000"}
+        mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        await market_mixin.get_suggested_price(
-            title="AWP | Dragon Lore",
-            game_id="csgo",
-            exterior="Factory New",
+        result = await market_mixin.get_suggested_price(
+            item_name="AWP | Dragon Lore",
+            game="csgo",
         )
 
         # Assert
-        call_args = mock_request.call_args
-        assert "exterior" in call_args[1]["params"]
+        assert result is None
 
 
 class TestMarketEdgeCases:
@@ -907,8 +904,9 @@ class TestMarketEdgeCases:
         # Act
         await market_mixin.get_market_items(force_refresh=True)
 
-        # Assert
-        mock_cache_clear.assert_called_once()
+        # Assert - force_refresh is passed to _request
+        call_args = mock_request.call_args
+        assert call_args.kwargs.get("force_refresh") is True
 
     @pytest.mark.asyncio()
     async def test_list_market_items_with_none_prices(self, market_mixin, mock_request):
@@ -971,19 +969,16 @@ class TestGetAllMarketItemsCorrect:
     async def test_get_all_items_stops_on_empty_response(
         self, market_mixin, mock_request
     ):
-        """Test that pagination stops when empty response received."""
-        # Arrange
-        mock_request.side_effect = [
-            {"objects": [{"id": str(i)} for i in range(50)]},
-            {"objects": []},  # Empty means no more items
-        ]
+        """Test that pagination stops when fewer items than limit received."""
+        # Arrange - return fewer items than limit (100), which signals no more pages
+        mock_request.return_value = {"objects": [{"id": str(i)} for i in range(50)]}
 
         # Act
         result = await market_mixin.get_all_market_items()
 
-        # Assert
+        # Assert - stops after first call because items < limit
         assert len(result) == 50
-        assert mock_request.call_count == 2
+        assert mock_request.call_count == 1
 
 
 class TestGetMarketMetaCorrect:
@@ -1094,10 +1089,10 @@ class TestMarketItemsForceRefresh:
     """Tests for force_refresh functionality."""
 
     @pytest.mark.asyncio()
-    async def test_force_refresh_clears_cache(
+    async def test_force_refresh_passed_to_request(
         self, market_mixin, mock_request, mock_cache_clear
     ):
-        """Test that force_refresh calls cache clear."""
+        """Test that force_refresh flag is passed to _request."""
         # Arrange
         mock_request.return_value = {"objects": []}
 
@@ -1105,23 +1100,24 @@ class TestMarketItemsForceRefresh:
         await market_mixin.get_market_items(force_refresh=True)
 
         # Assert
-        # Check if cache clear was called for the endpoint
-        assert mock_cache_clear.call_count > 0
+        # Check force_refresh was passed to _request
+        call_args = mock_request.call_args
+        assert call_args.kwargs.get("force_refresh") is True
 
     @pytest.mark.asyncio()
-    async def test_no_refresh_doesnt_clear_cache(
+    async def test_no_force_refresh_by_default(
         self, market_mixin, mock_request, mock_cache_clear
     ):
-        """Test that normal request doesn't clear cache."""
+        """Test that force_refresh defaults to False."""
         # Arrange
         mock_request.return_value = {"objects": []}
-        mock_cache_clear.reset_mock()
 
         # Act
-        await market_mixin.get_market_items(force_refresh=False)
+        await market_mixin.get_market_items()
 
         # Assert
-        mock_cache_clear.assert_not_called()
+        call_args = mock_request.call_args
+        assert call_args.kwargs.get("force_refresh") is False
 
 
 class TestMarketPriceConversions:
