@@ -18,15 +18,37 @@ Features:
 import logging
 
 import structlog
-from telegram import Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 
 from src.dmarket.dmarket_api import DMarketAPI
-from src.telegram_bot.keyboards.minimal_main import get_mode_selection_keyboard
 from src.utils.sentry_breadcrumbs import add_command_breadcrumb
 
 logger = structlog.get_logger(__name__)
 std_logger = logging.getLogger(__name__)
+
+
+def get_mode_selection_keyboard() -> InlineKeyboardMarkup:
+    """Inline keyboard for arbitrage mode selection.
+
+    Modes correspond to scanner_manager levels:
+    - Boost: Low-price items ($0.50 - $3), quick turnover
+    - Standard: Mid-range items ($3 - $10), balanced
+    - Medium: Higher value ($10 - $30), better margins
+    - Advanced: Premium items ($30 - $100), high margins
+    - Pro: Top-tier items ($100+), best margins
+
+    Returns:
+        InlineKeyboardMarkup with mode selection buttons
+    """
+    keyboard = [
+        [InlineKeyboardButton("🚀 Boost (Разгон)", callback_data="mode_boost")],
+        [InlineKeyboardButton("📊 Standard (Стандарт)", callback_data="mode_standard")],
+        [InlineKeyboardButton("💎 Medium (Средний)", callback_data="mode_medium")],
+        [InlineKeyboardButton("⭐ Advanced (Продвинутый)", callback_data="mode_advanced")],
+        [InlineKeyboardButton("👑 Pro (Профессионал)", callback_data="mode_pro")],
+    ]
+    return InlineKeyboardMarkup(keyboard)
 
 
 # Mode to level mapping (corresponds to scanner levels)

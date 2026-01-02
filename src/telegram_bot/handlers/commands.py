@@ -13,7 +13,6 @@ from src.telegram_bot.handlers.dmarket_status import dmarket_status_impl
 from src.telegram_bot.keyboards import (
     get_marketplace_comparison_keyboard,
     get_modern_arbitrage_keyboard,
-    get_permanent_reply_keyboard,
 )
 from src.utils.logging_utils import get_logger
 from src.utils.telegram_error_handlers import telegram_error_boundary

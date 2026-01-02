@@ -30,7 +30,6 @@ async def autobuy_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if not update.message:
         return
 
-    user_id = update.effective_user.id
     args = context.args
 
     # No arguments - show status
@@ -59,8 +58,6 @@ async def autobuy_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 async def show_autobuy_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show current auto-buy status."""
-    user_id = update.effective_user.id
-
     # Get user settings from context or database
     auto_buyer: AutoBuyer | None = context.bot_data.get("auto_buyer")
 

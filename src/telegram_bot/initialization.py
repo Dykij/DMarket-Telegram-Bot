@@ -152,20 +152,18 @@ async def setup_bot_commands(bot: Bot) -> None:
         bot: Экземпляр бота Telegram
 
     """
-    # Английские команды (упрощённое меню)
+    # Английские команды (только основные - остальное через кнопки меню)
     en_commands = [
         BotCommand("start", "🚀 Start bot - Main menu"),
-        BotCommand("balance", "💰 Check DMarket balance"),
-        BotCommand("stats", "📈 View trading statistics"),
         BotCommand("help", "❓ Help and support"),
+        BotCommand("settings", "⚙️ Bot settings"),
     ]
 
-    # Русские команды (упрощённое меню)
+    # Русские команды (только основные - остальное через кнопки меню)
     ru_commands = [
         BotCommand("start", "🚀 Запуск бота - Главное меню"),
-        BotCommand("balance", "💰 Проверить баланс DMarket"),
-        BotCommand("stats", "📈 Статистика торговли"),
         BotCommand("help", "❓ Справка и поддержка"),
+        BotCommand("settings", "⚙️ Настройки бота"),
     ]
 
     try:

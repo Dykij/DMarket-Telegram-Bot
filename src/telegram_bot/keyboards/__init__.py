@@ -45,14 +45,8 @@ from src.telegram_bot.keyboards.filters import (
     get_rarity_keyboard,
 )
 
-# Main keyboards
-from src.telegram_bot.keyboards.main import (
-    create_main_keyboard,
-    get_games_keyboard,
-    get_main_menu_keyboard,
-    get_permanent_reply_keyboard,
-)
-
+# Main keyboards - REMOVED: main.py, main_simplified.py, minimal_main.py
+# Use keyboards from simplified_menu_handler instead
 # Settings keyboards
 from src.telegram_bot.keyboards.settings import (
     create_confirm_keyboard,
@@ -93,7 +87,6 @@ from src.telegram_bot.keyboards.webapp import (
     get_webapp_keyboard,
 )
 
-
 __all__ = [
     # Constants
     "CB_BACK",
@@ -111,8 +104,7 @@ __all__ = [
     # Settings
     "create_confirm_keyboard",
     "create_game_selection_keyboard",
-    # Main
-    "create_main_keyboard",
+    # REMOVED from main.py: create_main_keyboard, get_games_keyboard, get_main_menu_keyboard, get_permanent_reply_keyboard
     "create_market_analysis_keyboard",
     "create_pagination_keyboard",
     # Alerts
@@ -136,15 +128,12 @@ __all__ = [
     "get_dmarket_webapp_keyboard",
     "get_filter_keyboard",
     "get_game_selection_keyboard",
-    "get_games_keyboard",
     "get_language_keyboard",
     "get_login_keyboard",
-    "get_main_menu_keyboard",
     "get_marketplace_comparison_keyboard",
     "get_modern_arbitrage_keyboard",
     "get_pagination_keyboard",
     "get_payment_keyboard",
-    "get_permanent_reply_keyboard",
     "get_price_range_keyboard",
     "get_rarity_keyboard",
     "get_request_contact_keyboard",

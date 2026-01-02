@@ -14,6 +14,7 @@ from telegram.ext import Application as TelegramApplication
 from telegram.ext import ApplicationBuilder
 
 from src.dmarket.dmarket_api import DMarketAPI
+from src.dmarket.scanner_manager import ScannerManager
 from src.telegram_bot.health_check import health_check_server
 from src.telegram_bot.notifier import send_crash_notification, send_critical_shutdown_notification
 from src.telegram_bot.register_all_handlers import register_all_handlers
@@ -230,7 +231,6 @@ class Application:
             # Initialize Scanner Manager (Adaptive, Parallel, Cleanup)
             if not self.config.testing and self.dmarket_api:
                 logger.info("Initializing Scanner Manager...")
-                from src.dmarket.scanner_manager import ScannerManager
 
                 # Get scan configuration from config or use defaults
                 enable_adaptive = getattr(self.config, "enable_adaptive_scan", True)
@@ -258,12 +258,12 @@ class Application:
             # Initialize Autopilot Orchestrator
             logger.info("Initializing Autopilot Orchestrator...")
             try:
+                from src.dmarket.auto_buyer import AutoBuyConfig, AutoBuyer
+                from src.dmarket.auto_seller import AutoSeller
                 from src.dmarket.autopilot_orchestrator import (
                     AutopilotConfig,
                     AutopilotOrchestrator,
                 )
-                from src.dmarket.auto_buyer import AutoBuyer, AutoBuyConfig
-                from src.dmarket.auto_seller import AutoSeller
 
                 # Initialize auto-buyer if not exists
                 auto_buyer = self.bot.bot_data.get("auto_buyer")
@@ -522,7 +522,7 @@ class Application:
         try:
             # Step 0: Stop WebSocket and Health Check
             logger.info("Step 0/9: Stopping WebSocket and Health Check...")
-            
+
             if self.health_check_monitor:
                 try:
                     await asyncio.wait_for(

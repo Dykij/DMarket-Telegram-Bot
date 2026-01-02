@@ -10,7 +10,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackQueryHandler, ContextTypes
 
 if TYPE_CHECKING:
-    from src.main import DMarketTelegramBot
+    pass
 
 from src.dmarket.enhanced_arbitrage_scanner import EnhancedArbitrageScanner
 

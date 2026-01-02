@@ -29,7 +29,6 @@ async def autopilot_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     if not update.message:
         return
 
-    user_id = update.effective_user.id
     args = context.args
 
     # Get orchestrator from context

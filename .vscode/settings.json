@@ -52,7 +52,7 @@
     "${workspaceFolder}/src"
   ],
   "python.analysis.indexing": true,
-  "python.languageServer": "Pylance",
+  "python.languageServer": "Jedi",
   // ==================== Python Formatting (Ruff - replaces Black) ====================
   "[python]": {
     "editor.formatOnSave": true,

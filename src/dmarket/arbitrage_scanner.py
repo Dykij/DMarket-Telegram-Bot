@@ -612,6 +612,9 @@ class ArbitrageScanner:
             else:
                 total_balance = available_balance
 
+            # Вычисляем заблокированные средства
+            frozen_balance = max(0.0, total_balance - available_balance)
+
             # Проверяем, достаточно ли средств на балансе
             has_funds = available_balance >= min_required_balance
 

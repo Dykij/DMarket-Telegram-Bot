@@ -12,6 +12,7 @@ from telegram.ext import ContextTypes
 
 from src.dmarket.arbitrage import GAMES, find_arbitrage_opportunities_advanced
 from src.telegram_bot.handlers.dmarket_status import dmarket_status_impl
+from src.telegram_bot.handlers.simplified_menu_handler import get_main_menu_keyboard
 from src.telegram_bot.keyboards import (
     CB_BACK,
     CB_CANCEL,
@@ -24,7 +25,6 @@ from src.telegram_bot.keyboards import (
     get_dmarket_webapp_keyboard,
     get_game_selection_keyboard,
     get_language_keyboard,
-    get_main_menu_keyboard,
     get_marketplace_comparison_keyboard,
     get_modern_arbitrage_keyboard,
     get_risk_profile_keyboard,
@@ -33,6 +33,7 @@ from src.telegram_bot.keyboards import (
 from src.telegram_bot.utils.api_client import setup_api_client
 from src.telegram_bot.utils.formatters import format_opportunities
 from src.utils.telegram_error_handlers import telegram_error_boundary
+
 
 logger = logging.getLogger(__name__)
 
@@ -318,6 +319,11 @@ async def button_callback_handler(
     await query.answer()
 
     try:
+        # Skip simplified menu callbacks - they are handled by simplified_menu_handler
+        if callback_data.startswith("simple_"):
+            # These callbacks are handled by the simplified_menu_handler registered in group 1
+            return
+
         # Обработка для упрощенного меню (НОВОЕ)
         if callback_data == "simple_menu":
             from src.telegram_bot.handlers.simplified_menu_handler import start_simple_menu

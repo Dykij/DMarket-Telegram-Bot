@@ -21,7 +21,6 @@ logger = structlog.get_logger(__name__)
 try:
     import matplotlib.dates as mdates
     import matplotlib.pyplot as plt
-    from matplotlib.figure import Figure
 
     MATPLOTLIB_AVAILABLE = True
 except ImportError:

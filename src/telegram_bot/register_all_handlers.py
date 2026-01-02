@@ -21,7 +21,6 @@ from src.telegram_bot.handlers.commands import (
     arbitrage_command,
     dashboard_command,
     dmarket_status_command,
-    handle_text_buttons,
     help_command,
     markets_command,
     start_command,
@@ -244,13 +243,16 @@ def register_all_handlers(application: "Application") -> None:
 
     logger.info("Minimal UI message router registered")
 
-    # Регистрация обработчиков текстовых сообщений (для постоянной клавиатуры)
-    application.add_handler(
-        MessageHandler(
-            filters.TEXT & ~filters.COMMAND,
-            handle_text_buttons,
-        ),
-    )
+    # ИСПРАВЛЕНО: Обработчик handle_text_buttons закомментирован
+    # чтобы не конфликтовать с simplified_menu_handler
+    # Удален широкий фильтр filters.TEXT & ~filters.COMMAND
+    # который перехватывал все текстовые сообщения включая "🎯 Таргеты"
+    # application.add_handler(
+    #     MessageHandler(
+    #         filters.TEXT & ~filters.COMMAND,
+    #         handle_text_buttons,
+    #     ),
+    # )
 
     logger.info("Обработчики текстовых сообщений зарегистрированы")
 

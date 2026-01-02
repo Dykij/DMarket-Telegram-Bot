@@ -173,8 +173,18 @@ async def balance_simple(
         balance = await api_client.get_balance()
 
         # Форматируем баланс (DMarket API v1.1.0 возвращает центы)
-        usd_balance = float(balance.get("usd", 0)) / 100
-        dmc_balance = float(balance.get("dmc", 0)) / 100
+        # balance["usd"] может быть либо строкой (центы), либо dict {"amount": центы}
+        usd_value = balance.get("usd", 0)
+        if isinstance(usd_value, dict):
+            usd_balance = float(usd_value.get("amount", 0)) / 100
+        else:
+            usd_balance = float(usd_value) / 100
+
+        dmc_value = balance.get("dmc", 0)
+        if isinstance(dmc_value, dict):
+            dmc_balance = float(dmc_value.get("amount", 0)) / 100
+        else:
+            dmc_balance = float(dmc_value) / 100
 
         message = (
             f"💰 <b>Ваш баланс:</b>\n\n"
@@ -222,8 +232,8 @@ async def stats_simple(
     try:
         api_client = create_api_client_from_env()
 
-        # Получаем предметы на продаже
-        items_response = await api_client.get_user_items(status="onsale")
+        # Получаем предметы на продаже (используем get_user_inventory)
+        items_response = await api_client.get_user_inventory(game="csgo", limit=100)
         items_selling = items_response.get("objects", [])
 
         # Получаем историю продаж (приблизительно)
@@ -299,8 +309,7 @@ async def arbitrage_start(
         ]
 
         await update.message.reply_text(
-            "🔍 <b>Поиск арбитража</b>\n\n"
-            "Выберите ценовой диапазон для поиска по всем играм:",
+            "🔍 <b>Поиск арбитража</b>\n\nВыберите ценовой диапазон для поиска по всем играм:",
             reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode=ParseMode.HTML,
         )
@@ -506,13 +515,12 @@ async def arbitrage_quick_range(
 
                 # Фильтруем по диапазону цен
                 filtered = [
-                    r for r in results
-                    if min_price <= (r.get("price", 0) / 100) <= max_price
+                    r for r in results if min_price <= (r.get("price", 0) / 100) <= max_price
                 ]
 
                 all_results.extend(filtered)
 
-            except Exception as e:
+            except Exception:
                 logger.exception(f"Ошибка сканирования игры {game}")
                 continue
 
@@ -551,7 +559,7 @@ async def arbitrage_quick_range(
                 parse_mode=ParseMode.HTML,
             )
 
-    except Exception as e:
+    except Exception:
         logger.exception("Ошибка при поиске арбитража")
         await query.edit_message_text(
             "❌ Произошла ошибка при поиске. Попробуйте позже.",
@@ -850,10 +858,27 @@ async def targets_auto(
             api_client = create_api_client_from_env()
             target_manager = TargetManager(api_client=api_client)
 
-            # Создаем умные таргеты
+            # Получаем рыночные предметы для создания умных таргетов
+            market_items = await api_client.get_market_items(
+                game="csgo",
+                limit=10,
+                order_by="best_deals",
+            )
+
+            items = market_items.get("objects", [])
+            if not items:
+                await query.edit_message_text(
+                    "❌ Не удалось найти предметы для создания таргетов.",
+                    parse_mode=ParseMode.HTML,
+                )
+                return ConversationHandler.END
+
+            # Создаем умные таргеты на основе найденных предметов
             result = await target_manager.create_smart_targets(
                 game="csgo",
-                count=5,  # Топ-5 предметов
+                items=items[:5],  # Топ-5 предметов
+                profit_margin=0.15,
+                max_targets=5,
             )
 
             created = result.get("created", [])
@@ -910,8 +935,9 @@ async def targets_list(
             api_client = create_api_client_from_env()
             target_manager = TargetManager(api_client=api_client)
 
-            # Получаем список таргетов
-            targets = await target_manager.get_targets()
+            # Получаем список таргетов (используем get_user_targets)
+            targets_response = await target_manager.get_user_targets(game="csgo")
+            targets = targets_response.get("Items", [])
 
             if not targets:
                 await query.edit_message_text(
