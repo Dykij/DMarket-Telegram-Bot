@@ -5,6 +5,7 @@ This package provides a comprehensive notification system including:
 - Trading notifications (buy/sell success/failure)
 - Alert storage and persistence
 - Telegram command handlers for alert management
+- Notification digests (grouping and batching)
 
 Modules:
     constants: Notification types, priorities, and default settings
@@ -14,6 +15,7 @@ Modules:
     trading: Trading notification functions
     formatters: Message formatting utilities
     handlers: Telegram command and callback handlers
+    digest: Notification digest system for spam reduction
 
 Usage:
     from src.telegram_bot.notifications import (
@@ -33,6 +35,12 @@ Usage:
         send_buy_intent_notification,
         send_buy_success_notification,
         send_sell_success_notification,
+
+        # Notification digests
+        NotificationDigest,
+        Notification,
+        NotificationCategory,
+        NotificationPriority,
 
         # Handler registration
         register_notification_handlers,
@@ -67,6 +75,14 @@ from .constants import (
     DEFAULT_USER_SETTINGS,
     NOTIFICATION_PRIORITIES,
     NOTIFICATION_TYPES,
+)
+
+# Digest system
+from .digest import (
+    Notification,
+    NotificationCategory,
+    NotificationDigest,
+    NotificationPriority,
 )
 
 # Formatters
@@ -136,6 +152,11 @@ __all__ = [
     "increment_notification_count",
     "list_alerts_command",
     "load_user_alerts",
+    # Digest system
+    "Notification",
+    "NotificationCategory",
+    "NotificationDigest",
+    "NotificationPriority",
     "register_notification_handlers",
     "remove_alert_command",
     "remove_price_alert",

@@ -156,7 +156,7 @@ class TestTargetCreationFlow:
         from src.dmarket.targets import TargetManager
 
         # Arrange
-        manager = TargetManager(api_client=mock_dmarket_api, database=mock_database)
+        manager = TargetManager(api_client=mock_dmarket_api)
         user_id = 123456789
         item_title = "AK-47 | Redline (Field-Tested)"
         target_price = 1000  # $10.00 in cents
@@ -202,7 +202,7 @@ class TestTargetCreationFlow:
         from src.dmarket.targets import TargetManager
 
         # Arrange
-        manager = TargetManager(api_client=mock_dmarket_api, database=mock_database)
+        manager = TargetManager(api_client=mock_dmarket_api)
         user_id = 123456789
 
         # Act & Assert: Too low price
@@ -246,7 +246,7 @@ class TestTargetCreationFlow:
             }
         )
 
-        manager = TargetManager(api_client=mock_dmarket_api, database=mock_database)
+        manager = TargetManager(api_client=mock_dmarket_api)
 
         # Act & Assert: Price exceeds balance
         with pytest.raises(Exception) as exc_info:
@@ -286,7 +286,7 @@ class TestTargetViewingFlow:
         from src.dmarket.targets import TargetManager
 
         # Arrange
-        manager = TargetManager(api_client=mock_dmarket_api, database=mock_database)
+        manager = TargetManager(api_client=mock_dmarket_api)
         user_id = 123456789
 
         # Act: Get user targets
@@ -319,7 +319,7 @@ class TestTargetViewingFlow:
         from src.dmarket.targets import TargetManager
 
         # Arrange
-        manager = TargetManager(api_client=mock_dmarket_api, database=mock_database)
+        manager = TargetManager(api_client=mock_dmarket_api)
         user_id = 123456789
 
         # Act: Get and sync targets
@@ -357,7 +357,7 @@ class TestTargetDeletionFlow:
         from src.dmarket.targets import TargetManager
 
         # Arrange
-        manager = TargetManager(api_client=mock_dmarket_api, database=mock_database)
+        manager = TargetManager(api_client=mock_dmarket_api)
         user_id = 123456789
         target_id = "target_123"
 
@@ -398,7 +398,7 @@ class TestTargetDeletionFlow:
             side_effect=Exception("Target not found")
         )
 
-        manager = TargetManager(api_client=mock_dmarket_api, database=mock_database)
+        manager = TargetManager(api_client=mock_dmarket_api)
 
         # Act & Assert
         with pytest.raises(Exception) as exc_info:
@@ -447,7 +447,7 @@ class TestTargetFilledNotificationFlow:
             }
         )
 
-        manager = TargetManager(api_client=mock_dmarket_api, database=mock_database)
+        manager = TargetManager(api_client=mock_dmarket_api)
         user_id = 123456789
 
         # Act: Check target status
@@ -494,7 +494,7 @@ class TestBatchTargetOperations:
         from src.dmarket.targets import TargetManager
 
         # Arrange
-        manager = TargetManager(api_client=mock_dmarket_api, database=mock_database)
+        manager = TargetManager(api_client=mock_dmarket_api)
         user_id = 123456789
 
         target_items = [
@@ -536,7 +536,7 @@ class TestBatchTargetOperations:
         from src.dmarket.targets import TargetManager
 
         # Arrange
-        manager = TargetManager(api_client=mock_dmarket_api, database=mock_database)
+        manager = TargetManager(api_client=mock_dmarket_api)
         user_id = 123456789
         target_ids = ["target_123", "target_456", "target_789"]
 
