@@ -12,7 +12,7 @@ from src.utils.prometheus_metrics import (
     api_requests_total,
     app_info,
     app_uptime_seconds,
-    arbitrage_opportunities_avg,
+    arbitrage_opportunities_current,
     arbitrage_opportunities_found,
     arbitrage_profit_avg,
     bot_active_users,
@@ -90,10 +90,10 @@ class TestMetricsDefinitions:
         assert arbitrage_opportunities_found is not None
         assert arbitrage_opportunities_found._name == "arbitrage_opportunities_found"
 
-    def test_arbitrage_opportunities_avg_exists(self):
-        """Тест что метрика arbitrage_opportunities_avg определена."""
-        assert arbitrage_opportunities_avg is not None
-        assert arbitrage_opportunities_avg._name == "arbitrage_opportunities_avg"
+    def test_arbitrage_opportunities_current_exists(self):
+        """Тест что метрика arbitrage_opportunities_current определена."""
+        assert arbitrage_opportunities_current is not None
+        assert arbitrage_opportunities_current._name == "arbitrage_opportunities_current"
 
     def test_arbitrage_profit_avg_exists(self):
         """Тест что метрика arbitrage_profit_avg определена."""
