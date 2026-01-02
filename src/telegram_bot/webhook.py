@@ -19,6 +19,7 @@ from typing import Any
 from telegram import Update
 from telegram.ext import Application
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -68,7 +69,7 @@ class WebhookConfig:
         if not self.url.startswith("https://"):
             raise ValueError("Webhook URL must use HTTPS")
 
-        if self.port not in [80, 88, 443, 8443]:
+        if self.port not in {80, 88, 443, 8443}:
             logger.warning(
                 f"Webhook port {self.port} is not recommended by Telegram. Use 80, 88, 443, or 8443"
             )
@@ -253,7 +254,7 @@ async def stop_webhook(application: Application) -> None:
         await application.bot.delete_webhook(drop_pending_updates=True)
         logger.info("✅ Webhook deleted successfully")
     except Exception as e:
-        logger.error(f"⚠️  Failed to delete webhook: {e}")
+        logger.exception(f"⚠️  Failed to delete webhook: {e}")
 
 
 async def get_webhook_info(application: Application) -> dict[str, Any]:
@@ -280,7 +281,7 @@ async def get_webhook_info(application: Application) -> dict[str, Any]:
             "allowed_updates": info.allowed_updates,
         }
     except Exception as e:
-        logger.error(f"Failed to get webhook info: {e}")
+        logger.exception(f"Failed to get webhook info: {e}")
         return {"error": str(e)}
 
 
@@ -310,4 +311,4 @@ def should_use_polling() -> bool:
     Roadmap Task #1: Fallback to polling
     """
     use_polling = os.getenv("USE_POLLING", "").lower()
-    return use_polling in ("true", "1", "yes", "on")
+    return use_polling in {"true", "1", "yes", "on"}

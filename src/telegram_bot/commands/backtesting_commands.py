@@ -122,9 +122,7 @@ async def run_quick_backtest(
         )
 
         if not histories:
-            await query.edit_message_text(
-                "❌ Could not collect historical data. Try again later."
-            )
+            await query.edit_message_text("❌ Could not collect historical data. Try again later.")
             return
 
         # Run backtest
@@ -197,8 +195,7 @@ async def run_quick_backtest(
             exc_info=True,
         )
         await query.edit_message_text(
-            f"❌ Backtest failed: {e!s}\n\n"
-            "Please try again or contact support."
+            f"❌ Backtest failed: {e!s}\n\nPlease try again or contact support."
         )
 
 
@@ -220,8 +217,7 @@ async def run_standard_backtest(
 
     await query.answer()
     await query.edit_message_text(
-        "⏳ Running standard backtest (30 days)...\n"
-        "This may take a minute..."
+        "⏳ Running standard backtest (30 days)...\nThis may take a minute..."
     )
 
     try:
@@ -251,9 +247,7 @@ async def run_standard_backtest(
         )
 
         if not histories:
-            await query.edit_message_text(
-                "❌ Could not collect historical data. Try again later."
-            )
+            await query.edit_message_text("❌ Could not collect historical data. Try again later.")
             return
 
         result = await backtester.run(
@@ -334,10 +328,7 @@ async def run_standard_backtest(
             extra={"error": str(e)},
             exc_info=True,
         )
-        await query.edit_message_text(
-            f"❌ Backtest failed: {e!s}\n\n"
-            "Please try again later."
-        )
+        await query.edit_message_text(f"❌ Backtest failed: {e!s}\n\nPlease try again later.")
 
 
 async def backtest_help(

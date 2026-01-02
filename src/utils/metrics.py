@@ -2,6 +2,7 @@
 
 from prometheus_client import Counter, Gauge, Histogram, generate_latest
 
+
 # Request counters
 bot_requests_total = Counter(
     "bot_requests_total",

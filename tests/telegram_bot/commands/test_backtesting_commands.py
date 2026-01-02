@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from telegram import CallbackQuery, Message, Update, User
 
-from src.analytics.backtester import BacktestResult, SimpleArbitrageStrategy
+from src.analytics.backtester import BacktestResult
 from src.analytics.historical_data import PriceHistory, PricePoint
 from src.telegram_bot.commands.backtesting_commands import (
     backtest_command,
@@ -18,7 +18,6 @@ from src.telegram_bot.commands.backtesting_commands import (
     run_quick_backtest,
     run_standard_backtest,
 )
-
 
 # ============================================================================
 # Fixtures
@@ -165,9 +164,7 @@ class TestRunQuickBacktest:
             # Setup mocks
             mock_collector = mock_collector_class.return_value
             mock_collector.collect_batch = AsyncMock(
-                return_value={
-                    "AK-47 | Redline (Field-Tested)": MagicMock(spec=PriceHistory)
-                }
+                return_value={"AK-47 | Redline (Field-Tested)": MagicMock(spec=PriceHistory)}
             )
 
             mock_backtester = mock_backtester_class.return_value

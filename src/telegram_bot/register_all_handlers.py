@@ -9,10 +9,7 @@ from typing import TYPE_CHECKING
 
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler, filters
 
-from src.telegram_bot.commands.backtesting_commands import (
-    backtest_command,
-    backtest_help,
-)
+from src.telegram_bot.commands.backtesting_commands import backtest_command, backtest_help
 from src.telegram_bot.commands.daily_report_command import daily_report_command
 from src.telegram_bot.commands.logs_command import logs_command
 from src.telegram_bot.commands.test_sentry_command import test_sentry_command, test_sentry_info
@@ -27,6 +24,7 @@ from src.telegram_bot.handlers.commands import (
     start_command,
     webapp_command,
 )
+
 
 if TYPE_CHECKING:
     from telegram.ext import Application

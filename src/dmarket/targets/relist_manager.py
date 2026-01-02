@@ -9,8 +9,8 @@
 Документация: docs/TARGET_ENHANCEMENTS_README.md
 """
 
-import logging
 from datetime import datetime, timedelta
+import logging
 from typing import TYPE_CHECKING, Any
 
 from src.dmarket.models.target_enhancements import (
@@ -22,6 +22,7 @@ from src.dmarket.models.target_enhancements import (
     TargetOperationResult,
     TargetOperationStatus,
 )
+
 
 if TYPE_CHECKING:
     from src.interfaces import IDMarketAPI
@@ -414,7 +415,7 @@ class RelistManager:
         Returns:
             Словарь target_id -> статистика
         """
-        return {target_id: self.get_statistics(target_id) for target_id in self.relist_data.keys()}
+        return {target_id: self.get_statistics(target_id) for target_id in self.relist_data}
 
     def cleanup_old_data(self, days: int = 7) -> int:
         """Очистить старые данные перевыставлений.

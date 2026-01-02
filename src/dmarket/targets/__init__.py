@@ -64,29 +64,30 @@ from .price_range_monitor import PriceRangeMonitor
 from .relist_manager import RelistManager
 from .validators import GAME_IDS, extract_attributes_from_title, validate_attributes
 
+
 __all__ = [
     # Основные компоненты
     "GAME_IDS",
+    # Контроллеры и менеджеры (NEW)
+    "OverbidController",
+    "PriceRangeMonitor",
+    "RelistManager",
     "TargetManager",
-    "extract_attributes_from_title",
-    "validate_attributes",
     # Конкуренция
     "analyze_target_competition",
     "assess_competition",
-    "filter_low_competition_items",
+    "check_duplicate_order",
+    "count_target_conditions",
     # Пакетные операции (NEW)
     "create_batch_target",
     "detect_existing_orders",
-    "check_duplicate_order",
+    "extract_attributes_from_title",
+    "filter_low_competition_items",
+    "validate_attributes",
+    "validate_filter_compatibility",
+    "validate_target_attributes",
     # Расширенные валидаторы (NEW)
     "validate_target_complete",
     "validate_target_conditions",
     "validate_target_price",
-    "validate_target_attributes",
-    "validate_filter_compatibility",
-    "count_target_conditions",
-    # Контроллеры и менеджеры (NEW)
-    "OverbidController",
-    "RelistManager",
-    "PriceRangeMonitor",
 ]

@@ -13,8 +13,8 @@
 """
 
 import asyncio
-import logging
 from datetime import datetime, timedelta
+import logging
 from typing import TYPE_CHECKING, Any
 
 from src.dmarket.models.target_enhancements import (
@@ -24,6 +24,7 @@ from src.dmarket.models.target_enhancements import (
     TargetOperationStatus,
     TargetOverbidConfig,
 )
+
 
 if TYPE_CHECKING:
     from src.interfaces import IDMarketAPI
@@ -211,7 +212,7 @@ class OverbidController:
                 )
 
             # Выполнить перебитие
-            overbid_result = await self._execute_overbid(
+            return await self._execute_overbid(
                 target_id=target_id,
                 game=game,
                 title=title,
@@ -219,8 +220,6 @@ class OverbidController:
                 new_price=new_price,
                 attrs=attrs,
             )
-
-            return overbid_result
 
         except Exception as e:
             logger.error(f"Error checking competition: {e}", exc_info=True)

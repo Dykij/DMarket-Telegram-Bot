@@ -11,7 +11,6 @@ from telegram.ext import ContextTypes
 from src.telegram_bot.handlers.dashboard_handler import show_dashboard
 from src.telegram_bot.handlers.dmarket_status import dmarket_status_impl
 from src.telegram_bot.keyboards import (
-    get_game_selection_keyboard,
     get_marketplace_comparison_keyboard,
     get_modern_arbitrage_keyboard,
     get_permanent_reply_keyboard,
@@ -211,9 +210,9 @@ async def handle_text_buttons(
     text = update.message.text
 
     # Обрабатываем различные текстовые команды от клавиатуры
-    if text == "📊 Арбитраж" or text == "🔍 Арбитраж":
+    if text in {"📊 Арбитраж", "🔍 Арбитраж"}:
         await arbitrage_command(update, context)
-    elif text == "💰 Баланс" or text == "📊 Баланс":
+    elif text in {"💰 Баланс", "📊 Баланс"}:
         await dmarket_status_impl(
             update,
             context,
@@ -246,7 +245,7 @@ async def handle_text_buttons(
             ]),
             parse_mode=ParseMode.HTML,
         )
-    elif text == "📈 Аналитика" or text == "📈 Анализ рынка":
+    elif text in {"📈 Аналитика", "📈 Анализ рынка"}:
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
         await update.message.reply_text(
             "📈 <b>Аналитика рынка</b>\n\n"

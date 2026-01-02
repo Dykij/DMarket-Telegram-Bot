@@ -4,10 +4,11 @@ Connection pool monitoring and statistics.
 Provides monitoring for database, Redis, and HTTP client connection pools.
 """
 
-import logging
 from dataclasses import dataclass
 from datetime import datetime
+import logging
 from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +122,7 @@ class PoolMonitor:
                 timestamp=datetime.utcnow(),
             )
         except Exception as e:
-            logger.error(f"Failed to get Redis pool stats: {e}")
+            logger.exception(f"Failed to get Redis pool stats: {e}")
             return PoolStats(
                 pool_name="redis",
                 size=0,
@@ -165,7 +166,7 @@ class PoolMonitor:
                 timestamp=datetime.utcnow(),
             )
         except Exception as e:
-            logger.error(f"Failed to get httpx pool stats: {e}")
+            logger.exception(f"Failed to get httpx pool stats: {e}")
             return PoolStats(
                 pool_name="httpx",
                 size=0,
@@ -197,7 +198,7 @@ class PoolMonitor:
                 else:
                     logger.warning(f"Unknown pool type: {name}")
             except Exception as e:
-                logger.error(f"Failed to get stats for {name}: {e}")
+                logger.exception(f"Failed to get stats for {name}: {e}")
 
         return stats
 
@@ -209,7 +210,7 @@ class PoolMonitor:
         logger.info("Connection Pool Statistics")
         logger.info("=" * 60)
 
-        for name, stat in stats.items():
+        for stat in stats.values():
             logger.info(
                 f"{stat.pool_name.upper()}: "
                 f"{stat.in_use}/{stat.max_size} in use "

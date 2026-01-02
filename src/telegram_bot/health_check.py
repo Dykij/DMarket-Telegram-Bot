@@ -12,12 +12,13 @@ and load balancers to check if bot is alive and all services are operational.
 Roadmap Task #5: Health Check Endpoint
 """
 
+from datetime import datetime
 import logging
 import time
-from datetime import datetime
 from typing import Any
 
 from aiohttp import web
+
 
 logger = logging.getLogger(__name__)
 
@@ -243,7 +244,7 @@ class HealthCheckServer:
 
             return True
         except Exception as e:
-            logger.error(f"Database health check failed: {e}")
+            logger.exception(f"Database health check failed: {e}")
             return False
 
     async def _check_redis(self) -> bool:
@@ -266,7 +267,7 @@ class HealthCheckServer:
 
             return True
         except Exception as e:
-            logger.error(f"Redis health check failed: {e}")
+            logger.exception(f"Redis health check failed: {e}")
             return False
 
     async def _check_dmarket_api(self) -> bool:
@@ -288,7 +289,7 @@ class HealthCheckServer:
             return True
 
         except Exception as e:
-            logger.error(f"DMarket API health check failed: {e}")
+            logger.exception(f"DMarket API health check failed: {e}")
             return False
 
     async def _check_telegram_api(self) -> bool:
@@ -313,7 +314,7 @@ class HealthCheckServer:
             return True
 
         except Exception as e:
-            logger.error(f"Telegram API health check failed: {e}")
+            logger.exception(f"Telegram API health check failed: {e}")
             return False
 
     def update_metrics(

@@ -27,15 +27,16 @@ Examples:
 import asyncio
 from collections import defaultdict
 from datetime import datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import structlog
 
+
 logger = structlog.get_logger(__name__)
 
 
-class NotificationPriority(str, Enum):
+class NotificationPriority(StrEnum):
     """Notification priority levels."""
 
     CRITICAL = "critical"  # Instant send
@@ -44,7 +45,7 @@ class NotificationPriority(str, Enum):
     LOW = "low"  # Aggressive buffering
 
 
-class NotificationCategory(str, Enum):
+class NotificationCategory(StrEnum):
     """Notification categories for grouping."""
 
     ARBITRAGE = "arbitrage"
@@ -299,8 +300,7 @@ class NotificationDigest:
             lines.append("")
 
         # Footer
-        lines.append(f"_Всего: {len(self.buffer)} уведомлений_")
-        lines.append(f"_Период: {self.interval_minutes} минут_")
+        lines.extend((f"_Всего: {len(self.buffer)} уведомлений_", f"_Период: {self.interval_minutes} минут_"))
 
         return "\n".join(lines)
 
@@ -359,10 +359,7 @@ class NotificationDigest:
 
         # Check time interval
         elapsed = datetime.now() - self.last_flush
-        if elapsed >= timedelta(minutes=self.interval_minutes):
-            return True
-
-        return False
+        return elapsed >= timedelta(minutes=self.interval_minutes)
 
     def get_stats(self) -> dict[str, Any]:
         """Get digest statistics.

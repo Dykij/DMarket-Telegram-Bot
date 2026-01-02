@@ -50,12 +50,13 @@ import time
 import traceback
 from typing import TYPE_CHECKING, Any
 
+from circuitbreaker import CircuitBreakerError  # type: ignore[import-untyped]
 import httpx
 import nacl.signing
-from circuitbreaker import CircuitBreakerError  # type: ignore[import-untyped]
 
 from src.dmarket.api_validator import validate_response
 from src.utils import json_utils as json
+
 
 if TYPE_CHECKING:
     from src.telegram_bot.notifier import Notifier
@@ -71,6 +72,7 @@ from src.dmarket.schemas import (
 from src.utils.api_circuit_breaker import call_with_circuit_breaker
 from src.utils.rate_limiter import DMarketRateLimiter, RateLimiter
 from src.utils.sentry_breadcrumbs import add_api_breadcrumb, add_trading_breadcrumb
+
 
 logger = logging.getLogger(__name__)
 
@@ -214,7 +216,7 @@ class DMarketAPI:
         # Enhanced connection pool settings (Roadmap Task #7)
         self.pool_limits = pool_limits or httpx.Limits(
             max_connections=100,         # Max total connections
-            max_keepalive_connections=20, # Max idle connections to keep
+            max_keepalive_connections=20,  # Max idle connections to keep
             keepalive_expiry=30.0,       # Keep connections alive for 30s
         )
 
@@ -262,7 +264,7 @@ class DMarketAPI:
 
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client with optimized settings.
-        
+
         Roadmap Task #7: Connection Pooling
         - HTTP/2 support for better performance (if h2 package installed)
         - Connection pooling with keepalive
@@ -278,7 +280,7 @@ class DMarketAPI:
                     follow_redirects=True,
                     verify=True,  # Always verify SSL
                 )
-                
+
                 logger.debug(
                     "Created HTTP client: max_connections=%d, "
                     "max_keepalive=%d, http2=enabled",
@@ -289,7 +291,7 @@ class DMarketAPI:
                 # h2 package not installed, fallback to HTTP/1.1
                 logger.info("HTTP/2 not available (h2 package not installed), using HTTP/1.1")
                 self._http2_enabled = False  # Update flag
-                
+
                 self._client = httpx.AsyncClient(
                     timeout=self.connection_timeout,
                     limits=self.pool_limits,
@@ -297,14 +299,14 @@ class DMarketAPI:
                     follow_redirects=True,
                     verify=True,
                 )
-                
+
                 logger.debug(
                     "Created HTTP client: max_connections=%d, "
                     "max_keepalive=%d, http2=disabled",
                     self.pool_limits.max_connections,
                     self.pool_limits.max_keepalive_connections,
                 )
-        
+
         return self._client
 
     async def _close_client(self) -> None:
@@ -312,12 +314,12 @@ class DMarketAPI:
         if self._client is not None and not self._client.is_closed:
             await self._client.aclose()
             self._client = None
-    
+
     def get_connection_pool_stats(self) -> dict[str, any]:
         """Get connection pool statistics.
-        
+
         Roadmap Task #7: Connection Pooling Metrics
-        
+
         Returns:
             Dictionary with connection pool stats
         """
@@ -327,7 +329,7 @@ class DMarketAPI:
                 "active_connections": 0,
                 "idle_connections": 0,
             }
-        
+
         # Get stats from connection pool
         stats = {
             "status": "active",
@@ -336,7 +338,7 @@ class DMarketAPI:
             "keepalive_expiry": self.pool_limits.keepalive_expiry,
             "http2_enabled": self._http2_enabled,
         }
-        
+
         # Try to get actual connection counts if available
         try:
             if hasattr(self._client, "_transport"):
@@ -347,7 +349,7 @@ class DMarketAPI:
                     stats["idle_connections"] = len(getattr(pool, "_connections", []))
         except Exception as e:
             logger.debug(f"Could not get detailed pool stats: {e}")
-        
+
         return stats
 
     def _generate_signature(

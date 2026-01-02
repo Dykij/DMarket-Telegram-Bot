@@ -3,9 +3,10 @@
 from datetime import datetime
 from typing import Any
 
-import structlog
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
+import structlog
+
 
 logger = structlog.get_logger(__name__)
 
@@ -33,7 +34,7 @@ async def check_database(session: AsyncSession) -> HealthCheckResult:
         await session.execute(text("SELECT 1"))
         return HealthCheckResult(name="database", healthy=True)
     except Exception as e:
-        logger.error("database_health_check_failed", error=str(e))
+        logger.exception("database_health_check_failed", error=str(e))
         return HealthCheckResult(name="database", healthy=False, message=str(e))
 
 
@@ -43,7 +44,7 @@ async def check_redis(redis_client: Any) -> HealthCheckResult:
         await redis_client.ping()
         return HealthCheckResult(name="redis", healthy=True)
     except Exception as e:
-        logger.error("redis_health_check_failed", error=str(e))
+        logger.exception("redis_health_check_failed", error=str(e))
         return HealthCheckResult(name="redis", healthy=False, message=str(e))
 
 
@@ -53,7 +54,7 @@ async def check_dmarket_api(api_client: Any) -> HealthCheckResult:
         await api_client.get_balance()
         return HealthCheckResult(name="dmarket_api", healthy=True)
     except Exception as e:
-        logger.error("dmarket_api_health_check_failed", error=str(e))
+        logger.exception("dmarket_api_health_check_failed", error=str(e))
         return HealthCheckResult(name="dmarket_api", healthy=False, message=str(e))
 
 

@@ -10,8 +10,7 @@ import os
 import signal
 import sys
 
-from telegram.ext import Application as TelegramApplication
-from telegram.ext import ApplicationBuilder
+from telegram.ext import Application as TelegramApplication, ApplicationBuilder
 
 from src.dmarket.dmarket_api import DMarketAPI
 from src.telegram_bot.health_check import health_check_server
@@ -23,6 +22,7 @@ from src.utils.database import DatabaseManager
 from src.utils.logging_utils import BotLogger, setup_logging
 from src.utils.sentry_integration import init_sentry
 from src.utils.state_manager import StateManager
+
 
 logger = logging.getLogger(__name__)
 bot_logger = BotLogger(__name__)
@@ -248,17 +248,16 @@ class Application:
             # Start the bot (webhook or polling)
             if self.bot:
                 await self.bot.start()
-                
+
                 # Check if webhook mode is enabled (Roadmap Task #1)
                 from src.telegram_bot.webhook import (
                     WebhookConfig,
-                    is_webhook_mode,
                     should_use_polling,
                     start_webhook,
                 )
-                
+
                 webhook_config = WebhookConfig.from_env()
-                
+
                 # Use webhook if configured and not explicitly disabled
                 if webhook_config and not should_use_polling():
                     logger.info("🌐 Starting in WEBHOOK mode")
@@ -267,7 +266,7 @@ class Application:
                         await start_webhook(self.bot, webhook_config)
                         health_check_server.update_status("running")
                     except Exception as e:
-                        logger.error(
+                        logger.exception(
                             f"Failed to start webhook, falling back to polling: {e}"
                         )
                         # Fallback to polling
@@ -398,7 +397,7 @@ class Application:
                 except TimeoutError:
                     logger.warning("⚠️  Timeout stopping bot")
                 except Exception as e:
-                    logger.error(f"❌ Error stopping bot: {e}")
+                    logger.exception(f"❌ Error stopping bot: {e}")
 
             # Step 5: Close DMarket API connections
             logger.info("Step 5/6: Closing DMarket API connections...")
@@ -412,7 +411,7 @@ class Application:
                 except TimeoutError:
                     logger.warning("⚠️  Timeout closing API connections")
                 except Exception as e:
-                    logger.error(f"❌ Error closing API: {e}")
+                    logger.exception(f"❌ Error closing API: {e}")
 
             # Step 6: Close database connections
             logger.info("Step 6/6: Closing database connections...")
@@ -426,7 +425,7 @@ class Application:
                 except TimeoutError:
                     logger.warning("⚠️  Timeout closing database")
                 except Exception as e:
-                    logger.error(f"❌ Error closing database: {e}")
+                    logger.exception(f"❌ Error closing database: {e}")
 
             # Stop health check server (last)
             logger.info("Stopping health check server...")
@@ -434,7 +433,7 @@ class Application:
                 health_check_server.stop()
                 logger.info("✅ Health check server stopped")
             except Exception as e:
-                logger.error(f"❌ Error stopping health check: {e}")
+                logger.exception(f"❌ Error stopping health check: {e}")
 
             # Flush logs
             logger.info("Flushing logs...")

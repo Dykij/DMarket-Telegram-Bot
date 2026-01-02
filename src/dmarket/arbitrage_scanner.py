@@ -29,6 +29,7 @@ from src.dmarket.scanner import ARBITRAGE_LEVELS, GAME_IDS, ScannerCache, Scanne
 from src.utils.rate_limiter import RateLimiter
 from src.utils.sentry_breadcrumbs import add_trading_breadcrumb
 
+
 if TYPE_CHECKING:
     from src.dmarket.item_filters import ItemFilters
     from src.interfaces import IDMarketAPI
@@ -1420,7 +1421,7 @@ class ArbitrageScanner:
             if self._is_shutting_down:
                 logger.info(f"Сканирование остановлено на уровне {level}")
                 break
-                
+
             task = self.scan_level(
                 level=level,
                 game=game,
@@ -1441,7 +1442,7 @@ class ArbitrageScanner:
         successful_scans = 0
         failed_scans = 0
 
-        for level, result in zip(level_names, level_results):
+        for level, result in zip(level_names, level_results, strict=False):
             if isinstance(result, Exception):
                 logger.error(
                     f"Ошибка при сканировании уровня {level} для {game}: {result}",
@@ -1529,7 +1530,7 @@ class ArbitrageScanner:
 
         # Собираем результаты, игнорируя ошибки
         results = []
-        for level, level_results in zip(levels_to_scan, level_results_list):
+        for level, level_results in zip(levels_to_scan, level_results_list, strict=False):
             if isinstance(level_results, Exception):
                 logger.warning(f"Ошибка при сканировании уровня {level}: {level_results}")
                 continue

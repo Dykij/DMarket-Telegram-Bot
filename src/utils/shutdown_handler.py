@@ -6,6 +6,7 @@ from typing import Any
 
 import structlog
 
+
 logger = structlog.get_logger(__name__)
 
 
@@ -34,7 +35,7 @@ class ShutdownHandler:
                 await cleanup_func()
                 logger.info("cleanup_task_completed", task=cleanup_func.__name__)
             except Exception as e:
-                logger.error(
+                logger.exception(
                     "cleanup_task_failed",
                     task=cleanup_func.__name__,
                     error=str(e),

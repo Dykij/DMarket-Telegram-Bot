@@ -5,6 +5,7 @@ import logging
 import time
 from typing import TYPE_CHECKING
 
+
 if TYPE_CHECKING:
     from src.utils.notifier import Notifier
 
@@ -613,14 +614,14 @@ class DMarketRateLimiter:
         path_lower = path.lower()
 
         # Check more specific patterns first to avoid false matches
-        
+
         # Trade endpoints (check before market since /buy is in both)
         if any(
             keyword in path_lower
             for keyword in ["/items/buy", "/create-offer", "/offers/edit", "/offers/delete"]
         ):
             return "trade"
-        
+
         # Targets (Buy Orders) endpoints
         if "/target" in path_lower or "/buy-order" in path_lower:
             return "targets"

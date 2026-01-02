@@ -1,17 +1,18 @@
 from collections.abc import Awaitable, Callable
-from enum import Enum
+from enum import StrEnum
 from typing import Any, TypeVar
 
-import httpx
 from circuitbreaker import CircuitBreaker, CircuitBreakerError  # type: ignore
+import httpx
 from structlog import get_logger
+
 
 logger = get_logger(__name__)
 
 T = TypeVar("T")
 
 
-class EndpointType(str, Enum):
+class EndpointType(StrEnum):
     """Types of API endpoints with different reliability requirements."""
 
     MARKET = "market"  # Market data - high volume, tolerate failures
@@ -226,7 +227,7 @@ async def call_with_circuit_breaker(
         except ImportError:
             pass
 
-        logger.error(
+        logger.exception(
             "circuit_breaker_open",
             endpoint=endpoint_type.value,
             error=str(e),
@@ -254,7 +255,7 @@ async def call_with_circuit_breaker(
         except ImportError:
             pass
 
-        logger.error(
+        logger.exception(
             "circuit_breaker_call_failed",
             endpoint=endpoint_type.value,
             error=str(e),

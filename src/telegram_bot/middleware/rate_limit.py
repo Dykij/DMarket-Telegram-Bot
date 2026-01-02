@@ -3,8 +3,9 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
 
-import structlog
 from aiolimiter import AsyncLimiter
+import structlog
+
 
 logger = structlog.get_logger(__name__)
 

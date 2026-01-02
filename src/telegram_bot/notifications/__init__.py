@@ -110,6 +110,7 @@ from .trading import (
     send_sell_success_notification,
 )
 
+
 __all__ = [
     "DEFAULT_USER_SETTINGS",
     "NOTIFICATION_PRIORITIES",
@@ -117,6 +118,11 @@ __all__ = [
     "NOTIFICATION_TYPES",
     # Storage
     "AlertStorage",
+    # Digest system
+    "Notification",
+    "NotificationCategory",
+    "NotificationDigest",
+    "NotificationPriority",
     # Alert management
     "add_price_alert",
     "can_send_notification",
@@ -142,11 +148,6 @@ __all__ = [
     "increment_notification_count",
     "list_alerts_command",
     "load_user_alerts",
-    # Digest system
-    "Notification",
-    "NotificationCategory",
-    "NotificationDigest",
-    "NotificationPriority",
     "register_notification_handlers",
     "remove_alert_command",
     "remove_price_alert",

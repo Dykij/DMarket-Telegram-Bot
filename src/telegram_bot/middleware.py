@@ -3,13 +3,14 @@
 Best practices from python-telegram-bot and aiogram communities.
 """
 
+from functools import wraps
 import logging
 import time
-from functools import wraps
 from typing import Any, Callable
 
 from telegram import Update
 from telegram.ext import ContextTypes
+
 
 logger = logging.getLogger(__name__)
 

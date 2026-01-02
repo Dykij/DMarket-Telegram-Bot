@@ -14,6 +14,7 @@ import structlog
 from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.database import DatabaseManager
 
+
 logger = structlog.get_logger(__name__)
 
 
@@ -115,7 +116,7 @@ class MarketDataCollector:
                 stats["total_items"] += game_data["items_count"]
                 stats["total_sales"] += game_data["sales_count"]
             except Exception as e:
-                logger.error(
+                logger.exception(
                     "game_data_collection_failed",
                     game=game,
                     error=str(e),

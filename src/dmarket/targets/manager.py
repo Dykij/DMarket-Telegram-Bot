@@ -33,6 +33,7 @@ from .price_range_monitor import PriceRangeMonitor
 from .relist_manager import RelistManager
 from .validators import GAME_IDS, extract_attributes_from_title, validate_attributes
 
+
 if TYPE_CHECKING:
     from src.interfaces import IDMarketAPI
 

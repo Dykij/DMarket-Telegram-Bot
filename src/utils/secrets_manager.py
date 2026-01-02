@@ -5,14 +5,15 @@ Provides secure secrets handling with encryption, rotation, and audit logging.
 """
 
 import base64
+from datetime import datetime
 import json
 import logging
-from datetime import datetime
 from pathlib import Path
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
+
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +84,7 @@ class SecretsManager:
             self._audit_log("DECRYPT", name)
             return decrypted.decode()
         except Exception as e:
-            logger.error(f"Failed to decrypt secret {name}: {e}")
+            logger.exception(f"Failed to decrypt secret {name}: {e}")
             return None
 
     def rotate_secret(self, name: str, new_value: str) -> bool:
@@ -152,11 +153,11 @@ class SecretsManager:
     def _save_secrets(self) -> None:
         """Save encrypted secrets to file."""
         try:
-            with open(self.secrets_file, "w") as f:
+            with open(self.secrets_file, "w", encoding="utf-8") as f:
                 json.dump(self._secrets_cache, f, indent=2)
             logger.debug(f"Secrets saved to {self.secrets_file}")
         except Exception as e:
-            logger.error(f"Failed to save secrets: {e}")
+            logger.exception(f"Failed to save secrets: {e}")
             raise
 
     def _load_secrets(self) -> None:
@@ -166,11 +167,11 @@ class SecretsManager:
             return
 
         try:
-            with open(self.secrets_file) as f:
+            with open(self.secrets_file, encoding="utf-8") as f:
                 self._secrets_cache = json.load(f)
             logger.debug(f"Secrets loaded from {self.secrets_file}")
         except Exception as e:
-            logger.error(f"Failed to load secrets: {e}")
+            logger.exception(f"Failed to load secrets: {e}")
             raise
 
     def _audit_log(self, action: str, secret_name: str) -> None:
@@ -184,15 +185,15 @@ class SecretsManager:
         log_entry = f"{timestamp} | {action} | {secret_name}\n"
 
         try:
-            with open(self.audit_log_file, "a") as f:
+            with open(self.audit_log_file, "a", encoding="utf-8") as f:
                 f.write(log_entry)
         except Exception as e:
-            logger.error(f"Failed to write audit log: {e}")
+            logger.exception(f"Failed to write audit log: {e}")
 
 
 def migrate_env_to_encrypted(
     env_file: str = ".env",
-    master_password: str = None,
+    master_password: str | None = None,
     output_file: str = ".env.encrypted",
 ) -> None:
     """Migrate plain .env file to encrypted format.
@@ -215,7 +216,7 @@ def migrate_env_to_encrypted(
         logger.error(f".env file not found: {env_file}")
         return
 
-    with open(env_path) as f:
+    with open(env_path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line or line.startswith("#"):

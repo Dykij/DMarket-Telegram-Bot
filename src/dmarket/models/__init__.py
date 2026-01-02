@@ -26,22 +26,23 @@ from .target_enhancements import (
     TargetOverbidConfig,
 )
 
+
 __all__ = [
-    # Расширенные модели таргетов (NEW - январь 2026)
-    "TargetOverbidConfig",
-    "PriceRangeConfig",
-    "PriceRangeAction",
-    "RelistLimitConfig",
-    "RelistAction",
-    "TargetDefaults",
-    "TargetOperationResult",
-    "TargetOperationStatus",
-    "TargetErrorCode",
-    "StickerFilter",
-    "RarityFilter",
-    "RarityLevel",
     "BatchTargetItem",
     "ExistingOrderInfo",
+    "PriceRangeAction",
+    "PriceRangeConfig",
+    "RarityFilter",
+    "RarityLevel",
+    "RelistAction",
     "RelistHistory",
+    "RelistLimitConfig",
     "RelistStatistics",
+    "StickerFilter",
+    "TargetDefaults",
+    "TargetErrorCode",
+    "TargetOperationResult",
+    "TargetOperationStatus",
+    # Расширенные модели таргетов (NEW - январь 2026)
+    "TargetOverbidConfig",
 ]

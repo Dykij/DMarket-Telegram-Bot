@@ -6,6 +6,7 @@ from typing import Any
 
 import structlog
 
+
 logger = structlog.get_logger(__name__)
 
 
@@ -53,7 +54,7 @@ def validate_required_env_vars() -> dict[str, Any]:
             if var_type == int:
                 validated[var_name] = int(value)
             elif var_type == bool:
-                validated[var_name] = value.lower() in ("true", "1", "yes")
+                validated[var_name] = value.lower() in {"true", "1", "yes"}
             else:
                 validated[var_name] = value
         except ValueError:
@@ -68,7 +69,7 @@ def validate_required_env_vars() -> dict[str, Any]:
                 if var_type == int:
                     validated[var_name] = int(value)
                 elif var_type == bool:
-                    validated[var_name] = value.lower() in ("true", "1", "yes")
+                    validated[var_name] = value.lower() in {"true", "1", "yes"}
                 else:
                     validated[var_name] = value
             except ValueError:

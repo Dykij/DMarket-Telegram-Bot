@@ -11,6 +11,7 @@ import time
 
 from prometheus_client import Counter, Gauge, Histogram, Info, generate_latest, make_asgi_app
 
+
 # =============================================================================
 # Bot Metrics (Roadmap Task #8: Enhanced)
 # =============================================================================
@@ -482,9 +483,9 @@ def set_bot_uptime(uptime_seconds: float) -> None:
 
 def track_circuit_breaker_state(endpoint: str, state: str) -> None:
     """Track circuit breaker state change.
-    
+
     Roadmap Task #10: NEW
-    
+
     Args:
         endpoint: Endpoint name (e.g., "dmarket_market", "dmarket_targets")
         state: State name ("closed", "open", "half_open")
@@ -495,16 +496,16 @@ def track_circuit_breaker_state(endpoint: str, state: str) -> None:
         "half_open": 1,
         "open": 2,
     }
-    
+
     state_value = state_mapping.get(state.lower(), 0)
     circuit_breaker_state.labels(endpoint=endpoint).set(state_value)
 
 
 def track_circuit_breaker_failure(endpoint: str) -> None:
     """Track circuit breaker failure.
-    
+
     Roadmap Task #10: NEW
-    
+
     Args:
         endpoint: Endpoint name
     """
@@ -517,9 +518,9 @@ def track_circuit_breaker_state_change(
     to_state: str,
 ) -> None:
     """Track circuit breaker state transition.
-    
+
     Roadmap Task #10: NEW
-    
+
     Args:
         endpoint: Endpoint name
         from_state: Previous state
@@ -534,9 +535,9 @@ def track_circuit_breaker_state_change(
 
 def track_circuit_breaker_call(endpoint: str, result: str) -> None:
     """Track circuit breaker call result.
-    
+
     Roadmap Task #10: NEW
-    
+
     Args:
         endpoint: Endpoint name
         result: Call result ("success", "failure", "rejected")

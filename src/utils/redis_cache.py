@@ -9,6 +9,7 @@ from typing import Any, cast
 
 import orjson
 
+
 try:
     import redis.asyncio as aioredis
 
@@ -18,6 +19,7 @@ except ImportError:
     aioredis = None  # type: ignore[assignment]
 
 from src.utils.memory_cache import TTLCache
+
 
 logger = logging.getLogger(__name__)
 

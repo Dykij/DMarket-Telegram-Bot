@@ -21,6 +21,7 @@ from src.dmarket.models.target_enhancements import (
     TargetOperationStatus,
 )
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -309,7 +310,7 @@ def validate_target_attributes(
                 )
 
     # Dota 2 / TF2 - float не применим
-    elif game in ("dota2", "tf2"):
+    elif game in {"dota2", "tf2"}:
         if "floatPartValue" in attrs:
             return TargetOperationResult(
                 success=False,
@@ -377,7 +378,7 @@ def validate_filter_compatibility(
         )
 
     # Rarity для Dota 2 / TF2
-    if rarity_filter and game not in ("dota2", "tf2"):
+    if rarity_filter and game not in {"dota2", "tf2"}:
         return TargetOperationResult(
             success=False,
             status=TargetOperationStatus.FAILED,
