@@ -13,7 +13,6 @@ import pytest
 from src.dmarket.arbitrage_scanner import ARBITRAGE_LEVELS, GAME_IDS, ArbitrageScanner
 from src.dmarket.dmarket_api import DMarketAPI
 
-
 # ============================================================================
 # Fixtures
 # ============================================================================
@@ -23,9 +22,7 @@ from src.dmarket.dmarket_api import DMarketAPI
 def mock_api_client():
     """Создает мок DMarketAPI клиента."""
     api = MagicMock(spec=DMarketAPI)
-    api.get_balance = AsyncMock(
-        return_value={"usd": "10000", "error": False, "balance": 100.0}
-    )
+    api.get_balance = AsyncMock(return_value={"usd": "10000", "error": False, "balance": 100.0})
     api.get_market_items = AsyncMock(
         return_value={
             "objects": [
@@ -334,9 +331,7 @@ def test_standardize_items_trader_format(scanner):
         }
     ]
 
-    result = scanner._standardize_items(
-        items, "dota2", min_profit=0.5, max_profit=100.0
-    )
+    result = scanner._standardize_items(items, "dota2", min_profit=0.5, max_profit=100.0)
 
     assert len(result) == 1
     assert result[0]["title"] == "Trader Item"
@@ -382,9 +377,7 @@ async def test_scan_multiple_games_success(scanner):
         mock_scan.return_value = [{"item": "test"}]
 
         games = ["csgo", "dota2"]
-        result = await scanner.scan_multiple_games(
-            games, "medium", max_items_per_game=5
-        )
+        result = await scanner.scan_multiple_games(games, "medium", max_items_per_game=5)
 
     assert len(result) == 2
     assert "csgo" in result
@@ -428,9 +421,7 @@ async def test_check_user_balance_success(scanner):
     """Тест успешной проверки баланса."""
     # Мокируем _request для возврата баланса в центах
     # Формат: {"usd": {"available": 10050, "frozen": 0}} = $100.50
-    scanner.api_client._request = AsyncMock(
-        return_value={"usd": {"available": 10050, "frozen": 0}}
-    )
+    scanner.api_client._request = AsyncMock(return_value={"usd": {"available": 10050, "frozen": 0}})
 
     result = await scanner.check_user_balance()
 
@@ -598,6 +589,7 @@ async def test_scan_all_levels_one_fails(scanner):
 @pytest.mark.asyncio()
 async def test_find_best_opportunities_top_n(scanner, level_test_data):
     """Тест поиска топ-N возможностей."""
+
     async def mock_scan_level(level, game, max_results):
         """Mock scan_level для возврата данных по уровню."""
         return level_test_data.get(level, [])
@@ -614,14 +606,13 @@ async def test_find_best_opportunities_top_n(scanner, level_test_data):
 @pytest.mark.asyncio()
 async def test_find_best_opportunities_min_level(scanner, level_test_data):
     """Тест фильтрации по минимальному уровню."""
+
     async def mock_scan_level(level, game, max_results):
         """Mock scan_level для возврата данных по уровню."""
         return level_test_data.get(level, [])
 
     with patch.object(scanner, "scan_level", side_effect=mock_scan_level):
-        result = await scanner.find_best_opportunities(
-            "csgo", top_n=10, min_level="medium"
-        )
+        result = await scanner.find_best_opportunities("csgo", top_n=10, min_level="medium")
 
     # Не должно быть предметов из boost и standard
     titles = [item.get("title") for item in result]
@@ -634,14 +625,13 @@ async def test_find_best_opportunities_min_level(scanner, level_test_data):
 @pytest.mark.asyncio()
 async def test_find_best_opportunities_max_level(scanner, level_test_data):
     """Тест фильтрации по максимальному уровню."""
+
     async def mock_scan_level(level, game, max_results):
         """Mock scan_level для возврата данных по уровню."""
         return level_test_data.get(level, [])
 
     with patch.object(scanner, "scan_level", side_effect=mock_scan_level):
-        result = await scanner.find_best_opportunities(
-            "csgo", top_n=10, max_level="medium"
-        )
+        result = await scanner.find_best_opportunities("csgo", top_n=10, max_level="medium")
 
     # Не должно быть предметов из advanced и pro
     titles = [item.get("title") for item in result]
@@ -649,6 +639,127 @@ async def test_find_best_opportunities_max_level(scanner, level_test_data):
     assert "pro1" not in titles
     # Должны быть предметы из boost, standard, medium
     assert "boost1" in titles or "std1" in titles or "med1" in titles
+
+
+# ============================================================================
+# Тесты параллельного сканирования
+# ============================================================================
+
+
+@pytest.mark.asyncio()
+async def test_scan_all_levels_parallel_success(scanner, mock_api_client):
+    """Тест успешного параллельного сканирования всех уровней."""
+
+    # Настраиваем мок для возврата разных результатов для каждого уровня
+    async def mock_scan_level(level, game, max_results):
+        return [
+            {
+                "title": f"Item {level}",
+                "profit_percent": 5.0,
+                "level": level,
+            }
+        ]
+
+    with patch.object(scanner, "scan_level", side_effect=mock_scan_level):
+        start_time = time.time()
+        results = await scanner.scan_all_levels_parallel(game="csgo")
+        elapsed = time.time() - start_time
+
+        # Проверяем что получены результаты для всех уровней
+        assert isinstance(results, dict)
+        assert len(results) == 5
+        for level in ARBITRAGE_LEVELS:
+            assert level in results
+            assert len(results[level]) > 0
+
+        # Параллельное выполнение должно быть быстрее
+        # (в реальности будет быстрее, но в моках проверяем просто что работает)
+        assert elapsed < 5.0  # Должно быть очень быстро с моками
+
+
+@pytest.mark.asyncio()
+async def test_scan_all_levels_parallel_with_errors(scanner):
+    """Тест параллельного сканирования с ошибками в некоторых уровнях."""
+
+    async def mock_scan_level_with_errors(level, game, max_results):
+        # Для уровней boost и pro выбрасываем ошибку
+        if level in ["boost", "pro"]:
+            raise ValueError(f"Error scanning {level}")
+        return [{"title": f"Item {level}", "profit_percent": 5.0}]
+
+    with patch.object(scanner, "scan_level", side_effect=mock_scan_level_with_errors):
+        results = await scanner.scan_all_levels_parallel(game="csgo")
+
+        # Проверяем что получены результаты для успешных уровней
+        assert isinstance(results, dict)
+        assert len(results) == 5
+
+        # Уровни с ошибками должны иметь пустые списки
+        assert results["boost"] == []
+        assert results["pro"] == []
+
+        # Остальные уровни должны иметь результаты
+        assert len(results["standard"]) > 0
+        assert len(results["medium"]) > 0
+        assert len(results["advanced"]) > 0
+
+
+@pytest.mark.asyncio()
+async def test_scan_all_levels_with_parallel_flag(scanner, mock_api_client):
+    """Тест scan_all_levels с флагом parallel=True."""
+
+    async def mock_scan_level(level, game, max_results):
+        return [{"title": f"Item {level}", "profit_percent": 5.0}]
+
+    with patch.object(scanner, "scan_level", side_effect=mock_scan_level):
+        # С parallel=True
+        results_parallel = await scanner.scan_all_levels(
+            game="csgo",
+            parallel=True,
+        )
+
+        assert isinstance(results_parallel, dict)
+        assert len(results_parallel) == 5
+
+        # С parallel=False (последовательное выполнение)
+        results_sequential = await scanner.scan_all_levels(
+            game="csgo",
+            parallel=False,
+        )
+
+        assert isinstance(results_sequential, dict)
+        assert len(results_sequential) == 5
+
+        # Результаты должны быть одинаковыми
+        assert results_parallel.keys() == results_sequential.keys()
+
+
+@pytest.mark.asyncio()
+async def test_scan_all_levels_parallel_invalid_game(scanner):
+    """Тест параллельного сканирования с невалидной игрой."""
+    with pytest.raises(ValueError, match="не поддерживается"):
+        await scanner.scan_all_levels_parallel(game="invalid_game")
+
+
+@pytest.mark.asyncio()
+async def test_find_best_opportunities_parallel_execution(scanner, level_test_data):
+    """Тест что find_best_opportunities использует параллельное выполнение."""
+    call_times = []
+
+    async def mock_scan_level_with_timing(level, game, max_results):
+        """Mock который записывает время вызова."""
+        call_times.append(time.time())
+        await asyncio.sleep(0.01)  # Небольшая задержка
+        return level_test_data.get(level, [])
+
+    with patch.object(scanner, "scan_level", side_effect=mock_scan_level_with_timing):
+        await scanner.find_best_opportunities("csgo", top_n=10)
+
+        # При параллельном выполнении все вызовы должны начаться примерно одновременно
+        if len(call_times) > 1:
+            time_diff = max(call_times) - min(call_times)
+            # Все вызовы должны начаться в течение 0.1 секунды
+            assert time_diff < 0.1
 
 
 # ============================================================================
@@ -811,9 +922,7 @@ async def test_analyze_item_no_profit(scanner):
 async def test_full_arbitrage_workflow(scanner):
     """Интеграционный тест: полный цикл арбитража."""
     # Мокируем _request для check_user_balance
-    scanner.api_client._request = AsyncMock(
-        return_value={"usd": {"available": 10000, "frozen": 0}}
-    )
+    scanner.api_client._request = AsyncMock(return_value={"usd": {"available": 10000, "frozen": 0}})
 
     # 1. Сканирование игры
     with (
@@ -933,9 +1042,7 @@ async def test_liquidity_analyzer_initialized_when_enabled(mock_api_client):
 @pytest.mark.asyncio()
 async def test_liquidity_analyzer_not_initialized_when_disabled(mock_api_client):
     """Тест что LiquidityAnalyzer не инициализируется при отключенном фильтре."""
-    scanner = ArbitrageScanner(
-        api_client=mock_api_client, enable_liquidity_filter=False
-    )
+    scanner = ArbitrageScanner(api_client=mock_api_client, enable_liquidity_filter=False)
 
     await scanner.get_api_client()
 
@@ -1064,9 +1171,7 @@ async def test_analyze_item_filters_by_time_to_sell(mock_api_client):
 @pytest.mark.asyncio()
 async def test_analyze_item_without_liquidity_filter(mock_api_client):
     """Тест что без фильтра ликвидности предметы не анализируются."""
-    scanner = ArbitrageScanner(
-        api_client=mock_api_client, enable_liquidity_filter=False
-    )
+    scanner = ArbitrageScanner(api_client=mock_api_client, enable_liquidity_filter=False)
 
     await scanner.get_api_client()
 

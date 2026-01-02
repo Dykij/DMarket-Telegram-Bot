@@ -14,7 +14,6 @@ from src.utils.exceptions import handle_exceptions
 from src.utils.logging_utils import get_logger
 from src.utils.sentry_breadcrumbs import add_command_breadcrumb, add_trading_breadcrumb
 
-
 logger = get_logger(__name__)
 
 # Константы для callback данных
@@ -100,9 +99,7 @@ def format_scanner_item(result: dict[str, Any]) -> str:
         else:
             # Фоллбэк на старый формат
             time_days = liquidity_data.get("time_to_sell_days", 0.0)
-            liquidity_text = (
-                f"\n💧 Ликвидность: {emoji} {score:.0f}/100 (~{time_days:.1f} дней)"
-            )
+            liquidity_text = f"\n💧 Ликвидность: {emoji} {score:.0f}/100 (~{time_days:.1f} дней)"
 
     return (
         f"🎯 *{title}*\n"
@@ -375,6 +372,164 @@ async def handle_level_scan(
 
 @handle_exceptions(
     logger_instance=logger,
+    default_error_message="Ошибка при сканировании всех уровней",
+    reraise=False,
+)
+async def handle_all_levels_scan(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    game: str = "csgo",
+) -> None:
+    """Сканировать все уровни параллельно.
+
+    Args:
+        update: Объект Update от Telegram
+        context: Контекст выполнения
+        game: Код игры
+
+    """
+    query = update.callback_query
+    if not query:
+        return
+
+    await query.answer()
+    user_id = query.from_user.id
+
+    # Добавляем breadcrumb
+    add_command_breadcrumb(
+        command="all_levels_scan",
+        user_id=user_id,
+        game=game,
+    )
+
+    await query.edit_message_text(
+        "🔍 Запускаю параллельное сканирование всех уровней...\n\n⚡ Это займет 5-10 секунд",
+        parse_mode="Markdown",
+    )
+
+    # Получаем API клиент
+    api_client = create_api_client_from_env()
+    if api_client is None:
+        await query.edit_message_text(
+            "❌ Не удалось создать API клиент.",
+            parse_mode="Markdown",
+        )
+        return
+
+    # Создаем сканер
+    scanner = ArbitrageScanner(api_client=api_client)
+
+    try:
+        import time
+
+        start_time = time.time()
+
+        # Параллельное сканирование всех уровней
+        results_by_level = await scanner.scan_all_levels(
+            game=game,
+            max_results_per_level=20,
+            parallel=True,  # Используем параллельное сканирование
+        )
+
+        elapsed_time = time.time() - start_time
+
+        # Подсчитываем статистику
+        total_opportunities = sum(len(results) for results in results_by_level.values())
+        best_profit = 0.0
+        best_item = None
+
+        all_results = []
+        for level, results in results_by_level.items():
+            for result in results:
+                result["level"] = level  # Добавляем уровень к результату
+                all_results.append(result)
+                profit_percent = result.get("profit_percent", 0)
+                if profit_percent > best_profit:
+                    best_profit = profit_percent
+                    best_item = result
+
+        # Сортируем по прибыльности
+        all_results.sort(key=lambda x: x.get("profit_percent", 0), reverse=True)
+
+        add_trading_breadcrumb(
+            action="all_levels_scan_completed",
+            game=game,
+            user_id=user_id,
+            elapsed_seconds=elapsed_time,
+            total_opportunities=total_opportunities,
+        )
+
+        if total_opportunities == 0:
+            await query.edit_message_text(
+                f"ℹ️ *Сканирование завершено за {elapsed_time:.1f}s*\n\n"
+                f"Возможности не найдены на текущий момент.\n\n"
+                f"💡 Попробуйте:\n"
+                f"• Другую игру\n"
+                f"• Подождать обновления рынка",
+                parse_mode="Markdown",
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("⬅️ Назад", callback_data=SCANNER_ACTION)]],
+                ),
+            )
+            return
+
+        # Сохраняем в пагинацию (показываем топ 50)
+        pagination_manager.add_items_for_user(user_id, all_results[:50], "all_levels")
+
+        # Получаем первую страницу
+        items, current_page, total_pages = pagination_manager.get_page(user_id)
+
+        # Форматируем текст
+        formatted_text = format_scanner_results(
+            items,
+            current_page,
+            pagination_manager.get_items_per_page(user_id),
+        )
+
+        # Создаем клавиатуру с пагинацией
+        keyboard = create_pagination_keyboard(
+            current_page=current_page,
+            total_pages=total_pages,
+            prefix=f"scanner_paginate:all_{game}_",
+        )
+
+        # Формируем статистику по уровням
+        level_stats = []
+        for level in ARBITRAGE_LEVELS:
+            count = len(results_by_level.get(level, []))
+            if count > 0:
+                level_name = ARBITRAGE_LEVELS[level]["name"]
+                level_stats.append(f"  • {level_name}: {count}")
+
+        # Отправляем результаты
+        header = (
+            f"⚡ *Все уровни* (за {elapsed_time:.1f}s)\n"
+            f"🎮 {GAMES.get(game, game)}\n"
+            f"📊 Найдено: {total_opportunities} возможностей\n"
+            f"🏆 Лучшая прибыль: {best_profit:.1f}%\n\n"
+            f"*По уровням:*\n" + "\n".join(level_stats) + "\n\n"
+        )
+
+        await query.edit_message_text(
+            header + formatted_text,
+            parse_mode="Markdown",
+            reply_markup=keyboard,
+        )
+
+    except Exception as e:
+        logger.exception("Ошибка при сканировании всех уровней: %s", e)
+        await query.edit_message_text(
+            "❌ Ошибка при сканировании.\n\nПожалуйста, попробуйте позже.",
+            parse_mode="Markdown",
+            reply_markup=InlineKeyboardMarkup(
+                [[InlineKeyboardButton("⬅️ Назад", callback_data=SCANNER_ACTION)]],
+            ),
+        )
+        raise
+
+
+@handle_exceptions(
+    logger_instance=logger,
     default_error_message="Ошибка при получении обзора рынка",
     reraise=False,
 )
@@ -576,6 +731,10 @@ async def handle_scanner_callback(
     elif callback_data.startswith(f"{SCANNER_ACTION}_{LEVEL_SCAN_ACTION}_"):
         level = callback_data.split("_")[-1]
         await handle_level_scan(update, context, level)
+
+    # Сканирование всех уровней
+    elif callback_data == f"{SCANNER_ACTION}_{ALL_LEVELS_ACTION}":
+        await handle_all_levels_scan(update, context)
 
     # Обзор рынка
     elif callback_data == f"{SCANNER_ACTION}_{MARKET_OVERVIEW_ACTION}":
