@@ -50,13 +50,12 @@ import time
 import traceback
 from typing import TYPE_CHECKING, Any
 
-from circuitbreaker import CircuitBreakerError  # type: ignore[import-untyped]
 import httpx
 import nacl.signing
+from circuitbreaker import CircuitBreakerError  # type: ignore[import-untyped]
 
 from src.dmarket.api_validator import validate_response
 from src.utils import json_utils as json
-
 
 if TYPE_CHECKING:
     from src.telegram_bot.notifier import Notifier
@@ -70,9 +69,8 @@ from src.dmarket.schemas import (
     UserTargetsResponse,
 )
 from src.utils.api_circuit_breaker import call_with_circuit_breaker
-from src.utils.rate_limiter import RateLimiter
+from src.utils.rate_limiter import DMarketRateLimiter, RateLimiter
 from src.utils.sentry_breadcrumbs import add_api_breadcrumb, add_trading_breadcrumb
-
 
 logger = logging.getLogger(__name__)
 
@@ -122,9 +120,7 @@ class DMarketAPI:
     # Пользователь
     ENDPOINT_USER_INVENTORY = "/exchange/v1/user/inventory"  # Инвентарь пользователя
     ENDPOINT_USER_OFFERS = "/exchange/v1/user/offers"  # Предложения пользователя
-    ENDPOINT_USER_TARGETS = (
-        "/exchange/v1/target-lists"  # Целевые предложения пользователя
-    )
+    ENDPOINT_USER_TARGETS = "/exchange/v1/target-lists"  # Целевые предложения пользователя
 
     # Операции
     ENDPOINT_PURCHASE = "/exchange/v1/market/items/buy"  # Покупка предмета
@@ -134,17 +130,11 @@ class DMarketAPI:
 
     # Статистика и аналитика
     ENDPOINT_SALES_HISTORY = "/account/v1/sales-history"  # История продаж
-    ENDPOINT_ITEM_PRICE_HISTORY = (
-        "/exchange/v1/market/price-history"  # История цен предмета
-    )
-    ENDPOINT_LAST_SALES = (
-        "/trade-aggregator/v1/last-sales"  # История последних продаж (API v1.1.0)
-    )
+    ENDPOINT_ITEM_PRICE_HISTORY = "/exchange/v1/market/price-history"  # История цен предмета
+    ENDPOINT_LAST_SALES = "/trade-aggregator/v1/last-sales"  # История последних продаж (API v1.1.0)
 
     # Новые эндпоинты 2024/2025 (API v1.1.0)
-    ENDPOINT_MARKET_BEST_OFFERS = (
-        "/exchange/v1/market/best-offers"  # Лучшие предложения на маркете
-    )
+    ENDPOINT_MARKET_BEST_OFFERS = "/exchange/v1/market/best-offers"  # Лучшие предложения на маркете
     ENDPOINT_MARKET_SEARCH = "/exchange/v1/market/search"  # Расширенный поиск
     ENDPOINT_AGGREGATED_PRICES_POST = (
         "/marketplace-api/v1/aggregated-prices"  # Агрегированные цены (POST, v1.1.0)
@@ -152,12 +142,8 @@ class DMarketAPI:
     ENDPOINT_TARGETS_BY_TITLE = (
         "/marketplace-api/v1/targets-by-title"  # Таргеты по названию (v1.1.0)
     )
-    ENDPOINT_DEPOSIT_ASSETS = (
-        "/marketplace-api/v1/deposit-assets"  # Депозит активов (v1.1.0)
-    )
-    ENDPOINT_DEPOSIT_STATUS = (
-        "/marketplace-api/v1/deposit-status"  # Статус депозита (v1.1.0)
-    )
+    ENDPOINT_DEPOSIT_ASSETS = "/marketplace-api/v1/deposit-assets"  # Депозит активов (v1.1.0)
+    ENDPOINT_DEPOSIT_STATUS = "/marketplace-api/v1/deposit-status"  # Статус депозита (v1.1.0)
     ENDPOINT_WITHDRAW_ASSETS = "/exchange/v1/withdraw-assets"  # Вывод активов (v1.1.0)
     ENDPOINT_INVENTORY_SYNC = (
         "/marketplace-api/v1/user-inventory/sync"  # Синхронизация инвентаря (v1.1.0)
@@ -234,17 +220,21 @@ class DMarketAPI:
         # HTTP client
         self._client: httpx.AsyncClient | None = None
 
-        # Initialize RateLimiter with authorization check
+        # Initialize legacy RateLimiter (kept for backward compatibility)
         self.rate_limiter = RateLimiter(
             is_authorized=bool(public_key and secret_key),
         )
+
+        # Initialize new per-endpoint RateLimiter (Roadmap Task #3)
+        self.advanced_rate_limiter = DMarketRateLimiter()
 
         # Log initialization with trading mode
         mode = "[DRY-RUN]" if dry_run else "[LIVE]"
         logger.info(
             f"Initialized DMarketAPI client {mode} "
             f"(authorized: {'yes' if public_key and secret_key else 'no'}, "
-            f"cache: {'enabled' if enable_cache else 'disabled'})",
+            f"cache: {'enabled' if enable_cache else 'disabled'}, "
+            f"advanced rate limiter: enabled)",
         )
 
         if not dry_run:
@@ -333,9 +323,7 @@ class DMarketAPI:
                     import base64
 
                     secret_key_bytes = base64.b64decode(secret_key_str)
-                    logger.debug(
-                        f"Using Base64 format secret key ({len(secret_key_bytes)} bytes)"
-                    )
+                    logger.debug(f"Using Base64 format secret key ({len(secret_key_bytes)} bytes)")
                 # Format 3: Raw string - take first 32 bytes
                 # If longer than 64 hex chars, try to take first 64
                 elif len(secret_key_str) >= 64:
@@ -343,9 +331,7 @@ class DMarketAPI:
                     logger.debug("Using first 32 bytes of long HEX key")
                 else:
                     # Fallback: encode string to bytes and pad/truncate to 32
-                    secret_key_bytes = secret_key_str.encode("utf-8")[:32].ljust(
-                        32, b"\0"
-                    )
+                    secret_key_bytes = secret_key_str.encode("utf-8")[:32].ljust(32, b"\0")
                     logger.warning("Secret key format unknown, using padded bytes")
             except Exception as conv_error:
                 logger.exception(f"Error converting secret key: {conv_error}")
@@ -657,7 +643,10 @@ class DMarketAPI:
         # Генерируем заголовки с подписью
         headers = self._generate_signature(method.upper(), path, body_json)
 
-        # Используем rate limiter чтобы не превысить лимиты API
+        # Use advanced per-endpoint rate limiter (Roadmap Task #3)
+        await self.advanced_rate_limiter.acquire(path)
+
+        # Keep legacy rate limiter for backward compatibility
         await self.rate_limiter.wait_if_needed(
             "market" if "market" in path else "account",
         )
@@ -693,9 +682,7 @@ class DMarketAPI:
                         client.put, url, json=data, headers=headers
                     )
                 elif method.upper() == "DELETE":
-                    response = await call_with_circuit_breaker(
-                        client.delete, url, headers=headers
-                    )
+                    response = await call_with_circuit_breaker(client.delete, url, headers=headers)
                 else:
                     msg = f"Неподдерживаемый HTTP метод: {method}"
                     raise ValueError(msg)
@@ -775,6 +762,9 @@ class DMarketAPI:
 
                     # При ошибке 429 (Too Many Requests) используем экспоненциальную задержку
                     if status_code == 429:
+                        # Record 429 error in advanced rate limiter (Roadmap Task #3)
+                        self.advanced_rate_limiter.record_429_error(path)
+
                         retry_after = None
                         try:
                             # Пробуем получить значение Retry-After из заголовков
@@ -793,8 +783,9 @@ class DMarketAPI:
                         else:
                             retry_delay = retry_after
 
-                        logger.info(
-                            f"Rate limit превышен. Повторная попытка через {retry_delay} сек.",
+                        logger.warning(
+                            f"⚠️  Rate limit превышен для {path}. "
+                            f"Повторная попытка через {retry_delay} сек.",
                         )
                     else:
                         # Для других ошибок используем фиксированную задержку с небольшим случайным компонентом
@@ -986,9 +977,7 @@ class DMarketAPI:
         result.update(kwargs)
         return result
 
-    def _parse_balance_from_response(
-        self, response: dict[str, Any]
-    ) -> tuple[float, float, float]:
+    def _parse_balance_from_response(self, response: dict[str, Any]) -> tuple[float, float, float]:
         """Parse balance data from various DMarket API response formats.
 
         Args:
@@ -1009,13 +998,9 @@ class DMarketAPI:
                 usd_available_str = response.get("usdAvailableToWithdraw", usd_str)
 
                 usd_amount = float(usd_str) if usd_str else 0
-                usd_available = (
-                    float(usd_available_str) if usd_available_str else usd_amount
-                )
+                usd_available = float(usd_available_str) if usd_available_str else usd_amount
                 usd_total = usd_amount
-                logger.info(
-                    f"Parsed balance from official format: ${usd_amount / 100:.2f} USD"
-                )
+                logger.info(f"Parsed balance from official format: ${usd_amount / 100:.2f} USD")
 
             # Format 1: Alternative format with funds.usdWallet
             elif "funds" in response:
@@ -1023,26 +1008,16 @@ class DMarketAPI:
                 if isinstance(funds, dict) and "usdWallet" in funds:
                     wallet = funds["usdWallet"]
                     usd_amount = float(wallet.get("balance", 0)) * 100
-                    usd_available = (
-                        float(wallet.get("availableBalance", usd_amount / 100)) * 100
-                    )
-                    usd_total = (
-                        float(wallet.get("totalBalance", usd_amount / 100)) * 100
-                    )
-                    logger.info(
-                        f"Parsed balance from funds.usdWallet: ${usd_amount / 100:.2f} USD"
-                    )
+                    usd_available = float(wallet.get("availableBalance", usd_amount / 100)) * 100
+                    usd_total = float(wallet.get("totalBalance", usd_amount / 100)) * 100
+                    logger.info(f"Parsed balance from funds.usdWallet: ${usd_amount / 100:.2f} USD")
 
             # Format 2: Simple balance/available/total format
-            elif "balance" in response and isinstance(
-                response["balance"], (int, float, str)
-            ):
+            elif "balance" in response and isinstance(response["balance"], (int, float, str)):
                 usd_amount = float(response["balance"]) * 100
                 usd_available = float(response.get("available", usd_amount / 100)) * 100
                 usd_total = float(response.get("total", usd_amount / 100)) * 100
-                logger.info(
-                    f"Parsed balance from simple format: ${usd_amount / 100:.2f} USD"
-                )
+                logger.info(f"Parsed balance from simple format: ${usd_amount / 100:.2f} USD")
 
             # Format 3: Legacy usdAvailableToWithdraw only
             elif "usdAvailableToWithdraw" in response:
@@ -1053,9 +1028,7 @@ class DMarketAPI:
                     usd_available = float(usd_value) * 100
                 usd_amount = usd_available
                 usd_total = usd_available
-                logger.info(
-                    f"Parsed balance from legacy format: ${usd_amount / 100:.2f} USD"
-                )
+                logger.info(f"Parsed balance from legacy format: ${usd_amount / 100:.2f} USD")
 
         except (ValueError, TypeError, KeyError) as e:
             logger.warning(f"Error parsing balance from response: {e}")
@@ -1139,20 +1112,15 @@ class DMarketAPI:
                 logger.debug(f"🔍 Direct API response: {direct_response}")
 
                 if direct_response and direct_response.get("success", False):
-                    logger.info(
-                        "✅ Successfully got balance via direct REST API request"
-                    )
+                    logger.info("✅ Successfully got balance via direct REST API request")
                     balance_data = direct_response.get("data", {})
                     logger.debug(f"📊 Balance data: {balance_data}")
 
                     usd_amount = balance_data.get("balance", 0) * 100
                     usd_available = (
-                        balance_data.get("available", balance_data.get("balance", 0))
-                        * 100
+                        balance_data.get("available", balance_data.get("balance", 0)) * 100
                     )
-                    usd_total = (
-                        balance_data.get("total", balance_data.get("balance", 0)) * 100
-                    )
+                    usd_total = balance_data.get("total", balance_data.get("balance", 0)) * 100
                     usd_locked = balance_data.get("locked", 0) * 100
                     usd_trade_protected = balance_data.get("trade_protected", 0) * 100
 
@@ -1191,16 +1159,14 @@ class DMarketAPI:
                 self.ENDPOINT_BALANCE_LEGACY,  # Legacy endpoint (for backward compatibility)
             ]
 
-            response, successful_endpoint, last_error = (
-                await self._try_endpoints_for_balance(endpoints)
+            response, successful_endpoint, last_error = await self._try_endpoints_for_balance(
+                endpoints
             )
 
             # If we didn't get a response from any endpoint
             if not response:
                 error_message = (
-                    str(last_error)
-                    if last_error
-                    else "Failed to get balance from any endpoint"
+                    str(last_error) if last_error else "Failed to get balance from any endpoint"
                 )
                 logger.error(f"Critical error getting balance: {error_message}")
 
@@ -1215,16 +1181,12 @@ class DMarketAPI:
                     status_code = 401
                     error_code = "UNAUTHORIZED"
 
-                return self._create_error_response(
-                    error_message, status_code, error_code
-                )
+                return self._create_error_response(error_message, status_code, error_code)
 
             # Check for API errors
             if response and ("error" in response or "code" in response):
                 error_code = response.get("code", "unknown")
-                error_message = response.get(
-                    "message", response.get("error", "Unknown error")
-                )
+                error_message = response.get("message", response.get("error", "Unknown error"))
                 status_code = response.get("status", response.get("status_code", 500))
 
                 logger.error(
@@ -1242,24 +1204,16 @@ class DMarketAPI:
                         error_code="UNAUTHORIZED",
                     )
 
-                return self._create_error_response(
-                    error_message, status_code, error_code
-                )
+                return self._create_error_response(error_message, status_code, error_code)
 
             # Process successful response
             logger.info(f"🔍 RAW BALANCE API RESPONSE (get_balance): {response}")
-            logger.info(
-                f"Analyzing balance response from {successful_endpoint}: {response}"
-            )
+            logger.info(f"Analyzing balance response from {successful_endpoint}: {response}")
 
-            usd_amount, usd_available, usd_total = self._parse_balance_from_response(
-                response
-            )
+            usd_amount, usd_available, usd_total = self._parse_balance_from_response(response)
 
             if usd_amount == 0 and usd_available == 0 and usd_total == 0:
-                logger.warning(
-                    f"Could not parse balance data from known formats: {response}"
-                )
+                logger.warning(f"Could not parse balance data from known formats: {response}")
 
             # Create result
             result = self._create_balance_response(
@@ -1488,9 +1442,7 @@ class DMarketAPI:
 
         # Рассчитываем профит если возможно
         profit_usd = profit or (sell_price - price if sell_price else None)
-        profit_percent = (
-            (profit_usd / price * 100) if profit_usd and price > 0 else None
-        )
+        profit_percent = (profit_usd / price * 100) if profit_usd and price > 0 else None
 
         # Добавляем breadcrumb для Sentry
         add_trading_breadcrumb(
@@ -1629,9 +1581,7 @@ class DMarketAPI:
 
         # Рассчитываем профит если возможно
         profit_usd = price - buy_price if buy_price else None
-        profit_percent = (
-            (profit_usd / buy_price * 100) if profit_usd and buy_price else None
-        )
+        profit_percent = (profit_usd / buy_price * 100) if profit_usd and buy_price else None
 
         # INTENT логирование ПЕРЕД продажей
         bot_logger.log_sell_intent(
@@ -2280,9 +2230,7 @@ class DMarketAPI:
             "cursor": cursor,
         }
 
-        logger.debug(
-            f"Запрос агрегированных цен для {len(titles)} предметов (игра: {game})"
-        )
+        logger.debug(f"Запрос агрегированных цен для {len(titles)} предметов (игра: {game})")
 
         return await self._request(
             "POST",
@@ -2956,9 +2904,7 @@ class DMarketAPI:
             )
 
             if not isinstance(response, list):
-                logger.warning(
-                    f"Неожиданный формат ответа от /game/v1/games: {type(response)}"
-                )
+                logger.warning(f"Неожиданный формат ответа от /game/v1/games: {type(response)}")
                 return []
 
             logger.info(f"Получено {len(response)} игр от DMarket API")
@@ -3029,13 +2975,9 @@ class DMarketAPI:
                         secret_key_bytes = bytes.fromhex(secret_key_str[:64])
                     else:
                         # Fallback
-                        secret_key_bytes = secret_key_str.encode("utf-8")[:32].ljust(
-                            32, b"\0"
-                        )
+                        secret_key_bytes = secret_key_str.encode("utf-8")[:32].ljust(32, b"\0")
                 except Exception as conv_error:
-                    logger.exception(
-                        f"Error converting secret key in direct request: {conv_error}"
-                    )
+                    logger.exception(f"Error converting secret key in direct request: {conv_error}")
                     raise
 
                 # Create Ed25519 signing key
@@ -3096,19 +3038,13 @@ class DMarketAPI:
 
                         # Получаем USD баланс (в центах как строка)
                         usd_str = response_data.get("usd", "0")
-                        usd_available_str = response_data.get(
-                            "usdAvailableToWithdraw", "0"
-                        )
-                        usd_trade_protected_str = response_data.get(
-                            "usdTradeProtected", "0"
-                        )
+                        usd_available_str = response_data.get("usdAvailableToWithdraw", "0")
+                        usd_trade_protected_str = response_data.get("usdTradeProtected", "0")
 
                         # Конвертируем из строки в центы, затем в доллары
                         try:
                             balance_cents = float(usd_str)  # общий баланс в центах
-                            available_cents = float(
-                                usd_available_str
-                            )  # доступный баланс в центах
+                            available_cents = float(usd_available_str)  # доступный баланс в центах
                             trade_protected_cents = float(
                                 usd_trade_protected_str
                             )  # защищенный в торговле
