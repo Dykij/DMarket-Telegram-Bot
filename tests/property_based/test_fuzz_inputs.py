@@ -7,13 +7,8 @@ Uses Hypothesis for property-based fuzzing with structured inputs.
 """
 
 import pytest
-
-
-# Skip all tests if hypothesis is not installed
-pytest.importorskip("hypothesis")
-
-from hypothesis import HealthCheck, assume, given, settings, strategies as st
-
+from hypothesis import HealthCheck, assume, given, settings
+from hypothesis import strategies as st
 
 # Mark all tests in this module as property-based
 pytestmark = pytest.mark.asyncio
@@ -67,9 +62,7 @@ class TestPriceParsingFuzz:
         assert abs(result) < float("inf")
 
     @given(
-        dollars=st.floats(
-            allow_nan=False, allow_infinity=False, min_value=-1e12, max_value=1e12
-        )
+        dollars=st.floats(allow_nan=False, allow_infinity=False, min_value=-1e12, max_value=1e12)
     )
     @settings(max_examples=100)
     def test_dollars_to_cents_roundtrip(self, dollars: float) -> None:
@@ -94,20 +87,16 @@ class TestItemDataFuzz:
     """Fuzz tests for item data parsing."""
 
     @given(
-        item_dict=st.fixed_dictionaries(
-            {
-                "title": st.text(min_size=0, max_size=200),
-                "price": st.fixed_dictionaries(
-                    {
-                        "USD": st.one_of(
-                            st.text(min_size=0, max_size=20),
-                            st.integers(),
-                            st.floats(allow_nan=False, allow_infinity=False),
-                        )
-                    }
-                ),
-            }
-        )
+        item_dict=st.fixed_dictionaries({
+            "title": st.text(min_size=0, max_size=200),
+            "price": st.fixed_dictionaries({
+                "USD": st.one_of(
+                    st.text(min_size=0, max_size=20),
+                    st.integers(),
+                    st.floats(allow_nan=False, allow_infinity=False),
+                )
+            }),
+        })
     )
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
     def test_item_price_extraction_never_crashes(self, item_dict: dict) -> None:
@@ -209,16 +198,12 @@ class TestBalanceParsingFuzz:
         usd=st.one_of(
             st.text(min_size=0, max_size=30),
             st.integers(min_value=-(2**31), max_value=2**31),
-            st.floats(
-                allow_nan=False, allow_infinity=False, min_value=-1e15, max_value=1e15
-            ),
+            st.floats(allow_nan=False, allow_infinity=False, min_value=-1e15, max_value=1e15),
         ),
         available=st.one_of(
             st.text(min_size=0, max_size=30),
             st.integers(min_value=-(2**31), max_value=2**31),
-            st.floats(
-                allow_nan=False, allow_infinity=False, min_value=-1e15, max_value=1e15
-            ),
+            st.floats(allow_nan=False, allow_infinity=False, min_value=-1e15, max_value=1e15),
         ),
     )
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])

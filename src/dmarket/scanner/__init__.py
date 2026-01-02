@@ -6,14 +6,34 @@ This package provides modular components for:
 - Item filtering (blacklist/whitelist)
 - Arbitrage analysis and profit calculation
 - Multi-game scanning
+- Aggregated price pre-scanning for fast opportunity detection
+- Attribute-based filtering (exterior, float, rarity, etc.)
 
 Usage:
     from src.dmarket.scanner import ArbitrageScanner, ARBITRAGE_LEVELS
+    from src.dmarket.scanner import AggregatedScanner, AttributeFilters, PresetFilters
 
     scanner = ArbitrageScanner(public_key="...", secret_key="...")
     results = await scanner.scan_level("standard", "csgo")
+    
+    # Fast pre-scan
+    agg_scanner = AggregatedScanner(api_client)
+    opportunities = await agg_scanner.pre_scan_opportunities(
+        titles=["AK-47 | Redline", "AWP | Asiimov"],
+        game="csgo",
+        min_margin=0.15
+    )
+    
+    # Attribute filtering
+    filters = AttributeFilters.create_extra_filters(
+        exterior=["factory new"],
+        float_range=(0.0, 0.07),
+        rarity=["covert"]
+    )
 """
 
+from src.dmarket.scanner.aggregated_scanner import AggregatedScanner
+from src.dmarket.scanner.attribute_filters import AttributeFilters, PresetFilters
 from src.dmarket.scanner.cache import ScannerCache
 from src.dmarket.scanner.filters import ScannerFilters
 from src.dmarket.scanner.levels import (
@@ -22,17 +42,27 @@ from src.dmarket.scanner.levels import (
     get_level_config,
     get_price_range_for_level,
 )
-
+from src.dmarket.scanner.tree_filters import (
+    get_filter_description,
+    get_filter_effectiveness,
+    get_tree_filters_for_game,
+)
 
 # Note: ArbitrageScanner is imported from the original module
 # for backwards compatibility. In future refactoring phases,
 # it will be moved to scanner.py
 
 __all__ = [
+    "AggregatedScanner",
     "ARBITRAGE_LEVELS",
+    "AttributeFilters",
     "GAME_IDS",
+    "PresetFilters",
     "ScannerCache",
     "ScannerFilters",
+    "get_filter_description",
+    "get_filter_effectiveness",
     "get_level_config",
     "get_price_range_for_level",
+    "get_tree_filters_for_game",
 ]

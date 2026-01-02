@@ -38,32 +38,32 @@ def get_arbitrage_keyboard() -> InlineKeyboardMarkup:
 
 
 def get_modern_arbitrage_keyboard() -> InlineKeyboardMarkup:
-    """Создать современную клавиатуру арбитража.
+    """Создать современную клавиатуру арбитража с упрощенным меню.
+
+    Обновленная версия с ссылкой на /simple.
 
     Returns:
         InlineKeyboardMarkup с расширенными опциями
     """
     keyboard = [
         [
+            InlineKeyboardButton(text="⚡ Упрощенное меню", callback_data="simple_menu"),
+        ],
+        [
             InlineKeyboardButton(text="🚀 Быстрый скан", callback_data="arb_quick"),
             InlineKeyboardButton(text="🔬 Глубокий скан", callback_data="arb_deep"),
         ],
         [
-            InlineKeyboardButton(
-                text="📈 Анализ рынка", callback_data="arb_market_analysis"
-            ),
-            InlineKeyboardButton(
-                text="🔍 Многоуровневый скан", callback_data="scanner"
-            ),
+            InlineKeyboardButton(text="📈 Анализ рынка", callback_data="arb_market_analysis"),
+            InlineKeyboardButton(text="🔍 Многоуровневый скан", callback_data="scanner"),
         ],
         [
-            InlineKeyboardButton(text="🎯 Создать таргет", callback_data="arb_target"),
+            InlineKeyboardButton(text="⚡ Enhanced Scanner", callback_data="enhanced_scanner_menu"),
             InlineKeyboardButton(text="📊 Статистика", callback_data="arb_stats"),
         ],
         [
-            InlineKeyboardButton(
-                text="🔄 Сравнить площадки", callback_data="arb_compare"
-            ),
+            InlineKeyboardButton(text="🎯 Создать таргет", callback_data="arb_target"),
+            InlineKeyboardButton(text="🔄 Сравнить площадки", callback_data="arb_compare"),
         ],
         [
             InlineKeyboardButton(text="◀️ Главное меню", callback_data="main_menu"),
@@ -119,17 +119,13 @@ def create_arbitrage_keyboard(
     ]
 
     if include_analysis:
-        keyboard.append(
-            [
-                InlineKeyboardButton(text="📈 Анализ", callback_data="arb_analysis"),
-                InlineKeyboardButton(text="📊 Уровни", callback_data="arb_levels"),
-            ]
-        )
+        keyboard.append([
+            InlineKeyboardButton(text="📈 Анализ", callback_data="arb_analysis"),
+            InlineKeyboardButton(text="📊 Уровни", callback_data="arb_levels"),
+        ])
 
     if include_auto:
-        keyboard.append(
-            [InlineKeyboardButton(text="🤖 Авто", callback_data="arb_auto")]
-        )
+        keyboard.append([InlineKeyboardButton(text="🤖 Авто", callback_data="arb_auto")])
 
     keyboard.append([InlineKeyboardButton(text="◀️ Назад", callback_data=CB_BACK)])
 

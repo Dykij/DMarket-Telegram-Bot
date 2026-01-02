@@ -6,12 +6,7 @@
 
 from __future__ import annotations
 
-from telegram import (
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    KeyboardButton,
-    ReplyKeyboardMarkup,
-)
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 
 from src.dmarket.arbitrage import GAMES
 from src.telegram_bot.keyboards.utils import CB_GAME_PREFIX, CB_HELP, CB_SETTINGS
@@ -45,19 +40,21 @@ def get_main_menu_keyboard() -> InlineKeyboardMarkup:
 
 
 def get_permanent_reply_keyboard() -> ReplyKeyboardMarkup:
-    """Создать постоянную reply клавиатуру.
+    """Создать постоянную reply клавиатуру с упрощенным меню.
+
+    Обновленная версия с быстрым доступом к /simple.
 
     Returns:
         ReplyKeyboardMarkup с основными командами
     """
     keyboard = [
         [
-            KeyboardButton(text="📊 Арбитраж"),
-            KeyboardButton(text="🎯 Таргеты"),
+            KeyboardButton(text="⚡ Упрощенное меню"),  # Новая кнопка для /simple
+            KeyboardButton(text="📊 Полное меню"),
         ],
         [
             KeyboardButton(text="💰 Баланс"),
-            KeyboardButton(text="⚙️ Настройки"),
+            KeyboardButton(text="📈 Статистика"),
         ],
     ]
     return ReplyKeyboardMarkup(

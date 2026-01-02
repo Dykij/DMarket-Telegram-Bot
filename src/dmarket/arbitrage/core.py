@@ -18,7 +18,6 @@ from typing import TYPE_CHECKING, Any
 from .cache import get_cached_results, save_to_cache
 from .constants import DEFAULT_FEE, DEFAULT_LIMIT, GAMES, HIGH_FEE, LOW_FEE, MAX_RETRIES
 
-
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
 
@@ -134,12 +133,27 @@ async def _find_arbitrage_async(
     for item in items:
         try:
             # Получаем текущую цену покупки (переводим центы в доллары)
-            buy_price = float(item["price"]["amount"]) / 100
+            price_data = item.get("price", {})
+            if isinstance(price_data, dict):
+                buy_price = float(price_data.get("USD", 0)) / 100
+            elif isinstance(price_data, (int, float)):
+                # Цена уже в центах (число)
+                buy_price = float(price_data) / 100
+            else:
+                # Неизвестный формат, пропускаем
+                logger.warning(f"Неизвестный формат цены: {type(price_data)}")
+                continue
 
             # Получаем предполагаемую цену продажи
             # Если есть цена suggestedPrice, используем ее, иначе делаем наценку
             if "suggestedPrice" in item:
-                sell_price = float(item["suggestedPrice"]["amount"]) / 100
+                suggested_data = item.get("suggestedPrice", {})
+                if isinstance(suggested_data, dict):
+                    sell_price = float(suggested_data.get("USD", 0)) / 100
+                elif isinstance(suggested_data, (int, float)):
+                    sell_price = float(suggested_data) / 100
+                else:
+                    sell_price = buy_price * 1.15  # Fallback: 15% markup
             else:
                 # Наценка от 10% до 15% в зависимости от ликвидности
                 markup = 1.1
@@ -349,11 +363,11 @@ async def find_arbitrage_opportunities_async(
         for item in items:
             try:
                 # Получаем цену покупки
-                buy_price = float(item["price"]["amount"]) / 100
+                buy_price = float(item.get("price", {}).get("USD", 0)) / 100
 
                 # Получаем предполагаемую цену продажи
                 if "suggestedPrice" in item:
-                    sell_price = float(item["suggestedPrice"]["amount"]) / 100
+                    sell_price = float(item.get("suggestedPrice", {}).get("USD", 0)) / 100
                 else:
                     # По умолчанию наценка 15%
                     sell_price = buy_price * 1.15
@@ -383,9 +397,7 @@ async def find_arbitrage_opportunities_async(
                         {
                             "item_title": item.get("title", "Unknown"),
                             "market_from": "DMarket",
-                            "market_to": (
-                                "Steam Market" if game == "csgo" else "Game Market"
-                            ),
+                            "market_to": ("Steam Market" if game == "csgo" else "Game Market"),
                             "buy_price": buy_price,
                             "sell_price": sell_price,
                             "profit_amount": profit_amount,

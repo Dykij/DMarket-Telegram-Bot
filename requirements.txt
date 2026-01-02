@@ -558,3 +558,5 @@ yarl==1.22.0
     # via
     #   aiohttp
     #   pact-python
+
+websockets==14.1  # WebSocket support for real-time updates

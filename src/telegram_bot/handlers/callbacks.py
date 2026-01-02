@@ -34,7 +34,6 @@ from src.telegram_bot.utils.api_client import setup_api_client
 from src.telegram_bot.utils.formatters import format_opportunities
 from src.utils.telegram_error_handlers import telegram_error_boundary
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -319,8 +318,14 @@ async def button_callback_handler(
     await query.answer()
 
     try:
+        # Обработка для упрощенного меню (НОВОЕ)
+        if callback_data == "simple_menu":
+            from src.telegram_bot.handlers.simplified_menu_handler import start_simple_menu
+
+            await start_simple_menu(update, context)
+
         # Обработка для баланса
-        if callback_data == "balance":
+        elif callback_data == "balance":
             await dmarket_status_impl(update, context, status_message=query.message)
 
         # Обработка для поиска
@@ -525,6 +530,14 @@ async def button_callback_handler(
                 reply_markup=get_modern_arbitrage_keyboard(),
             )
 
+        # Обработчик для Enhanced Scanner Menu
+        elif callback_data == "enhanced_scanner_menu":
+            from src.telegram_bot.handlers.enhanced_scanner_handler import (
+                show_enhanced_scanner_menu,
+            )
+
+            await show_enhanced_scanner_menu(update, context)
+
         # Обработчики для настроек
         elif callback_data == "settings_api_keys":
             await query.edit_message_text(
@@ -652,6 +665,14 @@ async def button_callback_handler(
             await handle_dmarket_arbitrage_impl(update, context, mode="deep")
 
         # Дополнительные функции арбитража
+        elif callback_data == "enhanced_scanner_menu":
+            # Enhanced Scanner Menu
+            from src.telegram_bot.handlers.enhanced_scanner_handler import (
+                show_enhanced_scanner_menu,
+            )
+
+            await show_enhanced_scanner_menu(update, context)
+
         elif callback_data == "arb_market_analysis":
             await query.edit_message_text(
                 "📊 <b>Анализ рынка</b>\n\nВыберите игру для анализа рыночных трендов:",
@@ -854,8 +875,15 @@ async def button_callback_handler(
                 parse_mode=ParseMode.HTML,
             )
 
-        elif callback_data.startswith("scan_level_"):
-            level = callback_data.replace("scan_level_", "")
+        elif callback_data.startswith("scan_level_") or callback_data.startswith(
+            "scanner_level_scan_"
+        ):
+            # Обработка обоих форматов: scan_level_medium и scanner_level_scan_medium
+            if callback_data.startswith("scanner_level_scan_"):
+                level = callback_data.replace("scanner_level_scan_", "")
+            else:
+                level = callback_data.replace("scan_level_", "")
+
             await query.edit_message_text(
                 f"🔍 <b>Сканирование уровня {level.upper()}</b>\n\n"
                 "Поиск арбитражных возможностей...",
@@ -1181,9 +1209,7 @@ async def button_callback_handler(
                 parse_mode=ParseMode.HTML,
             )
 
-        elif (
-            callback_data in {"noop", "page_info", "alerts_page_info"}
-        ):
+        elif callback_data in {"noop", "page_info", "alerts_page_info"}:
             # Игнорируем кнопки без действия
             await query.answer()
 

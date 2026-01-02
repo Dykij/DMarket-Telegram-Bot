@@ -5,11 +5,11 @@
 """
 
 import asyncio
-from collections.abc import Callable
 import logging
 import os
 import signal
 import sys
+from collections.abc import Callable
 
 from telegram import Bot, BotCommand
 from telegram.ext import (
@@ -29,7 +29,6 @@ from src.telegram_bot.utils.error_handler import (
     register_global_exception_handlers,
     setup_error_handler,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -153,32 +152,20 @@ async def setup_bot_commands(bot: Bot) -> None:
         bot: Экземпляр бота Telegram
 
     """
-    # Английские команды
+    # Английские команды (упрощённое меню)
     en_commands = [
-        BotCommand("start", "🚀 Start the bot and see main menu"),
-        BotCommand("balance", "💰 Check your DMarket balance"),
-        BotCommand("arbitrage", "📊 Find profitable arbitrage opportunities"),
-        BotCommand("market", "🔍 Browse market items by game"),
-        BotCommand("alerts", "🔔 Manage your price alerts"),
-        BotCommand("portfolio", "💼 View your trading portfolio"),
-        BotCommand("settings", "⚙️ Configure bot settings"),
-        BotCommand("help", "❓ Help and documentation"),
-        BotCommand("stats", "📈 View market statistics"),
-        BotCommand("cancel", "❌ Cancel current operation"),
+        BotCommand("start", "🚀 Start bot - Main menu"),
+        BotCommand("balance", "💰 Check DMarket balance"),
+        BotCommand("stats", "📈 View trading statistics"),
+        BotCommand("help", "❓ Help and support"),
     ]
 
-    # Русские команды
+    # Русские команды (упрощённое меню)
     ru_commands = [
-        BotCommand("start", "🚀 Запустить бота и открыть главное меню"),
+        BotCommand("start", "🚀 Запуск бота - Главное меню"),
         BotCommand("balance", "💰 Проверить баланс DMarket"),
-        BotCommand("arbitrage", "📊 Найти арбитражные возможности"),
-        BotCommand("market", "🔍 Просмотр предметов на рынке"),
-        BotCommand("alerts", "🔔 Управление уведомлениями о ценах"),
-        BotCommand("portfolio", "💼 Посмотреть портфель сделок"),
-        BotCommand("settings", "⚙️ Настройки бота"),
-        BotCommand("help", "❓ Справка и документация"),
-        BotCommand("stats", "📈 Статистика рынка"),
-        BotCommand("cancel", "❌ Отменить текущую операцию"),
+        BotCommand("stats", "📈 Статистика торговли"),
+        BotCommand("help", "❓ Справка и поддержка"),
     ]
 
     try:

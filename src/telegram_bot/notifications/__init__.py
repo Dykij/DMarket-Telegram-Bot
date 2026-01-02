@@ -102,6 +102,7 @@ from .storage import AlertStorage, get_storage, load_user_alerts, save_user_aler
 
 # Trading notifications
 from .trading import (
+    send_arbitrage_opportunity,
     send_buy_failed_notification,
     send_buy_intent_notification,
     send_buy_success_notification,
@@ -109,7 +110,6 @@ from .trading import (
     send_critical_shutdown_notification,
     send_sell_success_notification,
 )
-
 
 __all__ = [
     "DEFAULT_USER_SETTINGS",
@@ -154,6 +154,7 @@ __all__ = [
     "reset_daily_counter",
     "run_alerts_checker",
     "save_user_alerts",
+    "send_arbitrage_opportunity",
     "send_buy_failed_notification",
     # Trading notifications
     "send_buy_intent_notification",

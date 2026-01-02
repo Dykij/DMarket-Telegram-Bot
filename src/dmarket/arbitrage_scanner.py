@@ -17,9 +17,9 @@ from typing import TYPE_CHECKING, Any
 from src.dmarket.arbitrage import (
     GAMES,
     ArbitrageTrader,
-    arbitrage_boost,
-    arbitrage_mid,
-    arbitrage_pro,
+    arbitrage_boost_async,
+    arbitrage_mid_async,
+    arbitrage_pro_async,
 )
 from src.dmarket.dmarket_api import DMarketAPI  # Нужен для создания нового клиента
 from src.dmarket.liquidity_analyzer import LiquidityAnalyzer
@@ -28,7 +28,6 @@ from src.dmarket.liquidity_analyzer import LiquidityAnalyzer
 from src.dmarket.scanner import ARBITRAGE_LEVELS, GAME_IDS, ScannerCache, ScannerFilters
 from src.utils.rate_limiter import RateLimiter
 from src.utils.sentry_breadcrumbs import add_trading_breadcrumb
-
 
 if TYPE_CHECKING:
     from src.dmarket.item_filters import ItemFilters
@@ -250,14 +249,14 @@ class ArbitrageScanner:
             if price_from is None and price_to is None:
                 try:
                     if mode == "low":
-                        items = arbitrage_boost(game)
+                        items = await arbitrage_boost_async(game)
                     elif mode == "medium":
-                        items = arbitrage_mid(game)
+                        items = await arbitrage_mid_async(game)
                     elif mode == "high":
-                        items = arbitrage_pro(game)
+                        items = await arbitrage_pro_async(game)
                     else:
                         # По умолчанию используем средний режим
-                        items = arbitrage_mid(game)
+                        items = await arbitrage_mid_async(game)
 
                     # Если нашли достаточно предметов, переходим к фильтрации
                     # Раньше здесь был ранний выход, но теперь мы хотим применить фильтр ликвидности ко всем предметам
@@ -294,7 +293,7 @@ class ArbitrageScanner:
                         current_price_from = 100.0  # От $100 для высокого режима
 
                 # Создаем ArbitrageTrader для поиска предметов
-                trader = ArbitrageTrader()
+                trader = ArbitrageTrader(api_client=self.api_client)
 
                 # Получаем предметы с маркета с учетом фильтров
                 items_from_trader = await trader.find_profitable_items(
@@ -582,15 +581,36 @@ class ArbitrageScanner:
                 }
 
             # Извлекаем значения баланса из полученных данных
-            # DMarket API возвращает баланс в формате {"usd": {"available": 1000, "frozen": 200}}
-            usd_balance = balance_response.get("usd", {})
-            available_amount = usd_balance.get("available", 0)
-            frozen_amount = usd_balance.get("frozen", 0)
+            # API возвращает баланс в формате {"usd": {"amount": 1000}, "available_balance": 10.00, ...}
+            # или {"balance": "45.50", "available_balance": "0.00", ...}
 
-            # Преобразуем из центов в доллары
-            available_balance = float(available_amount) / 100
-            frozen_balance = float(frozen_amount) / 100
-            total_balance = available_balance + frozen_balance
+            # Проверяем доступный баланс
+            if "available_balance" in balance_response:
+                # Формат 1: {"available_balance": "0.00", "balance": "45.50"}
+                available_balance = float(balance_response.get("available_balance", 0))
+            elif "usd" in balance_response:
+                # Формат 2: {"usd": {"amount": 4550}, ...} или {"usd": "4550", ...}
+                usd_data = balance_response["usd"]
+                if isinstance(usd_data, dict):
+                    # Вложенный формат
+                    available_amount = usd_data.get("amount", 0)
+                    available_balance = float(available_amount) / 100
+                elif isinstance(usd_data, (str, int, float)):
+                    # Строка/число в центах
+                    available_balance = float(usd_data) / 100
+                else:
+                    available_balance = 0.0
+            else:
+                # Fallback: используем общий баланс
+                available_balance = float(balance_response.get("balance", 0))
+
+            # Получаем общий баланс
+            if "balance" in balance_response:
+                balance_value = balance_response.get("balance", 0)
+                # Баланс может быть строкой "45.50" или числом 45.50
+                total_balance = float(balance_value) if balance_value else 0.0
+            else:
+                total_balance = available_balance
 
             # Проверяем, достаточно ли средств на балансе
             has_funds = available_balance >= min_required_balance
@@ -1082,12 +1102,29 @@ class ArbitrageScanner:
         price_from_cents = int(price_from * 100)
         price_to_cents = int(price_to * 100)
 
-        # Вызываем API напрямую
+        # Получаем оптимизированные treeFilters для игры и уровня
+        from src.dmarket.scanner.tree_filters import (
+            get_filter_description,
+            get_filter_effectiveness,
+            get_tree_filters_for_game,
+        )
+
+        tree_filters = get_tree_filters_for_game(game, level)
+        filter_desc = get_filter_description(game, level)
+        effectiveness = get_filter_effectiveness(game, level)
+
+        logger.info(
+            f"Applying tree filters for {game} at {level} level: {filter_desc}, "
+            f"estimated reduction: {effectiveness * 100:.0f}%"
+        )
+
+        # Вызываем API напрямую с treeFilters
         items_response = await self.api_client.get_market_items(
             game=game_id,
             price_from=price_from_cents,
             price_to=price_to_cents,
             limit=max_results * 3,  # Берем больше, т.к. часть отфильтруется
+            tree_filters=tree_filters,  # ← ДОБАВЛЕНО: оптимизация запроса
         )
 
         items = items_response.get("objects", [])

@@ -12,7 +12,10 @@ from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler, f
 from src.telegram_bot.commands.backtesting_commands import backtest_command, backtest_help
 from src.telegram_bot.commands.daily_report_command import daily_report_command
 from src.telegram_bot.commands.logs_command import logs_command
+from src.telegram_bot.commands.start_minimal import start_minimal_command
 from src.telegram_bot.commands.test_sentry_command import test_sentry_command, test_sentry_info
+from src.telegram_bot.handlers.api_check_handler import handle_api_check_callback
+from src.telegram_bot.handlers.automatic_arbitrage_handler import handle_mode_selection_callback
 from src.telegram_bot.handlers.callbacks import button_callback_handler
 from src.telegram_bot.handlers.commands import (
     arbitrage_command,
@@ -24,7 +27,8 @@ from src.telegram_bot.handlers.commands import (
     start_command,
     webapp_command,
 )
-
+from src.telegram_bot.handlers.minimal_menu_router import minimal_menu_router
+from src.telegram_bot.handlers.view_items_handler import handle_view_items_callback
 
 if TYPE_CHECKING:
     from telegram.ext import Application
@@ -43,6 +47,8 @@ def register_all_handlers(application: "Application") -> None:
     logger.info("Начало регистрации обработчиков бота...")
 
     # Регистрация базовых команд
+    # New minimal UI: /start_minimal for minimalistic interface
+    application.add_handler(CommandHandler("start_minimal", start_minimal_command))
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("dashboard", dashboard_command))
@@ -54,6 +60,23 @@ def register_all_handlers(application: "Application") -> None:
     application.add_handler(CommandHandler("logs", logs_command))
     application.add_handler(CommandHandler("dailyreport", daily_report_command))
 
+    # Simplified Menu Handler (новый упрощенный интерфейс)
+    try:
+        from src.telegram_bot.handlers.simplified_menu_handler import (
+            get_simplified_conversation_handler,
+            register_simplified_callbacks,
+        )
+
+        # Регистрируем ConversationHandler для упрощенного меню
+        application.add_handler(get_simplified_conversation_handler())
+
+        # Регистрируем дополнительные callback handlers
+        register_simplified_callbacks(application)
+
+        logger.info("✅ Simplified Menu Handler зарегистрирован")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать simplified_menu_handler: %s", e)
+
     # Sentry тестирование (только для отладки и администраторов)
     application.add_handler(CommandHandler("test_sentry", test_sentry_command))
     application.add_handler(CommandHandler("sentry_info", test_sentry_info))
@@ -62,12 +85,164 @@ def register_all_handlers(application: "Application") -> None:
     application.add_handler(CommandHandler("backtest", backtest_command))
     application.add_handler(CommandHandler("backtest_help", backtest_help))
 
+    # Auto-buy команды
+    try:
+        from src.telegram_bot.handlers.auto_buy_handler import autobuy_command
+
+        application.add_handler(CommandHandler("autobuy", autobuy_command))
+        logger.info("Auto-buy команда зарегистрирована")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать auto-buy handler: %s", e)
+
+    # Autopilot команды
+    try:
+        from src.telegram_bot.handlers.autopilot_handler import (
+            autopilot_command,
+            autopilot_stats_command,
+            autopilot_status_command,
+            autopilot_stop_command,
+        )
+
+        application.add_handler(CommandHandler("autopilot", autopilot_command))
+        application.add_handler(CommandHandler("autopilot_stop", autopilot_stop_command))
+        application.add_handler(CommandHandler("autopilot_status", autopilot_status_command))
+        application.add_handler(CommandHandler("autopilot_stats", autopilot_stats_command))
+        logger.info("Autopilot команды зарегистрированы")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать autopilot handler: %s", e)
+
+    # Panic Button команды
+    try:
+        from src.telegram_bot.handlers.panic_handler import (
+            panic_button_command,
+            panic_status_command,
+        )
+
+        application.add_handler(CommandHandler("panic", panic_button_command))
+        application.add_handler(CommandHandler("panic_status", panic_status_command))
+        logger.info("Panic Button команды зарегистрированы")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать panic handler: %s", e)
+
+    # WebSocket команды
+    try:
+        from src.telegram_bot.handlers.websocket_handler import (
+            websocket_restart_command,
+            websocket_stats_command,
+            websocket_status_command,
+        )
+
+        application.add_handler(CommandHandler("websocket_status", websocket_status_command))
+        application.add_handler(CommandHandler("websocket_stats", websocket_stats_command))
+        application.add_handler(CommandHandler("websocket_restart", websocket_restart_command))
+        logger.info("WebSocket команды зарегистрированы")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать websocket handler: %s", e)
+
+    # Health Check команды
+    try:
+        from src.telegram_bot.handlers.health_handler import (
+            health_ping_command,
+            health_status_command,
+            health_summary_command,
+        )
+
+        application.add_handler(CommandHandler("health_status", health_status_command))
+        application.add_handler(CommandHandler("health_summary", health_summary_command))
+        application.add_handler(CommandHandler("health_ping", health_ping_command))
+        logger.info("Health Check команды зарегистрированы")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать health handler: %s", e)
+
     logger.info("Базовые команды зарегистрированы")
 
-    # Регистрация общего callback-обработчика
+    # Minimal UI callback handlers (registered before general callback handler)
+    application.add_handler(CallbackQueryHandler(handle_mode_selection_callback, pattern="^mode_"))
+    application.add_handler(CallbackQueryHandler(handle_api_check_callback, pattern="^api_check"))
+    application.add_handler(CallbackQueryHandler(handle_view_items_callback, pattern="^view_items"))
+
+    # Auto-buy callback handlers
+    try:
+        from src.telegram_bot.handlers.auto_buy_handler import buy_now_callback, skip_item_callback
+
+        application.add_handler(CallbackQueryHandler(buy_now_callback, pattern="^buy_now_"))
+        application.add_handler(CallbackQueryHandler(skip_item_callback, pattern="^skip_item$"))
+        logger.info("Auto-buy callback handlers зарегистрированы")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать auto-buy callbacks: %s", e)
+
+    # Autopilot callback handlers
+    try:
+        from src.telegram_bot.handlers.autopilot_handler import autopilot_start_confirmed_callback
+
+        application.add_handler(
+            CallbackQueryHandler(
+                autopilot_start_confirmed_callback, pattern="^autopilot_start_confirmed$"
+            )
+        )
+        logger.info("Autopilot callback handlers зарегистрированы")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать autopilot callbacks: %s", e)
+
+    # Enhanced Scanner handlers (MUST be before general callback handler)
+    try:
+        # Register enhanced scanner without bot_instance parameter
+        # API client will be retrieved from bot_data when needed
+        from src.telegram_bot.handlers.enhanced_scanner_handler import (
+            handle_enhanced_scan,
+            handle_enhanced_scan_help,
+            handle_enhanced_scan_settings,
+            show_enhanced_scanner_menu,
+        )
+
+        application.add_handler(
+            CallbackQueryHandler(
+                show_enhanced_scanner_menu,
+                pattern="^enhanced_scanner_menu$",
+            )
+        )
+
+        application.add_handler(
+            CallbackQueryHandler(
+                handle_enhanced_scan,
+                pattern="^enhanced_scan_(csgo|dota2|rust|tf2)$",
+            )
+        )
+
+        application.add_handler(
+            CallbackQueryHandler(
+                handle_enhanced_scan_settings,
+                pattern="^enhanced_scan_settings$",
+            )
+        )
+
+        application.add_handler(
+            CallbackQueryHandler(
+                handle_enhanced_scan_help,
+                pattern="^enhanced_scan_help$",
+            )
+        )
+
+        logger.info("✅ Enhanced Scanner handlers registered")
+    except Exception as e:
+        logger.warning("Не удалось зарегистрировать Enhanced Scanner handlers: %s", e)
+
+    # Регистрация общего callback-обработчика (LAST - catch-all)
     application.add_handler(CallbackQueryHandler(button_callback_handler))
 
     logger.info("Callback-обработчики зарегистрированы")
+
+    # Minimal UI message router (higher priority for minimal menu buttons)
+    application.add_handler(
+        MessageHandler(
+            filters.Regex(
+                "^(🤖 Automatic Arbitrage|📦 View Items|⚙️ Detailed Settings|🔌 API Check)$"
+            ),
+            minimal_menu_router,
+        ),
+    )
+
+    logger.info("Minimal UI message router registered")
 
     # Регистрация обработчиков текстовых сообщений (для постоянной клавиатуры)
     application.add_handler(

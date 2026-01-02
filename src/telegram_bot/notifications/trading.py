@@ -20,11 +20,11 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from .alerts import can_send_notification, increment_notification_count
 from .constants import NOTIFICATION_PRIORITIES
 
-
 if TYPE_CHECKING:
     from telegram import Bot
 
 __all__ = [
+    "send_arbitrage_opportunity",
     "send_buy_failed_notification",
     "send_buy_intent_notification",
     "send_buy_success_notification",
@@ -76,20 +76,18 @@ async def send_buy_intent_notification(
 
     keyboard = None
     if callback_data:
-        keyboard = InlineKeyboardMarkup(
+        keyboard = InlineKeyboardMarkup([
             [
-                [
-                    InlineKeyboardButton(
-                        "✅ Купить",
-                        callback_data=f"buy:{callback_data}",
-                    ),
-                    InlineKeyboardButton(
-                        "❌ Отмена",
-                        callback_data=f"cancel_buy:{callback_data}",
-                    ),
-                ],
-            ]
-        )
+                InlineKeyboardButton(
+                    "✅ Купить",
+                    callback_data=f"buy:{callback_data}",
+                ),
+                InlineKeyboardButton(
+                    "❌ Отмена",
+                    callback_data=f"cancel_buy:{callback_data}",
+                ),
+            ],
+        ])
 
     try:
         await bot.send_message(
@@ -174,7 +172,9 @@ async def send_buy_failed_notification(
     title = item.get("title", "Unknown Item")
     price = item.get("price", {}).get("USD", 0) / 100
 
-    message = f"❌ <b>Ошибка покупки</b>\n\n📦 <b>{title}</b>\n💰 Цена: ${price:.2f}\n\n⚠️ Ошибка: {error}"
+    message = (
+        f"❌ <b>Ошибка покупки</b>\n\n📦 <b>{title}</b>\n💰 Цена: ${price:.2f}\n\n⚠️ Ошибка: {error}"
+    )
 
     try:
         await bot.send_message(
@@ -224,9 +224,7 @@ async def send_sell_success_notification(
         profit = sell_price - buy_price
         profit_pct = (profit / buy_price) * 100 if buy_price > 0 else 0
         profit_emoji = "📈" if profit > 0 else "📉"
-        message += (
-            f"\n{profit_emoji} Прибыль: <b>${profit:.2f}</b> ({profit_pct:+.1f}%)\n"
-        )
+        message += f"\n{profit_emoji} Прибыль: <b>${profit:.2f}</b> ({profit_pct:+.1f}%)\n"
 
     if offer_id:
         message += f"📋 ID предложения: <code>{offer_id}</code>\n"
@@ -340,4 +338,106 @@ async def send_crash_notification(
         return True
     except Exception:
         logger.exception("Failed to send crash notification to %d", user_id)
+        return False
+
+
+async def send_arbitrage_opportunity(
+    bot: Bot,
+    user_id: int,
+    item: dict[str, Any],
+    discount_percent: float,
+    profit_usd: float,
+    auto_buy_enabled: bool = False,
+) -> bool:
+    """Send notification about arbitrage opportunity with Buy Now button.
+
+    Args:
+        bot: Telegram bot instance
+        user_id: User ID to notify
+        item: Item information dict
+        discount_percent: Discount percentage
+        profit_usd: Expected profit in USD
+        auto_buy_enabled: Whether auto-buy is enabled
+
+    Returns:
+        True if notification was sent
+    """
+    if not can_send_notification(user_id):
+        logger.debug("Skipping arbitrage notification for user %d", user_id)
+        return False
+
+    title = item.get("title", "Unknown Item")
+    price_cents = item.get("price", {}).get("USD", 0)
+    price_usd = price_cents / 100
+    suggested_price = item.get("suggestedPrice", {}).get("USD", 0) / 100
+    game = item.get("gameId", "csgo")
+    float_value = item.get("extra", {}).get("floatValue", "N/A")
+    trade_lock = item.get("extra", {}).get("tradeLockDuration", 0)
+    item_id = item.get("itemId") or item.get("extra", {}).get("offerId", "unknown")
+
+    # Format trade lock
+    trade_lock_text = "✅ Нет" if trade_lock == 0 else f"⏱️ {trade_lock / 3600:.0f}ч"
+
+    # Emoji based on discount
+    if discount_percent >= 50:
+        emoji = "🔥🔥🔥"
+    elif discount_percent >= 30:
+        emoji = "🔥🔥"
+    else:
+        emoji = "🔥"
+
+    message = (
+        f"{emoji} <b>АРБИТРАЖ НАЙДЕН!</b>\n\n"
+        f"📦 <b>{title}</b>\n"
+        f"🎮 Игра: {game.upper()}\n"
+        f"💰 Цена: <b>${price_usd:.2f}</b>\n"
+        f"💵 Рын. цена: ${suggested_price:.2f}\n"
+        f"📊 Скидка: <b>{discount_percent:.1f}%</b>\n"
+        f"💸 Прибыль: <b>~${profit_usd:.2f}</b>\n"
+        f"🎨 Float: {float_value}\n"
+        f"🔒 Trade Lock: {trade_lock_text}\n"
+    )
+
+    if auto_buy_enabled:
+        message += "\n⚡ <i>Автопокупка активна</i>"
+
+    # Create inline keyboard with Buy Now button
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton(
+                "✅ Купить сейчас",
+                callback_data=f"buy_now_{item_id}_{price_cents}",
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                "⏭️ Пропустить",
+                callback_data="skip_item",
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                "🔍 Посмотреть на DMarket",
+                url=f"https://dmarket.com/ingame-items/item-list/{game}-skins/{item_id}",
+            ),
+        ],
+    ])
+
+    try:
+        await bot.send_message(
+            chat_id=user_id,
+            text=message,
+            parse_mode="HTML",
+            reply_markup=keyboard,
+        )
+        increment_notification_count(user_id)
+        logger.info(
+            "Sent arbitrage opportunity to user %d: %s (%.1f%% off)",
+            user_id,
+            title,
+            discount_percent,
+        )
+        return True
+    except Exception:
+        logger.exception("Failed to send arbitrage notification to user %d", user_id)
         return False

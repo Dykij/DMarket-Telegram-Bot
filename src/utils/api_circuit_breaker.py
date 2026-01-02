@@ -2,10 +2,9 @@ from collections.abc import Awaitable, Callable
 from enum import StrEnum
 from typing import Any, TypeVar
 
-from circuitbreaker import CircuitBreaker, CircuitBreakerError  # type: ignore
 import httpx
+from circuitbreaker import CircuitBreaker, CircuitBreakerError  # type: ignore
 from structlog import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -214,7 +213,7 @@ async def call_with_circuit_breaker(
         logger.debug(
             "circuit_breaker_call_success",
             endpoint=endpoint_type.value,
-            state=breaker.current_state,
+            state=breaker.state,
         )
         return result
 

@@ -6,20 +6,19 @@
 Документация DMarket API: https://docs.dmarket.com/v1/swagger.html
 """
 
-from datetime import datetime
 import json
 import logging
 import operator
 import os
-from pathlib import Path
 import time
+from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
 
 from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.rate_limiter import RateLimiter
-
 
 # Загружаем переменные окружения
 load_dotenv()
@@ -29,11 +28,93 @@ logger = logging.getLogger(__name__)
 
 # Export compatibility functions for tests
 __all__ = [
+    "SalesHistoryAnalyzer",
     "analyze_sales_history",
     "execute_api_request",
     "get_arbitrage_opportunities_with_sales_history",
     "get_sales_history",
 ]
+
+
+class SalesHistoryAnalyzer:
+    """Analyzer for sales history data to detect trends and liquidity."""
+
+    def __init__(self, dmarket_api: DMarketAPI | None = None):
+        """Initialize the sales history analyzer.
+
+        Args:
+            dmarket_api: DMarket API client instance
+        """
+        self.dmarket_api = dmarket_api
+
+    async def analyze_item(
+        self,
+        item_name: str,
+        game: str = "csgo",
+        period: str = "7d",
+    ) -> dict[str, Any]:
+        """Analyze sales history for a single item.
+
+        Args:
+            item_name: Item name to analyze
+            game: Game code (csgo, dota2, rust, tf2)
+            period: Analysis period (1h, 12h, 24h, 7d, 30d)
+
+        Returns:
+            Dictionary with analysis results
+        """
+        return await analyze_sales_history(
+            item_name=item_name,
+            api_client=self.dmarket_api,
+        )
+
+    async def check_liquidity(
+        self,
+        item_name: str,
+        min_sales_per_day: float = 1.0,
+    ) -> bool:
+        """Check if item has sufficient liquidity.
+
+        Args:
+            item_name: Item name to check
+            min_sales_per_day: Minimum required sales per day
+
+        Returns:
+            True if item has sufficient liquidity
+        """
+        analysis = await self.analyze_item(item_name)
+
+        if not analysis.get("has_data", False):
+            return False
+
+        sales_per_day = analysis.get("sales_per_day", 0.0)
+        return sales_per_day >= min_sales_per_day
+
+    async def get_price_trend(
+        self,
+        item_name: str,
+        game: str = "csgo",
+        period: str = "7d",
+    ) -> str:
+        """Get price trend for an item.
+
+        Args:
+            item_name: Item name
+            game: Game code
+            period: Analysis period
+
+        Returns:
+            Price trend: "up", "down", "stable", or "unknown"
+        """
+        trend_info = await calculate_price_trend(
+            item_name=item_name,
+            game=game,
+            period=period,
+            dmarket_api=self.dmarket_api,
+        )
+
+        return trend_info.get("trend", "unknown")
+
 
 # Константы для методов истории продаж
 SALES_HISTORY_TYPES = {
@@ -305,9 +386,7 @@ async def calculate_price_trend(
     change_percent = (price_change / start_price) * 100 if start_price > 0 else 0
 
     # Определяем направление тренда
-    trend = (
-        "stable" if abs(change_percent) < 5 else "up" if change_percent > 0 else "down"
-    )
+    trend = "stable" if abs(change_percent) < 5 else "up" if change_percent > 0 else "down"
 
     # Рассчитываем волатильность (стандартное отклонение цен)
     prices = [sale["price"] for sale in sales_history]
@@ -426,9 +505,7 @@ async def get_market_trend_overview(
         # Определяем общий тренд рынка
         avg_change = sum(all_changes) / len(all_changes) if all_changes else 0
 
-        market_trend = (
-            "stable" if abs(avg_change) < 3 else "up" if avg_change > 0 else "down"
-        )
+        market_trend = "stable" if abs(avg_change) < 3 else "up" if avg_change > 0 else "down"
 
         return {
             "market_trend": market_trend,
@@ -679,8 +756,7 @@ async def analyze_sales_history(
             "total_sales": len(last_sales),
             "recent_sales": last_sales[:10],
             "average_price": (
-                sum(s.get("price", {}).get("USD", 0) for s in last_sales)
-                / len(last_sales)
+                sum(s.get("price", {}).get("USD", 0) for s in last_sales) / len(last_sales)
                 if last_sales
                 else 0
             ),

@@ -4,23 +4,14 @@
 компонентов арбитража, таргетов и API клиента.
 """
 
-import pytest
-
-
-# Skip if hypothesis is not installed
-pytest.importorskip("hypothesis")
-
 from hypothesis import strategies as st
-
 
 # ============================================================================
 # СТРАТЕГИИ ДЛЯ ЦЕН
 # ============================================================================
 
 # Цены в USD (float, от $0.01 до $10,000)
-price_usd = st.floats(
-    min_value=0.01, max_value=10000.0, allow_nan=False, allow_infinity=False
-)
+price_usd = st.floats(min_value=0.01, max_value=10000.0, allow_nan=False, allow_infinity=False)
 
 # Цены в центах (integer, от 1 до 1,000,000 центов)
 price_cents = st.integers(min_value=1, max_value=1_000_000)
@@ -64,48 +55,42 @@ item_id = st.text(
 )
 
 # Редкость предмета
-item_rarity = st.sampled_from(
-    [
-        "Consumer Grade",
-        "Industrial Grade",
-        "Mil-Spec Grade",
-        "Restricted",
-        "Classified",
-        "Covert",
-        "Contraband",
-        "Extraordinary",
-        "Ancient",
-        "Mythical",
-        "Immortal",
-        "Arcana",
-    ]
-)
+item_rarity = st.sampled_from([
+    "Consumer Grade",
+    "Industrial Grade",
+    "Mil-Spec Grade",
+    "Restricted",
+    "Classified",
+    "Covert",
+    "Contraband",
+    "Extraordinary",
+    "Ancient",
+    "Mythical",
+    "Immortal",
+    "Arcana",
+])
 
 # Категория предмета
-item_category = st.sampled_from(
-    [
-        "Rifle",
-        "Pistol",
-        "SMG",
-        "Heavy",
-        "Knife",
-        "Gloves",
-        "Sticker",
-        "Container",
-        "Key",
-    ]
-)
+item_category = st.sampled_from([
+    "Rifle",
+    "Pistol",
+    "SMG",
+    "Heavy",
+    "Knife",
+    "Gloves",
+    "Sticker",
+    "Container",
+    "Key",
+])
 
 # Экстерьер предмета CS:GO
-item_exterior = st.sampled_from(
-    [
-        "Factory New",
-        "Minimal Wear",
-        "Field-Tested",
-        "Well-Worn",
-        "Battle-Scarred",
-    ]
-)
+item_exterior = st.sampled_from([
+    "Factory New",
+    "Minimal Wear",
+    "Field-Tested",
+    "Well-Worn",
+    "Battle-Scarred",
+])
 
 # Популярность предмета (0.0 до 1.0)
 item_popularity = st.floats(min_value=0.0, max_value=1.0, allow_nan=False)

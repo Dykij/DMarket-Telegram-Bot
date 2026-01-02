@@ -34,27 +34,9 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     if not update.message:
         return
 
-    # Отправляем приветственное сообщение с inline кнопками
-    await update.message.reply_text(
-        "👋 Привет! Я бот для работы с DMarket API. Выберите действие:",
-        reply_markup=get_modern_arbitrage_keyboard(),
-        parse_mode=ParseMode.HTML,
-    )
-
-    # Добавляем постоянную клавиатуру для быстрого доступа
-    # с улучшенными параметрами
-    await update.message.reply_text(
-        "⚡ <b>Быстрый доступ</b>\n\n"
-        "Используйте клавиатуру ниже для быстрого доступа "
-        "к основным функциям:",
-        reply_markup=get_permanent_reply_keyboard(),
-        parse_mode=ParseMode.HTML,
-    )
-
-    # Сохраняем в контексте пользователя информацию о том,
-    # что клавиатура активирована
-    if hasattr(context, "user_data") and context.user_data is not None:
-        context.user_data["keyboard_enabled"] = True
+    # Сразу запускаем упрощенное меню
+    from src.telegram_bot.handlers.simplified_menu_handler import start_simple_menu
+    await start_simple_menu(update, context)
 
 
 @telegram_error_boundary(user_friendly_message="❌ Ошибка при отображении справки")
@@ -209,9 +191,28 @@ async def handle_text_buttons(
 
     text = update.message.text
 
-    # Обрабатываем различные текстовые команды от клавиатуры
+    # Новые кнопки для упрощенного меню
+    if text == "⚡ Упрощенное меню":
+        # Вызываем simplified menu handler
+        from src.telegram_bot.handlers.simplified_menu_handler import start_simple_menu
+        await start_simple_menu(update, context)
+        return
+    elif text in {"💰 Баланс", "📊 Баланс"}:
+        # Для упрощенного доступа вызываем balance_simple
+        from src.telegram_bot.handlers.simplified_menu_handler import balance_simple
+        await balance_simple(update, context)
+        return
+    elif text in {"📈 Статистика", "📊 Статистика"}:
+        # Для упрощенного доступа вызываем stats_simple
+        from src.telegram_bot.handlers.simplified_menu_handler import stats_simple
+        await stats_simple(update, context)
+        return
+    
+    # Обрабатываем старые текстовые команды от клавиатуры
     if text in {"📊 Арбитраж", "🔍 Арбитраж"}:
-        await arbitrage_command(update, context)
+        # Также перенаправляем на упрощенное меню
+        from src.telegram_bot.handlers.simplified_menu_handler import arbitrage_start
+        await arbitrage_start(update, context)
     elif text in {"💰 Баланс", "📊 Баланс"}:
         await dmarket_status_impl(
             update,

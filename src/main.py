@@ -10,7 +10,8 @@ import os
 import signal
 import sys
 
-from telegram.ext import Application as TelegramApplication, ApplicationBuilder
+from telegram.ext import Application as TelegramApplication
+from telegram.ext import ApplicationBuilder
 
 from src.dmarket.dmarket_api import DMarketAPI
 from src.telegram_bot.health_check import health_check_server
@@ -22,7 +23,6 @@ from src.utils.database import DatabaseManager
 from src.utils.logging_utils import BotLogger, setup_logging
 from src.utils.sentry_integration import init_sentry
 from src.utils.state_manager import StateManager
-
 
 logger = logging.getLogger(__name__)
 bot_logger = BotLogger(__name__)
@@ -45,7 +45,11 @@ class Application:
         self.bot: TelegramApplication | None = None
         self.state_manager: StateManager | None = None
         self.daily_report_scheduler: DailyReportScheduler | None = None
+        self.scanner_manager: ScannerManager | None = None
+        self.websocket_manager = None
+        self.health_check_monitor = None
         self._shutdown_event = asyncio.Event()
+        self._scanner_task: asyncio.Task | None = None
 
     async def initialize(self) -> None:
         """Initialize all application components."""
@@ -160,6 +164,7 @@ class Application:
             self.bot.bot_data["dmarket_api"] = self.dmarket_api
             self.bot.bot_data["database"] = self.database
             self.bot.bot_data["state_manager"] = self.state_manager
+            self.bot.bot_data["bot_instance"] = self  # Add application instance for handlers
 
             # Register critical shutdown callback
             if self.state_manager:
@@ -222,6 +227,151 @@ class Application:
                     report_time.strftime("%H:%M"),
                 )
 
+            # Initialize Scanner Manager (Adaptive, Parallel, Cleanup)
+            if not self.config.testing and self.dmarket_api:
+                logger.info("Initializing Scanner Manager...")
+                from src.dmarket.scanner_manager import ScannerManager
+
+                # Get scan configuration from config or use defaults
+                enable_adaptive = getattr(self.config, "enable_adaptive_scan", True)
+                enable_parallel = getattr(self.config, "enable_parallel_scan", True)
+                enable_cleanup = getattr(self.config, "enable_target_cleanup", True)
+
+                self.scanner_manager = ScannerManager(
+                    api_client=self.dmarket_api,
+                    config=self.config,
+                    enable_adaptive=enable_adaptive,
+                    enable_parallel=enable_parallel,
+                    enable_cleanup=enable_cleanup,
+                )
+
+                # Store in bot_data for command access
+                self.bot.bot_data["scanner_manager"] = self.scanner_manager
+
+                logger.info(
+                    f"Scanner Manager initialized: "
+                    f"adaptive={enable_adaptive}, "
+                    f"parallel={enable_parallel}, "
+                    f"cleanup={enable_cleanup}"
+                )
+
+            # Initialize Autopilot Orchestrator
+            logger.info("Initializing Autopilot Orchestrator...")
+            try:
+                from src.dmarket.autopilot_orchestrator import (
+                    AutopilotConfig,
+                    AutopilotOrchestrator,
+                )
+                from src.dmarket.auto_buyer import AutoBuyer, AutoBuyConfig
+                from src.dmarket.auto_seller import AutoSeller
+
+                # Initialize auto-buyer if not exists
+                auto_buyer = self.bot.bot_data.get("auto_buyer")
+                if not auto_buyer:
+                    auto_buy_config = AutoBuyConfig(
+                        enabled=False,  # Disabled by default
+                        dry_run=self.config.dry_run,
+                    )
+                    auto_buyer = AutoBuyer(self.dmarket_api, auto_buy_config)
+                    self.bot.bot_data["auto_buyer"] = auto_buyer
+
+                # Initialize auto-seller if not exists
+                auto_seller = self.bot.bot_data.get("auto_seller")
+                if not auto_seller:
+                    auto_seller = AutoSeller(
+                        api_client=self.dmarket_api,
+                        db_manager=self.db,
+                    )
+                    self.bot.bot_data["auto_seller"] = auto_seller
+
+                # Create orchestrator config
+                orchestrator_config = AutopilotConfig(
+                    games=["csgo", "dota2", "rust", "tf2"],
+                    min_discount_percent=30.0,
+                    max_price_usd=100.0,
+                    min_balance_threshold_usd=10.0,
+                )
+
+                # Create orchestrator
+                orchestrator = AutopilotOrchestrator(
+                    scanner_manager=self.scanner_manager,
+                    auto_buyer=auto_buyer,
+                    auto_seller=auto_seller,
+                    api_client=self.dmarket_api,
+                    config=orchestrator_config,
+                )
+
+                self.bot.bot_data["orchestrator"] = orchestrator
+
+                logger.info("Autopilot Orchestrator initialized successfully")
+
+            except Exception as e:
+                logger.warning(f"Failed to initialize Autopilot Orchestrator: {e}")
+                # Not critical, continue without autopilot
+
+            # Initialize WebSocket Listener (if not in testing mode)
+            if not self.config.testing and self.dmarket_api:
+                logger.info("Initializing WebSocket Listener...")
+                try:
+                    from src.dmarket.websocket_listener import (
+                        DMarketWebSocketListener,
+                        WebSocketManager,
+                    )
+
+                    websocket_listener = DMarketWebSocketListener(
+                        public_key=self.config.dmarket.public_key,
+                        secret_key=self.config.dmarket.secret_key,
+                    )
+
+                    self.websocket_manager = WebSocketManager(websocket_listener)
+                    self.bot.bot_data["websocket_manager"] = self.websocket_manager
+
+                    logger.info("WebSocket Listener initialized successfully")
+
+                except Exception as e:
+                    logger.warning(f"Failed to initialize WebSocket Listener: {e}")
+                    # Not critical, continue without websocket
+
+            # Initialize Health Check Monitor (if not in testing mode)
+            if not self.config.testing and self.bot:
+                logger.info("Initializing Health Check Monitor...")
+                try:
+                    from src.utils.health_check import HealthCheckMonitor
+
+                    # Get first admin user for health pings
+                    admin_users = (
+                        self.config.security.admin_users
+                        if hasattr(self.config.security, "admin_users")
+                        else self.config.security.allowed_users
+                    )
+
+                    if admin_users:
+                        first_admin = int(admin_users[0])
+
+                        self.health_check_monitor = HealthCheckMonitor(
+                            telegram_bot=self.bot.bot,
+                            user_id=first_admin,
+                            check_interval=900,  # 15 minutes
+                            alert_on_failure=True,
+                        )
+
+                        # Register components for monitoring
+                        if self.dmarket_api:
+                            self.health_check_monitor.register_api_client(self.dmarket_api)
+
+                        if self.websocket_manager:
+                            self.health_check_monitor.register_websocket(
+                                self.websocket_manager.listener
+                            )
+
+                        self.bot.bot_data["health_check_monitor"] = self.health_check_monitor
+
+                        logger.info("Health Check Monitor initialized successfully")
+
+                except Exception as e:
+                    logger.warning(f"Failed to initialize Health Check Monitor: {e}")
+                    # Not critical, continue without health check
+
         except Exception as e:
             logger.exception(f"Failed to initialize application: {e}")
             raise
@@ -234,9 +384,10 @@ class Application:
             # Setup signal handlers
             self._setup_signal_handlers()
 
-            # Start health check server
-            health_check_server.update_status("starting")
-            health_check_server.start()
+            # Start health check server (if enabled)
+            if health_check_server:
+                health_check_server.update_status("starting")
+                health_check_server.start()
 
             logger.info("Starting DMarket Telegram Bot...")
 
@@ -244,6 +395,45 @@ class Application:
             if self.daily_report_scheduler:
                 await self.daily_report_scheduler.start()
                 logger.info("Daily Report Scheduler started")
+
+            # Start Scanner Manager (background scanning)
+            if self.scanner_manager and not self.config.testing:
+                logger.info("Starting Scanner Manager background task...")
+
+                # Configure which games to scan
+                games_to_scan = getattr(
+                    self.config, "arbitrage_games", ["csgo", "dota2", "rust", "tf2"]
+                )
+                arbitrage_level = getattr(self.config, "arbitrage_level", "medium")
+                cleanup_interval = getattr(self.config, "cleanup_interval_hours", 6.0)
+
+                self._scanner_task = asyncio.create_task(
+                    self.scanner_manager.run_continuous(
+                        games=games_to_scan,
+                        level=arbitrage_level,
+                        enable_cleanup=True,
+                        cleanup_interval_hours=cleanup_interval,
+                    )
+                )
+
+                logger.info(
+                    f"Scanner Manager started: "
+                    f"games={games_to_scan}, "
+                    f"level={arbitrage_level}, "
+                    f"cleanup_interval={cleanup_interval}h"
+                )
+
+            # Start WebSocket Listener
+            if self.websocket_manager:
+                logger.info("Starting WebSocket Listener...")
+                await self.websocket_manager.start()
+                logger.info("WebSocket Listener started - real-time updates enabled")
+
+            # Start Health Check Monitor
+            if self.health_check_monitor:
+                logger.info("Starting Health Check Monitor...")
+                asyncio.create_task(self.health_check_monitor.start())
+                logger.info("Health Check Monitor started - 15min intervals")
 
             # Start the bot (webhook or polling)
             if self.bot:
@@ -266,9 +456,7 @@ class Application:
                         await start_webhook(self.bot, webhook_config)
                         health_check_server.update_status("running")
                     except Exception as e:
-                        logger.exception(
-                            f"Failed to start webhook, falling back to polling: {e}"
-                        )
+                        logger.exception(f"Failed to start webhook, falling back to polling: {e}")
                         # Fallback to polling
                         if self.bot.updater is not None:
                             await self.bot.updater.start_polling()
@@ -279,7 +467,8 @@ class Application:
                     if self.bot.updater is not None:
                         await self.bot.updater.start_polling()
                     logger.info("📡 Bot polling started")
-                    health_check_server.update_status("running")
+                    if health_check_server:
+                        health_check_server.update_status("running")
 
             # Wait for shutdown signal
             logger.info("Bot is running. Press Ctrl+C to stop.")
@@ -321,7 +510,8 @@ class Application:
         logger.info("=" * 60)
         logger.info("🛑 Initiating graceful shutdown...")
         logger.info("=" * 60)
-        health_check_server.update_status("stopping")
+        if health_check_server:
+            health_check_server.update_status("stopping")
 
         # Set shutdown flag for scanners
         if hasattr(self, "_is_shutting_down"):
@@ -330,8 +520,55 @@ class Application:
         start_time = asyncio.get_event_loop().time()
 
         try:
-            # Step 1: Stop accepting new updates
-            logger.info("Step 1/6: Stopping new updates...")
+            # Step 0: Stop WebSocket and Health Check
+            logger.info("Step 0/9: Stopping WebSocket and Health Check...")
+            
+            if self.health_check_monitor:
+                try:
+                    await asyncio.wait_for(
+                        self.health_check_monitor.stop(),
+                        timeout=5.0,
+                    )
+                    logger.info("✅ Health Check Monitor stopped")
+                except TimeoutError:
+                    logger.warning("⚠️ Health Check Monitor stop timeout")
+                except Exception as e:
+                    logger.error(f"❌ Error stopping Health Check: {e}")
+
+            if self.websocket_manager:
+                try:
+                    await asyncio.wait_for(
+                        self.websocket_manager.stop(),
+                        timeout=5.0,
+                    )
+                    logger.info("✅ WebSocket Listener stopped")
+                except TimeoutError:
+                    logger.warning("⚠️ WebSocket Listener stop timeout")
+                except Exception as e:
+                    logger.error(f"❌ Error stopping WebSocket: {e}")
+
+            # Step 1: Stop Scanner Manager
+            if self.scanner_manager:
+                logger.info("Step 1/9: Stopping Scanner Manager...")
+                try:
+                    await asyncio.wait_for(
+                        self.scanner_manager.stop(),
+                        timeout=10.0,
+                    )
+                    if self._scanner_task:
+                        self._scanner_task.cancel()
+                        try:
+                            await self._scanner_task
+                        except asyncio.CancelledError:
+                            pass
+                    logger.info("✅ Scanner Manager stopped")
+                except TimeoutError:
+                    logger.warning("⚠️ Scanner Manager stop timeout")
+                except Exception as e:
+                    logger.error(f"❌ Error stopping Scanner Manager: {e}")
+
+            # Step 2: Stop accepting new updates
+            logger.info("Step 2/9: Stopping new updates...")
             if self.bot:
                 try:
                     if self.bot.updater is not None and self.bot.updater.running:
@@ -343,8 +580,8 @@ class Application:
                 except TimeoutError:
                     logger.warning("⚠️  Timeout stopping updater, forcing...")
 
-            # Step 2: Wait for active tasks to complete (with timeout)
-            logger.info("Step 2/6: Waiting for active tasks to complete...")
+            # Step 2: Waiting for active tasks to complete (with timeout)
+            logger.info("Step 3/9: Waiting for active tasks to complete...")
             active_tasks = [
                 task
                 for task in asyncio.all_tasks()
@@ -369,7 +606,7 @@ class Application:
                             task.cancel()
 
             # Step 3: Stop Daily Report Scheduler
-            logger.info("Step 3/6: Stopping Daily Report Scheduler...")
+            logger.info("Step 4/9: Stopping Daily Report Scheduler...")
             if self.daily_report_scheduler:
                 try:
                     await asyncio.wait_for(
@@ -381,7 +618,7 @@ class Application:
                     logger.warning("⚠️  Timeout stopping scheduler")
 
             # Step 4: Stop Telegram Bot
-            logger.info("Step 4/6: Stopping Telegram Bot...")
+            logger.info("Step 5/9: Stopping Telegram Bot...")
             if self.bot:
                 try:
                     if self.bot.running:
@@ -400,7 +637,7 @@ class Application:
                     logger.exception(f"❌ Error stopping bot: {e}")
 
             # Step 5: Close DMarket API connections
-            logger.info("Step 5/6: Closing DMarket API connections...")
+            logger.info("Step 6/9: Closing DMarket API connections...")
             if self.dmarket_api:
                 try:
                     await asyncio.wait_for(
@@ -414,7 +651,7 @@ class Application:
                     logger.exception(f"❌ Error closing API: {e}")
 
             # Step 6: Close database connections
-            logger.info("Step 6/6: Closing database connections...")
+            logger.info("Step 7/9: Closing database connections...")
             if self.database:
                 try:
                     await asyncio.wait_for(
@@ -430,7 +667,8 @@ class Application:
             # Stop health check server (last)
             logger.info("Stopping health check server...")
             try:
-                health_check_server.stop()
+                if health_check_server:
+                    health_check_server.stop()
                 logger.info("✅ Health check server stopped")
             except Exception as e:
                 logger.exception(f"❌ Error stopping health check: {e}")
