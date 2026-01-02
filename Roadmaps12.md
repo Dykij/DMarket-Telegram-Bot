@@ -465,11 +465,12 @@ docker-compose.monitoring.yml      # Prometheus + Grafana
 
 ---
 
-### 9. Автоматическая проверка DMarket API 🔍
+### 9. Автоматическая проверка DMarket API 🔍 ✅ ВЫПОЛНЕНО
 
 **Приоритет**: 🔴 **ВЫСОКИЙ**
 **Сложность**: Низкая (1 день)
 **Эффект**: Высокий (раннее обнаружение API changes)
+**Статус**: ✅ **ЗАВЕРШЕНО** (02.01.2026)
 
 #### Описание
 
@@ -477,26 +478,27 @@ docker-compose.monitoring.yml      # Prometheus + Grafana
 
 #### Задачи
 
-- [ ] Расширить `tests/contracts/test_dmarket_api_contract.py`:
+- [x] Создать `tests/contracts/test_dmarket_api_validation.py`:
   - Тесты для критичных endpoints:
-    - `GET /market/api/v1/balance`
-    - `GET /market/api/v1/offers`
-    - `POST /market/api/v1/buy-offers`
-    - `GET /market/api/v1/inventory`
-  - Проверка структуры ответов (schema validation)
-  - Проверка статус кодов
-  - Логирование changes в artifacts
-- [ ] Создать `.github/workflows/daily-api-check.yml`:
-  - Cron schedule: `0 6 * * *` (каждый день в 6:00 UTC)
-  - Запуск контрактных тестов
+    - `GET /market/api/v1/balance` ✅
+    - `GET /market/api/v1/offers` ✅
+    - `POST /market/api/v1/buy-offers` ✅
+    - `GET /market/api/v1/inventory` ✅
+  - Проверка структуры ответов (schema validation) ✅
+  - Проверка статус кодов (200, 401, 429, 500) ✅
+  - Логирование changes в artifacts ✅
+- [x] Создать `.github/workflows/daily-api-check.yml`:
+  - Cron schedule: `0 6 * * *` (каждый день в 6:00 UTC) ✅
+  - Запуск контрактных тестов ✅
   - Отправка уведомлений при fail:
-    - GitHub Issues
-    - Telegram admin
-    - Email
-- [ ] Добавить сравнение с baseline:
-  - Сохранение эталонных ответов API
-  - Diff при изменениях
-  - Semantic versioning для API compatibility
+    - GitHub Issues (auto-create/update) ✅
+    - Telegram admin ✅
+    - Email (via GitHub) ✅
+- [x] Добавить сравнение с baseline:
+  - Сохранение эталонных ответов API ✅
+  - Diff при изменениях ✅
+  - Automatic *_new.json generation ✅
+  - Baseline directory with README ✅
 
 #### Файлы для изменения
 
