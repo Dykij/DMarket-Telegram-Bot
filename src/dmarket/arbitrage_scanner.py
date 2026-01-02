@@ -96,6 +96,9 @@ class ArbitrageScanner:
         # Используем ScannerFilters из scanner/ модуля (R-2 refactoring)
         self._scanner_filters = ScannerFilters(item_filters)
 
+        # Graceful shutdown support (Roadmap Task #4)
+        self._is_shutting_down = False
+
         # Инициализация анализатора ликвидности
         self.liquidity_analyzer: LiquidityAnalyzer | None = None
         self.enable_liquidity_filter = enable_liquidity_filter
@@ -1394,6 +1397,11 @@ class ArbitrageScanner:
         """
         start_time = time.time()
 
+        # Check shutdown flag (Roadmap Task #4)
+        if self._is_shutting_down:
+            logger.warning("Сканирование прервано: приложение завершается")
+            return {}
+
         if game not in GAME_IDS:
             raise ValueError(f"Игра '{game}' не поддерживается")
 
@@ -1408,6 +1416,11 @@ class ArbitrageScanner:
         level_names = []
 
         for level in ARBITRAGE_LEVELS:
+            # Check shutdown before creating each task
+            if self._is_shutting_down:
+                logger.info(f"Сканирование остановлено на уровне {level}")
+                break
+                
             task = self.scan_level(
                 level=level,
                 game=game,
@@ -1415,6 +1428,10 @@ class ArbitrageScanner:
             )
             tasks.append(task)
             level_names.append(level)
+
+        # If no tasks created due to shutdown, return empty
+        if not tasks:
+            return {}
 
         # Выполняем все задачи параллельно с обработкой исключений
         level_results = await asyncio.gather(*tasks, return_exceptions=True)

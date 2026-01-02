@@ -24,12 +24,18 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    # Graceful shutdown configuration (Roadmap Task #4)
+    stop_signal: SIGTERM
+    stop_grace_period: 60s
+    # Health check using aiohttp endpoint (Roadmap Task #5)
     healthcheck:
-      test: ["CMD", "python", "-c", "from src.utils.config import load_config; load_config()"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health').read()"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    ports:
+      - "8080:8080"  # Health check endpoint
 
   # PostgreSQL database for analytics and user data
   postgres:

@@ -233,7 +233,7 @@ class Application:
 
             # Setup signal handlers
             self._setup_signal_handlers()
-            
+
             # Start health check server
             health_check_server.update_status("starting")
             health_check_server.start()
@@ -282,47 +282,146 @@ class Application:
         finally:
             await self.shutdown()
 
-    async def shutdown(self) -> None:
-        """Gracefully shutdown the application."""
-        logger.info("Shutting down application...")
+    async def shutdown(self, timeout: float = 30.0) -> None:
+        """Gracefully shutdown the application.
+
+        Args:
+            timeout: Maximum time to wait for graceful shutdown (seconds)
+
+        Roadmap Task #4: Graceful Shutdown
+        """
+        logger.info("=" * 60)
+        logger.info("🛑 Initiating graceful shutdown...")
+        logger.info("=" * 60)
         health_check_server.update_status("stopping")
 
+        # Set shutdown flag for scanners
+        if hasattr(self, "_is_shutting_down"):
+            self._is_shutting_down = True
+
+        start_time = asyncio.get_event_loop().time()
+
         try:
-            # Stop Daily Report Scheduler
-            if self.daily_report_scheduler:
-                logger.info("Stopping Daily Report Scheduler...")
-                await self.daily_report_scheduler.stop()
-                logger.info("Daily Report Scheduler stopped")
-
-            # Stop the bot
+            # Step 1: Stop accepting new updates
+            logger.info("Step 1/6: Stopping new updates...")
             if self.bot:
-                logger.info("Stopping Telegram Bot...")
-                if self.bot.updater is not None and self.bot.updater.running:
-                    await self.bot.updater.stop()
-                if self.bot.running:
-                    await self.bot.stop()
-                await self.bot.shutdown()
-                logger.info("Telegram Bot stopped")
+                try:
+                    if self.bot.updater is not None and self.bot.updater.running:
+                        await asyncio.wait_for(
+                            self.bot.updater.stop(),
+                            timeout=5.0,
+                        )
+                        logger.info("✅ Stopped accepting new updates")
+                except TimeoutError:
+                    logger.warning("⚠️  Timeout stopping updater, forcing...")
 
-            # Close DMarket API connections
+            # Step 2: Wait for active tasks to complete (with timeout)
+            logger.info("Step 2/6: Waiting for active tasks to complete...")
+            active_tasks = [
+                task
+                for task in asyncio.all_tasks()
+                if not task.done() and task != asyncio.current_task()
+            ]
+
+            if active_tasks:
+                logger.info(f"  Found {len(active_tasks)} active tasks")
+                try:
+                    await asyncio.wait_for(
+                        asyncio.gather(*active_tasks, return_exceptions=True),
+                        timeout=min(10.0, timeout - (asyncio.get_event_loop().time() - start_time)),
+                    )
+                    logger.info("✅ All tasks completed")
+                except TimeoutError:
+                    logger.warning(
+                        f"⚠️  Timeout waiting for {len(active_tasks)} tasks, continuing..."
+                    )
+                    # Cancel remaining tasks
+                    for task in active_tasks:
+                        if not task.done():
+                            task.cancel()
+
+            # Step 3: Stop Daily Report Scheduler
+            logger.info("Step 3/6: Stopping Daily Report Scheduler...")
+            if self.daily_report_scheduler:
+                try:
+                    await asyncio.wait_for(
+                        self.daily_report_scheduler.stop(),
+                        timeout=5.0,
+                    )
+                    logger.info("✅ Daily Report Scheduler stopped")
+                except TimeoutError:
+                    logger.warning("⚠️  Timeout stopping scheduler")
+
+            # Step 4: Stop Telegram Bot
+            logger.info("Step 4/6: Stopping Telegram Bot...")
+            if self.bot:
+                try:
+                    if self.bot.running:
+                        await asyncio.wait_for(
+                            self.bot.stop(),
+                            timeout=5.0,
+                        )
+                    await asyncio.wait_for(
+                        self.bot.shutdown(),
+                        timeout=5.0,
+                    )
+                    logger.info("✅ Telegram Bot stopped")
+                except TimeoutError:
+                    logger.warning("⚠️  Timeout stopping bot")
+                except Exception as e:
+                    logger.error(f"❌ Error stopping bot: {e}")
+
+            # Step 5: Close DMarket API connections
+            logger.info("Step 5/6: Closing DMarket API connections...")
             if self.dmarket_api:
-                logger.info("Closing DMarket API connections...")
-                await self.dmarket_api._close_client()
-                logger.info("DMarket API connections closed")
+                try:
+                    await asyncio.wait_for(
+                        self.dmarket_api._close_client(),
+                        timeout=3.0,
+                    )
+                    logger.info("✅ DMarket API connections closed")
+                except TimeoutError:
+                    logger.warning("⚠️  Timeout closing API connections")
+                except Exception as e:
+                    logger.error(f"❌ Error closing API: {e}")
 
-            # Close database connections
+            # Step 6: Close database connections
+            logger.info("Step 6/6: Closing database connections...")
             if self.database:
-                logger.info("Closing database connections...")
-                await self.database.close()
-                logger.info("Database connections closed")
-            
-            # Stop health check server
-            health_check_server.stop()
+                try:
+                    await asyncio.wait_for(
+                        self.database.close(),
+                        timeout=5.0,
+                    )
+                    logger.info("✅ Database connections closed")
+                except TimeoutError:
+                    logger.warning("⚠️  Timeout closing database")
+                except Exception as e:
+                    logger.error(f"❌ Error closing database: {e}")
+
+            # Stop health check server (last)
+            logger.info("Stopping health check server...")
+            try:
+                health_check_server.stop()
+                logger.info("✅ Health check server stopped")
+            except Exception as e:
+                logger.error(f"❌ Error stopping health check: {e}")
+
+            # Flush logs
+            logger.info("Flushing logs...")
+            for handler in logging.root.handlers:
+                try:
+                    handler.flush()
+                except Exception:
+                    pass
 
         except Exception as e:
-            logger.exception(f"Error during shutdown: {e}")
+            logger.exception(f"❌ Error during shutdown: {e}")
 
-        logger.info("Application shutdown complete")
+        elapsed = asyncio.get_event_loop().time() - start_time
+        logger.info("=" * 60)
+        logger.info(f"✅ Application shutdown complete in {elapsed:.2f}s")
+        logger.info("=" * 60)
 
     async def _handle_critical_shutdown(self, reason: str) -> None:
         """Handle critical shutdown event.

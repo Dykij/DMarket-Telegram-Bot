@@ -72,9 +72,15 @@ COPY --chown=botuser:botuser alembic.ini ./
 # Expose metrics port for Prometheus (optional)
 EXPOSE 8001
 
-# Health check endpoint (requires health_check.py in scripts/)
+# Expose health check port (Roadmap Task #5)
+EXPOSE 8080
+
+# Health check endpoint using aiohttp health check server
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import sys; sys.exit(0)"
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/health').read()" || exit 1
+
+# Use SIGTERM for graceful shutdown (Roadmap Task #4)
+STOPSIGNAL SIGTERM
 
 # Run bot (src/__main__.py must be entrypoint)
 CMD ["python", "-m", "src"]
