@@ -1,6 +1,6 @@
 """Tests for src/models/alert.py module."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock
 from uuid import UUID, uuid4
 
@@ -30,8 +30,8 @@ class TestPriceAlertModel:
         game = "csgo"
         target_price = 50.0
         condition = "above"
-        created_at = datetime.utcnow()
-        expires_at = datetime.utcnow() + timedelta(days=7)
+        created_at = datetime.now(UTC)
+        expires_at = datetime.now(UTC) + timedelta(days=7)
 
         alert_mock = MagicMock()
         alert_mock.user_id = user_id
@@ -75,7 +75,7 @@ class TestPriceAlertModel:
         """Test PriceAlert triggered state."""
         alert_mock = MagicMock()
         alert_mock.triggered = True
-        alert_mock.triggered_at = datetime.utcnow()
+        alert_mock.triggered_at = datetime.now(UTC)
         alert_mock.is_active = False
 
         assert alert_mock.triggered is True
@@ -88,7 +88,9 @@ class TestPriceAlertModel:
         alert_id = uuid4()
 
         # Test the repr format
-        expected_repr = f"<PriceAlert(id={alert_id}, user_id={user_id}, item='Test Item', price=50.0)>"
+        expected_repr = (
+            f"<PriceAlert(id={alert_id}, user_id={user_id}, item='Test Item', price=50.0)>"
+        )
 
         alert_mock = MagicMock()
         alert_mock.__repr__ = MagicMock(return_value=expected_repr)
@@ -200,7 +202,7 @@ class TestPriceAlertModel:
 
     def test_price_alert_with_expiry(self):
         """Test PriceAlert with expiration date."""
-        expires_at = datetime.utcnow() + timedelta(days=30)
+        expires_at = datetime.now(UTC) + timedelta(days=30)
 
         alert_mock = MagicMock()
         alert_mock.expires_at = expires_at
@@ -277,7 +279,7 @@ class TestPriceAlertIntegration:
         alert.condition = "below"
         alert.is_active = True
         alert.triggered = False
-        alert.created_at = datetime.utcnow()
+        alert.created_at = datetime.now(UTC)
 
         # Verify creation
         assert alert.is_active is True
@@ -285,7 +287,7 @@ class TestPriceAlertIntegration:
 
         # Trigger alert
         alert.triggered = True
-        alert.triggered_at = datetime.utcnow()
+        alert.triggered_at = datetime.now(UTC)
         alert.is_active = False
 
         # Verify triggered state
@@ -343,11 +345,11 @@ class TestPriceAlertEdgeCases:
     def test_alert_expired(self):
         """Test PriceAlert that has expired."""
         alert = MagicMock()
-        alert.expires_at = datetime.utcnow() - timedelta(days=1)
+        alert.expires_at = datetime.now(UTC) - timedelta(days=1)
         alert.is_active = True  # Still active but expired
 
         # Check expiration
-        assert alert.expires_at < datetime.utcnow()
+        assert alert.expires_at < datetime.now(UTC)
 
     def test_alert_with_special_characters_in_name(self):
         """Test PriceAlert with special characters in item name."""

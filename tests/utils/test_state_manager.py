@@ -8,7 +8,7 @@ This module contains tests for src/utils/state_manager.py covering:
 Target: 15+ tests to achieve 70%+ coverage
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
@@ -65,7 +65,7 @@ class TestCheckpointData:
         """Test that timestamp is set automatically."""
         # Arrange
         scan_id = uuid4()
-        before = datetime.utcnow()
+        before = datetime.now(UTC)
 
         # Act
         checkpoint = CheckpointData(scan_id=scan_id)

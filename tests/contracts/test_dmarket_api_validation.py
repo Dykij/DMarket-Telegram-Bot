@@ -23,6 +23,7 @@ import pytest
 
 from tests.contracts.conftest import DMarketContracts, is_pact_available
 
+
 # Skip if Pact not available
 pytestmark = pytest.mark.skipif(
     not is_pact_available(),

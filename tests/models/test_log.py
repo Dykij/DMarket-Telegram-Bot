@@ -1,6 +1,6 @@
 """Tests for src/models/log.py module."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import MagicMock
 from uuid import UUID, uuid4
 
@@ -15,7 +15,7 @@ class TestCommandLogModel:
         command_log.user_id = uuid4()
         command_log.command = "start"
         command_log.success = True
-        command_log.created_at = datetime.utcnow()
+        command_log.created_at = datetime.now(UTC)
 
         assert command_log.command == "start"
         assert command_log.success is True
@@ -30,7 +30,7 @@ class TestCommandLogModel:
         command_log.success = True
         command_log.error_message = None
         command_log.execution_time_ms = 150
-        command_log.created_at = datetime.utcnow()
+        command_log.created_at = datetime.now(UTC)
 
         assert command_log.command == "balance"
         assert command_log.parameters == {"currency": "USD"}
@@ -108,7 +108,7 @@ class TestCommandLogModel:
 
     def test_command_log_timestamp(self):
         """Test CommandLog timestamp."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         command_log = MagicMock()
         command_log.created_at = now
@@ -143,7 +143,7 @@ class TestAnalyticsEventModel:
         event.id = uuid4()
         event.user_id = uuid4()
         event.event_type = "page_view"
-        event.created_at = datetime.utcnow()
+        event.created_at = datetime.now(UTC)
 
         assert event.event_type == "page_view"
 
@@ -155,7 +155,7 @@ class TestAnalyticsEventModel:
         event.event_type = "purchase"
         event.event_data = {"item_id": "item_123", "price": 100.0}
         event.session_id = "session_abc123"
-        event.created_at = datetime.utcnow()
+        event.created_at = datetime.now(UTC)
 
         assert event.event_type == "purchase"
         assert event.event_data["item_id"] == "item_123"
@@ -233,7 +233,7 @@ class TestAnalyticsEventModel:
 
     def test_analytics_event_timestamp(self):
         """Test AnalyticsEvent timestamp."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         event = MagicMock()
         event.created_at = now
@@ -282,7 +282,7 @@ class TestLogModelsIntegration:
     def test_command_log_analytics_correlation(self):
         """Test correlation between CommandLog and AnalyticsEvent."""
         user_id = uuid4()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
 
         # Create command log
         command_log = MagicMock()
@@ -314,7 +314,7 @@ class TestLogModelsIntegration:
             log.user_id = user_id
             log.command = cmd
             log.success = True
-            log.created_at = datetime.utcnow()
+            log.created_at = datetime.now(UTC)
             logs.append(log)
 
         # Verify all logs have same user_id
@@ -329,7 +329,7 @@ class TestLogModelsIntegration:
         """Test error logging flow."""
         user_id = uuid4()
         session_id = "session_test"
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
 
         # Command that failed
         command_log = MagicMock()

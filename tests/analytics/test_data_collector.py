@@ -142,7 +142,7 @@ class TestDataCollection:
             {"objects": [{"price": {"USD": "1000"}, "inMarket": 1}] * 100},
             {"objects": [{"price": {"USD": "1000"}, "inMarket": 1}] * 50},  # Last page (< limit)
         ]
-        
+
         # Temporarily replace api_client
         original_api = data_collector.api_client
         data_collector.api_client = mock_api

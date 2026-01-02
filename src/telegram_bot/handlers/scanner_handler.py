@@ -444,8 +444,7 @@ async def handle_all_levels_scan(
                 result["level"] = level  # Добавляем уровень к результату
                 all_results.append(result)
                 profit_percent = result.get("profit_percent", 0)
-                if profit_percent > best_profit:
-                    best_profit = profit_percent
+                best_profit = max(best_profit, profit_percent)
 
         # Сортируем по прибыльности
         all_results.sort(key=lambda x: x.get("profit_percent", 0), reverse=True)

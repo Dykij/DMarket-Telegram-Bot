@@ -7,6 +7,7 @@ import pytest
 
 from src.utils.redis_cache import CacheKey, CacheTTL, HierarchicalCache, RedisCache
 
+
 # ============================================================================
 # Tests: CacheKey
 # ============================================================================

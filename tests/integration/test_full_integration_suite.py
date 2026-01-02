@@ -10,7 +10,7 @@ Phase 5 - Task 3: Integration Testing (24 теста)
 """
 
 import asyncio
-from datetime import datetime
+from datetime import UTC, datetime
 import os
 from unittest.mock import patch
 
@@ -240,7 +240,7 @@ class TestEndToEndWorkflows:
         new_format = {
             "balance": float(old_format["balance"]),
             "items_count": int(old_format["items_count"]),
-            "migrated_at": datetime.utcnow().isoformat(),
+            "migrated_at": datetime.now(UTC).isoformat(),
         }
 
         # Assert

@@ -1,6 +1,6 @@
 """Tests for src/models/market.py module."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock
 from uuid import UUID, uuid4
 
@@ -34,7 +34,7 @@ class TestMarketDataModel:
         market_data.volume_24h = 100
         market_data.market_cap = 150000.0
         market_data.data_source = "steam"
-        market_data.created_at = datetime.utcnow()
+        market_data.created_at = datetime.now(UTC)
 
         assert market_data.item_name == "Dragonclaw Hook"
         assert market_data.price_usd == 1500.0
@@ -96,7 +96,7 @@ class TestMarketDataModel:
 
     def test_market_data_created_at_timestamp(self):
         """Test MarketData created_at timestamp."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         market_data = MagicMock()
         market_data.created_at = now
@@ -115,8 +115,8 @@ class TestMarketDataCacheModel:
         cache.game = "csgo"
         cache.data_type = "items"
         cache.data = {}
-        cache.created_at = datetime.utcnow()
-        cache.expires_at = datetime.utcnow() + timedelta(hours=1)
+        cache.created_at = datetime.now(UTC)
+        cache.expires_at = datetime.now(UTC) + timedelta(hours=1)
 
         assert cache.cache_key == "market_csgo_items"
         assert cache.game == "csgo"
@@ -131,8 +131,8 @@ class TestMarketDataCacheModel:
         cache.item_hash_name = "Dragonclaw Hook"
         cache.data_type = "price_history"
         cache.data = {"prices": [100, 150, 200]}
-        cache.created_at = datetime.utcnow()
-        cache.expires_at = datetime.utcnow() + timedelta(hours=24)
+        cache.created_at = datetime.now(UTC)
+        cache.expires_at = datetime.now(UTC) + timedelta(hours=24)
 
         assert cache.item_hash_name == "Dragonclaw Hook"
         assert cache.data_type == "price_history"
@@ -168,7 +168,7 @@ class TestMarketDataCacheModel:
 
     def test_cache_expiration(self):
         """Test MarketDataCache expiration."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         expires_at = now + timedelta(hours=1)
 
         cache = MagicMock()
@@ -180,7 +180,7 @@ class TestMarketDataCacheModel:
 
     def test_cache_already_expired(self):
         """Test MarketDataCache that has already expired."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         created_at = now - timedelta(hours=2)
         expires_at = now - timedelta(hours=1)
 
@@ -342,8 +342,8 @@ class TestMarketDataCacheIntegration:
         cache.game = "csgo"
         cache.data_type = "items"
         cache.data = {"items": []}
-        cache.created_at = datetime.utcnow()
-        cache.expires_at = datetime.utcnow() + timedelta(hours=1)
+        cache.created_at = datetime.now(UTC)
+        cache.expires_at = datetime.now(UTC) + timedelta(hours=1)
 
         # Verify creation
         assert cache.data == {"items": []}

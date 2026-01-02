@@ -146,35 +146,23 @@ class TestTrackCommand:
 
     def test_track_command_success(self):
         """Тест трекинга успешной команды."""
-        initial = bot_commands_total.labels(
-            command="test_cmd", status="success"
-        )._value._value
+        initial = bot_commands_total.labels(command="test_cmd", status="success")._value._value
         track_command("test_cmd", success=True)
-        final = bot_commands_total.labels(
-            command="test_cmd", status="success"
-        )._value._value
+        final = bot_commands_total.labels(command="test_cmd", status="success")._value._value
         assert final == initial + 1
 
     def test_track_command_failure(self):
         """Тест трекинга неуспешной команды."""
-        initial = bot_commands_total.labels(
-            command="test_cmd", status="failed"
-        )._value._value
+        initial = bot_commands_total.labels(command="test_cmd", status="failed")._value._value
         track_command("test_cmd", success=False)
-        final = bot_commands_total.labels(
-            command="test_cmd", status="failed"
-        )._value._value
+        final = bot_commands_total.labels(command="test_cmd", status="failed")._value._value
         assert final == initial + 1
 
     def test_track_command_default_success(self):
         """Тест что success=True по умолчанию."""
-        initial = bot_commands_total.labels(
-            command="default_test", status="success"
-        )._value._value
+        initial = bot_commands_total.labels(command="default_test", status="success")._value._value
         track_command("default_test")
-        final = bot_commands_total.labels(
-            command="default_test", status="success"
-        )._value._value
+        final = bot_commands_total.labels(command="default_test", status="success")._value._value
         assert final == initial + 1
 
     def test_track_different_commands(self):
@@ -253,15 +241,11 @@ class TestTrackArbitrageScan:
 
     def test_track_arbitrage_scan(self):
         """Тест трекинга arbitrage scan."""
-        initial = arbitrage_opportunities_found.labels(
-            game="csgo", level="standard"
-        )._value._value
+        initial = arbitrage_opportunities_found.labels(game="csgo", level="standard")._value._value
 
         track_arbitrage_scan("csgo", "standard", 5)
 
-        final = arbitrage_opportunities_found.labels(
-            game="csgo", level="standard"
-        )._value._value
+        final = arbitrage_opportunities_found.labels(game="csgo", level="standard")._value._value
 
         assert final == initial + 5
 
@@ -447,15 +431,11 @@ class TestMetricsIntegration:
 
     def test_metrics_persistent_across_calls(self):
         """Тест что метрики сохраняются между вызовами."""
-        initial = bot_commands_total.labels(
-            command="persist_test", status="success"
-        )._value._value
+        initial = bot_commands_total.labels(command="persist_test", status="success")._value._value
 
         track_command("persist_test", success=True)
         track_command("persist_test", success=True)
 
-        final = bot_commands_total.labels(
-            command="persist_test", status="success"
-        )._value._value
+        final = bot_commands_total.labels(command="persist_test", status="success")._value._value
 
         assert final == initial + 2
