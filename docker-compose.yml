@@ -29,13 +29,13 @@ services:
     stop_grace_period: 60s
     # Health check using aiohttp endpoint (Roadmap Task #5)
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health').read()"]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health').read()" ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
     ports:
-      - "8080:8080"  # Health check endpoint
+      - "8080:8080" # Health check endpoint
 
   # PostgreSQL database for analytics and user data
   postgres:
@@ -54,7 +54,7 @@ services:
     networks:
       - bot-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dmarket_user -d dmarket_bot"]
+      test: [ "CMD-SHELL", "pg_isready -U dmarket_user -d dmarket_bot" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -73,12 +73,11 @@ services:
     networks:
       - bot-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
-
   # Optional: Monitoring with Prometheus (uncomment if needed)
   # prometheus:
   #   image: prom/prometheus:latest
@@ -113,5 +112,5 @@ networks:
 volumes:
   postgres_data:
   redis_data:
-  # prometheus_data:
-  # grafana_data:
+    # prometheus_data:
+    # grafana_data:

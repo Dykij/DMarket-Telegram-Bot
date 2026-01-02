@@ -211,14 +211,16 @@ class DMarketAPI:
         # Default retry codes: server errors and too many requests
         self.retry_codes = retry_codes or [429, 500, 502, 503, 504]
 
-        # Connection pool settings
+        # Enhanced connection pool settings (Roadmap Task #7)
         self.pool_limits = pool_limits or httpx.Limits(
-            max_connections=100,
-            max_keepalive_connections=20,
+            max_connections=100,         # Max total connections
+            max_keepalive_connections=20, # Max idle connections to keep
+            keepalive_expiry=30.0,       # Keep connections alive for 30s
         )
 
-        # HTTP client
+        # HTTP client with HTTP/2 support
         self._client: httpx.AsyncClient | None = None
+        self._http2_enabled = True  # Enable HTTP/2 for better performance
 
         # Initialize legacy RateLimiter (kept for backward compatibility)
         self.rate_limiter = RateLimiter(
@@ -259,12 +261,50 @@ class DMarketAPI:
         await self._close_client()
 
     async def _get_client(self) -> httpx.AsyncClient:
-        """Get or create HTTP client."""
+        """Get or create HTTP client with optimized settings.
+        
+        Roadmap Task #7: Connection Pooling
+        - HTTP/2 support for better performance (if h2 package installed)
+        - Connection pooling with keepalive
+        - Optimized timeout settings
+        """
         if self._client is None or self._client.is_closed:
-            self._client = httpx.AsyncClient(
-                timeout=self.connection_timeout,
-                limits=self.pool_limits,
-            )
+            # Try to enable HTTP/2, fallback to HTTP/1.1 if h2 not installed
+            try:
+                self._client = httpx.AsyncClient(
+                    timeout=self.connection_timeout,
+                    limits=self.pool_limits,
+                    http2=self._http2_enabled,  # Try HTTP/2
+                    follow_redirects=True,
+                    verify=True,  # Always verify SSL
+                )
+                
+                logger.debug(
+                    "Created HTTP client: max_connections=%d, "
+                    "max_keepalive=%d, http2=enabled",
+                    self.pool_limits.max_connections,
+                    self.pool_limits.max_keepalive_connections,
+                )
+            except ImportError:
+                # h2 package not installed, fallback to HTTP/1.1
+                logger.info("HTTP/2 not available (h2 package not installed), using HTTP/1.1")
+                self._http2_enabled = False  # Update flag
+                
+                self._client = httpx.AsyncClient(
+                    timeout=self.connection_timeout,
+                    limits=self.pool_limits,
+                    http2=False,
+                    follow_redirects=True,
+                    verify=True,
+                )
+                
+                logger.debug(
+                    "Created HTTP client: max_connections=%d, "
+                    "max_keepalive=%d, http2=disabled",
+                    self.pool_limits.max_connections,
+                    self.pool_limits.max_keepalive_connections,
+                )
+        
         return self._client
 
     async def _close_client(self) -> None:
@@ -272,6 +312,43 @@ class DMarketAPI:
         if self._client is not None and not self._client.is_closed:
             await self._client.aclose()
             self._client = None
+    
+    def get_connection_pool_stats(self) -> dict[str, any]:
+        """Get connection pool statistics.
+        
+        Roadmap Task #7: Connection Pooling Metrics
+        
+        Returns:
+            Dictionary with connection pool stats
+        """
+        if self._client is None or self._client.is_closed:
+            return {
+                "status": "closed",
+                "active_connections": 0,
+                "idle_connections": 0,
+            }
+        
+        # Get stats from connection pool
+        stats = {
+            "status": "active",
+            "max_connections": self.pool_limits.max_connections,
+            "max_keepalive": self.pool_limits.max_keepalive_connections,
+            "keepalive_expiry": self.pool_limits.keepalive_expiry,
+            "http2_enabled": self._http2_enabled,
+        }
+        
+        # Try to get actual connection counts if available
+        try:
+            if hasattr(self._client, "_transport"):
+                transport = self._client._transport
+                if hasattr(transport, "_pool"):
+                    pool = transport._pool
+                    stats["active_connections"] = len(getattr(pool, "_requests", []))
+                    stats["idle_connections"] = len(getattr(pool, "_connections", []))
+        except Exception as e:
+            logger.debug(f"Could not get detailed pool stats: {e}")
+        
+        return stats
 
     def _generate_signature(
         self,
