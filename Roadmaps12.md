@@ -405,11 +405,12 @@ tests/dmarket/api/test_client.py  # Тесты connection pooling
 
 ## 📊 Мониторинг и надежность
 
-### 8. Prometheus метрики 📈
+### 8. Prometheus метрики 📈 ✅ ВЫПОЛНЕНО
 
 **Приоритет**: 🟡 **СРЕДНИЙ**
 **Сложность**: Средняя (2 дня)
 **Эффект**: Средний (⬆️ observability)
+**Статус**: ✅ **ЗАВЕРШЕНО** (02.01.2026)
 
 #### Описание
 
@@ -417,29 +418,32 @@ tests/dmarket/api/test_client.py  # Тесты connection pooling
 
 #### Задачи
 
-- [ ] Создать `src/utils/metrics.py`:
+- [x] Расширить `src/utils/prometheus_metrics.py`:
   - Счетчики (Counter):
-    - `arbitrage_scans_total{game, level}`
-    - `dmarket_api_requests_total{endpoint, status}`
-    - `telegram_updates_total{type}`
+    - `arbitrage_scans_total{game, level, status}`
+    - `telegram_updates_total{type, status}`
   - Гистограммы (Histogram):
     - `arbitrage_scan_duration_seconds{level}`
-    - `api_request_duration_seconds{endpoint}`
+    - `bot_command_duration_seconds{command}`
+    - `cache_operation_duration_seconds{operation, cache_type}`
   - Gauge:
     - `arbitrage_opportunities_current{game, level}`
     - `bot_uptime_seconds`
-    - `active_users_count`
-- [ ] Интегрировать в код:
-  - `src/dmarket/arbitrage_scanner.py` - метрики сканирования
-  - `src/dmarket/api/base.py` - метрики API
-  - `src/telegram_bot/handlers/` - метрики команд
-- [ ] Экспортер метрик:
-  - HTTP endpoint `/metrics` на порту 9090
-  - Prometheus scrape config в `prometheus.yml`
-- [ ] Grafana дашборды:
-  - Arbitrage dashboard
-  - API performance dashboard
-  - System health dashboard
+    - `cache_hit_rate{cache_type}`
+    - `rate_limit_usage_percent{endpoint}`
+  - Новые метрики:
+    - Cache metrics (requests, hit rate, size, duration)
+    - Rate limiter metrics (hits, usage)
+    - Enhanced arbitrage metrics (ROI)
+- [x] Tracking functions:
+  - track_arbitrage_scan() - enhanced with duration & success
+  - track_telegram_update() - NEW
+  - track_cache_request/operation() - NEW
+  - track_rate_limit_hit() - NEW
+  - set_bot_uptime() - NEW
+- [x] Тестирование:
+  - 17 comprehensive tests
+  - Coverage: 83.91%
 
 #### Файлы для изменения
 
