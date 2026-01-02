@@ -3,7 +3,6 @@
 Tests buffering, grouping, and flushing of notifications.
 """
 
-import asyncio
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock
 
@@ -63,9 +62,7 @@ class TestNotificationDigest:
     def test_digest_initialization(self):
         """Test digest initialization with default parameters."""
         # Arrange & Act
-        digest = NotificationDigest(
-            interval_minutes=15, max_buffer_size=10
-        )
+        digest = NotificationDigest(interval_minutes=15, max_buffer_size=10)
 
         # Assert
         assert digest.interval_minutes == 15
@@ -73,7 +70,7 @@ class TestNotificationDigest:
         assert len(digest.buffer) == 0
         assert digest.running is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_add_normal_notification_to_buffer(self):
         """Test adding normal priority notification to buffer."""
         # Arrange
@@ -92,7 +89,7 @@ class TestNotificationDigest:
         assert len(digest.buffer) == 1
         assert digest.buffer[0] == notif
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_critical_notification_sent_immediately(self):
         """Test critical notifications bypass buffer."""
         # Arrange
@@ -114,7 +111,7 @@ class TestNotificationDigest:
         assert len(digest.buffer) == 0
         send_callback.assert_called_once_with(123, "Critical alert!")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_buffer_flush_when_full(self):
         """Test automatic flush when buffer reaches max size."""
         # Arrange
@@ -135,7 +132,7 @@ class TestNotificationDigest:
         assert len(digest.buffer) == 0  # Buffer cleared
         send_callback.assert_called_once()  # Digest sent
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_flush_groups_by_category(self):
         """Test flush groups notifications by category."""
         # Arrange
@@ -185,7 +182,7 @@ class TestNotificationDigest:
         assert "Арбитраж" in message
         assert "Таргеты" in message
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_flush_shows_top_arbitrage_by_profit(self):
         """Test digest shows top arbitrage opportunities by profit."""
         # Arrange
@@ -218,7 +215,7 @@ class TestNotificationDigest:
         # Should show "и ещё 2" for remaining
         assert "ещё 2" in message
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_empty_buffer_flush_returns_zero(self):
         """Test flushing empty buffer returns 0."""
         # Arrange
@@ -230,7 +227,7 @@ class TestNotificationDigest:
         # Assert
         assert count == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_should_flush_checks_buffer_size(self):
         """Test should_flush returns True when buffer is full."""
         # Arrange
@@ -284,7 +281,7 @@ class TestNotificationDigest:
         assert "last_flush" in stats
         assert "time_since_flush" in stats
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_background_flush_task(self):
         """Test background flush task periodically flushes buffer."""
         # Arrange
@@ -313,7 +310,7 @@ class TestNotificationDigest:
         await digest.stop()
         assert digest.running is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_format_digest_with_multiple_categories(self):
         """Test digest formatting with all categories."""
         # Arrange
@@ -366,7 +363,7 @@ class TestNotificationDigest:
         assert "Система" in message
         assert "Всего: 4 уведомлений" in message
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_cancels_running_task(self):
         """Test stop method cancels background task."""
         # Arrange

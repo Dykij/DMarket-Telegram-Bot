@@ -12,20 +12,19 @@ Features:
 Examples:
     >>> from src.telegram_bot.notifications.digest import NotificationDigest
     >>> digest = NotificationDigest(interval_minutes=15, max_buffer_size=10)
-    >>> 
+    >>>
     >>> # Add notifications
     >>> await digest.add(notification1)
     >>> await digest.add(notification2)
-    >>> 
+    >>>
     >>> # Manual flush
     >>> await digest.flush()
-    >>> 
+    >>>
     >>> # Start background flushing
     >>> await digest.start()
 """
 
 import asyncio
-import logging
 from collections import defaultdict
 from datetime import datetime, timedelta
 from enum import Enum
@@ -57,7 +56,7 @@ class NotificationCategory(str, Enum):
 
 class Notification:
     """Single notification object.
-    
+
     Attributes:
         category: Notification category
         priority: Notification priority
@@ -74,7 +73,7 @@ class Notification:
         data: dict[str, Any] | None = None,
     ):
         """Initialize notification.
-        
+
         Args:
             category: Notification category
             priority: Priority level
@@ -100,9 +99,9 @@ class Notification:
 
 class NotificationDigest:
     """Notification digest manager with buffering and grouping.
-    
+
     Reduces spam by grouping multiple notifications into digests.
-    
+
     Attributes:
         interval_minutes: Flush interval in minutes
         max_buffer_size: Max notifications before auto-flush
@@ -118,7 +117,7 @@ class NotificationDigest:
         flush_on_critical: bool = True,
     ):
         """Initialize notification digest.
-        
+
         Args:
             interval_minutes: Time interval for flush (default: 15)
             max_buffer_size: Max buffer size before flush (default: 10)
@@ -142,7 +141,7 @@ class NotificationDigest:
 
     def set_send_callback(self, callback: Any) -> None:
         """Set callback function for sending digests.
-        
+
         Args:
             callback: Async function(user_id, message) to send digest
         """
@@ -150,19 +149,16 @@ class NotificationDigest:
 
     async def add(self, notification: Notification, user_id: int) -> bool:
         """Add notification to buffer.
-        
+
         Args:
             notification: Notification to add
             user_id: Target user ID
-            
+
         Returns:
             True if added to buffer, False if sent immediately
         """
         # Critical notifications bypass buffer
-        if (
-            self.flush_on_critical
-            and notification.priority == NotificationPriority.CRITICAL
-        ):
+        if self.flush_on_critical and notification.priority == NotificationPriority.CRITICAL:
             if self._send_callback:
                 await self._send_callback(user_id, notification.message)
                 logger.info(
@@ -189,10 +185,10 @@ class NotificationDigest:
 
     async def flush(self, user_id: int) -> int:
         """Flush buffer and send digest.
-        
+
         Args:
             user_id: Target user ID
-            
+
         Returns:
             Number of notifications flushed
         """
@@ -225,7 +221,7 @@ class NotificationDigest:
 
     def _group_by_category(self) -> dict[str, list[Notification]]:
         """Group notifications by category.
-        
+
         Returns:
             Dictionary of category -> [notifications]
         """
@@ -236,14 +232,12 @@ class NotificationDigest:
 
         return grouped
 
-    def _format_digest(
-        self, grouped: dict[str, list[Notification]]
-    ) -> str:
+    def _format_digest(self, grouped: dict[str, list[Notification]]) -> str:
         """Format digest message in Markdown.
-        
+
         Args:
             grouped: Grouped notifications
-            
+
         Returns:
             Formatted Markdown message
         """
@@ -306,15 +300,13 @@ class NotificationDigest:
 
         # Footer
         lines.append(f"_Всего: {len(self.buffer)} уведомлений_")
-        lines.append(
-            f"_Период: {self.interval_minutes} минут_"
-        )
+        lines.append(f"_Период: {self.interval_minutes} минут_")
 
         return "\n".join(lines)
 
     async def start(self, user_id: int) -> None:
         """Start background flush task.
-        
+
         Args:
             user_id: Target user ID
         """
@@ -345,7 +337,7 @@ class NotificationDigest:
 
     async def _background_flush(self, user_id: int) -> None:
         """Background task for periodic flush.
-        
+
         Args:
             user_id: Target user ID
         """
@@ -357,7 +349,7 @@ class NotificationDigest:
 
     def should_flush(self) -> bool:
         """Check if digest should be flushed.
-        
+
         Returns:
             True if flush is needed
         """
@@ -374,7 +366,7 @@ class NotificationDigest:
 
     def get_stats(self) -> dict[str, Any]:
         """Get digest statistics.
-        
+
         Returns:
             Dictionary with stats
         """
@@ -384,7 +376,5 @@ class NotificationDigest:
             "max_buffer_size": self.max_buffer_size,
             "last_flush": self.last_flush.isoformat(),
             "running": self.running,
-            "time_since_flush": (
-                datetime.now() - self.last_flush
-            ).total_seconds(),
+            "time_since_flush": (datetime.now() - self.last_flush).total_seconds(),
         }
