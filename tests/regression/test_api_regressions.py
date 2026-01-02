@@ -112,7 +112,7 @@ class TestAPIClientRegressions:
         """
         from src.dmarket.dmarket_api import DMarketAPI
 
-        api = DMarketAPI(public_key="test", secret_key="a" * 64)
+        DMarketAPI(public_key="test", secret_key="a" * 64)
 
         # Test various unicode strings
         unicode_titles = [

@@ -161,7 +161,7 @@ class TestGetMarketDataForItems:
 
         # Act
         with patch("asyncio.sleep", new_callable=AsyncMock):
-            result = await get_market_data_for_items(mock_api, item_ids, "csgo")
+            await get_market_data_for_items(mock_api, item_ids, "csgo")
 
         # Assert
         assert mock_api._request.call_count == 2  # Two batches

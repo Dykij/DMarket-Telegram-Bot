@@ -261,7 +261,7 @@ class TestHandleIntramarketCallback:
             mock_pagination.add_items_for_user.assert_called_once()
 
             # Проверяем, что последнее сообщение содержит результаты
-            last_call_args = edit_message_calls[-1][1]
+            edit_message_calls[-1][1]
             last_call_kwargs = edit_message_calls[-1][2]
             # Результаты будут отформатированы с помощью format_intramarket_results
             assert "reply_markup" in last_call_kwargs

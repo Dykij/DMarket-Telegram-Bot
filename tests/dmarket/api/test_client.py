@@ -681,7 +681,7 @@ class TestDMarketClientRetry:
 
         # Act
         with patch("asyncio.sleep", new_callable=AsyncMock):
-            result = await client._request("GET", "/test")
+            await client._request("GET", "/test")
 
         # Assert
         assert mock_httpx_client.get.call_count >= 2
@@ -711,7 +711,7 @@ class TestDMarketClientRetry:
 
         # Act
         with patch("asyncio.sleep", new_callable=AsyncMock):
-            result = await client._request("GET", "/test")
+            await client._request("GET", "/test")
 
         # Assert
         assert mock_httpx_client.get.call_count == 2
@@ -741,7 +741,7 @@ class TestDMarketClientRetry:
 
         # Act
         with patch("asyncio.sleep", new_callable=AsyncMock):
-            result = await client._request("GET", "/test")
+            await client._request("GET", "/test")
 
         # Assert
         assert mock_httpx_client.get.call_count == 2

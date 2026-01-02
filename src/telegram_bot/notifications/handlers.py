@@ -479,7 +479,6 @@ def register_notification_handlers(
 
     # Start periodic alerts checker
     api = application.bot_data.get("dmarket_api")
-    notification_queue = application.bot_data.get("notification_queue")
 
     if api:
         _ = asyncio.create_task(

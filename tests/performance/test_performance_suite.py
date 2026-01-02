@@ -222,7 +222,7 @@ async def test_connection_pooling_efficiency():
     async def mock_request(*args, **kwargs):
         return {"objects": []}
 
-    with patch.object(api, "_request", new=mock_request) as mock_req:
+    with patch.object(api, "_request", new=mock_request):
         # Make multiple requests
         for _ in range(100):
             await api.get_market_items(game="csgo")
@@ -375,7 +375,7 @@ async def test_complex_query_optimization():
         """
             )
         )
-        rows = result.fetchall()
+        result.fetchall()
     elapsed = time.perf_counter() - start_time
 
     assert (

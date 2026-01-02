@@ -97,7 +97,7 @@ class TestUserProfileManager:
 
     def test_init_creates_data_dir(self) -> None:
         """Test that initialization creates data directory."""
-        manager = UserProfileManager()
+        UserProfileManager()
 
         # DATA_DIR should exist (created during init)
         from src.telegram_bot.user_profiles import DATA_DIR

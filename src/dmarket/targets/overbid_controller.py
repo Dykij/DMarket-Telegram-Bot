@@ -13,7 +13,7 @@
 """
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -84,7 +84,7 @@ class OverbidController:
         if not last_check:
             return True
 
-        elapsed = (datetime.utcnow() - last_check).total_seconds()
+        elapsed = (datetime.now(UTC) - last_check).total_seconds()
         return elapsed >= self.config.check_interval_seconds
 
     async def check_and_overbid(
@@ -130,7 +130,7 @@ class OverbidController:
             )
 
         # Обновить время проверки
-        self.last_check_time[target_id] = datetime.utcnow()
+        self.last_check_time[target_id] = datetime.now(UTC)
 
         # Проверить лимит перебитий за день
         overbids_today = self._count_overbids_today(target_id)
@@ -283,7 +283,7 @@ class OverbidController:
 
                 # Записать в историю
                 history_entry = RelistHistory(
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(UTC),
                     old_price=old_price,
                     new_price=new_price,
                     reason=f"Overbid competitor (was ${old_price:.2f})",
@@ -345,7 +345,7 @@ class OverbidController:
         if target_id not in self.overbid_history:
             return 0
 
-        cutoff_time = datetime.utcnow() - timedelta(hours=24)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=24)
         return sum(1 for entry in self.overbid_history[target_id] if entry.timestamp >= cutoff_time)
 
     def get_overbid_history(self, target_id: str) -> list[RelistHistory]:

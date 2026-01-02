@@ -13,7 +13,7 @@
 """
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -104,7 +104,7 @@ class PriceRangeMonitor:
             return True
 
         config = self.configs[target_id]
-        elapsed = (datetime.utcnow() - last_check).total_seconds()
+        elapsed = (datetime.now(UTC) - last_check).total_seconds()
         return elapsed >= (config.check_interval_minutes * 60)
 
     async def check_market_price(
@@ -149,7 +149,7 @@ class PriceRangeMonitor:
             )
 
         # Обновить время проверки
-        self.last_check_time[target_id] = datetime.utcnow()
+        self.last_check_time[target_id] = datetime.now(UTC)
 
         try:
             # Получить рыночную цену
@@ -399,7 +399,7 @@ class PriceRangeMonitor:
             self.price_history[target_id] = []
 
         self.price_history[target_id].append({
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(UTC),
             "market_price": market_price,
         })
 
@@ -429,7 +429,7 @@ class PriceRangeMonitor:
         if target_id not in self.price_history:
             return []
 
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
         return [
             entry for entry in self.price_history[target_id] if entry["timestamp"] >= cutoff_time
         ]
@@ -489,7 +489,7 @@ class PriceRangeMonitor:
         Returns:
             Количество удаленных записей
         """
-        cutoff_time = datetime.utcnow() - timedelta(days=days)
+        cutoff_time = datetime.now(UTC) - timedelta(days=days)
         removed_count = 0
 
         for target_id in list(self.price_history.keys()):

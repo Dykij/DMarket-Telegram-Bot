@@ -103,7 +103,7 @@ class TestGenerateProfitChart:
         ) as mock_gen:
             mock_gen.return_value = "https://quickchart.io/chart/test"
 
-            result = await generator.generate_profit_chart(data)
+            await generator.generate_profit_chart(data)
 
             # Should still work with defaults
             mock_gen.assert_called_once()
@@ -347,7 +347,6 @@ class TestGenerateChartUrl:
     async def test_generate_chart_url_timeout_error(self) -> None:
         """Test handling of timeout error."""
         generator = ChartGenerator()
-        config = {"type": "line", "data": {"labels": [], "datasets": []}}
 
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
@@ -370,7 +369,6 @@ class TestGenerateChartUrl:
     async def test_generate_chart_url_request_error(self) -> None:
         """Test handling of request error."""
         generator = ChartGenerator()
-        config = {"type": "line"}
 
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()

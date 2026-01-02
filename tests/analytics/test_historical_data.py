@@ -452,10 +452,10 @@ class TestHistoricalDataCollector:
     async def test_collect_price_history_cache_hit(self, collector, mock_api):
         """Test cache hit on second call."""
         # First call
-        result1 = await collector.collect_price_history("csgo", "Item", days=30)
+        await collector.collect_price_history("csgo", "Item", days=30)
 
         # Second call should use cache
-        result2 = await collector.collect_price_history("csgo", "Item", days=30)
+        await collector.collect_price_history("csgo", "Item", days=30)
 
         # API should only be called once
         assert mock_api.get_sales_history.call_count == 1
@@ -591,7 +591,7 @@ class TestHistoricalDataCollector:
         """Test aggregated collection with empty response."""
         mock_api.get_aggregated_prices_bulk.return_value = {}
 
-        result = await collector.collect_price_history("csgo", "Item", days=30)
+        await collector.collect_price_history("csgo", "Item", days=30)
 
         # Only sales history points (if any), no aggregated
         mock_api.get_aggregated_prices_bulk.assert_called_once()

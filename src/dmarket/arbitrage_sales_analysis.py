@@ -975,7 +975,7 @@ async def analyze_item_liquidity(
         }
 
 
-async def enhanced_arbitrage_search(
+def enhanced_arbitrage_search(
     game: str = "csgo",
     min_profit: float = 1.0,
     api_client: DMarketAPI | None = None,
@@ -997,7 +997,7 @@ async def enhanced_arbitrage_search(
     return []
 
 
-async def get_sales_volume_stats(
+def get_sales_volume_stats(
     game: str = "csgo",
     api_client: DMarketAPI | None = None,
 ) -> dict[str, Any]:

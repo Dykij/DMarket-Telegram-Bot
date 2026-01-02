@@ -79,7 +79,7 @@ class TestSafeMigrator:
                 returncode=0,
             )
 
-            result = migrator.run_alembic_command("upgrade", "head")
+            migrator.run_alembic_command("upgrade", "head")
 
             mock_run.assert_called_once_with(
                 ["alembic", "upgrade", "head"],
@@ -219,7 +219,7 @@ class TestSafeMigrator:
             patch.object(migrator, "check_data_integrity") as mock_integrity,
             patch.object(migrator, "create_backup") as mock_backup,
             patch.object(migrator, "run_alembic_command") as mock_alembic,
-            patch.object(migrator, "verify_migration") as mock_verify,
+            patch.object(migrator, "verify_migration"),
         ):
             mock_current.return_value = "abc123"
             mock_integrity.return_value = {

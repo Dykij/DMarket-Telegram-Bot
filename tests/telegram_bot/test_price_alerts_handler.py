@@ -704,7 +704,7 @@ class TestIntegrationScenarios:
         self, price_alerts_handler, mock_update, mock_context
     ):
         """Тест полного процесса создания оповещения."""
-        user_id = str(mock_update.effective_user.id)
+        str(mock_update.effective_user.id)
 
         # Шаг 1: Начало создания
         result1 = await price_alerts_handler.handle_add_alert_callback(

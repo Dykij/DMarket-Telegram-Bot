@@ -12,7 +12,7 @@ and load balancers to check if bot is alive and all services are operational.
 Roadmap Task #5: Health Check Endpoint
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 import logging
 import time
 from typing import Any
@@ -156,7 +156,7 @@ class HealthCheckServer:
             "checks": checks,
             "uptime_seconds": uptime_seconds,
             "version": self.version,
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(UTC).isoformat() + "Z",
         }
 
         status_code = 200 if all_healthy else 503
@@ -214,7 +214,7 @@ class HealthCheckServer:
                 if self.last_update_time
                 else None
             ),
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(UTC).isoformat() + "Z",
         }
 
         return web.json_response(response_data, status=200)

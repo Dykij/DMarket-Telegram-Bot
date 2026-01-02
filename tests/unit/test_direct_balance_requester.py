@@ -77,7 +77,7 @@ class TestBalanceRequest:
         mock_response.status_code = 200
         mock_response.json.return_value = sample_balance_response
 
-        client = await mock_client_func()
+        await mock_client_func()
 
         with patch(
             "src.dmarket.direct_balance_requester.call_with_circuit_breaker",

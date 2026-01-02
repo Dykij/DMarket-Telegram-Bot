@@ -137,7 +137,7 @@ class TestPriceAlertsHandlerInit:
         with patch(
             "src.telegram_bot.handlers.price_alerts_handler.RealtimePriceWatcher"
         ) as mock_watcher:
-            handler = PriceAlertsHandler(mock_api_client)
+            PriceAlertsHandler(mock_api_client)
             mock_watcher.assert_called_once_with(mock_api_client)
 
     def test_init_watcher_not_started(self, price_alerts_handler):

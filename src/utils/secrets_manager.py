@@ -5,7 +5,7 @@ Provides secure secrets handling with encryption, rotation, and audit logging.
 """
 
 import base64
-from datetime import datetime
+from datetime import UTC, datetime
 import json
 import logging
 from pathlib import Path
@@ -181,7 +181,7 @@ class SecretsManager:
             action: Action performed (ENCRYPT, DECRYPT, ROTATE, DELETE)
             secret_name: Name of the secret
         """
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.now(UTC).isoformat()
         log_entry = f"{timestamp} | {action} | {secret_name}\n"
 
         try:

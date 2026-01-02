@@ -166,7 +166,7 @@ class TestGetCurrentPrice:
         with patch(
             "src.telegram_bot.notifications.checker.get_storage", return_value=storage
         ):
-            price = await get_current_price(
+            await get_current_price(
                 api=mock_api,
                 item_id="item123",
                 game="csgo",
@@ -426,7 +426,7 @@ class TestCheckAllAlerts:
             ):
                 # Should not raise exception
                 try:
-                    results = await check_all_alerts(api=mock_api, bot=mock_bot)
+                    await check_all_alerts(api=mock_api, bot=mock_bot)
                 except Exception:
                     pass  # May or may not raise
 
@@ -706,7 +706,7 @@ class TestCheckerIntegration:
     @pytest.mark.asyncio()
     async def test_full_alert_check_flow(self, mock_api, mock_storage):
         """Test full flow: get price -> check alert -> return result."""
-        mock_bot = AsyncMock()
+        AsyncMock()
 
         # Setup mock to return price below threshold
         with patch(

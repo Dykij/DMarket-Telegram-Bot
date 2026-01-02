@@ -536,7 +536,7 @@ class TestArbitrageScannerPerformance:
                 status_code=200,
             )
 
-        scanner = ArbitrageScanner(mock_dmarket_api)
+        ArbitrageScanner(mock_dmarket_api)
 
         import time
 

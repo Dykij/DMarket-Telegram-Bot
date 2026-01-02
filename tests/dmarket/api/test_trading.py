@@ -218,7 +218,7 @@ class TestSellItem:
         mock_request.return_value = {"success": True}
 
         # Act
-        result = await trading_mixin_live.sell_item(
+        await trading_mixin_live.sell_item(
             item_id="asset_123",
             price=30.00,
             game="dota2",
@@ -246,7 +246,7 @@ class TestEditOffer:
         new_price = 35.00
 
         # Act
-        result = await trading_mixin.edit_offer(offer_id=offer_id, new_price=new_price)
+        await trading_mixin.edit_offer(offer_id=offer_id, new_price=new_price)
 
         # Assert
         mock_request.assert_called_once()
@@ -270,7 +270,7 @@ class TestDeleteOffer:
         offer_id = "offer_123"
 
         # Act
-        result = await trading_mixin.delete_offer(offer_id=offer_id)
+        await trading_mixin.delete_offer(offer_id=offer_id)
 
         # Assert
         mock_request.assert_called_once()
@@ -304,7 +304,7 @@ class TestGetActiveOffers:
         mock_request.return_value = {"offers": [], "total": 0}
 
         # Act
-        result = await trading_mixin.get_active_offers(
+        await trading_mixin.get_active_offers(
             game="csgo",
             limit=50,
             offset=10,

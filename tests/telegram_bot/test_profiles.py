@@ -241,7 +241,7 @@ class TestGetUserProfile:
 
         with patch.object(profiles, "USER_PROFILES", {}):
             with patch.object(profiles, "save_user_profiles"):
-                profile = profiles.get_user_profile(12345)
+                profiles.get_user_profile(12345)
 
                 # Profile should be stored with string key
                 assert "12345" in profiles.USER_PROFILES

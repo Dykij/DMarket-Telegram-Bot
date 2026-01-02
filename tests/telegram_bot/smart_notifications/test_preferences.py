@@ -241,7 +241,7 @@ class TestSaveUserPreferences:
         mock_dir.exists.return_value = True
 
         with patch(f"{PREFERENCES_MODULE}.DATA_DIR", mock_dir):
-            with patch("builtins.open", mock_open()) as mocked_file:
+            with patch("builtins.open", mock_open()):
                 with patch("json.dump") as mock_json_dump:
                     save_user_preferences()
                     mock_json_dump.assert_called_once()

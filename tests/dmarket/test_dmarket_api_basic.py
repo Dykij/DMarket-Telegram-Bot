@@ -377,7 +377,7 @@ class TestDMarketAPIDryRun:
 
     def test_dry_run_mode_logged(self, caplog):
         """Тест что dry_run режим логируется."""
-        api = DMarketAPI(
+        DMarketAPI(
             public_key="test_public",
             secret_key="test_secret",
             dry_run=True,

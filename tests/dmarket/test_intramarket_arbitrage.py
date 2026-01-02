@@ -139,7 +139,7 @@ async def test_find_price_anomalies_filter_by_price(
     """Тест фильтрации по цене."""
     mock_dmarket_api.get_market_items.return_value = sample_market_items
 
-    results = await find_price_anomalies(
+    await find_price_anomalies(
         game="csgo",
         dmarket_api=mock_dmarket_api,
         min_price=20.0,
@@ -420,7 +420,7 @@ async def test_find_mispriced_rare_items_price_filter(
     """Тест фильтрации по цене."""
     mock_dmarket_api.get_market_items.return_value = sample_rare_items
 
-    results = await find_mispriced_rare_items(
+    await find_mispriced_rare_items(
         game="csgo",
         dmarket_api=mock_dmarket_api,
         min_price=100.0,

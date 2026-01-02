@@ -137,7 +137,7 @@ class TestErrorRecoveryWorkflows:
         """Test database transaction rollback on error."""
         try:
             # Attempt invalid operation
-            user = await test_database.get_or_create_user(
+            await test_database.get_or_create_user(
                 telegram_id=None,  # type: ignore[arg-type]
                 username="invalid",
             )
@@ -214,7 +214,6 @@ class TestCachingBehavior:
 
             # Second call (might be cached)
             await mock_dmarket_api.get_market_items(game="csgo")
-            second_count = call_count
 
             # At least first call should have been made
             assert first_count >= 1
@@ -274,7 +273,7 @@ class TestNotificationWorkflows:
     ) -> None:
         """Test price alert trigger workflow."""
         # Create user
-        user = await test_database.get_or_create_user(
+        await test_database.get_or_create_user(
             telegram_id=12345, username="test"
         )
 

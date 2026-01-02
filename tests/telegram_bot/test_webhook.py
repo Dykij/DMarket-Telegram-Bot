@@ -263,7 +263,7 @@ def test_webhook_config_warns_on_non_standard_port(caplog):
     import logging
 
     with caplog.at_level(logging.WARNING):
-        config = WebhookConfig(url="https://bot.example.com", port=9000)
+        WebhookConfig(url="https://bot.example.com", port=9000)
 
     assert "not recommended" in caplog.text
 

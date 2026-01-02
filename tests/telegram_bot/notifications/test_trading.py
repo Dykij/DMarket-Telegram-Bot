@@ -520,7 +520,6 @@ class TestSendSellSuccessNotification:
         user_id = 123456789
         sell_price = 20.00
         buy_price = 15.00
-        expected_profit = 5.00
 
         with patch(
             "src.telegram_bot.notifications.trading.increment_notification_count"

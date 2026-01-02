@@ -426,7 +426,7 @@ class TestTimerPrecision:
             times.append(t.elapsed)
 
         # Все времена должны быть примерно одинаковыми
-        avg_time = sum(times) / len(times)
+        sum(times) / len(times)
         for t in times:
             assert 0.005 < t < 0.05
 

@@ -511,7 +511,7 @@ class TestIntegration:
             return_value=mock_storage,
         ):
             # Add an alert
-            new_alert = await add_price_alert(
+            await add_price_alert(
                 user_id=12345,
                 item_id="item1",
                 title="Test Item",

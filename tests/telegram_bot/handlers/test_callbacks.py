@@ -555,7 +555,6 @@ class TestHandleMarketComparisonImpl:
 
         # Assert
         mock_update.callback_query.edit_message_text.assert_called_once()
-        call_args = mock_update.callback_query.edit_message_text.call_args
         # Проверяем что вызов был сделан (заглушка может содержать любой текст)
 
 

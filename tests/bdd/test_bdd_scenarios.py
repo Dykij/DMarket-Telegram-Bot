@@ -144,7 +144,6 @@ class TestArbitrageScanningFeature:
         """
         # Given
         trading_system["credentials"] = {"public_key": "test", "secret_key": "test"}
-        games = ["csgo", "dota2", "rust"]
 
         # Mock opportunities per game
         all_opportunities = [

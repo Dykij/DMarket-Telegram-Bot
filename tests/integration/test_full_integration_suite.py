@@ -62,7 +62,7 @@ class TestEndToEndWorkflows:
         """Тест полного workflow таргетов: создание → мониторинг → исполнение."""
         # Arrange
         api = DMarketAPI(public_key="test", secret_key="test")
-        target_manager = TargetManager(api_client=api)
+        TargetManager(api_client=api)
 
         # Mock the actual create_targets method from API
         with patch.object(api, "create_targets") as mock_create:
@@ -271,7 +271,7 @@ class TestExternalServicesIntegration:
     async def test_httpx_client_integration(self):
         """Тест интеграции с httpx клиентом."""
         # Arrange & Act
-        async with AsyncClient() as client:
+        async with AsyncClient():
             # Simple connectivity test
             pass
 
@@ -342,8 +342,6 @@ class TestExternalServicesIntegration:
     async def test_file_storage_integration(self):
         """Тест интеграции с файловым хранилищем."""
         # Arrange
-        test_file = "test_data.json"
-        test_data = {"test": "data"}
 
         # Act - проверка возможности записи
         storage_available = os.path.exists(os.path.dirname(__file__) or ".")

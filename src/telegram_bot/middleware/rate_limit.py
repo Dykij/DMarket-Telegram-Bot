@@ -1,7 +1,7 @@
 """Rate limiting middleware for Telegram bot."""
 
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from aiolimiter import AsyncLimiter
 import structlog
@@ -59,7 +59,7 @@ class RateLimiterMiddleware:
 
     def _record_violation(self, user_id: int) -> None:
         """Record rate limit violation."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         self.violations[user_id].append(now)
 
         cutoff = now - timedelta(hours=1)

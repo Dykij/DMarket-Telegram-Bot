@@ -170,7 +170,7 @@ class TestCircuitBreakerStats:
 
     def test_stats_contain_required_fields(self):
         """Test that stats contain all required fields."""
-        breaker = get_circuit_breaker(EndpointType.MARKET)
+        get_circuit_breaker(EndpointType.MARKET)
         stats = get_circuit_breaker_stats()
         
         assert "market" in stats
@@ -191,7 +191,6 @@ class TestCircuitBreakerReset:
         
         # Open circuit manually
         breaker.open()
-        initial_state = breaker.current_state
         
         # Reset should close it
         reset_circuit_breaker(EndpointType.BALANCE)

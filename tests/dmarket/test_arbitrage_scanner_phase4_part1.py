@@ -459,7 +459,6 @@ class TestHelperMethods:
 
     def test_cache_ttl_property_setter(self, scanner):
         """Тест setter для cache_ttl."""
-        original_ttl = scanner.cache_ttl
         new_ttl = 600
 
         scanner.cache_ttl = new_ttl

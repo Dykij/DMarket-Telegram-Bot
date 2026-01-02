@@ -136,12 +136,6 @@ class TestNotificationFilteringIntegration:
         # Disable price_rise notifications
         mock_user_settings["notification_types"]["price_rise"] = False
 
-        notification = {
-            "type": "price_rise",
-            "item": "Test Item",
-            "old_price": 10.00,
-            "new_price": 15.00,
-        }
 
         # Should be filtered out
         enabled = mock_user_settings["notification_types"].get("price_rise", True)

@@ -90,7 +90,7 @@ class TestGetMarketItems:
         mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        result = await market_mixin.get_market_items(game="dota2")
+        await market_mixin.get_market_items(game="dota2")
 
         # Assert
         call_args = mock_request.call_args
@@ -103,7 +103,7 @@ class TestGetMarketItems:
         mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        result = await market_mixin.get_market_items(limit=50, offset=100)
+        await market_mixin.get_market_items(limit=50, offset=100)
 
         # Assert
         call_args = mock_request.call_args
@@ -117,7 +117,7 @@ class TestGetMarketItems:
         mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        result = await market_mixin.get_market_items(price_from=5.0, price_to=20.0)
+        await market_mixin.get_market_items(price_from=5.0, price_to=20.0)
 
         # Assert
         call_args = mock_request.call_args
@@ -132,7 +132,7 @@ class TestGetMarketItems:
         mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        result = await market_mixin.get_market_items(title="AK-47")
+        await market_mixin.get_market_items(title="AK-47")
 
         # Assert
         call_args = mock_request.call_args
@@ -145,10 +145,9 @@ class TestGetMarketItems:
         mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        result = await market_mixin.get_market_items(sort="price_desc")
+        await market_mixin.get_market_items(sort="price_desc")
 
         # Assert
-        call_args = mock_request.call_args
         # Sort is handled by the method
         assert mock_request.called
 
@@ -186,7 +185,7 @@ class TestGetMarketItems:
         mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        result = await market_mixin.get_market_items(currency="EUR")
+        await market_mixin.get_market_items(currency="EUR")
 
         # Assert
         call_args = mock_request.call_args
@@ -219,7 +218,7 @@ class TestListMarketItems:
         mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        result = await market_mixin.list_market_items(limit=50)
+        await market_mixin.list_market_items(limit=50)
 
         # Assert
         call_args = mock_request.call_args
@@ -232,7 +231,7 @@ class TestListMarketItems:
         mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        result = await market_mixin.list_market_items(
+        await market_mixin.list_market_items(
             game_id="rust_game_id",
             limit=25,
             title="Rifle",
@@ -271,7 +270,7 @@ class TestGetMarketBestOffers:
         mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        result = await market_mixin.get_market_best_offers(game="tf2")
+        await market_mixin.get_market_best_offers(game="tf2")
 
         # Assert
         call_args = mock_request.call_args
@@ -304,7 +303,7 @@ class TestGetAggregatedPrices:
         mock_request.return_value = {"objects": []}
 
         # Act
-        result = await market_mixin.get_aggregated_prices(
+        await market_mixin.get_aggregated_prices(
             titles=["AK-47"],
             game_id="custom_game_id",
         )
@@ -397,7 +396,7 @@ class TestGetMarketMeta:
         mock_request.return_value = {"categories": [], "games": ["csgo"]}
 
         # Act
-        result = await market_mixin.get_market_meta(game="csgo")
+        await market_mixin.get_market_meta(game="csgo")
 
         # Assert
         call_args = mock_request.call_args
@@ -433,7 +432,7 @@ class TestGetSalesHistoryAggregator:
         mock_request.return_value = {"sales": []}
 
         # Act
-        result = await market_mixin.get_sales_history_aggregator(
+        await market_mixin.get_sales_history_aggregator(
             title="AWP | Dragon Lore",
             period="7D",
         )
@@ -487,7 +486,7 @@ class TestMarketOperationsEdgeCases:
         mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        result = await market_mixin.get_market_items(
+        await market_mixin.get_market_items(
             title="AK-47 | Redline (Field-Tested)"
         )
 
@@ -517,7 +516,7 @@ class TestMarketOperationsEdgeCases:
         mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        result = await market_mixin.get_market_items(price_from=10.0)
+        await market_mixin.get_market_items(price_from=10.0)
 
         # Assert
         call_args = mock_request.call_args
@@ -532,7 +531,7 @@ class TestMarketOperationsEdgeCases:
         mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        result = await market_mixin.get_market_items(price_to=50.0)
+        await market_mixin.get_market_items(price_to=50.0)
 
         # Assert
         call_args = mock_request.call_args

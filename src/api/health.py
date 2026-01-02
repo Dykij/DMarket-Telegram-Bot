@@ -1,6 +1,6 @@
 """Health check endpoints for production monitoring."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import text
@@ -58,11 +58,11 @@ async def check_dmarket_api(api_client: Any) -> HealthCheckResult:
         return HealthCheckResult(name="dmarket_api", healthy=False, message=str(e))
 
 
-async def liveness_check() -> dict[str, Any]:
+def liveness_check() -> dict[str, Any]:
     """Basic liveness check."""
     return {
         "status": "ok",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
@@ -82,6 +82,6 @@ async def readiness_check(
 
     return {
         "status": "ready" if all_healthy else "not_ready",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "checks": [check.to_dict() for check in checks],
     }

@@ -68,7 +68,7 @@ async def find_price_anomalies(
             await _close_api_client(api_client)
 
 
-async def _init_api_client(
+def _init_api_client(
     dmarket_api: DMarketAPI | None,
 ) -> tuple[DMarketAPI, bool]:
     """Initialize API client if needed.

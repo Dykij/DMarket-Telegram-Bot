@@ -547,7 +547,7 @@ class TestAutoSellerStatistics:
     async def test_statistics_tracking(self, auto_seller: AutoSeller) -> None:
         """Test that statistics are tracked correctly."""
         # Schedule a sale
-        sale = await auto_seller.schedule_sale(
+        await auto_seller.schedule_sale(
             item_id="item_123",
             item_name="Test Item",
             buy_price=10.00,

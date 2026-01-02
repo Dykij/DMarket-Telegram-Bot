@@ -9,7 +9,7 @@
 Документация: docs/TARGET_ENHANCEMENTS_README.md
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -76,7 +76,7 @@ class RelistManager:
             self.relist_data[target_id] = {
                 "count": 0,
                 "history": [],
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(UTC),
                 "last_relist_time": None,
                 "paused": False,
             }
@@ -120,7 +120,7 @@ class RelistManager:
         """
         data = self._get_or_create_data(target_id)
         created_at = data["created_at"]
-        current_time = datetime.utcnow()
+        current_time = datetime.now(UTC)
 
         # Рассчитать время сброса
         reset_time = created_at + timedelta(hours=self.config.reset_period_hours)
@@ -175,7 +175,7 @@ class RelistManager:
 
         # Создать запись истории
         history_entry = RelistHistory(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             old_price=old_price,
             new_price=new_price,
             reason=reason,
@@ -184,7 +184,7 @@ class RelistManager:
 
         # Обновить данные
         data["count"] += 1
-        data["last_relist_time"] = datetime.utcnow()
+        data["last_relist_time"] = datetime.now(UTC)
         data["history"].append(history_entry)
 
         current_count = data["count"]
@@ -355,7 +355,7 @@ class RelistManager:
         """
         data = self._get_or_create_data(target_id)
         created_at = data["created_at"]
-        current_time = datetime.utcnow()
+        current_time = datetime.now(UTC)
 
         reset_time = created_at + timedelta(hours=self.config.reset_period_hours)
         time_until_reset = reset_time - current_time
@@ -394,7 +394,7 @@ class RelistManager:
         if target_id in self.relist_data:
             data = self.relist_data[target_id]
             data["count"] = 0
-            data["created_at"] = datetime.utcnow()
+            data["created_at"] = datetime.now(UTC)
             data["paused"] = False
             data["history"] = []
             logger.info(f"Manually reset relist counter for {target_id}")
@@ -426,7 +426,7 @@ class RelistManager:
         Returns:
             Количество удаленных записей
         """
-        cutoff_time = datetime.utcnow() - timedelta(days=days)
+        cutoff_time = datetime.now(UTC) - timedelta(days=days)
         removed_count = 0
 
         for target_id in list(self.relist_data.keys()):

@@ -437,7 +437,6 @@ async def handle_all_levels_scan(
         # Подсчитываем статистику
         total_opportunities = sum(len(results) for results in results_by_level.values())
         best_profit = 0.0
-        best_item = None
 
         all_results = []
         for level, results in results_by_level.items():
@@ -447,7 +446,6 @@ async def handle_all_levels_scan(
                 profit_percent = result.get("profit_percent", 0)
                 if profit_percent > best_profit:
                     best_profit = profit_percent
-                    best_item = result
 
         # Сортируем по прибыльности
         all_results.sort(key=lambda x: x.get("profit_percent", 0), reverse=True)

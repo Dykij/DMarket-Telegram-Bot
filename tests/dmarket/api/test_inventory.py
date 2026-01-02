@@ -79,7 +79,7 @@ class TestGetUserInventory:
         mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        result = await inventory_mixin.get_user_inventory(game="dota2")
+        await inventory_mixin.get_user_inventory(game="dota2")
 
         # Assert
         call_args = mock_request.call_args
@@ -94,7 +94,7 @@ class TestGetUserInventory:
         mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        result = await inventory_mixin.get_user_inventory(limit=50, offset=100)
+        await inventory_mixin.get_user_inventory(limit=50, offset=100)
 
         # Assert
         call_args = mock_request.call_args
@@ -115,7 +115,7 @@ class TestListUserInventory:
         mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        result = await inventory_mixin.list_user_inventory()
+        await inventory_mixin.list_user_inventory()
 
         # Assert
         mock_request.assert_called_once()
@@ -132,7 +132,7 @@ class TestListUserInventory:
         mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        result = await inventory_mixin.list_user_inventory(game_id="custom_game_id")
+        await inventory_mixin.list_user_inventory(game_id="custom_game_id")
 
         # Assert
         call_args = mock_request.call_args
@@ -147,7 +147,7 @@ class TestListUserInventory:
         mock_request.return_value = {"objects": [], "total": "0"}
 
         # Act
-        result = await inventory_mixin.list_user_inventory(limit=25, offset=50)
+        await inventory_mixin.list_user_inventory(limit=25, offset=50)
 
         # Assert
         call_args = mock_request.call_args
@@ -184,7 +184,7 @@ class TestDepositAssets:
         asset_ids = ["asset_1", "asset_2", "asset_3"]
 
         # Act
-        result = await inventory_mixin.deposit_assets(asset_ids=asset_ids)
+        await inventory_mixin.deposit_assets(asset_ids=asset_ids)
 
         # Assert
         mock_request.assert_called_once()
@@ -199,7 +199,7 @@ class TestDepositAssets:
         mock_request.return_value = {"error": True, "message": "No assets provided"}
 
         # Act
-        result = await inventory_mixin.deposit_assets(asset_ids=[])
+        await inventory_mixin.deposit_assets(asset_ids=[])
 
         # Assert
         mock_request.assert_called_once()

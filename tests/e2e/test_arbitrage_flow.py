@@ -238,7 +238,7 @@ class TestTradeExecutionFlow:
             }
         )
 
-        scanner = ArbitrageScanner(api_client=mock_dmarket_api)
+        ArbitrageScanner(api_client=mock_dmarket_api)
 
         # Act: Get balance
         balance = await mock_dmarket_api.get_balance()

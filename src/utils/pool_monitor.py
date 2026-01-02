@@ -5,7 +5,7 @@ Provides monitoring for database, Redis, and HTTP client connection pools.
 """
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 import logging
 from typing import Any
 
@@ -76,7 +76,7 @@ class PoolMonitor:
             overflow=overflow,
             max_overflow=pool._max_overflow,
             utilization_percent=utilization,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
 
     def get_redis_stats(self, redis_client) -> PoolStats:
@@ -119,7 +119,7 @@ class PoolMonitor:
                 overflow=0,
                 max_overflow=0,
                 utilization_percent=utilization,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC),
             )
         except Exception as e:
             logger.exception(f"Failed to get Redis pool stats: {e}")
@@ -132,7 +132,7 @@ class PoolMonitor:
                 overflow=0,
                 max_overflow=0,
                 utilization_percent=0,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC),
             )
 
     def get_httpx_stats(self, client) -> PoolStats:
@@ -163,7 +163,7 @@ class PoolMonitor:
                 overflow=0,
                 max_overflow=max_connections - max_keepalive,
                 utilization_percent=0,  # Not easily calculable
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC),
             )
         except Exception as e:
             logger.exception(f"Failed to get httpx pool stats: {e}")
@@ -176,7 +176,7 @@ class PoolMonitor:
                 overflow=0,
                 max_overflow=0,
                 utilization_percent=0,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC),
             )
 
     def get_all_stats(self) -> dict[str, PoolStats]:

@@ -485,7 +485,7 @@ class TestWalletGetBalance:
         wallet_client._request = AsyncMock(side_effect=mock_request_side_effect)
 
         # Act
-        result = await wallet_client.get_balance()
+        await wallet_client.get_balance()
 
         # Assert
         assert call_count >= 1  # Should try at least one endpoint

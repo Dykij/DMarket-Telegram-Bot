@@ -279,7 +279,7 @@ class TestScoreOpportunity:
             "absolute_profit": 6.0,
             "buy_price": 10.0,
         }
-        low_score = score_opportunity(low_profit_opp)
+        score_opportunity(low_profit_opp)
         high_score = score_opportunity(high_profit_opp)
         # High profit should be penalized, so might have lower score ratio
         assert high_score < high_profit_opp["profit_percent"] * 1.0

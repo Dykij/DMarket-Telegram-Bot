@@ -102,7 +102,7 @@ class TestChangelogGenerator:
         )
 
         generator = ChangelogGenerator(since="v1.0.0")
-        commits = generator.get_commits()
+        generator.get_commits()
 
         # Проверяем что команда содержит диапазон
         call_args = mock_run.call_args[0][0]

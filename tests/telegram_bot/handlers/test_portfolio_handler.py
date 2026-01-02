@@ -631,7 +631,7 @@ class TestEdgeCases:
         mock_update.message.text = "Item, Part2, csgo, 10.00"
 
         # Should handle gracefully (might combine "Item, Part2" as title or fail)
-        result = await portfolio_handler.handle_add_item_id(mock_update, mock_context)
+        await portfolio_handler.handle_add_item_id(mock_update, mock_context)
         # Just verify it doesn't raise an exception
 
     @pytest.mark.asyncio()

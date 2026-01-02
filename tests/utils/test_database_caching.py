@@ -38,7 +38,7 @@ class TestDatabaseCachedQueries:
     async def test_get_user_by_telegram_id_cached_basic(self, db_manager):
         """Тест базового кэширования get_user_by_telegram_id."""
         # Create user
-        user = await db_manager.get_or_create_user(
+        await db_manager.get_or_create_user(
             telegram_id=123456789,
             username="test_user",
             first_name="Test",
@@ -301,7 +301,7 @@ class TestCacheConsistency:
     async def test_cache_consistency_after_update(self, db_manager):
         """Тест консистентности после обновления данных."""
         # Create user
-        user = await db_manager.get_or_create_user(
+        await db_manager.get_or_create_user(
             telegram_id=123456789, username="original_name"
         )
 
@@ -310,7 +310,7 @@ class TestCacheConsistency:
         assert cached_1.username == "original_name"
 
         # Update via get_or_create_user (which should invalidate cache)
-        updated_user = await db_manager.get_or_create_user(
+        await db_manager.get_or_create_user(
             telegram_id=123456789, username="updated_name"
         )
 

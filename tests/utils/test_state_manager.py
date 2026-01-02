@@ -473,7 +473,7 @@ class TestLocalStateManager:
         state_dir = tmp_path / "new_dir"
 
         # Act
-        manager = LocalStateManager(state_dir=state_dir)
+        LocalStateManager(state_dir=state_dir)
 
         # Assert
         assert state_dir.exists()

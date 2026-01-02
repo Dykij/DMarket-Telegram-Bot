@@ -590,7 +590,7 @@ class TestBacktester:
 
         assert results.strategy_name == strategy.name
         # Should have processed both items
-        item_ids = {t.item_id for t in results.trades}
+        {t.item_id for t in results.trades}
         # At least some trades should have occurred
         assert len(results.equity_curve) > 0
 

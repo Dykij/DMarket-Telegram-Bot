@@ -157,7 +157,7 @@ class TestArbitrageScannerBasicOperations:
         mock_api = MagicMock(spec=DMarketAPI)
         mock_api.get_market_items = AsyncMock(return_value={"objects": []})
 
-        scanner = ArbitrageScanner(api_client=mock_api)
+        ArbitrageScanner(api_client=mock_api)
 
         # Проверка поддержки всех игр
         games = ["csgo", "dota2", "tf2", "rust"]
@@ -170,7 +170,7 @@ class TestArbitrageScannerFiltering:
 
     def test_filter_by_min_profit(self):
         """Тест фильтрации по минимальной прибыли."""
-        scanner = ArbitrageScanner()
+        ArbitrageScanner()
 
         opportunities = [
             {"profit_percent": 5.0, "title": "Item1"},
@@ -186,7 +186,7 @@ class TestArbitrageScannerFiltering:
 
     def test_filter_by_price_range(self):
         """Тест фильтрации по диапазону цен."""
-        scanner = ArbitrageScanner()
+        ArbitrageScanner()
 
         opportunities = [
             {"buy_price": 5.0, "title": "Item1"},
@@ -211,7 +211,7 @@ class TestArbitrageScannerCaching:
 
     def test_cache_saves_results(self):
         """Тест сохранения результатов в кэш."""
-        scanner = ArbitrageScanner()
+        ArbitrageScanner()
 
         cache_key = "test_cache_key"
         test_data = [{"item": "test"}]
@@ -228,7 +228,7 @@ class TestArbitrageScannerCaching:
 
     def test_cache_retrieves_results(self):
         """Тест получения результатов из кэша."""
-        scanner = ArbitrageScanner()
+        ArbitrageScanner()
 
         cache_key = "test_cache_key"
         test_data = [{"item": "test"}]
@@ -332,7 +332,7 @@ class TestArbitrageScannerMultiGame:
 
     def test_game_specific_filtering(self):
         """Тест фильтрации специфичной для игры."""
-        scanner = ArbitrageScanner()
+        ArbitrageScanner()
 
         # Разные предметы для разных игр
         csgo_items = [{"game": "csgo", "title": "AK-47"}]

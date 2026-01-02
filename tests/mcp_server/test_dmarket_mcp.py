@@ -498,7 +498,6 @@ class TestToolSchemas:
         # Required: game
         # Optional: level, min_profit
         required_fields = ["game"]
-        optional_fields = ["level", "min_profit"]
 
         assert "game" in required_fields
 
@@ -507,7 +506,6 @@ class TestToolSchemas:
         # Required: game, title, price
         # Optional: amount
         required_fields = ["game", "title", "price"]
-        optional_fields = ["amount"]
 
         assert all(f in required_fields for f in ["game", "title", "price"])
 

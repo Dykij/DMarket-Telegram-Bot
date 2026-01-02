@@ -100,7 +100,7 @@ class TestTranslationCompleteness:
     def test_spanish_completeness(self, base_keys):
         """Test that Spanish has all keys from Russian."""
         es_keys = set(LOCALIZATIONS["es"].keys())
-        missing = base_keys - es_keys
+        base_keys - es_keys
         # Spanish may be incomplete, just check core keys
         core_keys = {"welcome", "help", "settings", "language"}
         assert core_keys.issubset(es_keys), "Spanish missing core keys"

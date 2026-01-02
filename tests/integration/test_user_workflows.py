@@ -119,7 +119,7 @@ class TestArbitrageScanWorkflow:
         mock_scanner.api_client.get_market_items.return_value = mock_items
 
         # Act
-        results = await mock_scanner.scan_level(level="standard", game="csgo")
+        await mock_scanner.scan_level(level="standard", game="csgo")
 
         # Assert - проверяем что метод вызван
         mock_scanner.api_client.get_market_items.assert_called()
