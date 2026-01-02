@@ -80,9 +80,7 @@ class RedisCache:
             True if connected successfully, False otherwise
         """
         if not REDIS_AVAILABLE:
-            logger.warning(
-                "Redis library not available. Install with: pip install redis[hiredis]"
-            )
+            logger.warning("Redis library not available. Install with: pip install redis[hiredis]")
             if self._fallback_enabled:
                 logger.info("Falling back to in-memory cache")
                 return False
@@ -448,10 +446,10 @@ async def close_cache() -> None:
 
 class CacheKey:
     """Helper class for building hierarchical cache keys.
-    
+
     Roadmap Task #6: Hierarchical caching with smart TTL
     """
-    
+
     # Cache prefixes
     MARKET_ITEMS = "market:items"
     BALANCE = "balance"
@@ -460,7 +458,7 @@ class CacheKey:
     USER_PROFILE = "user:profile"
     ARBITRAGE_RESULTS = "arbitrage:results"
     SALES_HISTORY = "sales:history"
-    
+
     @staticmethod
     def market_items(
         game: str,
@@ -469,75 +467,75 @@ class CacheKey:
         price_to: int | None = None,
     ) -> str:
         """Build cache key for market items.
-        
+
         Pattern: market:items:{game}:{level}:{price_from}:{price_to}
-        
+
         Args:
             game: Game identifier (csgo, dota2, etc.)
             level: Arbitrage level (boost, standard, etc.)
             price_from: Min price filter
             price_to: Max price filter
-            
+
         Returns:
             Hierarchical cache key
         """
         parts = [CacheKey.MARKET_ITEMS, game]
-        
+
         if level:
             parts.append(level)
         if price_from is not None:
             parts.append(str(price_from))
         if price_to is not None:
             parts.append(str(price_to))
-        
+
         return ":".join(parts)
-    
+
     @staticmethod
     def balance(user_id: int) -> str:
         """Build cache key for user balance.
-        
+
         Pattern: balance:{user_id}
         """
         return f"{CacheKey.BALANCE}:{user_id}"
-    
+
     @staticmethod
     def targets(user_id: int, game: str | None = None) -> str:
         """Build cache key for user targets.
-        
+
         Pattern: targets:{user_id}:{game}
         """
         if game:
             return f"{CacheKey.TARGETS}:{user_id}:{game}"
         return f"{CacheKey.TARGETS}:{user_id}"
-    
+
     @staticmethod
     def user_settings(user_id: int) -> str:
         """Build cache key for user settings.
-        
+
         Pattern: user:settings:{user_id}
         """
         return f"{CacheKey.USER_SETTINGS}:{user_id}"
-    
+
     @staticmethod
     def user_profile(user_id: int) -> str:
         """Build cache key for user profile.
-        
+
         Pattern: user:profile:{user_id}
         """
         return f"{CacheKey.USER_PROFILE}:{user_id}"
-    
+
     @staticmethod
     def arbitrage_results(game: str, level: str) -> str:
         """Build cache key for arbitrage scan results.
-        
+
         Pattern: arbitrage:results:{game}:{level}
         """
         return f"{CacheKey.ARBITRAGE_RESULTS}:{game}:{level}"
-    
+
     @staticmethod
     def sales_history(item_id: str, days: int = 7) -> str:
         """Build cache key for sales history.
-        
+
         Pattern: sales:history:{item_id}:{days}
         """
         return f"{CacheKey.SALES_HISTORY}:{item_id}:{days}"
@@ -545,31 +543,31 @@ class CacheKey:
 
 class CacheTTL:
     """Smart TTL values for different data types.
-    
+
     Roadmap Task #6: Dynamic TTL based on data volatility
     """
-    
+
     # Market data (volatile)
     MARKET_ITEMS = 300  # 5 minutes
     ARBITRAGE_RESULTS = 180  # 3 minutes (faster refresh)
     SALES_HISTORY = 600  # 10 minutes (historical data)
-    
+
     # User data (semi-static)
     BALANCE = 600  # 10 minutes
     TARGETS = 900  # 15 minutes
     USER_SETTINGS = 1800  # 30 minutes (rarely changes)
     USER_PROFILE = 3600  # 1 hour (very static)
-    
+
     # Query cache (database)
     DB_QUERY = 600  # 10 minutes
-    
+
     @staticmethod
     def get_ttl(cache_type: str) -> int:
         """Get TTL for cache type.
-        
+
         Args:
             cache_type: Cache key prefix (e.g., "market:items")
-            
+
         Returns:
             TTL in seconds
         """
@@ -582,20 +580,20 @@ class CacheTTL:
             CacheKey.USER_SETTINGS: CacheTTL.USER_SETTINGS,
             CacheKey.USER_PROFILE: CacheTTL.USER_PROFILE,
         }
-        
+
         for prefix, ttl in ttl_map.items():
             if cache_type.startswith(prefix):
                 return ttl
-        
+
         # Default TTL
         return 300
 
 
 class HierarchicalCache:
     """Enhanced cache with hierarchical key management and smart TTL.
-    
+
     Roadmap Task #6: Complete hierarchical caching solution
-    
+
     Features:
     - Hierarchical key structure
     - Smart TTL based on data type
@@ -603,15 +601,15 @@ class HierarchicalCache:
     - Batch operations
     - Cache warming support
     """
-    
+
     def __init__(self, redis_cache: RedisCache):
         """Initialize hierarchical cache.
-        
+
         Args:
             redis_cache: Underlying Redis cache instance
         """
         self.cache = redis_cache
-    
+
     async def get_market_items(
         self,
         game: str,
@@ -620,19 +618,19 @@ class HierarchicalCache:
         price_to: int | None = None,
     ) -> Any | None:
         """Get cached market items.
-        
+
         Args:
             game: Game identifier
             level: Arbitrage level
             price_from: Min price
             price_to: Max price
-            
+
         Returns:
             Cached data or None
         """
         key = CacheKey.market_items(game, level, price_from, price_to)
         return await self.cache.get(key)
-    
+
     async def set_market_items(
         self,
         data: Any,
@@ -642,87 +640,86 @@ class HierarchicalCache:
         price_to: int | None = None,
     ) -> bool:
         """Cache market items with smart TTL.
-        
+
         Args:
             data: Data to cache
             game: Game identifier
             level: Arbitrage level
             price_from: Min price
             price_to: Max price
-            
+
         Returns:
             True if successful
         """
         key = CacheKey.market_items(game, level, price_from, price_to)
         ttl = CacheTTL.MARKET_ITEMS
         return await self.cache.set(key, data, ttl)
-    
+
     async def get_balance(self, user_id: int) -> Any | None:
         """Get cached user balance."""
         key = CacheKey.balance(user_id)
         return await self.cache.get(key)
-    
+
     async def set_balance(self, user_id: int, data: Any) -> bool:
         """Cache user balance with smart TTL."""
         key = CacheKey.balance(user_id)
         ttl = CacheTTL.BALANCE
         return await self.cache.set(key, data, ttl)
-    
+
     async def invalidate_balance(self, user_id: int) -> bool:
         """Invalidate user balance cache."""
         key = CacheKey.balance(user_id)
         return await self.cache.delete(key)
-    
+
     async def get_targets(self, user_id: int, game: str | None = None) -> Any | None:
         """Get cached user targets."""
         key = CacheKey.targets(user_id, game)
         return await self.cache.get(key)
-    
+
     async def set_targets(self, user_id: int, data: Any, game: str | None = None) -> bool:
         """Cache user targets with smart TTL."""
         key = CacheKey.targets(user_id, game)
         ttl = CacheTTL.TARGETS
         return await self.cache.set(key, data, ttl)
-    
+
     async def invalidate_targets(self, user_id: int, game: str | None = None) -> bool:
         """Invalidate user targets cache."""
         key = CacheKey.targets(user_id, game)
         if game:
             # Invalidate specific game
             return await self.cache.delete(key)
-        else:
-            # Invalidate all games for user
-            pattern = f"{CacheKey.TARGETS}:{user_id}:*"
-            count = await self.cache.clear(pattern)
-            return count > 0
-    
+        # Invalidate all games for user
+        pattern = f"{CacheKey.TARGETS}:{user_id}:*"
+        count = await self.cache.clear(pattern)
+        return count > 0
+
     async def get_arbitrage_results(self, game: str, level: str) -> Any | None:
         """Get cached arbitrage scan results."""
         key = CacheKey.arbitrage_results(game, level)
         return await self.cache.get(key)
-    
+
     async def set_arbitrage_results(self, game: str, level: str, data: Any) -> bool:
         """Cache arbitrage results with smart TTL."""
         key = CacheKey.arbitrage_results(game, level)
         ttl = CacheTTL.ARBITRAGE_RESULTS
         return await self.cache.set(key, data, ttl)
-    
+
     async def warm_cache(self, games: list[str], levels: list[str]) -> dict[str, int]:
         """Warm cache with common queries.
-        
+
         Roadmap Task #6: Cache warming on startup
-        
+
         Args:
             games: List of games to warm
             levels: List of levels to warm
-            
+
         Returns:
             Statistics about warmed entries
         """
         stats = {"attempted": 0, "succeeded": 0, "failed": 0}
-        
+
         logger.info("Starting cache warming...")
-        
+
         # This would be called with actual data from scanner
         # For now, just log the intent
         for game in games:
@@ -730,16 +727,16 @@ class HierarchicalCache:
                 stats["attempted"] += 1
                 key = CacheKey.arbitrage_results(game, level)
                 logger.debug(f"Would warm cache for: {key}")
-        
+
         logger.info(f"Cache warming completed: {stats}")
         return stats
-    
+
     async def invalidate_market_data(self, game: str | None = None) -> int:
         """Invalidate all market data cache.
-        
+
         Args:
             game: Specific game to invalidate, or None for all
-            
+
         Returns:
             Number of keys invalidated
         """
@@ -747,7 +744,7 @@ class HierarchicalCache:
             pattern = f"{CacheKey.MARKET_ITEMS}:{game}:*"
         else:
             pattern = f"{CacheKey.MARKET_ITEMS}:*"
-        
+
         count = await self.cache.clear(pattern)
         logger.info(f"Invalidated {count} market data cache entries")
         return count
@@ -759,37 +756,36 @@ _global_hierarchical_cache: HierarchicalCache | None = None
 
 def get_hierarchical_cache() -> HierarchicalCache:
     """Get global hierarchical cache instance.
-    
+
     Returns:
         Global HierarchicalCache instance
-        
+
     Raises:
         RuntimeError: If not initialized
     """
     if _global_hierarchical_cache is None:
         raise RuntimeError(
-            "Hierarchical cache not initialized. "
-            "Call init_hierarchical_cache() first"
+            "Hierarchical cache not initialized. Call init_hierarchical_cache() first"
         )
     return _global_hierarchical_cache
 
 
 async def init_hierarchical_cache(redis_cache: RedisCache | None = None) -> HierarchicalCache:
     """Initialize global hierarchical cache.
-    
+
     Args:
         redis_cache: Redis cache instance (uses global if None)
-        
+
     Returns:
         Initialized HierarchicalCache
     """
     global _global_hierarchical_cache
-    
+
     if redis_cache is None:
         redis_cache = get_cache()
-    
+
     _global_hierarchical_cache = HierarchicalCache(redis_cache)
-    
+
     logger.info("Hierarchical cache initialized")
-    
+
     return _global_hierarchical_cache

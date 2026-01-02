@@ -20,7 +20,7 @@ from prometheus_client import (
 
 
 # =============================================================================
-# Bot Metrics
+# Bot Metrics (Roadmap Task #8: Enhanced)
 # =============================================================================
 
 # Счетчик команд бота
@@ -28,6 +28,21 @@ bot_commands_total = Counter(
     "bot_commands_total",
     "Total number of bot commands executed",
     ["command", "status"],
+)
+
+# Telegram updates
+telegram_updates_total = Counter(
+    "telegram_updates_total",
+    "Total number of Telegram updates received",
+    ["type", "status"],  # type: message/callback_query/etc., status: processed/failed
+)
+
+# Время обработки команд
+bot_command_duration_seconds = Histogram(
+    "bot_command_duration_seconds",
+    "Bot command processing duration in seconds",
+    ["command"],
+    buckets=(0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0),
 )
 
 # Счетчик ошибок бота
@@ -41,6 +56,12 @@ bot_errors_total = Counter(
 bot_active_users = Gauge(
     "bot_active_users",
     "Number of active bot users",
+)
+
+# Новые пользователи за период
+bot_new_users_total = Counter(
+    "bot_new_users_total",
+    "Total number of new bot users",
 )
 
 # =============================================================================
@@ -95,7 +116,7 @@ db_errors_total = Counter(
 )
 
 # =============================================================================
-# Arbitrage Metrics
+# Arbitrage Metrics (Roadmap Task #8: Enhanced)
 # =============================================================================
 
 # Найденные возможности арбитража
@@ -105,18 +126,40 @@ arbitrage_opportunities_found = Counter(
     ["game", "level"],
 )
 
-# Среднее количество возможностей
-arbitrage_opportunities_avg = Gauge(
-    "arbitrage_opportunities_avg",
-    "Average number of arbitrage opportunities per scan",
-    ["game"],
+# Текущие возможности (Gauge для real-time)
+arbitrage_opportunities_current = Gauge(
+    "arbitrage_opportunities_current",
+    "Current number of active arbitrage opportunities",
+    ["game", "level"],
+)
+
+# Сканирования арбитража
+arbitrage_scans_total = Counter(
+    "arbitrage_scans_total",
+    "Total number of arbitrage scans performed",
+    ["game", "level", "status"],  # status: success/failed
+)
+
+# Время сканирования
+arbitrage_scan_duration_seconds = Histogram(
+    "arbitrage_scan_duration_seconds",
+    "Arbitrage scan duration in seconds",
+    ["level"],
+    buckets=(0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 30.0, 60.0),
 )
 
 # Средняя прибыль
 arbitrage_profit_avg = Gauge(
     "arbitrage_profit_avg_usd",
     "Average profit per arbitrage opportunity in USD",
-    ["game"],
+    ["game", "level"],
+)
+
+# Средняя ROI
+arbitrage_roi_avg = Gauge(
+    "arbitrage_roi_avg_percent",
+    "Average ROI (Return on Investment) in percent",
+    ["game", "level"],
 )
 
 # =============================================================================
@@ -170,7 +213,7 @@ transaction_amount_avg = Gauge(
 )
 
 # =============================================================================
-# System Metrics
+# System Metrics (Roadmap Task #8: Enhanced)
 # =============================================================================
 
 # Информация о версии
@@ -183,6 +226,63 @@ app_info = Info(
 app_uptime_seconds = Gauge(
     "app_uptime_seconds",
     "Application uptime in seconds",
+)
+
+# Bot uptime (Roadmap Task #8)
+bot_uptime_seconds = Gauge(
+    "bot_uptime_seconds",
+    "Bot uptime in seconds",
+)
+
+# =============================================================================
+# Cache Metrics (Roadmap Task #8: NEW)
+# =============================================================================
+
+# Cache hit/miss
+cache_requests_total = Counter(
+    "cache_requests_total",
+    "Total number of cache requests",
+    ["cache_type", "result"],  # result: hit/miss
+)
+
+# Cache hit rate
+cache_hit_rate = Gauge(
+    "cache_hit_rate",
+    "Cache hit rate (0.0-1.0)",
+    ["cache_type"],  # redis/memory
+)
+
+# Cache size
+cache_size_bytes = Gauge(
+    "cache_size_bytes",
+    "Cache size in bytes",
+    ["cache_type"],
+)
+
+# Cache operations duration
+cache_operation_duration_seconds = Histogram(
+    "cache_operation_duration_seconds",
+    "Cache operation duration in seconds",
+    ["operation", "cache_type"],  # operation: get/set/delete
+    buckets=(0.001, 0.005, 0.01, 0.025, 0.05, 0.1),
+)
+
+# =============================================================================
+# Rate Limiter Metrics (Roadmap Task #8: NEW)
+# =============================================================================
+
+# Rate limit hits
+rate_limit_hits_total = Counter(
+    "rate_limit_hits_total",
+    "Total number of rate limit hits",
+    ["endpoint", "limit_type"],  # limit_type: user/api/global
+)
+
+# Current rate limit usage
+rate_limit_usage = Gauge(
+    "rate_limit_usage_percent",
+    "Current rate limit usage in percent",
+    ["endpoint"],
 )
 
 # =============================================================================
@@ -234,17 +334,130 @@ def track_db_query(query_type: str, duration: float) -> None:
     db_query_duration.labels(query_type=query_type).observe(duration)
 
 
-def track_arbitrage_scan(game: str, level: str, opportunities_count: int) -> None:
+def track_arbitrage_scan(
+    game: str,
+    level: str,
+    opportunities_count: int,
+    duration: float | None = None,
+    success: bool = True,
+) -> None:
     """Track arbitrage scan results.
+    
+    Roadmap Task #8: Enhanced tracking
 
     Args:
         game: Game identifier
         level: Arbitrage level
         opportunities_count: Number of opportunities found
+        duration: Scan duration in seconds
+        success: Whether scan succeeded
     """
-    arbitrage_opportunities_found.labels(game=game, level=level).inc(
-        opportunities_count
-    )
+    status = "success" if success else "failed"
+    arbitrage_scans_total.labels(game=game, level=level, status=status).inc()
+    
+    if success:
+        arbitrage_opportunities_found.labels(game=game, level=level).inc(
+            opportunities_count
+        )
+        arbitrage_opportunities_current.labels(game=game, level=level).set(
+            opportunities_count
+        )
+    
+    if duration is not None:
+        arbitrage_scan_duration_seconds.labels(level=level).observe(duration)
+
+
+def track_telegram_update(update_type: str, success: bool = True) -> None:
+    """Track Telegram update processing.
+    
+    Roadmap Task #8: NEW
+
+    Args:
+        update_type: Type of update (message, callback_query, etc.)
+        success: Whether update was processed successfully
+    """
+    status = "processed" if success else "failed"
+    telegram_updates_total.labels(type=update_type, status=status).inc()
+
+
+def track_cache_request(cache_type: str, hit: bool) -> None:
+    """Track cache request.
+    
+    Roadmap Task #8: NEW
+
+    Args:
+        cache_type: Type of cache (redis, memory)
+        hit: Whether request was a cache hit
+    """
+    result = "hit" if hit else "miss"
+    cache_requests_total.labels(cache_type=cache_type, result=result).inc()
+
+
+def track_cache_operation(
+    operation: str,
+    cache_type: str,
+    duration: float,
+) -> None:
+    """Track cache operation duration.
+    
+    Roadmap Task #8: NEW
+
+    Args:
+        operation: Operation type (get, set, delete)
+        cache_type: Type of cache (redis, memory)
+        duration: Operation duration in seconds
+    """
+    cache_operation_duration_seconds.labels(
+        operation=operation,
+        cache_type=cache_type,
+    ).observe(duration)
+
+
+def track_rate_limit_hit(endpoint: str, limit_type: str = "api") -> None:
+    """Track rate limit hit.
+    
+    Roadmap Task #8: NEW
+
+    Args:
+        endpoint: API endpoint
+        limit_type: Type of limit (user, api, global)
+    """
+    rate_limit_hits_total.labels(endpoint=endpoint, limit_type=limit_type).inc()
+
+
+def set_rate_limit_usage(endpoint: str, usage_percent: float) -> None:
+    """Set current rate limit usage.
+    
+    Roadmap Task #8: NEW
+
+    Args:
+        endpoint: API endpoint
+        usage_percent: Usage in percent (0-100)
+    """
+    rate_limit_usage.labels(endpoint=endpoint).set(usage_percent)
+
+
+def set_cache_hit_rate(cache_type: str, hit_rate: float) -> None:
+    """Set cache hit rate.
+    
+    Roadmap Task #8: NEW
+
+    Args:
+        cache_type: Type of cache (redis, memory)
+        hit_rate: Hit rate as fraction (0.0-1.0)
+    """
+    cache_hit_rate.labels(cache_type=cache_type).set(hit_rate)
+
+
+def set_bot_uptime(uptime_seconds: float) -> None:
+    """Set bot uptime.
+    
+    Roadmap Task #8: NEW
+
+    Args:
+        uptime_seconds: Uptime in seconds
+    """
+    bot_uptime_seconds.set(uptime_seconds)
 
 
 def set_active_users(count: int) -> None:
