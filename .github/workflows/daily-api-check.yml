@@ -1,0 +1,274 @@
+name: Daily DMarket API Validation
+
+# Roadmap Task #9: Automated daily API compatibility checks
+# Runs every day at 6:00 UTC to detect breaking changes early
+
+on:
+  schedule:
+    # Run every day at 6:00 UTC
+    - cron: '0 6 * * *'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      notify_on_success:
+        description: 'Send notification even if checks pass'
+        required: false
+        default: 'false'
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  api-validation:
+    name: Validate DMarket API v1.1.0
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pact-python
+      
+      - name: Run API validation tests
+        id: validation
+        continue-on-error: true
+        run: |
+          pytest tests/contracts/test_dmarket_api_validation.py \
+            -v \
+            --tb=short \
+            --junit-xml=api-validation-results.xml \
+            --html=api-validation-report.html \
+            --self-contained-html
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-validation-results-${{ github.run_number }}
+          path: |
+            api-validation-results.xml
+            api-validation-report.html
+            tests/fixtures/dmarket_api_baseline/
+          retention-days: 30
+      
+      - name: Check for API changes
+        id: check_changes
+        if: always()
+        run: |
+          if [ -d "tests/fixtures/dmarket_api_baseline" ]; then
+            # Check if there are new baseline files (indicating changes)
+            NEW_FILES=$(find tests/fixtures/dmarket_api_baseline -name "*_new.json" 2>/dev/null | wc -l)
+            if [ "$NEW_FILES" -gt 0 ]; then
+              echo "api_changed=true" >> $GITHUB_OUTPUT
+              echo "::warning::Detected $NEW_FILES API structure changes"
+            else
+              echo "api_changed=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+      
+      - name: Create issue on breaking changes
+        if: steps.validation.outcome == 'failure' || steps.check_changes.outputs.api_changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Read test results
+            let testOutput = 'Test results not available';
+            try {
+              const xmlData = fs.readFileSync('api-validation-results.xml', 'utf8');
+              // Parse basic info from XML (simplified)
+              testOutput = 'Check artifacts for detailed results';
+            } catch (e) {
+              testOutput = 'Failed to read test results';
+            }
+            
+            // Check for baseline changes
+            let changesDetected = [];
+            try {
+              const files = fs.readdirSync('tests/fixtures/dmarket_api_baseline', { withFileTypes: true });
+              changesDetected = files
+                .filter(f => f.isFile() && f.name.endsWith('_new.json'))
+                .map(f => f.name.replace('_new.json', ''));
+            } catch (e) {
+              // Directory might not exist
+            }
+            
+            const issueBody = `## ⚠️ DMarket API Validation Alert
+            
+            **Date:** ${new Date().toISOString().split('T')[0]}
+            **Validation Status:** ${{ steps.validation.outcome == 'failure' ? '❌ FAILED' : '⚠️ CHANGES DETECTED' }}
+            
+            ### Summary
+            
+            ${changesDetected.length > 0 
+              ? `**API Structure Changes Detected:**\n${changesDetected.map(c => `- ${c}`).join('\n')}`
+              : 'Validation tests failed. Check artifacts for details.'}
+            
+            ### Impact Assessment
+            
+            - **Critical Endpoints:** Balance, Offers, Buy Orders, Inventory
+            - **Bot Stability:** Potential impact on trading operations
+            - **Action Required:** Review changes and update bot code if needed
+            
+            ### Next Steps
+            
+            1. **Review Artifacts:** Check [workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for detailed results
+            2. **Compare Baselines:** Review \`*_new.json\` files in artifacts
+            3. **Update Code:** Modify API client if breaking changes detected
+            4. **Update Baseline:** Approve new baseline if changes are expected
+            5. **Re-run Tests:** Verify fixes with manual workflow dispatch
+            
+            ### Documentation
+            
+            - [DMarket API Spec](docs/DMARKET_API_FULL_SPEC.md)
+            - [Contract Testing Guide](docs/CONTRACT_TESTING.md)
+            - [API Validation Tests](tests/contracts/test_dmarket_api_validation.py)
+            
+            ### Workflow Run
+            
+            [View Full Results](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            
+            ---
+            
+            *This issue was automatically created by the Daily API Validation workflow.*
+            *Roadmap Task #9: Automated DMarket API compatibility monitoring*
+            `;
+            
+            // Check if there's already an open issue
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'api-validation,automated',
+              per_page: 1
+            });
+            
+            if (issues.data.length > 0) {
+              // Update existing issue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issues.data[0].number,
+                body: `## 🔄 New Validation Run\n\n${issueBody}`
+              });
+              console.log('Updated existing issue:', issues.data[0].number);
+            } else {
+              // Create new issue
+              const issue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: '⚠️ DMarket API Validation Alert - ' + new Date().toISOString().split('T')[0],
+                body: issueBody,
+                labels: ['api-validation', 'automated', 'high-priority']
+              });
+              console.log('Created new issue:', issue.data.number);
+            }
+      
+      - name: Send Telegram notification
+        if: steps.validation.outcome == 'failure' || steps.check_changes.outputs.api_changed == 'true'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
+        run: |
+          if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_ADMIN_CHAT_ID" ]; then
+            MESSAGE="⚠️ DMarket API Validation Alert%0A%0A"
+            MESSAGE="${MESSAGE}Date: $(date +%Y-%m-%d)%0A"
+            MESSAGE="${MESSAGE}Status: ${{ steps.validation.outcome == 'failure' && 'FAILED' || 'CHANGES DETECTED' }}%0A%0A"
+            MESSAGE="${MESSAGE}Check GitHub Actions for details:%0A"
+            MESSAGE="${MESSAGE}https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            
+            curl -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              -d "chat_id=${TELEGRAM_ADMIN_CHAT_ID}" \
+              -d "text=${MESSAGE}" \
+              -d "parse_mode=HTML"
+            
+            echo "Telegram notification sent"
+          else
+            echo "Telegram credentials not configured, skipping notification"
+          fi
+      
+      - name: Success notification
+        if: |
+          (steps.validation.outcome == 'success' && 
+           steps.check_changes.outputs.api_changed != 'true' &&
+           github.event.inputs.notify_on_success == 'true')
+        run: |
+          echo "✅ All API validation checks passed"
+          echo "No breaking changes detected"
+      
+      - name: Fail job if validation failed
+        if: steps.validation.outcome == 'failure'
+        run: |
+          echo "::error::API validation tests failed"
+          exit 1
+
+  generate-report:
+    name: Generate API Compatibility Report
+    needs: api-validation
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        with:
+          name: api-validation-results-${{ github.run_number }}
+          path: ./results
+      
+      - name: Generate markdown report
+        run: |
+          cat > api-compatibility-report.md << 'EOF'
+          # DMarket API Compatibility Report
+          
+          **Date:** $(date +"%Y-%m-%d %H:%M:%S UTC")
+          **Workflow Run:** [#${{ github.run_number }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          
+          ## Status
+          
+          ${{ needs.api-validation.result == 'success' && '✅ All checks passed' || '❌ Issues detected' }}
+          
+          ## Tested Endpoints
+          
+          - ✓ GET /market/api/v1/balance
+          - ✓ GET /market/api/v1/offers
+          - ✓ POST /market/api/v1/buy-offers
+          - ✓ GET /market/api/v1/inventory
+          - ✓ Status codes validation
+          - ✓ Rate limiting behavior
+          
+          ## Results
+          
+          See attached artifacts for detailed test results and HTML report.
+          
+          ## Baseline Files
+          
+          Baseline responses are stored in `tests/fixtures/dmarket_api_baseline/`
+          
+          ---
+          
+          *Generated by Daily API Validation workflow*
+          EOF
+          
+          cat api-compatibility-report.md
+      
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-compatibility-report-${{ github.run_number }}
+          path: api-compatibility-report.md
+          retention-days: 90

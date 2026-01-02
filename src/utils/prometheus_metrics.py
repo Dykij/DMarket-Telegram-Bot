@@ -9,15 +9,7 @@
 
 import time
 
-from prometheus_client import (
-    Counter,
-    Gauge,
-    Histogram,
-    Info,
-    generate_latest,
-    make_asgi_app,
-)
-
+from prometheus_client import Counter, Gauge, Histogram, Info, generate_latest, make_asgi_app
 
 # =============================================================================
 # Bot Metrics (Roadmap Task #8: Enhanced)
@@ -342,7 +334,7 @@ def track_arbitrage_scan(
     success: bool = True,
 ) -> None:
     """Track arbitrage scan results.
-    
+
     Roadmap Task #8: Enhanced tracking
 
     Args:
@@ -354,22 +346,18 @@ def track_arbitrage_scan(
     """
     status = "success" if success else "failed"
     arbitrage_scans_total.labels(game=game, level=level, status=status).inc()
-    
+
     if success:
-        arbitrage_opportunities_found.labels(game=game, level=level).inc(
-            opportunities_count
-        )
-        arbitrage_opportunities_current.labels(game=game, level=level).set(
-            opportunities_count
-        )
-    
+        arbitrage_opportunities_found.labels(game=game, level=level).inc(opportunities_count)
+        arbitrage_opportunities_current.labels(game=game, level=level).set(opportunities_count)
+
     if duration is not None:
         arbitrage_scan_duration_seconds.labels(level=level).observe(duration)
 
 
 def track_telegram_update(update_type: str, success: bool = True) -> None:
     """Track Telegram update processing.
-    
+
     Roadmap Task #8: NEW
 
     Args:
@@ -382,7 +370,7 @@ def track_telegram_update(update_type: str, success: bool = True) -> None:
 
 def track_cache_request(cache_type: str, hit: bool) -> None:
     """Track cache request.
-    
+
     Roadmap Task #8: NEW
 
     Args:
@@ -399,7 +387,7 @@ def track_cache_operation(
     duration: float,
 ) -> None:
     """Track cache operation duration.
-    
+
     Roadmap Task #8: NEW
 
     Args:
@@ -415,7 +403,7 @@ def track_cache_operation(
 
 def track_rate_limit_hit(endpoint: str, limit_type: str = "api") -> None:
     """Track rate limit hit.
-    
+
     Roadmap Task #8: NEW
 
     Args:
@@ -427,7 +415,7 @@ def track_rate_limit_hit(endpoint: str, limit_type: str = "api") -> None:
 
 def set_rate_limit_usage(endpoint: str, usage_percent: float) -> None:
     """Set current rate limit usage.
-    
+
     Roadmap Task #8: NEW
 
     Args:
@@ -439,7 +427,7 @@ def set_rate_limit_usage(endpoint: str, usage_percent: float) -> None:
 
 def set_cache_hit_rate(cache_type: str, hit_rate: float) -> None:
     """Set cache hit rate.
-    
+
     Roadmap Task #8: NEW
 
     Args:
@@ -451,7 +439,7 @@ def set_cache_hit_rate(cache_type: str, hit_rate: float) -> None:
 
 def set_bot_uptime(uptime_seconds: float) -> None:
     """Set bot uptime.
-    
+
     Roadmap Task #8: NEW
 
     Args:
