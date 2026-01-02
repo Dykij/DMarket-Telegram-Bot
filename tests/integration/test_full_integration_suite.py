@@ -10,18 +10,17 @@ Phase 5 - Task 3: Integration Testing (24 теста)
 """
 
 import asyncio
-from datetime import UTC, datetime
 import os
+from datetime import UTC, datetime
 from unittest.mock import patch
 
-from httpx import AsyncClient
 import pytest
+from httpx import AsyncClient
 
 from src.dmarket.arbitrage_scanner import ArbitrageScanner
 from src.dmarket.dmarket_api import DMarketAPI
 from src.dmarket.portfolio_manager import PortfolioManager
 from src.dmarket.targets import TargetManager
-
 
 # ============================================================================
 # Part 1: End-to-End Workflows (10 тестов)
@@ -66,9 +65,7 @@ class TestEndToEndWorkflows:
 
         # Mock the actual create_targets method from API
         with patch.object(api, "create_targets") as mock_create:
-            mock_create.return_value = {
-                "Result": [{"TargetID": "123", "Status": "Active"}]
-            }
+            mock_create.return_value = {"Result": [{"TargetID": "123", "Status": "Active"}]}
 
             # Act - Создание таргета через mock
             result = {"success": True, "targetId": "123"}
@@ -155,10 +152,7 @@ class TestEndToEndWorkflows:
         }
 
         def should_notify(profit: float, prefs: dict) -> bool:
-            return (
-                prefs["notifications_enabled"]
-                and profit >= prefs["arbitrage_threshold"]
-            )
+            return prefs["notifications_enabled"] and profit >= prefs["arbitrage_threshold"]
 
         # Act
         result = should_notify(15.0, user_preferences)

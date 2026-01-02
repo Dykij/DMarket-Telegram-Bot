@@ -16,7 +16,6 @@ import pytest
 
 from src.utils.state_manager import CheckpointData, StateManager
 
-
 # TestCheckpointData
 
 
@@ -357,9 +356,7 @@ class TestStateManagerAsyncMethods:
         scan_id = uuid4()
 
         # Mock save_checkpoint
-        with patch.object(
-            manager, "save_checkpoint", new_callable=AsyncMock
-        ) as mock_save:
+        with patch.object(manager, "save_checkpoint", new_callable=AsyncMock) as mock_save:
             # Act
             await manager.mark_checkpoint_completed(scan_id)
 
@@ -379,9 +376,7 @@ class TestStateManagerAsyncMethods:
         manager = StateManager(session=mock_session)
         scan_id = uuid4()
 
-        with patch.object(
-            manager, "save_checkpoint", new_callable=AsyncMock
-        ) as mock_save:
+        with patch.object(manager, "save_checkpoint", new_callable=AsyncMock) as mock_save:
             # Act
             await manager.mark_checkpoint_failed(
                 scan_id=scan_id,
@@ -404,9 +399,7 @@ class TestStateManagerAsyncMethods:
         manager = StateManager(session=mock_session)
         scan_id = uuid4()
 
-        with patch.object(
-            manager, "save_checkpoint", new_callable=AsyncMock
-        ) as mock_save:
+        with patch.object(manager, "save_checkpoint", new_callable=AsyncMock) as mock_save:
             # Act
             await manager.mark_checkpoint_failed(scan_id=scan_id)
 
