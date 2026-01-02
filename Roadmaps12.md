@@ -518,11 +518,12 @@ docs/DMARKET_API_FULL_SPEC.md                 # Обновление специ�
 
 ---
 
-### 10. Circuit Breaker для API 🛡️
+### 10. Circuit Breaker для API 🛡️ ✅ ВЫПОЛНЕНО
 
 **Приоритет**: 🟡 **СРЕДНИЙ**
 **Сложность**: Низкая (уже реализован, нужно расширить)
 **Эффект**: Средний (⬆️ устойчивость к API сбоям)
+**Статус**: ✅ **ЗАВЕРШЕНО** (02.01.2026)
 
 #### Описание
 
@@ -530,18 +531,25 @@ docs/DMARKET_API_FULL_SPEC.md                 # Обновление специ�
 
 #### Задачи
 
-- [ ] Обновить `src/utils/api_circuit_breaker.py`:
-  - Per-endpoint circuit breakers
+- [x] Обновить `src/utils/api_circuit_breaker.py`:
+  - Per-endpoint circuit breakers (5 types) ✅
   - Конфигурируемые пороги:
-    - `failure_threshold`: 5 для market, 3 для targets
-    - `recovery_timeout`: 60s для market, 120s для targets
-    - `expected_exception`: разные для разных endpoints
-  - Half-open state testing
-  - Метрики circuit breaker states
-- [ ] Интегрировать в API client:
-  - Обернуть все API вызовы
-  - Fallback strategies при open circuit
-  - Логирование state transitions
+    - `failure_threshold`: 5 для market, 3 для targets, 2 для trading ✅
+    - `recovery_timeout`: 60s для market, 120s для targets, 180s для trading ✅
+    - `expected_exception`: разные для разных endpoints ✅
+  - EndpointType enum ✅
+  - Метрики circuit breaker states ✅
+- [x] Enhanced функциональность:
+  - call_with_circuit_breaker с endpoint_type ✅
+  - Fallback strategies при open circuit ✅
+  - Логирование state transitions ✅
+  - get_circuit_breaker_stats() ✅
+  - reset functions ✅
+- [x] Prometheus метрики (4 новых):
+  - circuit_breaker_state ✅
+  - circuit_breaker_failures_total ✅
+  - circuit_breaker_state_changes_total ✅
+  - circuit_breaker_calls_total ✅
 
 #### Файлы для изменения
 
