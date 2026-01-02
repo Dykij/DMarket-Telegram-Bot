@@ -6,7 +6,7 @@ metadata:
     app: dmarket-bot
     version: v1
 spec:
-  replicas: 2  # For high availability
+  replicas: 2 # For high availability
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -26,106 +26,106 @@ spec:
         prometheus.io/path: "/metrics"
     spec:
       containers:
-      - name: bot
-        image: dmarket-bot:latest
-        imagePullPolicy: Always
-        ports:
-        - name: http
-          containerPort: 8080
-          protocol: TCP
-        env:
-        - name: TELEGRAM_BOT_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: dmarket-bot-secrets
-              key: telegram-bot-token
-        - name: DMARKET_PUBLIC_KEY
-          valueFrom:
-            secretKeyRef:
-              name: dmarket-bot-secrets
-              key: dmarket-public-key
-        - name: DMARKET_SECRET_KEY
-          valueFrom:
-            secretKeyRef:
-              name: dmarket-bot-secrets
-              key: dmarket-secret-key
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: dmarket-bot-secrets
-              key: database-url
-        - name: REDIS_URL
-          valueFrom:
-            configMapKeyRef:
-              name: dmarket-bot-config
-              key: redis-url
-        - name: LOG_LEVEL
-          valueFrom:
-            configMapKeyRef:
-              name: dmarket-bot-config
-              key: log-level
-        - name: DRY_RUN
-          value: "false"
-        
-        # Resource limits
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "100m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-        
-        # Liveness probe - checks if bot is alive
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          successThreshold: 1
-          failureThreshold: 3
-        
-        # Readiness probe - checks if bot is ready to serve
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: 8080
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 3
-          successThreshold: 1
-          failureThreshold: 3
-        
-        # Startup probe - gives bot time to start
-        startupProbe:
-          httpGet:
-            path: /health
-            port: 8080
-            scheme: HTTP
-          initialDelaySeconds: 0
-          periodSeconds: 5
-          timeoutSeconds: 3
-          successThreshold: 1
-          failureThreshold: 12  # 60 seconds max startup time
-        
-        # Volume mounts
-        volumeMounts:
-        - name: data
-          mountPath: /app/data
-        - name: logs
-          mountPath: /app/logs
-      
+        - name: bot
+          image: dmarket-bot:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: dmarket-bot-secrets
+                  key: telegram-bot-token
+            - name: DMARKET_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: dmarket-bot-secrets
+                  key: dmarket-public-key
+            - name: DMARKET_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: dmarket-bot-secrets
+                  key: dmarket-secret-key
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: dmarket-bot-secrets
+                  key: database-url
+            - name: REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: dmarket-bot-config
+                  key: redis-url
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: dmarket-bot-config
+                  key: log-level
+            - name: DRY_RUN
+              value: "false"
+
+          # Resource limits
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+          # Liveness probe - checks if bot is alive
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+
+          # Readiness probe - checks if bot is ready to serve
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+
+          # Startup probe - gives bot time to start
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 0
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 12 # 60 seconds max startup time
+
+          # Volume mounts
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+            - name: logs
+              mountPath: /app/logs
+
       volumes:
-      - name: data
-        persistentVolumeClaim:
-          claimName: dmarket-bot-data
-      - name: logs
-        emptyDir: {}
-      
+        - name: data
+          persistentVolumeClaim:
+            claimName: dmarket-bot-data
+        - name: logs
+          emptyDir: {}
+
       # Security context
       securityContext:
         runAsNonRoot: true
@@ -142,10 +142,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - name: http
-    port: 8080
-    targetPort: 8080
-    protocol: TCP
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
   selector:
     app: dmarket-bot
 

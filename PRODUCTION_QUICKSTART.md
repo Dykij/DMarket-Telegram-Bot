@@ -21,7 +21,7 @@ docker-compose -f docker-compose.monitoring.yml ps
 - **Grafana:** http://localhost:3000
   - Login: `admin`
   - Password: `admin`
-  
+
 - **Prometheus:** http://localhost:9090
 
 - **Bot Metrics:** http://localhost:8080/metrics
@@ -306,5 +306,5 @@ kubectl get pods -o yaml | grep -A 10 "livenessProbe\|readinessProbe"
 
 ---
 
-**Дата:** 01 января 2026  
+**Дата:** 01 января 2026
 **Статус:** Production Ready ✅

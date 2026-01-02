@@ -8,31 +8,31 @@ metadata:
 spec:
   ingressClassName: nginx
   tls:
-  - hosts:
-    - bot.example.com
-    secretName: dmarket-bot-tls
+    - hosts:
+        - bot.example.com
+      secretName: dmarket-bot-tls
   rules:
-  - host: bot.example.com
-    http:
-      paths:
-      - path: /telegram-webhook
-        pathType: Prefix
-        backend:
-          service:
-            name: dmarket-bot-service
-            port:
-              number: 8080
-      - path: /health
-        pathType: Exact
-        backend:
-          service:
-            name: dmarket-bot-service
-            port:
-              number: 8080
-      - path: /metrics
-        pathType: Exact
-        backend:
-          service:
-            name: dmarket-bot-service
-            port:
-              number: 8080
+    - host: bot.example.com
+      http:
+        paths:
+          - path: /telegram-webhook
+            pathType: Prefix
+            backend:
+              service:
+                name: dmarket-bot-service
+                port:
+                  number: 8080
+          - path: /health
+            pathType: Exact
+            backend:
+              service:
+                name: dmarket-bot-service
+                port:
+                  number: 8080
+          - path: /metrics
+            pathType: Exact
+            backend:
+              service:
+                name: dmarket-bot-service
+                port:
+                  number: 8080

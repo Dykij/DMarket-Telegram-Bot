@@ -1,7 +1,11 @@
 {
   "dashboard": {
     "title": "DMarket Telegram Bot Metrics",
-    "tags": ["telegram", "bot", "dmarket"],
+    "tags": [
+      "telegram",
+      "bot",
+      "dmarket"
+    ],
     "timezone": "browser",
     "panels": [
       {
@@ -14,7 +18,12 @@
             "refId": "A"
           }
         ],
-        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        }
       },
       {
         "id": 2,
@@ -26,7 +35,12 @@
             "refId": "A"
           }
         ],
-        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        }
       },
       {
         "id": 3,
@@ -38,7 +52,12 @@
             "refId": "A"
           }
         ],
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4}
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 4
+        }
       },
       {
         "id": 4,
@@ -50,7 +69,12 @@
             "refId": "A"
           }
         ],
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        }
       }
     ],
     "schemaVersion": 16,
