@@ -17,6 +17,8 @@ from src.telegram_bot.commands.test_sentry_command import test_sentry_command, t
 from src.telegram_bot.handlers.api_check_handler import handle_api_check_callback
 from src.telegram_bot.handlers.automatic_arbitrage_handler import handle_mode_selection_callback
 from src.telegram_bot.handlers.callbacks import button_callback_handler
+from src.telegram_bot.handlers.callback_registry import create_callback_router
+from src.telegram_bot.handlers.callback_router import button_callback_handler_v2
 from src.telegram_bot.handlers.commands import (
     arbitrage_command,
     dashboard_command,
@@ -227,8 +229,25 @@ def register_all_handlers(application: "Application") -> None:
     except Exception as e:
         logger.warning("Не удалось зарегистрировать Enhanced Scanner handlers: %s", e)
 
-    # Регистрация общего callback-обработчика (LAST - catch-all)
-    application.add_handler(CallbackQueryHandler(button_callback_handler))
+    # ========================================================================
+    # PHASE 2 REFACTORING: Modern Callback Router
+    # ========================================================================
+    # Initialize callback router and store in bot_data
+    logger.info("Initializing Phase 2 callback router...")
+    try:
+        callback_router = create_callback_router()
+        application.bot_data["callback_router"] = callback_router
+        logger.info("✅ Callback router initialized with %d handlers", 
+                   len(callback_router._exact_handlers))
+        
+        # Register new router-based callback handler
+        application.add_handler(CallbackQueryHandler(button_callback_handler_v2))
+        logger.info("✅ Router-based callback handler registered")
+    except Exception as e:
+        logger.error("Failed to initialize callback router, falling back to old handler: %s", e)
+        # Fallback to old handler if new one fails
+        application.add_handler(CallbackQueryHandler(button_callback_handler))
+        logger.warning("⚠️ Using legacy callback handler (973 lines)")
 
     logger.info("Callback-обработчики зарегистрированы")
 
