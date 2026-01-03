@@ -16,9 +16,9 @@ from src.telegram_bot.commands.start_minimal import start_minimal_command
 from src.telegram_bot.commands.test_sentry_command import test_sentry_command, test_sentry_info
 from src.telegram_bot.handlers.api_check_handler import handle_api_check_callback
 from src.telegram_bot.handlers.automatic_arbitrage_handler import handle_mode_selection_callback
-from src.telegram_bot.handlers.callbacks import button_callback_handler
 from src.telegram_bot.handlers.callback_registry import create_callback_router
 from src.telegram_bot.handlers.callback_router import button_callback_handler_v2
+from src.telegram_bot.handlers.callbacks import button_callback_handler
 from src.telegram_bot.handlers.commands import (
     arbitrage_command,
     dashboard_command,
@@ -30,7 +30,6 @@ from src.telegram_bot.handlers.commands import (
 )
 from src.telegram_bot.handlers.minimal_menu_router import minimal_menu_router
 from src.telegram_bot.handlers.view_items_handler import handle_view_items_callback
-
 
 if TYPE_CHECKING:
     from telegram.ext import Application
@@ -237,9 +236,10 @@ def register_all_handlers(application: "Application") -> None:
     try:
         callback_router = create_callback_router()
         application.bot_data["callback_router"] = callback_router
-        logger.info("✅ Callback router initialized with %d handlers", 
-                   len(callback_router._exact_handlers))
-        
+        logger.info(
+            "✅ Callback router initialized with %d handlers", len(callback_router._exact_handlers)
+        )
+
         # Register new router-based callback handler
         application.add_handler(CallbackQueryHandler(button_callback_handler_v2))
         logger.info("✅ Router-based callback handler registered")

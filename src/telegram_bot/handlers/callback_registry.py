@@ -28,7 +28,6 @@ from src.telegram_bot.handlers.callback_handlers import (
 from src.telegram_bot.handlers.callback_router import CallbackRouter
 from src.telegram_bot.keyboards import CB_BACK, CB_CANCEL, CB_GAME_PREFIX, CB_HELP
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -546,9 +545,7 @@ async def _handle_pagination(update, context):
         return
 
     direction = (
-        "next_page"
-        if update.callback_query.data.startswith("arb_next_page_")
-        else "prev_page"
+        "next_page" if update.callback_query.data.startswith("arb_next_page_") else "prev_page"
     )
     await handle_arbitrage_pagination(update.callback_query, context, direction)
 

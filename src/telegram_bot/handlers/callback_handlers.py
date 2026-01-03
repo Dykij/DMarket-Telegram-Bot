@@ -24,7 +24,6 @@ from src.telegram_bot.keyboards import (
     get_settings_keyboard,
 )
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -43,9 +42,7 @@ async def handle_balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     if not update.callback_query or not update.callback_query.message:
         return
 
-    await dmarket_status_impl(
-        update, context, status_message=update.callback_query.message
-    )
+    await dmarket_status_impl(update, context, status_message=update.callback_query.message)
 
 
 async def handle_search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -72,9 +69,7 @@ async def handle_settings(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     )
 
 
-async def handle_market_trends(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
+async def handle_market_trends(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle market_trends callback."""
     if not update.callback_query:
         return
@@ -101,9 +96,7 @@ async def handle_alerts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     )
 
 
-async def handle_back_to_main(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
+async def handle_back_to_main(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle back_to_main callback."""
     if not update.callback_query:
         return
@@ -125,9 +118,7 @@ async def handle_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 # ============================================================================
 
 
-async def handle_arbitrage_menu(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
+async def handle_arbitrage_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle arbitrage/arbitrage_menu callback."""
     if not update.callback_query:
         return
@@ -139,9 +130,7 @@ async def handle_arbitrage_menu(
     )
 
 
-async def handle_auto_arbitrage(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
+async def handle_auto_arbitrage(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle auto_arbitrage callback."""
     if not update.callback_query:
         return
@@ -153,27 +142,21 @@ async def handle_auto_arbitrage(
     )
 
 
-async def handle_dmarket_arbitrage(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
+async def handle_dmarket_arbitrage(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle dmarket_arbitrage callback."""
     from src.telegram_bot.handlers.callbacks import handle_dmarket_arbitrage_impl
 
     await handle_dmarket_arbitrage_impl(update, context, mode="normal")
 
 
-async def handle_best_opportunities(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
+async def handle_best_opportunities(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle best_opportunities callback."""
     from src.telegram_bot.handlers.callbacks import handle_best_opportunities_impl
 
     await handle_best_opportunities_impl(update, context)
 
 
-async def handle_game_selection(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
+async def handle_game_selection(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle game_selection callback."""
     if not update.callback_query:
         return
@@ -185,9 +168,7 @@ async def handle_game_selection(
     )
 
 
-async def handle_market_analysis(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
+async def handle_market_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle market_analysis callback."""
     if not update.callback_query:
         return
@@ -205,8 +186,7 @@ async def handle_open_webapp(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return
 
     await update.callback_query.edit_message_text(
-        "🌐 <b>DMarket WebApp</b>\n\n"
-        "Нажмите кнопку ниже, чтобы открыть DMarket прямо в Telegram:",
+        "🌐 <b>DMarket WebApp</b>\n\nНажмите кнопку ниже, чтобы открыть DMarket прямо в Telegram:",
         parse_mode=ParseMode.HTML,
         reply_markup=get_dmarket_webapp_keyboard(),
     )
