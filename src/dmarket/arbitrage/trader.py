@@ -492,16 +492,19 @@ class ArbitrageTrader:
         """
         while self.active:
             try:
+                # Early continue if can't trade
                 if not await self._can_trade_now():
                     await asyncio.sleep(60)
                     continue
 
+                # Early continue if insufficient funds
                 has_funds, balance = await self.check_balance()
                 if not has_funds:
                     logger.warning(f"Недостаточно средств: ${balance:.2f}")
                     await asyncio.sleep(300)
                     continue
 
+                # Find profitable items
                 profitable_items = await self.find_profitable_items(
                     game=game,
                     min_profit_percentage=min_profit_percentage,
@@ -510,33 +513,78 @@ class ArbitrageTrader:
                     max_price=min(balance * 0.8, self.max_trade_value),
                 )
 
-                if profitable_items:
-                    logger.info(f"Найдено {len(profitable_items)} выгодных предметов")
-
-                    items_to_trade: list[dict[str, Any]] = []
-                    remaining_balance = balance
-
-                    for item in profitable_items:
-                        if (
-                            await self._check_trading_limits(item["buy_price"])
-                            and item["buy_price"] <= remaining_balance
-                        ):
-                            items_to_trade.append(item)
-                            remaining_balance -= item["buy_price"]
-                            if len(items_to_trade) >= max_concurrent_trades:
-                                break
-
-                    for item in items_to_trade:
-                        await self.execute_arbitrage_trade(item)
-                        await asyncio.sleep(5)
-                else:
+                # Early continue if no items found
+                if not profitable_items:
                     logger.info("Не найдено выгодных предметов")
+                    await asyncio.sleep(60)
+                    continue
+
+                # Process profitable items
+                logger.info(f"Найдено {len(profitable_items)} выгодных предметов")
+                items_to_trade = await self._select_items_to_trade(
+                    profitable_items, balance, max_concurrent_trades
+                )
+
+                # Execute trades
+                await self._execute_trades_batch(items_to_trade)
 
                 await asyncio.sleep(60)
 
             except Exception as e:
                 logger.exception(f"Ошибка в цикле автоторговли: {e}")
                 await asyncio.sleep(30)
+
+    async def _select_items_to_trade(
+        self,
+        profitable_items: list[dict[str, Any]],
+        balance: float,
+        max_concurrent: int,
+    ) -> list[dict[str, Any]]:
+        """Select items to trade based on limits and balance.
+
+        Phase 2 refactoring: Extract selection logic, reduce nesting.
+
+        Args:
+            profitable_items: List of profitable items
+            balance: Available balance
+            max_concurrent: Maximum concurrent trades
+
+        Returns:
+            List of items to trade
+
+        """
+        items_to_trade: list[dict[str, Any]] = []
+        remaining_balance = balance
+
+        for item in profitable_items:
+            # Early continue if limits exceeded
+            if not await self._check_trading_limits(item["buy_price"]):
+                continue
+
+            # Early continue if insufficient balance
+            if item["buy_price"] > remaining_balance:
+                continue
+
+            # Add item
+            items_to_trade.append(item)
+            remaining_balance -= item["buy_price"]
+
+            # Stop if reached max concurrent trades
+            if len(items_to_trade) >= max_concurrent:
+                break
+
+        return items_to_trade
+
+    async def _execute_trades_batch(self, items: list[dict[str, Any]]) -> None:
+        """Execute batch of trades with delay.
+
+        Args:
+            items: Items to trade
+
+        """
+        for item in items:
+            await self.execute_arbitrage_trade(item)
+            await asyncio.sleep(5)
 
     def get_transaction_history(self) -> list[dict[str, Any]]:
         """Получить историю транзакций.

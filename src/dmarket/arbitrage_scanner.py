@@ -462,6 +462,7 @@ class ArbitrageScanner:
         # 🆕 Импортируем фильтр черного списка
         try:
             from src.dmarket.blacklist_filters import ItemBlacklistFilter
+
             blacklist_filter = ItemBlacklistFilter()
         except ImportError:
             logger.warning("Blacklist filter not available, sending all notifications")
@@ -1788,63 +1789,141 @@ class ArbitrageScanner:
             api = await self.get_api_client()
             items = await api.get_market_items(game=game, limit=100)
 
-            total_items = len(items.get("objects", []))
+            objects = items.get("objects", [])
+            total_items = len(objects)
 
-            # Подсчитываем прибыльные предметы и лучший процент прибыли
-            total_opportunities = 0
-            best_profit_percent = 0.0
-            best_level = None
-            results_by_level = {}
-            prices = []
+            # Early return if no items
+            if not objects:
+                return self._create_empty_overview(game)
 
-            for item in items.get("objects", []):
-                price_usd = item.get("price", {}).get("USD", 0) / 100
-                prices.append(price_usd)
-
-                # Проверяем, есть ли suggestedPrice и больше ли она
-                suggested = item.get("suggestedPrice", {}).get("USD", 0) / 100
-                if suggested > price_usd:
-                    total_opportunities += 1
-                    profit_percent = (suggested - price_usd) / price_usd * 100
-                    if profit_percent > best_profit_percent:
-                        best_profit_percent = profit_percent
-                        # Определяем лучший уровень по профиту
-                        for level, cfg in ARBITRAGE_LEVELS.items():
-                            if cfg["min_profit_percent"] <= profit_percent:
-                                best_level = level
-
-                    # Распределяем по уровням
-                    for level, cfg in ARBITRAGE_LEVELS.items():
-                        price_range = cfg["price_range"]
-                        if isinstance(price_range, tuple) and len(price_range) == 2:
-                            price_from, price_to = price_range
-                            if price_from <= price_usd <= price_to:
-                                if level not in results_by_level:
-                                    results_by_level[level] = 0
-                                results_by_level[level] += 1
-
-            avg_price = sum(prices) / len(prices) if prices else 0.0
+            # Collect data
+            stats = self._collect_market_stats(objects)
 
             return {
                 "game": game,
                 "total_items": total_items,
-                "total_opportunities": total_opportunities,
-                "best_profit_percent": best_profit_percent,
-                "best_level": best_level,
-                "results_by_level": results_by_level,
-                "average_price": avg_price,
+                "total_opportunities": stats["opportunities"],
+                "best_profit_percent": stats["best_profit"],
+                "best_level": stats["best_level"],
+                "results_by_level": stats["by_level"],
+                "average_price": stats["avg_price"],
                 "scanned_at": time.time(),
                 "timestamp": time.time(),
             }
         except Exception as e:
             logger.exception(f"Ошибка получения обзора рынка: {e}")
-            return {
-                "game": game,
-                "total_items": 0,
-                "total_opportunities": 0,
-                "average_price": 0.0,
-                "error": str(e),
-            }
+            return self._create_empty_overview(game, error=str(e))
+
+    def _create_empty_overview(self, game: str, error: str | None = None) -> dict[str, Any]:
+        """Create empty market overview response.
+
+        Args:
+            game: Game code
+            error: Optional error message
+
+        Returns:
+            Empty overview dict
+
+        """
+        result = {
+            "game": game,
+            "total_items": 0,
+            "total_opportunities": 0,
+            "average_price": 0.0,
+        }
+        if error:
+            result["error"] = error
+        return result
+
+    def _collect_market_stats(self, items: list[dict]) -> dict[str, Any]:
+        """Collect market statistics from items.
+
+        Phase 2 refactoring: Extract complex logic, reduce nesting.
+
+        Args:
+            items: List of market items
+
+        Returns:
+            Dict with collected statistics
+
+        """
+        opportunities = 0
+        best_profit = 0.0
+        best_level = None
+        by_level: dict[str, int] = {}
+        prices: list[float] = []
+
+        for item in items:
+            price_usd = item.get("price", {}).get("USD", 0) / 100
+            prices.append(price_usd)
+
+            # Check for arbitrage opportunity
+            suggested = item.get("suggestedPrice", {}).get("USD", 0) / 100
+            if suggested <= price_usd:
+                continue
+
+            opportunities += 1
+            profit_percent = (suggested - price_usd) / price_usd * 100
+
+            # Update best profit
+            if profit_percent > best_profit:
+                best_profit = profit_percent
+                best_level = self._find_best_level_for_profit(profit_percent)
+
+            # Distribute by levels
+            self._distribute_by_level(price_usd, by_level)
+
+        avg_price = sum(prices) / len(prices) if prices else 0.0
+
+        return {
+            "opportunities": opportunities,
+            "best_profit": best_profit,
+            "best_level": best_level,
+            "by_level": by_level,
+            "avg_price": avg_price,
+        }
+
+    def _find_best_level_for_profit(self, profit_percent: float) -> str | None:
+        """Find best arbitrage level for given profit percentage.
+
+        Args:
+            profit_percent: Profit percentage
+
+        Returns:
+            Best level name or None
+
+        """
+        best_level = None
+        for level, cfg in ARBITRAGE_LEVELS.items():
+            if cfg["min_profit_percent"] <= profit_percent:
+                best_level = level
+        return best_level
+
+    def _distribute_by_level(self, price_usd: float, results: dict[str, int]) -> None:
+        """Distribute item by price level.
+
+        Args:
+            price_usd: Item price in USD
+            results: Results dict to update
+
+        """
+        for level, cfg in ARBITRAGE_LEVELS.items():
+            price_range = cfg["price_range"]
+
+            # Skip invalid ranges
+            if not isinstance(price_range, tuple) or len(price_range) != 2:
+                continue
+
+            price_from, price_to = price_range
+
+            # Check if price fits in range
+            if not (price_from <= price_usd <= price_to):
+                continue
+
+            # Increment counter
+            if level not in results:
+                results[level] = 0
+            results[level] += 1
 
     def get_statistics(self) -> dict[str, Any]:
         """Возвращает статистику работы сканера.
