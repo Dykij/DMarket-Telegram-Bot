@@ -12,6 +12,7 @@ import argparse
 from datetime import datetime
 import json
 import os
+import pathlib
 import pickle
 import shutil
 import sys
@@ -103,7 +104,7 @@ def find_user_data_files(data_dir: str) -> dict[str, str]:
         filepath = os.path.join(data_dir, filename)  # type: ignore[attr-defined]
 
         # Проверяем, что это файл (не директория)
-        if not os.path.isfile(filepath):  # type: ignore[attr-defined]
+        if not pathlib.Path(filepath).is_file():  # type: ignore[attr-defined]
             continue
 
         # Проверяем формат имени файла

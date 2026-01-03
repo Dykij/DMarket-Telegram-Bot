@@ -10,8 +10,7 @@ import os
 import signal
 import sys
 
-from telegram.ext import Application as TelegramApplication
-from telegram.ext import ApplicationBuilder
+from telegram.ext import Application as TelegramApplication, ApplicationBuilder, PersistenceInput
 
 from src.dmarket.dmarket_api import DMarketAPI
 from src.dmarket.scanner_manager import ScannerManager
@@ -24,6 +23,7 @@ from src.utils.database import DatabaseManager
 from src.utils.logging_utils import BotLogger, setup_logging
 from src.utils.sentry_integration import init_sentry
 from src.utils.state_manager import StateManager
+
 
 logger = logging.getLogger(__name__)
 bot_logger = BotLogger(__name__)
@@ -47,6 +47,7 @@ class Application:
         self.state_manager: StateManager | None = None
         self.daily_report_scheduler: DailyReportScheduler | None = None
         self.scanner_manager: ScannerManager | None = None
+        self.inventory_manager = None
         self.websocket_manager = None
         self.health_check_monitor = None
         self._shutdown_event = asyncio.Event()
@@ -116,11 +117,13 @@ class Application:
                     balance_result = await self.dmarket_api.get_balance()
                     if balance_result.get("error"):
                         logger.warning(
-                            f"DMarket API test failed: {balance_result.get('error_message', 'Unknown error')}",
+                            "DMarket API test failed: "
+                            f"{balance_result.get('error_message', 'Unknown error')}",
                         )
                     else:
+                        balance_value = balance_result.get("balance", 0)
                         logger.info(
-                            f"DMarket API connected. Balance: ${balance_result.get('balance', 0):.2f}",
+                            f"DMarket API connected. Balance: ${balance_value:.2f}",
                         )
                 except Exception as e:
                     logger.warning(f"DMarket API test failed: {e}")
@@ -135,16 +138,32 @@ class Application:
                 self.config.bot.token,
             )
 
-            # Enable persistence (best practice)
+            # Enable persistence (best practice) with store_data configuration
             if not self.config.testing:
                 from telegram.ext import PicklePersistence
 
                 persistence_path = "data/bot_persistence.pickle"
                 os.makedirs("data", exist_ok=True)
-                builder.persistence(PicklePersistence(filepath=persistence_path))
-                logger.info(f"Persistence enabled: {persistence_path}")
+                # CRITICAL: Exclude bot_data from persistence to avoid pickle errors
+                # python-telegram-bot v20+ uses PersistenceInput instead of StoreData
+                persistence = PicklePersistence(
+                    filepath=persistence_path,
+                    store_data=PersistenceInput(
+                        bot_data=False,  # Don't persist bot_data (has non-picklable objects)
+                        chat_data=True,
+                        user_data=True,
+                        callback_data=True,
+                    ),
+                )
+                builder.persistence(persistence)
+                logger.info(f"Persistence enabled (bot_data excluded): {persistence_path}")
 
             self.bot = builder.build()
+
+            # Attach database to application for AutopilotOrchestrator (FIX)
+            # Use direct attribute assignment (not bot_data) to avoid pickle issues
+            self.bot.db = self.database
+            logger.info("Database attached as application.db attribute")
 
             # Clear pending updates on start (best practice)
             if not self.config.testing:
@@ -160,12 +179,17 @@ class Application:
                 except Exception as e:
                     logger.warning(f"Failed to clear pending updates: {e}")
 
-            # Store dependencies in bot_data
+            # Store non-picklable dependencies as application attributes (not bot_data)
+            # This prevents "cannot pickle 'module' object" errors on shutdown
+            self.bot.dmarket_api = self.dmarket_api
+            self.bot.database = self.database
+            self.bot.state_manager = self.state_manager
+            self.bot.bot_instance = self
+
+            # Store only picklable config in bot_data for handlers
             self.bot.bot_data["config"] = self.config
-            self.bot.bot_data["dmarket_api"] = self.dmarket_api
-            self.bot.bot_data["database"] = self.database
-            self.bot.bot_data["state_manager"] = self.state_manager
-            self.bot.bot_data["bot_instance"] = self  # Add application instance for handlers
+
+            logger.info("Dependencies attached as application attributes (pickle-safe)")
 
             # Register critical shutdown callback
             if self.state_manager:
@@ -220,8 +244,8 @@ class Application:
                     enabled=self.config.daily_report.enabled,
                 )
 
-                # Store scheduler in bot_data for command access
-                self.bot.bot_data["daily_report_scheduler"] = self.daily_report_scheduler
+                # Store scheduler as application attribute (pickle-safe)
+                self.bot.daily_report_scheduler = self.daily_report_scheduler
 
                 logger.info(
                     "Daily Report Scheduler initialized at %s",
@@ -245,8 +269,8 @@ class Application:
                     enable_cleanup=enable_cleanup,
                 )
 
-                # Store in bot_data for command access
-                self.bot.bot_data["scanner_manager"] = self.scanner_manager
+                # Store as application attribute (pickle-safe)
+                self.bot.scanner_manager = self.scanner_manager
 
                 logger.info(
                     f"Scanner Manager initialized: "
@@ -254,6 +278,74 @@ class Application:
                     f"parallel={enable_parallel}, "
                     f"cleanup={enable_cleanup}"
                 )
+
+            # Initialize Inventory Manager for Direct Buy mode (NEW)
+            if not self.config.testing and self.dmarket_api:
+                logger.info("Initializing Inventory Manager (Direct Buy Mode)...")
+                try:
+                    from src.dmarket.inventory_manager import InventoryManager
+
+                    # Get configuration from environment
+                    undercut_step = int(os.getenv("UNDERCUT_STEP", "1"))
+                    min_profit_margin = float(os.getenv("MIN_PROFIT_MARGIN", "1.02"))
+                    check_interval = int(os.getenv("INVENTORY_CHECK_INTERVAL", "1800"))
+                    undercut_enabled = os.getenv("UNDERCUT_ENABLED", "true").lower() == "true"
+
+                    self.inventory_manager = InventoryManager(
+                        api_client=self.dmarket_api,
+                        telegram_bot=self.bot.bot,
+                        undercut_step=undercut_step,
+                        min_profit_margin=min_profit_margin,
+                        check_interval=check_interval,
+                    )
+
+                    # Store as application attribute (pickle-safe)
+                    self.bot.inventory_manager = self.inventory_manager
+
+                    logger.info(
+                        f"Inventory Manager initialized: "
+                        f"undercut={'ON' if undercut_enabled else 'OFF'}, "
+                        f"step=${undercut_step / 100:.2f}, "
+                        f"margin={min_profit_margin:.2%}, "
+                        f"interval={check_interval}s"
+                    )
+
+                except Exception as e:
+                    logger.warning(f"Failed to initialize Inventory Manager: {e}")
+                    # Not critical, continue without inventory management
+
+            # Initialize Auto Steam Arbitrage Scanner (NEW - FIX)
+            if not self.config.testing and self.dmarket_api:
+                logger.info("Initializing Auto Steam Arbitrage Scanner...")
+                try:
+                    # Get admin chat ID from config
+                    admin_users = getattr(self.config.security, "admin_users", [])
+                    if not admin_users and hasattr(self.config.security, "allowed_users"):
+                        admin_users = self.config.security.allowed_users
+
+                    if admin_users:
+                        admin_chat_id = int(admin_users[0])
+
+                        from src.dmarket.auto_steam_arbitrage import AutoSteamArbitrageScanner
+
+                        self.steam_arbitrage_scanner = AutoSteamArbitrageScanner(
+                            dmarket_api=self.dmarket_api,
+                            telegram_bot=self.bot.bot,
+                            admin_chat_id=admin_chat_id,
+                            scan_interval_minutes=10,  # Сканировать каждые 10 минут
+                            min_roi_percent=5.0,  # Минимум 5% профита
+                            max_items_per_scan=50,  # Максимум 50 предметов
+                            game="csgo",  # По умолчанию CS:GO
+                        )
+
+                        # Store as application attribute (pickle-safe)
+                        self.bot.steam_arbitrage_scanner = self.steam_arbitrage_scanner
+
+                        logger.info("Auto Steam Arbitrage Scanner initialized")
+                    else:
+                        logger.warning("No admin users configured, Steam Scanner skipped")
+                except Exception as e:
+                    logger.warning(f"Failed to initialize Steam Arbitrage Scanner: {e}")
 
             # Initialize Autopilot Orchestrator
             logger.info("Initializing Autopilot Orchestrator...")
@@ -266,23 +358,22 @@ class Application:
                 )
 
                 # Initialize auto-buyer if not exists
-                auto_buyer = self.bot.bot_data.get("auto_buyer")
+                auto_buyer = getattr(self.bot, "auto_buyer", None)
                 if not auto_buyer:
                     auto_buy_config = AutoBuyConfig(
                         enabled=False,  # Disabled by default
                         dry_run=self.config.dry_run,
                     )
                     auto_buyer = AutoBuyer(self.dmarket_api, auto_buy_config)
-                    self.bot.bot_data["auto_buyer"] = auto_buyer
+                    self.bot.auto_buyer = auto_buyer
 
                 # Initialize auto-seller if not exists
-                auto_seller = self.bot.bot_data.get("auto_seller")
+                auto_seller = getattr(self.bot, "auto_seller", None)
                 if not auto_seller:
                     auto_seller = AutoSeller(
-                        api_client=self.dmarket_api,
-                        db_manager=self.db,
+                        api=self.dmarket_api,
                     )
-                    self.bot.bot_data["auto_seller"] = auto_seller
+                    self.bot.auto_seller = auto_seller
 
                 # Create orchestrator config
                 orchestrator_config = AutopilotConfig(
@@ -301,7 +392,7 @@ class Application:
                     config=orchestrator_config,
                 )
 
-                self.bot.bot_data["orchestrator"] = orchestrator
+                self.bot.orchestrator = orchestrator
 
                 logger.info("Autopilot Orchestrator initialized successfully")
 
@@ -324,7 +415,7 @@ class Application:
                     )
 
                     self.websocket_manager = WebSocketManager(websocket_listener)
-                    self.bot.bot_data["websocket_manager"] = self.websocket_manager
+                    self.bot.websocket_manager = self.websocket_manager
 
                     logger.info("WebSocket Listener initialized successfully")
 
@@ -364,7 +455,7 @@ class Application:
                                 self.websocket_manager.listener
                             )
 
-                        self.bot.bot_data["health_check_monitor"] = self.health_check_monitor
+                        self.bot.health_check_monitor = self.health_check_monitor
 
                         logger.info("Health Check Monitor initialized successfully")
 
@@ -422,6 +513,20 @@ class Application:
                     f"level={arbitrage_level}, "
                     f"cleanup_interval={cleanup_interval}h"
                 )
+
+            # Start Inventory Manager (Direct Buy - Undercutting)
+            if (
+                hasattr(self, "inventory_manager")
+                and self.inventory_manager
+                and not self.config.testing
+            ):
+                undercut_enabled = os.getenv("UNDERCUT_ENABLED", "true").lower() == "true"
+                if undercut_enabled:
+                    logger.info("Starting Inventory Manager (Undercutting)...")
+                    asyncio.create_task(self.inventory_manager.refresh_inventory_loop())
+                    logger.info("Inventory Manager started - auto-repricing enabled")
+                else:
+                    logger.info("Inventory Manager initialized but undercutting is disabled")
 
             # Start WebSocket Listener
             if self.websocket_manager:
@@ -533,7 +638,7 @@ class Application:
                 except TimeoutError:
                     logger.warning("⚠️ Health Check Monitor stop timeout")
                 except Exception as e:
-                    logger.error(f"❌ Error stopping Health Check: {e}")
+                    logger.exception(f"❌ Error stopping Health Check: {e}")
 
             if self.websocket_manager:
                 try:
@@ -545,7 +650,7 @@ class Application:
                 except TimeoutError:
                     logger.warning("⚠️ WebSocket Listener stop timeout")
                 except Exception as e:
-                    logger.error(f"❌ Error stopping WebSocket: {e}")
+                    logger.exception(f"❌ Error stopping WebSocket: {e}")
 
             # Step 1: Stop Scanner Manager
             if self.scanner_manager:
@@ -565,7 +670,7 @@ class Application:
                 except TimeoutError:
                     logger.warning("⚠️ Scanner Manager stop timeout")
                 except Exception as e:
-                    logger.error(f"❌ Error stopping Scanner Manager: {e}")
+                    logger.exception(f"❌ Error stopping Scanner Manager: {e}")
 
             # Step 2: Stop accepting new updates
             logger.info("Step 2/9: Stopping new updates...")

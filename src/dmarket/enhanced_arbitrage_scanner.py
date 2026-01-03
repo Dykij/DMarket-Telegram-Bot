@@ -17,6 +17,7 @@ from src.dmarket.liquidity_analyzer import LiquidityAnalyzer
 from src.dmarket.sales_history import SalesHistoryAnalyzer
 from src.interfaces import IDMarketAPI
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -115,7 +116,7 @@ class EnhancedArbitrageScanner:
             return opportunities[:limit]
 
         except Exception as e:
-            logger.error(f"Ошибка в Enhanced Arbitrage Scanner: {e}", exc_info=True)
+            logger.exception(f"Ошибка в Enhanced Arbitrage Scanner: {e}")
             return []
 
     async def _fetch_items_by_discount(
@@ -161,7 +162,7 @@ class EnhancedArbitrageScanner:
             return items
 
         except Exception as e:
-            logger.error(f"Ошибка при получении предметов: {e}")
+            logger.exception(f"Ошибка при получении предметов: {e}")
             return []
 
     def _apply_basic_filters(self, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -385,11 +386,10 @@ async def scan_with_enhancements(
     scanner = EnhancedArbitrageScanner(min_discount=min_discount)
 
     try:
-        opportunities = await scanner.find_opportunities(
+        return await scanner.find_opportunities(
             game_id=game_id,
             min_price=min_price,
             max_price=max_price,
         )
-        return opportunities
     finally:
         await scanner.close()

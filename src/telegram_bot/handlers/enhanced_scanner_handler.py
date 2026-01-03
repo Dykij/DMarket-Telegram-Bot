@@ -4,15 +4,12 @@
 """
 
 import logging
-from typing import TYPE_CHECKING
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackQueryHandler, ContextTypes
 
-if TYPE_CHECKING:
-    pass
-
 from src.dmarket.enhanced_arbitrage_scanner import EnhancedArbitrageScanner
+
 
 logger = logging.getLogger(__name__)
 
@@ -254,16 +251,20 @@ async def show_enhanced_scanner_help(
     )
 
 
+# Alias для совместимости с register_all_handlers.py
+handle_enhanced_scan_help = show_enhanced_scanner_help
+
+
 def register_enhanced_scanner_handlers(application, bot_instance) -> None:
     """Зарегистрировать handlers для Enhanced Scanner.
-    
+
     Args:
         application: Telegram Application instance
         bot_instance: DMarketTelegramBot instance for API access
     """
     # Store bot_instance in bot_data for handlers
     application.bot_data["bot_instance"] = bot_instance
-    
+
     application.add_handler(
         CallbackQueryHandler(
             show_enhanced_scanner_menu,

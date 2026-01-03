@@ -20,6 +20,7 @@ from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.database import DatabaseManager
 from src.utils.redis_cache import RedisCache
 
+
 logger = structlog.get_logger(__name__)
 
 
@@ -51,7 +52,7 @@ class PerformanceMonitor:
             return elapsed
         except Exception as e:
             self.metrics["error_count"] += 1
-            logger.error("api_error", error=str(e))
+            logger.exception("api_error", error=str(e))
             return -1
 
     def monitor_memory_usage(self) -> dict[str, float]:
@@ -98,7 +99,7 @@ class PerformanceMonitor:
             self.metrics["cache_stats"] = stats
             return stats
         except Exception as e:
-            logger.error("cache_monitor_error", error=str(e))
+            logger.exception("cache_monitor_error", error=str(e))
             return {}
 
     async def monitor_database_performance(self, db: DatabaseManager) -> float:
@@ -118,7 +119,7 @@ class PerformanceMonitor:
             return elapsed
         except Exception as e:
             self.metrics["error_count"] += 1
-            logger.error("db_error", error=str(e))
+            logger.exception("db_error", error=str(e))
             return -1
 
     def generate_report(self) -> str:
@@ -151,7 +152,7 @@ class PerformanceMonitor:
 
         cache_stats = self.metrics["cache_stats"]
 
-        report = f"""
+        return f"""
 ╔══════════════════════════════════════════════════════════╗
 ║          PERFORMANCE MONITORING REPORT                   ║
 ╠══════════════════════════════════════════════════════════╣
@@ -178,7 +179,6 @@ class PerformanceMonitor:
 ║ Errors: {self.metrics["error_count"]}
 ╚══════════════════════════════════════════════════════════╝
 """
-        return report
 
     async def run_monitoring_cycle(
         self, api_client: DMarketAPI, db: DatabaseManager, cache: RedisCache, duration: int = 3600

@@ -20,6 +20,7 @@ from telegram.ext import ContextTypes
 from src.telegram_bot.handlers.simplified_menu_handler import get_main_menu_keyboard
 from src.utils.sentry_breadcrumbs import add_command_breadcrumb
 
+
 logger = structlog.get_logger(__name__)
 std_logger = logging.getLogger(__name__)
 

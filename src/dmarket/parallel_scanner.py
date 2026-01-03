@@ -124,7 +124,7 @@ class ParallelScanner:
 
         # Build results dict
         results_dict = {}
-        for game, result in zip(games, results):
+        for game, result in zip(games, results, strict=False):
             if isinstance(result, Exception):
                 logger.error(
                     "game_scan_exception",
@@ -172,7 +172,7 @@ class ParallelScanner:
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         results_dict = {}
-        for level, result in zip(levels, results):
+        for level, result in zip(levels, results, strict=False):
             if isinstance(result, Exception):
                 logger.error(
                     "level_scan_exception",
@@ -231,7 +231,7 @@ class ParallelScanner:
 
         # Build results dict
         results_dict = {}
-        for (game, level), result in zip(combinations, results):
+        for (game, level), result in zip(combinations, results, strict=False):
             if isinstance(result, Exception):
                 logger.error(
                     "combination_scan_exception",

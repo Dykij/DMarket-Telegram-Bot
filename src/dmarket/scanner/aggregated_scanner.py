@@ -23,7 +23,9 @@ Example:
 
 import asyncio
 import logging
+import operator
 from typing import TYPE_CHECKING, Any
+
 
 if TYPE_CHECKING:
     from src.interfaces import IDMarketAPI
@@ -159,7 +161,7 @@ class AggregatedScanner:
                 })
 
             # Sort by margin (highest first)
-            opportunities.sort(key=lambda x: x["margin"], reverse=True)
+            opportunities.sort(key=operator.itemgetter("margin"), reverse=True)
 
             logger.info(
                 "aggregated_pre_scan_completed",
@@ -172,7 +174,7 @@ class AggregatedScanner:
             return opportunities
 
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "aggregated_pre_scan_failed",
                 extra={"error": str(e), "game": game},
                 exc_info=True,
@@ -237,7 +239,7 @@ class AggregatedScanner:
                     await asyncio.sleep(0.5)
 
             except Exception as e:
-                logger.error(
+                logger.exception(
                     "batch_failed",
                     extra={"batch": f"{batch_num}/{total_batches}", "error": str(e)}
                 )
@@ -245,7 +247,7 @@ class AggregatedScanner:
                 continue
 
         # Sort combined results
-        all_opportunities.sort(key=lambda x: x["margin"], reverse=True)
+        all_opportunities.sort(key=operator.itemgetter("margin"), reverse=True)
 
         logger.info(
             "batch_pre_scan_completed",

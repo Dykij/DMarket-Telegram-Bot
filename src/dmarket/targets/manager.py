@@ -395,7 +395,7 @@ class TargetManager:
         """
         logger.info(f"Удаление всех таргетов: game={game}, dry_run={dry_run}")
 
-        targets = await self.get_user_targets(game=game, status="active")
+        targets = await self.get_user_targets(game=game, status="TargetStatusActive")
 
         if dry_run:
             return {
@@ -609,7 +609,7 @@ class TargetManager:
         logger.info(f"Получение статистики таргетов для {game} за {days} дней")
 
         # Получаем активные таргеты
-        active = await self.get_user_targets(game, status="active")
+        active = await self.get_user_targets(game, status="TargetStatusActive")
 
         # Получаем закрытые таргеты
         closed = await self.get_closed_targets(limit=100, days=days)

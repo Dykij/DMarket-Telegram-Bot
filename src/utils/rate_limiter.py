@@ -6,6 +6,15 @@ import time
 from typing import TYPE_CHECKING
 
 
+try:
+    from aiolimiter import AsyncLimiter
+
+    AIOLIMITER_AVAILABLE = True
+except ImportError:
+    AIOLIMITER_AVAILABLE = False
+    AsyncLimiter = None  # type: ignore
+
+
 if TYPE_CHECKING:
     from src.utils.notifier import Notifier
 
@@ -569,7 +578,11 @@ class DMarketRateLimiter:
 
     def __init__(self) -> None:
         """Initialize per-endpoint rate limiters."""
-        from aiolimiter import AsyncLimiter
+        if not AIOLIMITER_AVAILABLE or AsyncLimiter is None:
+            raise ImportError(
+                "aiolimiter is required for DMarketRateLimiter. "
+                "Install it with: pip install aiolimiter"
+            )
 
         # Endpoint-specific limits (requests per minute)
         self._endpoint_limits = {

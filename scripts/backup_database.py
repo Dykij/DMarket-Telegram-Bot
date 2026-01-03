@@ -28,6 +28,7 @@ import asyncio
 from datetime import UTC, datetime
 import gzip
 import logging
+import operator
 import os
 from pathlib import Path
 import shutil
@@ -181,7 +182,7 @@ class DatabaseBackup:
                     shutil.copy2(sqlite_path, backup_path)
 
         except Exception as e:
-            logger.error("SQLite backup failed: %s", e)
+            logger.exception("SQLite backup failed: %s", e)
             raise
 
         return backup_path
@@ -224,10 +225,10 @@ class DatabaseBackup:
                 )
 
         except subprocess.CalledProcessError as e:
-            logger.error("pg_dump failed: %s", e.stderr.decode())
+            logger.exception("pg_dump failed: %s", e.stderr.decode())
             raise
         except FileNotFoundError:
-            logger.error("pg_dump not found. Install PostgreSQL client tools.")
+            logger.exception("pg_dump not found. Install PostgreSQL client tools.")
             raise
 
         return backup_path
@@ -300,7 +301,7 @@ class DatabaseBackup:
                 check=True,
             )
         except subprocess.CalledProcessError as e:
-            logger.error("pg_restore failed: %s", e.stderr.decode())
+            logger.exception("pg_restore failed: %s", e.stderr.decode())
             raise
 
     async def _rotate_backups(self) -> None:
@@ -333,7 +334,7 @@ class DatabaseBackup:
                 "created_at": datetime.fromtimestamp(stat.st_mtime, tz=UTC),
             })
 
-        return sorted(backups, key=lambda x: x["created_at"], reverse=True)
+        return sorted(backups, key=operator.itemgetter("created_at"), reverse=True)
 
 
 async def main() -> int:
@@ -420,7 +421,7 @@ Examples:
         return 1
 
     except Exception as e:
-        logger.error("Backup operation failed: %s", e)
+        logger.exception("Backup operation failed: %s", e)
         print(f"❌ Error: {e}")
         return 1
 

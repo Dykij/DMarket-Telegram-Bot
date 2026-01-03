@@ -15,6 +15,7 @@ from telegram.ext import ContextTypes
 
 from src.dmarket.auto_buyer import AutoBuyConfig, AutoBuyer
 
+
 logger = structlog.get_logger(__name__)
 
 

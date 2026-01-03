@@ -30,8 +30,7 @@ def get_module_info(module_path: Path) -> dict[str, Any]:
     Returns:
         Dictionary with module info (classes, functions, etc.)
     """
-    with open(module_path, encoding="utf-8") as f:
-        content = f.read()
+    content = Path(module_path).read_text(encoding="utf-8")
 
     try:
         tree = ast.parse(content)
@@ -348,8 +347,7 @@ def main() -> int:
         test_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Write test file
-        with open(test_path, "w", encoding="utf-8") as f:
-            f.write(template)
+        Path(test_path).write_text(template, encoding="utf-8")
 
         print(f"✅ Generated: {test_path}")
         generated_count += 1

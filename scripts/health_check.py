@@ -349,7 +349,7 @@ async def send_health_notification(
                 },
             )
     except Exception as e:
-        logger.error(f"Failed to send notification: {e}")
+        logger.exception(f"Failed to send notification: {e}")
 
 
 async def main() -> int:
@@ -401,7 +401,7 @@ async def main() -> int:
         )
 
         # Check if all tests passed (excluding skipped)
-        all_healthy = all(r["status"] in ("healthy", "skipped") for r in results)
+        all_healthy = all(r["status"] in {"healthy", "skipped"} for r in results)
 
         # JSON output
         if args.json:

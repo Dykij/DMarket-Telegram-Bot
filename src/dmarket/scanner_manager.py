@@ -29,6 +29,7 @@ from src.dmarket.parallel_scanner import ParallelScanner
 from src.dmarket.target_cleaner import TargetCleaner
 from src.interfaces import IDMarketAPI
 
+
 logger = structlog.get_logger(__name__)
 
 
@@ -71,8 +72,8 @@ class ScannerManager:
         # Parallel scanner (multi-game)
         self.parallel: ParallelScanner | None = None
         if enable_parallel:
-            self.parallel = ParallelScanner(api_client=api_client, max_concurrent_scans=5)
-            logger.info("parallel_scanner_enabled", max_concurrent_scans=5)
+            self.parallel = ParallelScanner(api_client=api_client, max_concurrent_scans=2)
+            logger.info("parallel_scanner_enabled", max_concurrent_scans=2)
 
         # Target cleaner
         self.cleaner: TargetCleaner | None = None
@@ -274,7 +275,7 @@ class ScannerManager:
 
     async def run_continuous(
         self,
-        games: list[str] = ["csgo", "dota2", "rust", "tf2"],
+        games: list[str] | None = None,
         level: str = "medium",
         enable_cleanup: bool = True,
         cleanup_interval_hours: float = 6.0,
@@ -287,6 +288,8 @@ class ScannerManager:
             enable_cleanup: Enable periodic cleanup
             cleanup_interval_hours: Hours between cleanup
         """
+        if games is None:
+            games = ["csgo", "dota2", "rust", "tf2"]
         self._running = True
 
         logger.info(

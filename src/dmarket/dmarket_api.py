@@ -50,12 +50,13 @@ import time
 import traceback
 from typing import TYPE_CHECKING, Any
 
+from circuitbreaker import CircuitBreakerError  # type: ignore[import-untyped]
 import httpx
 import nacl.signing
-from circuitbreaker import CircuitBreakerError  # type: ignore[import-untyped]
 
 from src.dmarket.api_validator import validate_response
 from src.utils import json_utils as json
+
 
 if TYPE_CHECKING:
     from src.telegram_bot.notifier import Notifier
@@ -72,6 +73,7 @@ from src.utils.api_circuit_breaker import call_with_circuit_breaker
 from src.utils.rate_limiter import DMarketRateLimiter, RateLimiter
 from src.utils.sentry_breadcrumbs import add_api_breadcrumb, add_trading_breadcrumb
 
+
 logger = logging.getLogger(__name__)
 
 # TTL для кэша в секундах
@@ -83,6 +85,16 @@ CACHE_TTL = {
 
 # Кэш для хранения результатов запросов
 api_cache: dict[str, Any] = {}
+
+# Маппинг коротких имен игр в полные UUID для API v1.1.0
+# FIX: Исправление ошибки 400 Bad Request (Game ID mapping)
+GAME_MAP: dict[str, str] = {
+    "csgo": "a8db99ca-dc45-4c0e-9989-11ba71ed97a2",
+    "cs2": "a8db99ca-dc45-4c0e-9989-11ba71ed97a2",  # CS2 = CS:GO
+    "dota2": "9a92e107-160a-493e-80aa-3a5989710777",
+    "rust": "60702081-9b1a-4700-928d-f5421c60a927",
+    "tf2": "440",
+}
 
 
 class DMarketAPI:
@@ -222,6 +234,8 @@ class DMarketAPI:
         # HTTP client with HTTP/2 support
         self._client: httpx.AsyncClient | None = None
         self._http2_enabled = True  # Enable HTTP/2 for better performance
+        self._client_ref_count = 0  # Reference counter for parallel scanning
+        self._client_lock = asyncio.Lock()  # Lock for thread-safe operations
 
         # CPU executor for async HMAC signing (non-blocking)
         from concurrent.futures import ThreadPoolExecutor
@@ -253,7 +267,9 @@ class DMarketAPI:
 
     async def __aenter__(self) -> "DMarketAPI":
         """Context manager to use the client with async with."""
-        await self._get_client()
+        async with self._client_lock:
+            self._client_ref_count += 1
+            await self._get_client()
         return self
 
     async def __aexit__(
@@ -262,9 +278,18 @@ class DMarketAPI:
         exc_val: BaseException | None,
         exc_tb: object | None,
     ) -> None:
-        """Close client when exiting context manager."""
+        """Close client when exiting context manager.
+
+        Only closes the client when reference count reaches zero.
+        This allows parallel scanning without closing the client prematurely.
+        """
         _ = (exc_type, exc_val, exc_tb)  # Unused but required by protocol
-        await self._close_client()
+        async with self._client_lock:
+            self._client_ref_count -= 1
+            # Only close client if no other references exist
+            if self._client_ref_count <= 0:
+                await self._close_client()
+                self._client_ref_count = 0  # Reset counter
 
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client with optimized settings.
@@ -304,9 +329,9 @@ class DMarketAPI:
                 )
 
                 logger.debug(
-                    "Created HTTP client: max_connections=%d, max_keepalive=%d, http2=disabled",
-                    self.pool_limits.max_connections,
-                    self.pool_limits.max_keepalive_connections,
+                    "Created HTTP client: max_connections=%s, max_keepalive=%s, http2=disabled",
+                    getattr(self.pool_limits, "max_connections", "N/A"),
+                    getattr(self.pool_limits, "max_keepalive_connections", "N/A"),
                 )
 
         return self._client
@@ -508,15 +533,13 @@ class DMarketAPI:
         loop = asyncio.get_event_loop()
 
         # Выполнить подпись в отдельном потоке (не блокирует event loop)
-        headers = await loop.run_in_executor(
+        return await loop.run_in_executor(
             self._signing_executor,
             self._generate_signature,
             method,
             path,
             body,
         )
-
-        return headers
 
     def _generate_headers(
         self,
@@ -1416,9 +1439,12 @@ class DMarketAPI:
             Items as dict with 'objects' key containing list of items
 
         """
+        # FIX: Map short game name to full UUID (Fix 400 Bad Request)
+        game_id = GAME_MAP.get(game.lower(), game)
+
         # Build query parameters according to docs
         params = {
-            "gameId": game,
+            "gameId": game_id,
             "limit": limit,
             "offset": offset,
             "currency": currency,
@@ -2717,7 +2743,7 @@ class DMarketAPI:
         Response is automatically validated through CreateTargetsResponse schema.
 
         Args:
-            game_id: Идентификатор игры (a8db, 9a92, tf2, rust)
+            game_id: Идентификатор игры (csgo, dota2, tf2, rust или полный UUID)
             targets: Список таргетов для создания
 
         Returns:
@@ -2731,10 +2757,13 @@ class DMarketAPI:
             ...         "Price": {"Amount": 800, "Currency": "USD"},
             ...     }
             ... ]
-            >>> result = await api.create_targets("a8db", targets)
+            >>> result = await api.create_targets("csgo", targets)
 
         """
-        data = {"GameID": game_id, "Targets": targets}
+        # FIX: Map short game name to full UUID (Fix 400 Bad Request)
+        mapped_game_id = GAME_MAP.get(game_id.lower(), game_id)
+
+        data = {"GameID": mapped_game_id, "Targets": targets}
 
         return await self._request(
             "POST",
@@ -2758,7 +2787,7 @@ class DMarketAPI:
         Response is automatically validated through UserTargetsResponse schema.
 
         Args:
-            game_id: Идентификатор игры
+            game_id: Идентификатор игры (csgo, dota2, tf2, rust или полный UUID)
             status: Фильтр по статусу (TargetStatusActive, TargetStatusInactive)
             limit: Лимит результатов
             offset: Смещение для пагинации
@@ -2767,7 +2796,10 @@ class DMarketAPI:
             Список таргетов пользователя
 
         """
-        params = {"GameID": game_id, "Limit": str(limit), "Offset": str(offset)}
+        # FIX: Map short game name to full UUID (Fix 400 Bad Request)
+        mapped_game_id = GAME_MAP.get(game_id.lower(), game_id)
+
+        params = {"GameID": mapped_game_id, "Limit": str(limit), "Offset": str(offset)}
 
         if status:
             params["BasicFilters.Status"] = status

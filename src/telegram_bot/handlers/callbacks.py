@@ -881,9 +881,7 @@ async def button_callback_handler(
                 parse_mode=ParseMode.HTML,
             )
 
-        elif callback_data.startswith("scan_level_") or callback_data.startswith(
-            "scanner_level_scan_"
-        ):
+        elif callback_data.startswith(("scan_level_", "scanner_level_scan_")):
             # Обработка обоих форматов: scan_level_medium и scanner_level_scan_medium
             if callback_data.startswith("scanner_level_scan_"):
                 level = callback_data.replace("scanner_level_scan_", "")

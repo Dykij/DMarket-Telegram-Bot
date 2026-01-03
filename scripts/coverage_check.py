@@ -244,7 +244,7 @@ def main() -> int:
     print(f"Checking coverage for {len(files)} file(s)...")
     print(f"Minimum coverage: {args.min_coverage}%")
 
-    passed, results = check_coverage(files, args.min_coverage)
+    _passed, results = check_coverage(files, args.min_coverage)
 
     print_results(results, args.min_coverage)
 

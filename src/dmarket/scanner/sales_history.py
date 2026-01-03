@@ -9,8 +9,9 @@ import asyncio
 from datetime import datetime
 from typing import Any
 
-import structlog
 from pydantic import BaseModel, Field
+import structlog
+
 
 logger = structlog.get_logger(__name__)
 
@@ -280,7 +281,7 @@ class SalesHistoryAnalyzer:
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         filtered = []
-        for opp, result in zip(opportunities, results):
+        for opp, result in zip(opportunities, results, strict=False):
             if isinstance(result, Exception):
                 logger.warning(
                     "liquidity_check_failed",

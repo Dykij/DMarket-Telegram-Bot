@@ -74,11 +74,10 @@ class SafeMigrator:
             # Parse output like "abc123 (head)"
             output = result.stdout.strip()
             if output:
-                revision = output.split()[0]
-                return revision
+                return output.split()[0]
             return None
         except subprocess.CalledProcessError as e:
-            logger.error("failed_to_get_current_revision", error=str(e))
+            logger.exception("failed_to_get_current_revision", error=str(e))
             return None
 
     async def check_data_integrity(self) -> dict[str, bool]:
@@ -130,7 +129,7 @@ class SafeMigrator:
                 logger.info("data_integrity_checks", checks=checks)
 
             except Exception as e:
-                logger.error("integrity_check_failed", error=str(e))
+                logger.exception("integrity_check_failed", error=str(e))
                 checks["error"] = str(e)
 
         return checks
@@ -170,8 +169,7 @@ class SafeMigrator:
             logger.info("dry_run_mode", command=cmd)
             return subprocess.CompletedProcess(cmd, 0, "", "")
 
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        return result
+        return subprocess.run(cmd, capture_output=True, text=True, check=True)
 
     async def create_backup(self) -> str:
         """
@@ -210,7 +208,7 @@ class SafeMigrator:
 
         # Check 1: Current revision matches target
         current = await self.get_current_revision()
-        if current != target_revision and target_revision != "head":
+        if target_revision not in {current, "head"}:
             raise MigrationVerificationError(
                 f"Revision mismatch: expected {target_revision}, got {current}"
             )
@@ -287,7 +285,7 @@ class SafeMigrator:
             return True
 
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "migration_failed",
                 error=str(e),
                 error_type=type(e).__name__,
@@ -347,7 +345,7 @@ class SafeMigrator:
             return []
 
         except subprocess.CalledProcessError as e:
-            logger.error("failed_to_get_migrations", error=str(e))
+            logger.exception("failed_to_get_migrations", error=str(e))
             return []
 
     async def close(self):

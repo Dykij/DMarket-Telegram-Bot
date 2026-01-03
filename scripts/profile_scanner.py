@@ -6,10 +6,12 @@ Profiles scanner performance and generates reports for optimization.
 
 import asyncio
 import cProfile
+from io import StringIO
+import operator
+from pathlib import Path
 import pstats
 import time
-from io import StringIO
-from pathlib import Path
+
 
 # Mock imports for profiling (replace with actual when running)
 # from src.dmarket.arbitrage_scanner import ArbitrageScanner
@@ -70,13 +72,13 @@ async def profile_scanner_performance():
     print(f"  Average Time: {round(avg_time, 2)}ms per scan")
 
     # Find slowest scans
-    slowest = sorted(results, key=lambda x: x["elapsed_ms"], reverse=True)[:5]
+    slowest = sorted(results, key=operator.itemgetter("elapsed_ms"), reverse=True)[:5]
     print("\n  🐌 Slowest Scans:")
     for i, r in enumerate(slowest, 1):
         print(f"    {i}. {r['game']} - {r['level']}: {r['elapsed_ms']}ms")
 
     # Find fastest scans
-    fastest = sorted(results, key=lambda x: x["elapsed_ms"])[:5]
+    fastest = sorted(results, key=operator.itemgetter("elapsed_ms"))[:5]
     print("\n  🚀 Fastest Scans:")
     for i, r in enumerate(fastest, 1):
         print(f"    {i}. {r['game']} - {r['level']}: {r['elapsed_ms']}ms")
@@ -120,7 +122,7 @@ async def profile_batch_processing():
         print(f"    🚀 Throughput: {result['items_per_second']} items/sec")
 
     # Find optimal batch size
-    optimal = max(results, key=lambda x: x["items_per_second"])
+    optimal = max(results, key=operator.itemgetter("items_per_second"))
     print("\n  ✅ Optimal Batch Size:")
     print(f"    batch_size={optimal['batch_size']}")
     print(f"    Throughput: {optimal['items_per_second']} items/sec")

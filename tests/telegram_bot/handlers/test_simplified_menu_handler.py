@@ -8,6 +8,7 @@ from telegram.ext import ContextTypes
 
 from src.telegram_bot.handlers.simplified_menu_handler import (
     CHOOSING_ARB_MODE,
+    CHOOSING_TARGET_MODE,
     SELECTING_GAME_MANUAL,
     WAITING_FOR_RANGE,
     WAITING_FOR_TARGET_NAME,
@@ -215,7 +216,7 @@ class TestStats:
         ) as mock_api:
             # Мокируем API клиент
             api_instance = AsyncMock()
-            api_instance.get_user_items = AsyncMock(
+            api_instance.get_user_inventory = AsyncMock(
                 return_value={
                     "objects": [
                         {"title": "Item 1"},
@@ -228,7 +229,7 @@ class TestStats:
             result = await stats_simple(mock_update, mock_context)
 
             # Проверяем что был запрос к API
-            api_instance.get_user_items.assert_called_once()
+            api_instance.get_user_inventory.assert_called_once()
 
             # Проверяем что сообщение было отправлено
             mock_update.message.reply_text.assert_called_once()
@@ -360,7 +361,7 @@ class TestTargets:
 
         mock_update.message.reply_text.assert_called_once()
 
-        assert result == -1  # ConversationHandler.END
+        assert result == CHOOSING_TARGET_MODE  # Should show mode selection menu
 
     @pytest.mark.asyncio()
     async def test_targets_manual(self, mock_callback_update, mock_context):
@@ -403,10 +404,22 @@ class TestTargets:
         """Тест автоматических таргетов."""
         with patch(
             "src.telegram_bot.handlers.simplified_menu_handler.create_api_client_from_env"
-        ) as mock_api:
+        ) as mock_api_factory:
             with patch(
                 "src.telegram_bot.handlers.simplified_menu_handler.TargetManager"
             ) as mock_manager:
+                # Мокируем API клиент
+                api_instance = AsyncMock()
+                api_instance.get_market_items = AsyncMock(
+                    return_value={
+                        "objects": [
+                            {"title": "Item 1", "price": {"USD": "1000"}},
+                            {"title": "Item 2", "price": {"USD": "2000"}},
+                        ]
+                    }
+                )
+                mock_api_factory.return_value = api_instance
+
                 # Мокируем менеджер
                 manager_instance = AsyncMock()
                 manager_instance.create_smart_targets = AsyncMock(
@@ -417,6 +430,9 @@ class TestTargets:
                 mock_manager.return_value = manager_instance
 
                 result = await targets_auto(mock_callback_update, mock_context)
+
+                # Проверяем что get_market_items был вызван
+                api_instance.get_market_items.assert_called_once()
 
                 # Проверяем что умные таргеты были созданы
                 manager_instance.create_smart_targets.assert_called_once()
@@ -432,9 +448,9 @@ class TestTargets:
             with patch(
                 "src.telegram_bot.handlers.simplified_menu_handler.TargetManager"
             ) as mock_manager:
-                # Мокируем пустой список
+                # Мокируем пустой список (правильный формат ответа DMarket API)
                 manager_instance = AsyncMock()
-                manager_instance.get_targets = AsyncMock(return_value=[])
+                manager_instance.get_user_targets = AsyncMock(return_value={"Items": []})
                 mock_manager.return_value = manager_instance
 
                 result = await targets_list(mock_callback_update, mock_context)
@@ -454,13 +470,15 @@ class TestTargets:
             with patch(
                 "src.telegram_bot.handlers.simplified_menu_handler.TargetManager"
             ) as mock_manager:
-                # Мокируем список таргетов
+                # Мокируем список таргетов (правильный формат ответа DMarket API)
                 manager_instance = AsyncMock()
-                manager_instance.get_targets = AsyncMock(
-                    return_value=[
-                        {"title": "Item 1", "price": 1000, "status": "активен"},
-                        {"title": "Item 2", "price": 2000, "status": "активен"},
-                    ]
+                manager_instance.get_user_targets = AsyncMock(
+                    return_value={
+                        "Items": [
+                            {"title": "Item 1", "price": 100000, "status": "активен"},
+                            {"title": "Item 2", "price": 200000, "status": "активен"},
+                        ]
+                    }
                 )
                 mock_manager.return_value = manager_instance
 
@@ -513,7 +531,7 @@ class TestIntegration:
         """Тест полного workflow ручного таргета."""
         # 1. Старт меню таргетов
         result = await targets_start(mock_update, mock_context)
-        assert result == -1
+        assert result == CHOOSING_TARGET_MODE  # Should show mode selection menu
 
         # 2. Выбор ручного режима
         result = await targets_manual(mock_callback_update, mock_context)

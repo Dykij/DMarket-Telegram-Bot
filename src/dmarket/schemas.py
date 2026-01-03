@@ -55,9 +55,7 @@ class AttributesModel(BaseModel):
     category: str | None = Field(None, description="Категория предмета")
     exterior: str | None = Field(None, description="Состояние (для CS:GO)")
     rarity: str | None = Field(None, description="Редкость")
-    float_value: str | None = Field(
-        None, alias="floatValue", description="Float значение"
-    )
+    float_value: str | None = Field(None, alias="floatValue", description="Float значение")
     phase: str | None = Field(None, description="Фаза (для Doppler)")
     paint_seed: int | None = Field(None, alias="paintSeed", description="Paint seed")
 
@@ -89,9 +87,7 @@ class MarketItemsResponse(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, extra="allow")
 
-    objects: list[MarketItemModel] = Field(
-        default_factory=list, description="Список предметов"
-    )
+    objects: list[MarketItemModel] = Field(default_factory=list, description="Список предметов")
     total: int | str = Field(0, description="Общее количество предметов")
     cursor: str | None = Field(None, description="Курсор для пагинации")
 
@@ -137,9 +133,7 @@ class CreateTargetRequest(BaseModel):
     title: str = Field(..., alias="Title", description="Название предмета")
     amount: int = Field(..., alias="Amount", description="Количество", ge=1, le=100)
     price: TargetPriceModel = Field(..., alias="Price", description="Цена")
-    attrs: dict[str, Any] | None = Field(
-        None, alias="Attrs", description="Дополнительные атрибуты"
-    )
+    attrs: dict[str, Any] | None = Field(None, alias="Attrs", description="Дополнительные атрибуты")
 
 
 class TargetResultModel(BaseModel):
@@ -274,28 +268,38 @@ class AggregatedPriceModel(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     title: str = Field(..., description="Название предмета")
-    order_best_price: str | None = Field(
-        None, alias="orderBestPrice", description="Лучшая цена покупки (buy order)"
+    order_best_price: dict[str, Any] | str | None = Field(
+        None,
+        alias="orderBestPrice",
+        description="Лучшая цена покупки (buy order) - объект или строка",
     )
     order_count: int = Field(
         0, alias="orderCount", description="Количество активных заявок на покупку"
     )
-    offer_best_price: str | None = Field(
-        None, alias="offerBestPrice", description="Лучшая цена продажи"
+    offer_best_price: dict[str, Any] | str | None = Field(
+        None, alias="offerBestPrice", description="Лучшая цена продажи - объект или строка"
     )
-    offer_count: int = Field(
-        0, alias="offerCount", description="Количество активных предложений"
-    )
+    offer_count: int = Field(0, alias="offerCount", description="Количество активных предложений")
 
     def get_order_price_decimal(self) -> Decimal | None:
         """Получить цену buy order в долларах."""
         if self.order_best_price:
+            if isinstance(self.order_best_price, dict):
+                # API v1.1.0 возвращает {'Currency': 'USD', 'Amount': '14303'}
+                amount_str = self.order_best_price.get("Amount", "0")
+                return Decimal(amount_str) / 100
+            # Fallback для старого формата (строка)
             return Decimal(self.order_best_price) / 100
         return None
 
     def get_offer_price_decimal(self) -> Decimal | None:
         """Получить цену offer в долларах."""
         if self.offer_best_price:
+            if isinstance(self.offer_best_price, dict):
+                # API v1.1.0 возвращает {'Currency': 'USD', 'Amount': '14303'}
+                amount_str = self.offer_best_price.get("Amount", "0")
+                return Decimal(amount_str) / 100
+            # Fallback для старого формата (строка)
             return Decimal(self.offer_best_price) / 100
         return None
 

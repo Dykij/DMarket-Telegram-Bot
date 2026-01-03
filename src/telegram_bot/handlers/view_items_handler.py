@@ -15,14 +15,18 @@ Features:
 """
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.sentry_breadcrumbs import add_command_breadcrumb
+
+
+if TYPE_CHECKING:
+    from src.dmarket.dmarket_api import DMarketAPI
+
 
 logger = structlog.get_logger(__name__)
 std_logger = logging.getLogger(__name__)
@@ -53,8 +57,7 @@ def calculate_profit(item: dict[str, Any]) -> float:
             return sell_price * (1 - DMARKET_COMMISSION)
 
         # Real profit: sell price minus buy price minus commission on sell
-        profit = sell_price - buy_price - (sell_price * DMARKET_COMMISSION)
-        return profit
+        return sell_price - buy_price - (sell_price * DMARKET_COMMISSION)
 
     except (KeyError, TypeError, ValueError):
         return 0.0
@@ -80,8 +83,7 @@ def estimate_profit(item: dict[str, Any]) -> float:
 
         if suggested_price > list_price:
             # Potential profit if sold at suggested price
-            profit = suggested_price - list_price - (suggested_price * DMARKET_COMMISSION)
-            return profit
+            return suggested_price - list_price - (suggested_price * DMARKET_COMMISSION)
         # If selling at list price
         buy_price = float(item.get("buyPrice", 0)) / 100
         if buy_price > 0:

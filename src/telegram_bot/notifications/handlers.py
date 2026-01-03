@@ -456,7 +456,7 @@ def register_notification_handlers(
             lambda update, context: create_alert_command(
                 update,
                 context,
-                application.bot_data["dmarket_api"],
+                application.dmarket_api,  # Изменено с bot_data на атрибут
             ),
         ),
     )
@@ -473,7 +473,7 @@ def register_notification_handlers(
     )
 
     # Start periodic alerts checker
-    api = application.bot_data.get("dmarket_api")
+    api = getattr(application, "dmarket_api", None)  # Изменено с bot_data на атрибут
 
     if api:
         _ = asyncio.create_task(
@@ -486,5 +486,5 @@ def register_notification_handlers(
         logger.info("Запущена периодическая проверка оповещений")
     else:
         logger.warning(
-            "DMarket API не найден в bot_data, периодическая проверка оповещений не запущена"
+            "DMarket API не найден в application, периодическая проверка оповещений не запущена"
         )

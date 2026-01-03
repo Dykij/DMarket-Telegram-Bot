@@ -17,6 +17,7 @@ Examples:
 import argparse
 from datetime import datetime
 import json
+import operator
 import subprocess
 import sys
 
@@ -77,7 +78,7 @@ def run_pytest_with_timing(
                     continue
 
     # Sort by duration (slowest first)
-    durations.sort(key=lambda x: x["duration"], reverse=True)
+    durations.sort(key=operator.itemgetter("duration"), reverse=True)
 
     return {
         "timestamp": datetime.now().isoformat(),
@@ -132,7 +133,7 @@ def analyze_results(results: dict, top: int = 10) -> None:
         module = test_path.split("::")[0] if "::" in test_path else test_path
         module_times[module] = module_times.get(module, 0) + item["duration"]
 
-    sorted_modules = sorted(module_times.items(), key=lambda x: x[1], reverse=True)
+    sorted_modules = sorted(module_times.items(), key=operator.itemgetter(1), reverse=True)
 
     for module, total in sorted_modules[:10]:
         print(f"{total:>10.2f}s {module}")

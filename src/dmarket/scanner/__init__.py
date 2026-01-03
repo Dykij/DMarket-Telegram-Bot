@@ -15,7 +15,7 @@ Usage:
 
     scanner = ArbitrageScanner(public_key="...", secret_key="...")
     results = await scanner.scan_level("standard", "csgo")
-    
+
     # Fast pre-scan
     agg_scanner = AggregatedScanner(api_client)
     opportunities = await agg_scanner.pre_scan_opportunities(
@@ -23,7 +23,7 @@ Usage:
         game="csgo",
         min_margin=0.15
     )
-    
+
     # Attribute filtering
     filters = AttributeFilters.create_extra_filters(
         exterior=["factory new"],
@@ -48,15 +48,16 @@ from src.dmarket.scanner.tree_filters import (
     get_tree_filters_for_game,
 )
 
+
 # Note: ArbitrageScanner is imported from the original module
 # for backwards compatibility. In future refactoring phases,
 # it will be moved to scanner.py
 
 __all__ = [
-    "AggregatedScanner",
     "ARBITRAGE_LEVELS",
-    "AttributeFilters",
     "GAME_IDS",
+    "AggregatedScanner",
+    "AttributeFilters",
     "PresetFilters",
     "ScannerCache",
     "ScannerFilters",

@@ -34,6 +34,7 @@ dependencies = [
     "circuitbreaker>=2.1.0",        # Circuit breaker pattern
     "pynacl (>=1.6.1,<2.0.0)",
     "dependency-injector (>=4.48.3,<5.0.0)",
+    "aiolimiter (>=1.2.1,<2.0.0) ; python_version >= \"3.11\" and python_version < \"4.0\"",
 ]
 
 [project.optional-dependencies]

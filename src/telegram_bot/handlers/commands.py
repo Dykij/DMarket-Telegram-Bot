@@ -196,17 +196,17 @@ async def handle_text_buttons(
         from src.telegram_bot.handlers.simplified_menu_handler import start_simple_menu
         await start_simple_menu(update, context)
         return
-    elif text in {"💰 Баланс", "📊 Баланс"}:
+    if text in {"💰 Баланс", "📊 Баланс"}:
         # Для упрощенного доступа вызываем balance_simple
         from src.telegram_bot.handlers.simplified_menu_handler import balance_simple
         await balance_simple(update, context)
         return
-    elif text in {"📈 Статистика", "📊 Статистика"}:
+    if text in {"📈 Статистика", "📊 Статистика"}:
         # Для упрощенного доступа вызываем stats_simple
         from src.telegram_bot.handlers.simplified_menu_handler import stats_simple
         await stats_simple(update, context)
         return
-    
+
     # Обрабатываем старые текстовые команды от клавиатуры
     if text in {"📊 Арбитраж", "🔍 Арбитраж"}:
         # Также перенаправляем на упрощенное меню

@@ -29,6 +29,7 @@ from src.telegram_bot.handlers.commands import (
 from src.telegram_bot.handlers.minimal_menu_router import minimal_menu_router
 from src.telegram_bot.handlers.view_items_handler import handle_view_items_callback
 
+
 if TYPE_CHECKING:
     from telegram.ext import Application
 
@@ -398,6 +399,21 @@ def register_all_handlers(application: "Application") -> None:
             "Не удалось зарегистрировать DMarket обработчики: %s",
             e,
         )
+
+    # Регистрация Steam Arbitrage handlers (NEW - FIX)
+    try:
+        from src.telegram_bot.commands.steam_arbitrage_commands import (
+            steam_arbitrage_start,
+            steam_arbitrage_status,
+            steam_arbitrage_stop,
+        )
+
+        application.add_handler(CommandHandler("steam_arbitrage_start", steam_arbitrage_start))
+        application.add_handler(CommandHandler("steam_arbitrage_stop", steam_arbitrage_stop))
+        application.add_handler(CommandHandler("steam_arbitrage_status", steam_arbitrage_status))
+        logger.info("Steam Arbitrage команды зарегистрированы")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать Steam Arbitrage команды: %s", e)
 
     logger.info("Все обработчики успешно зарегистрированы")
 

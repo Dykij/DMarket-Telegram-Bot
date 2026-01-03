@@ -13,7 +13,32 @@ dmarket:
   api_url: ${DMARKET_API_URL:https://api.dmarket.com}
   public_key: ${DMARKET_PUBLIC_KEY}
   secret_key: ${DMARKET_SECRET_KEY}
-  rate_limit: ${API_RATE_LIMIT:30}  # requests per minute
+  rate_limit: ${API_RATE_LIMIT:20} # requests per minute (снижено с 30 до 20)
+
+# Scanner configuration (параллельное сканирование)
+scanner:
+  # Количество одновременных потоков сканирования
+  max_concurrent_scans: ${MAX_CONCURRENT_SCANS:2} # снижено с 5 до 2
+
+  # Интервал между сканированиями (секунды)
+  scan_interval_seconds: ${SCAN_INTERVAL:120} # 2 минуты между сканами
+
+  # Adaptive scanner settings
+  adaptive:
+    enabled: ${ADAPTIVE_SCAN_ENABLED:true}
+    min_interval: ${ADAPTIVE_MIN_INTERVAL:60} # 1 минута при высокой волатильности
+    max_interval: ${ADAPTIVE_MAX_INTERVAL:300} # 5 минут при стабильном рынке
+
+  # Parallel scanner settings
+  parallel:
+    enabled: ${PARALLEL_SCAN_ENABLED:true}
+    max_concurrent: ${PARALLEL_MAX_CONCURRENT:2} # максимум 2 игры одновременно
+
+  # Target cleanup settings
+  cleanup:
+    enabled: ${TARGET_CLEANUP_ENABLED:true}
+    max_age_hours: ${CLEANUP_MAX_AGE:24}
+    interval_minutes: ${CLEANUP_INTERVAL:60} # проверка раз в час
 
 database:
   url: ${DATABASE_URL:sqlite:///data/dmarket_bot.db}
@@ -32,8 +57,8 @@ logging:
   retention: "1 month"
 
 security:
-  allowed_users: ${ALLOWED_USERS:}  # comma-separated
-  admin_users: ${ADMIN_USERS:}      # comma-separated
+  allowed_users: ${ALLOWED_USERS:} # comma-separated
+  admin_users: ${ADMIN_USERS:} # comma-separated
 
 analytics:
   enabled: ${ANALYTICS_ENABLED:true}
@@ -43,7 +68,7 @@ monitoring:
   prometheus_enabled: ${PROMETHEUS_ENABLED:false}
 
 cache:
-  ttl: ${CACHE_TTL:300}  # seconds
+  ttl: ${CACHE_TTL:300} # seconds
   max_size: 1000
 
 # Advanced arbitrage filters (P1-16)
@@ -63,14 +88,14 @@ arbitrage_filters:
 # Automatic selling after purchase with dynamic pricing
 auto_sell:
   enabled: ${AUTO_SELL_ENABLED:true}
-  min_margin_percent: ${AUTO_SELL_MIN_MARGIN:4.0}      # Minimum acceptable margin
-  max_margin_percent: ${AUTO_SELL_MAX_MARGIN:12.0}     # Maximum target margin
+  min_margin_percent: ${AUTO_SELL_MIN_MARGIN:4.0} # Minimum acceptable margin
+  max_margin_percent: ${AUTO_SELL_MAX_MARGIN:12.0} # Maximum target margin
   target_margin_percent: ${AUTO_SELL_TARGET_MARGIN:8.0} # Default target margin
-  undercut_cents: ${AUTO_SELL_UNDERCUT:1}              # Undercut top offer by X cents
-  price_check_interval_minutes: ${AUTO_SELL_CHECK_INTERVAL:30}  # Price check frequency
-  stop_loss_hours: ${AUTO_SELL_STOP_LOSS_HOURS:48}     # Hours before stop-loss trigger
+  undercut_cents: ${AUTO_SELL_UNDERCUT:1} # Undercut top offer by X cents
+  price_check_interval_minutes: ${AUTO_SELL_CHECK_INTERVAL:30} # Price check frequency
+  stop_loss_hours: ${AUTO_SELL_STOP_LOSS_HOURS:48} # Hours before stop-loss trigger
   stop_loss_percent: ${AUTO_SELL_STOP_LOSS_PERCENT:5.0} # Max loss from buy price
-  max_active_sales: ${AUTO_SELL_MAX_ACTIVE:50}         # Max concurrent sales
-  delay_before_list_seconds: ${AUTO_SELL_DELAY:5}      # Delay before listing
-  pricing_strategy: ${AUTO_SELL_STRATEGY:undercut}     # undercut, match, fixed_margin, dynamic
-  dmarket_fee_percent: ${DMARKET_FEE:7.0}              # DMarket commission
+  max_active_sales: ${AUTO_SELL_MAX_ACTIVE:50} # Max concurrent sales
+  delay_before_list_seconds: ${AUTO_SELL_DELAY:5} # Delay before listing
+  pricing_strategy: ${AUTO_SELL_STRATEGY:undercut} # undercut, match, fixed_margin, dynamic
+  dmarket_fee_percent: ${DMARKET_FEE:7.0} # DMarket commission

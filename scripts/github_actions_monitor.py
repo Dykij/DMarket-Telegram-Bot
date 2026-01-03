@@ -8,19 +8,20 @@
 """
 
 import asyncio
+from datetime import datetime
 import os
+from pathlib import Path
 import sys
 import traceback
-from datetime import datetime
-from pathlib import Path
 from typing import Any
 
-import httpx
 from dotenv import load_dotenv
+import httpx
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.table import Table
+
 
 console = Console()
 

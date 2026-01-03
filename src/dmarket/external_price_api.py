@@ -16,6 +16,7 @@ from typing import Any
 
 import httpx
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -261,7 +262,7 @@ class ExternalPriceAPI:
             if isinstance(price, dict):
                 price = float(price.get("USD", 0)) / 100
             elif price > 1000:  # Если больше 1000, скорее всего в центах
-                price = price / 100
+                price /= 100
 
             tasks.append(self.calculate_arbitrage_margin(item_name, price, game))
 
@@ -269,7 +270,7 @@ class ExternalPriceAPI:
         arbitrage_data = await asyncio.gather(*tasks, return_exceptions=True)
 
         # Объединяем результаты с исходными предметами
-        for item, arb_data in zip(items, arbitrage_data):
+        for item, arb_data in zip(items, arbitrage_data, strict=False):
             if isinstance(arb_data, Exception):
                 logger.warning(f"Ошибка при проверке арбитража для {item.get('title')}: {arb_data}")
                 results.append(item)

@@ -16,6 +16,7 @@ from typing import Any
 
 import structlog
 
+
 logger = structlog.get_logger(__name__)
 
 
@@ -100,7 +101,7 @@ class AutopilotConfig:
 
     def __init__(
         self,
-        games: list[str] = None,
+        games: list[str] | None = None,
         min_discount_percent: float = 30.0,
         max_price_usd: float = 100.0,
         min_balance_threshold_usd: float = 10.0,

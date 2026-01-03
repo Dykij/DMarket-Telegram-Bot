@@ -5,11 +5,11 @@
 """
 
 import asyncio
+from collections.abc import Callable
 import logging
 import os
 import signal
 import sys
-from collections.abc import Callable
 
 from telegram import Bot, BotCommand
 from telegram.ext import (
@@ -29,6 +29,7 @@ from src.telegram_bot.utils.error_handler import (
     register_global_exception_handlers,
     setup_error_handler,
 )
+
 
 logger = logging.getLogger(__name__)
 

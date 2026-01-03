@@ -14,6 +14,7 @@ from typing import Any
 
 import structlog
 
+
 logger = structlog.get_logger(__name__)
 
 
@@ -63,7 +64,14 @@ class AdaptiveScanner:
         Args:
             items: List of market items from latest scan
         """
+        # FIX: Защита от пустых снимков (ошибки API)
+        # Сбрасываем интервал до 60 сек при пустом ответе вместо увеличения до max
         if not items:
+            self.current_interval = min(self.current_interval, 60)
+            logger.warning(
+                "empty_market_snapshot",
+                message="Получен пустой снимок рынка, интервал сброшен до 60с",
+            )
             return
 
         prices = [

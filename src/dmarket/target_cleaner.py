@@ -15,6 +15,7 @@ import structlog
 
 from src.interfaces import IDMarketAPI
 
+
 logger = structlog.get_logger(__name__)
 
 
@@ -77,7 +78,9 @@ class TargetCleaner:
             List of active target orders
         """
         try:
-            response = await self.api_client.get_user_targets(game_id=game, status="active")
+            response = await self.api_client.get_user_targets(
+                game_id=game, status="TargetStatusActive"
+            )
 
             targets = response.get("objects", [])
             logger.info("active_targets_fetched", game=game, count=len(targets))
@@ -107,7 +110,7 @@ class TargetCleaner:
         # Calculate age
         created_at_str = target.get("CreatedDate") or target.get("createdDate")
         if created_at_str:
-            created_at = datetime.fromisoformat(created_at_str.replace("Z", "+00:00"))
+            created_at = datetime.fromisoformat(created_at_str)
         else:
             created_at = datetime.now()
 

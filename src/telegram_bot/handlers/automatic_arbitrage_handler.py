@@ -16,13 +16,18 @@ Features:
 """
 
 import logging
+from typing import TYPE_CHECKING
 
 import structlog
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 
-from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.sentry_breadcrumbs import add_command_breadcrumb
+
+
+if TYPE_CHECKING:
+    from src.dmarket.dmarket_api import DMarketAPI
+
 
 logger = structlog.get_logger(__name__)
 std_logger = logging.getLogger(__name__)

@@ -20,6 +20,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from .alerts import can_send_notification, increment_notification_count
 from .constants import NOTIFICATION_PRIORITIES
 
+
 if TYPE_CHECKING:
     from telegram import Bot
 

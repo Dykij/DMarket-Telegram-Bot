@@ -109,8 +109,7 @@ if __name__ == "__main__":
             if lock_file.exists():
                 try:
                     # Читаем PID из файла блокировки
-                    with open(lock_file) as f:
-                        pid = int(f.read().strip())
+                    pid = Path(lock_file).read_text(encoding="utf-8")
 
                     # Проверяем, существует ли процесс с таким PID
                     import psutil
@@ -126,8 +125,7 @@ if __name__ == "__main__":
                     logger.exception(f"Ошибка при чтении файла блокировки: {e}")
 
             # Создаем файл блокировки с текущим PID
-            with open(lock_file, "w") as f:
-                f.write(str(os.getpid()))
+            Path(lock_file).write_text(str(os.getpid()), encoding="utf-8")
 
             # Регистрируем обработчик для удаления файла блокировки при завершении
             import atexit

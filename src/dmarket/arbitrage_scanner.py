@@ -36,6 +36,24 @@ if TYPE_CHECKING:
 # Настройка логирования
 logger = logging.getLogger(__name__)
 
+# 🆕 Steam integration
+try:
+    from src.dmarket.steam_arbitrage_enhancer import get_steam_enhancer
+
+    STEAM_AVAILABLE = True
+except ImportError:
+    STEAM_AVAILABLE = False
+    logger.warning("Steam integration not available - module not found")
+
+# 🆕 Импорт системы уведомлений
+try:
+    from src.telegram_bot.utils.notifications import send_profit_alert
+
+    NOTIFICATIONS_AVAILABLE = True
+except ImportError:
+    NOTIFICATIONS_AVAILABLE = False
+    logger.warning("Notification system not available - notifications disabled")
+
 # Определяем публичный интерфейс модуля
 __all__ = [
     "ArbitrageScanner",
@@ -78,6 +96,7 @@ class ArbitrageScanner:
         enable_competition_filter: bool = True,
         max_competition: int = 3,
         item_filters: "ItemFilters | None" = None,
+        enable_steam_check: bool = False,
     ) -> None:
         """Инициализирует сканер арбитража.
 
@@ -88,6 +107,7 @@ class ArbitrageScanner:
             enable_competition_filter: Включить фильтрацию по конкуренции buy orders
             max_competition: Максимально допустимое количество конкурирующих ордеров
             item_filters: Фильтры предметов (ItemFilters) для blacklist/whitelist
+            enable_steam_check: Включить проверку цен через Steam API
 
         """
         self.api_client = api_client
@@ -110,6 +130,18 @@ class ArbitrageScanner:
         # Параметры фильтрации по ликвидности
         self.min_liquidity_score = 60  # Минимальный балл ликвидности
         self.min_sales_per_week = 5  # Минимум продаж в неделю
+
+        # 🆕 Steam integration
+        self.enable_steam_check = enable_steam_check and STEAM_AVAILABLE
+        self.steam_enhancer = None
+
+        if self.enable_steam_check:
+            try:
+                self.steam_enhancer = get_steam_enhancer()
+                logger.info("Steam integration enabled for arbitrage scanner")
+            except Exception as e:
+                logger.exception(f"Failed to initialize Steam enhancer: {e}")
+                self.enable_steam_check = False
         self.max_time_to_sell_days = 7  # Максимальное время продажи
 
         # Ограничения для управления рисками
@@ -122,6 +154,13 @@ class ArbitrageScanner:
         self.total_items_found = 0
         self.successful_trades = 0
         self.total_profit = 0.0
+
+        # 🆕 Система уведомлений
+        self._sent_notifications: set[str] = set()  # Множество ID отправленных уведомлений
+        self._notification_cooldown = 1800  # 30 минут cooldown для одного предмета
+        self.enable_notifications = (
+            NOTIFICATIONS_AVAILABLE and os.getenv("NOTIFICATIONS_ENABLED", "true").lower() == "true"
+        )
 
     @property
     def cache_ttl(self) -> int:
@@ -334,6 +373,46 @@ class ArbitrageScanner:
             # Ограничиваем количество предметов в результате
             results = results[:max_items]
 
+            # 🆕 ОТПРАВКА УВЕДОМЛЕНИЙ О НАХОДКАХ
+            if self.enable_notifications and results:
+                await self._send_notifications(results, game, mode)
+
+            # 🆕 Обогащаем Steam данными, если включено
+            if self.enable_steam_check and self.steam_enhancer:
+                try:
+                    logger.info(
+                        f"Enhancing {len(results)} items with Steam data",
+                        extra={"game": game, "mode": mode},
+                    )
+                    original_count = len(results)
+                    results = await self.steam_enhancer.enhance_items(results)
+                    filtered_count = len(results)
+
+                    logger.info(
+                        f"Steam enhancement complete: {original_count} -> {filtered_count} items",
+                        extra={
+                            "original": original_count,
+                            "filtered": filtered_count,
+                            "removed": original_count - filtered_count,
+                        },
+                    )
+
+                    # Добавляем breadcrumb о Steam обогащении
+                    add_trading_breadcrumb(
+                        action="steam_enhancement_completed",
+                        game=game,
+                        original_items=original_count,
+                        enhanced_items=filtered_count,
+                    )
+                except Exception as e:
+                    logger.exception(f"Steam enhancement failed: {e}", extra={"game": game})
+                    # Продолжаем без Steam данных
+                    add_trading_breadcrumb(
+                        action="steam_enhancement_failed",
+                        game=game,
+                        error=str(e),
+                    )
+
             # Добавляем breadcrumb об успешном сканировании
             add_trading_breadcrumb(
                 action="scan_game_completed",
@@ -341,6 +420,7 @@ class ArbitrageScanner:
                 level=mode,
                 items_found=len(results),
                 liquidity_filter=self.enable_liquidity_filter,
+                steam_check=self.enable_steam_check,
             )
 
             # Сохраняем в кэш
@@ -360,6 +440,80 @@ class ArbitrageScanner:
                 error=str(e),
             )
             return []
+
+    async def _send_notifications(
+        self,
+        results: list[dict[str, Any]],
+        game: str,
+        mode: str,
+    ) -> None:
+        """Отправляет уведомления о найденных возможностях.
+
+        Фильтрует дубликаты, черный список и отправляет только топовые предметы.
+
+        Args:
+            results: Список найденных предметов
+            game: Код игры
+            mode: Режим сканирования
+        """
+        if not NOTIFICATIONS_AVAILABLE:
+            return
+
+        # 🆕 Импортируем фильтр черного списка
+        try:
+            from src.dmarket.blacklist_filters import ItemBlacklistFilter
+            blacklist_filter = ItemBlacklistFilter()
+        except ImportError:
+            logger.warning("Blacklist filter not available, sending all notifications")
+            blacklist_filter = None
+
+        # Отправляем уведомления только о топ-3 находках
+        top_items = results[:3]
+
+        for item in top_items:
+            # Получаем уникальный ID предмета
+            item_id = item.get("itemId") or item.get("title", "")
+
+            if not item_id:
+                continue
+
+            # 🆕 Проверяем черный список
+            if blacklist_filter and blacklist_filter.is_blacklisted(item):
+                logger.debug(f"⏭ Пропускаем уведомление (blacklist): {item.get('title')}")
+                continue
+
+            # Проверяем: не отправляли ли мы уведомление об этом предмете недавно
+            if item_id in self._sent_notifications:
+                logger.debug(f"Пропускаем дубликат уведомления: {item_id}")
+                continue
+
+            # Проверяем минимальный профит
+            profit = item.get("profit", 0)
+            if profit < self.min_profit:
+                logger.debug(f"Пропускаем предмет с низким профитом: ${profit:.2f}")
+                continue
+
+            # Добавляем game к данным предмета (если еще нет)
+            if "game" not in item:
+                item["game"] = game
+
+            # Отправляем уведомление асинхронно (не блокируем сканер)
+            asyncio.create_task(send_profit_alert(item))
+
+            # Добавляем в множество отправленных
+            self._sent_notifications.add(item_id)
+
+            # Планируем удаление из множества через cooldown период
+            # Это позволит отправить уведомление снова, если предмет еще актуален
+            loop = asyncio.get_event_loop()
+            loop.call_later(
+                self._notification_cooldown,
+                lambda id=item_id: self._sent_notifications.discard(id),
+            )
+
+            logger.info(
+                f"✅ Уведомление запланировано: {item.get('title')} ({game}), профит: ${profit:.2f}",
+            )
 
     def _standardize_items(
         self,
@@ -1153,8 +1307,14 @@ class ArbitrageScanner:
                     liquidity_map = {}
                     for price_data in aggregated["aggregatedPrices"]:
                         title = price_data["title"]
-                        offer_count = price_data.get("offerCount", 0)
-                        order_count = price_data.get("orderCount", 0)
+                        # API может возвращать строки вместо чисел - приводим к int
+                        try:
+                            offer_count = int(price_data.get("offerCount", 0))
+                            order_count = int(price_data.get("orderCount", 0))
+                        except (ValueError, TypeError):
+                            # Если не удалось преобразовать - используем 0
+                            offer_count = 0
+                            order_count = 0
 
                         # Рассчитываем простой показатель ликвидности
                         # Больше офферов и ордеров = выше ликвидность
@@ -1486,7 +1646,6 @@ class ArbitrageScanner:
             if isinstance(result, Exception):
                 logger.error(
                     f"Ошибка при сканировании уровня {level} для {game}: {result}",
-                    exc_info=result,
                 )
                 results[level] = []
                 failed_scans += 1

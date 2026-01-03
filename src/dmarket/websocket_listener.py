@@ -12,20 +12,21 @@ Created: January 2, 2026
 """
 
 import asyncio
-import json
-import time
 from collections.abc import Callable
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
+import json
+import time
 from typing import Any
 
 import structlog
 from websockets import WebSocketClientProtocol
 
+
 logger = structlog.get_logger(__name__)
 
 
-class WSEventType(str, Enum):
+class WSEventType(StrEnum):
     """WebSocket event types."""
 
     NEW_LISTING = "new_listing"
@@ -109,7 +110,7 @@ class DMarketWebSocketListener:
                 )
 
                 if retry_count >= max_retries:
-                    logger.error(
+                    logger.error(  # noqa: TRY400
                         "websocket_max_retries_reached",
                         message="DMarket WebSocket not available. Consider using polling mode instead.",
                     )
@@ -118,7 +119,7 @@ class DMarketWebSocketListener:
 
                 if self.is_running:
                     delay = min(
-                        self.reconnect_delay * (2 ** retry_count),
+                        self.reconnect_delay * (2**retry_count),
                         self.max_reconnect_delay,
                     )
                     logger.info("websocket_retry_delay", delay=delay)
@@ -157,22 +158,20 @@ class DMarketWebSocketListener:
         logger.warning(
             "websocket_not_available",
             message="DMarket API doesn't provide public WebSocket endpoint. "
-                    "Real-time updates are disabled. Bot will use REST API polling instead."
+            "Real-time updates are disabled. Bot will use REST API polling instead.",
         )
-        
+
         # Mark as stopped - no reconnection attempts
         self.is_running = False
-        
+
         await self._emit_event(
             WSEventType.ERROR,
             {
                 "error": "WebSocket not available",
                 "fallback": "REST API polling",
-                "timestamp": time.time()
-            }
+                "timestamp": time.time(),
+            },
         )
-        
-        return  # Exit without trying to connect
 
     def _get_auth_headers(self) -> dict[str, str]:
         """Get authentication headers for WebSocket connection.
@@ -205,7 +204,7 @@ class DMarketWebSocketListener:
                 await self.ws.send(json.dumps(sub))
                 logger.debug("websocket_subscribed", channel=sub["channel"])
             except Exception as e:
-                logger.error("websocket_subscribe_failed", channel=sub["channel"], error=str(e))
+                logger.exception("websocket_subscribe_failed", channel=sub["channel"], error=str(e))
 
     async def _handle_message(self, message: str):
         """Handle incoming WebSocket message.
@@ -229,7 +228,7 @@ class DMarketWebSocketListener:
                 logger.debug("websocket_unknown_event", data=data)
 
         except json.JSONDecodeError as e:
-            logger.error("websocket_invalid_json", message=message, error=str(e))
+            logger.error("websocket_invalid_json", message=message, error=str(e))  # noqa: TRY400
             self.stats["events_failed"] += 1
         except Exception as e:
             logger.exception("websocket_handle_message_error", error=str(e))

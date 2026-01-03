@@ -2,9 +2,10 @@ from collections.abc import Awaitable, Callable
 from enum import StrEnum
 from typing import Any, TypeVar
 
-import httpx
 from circuitbreaker import CircuitBreaker, CircuitBreakerError  # type: ignore
+import httpx
 from structlog import get_logger
+
 
 logger = get_logger(__name__)
 

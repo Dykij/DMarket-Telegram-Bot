@@ -12,8 +12,10 @@ Created: January 2, 2026
 """
 
 import io
+import operator
 
 import structlog
+
 
 logger = structlog.get_logger(__name__)
 
@@ -62,7 +64,7 @@ class ProfitChartGenerator:
 
         try:
             # Sort by timestamp
-            purchases = sorted(purchases, key=lambda x: x["timestamp"])
+            purchases = sorted(purchases, key=operator.itemgetter("timestamp"))
 
             # Prepare data
             timestamps = [p["timestamp"] for p in purchases]
@@ -118,12 +120,12 @@ class ProfitChartGenerator:
                 fontsize=14,
                 fontweight="bold",
                 color="#2ecc71" if total >= 0 else "#e74c3c",
-                bbox=dict(
-                    boxstyle="round,pad=0.5",
-                    facecolor="white",
-                    edgecolor="#2ecc71" if total >= 0 else "#e74c3c",
-                    linewidth=2,
-                ),
+                bbox={
+                    "boxstyle": "round,pad=0.5",
+                    "facecolor": "white",
+                    "edgecolor": "#2ecc71" if total >= 0 else "#e74c3c",
+                    "linewidth": 2,
+                },
             )
 
             plt.tight_layout()
@@ -189,7 +191,7 @@ class ProfitChartGenerator:
             bars = ax.bar(dates, roi_values, color=colors, alpha=0.8, edgecolor="black")
 
             # Add value labels on bars
-            for bar, roi in zip(bars, roi_values):
+            for bar, roi in zip(bars, roi_values, strict=False):
                 height = bar.get_height()
                 ax.text(
                     bar.get_x() + bar.get_width() / 2.0,
@@ -262,7 +264,7 @@ class ProfitChartGenerator:
             fig, ax = plt.subplots(figsize=(10, 8), dpi=150)
 
             # Plot pie
-            wedges, texts, autotexts = ax.pie(
+            _wedges, _texts, autotexts = ax.pie(
                 sizes,
                 labels=labels,
                 colors=colors,

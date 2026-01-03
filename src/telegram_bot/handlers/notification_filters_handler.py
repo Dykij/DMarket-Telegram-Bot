@@ -189,9 +189,7 @@ def _build_filter_keyboard(
         button_text = _get_button_text(item_name, item_code in enabled_items)
         callback_data = f"{NOTIFY_FILTER}_{callback_prefix}_{item_code}"
 
-        keyboard.append(
-            [InlineKeyboardButton(button_text, callback_data=callback_data)]
-        )
+        keyboard.append([InlineKeyboardButton(button_text, callback_data=callback_data)])
 
     keyboard.append([InlineKeyboardButton("⬅️ Назад", callback_data=NOTIFY_FILTER)])
 
@@ -211,3 +209,99 @@ def _get_button_text(item_name: str, is_enabled: bool) -> str:
     """
     checkbox = "✅" if is_enabled else "⬜"
     return f"{checkbox} {item_name}"
+
+
+class NotificationFilters:
+    """Legacy class for backward compatibility with tests."""
+
+    def __init__(self) -> None:
+        """Initialize notification filters."""
+        self._filters: dict[int, dict[str, any]] = {}
+
+    def _get_default_filters(self) -> dict[str, any]:
+        """Get default filter settings.
+
+        Returns:
+            Default filter settings
+
+        """
+        return {
+            "games": list(SUPPORTED_GAMES.keys()),
+            "min_profit_percent": 5.0,
+            "levels": list(ARBITRAGE_LEVELS.keys()),
+            "notification_types": list(NOTIFICATION_TYPES.keys()),
+            "enabled": True,
+        }
+
+    def get_user_filters(self, user_id: int) -> dict[str, any]:
+        """Get filters for a user.
+
+        Args:
+            user_id: Telegram user ID
+
+        Returns:
+            User's filter settings
+
+        """
+        if user_id not in self._filters:
+            self._filters[user_id] = self._get_default_filters()
+        return self._filters[user_id].copy()
+
+    def update_user_filters(self, user_id: int, new_settings: dict[str, any]) -> None:
+        """Update filters for a user.
+
+        Args:
+            user_id: Telegram user ID
+            new_settings: New filter settings to apply
+
+        """
+        if user_id not in self._filters:
+            self.get_user_filters(user_id)
+        self._filters[user_id].update(new_settings)
+
+    def reset_user_filters(self, user_id: int) -> None:
+        """Reset filters for a user to defaults.
+
+        Args:
+            user_id: Telegram user ID
+
+        """
+        if user_id in self._filters:
+            del self._filters[user_id]
+
+    def should_notify(
+        self,
+        user_id: int,
+        game: str,
+        profit_percent: float,
+        level: str,
+        notification_type: str,
+    ) -> bool:
+        """Check if user should be notified based on filters.
+
+        Args:
+            user_id: Telegram user ID
+            game: Game code
+            profit_percent: Profit percentage
+            level: Arbitrage level
+            notification_type: Type of notification
+
+        Returns:
+            True if user should be notified, False otherwise
+
+        """
+        filters = self.get_user_filters(user_id)
+
+        if not filters.get("enabled", True):
+            return False
+
+        if notification_type not in filters.get("notification_types", []):
+            return False
+
+        if game not in filters.get("games", []):
+            return False
+
+        if level not in filters.get("levels", []):
+            return False
+
+        return not profit_percent < filters.get("min_profit_percent", 0.0)

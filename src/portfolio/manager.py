@@ -187,9 +187,7 @@ class PortfolioManager:
 
             if "objects" in inventory:
                 for item_data in inventory["objects"]:
-                    item_id = item_data.get(
-                        "itemId", item_data.get("extra", {}).get("offerId", "")
-                    )
+                    item_id = item_data.get("itemId", item_data.get("extra", {}).get("offerId", ""))
                     title = item_data.get("title", "Unknown Item")
 
                     # Check if already in portfolio
@@ -197,9 +195,7 @@ class PortfolioManager:
                     if not existing:
                         # Parse price
                         price_data = item_data.get("price", {})
-                        price_cents = int(
-                            price_data.get("USD", price_data.get("amount", 0))
-                        )
+                        price_cents = int(price_data.get("USD", price_data.get("amount", 0)))
                         price_usd = Decimal(price_cents) / 100
 
                         # Detect category from title
@@ -248,52 +244,98 @@ class PortfolioManager:
         updated = 0
 
         try:
-            # Group items by game
-            items_by_game: dict[str, list[PortfolioItem]] = {}
-            for item in portfolio.items:
-                if item.game not in items_by_game:
-                    items_by_game[item.game] = []
-                items_by_game[item.game].append(item)
-
-            # Fetch prices for each game
-            for game, items in items_by_game.items():
-                titles = [item.title for item in items]
-
-                try:
-                    prices_data = await self.api.get_aggregated_prices_bulk(
-                        game=game,
-                        titles=titles,
-                        limit=len(titles),
-                    )
-
-                    if "aggregatedPrices" in prices_data:
-                        for price_info in prices_data["aggregatedPrices"]:
-                            title = price_info.get("title", "")
-                            offer_price = int(price_info.get("offerBestPrice", 0))
-
-                            if offer_price > 0:
-                                for item in items:
-                                    if item.title == title:
-                                        item.current_price = Decimal(offer_price) / 100
-                                        updated += 1
-                                        break
-
-                except Exception as e:
-                    logger.warning(
-                        "price_fetch_error",
-                        extra={"game": game, "error": str(e)},
-                    )
-
+            updated = await self._update_prices_by_game(portfolio)
             self._save_portfolios()
             logger.info(
                 "prices_updated",
                 extra={"user_id": user_id, "updated_count": updated},
             )
-
         except Exception as e:
             logger.exception("update_prices_failed", extra={"error": str(e)})
 
         return updated
+
+    async def _update_prices_by_game(self, portfolio: Portfolio) -> int:
+        """Update prices grouped by game.
+
+        Args:
+            portfolio: Portfolio to update
+
+        Returns:
+            Number of items updated
+        """
+        # Group items by game
+        items_by_game: dict[str, list[PortfolioItem]] = {}
+        for item in portfolio.items:
+            if item.game not in items_by_game:
+                items_by_game[item.game] = []
+            items_by_game[item.game].append(item)
+
+        updated = 0
+
+        # Fetch prices for each game
+        for game, items in items_by_game.items():
+            game_updated = await self._fetch_and_update_prices(game, items)
+            updated += game_updated
+
+        return updated
+
+    async def _fetch_and_update_prices(self, game: str, items: list[PortfolioItem]) -> int:
+        """Fetch and update prices for items in a game.
+
+        Args:
+            game: Game code
+            items: Items to update
+
+        Returns:
+            Number of items updated
+        """
+        titles = [item.title for item in items]
+
+        try:
+            prices_data = await self.api.get_aggregated_prices_bulk(
+                game=game,
+                titles=titles,
+                limit=len(titles),
+            )
+        except Exception as e:
+            logger.warning(
+                "price_fetch_error",
+                extra={"game": game, "error": str(e)},
+            )
+            return 0
+
+        if "aggregatedPrices" not in prices_data:
+            return 0
+
+        updated = 0
+        for price_info in prices_data["aggregatedPrices"]:
+            updated += self._update_item_price(price_info, items)
+
+        return updated
+
+    def _update_item_price(self, price_info: dict, items: list[PortfolioItem]) -> int:
+        """Update item price from price info.
+
+        Args:
+            price_info: Price information from API
+            items: Items to check
+
+        Returns:
+            1 if updated, 0 otherwise
+        """
+        title = price_info.get("title", "")
+        offer_price = int(price_info.get("offerBestPrice", 0))
+
+        if offer_price <= 0:
+            return 0
+
+        for item in items:
+            if item.title == title:
+                item.current_price = Decimal(offer_price) / 100
+                return 1
+
+        return 0
 
     def get_metrics(self, user_id: int) -> PortfolioMetrics:
         """Get portfolio metrics for user.
@@ -369,9 +411,7 @@ class PortfolioManager:
             return ItemCategory.GRAFFITI
         if "patch" in title_lower:
             return ItemCategory.PATCH
-        if any(
-            w in title_lower for w in ["ak-47", "awp", "m4a1", "usp", "glock", "deagle"]
-        ):
+        if any(w in title_lower for w in ["ak-47", "awp", "m4a1", "usp", "glock", "deagle"]):
             return ItemCategory.WEAPON
         return ItemCategory.OTHER
 
@@ -403,8 +443,7 @@ class PortfolioManager:
             self._storage_path.parent.mkdir(parents=True, exist_ok=True)
 
             data = {
-                str(user_id): portfolio.to_dict()
-                for user_id, portfolio in self._portfolios.items()
+                str(user_id): portfolio.to_dict() for user_id, portfolio in self._portfolios.items()
             }
 
             with open(self._storage_path, "w", encoding="utf-8") as f:

@@ -16,6 +16,7 @@ from datetime import datetime
 import psutil
 import structlog
 
+
 logger = structlog.get_logger(__name__)
 
 
@@ -262,7 +263,7 @@ class HealthCheckMonitor:
                 parse_mode="HTML",
             )
         except Exception as e:
-            logger.error("health_ping_send_failed", error=str(e))
+            logger.exception("health_ping_send_failed", error=str(e))
 
     async def _send_health_status(self, status: HealthStatus):
         """Send detailed health status to user.
@@ -318,7 +319,7 @@ class HealthCheckMonitor:
                 parse_mode="HTML",
             )
         except Exception as e:
-            logger.error("health_status_send_failed", error=str(e))
+            logger.exception("health_status_send_failed", error=str(e))
 
     async def _send_health_alert(self, status: HealthStatus):
         """Send health alert to user.
@@ -343,7 +344,7 @@ class HealthCheckMonitor:
                 parse_mode="HTML",
             )
         except Exception as e:
-            logger.error("health_alert_send_failed", error=str(e))
+            logger.exception("health_alert_send_failed", error=str(e))
 
     def get_health_summary(self) -> dict:
         """Get health summary statistics.

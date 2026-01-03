@@ -11,8 +11,9 @@ Usage:
 
 import argparse
 import ast
-import sys
+import operator
 from pathlib import Path
+import sys
 from typing import NamedTuple
 
 
@@ -162,7 +163,7 @@ def print_results(functions: list[FunctionInfo], threshold: int) -> None:
     for func in functions:
         files_count[func.file_path] = files_count.get(func.file_path, 0) + 1
 
-    top_files = sorted(files_count.items(), key=lambda x: x[1], reverse=True)[:5]
+    top_files = sorted(files_count.items(), key=operator.itemgetter(1), reverse=True)[:5]
 
     print("\nFiles needing most refactoring:")
     for file_path, count in top_files:

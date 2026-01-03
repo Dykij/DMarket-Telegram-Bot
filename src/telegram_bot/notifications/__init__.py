@@ -111,6 +111,7 @@ from .trading import (
     send_sell_success_notification,
 )
 
+
 __all__ = [
     "DEFAULT_USER_SETTINGS",
     "NOTIFICATION_PRIORITIES",

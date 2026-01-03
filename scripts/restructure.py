@@ -4,8 +4,8 @@
 """
 
 import os
-import subprocess
 from pathlib import Path
+import subprocess
 
 
 def git_mv(src: str, dst: str) -> None:
