@@ -5,14 +5,13 @@ from various sources including environment variables, YAML files, and defaults.
 """
 
 import contextlib
-from dataclasses import dataclass, field
 import logging
 import os
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 import yaml
-
 
 # Load environment variables from .env file
 try:
@@ -77,6 +76,44 @@ class LoggingConfig:
 
 
 @dataclass
+class TradingConfig:
+    """Trading configuration."""
+
+    max_item_price: float = 20.0
+    min_profit_percent: float = 10.0
+    games: list[str] = field(default_factory=lambda: ["csgo", "rust"])
+    min_sales_last_month: int = 100
+    max_inventory_items: int = 30
+
+    # Universal percentage-based settings (new!)
+    max_buy_percent: float = 0.25  # Max 25% of balance per item
+    min_buy_percent: float = 0.005  # Min 0.5% of balance per item
+    reserve_percent: float = 0.05  # Keep 5% as reserve
+    max_stack_percent: float = 0.15  # Max 15% in same item type
+    enable_smart_mode: bool = True  # Use dynamic limits based on balance
+
+
+@dataclass
+class FiltersConfig:
+    """Item filtering configuration."""
+
+    min_liquidity: int = 50
+    max_items_in_stock: int = 5
+
+
+@dataclass
+class InventoryConfig:
+    """Inventory management configuration."""
+
+    auto_sell: bool = True
+    undercut_price: float = 0.01
+    min_margin_threshold: float = 1.02
+    auto_repricing: bool = True  # Enable automatic price reduction
+    repricing_interval_hours: int = 48  # Reduce price after this many hours
+    max_price_cut_percent: float = 15.0  # Max price reduction percentage
+
+
+@dataclass
 class TradingSafetyConfig:
     """Trading safety configuration."""
 
@@ -136,6 +173,9 @@ class Config:
     database: DatabaseConfig = field(default_factory=DatabaseConfig)
     security: SecurityConfig = field(default_factory=SecurityConfig)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
+    trading: TradingConfig = field(default_factory=TradingConfig)
+    filters: FiltersConfig = field(default_factory=FiltersConfig)
+    inventory: InventoryConfig = field(default_factory=InventoryConfig)
     trading_safety: TradingSafetyConfig = field(default_factory=TradingSafetyConfig)
     rate_limit: RateLimitConfig = field(default_factory=RateLimitConfig)
     daily_report: DailyReportConfig = field(default_factory=DailyReportConfig)
@@ -226,6 +266,41 @@ class Config:
             log_data = data["logging"]
             self.logging.level = log_data.get("level", self.logging.level)
             self.logging.file = log_data.get("file", self.logging.file)
+
+        if "trading" in data:
+            trading_data = data["trading"]
+            self.trading.max_item_price = trading_data.get(
+                "max_item_price", self.trading.max_item_price
+            )
+            self.trading.min_profit_percent = trading_data.get(
+                "min_profit_percent", self.trading.min_profit_percent
+            )
+            self.trading.games = trading_data.get("games", self.trading.games)
+            self.trading.min_sales_last_month = trading_data.get(
+                "min_sales_last_month", self.trading.min_sales_last_month
+            )
+            self.trading.max_inventory_items = trading_data.get(
+                "max_inventory_items", self.trading.max_inventory_items
+            )
+
+        if "filters" in data:
+            filters_data = data["filters"]
+            self.filters.min_liquidity = filters_data.get(
+                "min_liquidity", self.filters.min_liquidity
+            )
+            self.filters.max_items_in_stock = filters_data.get(
+                "max_items_in_stock", self.filters.max_items_in_stock
+            )
+
+        if "inventory" in data:
+            inv_data = data["inventory"]
+            self.inventory.auto_sell = inv_data.get("auto_sell", self.inventory.auto_sell)
+            self.inventory.undercut_price = inv_data.get(
+                "undercut_price", self.inventory.undercut_price
+            )
+            self.inventory.min_margin_threshold = inv_data.get(
+                "min_margin_threshold", self.inventory.min_margin_threshold
+            )
 
         if "trading_safety" in data:
             safety_data = data["trading_safety"]
@@ -373,6 +448,81 @@ class Config:
         self.debug = os.getenv("DEBUG", "false").lower() == "true"
         self.testing = os.getenv("TESTING", "false").lower() == "true"
 
+        # Trading configuration
+        max_item_price = os.getenv("MAX_ITEM_PRICE")
+        if max_item_price:
+            with contextlib.suppress(ValueError):
+                self.trading.max_item_price = float(max_item_price)
+
+        min_profit = os.getenv("MIN_PROFIT_PERCENT")
+        if min_profit:
+            with contextlib.suppress(ValueError):
+                self.trading.min_profit_percent = float(min_profit)
+
+        min_sales = os.getenv("MIN_SALES_LAST_MONTH")
+        if min_sales:
+            with contextlib.suppress(ValueError):
+                self.trading.min_sales_last_month = int(min_sales)
+
+        max_inv = os.getenv("MAX_INVENTORY_ITEMS")
+        if max_inv:
+            with contextlib.suppress(ValueError):
+                self.trading.max_inventory_items = int(max_inv)
+
+        # Universal percentage-based settings (new!)
+        max_buy_pct = os.getenv("MAX_BUY_PERCENT")
+        if max_buy_pct:
+            with contextlib.suppress(ValueError):
+                self.trading.max_buy_percent = float(max_buy_pct)
+
+        min_buy_pct = os.getenv("MIN_BUY_PERCENT")
+        if min_buy_pct:
+            with contextlib.suppress(ValueError):
+                self.trading.min_buy_percent = float(min_buy_pct)
+
+        reserve_pct = os.getenv("RESERVE_PERCENT")
+        if reserve_pct:
+            with contextlib.suppress(ValueError):
+                self.trading.reserve_percent = float(reserve_pct)
+
+        max_stack_pct = os.getenv("MAX_STACK_PERCENT")
+        if max_stack_pct:
+            with contextlib.suppress(ValueError):
+                self.trading.max_stack_percent = float(max_stack_pct)
+
+        smart_mode = os.getenv("ENABLE_SMART_MODE", "true").lower()
+        self.trading.enable_smart_mode = smart_mode == "true"
+
+        # Filters configuration
+        min_liquidity = os.getenv("MIN_LIQUIDITY_SCORE")
+        if min_liquidity:
+            with contextlib.suppress(ValueError):
+                self.filters.min_liquidity = int(min_liquidity)
+
+        # Inventory configuration
+        undercut = os.getenv("PRICE_STEP")  # Using PRICE_STEP as alias for undercut_price
+        if undercut:
+            with contextlib.suppress(ValueError):
+                self.inventory.undercut_price = float(undercut)
+
+        min_margin = os.getenv("MIN_MARGIN_THRESHOLD")
+        if min_margin:
+            with contextlib.suppress(ValueError):
+                self.inventory.min_margin_threshold = float(min_margin)
+
+        auto_repricing = os.getenv("AUTO_REPRICING", "true").lower()
+        self.inventory.auto_repricing = auto_repricing == "true"
+
+        repricing_hours = os.getenv("REPRICING_INTERVAL_HOURS")
+        if repricing_hours:
+            with contextlib.suppress(ValueError):
+                self.inventory.repricing_interval_hours = int(repricing_hours)
+
+        max_price_cut = os.getenv("MAX_PRICE_CUT_PERCENT")
+        if max_price_cut:
+            with contextlib.suppress(ValueError):
+                self.inventory.max_price_cut_percent = float(max_price_cut)
+
         # Trading safety mode - defaults to True for safety
         dry_run_env = os.getenv("DRY_RUN", "true").lower()
         self.dry_run = dry_run_env == "true"
@@ -480,9 +630,7 @@ class Config:
         # Validate database URL
         if not self.database.url:
             errors.append("DATABASE_URL is required")
-        elif not self.database.url.startswith(
-            ("sqlite://", "postgresql://", "mysql://")
-        ):
+        elif not self.database.url.startswith(("sqlite://", "postgresql://", "mysql://")):
             errors.append(
                 "DATABASE_URL has unsupported scheme. "
                 "Supported: sqlite://, postgresql://, mysql://. "
@@ -492,9 +640,7 @@ class Config:
         # Validate logging level
         valid_log_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
         if self.logging.level.upper() not in valid_log_levels:
-            errors.append(
-                f"LOG_LEVEL must be one of {valid_log_levels}, got: {self.logging.level}"
-            )
+            errors.append(f"LOG_LEVEL must be one of {valid_log_levels}, got: {self.logging.level}")
 
         # Validate security settings (convert user IDs)
         if self.security.allowed_users:
@@ -517,9 +663,7 @@ class Config:
 
         # Validate pool settings
         if self.database.pool_size <= 0:
-            errors.append(
-                f"Database pool_size must be positive, got: {self.database.pool_size}"
-            )
+            errors.append(f"Database pool_size must be positive, got: {self.database.pool_size}")
 
         if self.database.max_overflow < 0:
             errors.append(
@@ -532,9 +676,7 @@ class Config:
                 "⚠️  DRY_RUN=false - BOT WILL MAKE REAL TRADES! Make sure you understand the risks."
             )
         elif self.dry_run:
-            logger.info(
-                "✅ DRY_RUN=true - Bot is in safe mode (no real trades will be made)"
-            )
+            logger.info("✅ DRY_RUN=true - Bot is in safe mode (no real trades will be made)")
 
         # Raise all errors at once
         if errors:

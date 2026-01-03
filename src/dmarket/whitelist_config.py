@@ -4,9 +4,10 @@ This module contains curated lists of highly liquid items for each game
 that are safe to trade and quick to sell.
 """
 
+import json
 import logging
+from pathlib import Path
 from typing import Any
-
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +70,108 @@ GAME_APP_ID_MAP = {
     "dota2": "570",
     "tf2": "440",
 }
+
+# Настройки whitelist (могут быть переопределены из JSON)
+WHITELIST_SETTINGS: dict[str, Any] = {
+    "enabled": True,
+    "priority_only": False,
+    "max_same_items_in_inventory": 5,
+    "buy_max_overpay_percent": 2.0,
+    "max_stack_value_percent": 15,
+    "min_liquidity_score": 70,
+}
+
+# Веса игр для диверсификации (в процентах внимания)
+GAME_WEIGHTS: dict[str, int] = {
+    "tf2": 30,    # Ключи стабильны, быстро продаются
+    "csgo": 40,   # Кейсы и скины, высокая волатильность
+    "rust": 20,   # Двери и ящики, стабильный спрос
+    "dota2": 10,  # Только Inscribed/Immortal предметы
+}
+
+
+def load_whitelist_from_json(file_path: str = "data/whitelist.json") -> bool:
+    """Загружает whitelist из JSON файла.
+
+    Args:
+        file_path: Путь к JSON файлу с whitelist
+
+    Returns:
+        True если загрузка успешна, False иначе
+    """
+    global WHITELIST_ITEMS, WHITELIST_SETTINGS, GAME_WEIGHTS
+
+    path = Path(file_path)
+    if not path.exists():
+        logger.warning(f"Whitelist file not found: {file_path}")
+        return False
+
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+
+        # Загружаем настройки
+        if "settings" in data:
+            WHITELIST_SETTINGS.update(data["settings"])
+            logger.info(f"Loaded whitelist settings: {WHITELIST_SETTINGS}")
+
+        # Загружаем enabled/priority_only
+        if "enabled" in data:
+            WHITELIST_SETTINGS["enabled"] = data["enabled"]
+        if "priority_only" in data:
+            WHITELIST_SETTINGS["priority_only"] = data["priority_only"]
+
+        # Загружаем веса игр для диверсификации
+        if "game_weights" in data:
+            GAME_WEIGHTS.update(data["game_weights"])
+            logger.info(f"Loaded game weights: {GAME_WEIGHTS}")
+
+        # Загружаем предметы по играм
+        if "items" in data:
+            items_data = data["items"]
+            total_items = 0
+
+            # Маппинг имен игр из JSON в App ID
+            game_to_appid = {
+                "csgo": "730",
+                "cs2": "730",
+                "dota2": "570",
+                "rust": "252490",
+                "tf2": "440",
+            }
+
+            for game_name, items in items_data.items():
+                app_id = game_to_appid.get(game_name.lower())
+                if app_id and items:
+                    # Добавляем к существующему списку, избегая дубликатов
+                    existing = set(WHITELIST_ITEMS.get(app_id, []))
+                    new_items = [item for item in items if item not in existing]
+                    WHITELIST_ITEMS[app_id] = list(existing) + new_items
+                    total_items += len(new_items)
+                    logger.debug(f"Loaded {len(new_items)} items for {game_name}")
+
+            logger.info(f"✅ Loaded {total_items} whitelist items from {file_path}")
+
+        return True
+
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse whitelist JSON: {e}")
+        return False
+    except Exception as e:
+        logger.exception(f"Error loading whitelist: {e}")
+        return False
+
+
+def get_game_weight(game: str) -> int:
+    """Получает вес игры для стратегии диверсификации.
+
+    Args:
+        game: Код игры (csgo, rust, dota2, tf2)
+
+    Returns:
+        Вес игры в процентах (0-100)
+    """
+    return GAME_WEIGHTS.get(game.lower(), 10)
 
 
 class WhitelistChecker:

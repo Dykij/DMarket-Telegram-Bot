@@ -33,12 +33,11 @@ Usage:
 from __future__ import annotations
 
 import asyncio
+import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
-import logging
 from typing import TYPE_CHECKING, Any
-
 
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
@@ -231,9 +230,7 @@ class AutoSeller:
             raise ValueError("Auto-sell is disabled")
 
         if len(self.scheduled_sales) >= self.config.max_active_sales:
-            raise ValueError(
-                f"Maximum active sales reached ({self.config.max_active_sales})"
-            )
+            raise ValueError(f"Maximum active sales reached ({self.config.max_active_sales})")
 
         margin = target_margin or (self.config.target_margin_percent / 100)
 
@@ -724,9 +721,7 @@ class AutoSeller:
 
     async def _check_and_adjust_prices(self) -> None:
         """Check all listed items and adjust prices if needed."""
-        listed_sales = [
-            s for s in self.scheduled_sales.values() if s.status == SaleStatus.LISTED
-        ]
+        listed_sales = [s for s in self.scheduled_sales.values() if s.status == SaleStatus.LISTED]
 
         for sale in listed_sales:
             # Check for stop-loss
@@ -753,14 +748,10 @@ class AutoSeller:
             "total_profit": self._stats.total_profit,
             "active_sales": len(self.scheduled_sales),
             "pending": sum(
-                1
-                for s in self.scheduled_sales.values()
-                if s.status == SaleStatus.PENDING
+                1 for s in self.scheduled_sales.values() if s.status == SaleStatus.PENDING
             ),
             "listed": sum(
-                1
-                for s in self.scheduled_sales.values()
-                if s.status == SaleStatus.LISTED
+                1 for s in self.scheduled_sales.values() if s.status == SaleStatus.LISTED
             ),
         }
 
@@ -784,6 +775,130 @@ class AutoSeller:
             }
             for s in self.scheduled_sales.values()
         ]
+
+    async def process_inventory(self) -> int:
+        """Process inventory and list new items for sale.
+
+        This is the "bridge" function that connects auto-buyer with auto-seller.
+        It checks the inventory for items that were purchased but not yet listed,
+        and schedules them for sale automatically.
+
+        Returns:
+            Number of items scheduled for sale
+        """
+        if not self.config.enabled:
+            return 0
+
+        items_scheduled = 0
+
+        try:
+            # Get current inventory
+            inventory_response = await self.api.get_user_inventory(game="csgo", limit=100)
+
+            if not inventory_response:
+                return 0
+
+            # Extract items from response
+            items = inventory_response.get("objects", inventory_response.get("Items", []))
+
+            for item in items:
+                item_id = item.get("itemId") or item.get("assetId") or item.get("id")
+
+                if not item_id:
+                    continue
+
+                # Skip if already scheduled
+                if item_id in self.scheduled_sales:
+                    continue
+
+                # Check if item is available for sale (not already listed)
+                status = item.get("status", "").lower()
+                in_market = item.get("inMarket", False)
+
+                if in_market or status == "on_sale":
+                    continue
+
+                # Get item details
+                title = item.get("title", "Unknown Item")
+
+                # Get buy price from item data or use suggested price
+                buy_price = self._extract_buy_price(item)
+
+                if buy_price <= 0:
+                    logger.warning(
+                        "cannot_determine_buy_price",
+                        extra={"item_id": item_id, "title": title},
+                    )
+                    continue
+
+                # Schedule for sale
+                try:
+                    await self.schedule_sale(
+                        item_id=item_id,
+                        item_name=title,
+                        buy_price=buy_price,
+                        game=item.get("gameId", "csgo"),
+                        immediate=False,
+                    )
+                    items_scheduled += 1
+
+                    logger.info(
+                        "auto_scheduled_from_inventory",
+                        extra={
+                            "item_id": item_id,
+                            "title": title,
+                            "buy_price": buy_price,
+                        },
+                    )
+                except ValueError as e:
+                    # Max sales reached or disabled
+                    logger.warning("schedule_sale_skipped", extra={"error": str(e)})
+                    break
+
+        except Exception as e:
+            logger.exception("process_inventory_error", extra={"error": str(e)})
+
+        return items_scheduled
+
+    def _extract_buy_price(self, item: dict[str, Any]) -> float:
+        """Extract buy price from item data.
+
+        Tries multiple sources:
+        1. buyPrice field (if we stored it during purchase)
+        2. price field (current market price as fallback)
+        3. suggestedPrice field
+
+        Args:
+            item: Item data dictionary
+
+        Returns:
+            Buy price in USD (0 if not found)
+        """
+        # Try buyPrice first (stored during purchase)
+        buy_price_data = item.get("buyPrice") or item.get("buy_price")
+        if buy_price_data:
+            if isinstance(buy_price_data, dict):
+                amount = buy_price_data.get("amount", buy_price_data.get("USD", 0))
+                return float(amount) / 100  # Convert cents to USD
+            return float(buy_price_data) / 100
+
+        # Try current price
+        price_data = item.get("price", {})
+        if isinstance(price_data, dict):
+            amount = price_data.get("amount", price_data.get("USD", 0))
+            if amount:
+                return float(amount) / 100
+
+        # Try suggested price
+        suggested = item.get("suggestedPrice", {})
+        if isinstance(suggested, dict):
+            amount = suggested.get("amount", suggested.get("USD", 0))
+            if amount:
+                return float(amount) / 100
+        elif suggested:
+            return float(suggested) / 100
+
+        return 0.0
 
 
 @dataclass
@@ -822,18 +937,12 @@ def load_sale_config(config_path: str = "config/config.yaml") -> SaleConfig:
             max_margin_percent=auto_sell_config.get("max_margin_percent", 12.0),
             target_margin_percent=auto_sell_config.get("target_margin_percent", 8.0),
             undercut_cents=auto_sell_config.get("undercut_cents", 1),
-            price_check_interval_minutes=auto_sell_config.get(
-                "price_check_interval_minutes", 30
-            ),
+            price_check_interval_minutes=auto_sell_config.get("price_check_interval_minutes", 30),
             stop_loss_hours=auto_sell_config.get("stop_loss_hours", 48),
             stop_loss_percent=auto_sell_config.get("stop_loss_percent", 5.0),
             max_active_sales=auto_sell_config.get("max_active_sales", 50),
-            delay_before_list_seconds=auto_sell_config.get(
-                "delay_before_list_seconds", 5
-            ),
-            pricing_strategy=PricingStrategy(
-                auto_sell_config.get("pricing_strategy", "undercut")
-            ),
+            delay_before_list_seconds=auto_sell_config.get("delay_before_list_seconds", 5),
+            pricing_strategy=PricingStrategy(auto_sell_config.get("pricing_strategy", "undercut")),
             dmarket_fee_percent=auto_sell_config.get("dmarket_fee_percent", 7.0),
         )
 

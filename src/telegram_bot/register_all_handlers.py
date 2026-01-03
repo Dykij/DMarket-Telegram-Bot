@@ -434,6 +434,38 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать Steam Arbitrage команды: %s", e)
 
+    # Extended Statistics handlers (/stats_full, /portfolio)
+    try:
+        from src.telegram_bot.handlers.extended_stats_handler import get_extended_stats_handlers
+
+        for handler in get_extended_stats_handlers():
+            application.add_handler(handler)
+        logger.info("Extended Stats команды зарегистрированы (/stats_full, /portfolio)")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать Extended Stats команды: %s", e)
+
+    # Market Sentiment handlers (/market, /smart, /x5)
+    try:
+        from src.telegram_bot.handlers.market_sentiment_handler import (
+            register_market_sentiment_handlers,
+        )
+
+        register_market_sentiment_handlers(application)
+        logger.info("Market Sentiment команды зарегистрированы (/market, /smart, /x5)")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать Market Sentiment команды: %s", e)
+
+    # Intelligent Hold handlers (/hold)
+    try:
+        from src.telegram_bot.handlers.intelligent_hold_handler import (
+            register_intelligent_hold_handlers,
+        )
+
+        register_intelligent_hold_handlers(application)
+        logger.info("Intelligent Hold команды зарегистрированы (/hold)")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать Intelligent Hold команды: %s", e)
+
     logger.info("Все обработчики успешно зарегистрированы")
 
 

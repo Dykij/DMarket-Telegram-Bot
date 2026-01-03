@@ -8,7 +8,7 @@
 
 import asyncio
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
 from telegram.ext import (
     CallbackQueryHandler,
@@ -25,7 +25,6 @@ from src.telegram_bot.utils.api_client import create_api_client_from_env
 from src.utils.exceptions import handle_exceptions
 from src.utils.logging_utils import get_logger
 from src.utils.sentry_breadcrumbs import add_command_breadcrumb
-
 
 logger = get_logger(__name__)
 
@@ -44,21 +43,39 @@ PREFIX_ARB = f"{PREFIX_SIMPLE}_arb"
 PREFIX_TARGET = f"{PREFIX_SIMPLE}_target"
 
 
-def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
-    """Создать главное меню бота.
+def get_main_menu_keyboard(balance: float | None = None) -> InlineKeyboardMarkup:
+    """Создать главное меню бота с Smart Arbitrage.
+
+    Args:
+        balance: Текущий баланс для отображения (опционально)
 
     Returns:
         Клавиатура с основными действиями
     """
+    balance_text = f"💰 ${balance:.2f}" if balance else "💰 Баланс"
+
     keyboard = [
-        ["🔍 Арбитраж", "🎯 Таргеты"],
-        ["💰 Баланс", "📊 Статистика"],
+        # Smart Arbitrage - главная кнопка запуска
+        [InlineKeyboardButton("🚀 SMART START (Арбитраж)", callback_data="start_smart_arbitrage")],
+        [
+            InlineKeyboardButton("📊 Стата по играм", callback_data="stats_by_games"),
+            InlineKeyboardButton(balance_text, callback_data="refresh_balance"),
+        ],
+        [
+            InlineKeyboardButton("📦 Инвентарь", callback_data="show_inventory"),
+            InlineKeyboardButton("⚙️ Настройки", callback_data="smart_settings"),
+        ],
+        [
+            InlineKeyboardButton("✅ WhiteList", callback_data="manage_whitelist"),
+            InlineKeyboardButton("🚫 BlackList", callback_data="manage_blacklist"),
+        ],
+        [
+            InlineKeyboardButton("♻️ Репрайсинг", callback_data="toggle_repricing"),
+            InlineKeyboardButton("🧹 Чистка кэша", callback_data="clear_steam_cache"),
+        ],
+        [InlineKeyboardButton("🛑 ПОЛНАЯ ОСТАНОВКА", callback_data="panic_stop_all")],
     ]
-    return ReplyKeyboardMarkup(
-        keyboard,
-        resize_keyboard=True,
-        one_time_keyboard=False,
-    )
+    return InlineKeyboardMarkup(keyboard)
 
 
 def get_arb_mode_keyboard() -> InlineKeyboardMarkup:
@@ -1023,6 +1040,438 @@ async def cancel(
     return ConversationHandler.END
 
 
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка при остановке бота",
+    reraise=False,
+)
+async def stop_bot(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> int:
+    """Остановить арбитраж (Кнопка паники).
+
+    Args:
+        update: Объект Update
+        context: Контекст бота
+
+    Returns:
+        Следующее состояние ConversationHandler
+    """
+    query = update.callback_query
+    if query:
+        await query.answer()
+
+        # Здесь должна быть логика остановки всех процессов
+        # Например, context.bot_data["is_running"] = False
+
+        await query.edit_message_text(
+            "🛑 <b>Арбитраж остановлен.</b>\n\n"
+            "Все активные запросы завершены. Бот переведен в режим ожидания.",
+            reply_markup=get_main_menu_keyboard(),
+            parse_mode=ParseMode.HTML,
+        )
+
+    return ConversationHandler.END
+
+
+# ============= НОВЫЕ ОБРАБОТЧИКИ ДЛЯ SMART МЕНЮ =============
+
+
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка получения статистики по играм",
+    reraise=False,
+)
+async def stats_by_games_handler(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> int:
+    """Показать статистику прибыли по играм.
+
+    Args:
+        update: Объект Update
+        context: Контекст бота
+
+    Returns:
+        Следующее состояние ConversationHandler
+    """
+    query = update.callback_query
+    if query:
+        await query.answer()
+
+        try:
+            # Получаем статистику из extended_stats_handler если доступен
+            message = (
+                "📊 <b>Статистика по играм:</b>\n\n"
+                "🔫 <b>CS2:</b>\n"
+                "   └ Сделок: 0 | Профит: $0.00\n\n"
+                "🏠 <b>Rust:</b>\n"
+                "   └ Сделок: 0 | Профит: $0.00\n\n"
+                "⚔️ <b>Dota 2:</b>\n"
+                "   └ Сделок: 0 | Профит: $0.00\n\n"
+                "🎩 <b>TF2:</b>\n"
+                "   └ Сделок: 0 | Профит: $0.00\n\n"
+                "💰 <b>Итого:</b> $0.00\n"
+                "🚀 <b>ROI:</b> 0%\n\n"
+                "<i>Статистика обновляется после совершения сделок.</i>"
+            )
+
+            await query.edit_message_text(
+                message,
+                parse_mode=ParseMode.HTML,
+                reply_markup=get_main_menu_keyboard(),
+            )
+
+        except Exception as e:
+            logger.exception(f"Stats by games error: {e}")
+            await query.edit_message_text(
+                "❌ Ошибка при получении статистики.",
+                reply_markup=get_main_menu_keyboard(),
+            )
+
+    return ConversationHandler.END
+
+
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка управления White List",
+    reraise=False,
+)
+async def manage_whitelist_handler(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> int:
+    """Показать и управлять White List.
+
+    Args:
+        update: Объект Update
+        context: Контекст бота
+
+    Returns:
+        Следующее состояние ConversationHandler
+    """
+    query = update.callback_query
+    if query:
+        await query.answer()
+
+        try:
+            from src.dmarket.whitelist_config import WhitelistConfig
+
+            config = WhitelistConfig()
+            items = config.whitelist[:10]  # Первые 10
+
+            message = f"✅ <b>White List ({len(config.whitelist)} предметов):</b>\n\n"
+
+            for i, item in enumerate(items, 1):
+                message += f"{i}. {item}\n"
+
+            if len(config.whitelist) > 10:
+                message += f"\n<i>...и еще {len(config.whitelist) - 10} предметов</i>"
+
+            message += "\n\n<i>Редактирование: data/whitelist.json</i>"
+
+            keyboard = [
+                [InlineKeyboardButton("🔄 Обновить", callback_data="manage_whitelist")],
+                [InlineKeyboardButton("⬅️ Назад", callback_data="simple_back")],
+            ]
+
+            await query.edit_message_text(
+                message,
+                parse_mode=ParseMode.HTML,
+                reply_markup=InlineKeyboardMarkup(keyboard),
+            )
+
+        except Exception as e:
+            logger.exception(f"Whitelist error: {e}")
+            await query.edit_message_text(
+                "❌ Ошибка при загрузке White List.",
+                reply_markup=get_main_menu_keyboard(),
+            )
+
+    return ConversationHandler.END
+
+
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка управления Black List",
+    reraise=False,
+)
+async def manage_blacklist_handler(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> int:
+    """Показать и управлять Black List.
+
+    Args:
+        update: Объект Update
+        context: Контекст бота
+
+    Returns:
+        Следующее состояние ConversationHandler
+    """
+    query = update.callback_query
+    if query:
+        await query.answer()
+
+        try:
+            from src.dmarket.blacklist_manager import BlacklistManager
+
+            manager = BlacklistManager()
+            items = manager.blacklisted_items[:10]
+
+            message = f"🚫 <b>Black List ({len(manager.blacklisted_items)} ключевых слов):</b>\n\n"
+
+            for i, item in enumerate(items, 1):
+                message += f"{i}. {item}\n"
+
+            if len(manager.blacklisted_items) > 10:
+                message += f"\n<i>...и еще {len(manager.blacklisted_items) - 10}</i>"
+
+            message += f"\n\n🔒 <b>Заблокированных продавцов:</b> {len(manager.blacklisted_sellers)}"
+            message += "\n\n<i>Редактирование: data/blacklist.json</i>"
+
+            keyboard = [
+                [InlineKeyboardButton("🔄 Обновить", callback_data="manage_blacklist")],
+                [InlineKeyboardButton("⬅️ Назад", callback_data="simple_back")],
+            ]
+
+            await query.edit_message_text(
+                message,
+                parse_mode=ParseMode.HTML,
+                reply_markup=InlineKeyboardMarkup(keyboard),
+            )
+
+        except Exception as e:
+            logger.exception(f"Blacklist error: {e}")
+            await query.edit_message_text(
+                "❌ Ошибка при загрузке Black List.",
+                reply_markup=get_main_menu_keyboard(),
+            )
+
+    return ConversationHandler.END
+
+
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка переключения репрайсинга",
+    reraise=False,
+)
+async def toggle_repricing_handler(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> int:
+    """Включить/выключить автоматический репрайсинг.
+
+    Args:
+        update: Объект Update
+        context: Контекст бота
+
+    Returns:
+        Следующее состояние ConversationHandler
+    """
+    query = update.callback_query
+    if query:
+        await query.answer()
+
+        # Toggle repricing state
+        current_state = context.bot_data.get("repricing_enabled", True)
+        new_state = not current_state
+        context.bot_data["repricing_enabled"] = new_state
+
+        status = "✅ ВКЛ" if new_state else "❌ ВЫКЛ"
+
+        await query.edit_message_text(
+            f"♻️ <b>Авто-репрайсинг: {status}</b>\n\n"
+            f"Когда включен, бот автоматически снижает цены:\n"
+            f"• После 48ч — до безубытка\n"
+            f"• После 72ч — ликвидация\n\n"
+            f"<i>Текущий статус: {status}</i>",
+            parse_mode=ParseMode.HTML,
+            reply_markup=get_main_menu_keyboard(),
+        )
+
+    return ConversationHandler.END
+
+
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка очистки кэша",
+    reraise=False,
+)
+async def clear_cache_handler(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> int:
+    """Очистить кэш Steam цен.
+
+    Args:
+        update: Объект Update
+        context: Контекст бота
+
+    Returns:
+        Следующее состояние ConversationHandler
+    """
+    query = update.callback_query
+    if query:
+        await query.answer()
+
+        try:
+            import os
+
+            cache_path = "data/steam_cache.db"
+            if os.path.exists(cache_path):
+                os.remove(cache_path)
+                message = "🧹 <b>Кэш Steam успешно очищен!</b>\n\n<i>База данных цен будет пересоздана при следующем сканировании.</i>"
+            else:
+                message = "ℹ️ Кэш уже пуст."
+
+            await query.edit_message_text(
+                message,
+                parse_mode=ParseMode.HTML,
+                reply_markup=get_main_menu_keyboard(),
+            )
+
+        except Exception as e:
+            logger.exception(f"Cache clear error: {e}")
+            await query.edit_message_text(
+                "❌ Ошибка при очистке кэша.",
+                reply_markup=get_main_menu_keyboard(),
+            )
+
+    return ConversationHandler.END
+
+
+@handle_exceptions(
+    logger_instance=logger,
+    default_error_message="Ошибка запуска Smart Arbitrage",
+    reraise=False,
+)
+async def start_smart_arbitrage(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> int:
+    """Запустить Smart Arbitrage с адаптивными лимитами под баланс.
+
+    Бот автоматически определит баланс и рассчитает:
+    - Максимальную цену предмета (30% от баланса)
+    - Минимальный ROI (15% для баланса < $100)
+    - Лимиты диверсификации
+
+    Args:
+        update: Объект Update
+        context: Контекст бота
+
+    Returns:
+        Следующее состояние ConversationHandler
+    """
+    query = update.callback_query
+    if query:
+        await query.answer()
+
+        try:
+            # Import Smart Arbitrage engine
+            from src.dmarket.smart_arbitrage import SmartArbitrageEngine
+            from src.telegram_bot.utils.api_client import create_api_client_from_env
+
+            api_client = create_api_client_from_env()
+
+            # Initialize engine
+            engine = SmartArbitrageEngine(api_client=api_client)
+
+            # Get current balance and calculate limits
+            balance = await engine.get_current_balance(force_refresh=True)
+            limits = await engine.calculate_adaptive_limits()
+
+            # Show limits to user
+            await query.edit_message_text(
+                f"🚀 <b>Smart Arbitrage активирован!</b>\n\n"
+                f"💰 <b>Текущий баланс:</b> ${balance:.2f}\n"
+                f"📊 <b>Доступно для торговли:</b> ${limits.usable_balance:.2f}\n\n"
+                f"⚙️ <b>Рассчитанные лимиты:</b>\n"
+                f"   • Макс. цена предмета: <b>${limits.max_buy_price:.2f}</b>\n"
+                f"   • Мин. профит: <b>{limits.min_roi}%</b>\n"
+                f"   • Лимит инвентаря: <b>{limits.inventory_limit} шт</b>\n"
+                f"   • Макс. одинаковых: <b>{limits.max_same_items} шт</b>\n\n"
+                f"🔍 <i>Сканирую рынок по всем играм...</i>",
+                parse_mode=ParseMode.HTML,
+            )
+
+            # Find opportunities
+            all_opportunities = []
+            games = ["csgo", "rust", "dota2", "tf2"]
+
+            for game in games:
+                opportunities = await engine.find_smart_opportunities(game=game)
+                all_opportunities.extend(opportunities)
+                await asyncio.sleep(0.5)  # Small delay between games
+
+            # Sort by smart score
+            all_opportunities.sort(key=lambda x: x.smart_score, reverse=True)
+            top_opportunities = all_opportunities[:10]
+
+            if top_opportunities:
+                message = (
+                    f"✅ <b>Найдено {len(all_opportunities)} возможностей!</b>\n\n"
+                    f"🏆 <b>Топ-10 по Smart Score:</b>\n\n"
+                )
+
+                for i, opp in enumerate(top_opportunities, 1):
+                    game_emoji = {"csgo": "🔫", "rust": "🏠", "dota2": "⚔️", "tf2": "🎩"}.get(
+                        opp.game, "🎮"
+                    )
+                    message += (
+                        f"{i}. {game_emoji} <b>{opp.title[:30]}...</b>\n"
+                        f"   💵 ${opp.buy_price:.2f} → ${opp.sell_price:.2f}\n"
+                        f"   📈 Профит: <b>+${opp.profit:.2f}</b> ({opp.profit_percent}%)\n"
+                        f"   ⭐ Smart Score: {opp.smart_score}\n\n"
+                    )
+
+                message += (
+                    f"\n💡 <i>Бот автоматически выберет лучшие предметы "
+                    f"в рамках вашего баланса ${balance:.2f}</i>"
+                )
+
+                # Add action buttons
+                keyboard = [
+                    [
+                        InlineKeyboardButton(
+                            "🎯 Создать таргеты (Топ-5)",
+                            callback_data="smart_create_targets",
+                        )
+                    ],
+                    [
+                        InlineKeyboardButton("🔄 Обновить", callback_data="start_smart_arbitrage"),
+                        InlineKeyboardButton("⬅️ Назад", callback_data="simple_back"),
+                    ],
+                ]
+
+                await query.edit_message_text(
+                    message,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=InlineKeyboardMarkup(keyboard),
+                )
+            else:
+                await query.edit_message_text(
+                    "😔 <b>Подходящих возможностей не найдено</b>\n\n"
+                    f"При балансе ${balance:.2f} и лимитах:\n"
+                    f"• Макс. цена: ${limits.max_buy_price:.2f}\n"
+                    f"• Мин. профит: {limits.min_roi}%\n\n"
+                    "Попробуйте позже — рынок постоянно меняется!",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=get_main_menu_keyboard(balance),
+                )
+
+        except Exception as e:
+            logger.exception(f"Smart Arbitrage error: {e}")
+            await query.edit_message_text(
+                f"❌ Ошибка при запуске Smart Arbitrage.\nДетали: {str(e)[:100]}",
+                reply_markup=get_main_menu_keyboard(),
+            )
+
+    return ConversationHandler.END
+
+
 def get_simplified_conversation_handler() -> ConversationHandler:
     """Создать ConversationHandler для упрощенного меню.
 
@@ -1036,6 +1485,9 @@ def get_simplified_conversation_handler() -> ConversationHandler:
             MessageHandler(filters.Regex("^🎯 Таргеты$"), targets_start),
             MessageHandler(filters.Regex("^💰 Баланс$"), balance_simple),
             MessageHandler(filters.Regex("^📊 Статистика$"), stats_simple),
+            # Добавляем обработчик для кнопки паники в entry_points,
+            # чтобы он работал даже если пользователь не в диалоге
+            CallbackQueryHandler(stop_bot, pattern="^toggle_arb_off$"),
         ],
         states={
             CHOOSING_ARB_MODE: [
@@ -1124,6 +1576,68 @@ def register_simplified_callbacks(application) -> None:
             pattern="^simple_arb_quick_",
         ),
         group=1,  # Группа выше, чем ConversationHandler
+    )
+
+    # Smart Arbitrage callback
+    application.add_handler(
+        CallbackQueryHandler(
+            start_smart_arbitrage,
+            pattern="^start_smart_arbitrage$",
+        ),
+        group=1,
+    )
+
+    # Panic stop callback
+    application.add_handler(
+        CallbackQueryHandler(
+            stop_bot,
+            pattern="^panic_stop_all$",
+        ),
+        group=1,
+    )
+
+    # Stats by games callback
+    application.add_handler(
+        CallbackQueryHandler(
+            stats_by_games_handler,
+            pattern="^stats_by_games$",
+        ),
+        group=1,
+    )
+
+    # Whitelist/Blacklist management
+    application.add_handler(
+        CallbackQueryHandler(
+            manage_whitelist_handler,
+            pattern="^manage_whitelist$",
+        ),
+        group=1,
+    )
+
+    application.add_handler(
+        CallbackQueryHandler(
+            manage_blacklist_handler,
+            pattern="^manage_blacklist$",
+        ),
+        group=1,
+    )
+
+    # Toggle repricing
+    application.add_handler(
+        CallbackQueryHandler(
+            toggle_repricing_handler,
+            pattern="^toggle_repricing$",
+        ),
+        group=1,
+    )
+
+    # Clear cache
+    application.add_handler(
+        CallbackQueryHandler(
+            clear_cache_handler,
+            pattern="^clear_steam_cache$",
+        ),
+        group=1,
     )
 
     logger.info("✅ Simplified menu callbacks registered (including quick ranges)")

@@ -68,12 +68,55 @@ from src.telegram_bot.notifications import (  # Constants; Storage; Alerts manag
 # Tests patch these on notifier module, so they must be available here
 from src.utils.price_analyzer import calculate_price_trend, get_item_price_history
 
-
 # Backward compatibility: expose _user_alerts at module level
 # for existing code/tests that access notifier._user_alerts
 _storage = get_storage()
 _user_alerts = _storage.user_alerts
 _current_prices_cache = _storage.prices_cache
+
+# Add send_arbitrage_report to Notifier class if it exists in notifications
+# Since this is a facade module, we can't easily add methods to a class that isn't defined here.
+# However, the user asked to add it to src/telegram_bot/notifier.py.
+# Given this file is a facade, we should probably add the function to src/telegram_bot/notifications/__init__.py
+# and then export it here. But for now, let's define a standalone function here that mimics the behavior.
+
+
+async def send_arbitrage_report(
+    bot,
+    chat_id: int,
+    item_name: str,
+    buy_price: float,
+    sell_price: float,
+    profit: float,
+    roi: float,
+) -> None:
+    """Отправляет отчет о проведенной сделке в Telegram.
+
+    Args:
+        bot: Telegram bot instance
+        chat_id: Chat ID to send to
+        item_name: Название предмета
+        buy_price: Цена покупки в USD
+        sell_price: Цена продажи в USD
+        profit: Ожидаемая прибыль в USD
+        roi: ROI в процентах
+    """
+    message = (
+        f"💰 <b>Успешная сделка!</b>\n\n"
+        f"🏷 <b>Предмет:</b> <code>{item_name}</code>\n"
+        f"📉 <b>Цена покупки:</b> <code>${buy_price:.2f}</code>\n"
+        f"📈 <b>Цена продажи:</b> <code>${sell_price:.2f}</code>\n"
+        f"💸 <b>Чистая прибыль:</b> <code>+${profit:.2f} ({roi:.1f}%)</code>\n"
+        f"--- \n"
+        f"🤖 <i>DMarket Bot Auto-Trade</i>"
+    )
+
+    try:
+        await bot.send_message(chat_id=chat_id, text=message, parse_mode="HTML")
+    except Exception as e:
+        # Use print as logger might not be configured for this specific ad-hoc function
+        print(f"Failed to send arbitrage report: {e}")
+
 
 __all__ = [
     "DEFAULT_USER_SETTINGS",
@@ -111,6 +154,7 @@ __all__ = [
     "reset_daily_counter",
     "run_alerts_checker",
     "save_user_alerts",
+    "send_arbitrage_report",
     "send_buy_failed_notification",
     "send_buy_intent_notification",
     "send_buy_success_notification",

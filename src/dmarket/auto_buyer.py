@@ -14,7 +14,6 @@ from typing import Any
 
 import structlog
 
-
 logger = structlog.get_logger(__name__)
 
 
@@ -100,6 +99,7 @@ class AutoBuyer:
         self.api = api_client
         self.config = config or AutoBuyConfig()
         self.purchase_history: list[PurchaseResult] = []
+        self._auto_seller = None  # Will be set via set_auto_seller()
 
         logger.info(
             "auto_buyer_initialized",
@@ -108,6 +108,18 @@ class AutoBuyer:
             max_price=self.config.max_price_usd,
             dry_run=self.config.dry_run,
         )
+
+    def set_auto_seller(self, auto_seller) -> None:
+        """Link auto-seller for automatic sale scheduling after purchase.
+
+        This creates the "bridge" between buying and selling:
+        When an item is purchased, it will be automatically scheduled for sale.
+
+        Args:
+            auto_seller: AutoSeller instance
+        """
+        self._auto_seller = auto_seller
+        logger.info("auto_seller_linked", has_seller=auto_seller is not None)
 
     async def should_auto_buy(self, item: dict) -> tuple[bool, str]:
         """Check if item meets auto-buy criteria.
@@ -183,9 +195,7 @@ class AutoBuyer:
             # Note: This requires sales_history module
             from src.dmarket.sales_history import get_item_sales_history
 
-            history = await get_item_sales_history(
-                api_client=self.api, item_title=title, days=7
-            )
+            history = await get_item_sales_history(api_client=self.api, item_title=title, days=7)
 
             if not history:
                 logger.warning("no_sales_history", title=title)
@@ -267,6 +277,9 @@ class AutoBuyer:
                 order_id=result.order_id,
             )
 
+            # Schedule auto-sell even in DRY_RUN mode (for testing)
+            await self._schedule_auto_sell(item_id, "DRY_RUN_ITEM", price_usd, "csgo")
+
             return result
 
         # Real purchase
@@ -289,6 +302,14 @@ class AutoBuyer:
                     item_id=item_id,
                     price=price_usd,
                     order_id=result.order_id,
+                )
+
+                # Auto-schedule for sale after successful purchase
+                await self._schedule_auto_sell(
+                    item_id=item_id,
+                    item_title=result.item_title,
+                    buy_price=price_usd,
+                    game=response.get("game", "csgo"),
                 )
             else:
                 result = PurchaseResult(
@@ -426,3 +447,59 @@ class AutoBuyer:
             logger.exception("balance_check_failed", error=str(e))
             # On error, assume balance is sufficient to not block purchases
             return True
+
+    async def _schedule_auto_sell(
+        self,
+        item_id: str,
+        item_title: str,
+        buy_price: float,
+        game: str = "csgo",
+    ) -> bool:
+        """Schedule item for automatic sale after purchase.
+
+        This is the "bridge" function that connects auto-buyer with auto-seller.
+        After a successful purchase, the item is automatically scheduled for sale
+        with a target profit margin.
+
+        Args:
+            item_id: DMarket item ID
+            item_title: Human-readable item name
+            buy_price: Price paid for item in USD
+            game: Game code (csgo, dota2, etc.)
+
+        Returns:
+            True if scheduled successfully
+        """
+        if not self._auto_seller:
+            logger.debug("auto_seller_not_linked", item_id=item_id)
+            return False
+
+        try:
+            # Schedule sale with auto-seller
+            sale = await self._auto_seller.schedule_sale(
+                item_id=item_id,
+                item_name=item_title,
+                buy_price=buy_price,
+                game=game,
+                immediate=False,  # Wait for item to appear in inventory
+            )
+
+            logger.info(
+                "auto_sale_scheduled",
+                item_id=item_id,
+                item_title=item_title,
+                buy_price=buy_price,
+                target_margin=sale.target_margin,
+                expected_sell_price=sale.list_price,
+            )
+
+            return True
+
+        except ValueError as e:
+            # Auto-sell disabled or max sales reached
+            logger.warning("auto_sell_skipped", item_id=item_id, reason=str(e))
+            return False
+
+        except Exception as e:
+            logger.exception("auto_sell_schedule_failed", item_id=item_id, error=str(e))
+            return False

@@ -222,3 +222,111 @@ def create_market_analysis_keyboard() -> InlineKeyboardMarkup:
         ],
     ]
     return InlineKeyboardMarkup(keyboard)
+
+
+def get_smart_trading_keyboard(
+    balance: float = 0.0,
+    hunt_mode: bool = False,
+    market_status: str = "Загрузка...",
+) -> InlineKeyboardMarkup:
+    """Создать умную клавиатуру с адаптивными лимитами.
+
+    Args:
+        balance: Текущий баланс пользователя
+        hunt_mode: Включен ли режим охоты за X5
+        market_status: Текущий статус рынка
+
+    Returns:
+        InlineKeyboardMarkup с умными кнопками
+    """
+    formatted_bal = f"${balance:,.2f}" if balance > 0 else "Загрузка..."
+    hunt_status = "ВКЛ" if hunt_mode else "ВЫКЛ"
+
+    keyboard = [
+        # Главная кнопка запуска
+        [
+            InlineKeyboardButton(
+                text=f"🚀 SMART START ({formatted_bal})",
+                callback_data="start_smart_arbitrage",
+            ),
+        ],
+        # Статус рынка и X5 охота
+        [
+            InlineKeyboardButton(
+                text=f"📊 {market_status}",
+                callback_data="show_market_status",
+            ),
+            InlineKeyboardButton(
+                text=f"🔥 X5 Охота: {hunt_status}",
+                callback_data="toggle_x5_hunt",
+            ),
+        ],
+        # Статистика и баланс
+        [
+            InlineKeyboardButton(text="📈 Стата по играм", callback_data="stats_by_games"),
+            InlineKeyboardButton(text="🔄 Обновить", callback_data="refresh_balance"),
+        ],
+        # Управление листами
+        [
+            InlineKeyboardButton(text="✅ WhiteList", callback_data="manage_whitelist"),
+            InlineKeyboardButton(text="🚫 BlackList", callback_data="manage_blacklist"),
+        ],
+        # Настройки и репрайсинг
+        [
+            InlineKeyboardButton(text="♻️ Репрайсинг", callback_data="toggle_repricing"),
+            InlineKeyboardButton(text="⚙️ Лимиты", callback_data="config_limits"),
+        ],
+        # Экстренная остановка
+        [
+            InlineKeyboardButton(text="🛑 ЭКСТРЕННАЯ ОСТАНОВКА", callback_data="panic_stop"),
+        ],
+        # Назад в главное меню
+        [
+            InlineKeyboardButton(text="◀️ Главное меню", callback_data="main_menu"),
+        ],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def get_x5_opportunities_keyboard() -> InlineKeyboardMarkup:
+    """Создать клавиатуру X5 возможностей.
+
+    Returns:
+        InlineKeyboardMarkup для X5 охоты
+    """
+    keyboard = [
+        [
+            InlineKeyboardButton(text="🔍 Сканировать X5", callback_data="scan_x5"),
+            InlineKeyboardButton(text="📊 Текущие возможности", callback_data="show_x5_opps"),
+        ],
+        [
+            InlineKeyboardButton(text="⚙️ Настройки X5", callback_data="x5_settings"),
+            InlineKeyboardButton(text="📈 История X5", callback_data="x5_history"),
+        ],
+        [
+            InlineKeyboardButton(text="◀️ Назад", callback_data="smart_menu"),
+        ],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def get_market_status_keyboard() -> InlineKeyboardMarkup:
+    """Создать клавиатуру статуса рынка.
+
+    Returns:
+        InlineKeyboardMarkup для просмотра рыночных данных
+    """
+    keyboard = [
+        [
+            InlineKeyboardButton(text="🔄 Обновить статус", callback_data="refresh_market"),
+            InlineKeyboardButton(text="📊 Детали", callback_data="market_details"),
+        ],
+        [
+            InlineKeyboardButton(text="📈 Индикаторы", callback_data="market_indicators"),
+            InlineKeyboardButton(text="⚠️ Алерты", callback_data="market_alerts"),
+        ],
+        [
+            InlineKeyboardButton(text="◀️ Назад", callback_data="smart_menu"),
+        ],
+    ]
+    return InlineKeyboardMarkup(keyboard)

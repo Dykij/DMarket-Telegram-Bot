@@ -10,7 +10,8 @@ import os
 import signal
 import sys
 
-from telegram.ext import Application as TelegramApplication, ApplicationBuilder, PersistenceInput
+from telegram.ext import Application as TelegramApplication
+from telegram.ext import ApplicationBuilder, PersistenceInput
 
 from src.dmarket.dmarket_api import DMarketAPI
 from src.dmarket.scanner_manager import ScannerManager
@@ -23,7 +24,6 @@ from src.utils.database import DatabaseManager
 from src.utils.logging_utils import BotLogger, setup_logging
 from src.utils.sentry_integration import init_sentry
 from src.utils.state_manager import StateManager
-
 
 logger = logging.getLogger(__name__)
 bot_logger = BotLogger(__name__)
@@ -71,6 +71,17 @@ class Application:
             logger.info("Configuration loaded successfully")
             logger.info(f"Debug mode: {self.config.debug}")
             logger.info(f"Testing mode: {self.config.testing}")
+
+            # Load whitelist from JSON file
+            try:
+                from src.dmarket.whitelist_config import load_whitelist_from_json
+                whitelist_path = os.getenv("WHITELIST_PATH", "data/whitelist.json")
+                if load_whitelist_from_json(whitelist_path):
+                    logger.info(f"Whitelist loaded from {whitelist_path}")
+                else:
+                    logger.info("Using default whitelist (no JSON file found)")
+            except Exception as e:
+                logger.warning(f"Failed to load whitelist: {e}")
 
             # Initialize Sentry for production error monitoring
             if not self.config.testing:
@@ -285,11 +296,13 @@ class Application:
                 try:
                     from src.dmarket.inventory_manager import InventoryManager
 
-                    # Get configuration from environment
-                    undercut_step = int(os.getenv("UNDERCUT_STEP", "1"))
-                    min_profit_margin = float(os.getenv("MIN_PROFIT_MARGIN", "1.02"))
+                    # Get configuration from config object
+                    undercut_step = int(
+                        self.config.inventory.undercut_price * 100
+                    )  # Convert to cents
+                    min_profit_margin = self.config.inventory.min_margin_threshold
                     check_interval = int(os.getenv("INVENTORY_CHECK_INTERVAL", "1800"))
-                    undercut_enabled = os.getenv("UNDERCUT_ENABLED", "true").lower() == "true"
+                    undercut_enabled = self.config.inventory.auto_sell
 
                     self.inventory_manager = InventoryManager(
                         api_client=self.dmarket_api,
@@ -363,6 +376,8 @@ class Application:
                     auto_buy_config = AutoBuyConfig(
                         enabled=False,  # Disabled by default
                         dry_run=self.config.dry_run,
+                        max_price_usd=self.config.trading.max_item_price,
+                        min_discount_percent=30.0,  # Default discount, profit is handled by scanner
                     )
                     auto_buyer = AutoBuyer(self.dmarket_api, auto_buy_config)
                     self.bot.auto_buyer = auto_buyer
@@ -377,9 +392,9 @@ class Application:
 
                 # Create orchestrator config
                 orchestrator_config = AutopilotConfig(
-                    games=["csgo", "dota2", "rust", "tf2"],
+                    games=self.config.trading.games,
                     min_discount_percent=30.0,
-                    max_price_usd=100.0,
+                    max_price_usd=self.config.trading.max_item_price,
                     min_balance_threshold_usd=10.0,
                 )
 
@@ -520,7 +535,7 @@ class Application:
                 and self.inventory_manager
                 and not self.config.testing
             ):
-                undercut_enabled = os.getenv("UNDERCUT_ENABLED", "true").lower() == "true"
+                undercut_enabled = self.config.inventory.auto_sell if self.config and hasattr(self.config, "inventory") else False
                 if undercut_enabled:
                     logger.info("Starting Inventory Manager (Undercutting)...")
                     asyncio.create_task(self.inventory_manager.refresh_inventory_loop())

@@ -11,7 +11,6 @@ import logging
 import os
 from typing import TYPE_CHECKING, Any
 
-
 if TYPE_CHECKING:
     from telegram import Bot
 
@@ -31,6 +30,7 @@ class InventoryManager:
         max_relist_attempts: int = 5,
         min_profit_margin: float = 1.02,
         check_interval: int = 1800,
+        config: dict | None = None,
     ):
         """Инициализирует менеджер инвентаря.
 
@@ -41,6 +41,7 @@ class InventoryManager:
             max_relist_attempts: Сколько раз снижать цену перед уведомлением
             min_profit_margin: Минимальная маржа (1.02 = +2% от цены покупки)
             check_interval: Интервал проверки инвентаря в секундах (по умолчанию 30 минут)
+            config: Configuration dictionary for advanced features
         """
         self.api = api_client
         self.tg = telegram_bot
@@ -48,6 +49,7 @@ class InventoryManager:
         self.max_relist_attempts = max_relist_attempts
         self.min_profit_margin = min_profit_margin
         self.check_interval = check_interval
+        self.config = config or {}
 
         # Счетчики для статистики
         self.total_undercuts = 0
@@ -56,6 +58,33 @@ class InventoryManager:
 
         # Карта попыток перевыставления (item_id -> attempts)
         self.relist_attempts: dict[str, int] = {}
+
+        # Initialize smart repricing if enabled
+        self.smart_repricer = None
+        self.blacklist_manager = None
+
+        try:
+            from src.dmarket.smart_repricing import SmartRepricer
+
+            repricing_config = self.config.get("repricing", {})
+            if repricing_config.get("enabled", True):
+                self.smart_repricer = SmartRepricer(api_client, repricing_config)
+                logger.info("SmartRepricer enabled for age-based price adjustments")
+        except ImportError:
+            logger.debug("SmartRepricer not available")
+
+        try:
+            from src.dmarket.blacklist_manager import BlacklistManager
+
+            blacklist_config = self.config.get("blacklist", {})
+            if blacklist_config.get("enabled", True):
+                self.blacklist_manager = BlacklistManager(
+                    config=self.config,
+                    blacklist_file=blacklist_config.get("file_path", "data/blacklist.json"),
+                )
+                logger.info("BlacklistManager enabled for seller/item filtering")
+        except ImportError:
+            logger.debug("BlacklistManager not available")
 
     async def refresh_inventory_loop(self) -> None:
         """Главный цикл управления инвентарем и продажами.
@@ -88,7 +117,8 @@ class InventoryManager:
         """Управляет активными предложениями (undercutting)."""
         try:
             # Получаем список активных продаж
-            my_offers_response = await self.api.get_user_offers()
+            # FIX: Используем правильный метод list_user_offers вместо get_user_offers
+            my_offers_response = await self.api.list_user_offers()
 
             # API может вернуть dict с ключом "Items" или "objects"
             if isinstance(my_offers_response, dict):

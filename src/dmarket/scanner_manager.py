@@ -29,7 +29,6 @@ from src.dmarket.parallel_scanner import ParallelScanner
 from src.dmarket.target_cleaner import TargetCleaner
 from src.interfaces import IDMarketAPI
 
-
 logger = structlog.get_logger(__name__)
 
 
@@ -56,8 +55,16 @@ class ScannerManager:
         self.api_client = api_client
         self.config = config
 
+        # Extract min_profit_percent from config if available
+        min_profit_percent = None
+        if config and hasattr(config, "trading"):
+            min_profit_percent = config.trading.min_profit_percent
+
         # Main scanner
-        self.scanner = ArbitrageScanner(api_client=api_client)
+        self.scanner = ArbitrageScanner(
+            api_client=api_client,
+            min_profit_percent=min_profit_percent,
+        )
 
         # Adaptive scanner (dynamic intervals)
         self.adaptive: AdaptiveScanner | None = None

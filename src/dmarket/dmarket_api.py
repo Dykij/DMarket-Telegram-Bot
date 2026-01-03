@@ -50,13 +50,12 @@ import time
 import traceback
 from typing import TYPE_CHECKING, Any
 
-from circuitbreaker import CircuitBreakerError  # type: ignore[import-untyped]
 import httpx
 import nacl.signing
+from circuitbreaker import CircuitBreakerError  # type: ignore[import-untyped]
 
 from src.dmarket.api_validator import validate_response
 from src.utils import json_utils as json
-
 
 if TYPE_CHECKING:
     from src.telegram_bot.notifier import Notifier
@@ -72,7 +71,6 @@ from src.dmarket.schemas import (
 from src.utils.api_circuit_breaker import call_with_circuit_breaker
 from src.utils.rate_limiter import DMarketRateLimiter, RateLimiter
 from src.utils.sentry_breadcrumbs import add_api_breadcrumb, add_trading_breadcrumb
-
 
 logger = logging.getLogger(__name__)
 
@@ -130,13 +128,14 @@ class DMarketAPI:
     ENDPOINT_MARKET_META = "/exchange/v1/market/meta"  # Метаданные маркета
 
     # Пользователь
-    ENDPOINT_USER_INVENTORY = "/exchange/v1/user/inventory"  # Инвентарь пользователя
-    ENDPOINT_USER_OFFERS = "/exchange/v1/user/offers"  # Предложения пользователя
-    ENDPOINT_USER_TARGETS = "/exchange/v1/target-lists"  # Целевые предложения пользователя
+    ENDPOINT_USER_INVENTORY = "/inventory/v1/user/items"  # Инвентарь пользователя (v1.1.0)
+    ENDPOINT_USER_OFFERS = "/marketplace-api/v1/user-offers"  # Предложения пользователя (v1.1.0)
+    ENDPOINT_USER_TARGETS = "/main/v2/user-targets"  # Целевые предложения пользователя (v1.1.0)
 
     # Операции
     ENDPOINT_PURCHASE = "/exchange/v1/market/items/buy"  # Покупка предмета
-    ENDPOINT_SELL = "/exchange/v1/user/inventory/sell"  # Выставить на продажу
+    ENDPOINT_SELL = "/exchange/v1/user/inventory/sell"  # Выставить на продажу (Legacy)
+    ENDPOINT_SELL_CREATE = "/marketplace-api/v1/create-offers"  # Создание офферов (v1.1.0)
     ENDPOINT_OFFER_EDIT = "/exchange/v1/user/offers/edit"  # Редактирование предложения
     ENDPOINT_OFFER_DELETE = "/exchange/v1/user/offers/delete"  # Удаление предложения
 
@@ -379,6 +378,41 @@ class DMarketAPI:
 
         return stats
 
+    async def sell_with_arbitrage(
+        self, asset_id: str, buy_price_cents: int, profit_percent: float = 15.0
+    ) -> dict[str, Any]:
+        """Автоматически выставляет купленный предмет на продажу.
+
+        Args:
+            asset_id: ID предмета в инвентаре DMarket
+            buy_price_cents: Цена, за которую купили (в центах)
+            profit_percent: Желаемая чистая прибыль в %
+
+        Returns:
+            Ответ API о создании оффера
+        """
+        # Расчет: (Цена покупки + % прибыли) / (1 - комиссия маркета 0.05)
+        # Пример: ($10 + 15%) / 0.95 = $12.10 для получения $1.5 прибыли чистоганом
+        fee_factor = 0.95
+        target_multiplier = 1 + (profit_percent / 100)
+
+        sell_price_usd = (buy_price_cents / 100 * target_multiplier) / fee_factor
+        sell_price_cents = int(round(sell_price_usd * 100))
+
+        payload = {
+            "offers": [
+                {
+                    "assetId": asset_id,
+                    "price": {"amount": sell_price_cents, "currency": "USD"},
+                }
+            ]
+        }
+
+        logger.info(
+            f"📈 Арбитраж: выставляю asset {asset_id} за {sell_price_usd:.2f}$ (ROI {profit_percent}%)"
+        )
+        return await self._request("POST", self.ENDPOINT_SELL_CREATE, data=payload)
+
     def _generate_signature(
         self,
         method: str,
@@ -406,11 +440,9 @@ class DMarketAPI:
             # Generate timestamp
             timestamp = str(int(time.time()))
 
-            # Build string to sign: method + path + timestamp (+ body if present)
-            # NOTE: DMarket API format is METHOD + PATH + TIMESTAMP (without spaces)
-            string_to_sign = f"{method.upper()}{path}{timestamp}"
-            if body:
-                string_to_sign += body
+            # Build string to sign: method + path + body + timestamp
+            # NOTE: DMarket API format is METHOD + PATH + BODY + TIMESTAMP
+            string_to_sign = f"{method.upper()}{path}{body}{timestamp}"
 
             logger.debug(f"String to sign: {string_to_sign}")
 
@@ -420,6 +452,8 @@ class DMarketAPI:
 
             # Try different formats for secret key
             try:
+                logger.debug(f"Processing secret key (length: {len(secret_key_str)})")
+                
                 # Format 1: HEX format (64 chars = 32 bytes)
                 if len(secret_key_str) == 64:
                     secret_key_bytes = bytes.fromhex(secret_key_str)
@@ -433,8 +467,9 @@ class DMarketAPI:
                 # Format 3: Raw string - take first 32 bytes
                 # If longer than 64 hex chars, try to take first 64
                 elif len(secret_key_str) >= 64:
+                    # For Ed25519 128-char keys, we need the first 32 bytes (seed)
                     secret_key_bytes = bytes.fromhex(secret_key_str[:64])
-                    logger.debug("Using first 32 bytes of long HEX key")
+                    logger.debug(f"Using first 32 bytes of long HEX key (original len={len(secret_key_str)})")
                 else:
                     # Fallback: encode string to bytes and pad/truncate to 32
                     secret_key_bytes = secret_key_str.encode("utf-8")[:32].ljust(32, b"\0")
@@ -444,7 +479,11 @@ class DMarketAPI:
                 raise
 
             # Create Ed25519 signing key
-            signing_key = nacl.signing.SigningKey(secret_key_bytes)
+            try:
+                signing_key = nacl.signing.SigningKey(secret_key_bytes)
+            except Exception as nacl_error:
+                logger.error(f"Failed to create SigningKey: {nacl_error}. Key bytes len: {len(secret_key_bytes)}")
+                raise
 
             # Sign the message
             signed = signing_key.sign(string_to_sign.encode("utf-8"))
@@ -782,7 +821,29 @@ class DMarketAPI:
             body_json = json.dumps(data)
 
         # Генерируем заголовки с подписью
-        headers = self._generate_signature(method.upper(), path, body_json)
+        # ВАЖНО: Если есть params, они должны быть включены в path для подписи
+        # И порядок параметров должен совпадать в подписи и в запросе
+        path_for_signature = path
+        
+        # Если params есть, сортируем их и используем отсортированный список для запроса и подписи
+        if params:
+            # Преобразуем в список кортежей и сортируем по ключу
+            if isinstance(params, dict):
+                params_items = sorted(params.items())
+            else:
+                params_items = sorted(params)
+            
+            # Обновляем params, чтобы httpx отправил их в том же порядке
+            params = params_items
+            
+            if method.upper() == "GET":
+                from urllib.parse import urlencode
+                query_string = urlencode(params_items)
+                if query_string:
+                    path_for_signature = f"{path}?{query_string}"
+        
+        logger.debug(f"Path for signature: {path_for_signature}")
+        headers = self._generate_signature(method.upper(), path_for_signature, body_json)
 
         # Use advanced per-endpoint rate limiter (Roadmap Task #3)
         await self.advanced_rate_limiter.acquire(path)
@@ -844,12 +905,19 @@ class DMarketAPI:
 
                 # Парсим JSON ответа
                 try:
+                    if response.status_code == 204:  # No Content
+                        return {"status": "success", "code": 204}
                     result = response.json()
                 except (json.JSONDecodeError, TypeError, Exception):
                     # Если не получается распарсить JSON, возвращаем текст
+                    logger.error(
+                        f"Ошибка парсинга JSON. Код: {response.status_code}. Текст: {response.text[:200]}"
+                    )
                     result = {
-                        "text": response.text,
+                        "error": "invalid_json",
                         "status_code": response.status_code,
+                        "raw_body": response.text[:100],
+                        "text": response.text,
                     }
 
                 # Сохраняем в кэш если нужно
@@ -940,30 +1008,26 @@ class DMarketAPI:
                         continue
 
                 # Если это не ретраибл ошибка или исчерпаны попытки
-                try:
-                    error_json = e.response.json()
-                    error_message = error_json.get("message", str(e))
-                    error_code = error_json.get("code", status_code)
-                except (json.JSONDecodeError, TypeError, AttributeError):
-                    error_message = response_text
-                    error_code = status_code
+                # Пытаемся безопасно прочитать тело ответа
+                content_type = e.response.headers.get("Content-Type", "")
 
-                error_data = {
-                    "error": True,
-                    "code": error_code,
-                    "message": error_message,
-                    "status": status_code,
-                    "description": error_description,
-                }
+                if "application/json" in content_type:
+                    try:
+                        error_data = e.response.json()
+                    except Exception:
+                        error_data = {
+                            "error": "Failed to parse JSON error",
+                            "raw": e.response.text[:100],
+                        }
+                else:
+                    # Если пришел HTML (например, 404 или 502 ошибка Cloudflare)
+                    error_data = {
+                        "error": "Non-JSON response",
+                        "status_code": e.response.status_code,
+                    }
 
-                # Для некоторых ошибок возвращаем структурированный ответ вместо исключения
-                if status_code in {400, 404}:
-                    return error_data
-
-                last_error = Exception(
-                    f"DMarket API error: {error_message} (code: {error_code}, description: {error_description})",
-                )
-                break
+                logger.warning(f"⚠️ API Error {e.response.status_code} на {path}: {error_data}")
+                return error_data
 
             except (httpx.ConnectError, httpx.ReadError, httpx.WriteError) as e:
                 # Сетевые ошибки
@@ -1125,7 +1189,11 @@ class DMarketAPI:
             response: API response dict
 
         Returns:
-            Tuple of (usd_amount, usd_available, usd_total) in cents
+            Tuple of (usd_amount, usd_available_for_trading, usd_total) in cents
+
+        Note:
+            ВАЖНО: usdAvailableToWithdraw - это сумма доступная для ВЫВОДА,
+            а не для торговли! Для торговли обычно доступен весь баланс usd.
         """
         usd_amount = 0.0
         usd_available = 0.0
@@ -1133,15 +1201,24 @@ class DMarketAPI:
 
         try:
             # Format 0: Official DMarket API format (2024)
-            # {"usd": "2550", "usdAvailableToWithdraw": "2550", "dmc": "0", ...}
-            if "usd" in response and "usdAvailableToWithdraw" in response:
+            # {"usd": "4550", "usdAvailableToWithdraw": "0", "usdTradeProtected": "0", ...}
+            if "usd" in response:
                 usd_str = response.get("usd", "0")
-                usd_available_str = response.get("usdAvailableToWithdraw", usd_str)
+                usd_trade_protected_str = response.get("usdTradeProtected", "0")
 
                 usd_amount = float(usd_str) if usd_str else 0
-                usd_available = float(usd_available_str) if usd_available_str else usd_amount
+                usd_trade_protected = (
+                    float(usd_trade_protected_str) if usd_trade_protected_str else 0
+                )
+
+                # FIX: Для торговли доступен весь баланс минус trade_protected
+                # usdAvailableToWithdraw - это только для вывода на внешние кошельки!
+                usd_available = usd_amount - usd_trade_protected
                 usd_total = usd_amount
-                logger.info(f"Parsed balance from official format: ${usd_amount / 100:.2f} USD")
+                logger.info(
+                    f"Parsed balance: ${usd_amount / 100:.2f} USD "
+                    f"(available for trading: ${usd_available / 100:.2f})"
+                )
 
             # Format 1: Alternative format with funds.usdWallet
             elif "funds" in response:
@@ -1160,23 +1237,13 @@ class DMarketAPI:
                 usd_total = float(response.get("total", usd_amount / 100)) * 100
                 logger.info(f"Parsed balance from simple format: ${usd_amount / 100:.2f} USD")
 
-            # Format 3: Legacy usdAvailableToWithdraw only
-            elif "usdAvailableToWithdraw" in response:
-                usd_value = response["usdAvailableToWithdraw"]
-                if isinstance(usd_value, str):
-                    usd_available = float(usd_value.replace("$", "").strip()) * 100
-                else:
-                    usd_available = float(usd_value) * 100
-                usd_amount = usd_available
-                usd_total = usd_available
-                logger.info(f"Parsed balance from legacy format: ${usd_amount / 100:.2f} USD")
-
         except (ValueError, TypeError, KeyError) as e:
             logger.warning(f"Error parsing balance from response: {e}")
             logger.debug(f"Raw response: {response}")
 
         # Normalize values
         if usd_available == 0 and usd_amount > 0:
+            # Если available не установлен, считаем что весь баланс доступен
             usd_available = usd_amount
         if usd_total == 0:
             usd_total = max(usd_amount, usd_available)
@@ -1872,32 +1939,31 @@ class DMarketAPI:
             raise
 
     async def get_user_inventory(
-        self,
-        game: str = "csgo",
-        limit: int = 100,
-        offset: int = 0,
-    ) -> dict[str, Any]:
-        """Get user inventory items.
-
-        Args:
-            game: Game name (csgo, dota2, tf2, rust etc)
-            limit: Number of items to retrieve
-            offset: Offset for pagination
-
-        Returns:
-            User inventory items as dict
-
+        self, game_id: str = "a8db99ca-dc45-4c0e-9989-11ba71ed97a2", limit: int = 100
+    ):
         """
+        Получает инвентарь пользователя через актуальный эндпоинт v1.
+        """
+        # В 2026 году используем marketplace-api для получения личного инвентаря
+        endpoint = "/marketplace-api/v1/user-inventory"
         params = {
-            "gameId": game,
-            "limit": limit,
-            "offset": offset,
+            "GameID": game_id,
+            "Limit": str(limit),
+            "Offset": "0"
         }
-        return await self._request(
-            "GET",
-            self.ENDPOINT_USER_INVENTORY,
-            params=params,
-        )
+
+        try:
+            response = await self._request("GET", endpoint, params=params)
+
+            # Проверка на пустой ответ или ошибку авторизации, которую мы видели в логах
+            if isinstance(response, dict) and response.get("Code") == "Unauthorized":
+                logger.error("❌ Ошибка авторизации. Проверьте API Keys и СИНХРОНИЗАЦИЮ ВРЕМЕНИ!")
+                return {"objects": []}
+
+            return response
+        except Exception as e:
+            logger.error(f"❌ Критическая ошибка при получении инвентаря: {e!s}")
+            return {"objects": []}
 
     async def get_suggested_price(
         self,
@@ -3235,52 +3301,76 @@ class DMarketAPI:
                         logger.debug(f"Ответ API баланса: {response_data}")
 
                         # Извлекаем значения баланса из ответа согласно официальной документации
-                        # API возвращает: {"usd": "2550", "usdAvailableToWithdraw": "2550", "dmc": "0", "dmcAvailableToWithdraw": "0"}
+                        # API возвращает: {"usd": "4550", "usdAvailableToWithdraw": "0", "dmc": "0", ...}
                         # где значения в центах для USD и dimoshi для DMC (все как строки)
+                        #
+                        # ВАЖНО: usdAvailableToWithdraw - это сумма, доступная для ВЫВОДА на внешние кошельки
+                        # Это НЕ сумма для торговли! Для торговли доступен весь баланс usd.
+                        # Новые пользователи или средства после покупки могут иметь usdAvailableToWithdraw=0,
+                        # но при этом могут торговать на всю сумму usd.
 
                         # Получаем USD баланс (в центах как строка)
                         usd_str = response_data.get("usd", "0")
-                        usd_available_str = response_data.get("usdAvailableToWithdraw", "0")
+                        usd_available_to_withdraw_str = response_data.get(
+                            "usdAvailableToWithdraw", "0"
+                        )
                         usd_trade_protected_str = response_data.get("usdTradeProtected", "0")
 
                         # Конвертируем из строки в центы, затем в доллары
                         try:
                             balance_cents = float(usd_str)  # общий баланс в центах
-                            available_cents = float(usd_available_str)  # доступный баланс в центах
+                            available_to_withdraw_cents = float(
+                                usd_available_to_withdraw_str
+                            )  # доступно для вывода
                             trade_protected_cents = float(
                                 usd_trade_protected_str
                             )  # защищенный в торговле
 
                             # Конвертируем центы в доллары
                             balance = balance_cents / 100
-                            available = available_cents / 100
+                            available_to_withdraw = available_to_withdraw_cents / 100
                             trade_protected = trade_protected_cents / 100
 
-                            # Вычисляем заблокированные средства
-                            locked = balance - available - trade_protected
+                            # FIX: Для ТОРГОВЛИ доступен весь баланс минус trade_protected
+                            # usdAvailableToWithdraw - это только для вывода на внешние кошельки!
+                            available_for_trading = balance - trade_protected
+
+                            # Средства, недоступные для вывода (но могут быть доступны для торговли)
+                            locked_for_withdrawal = (
+                                balance - available_to_withdraw - trade_protected
+                            )
+                            locked_for_withdrawal = max(
+                                0, locked_for_withdrawal
+                            )  # Не может быть отрицательным
 
                             total = balance  # Обычно total = balance
 
                             logger.info(
-                                f"💰 Распарсен баланс: Всего ${balance:.2f} USD (доступно: ${available:.2f}, заблокировано: ${locked:.2f}, защищено торговлей: ${trade_protected:.2f})"
+                                f"💰 Распарсен баланс: Всего ${balance:.2f} USD "
+                                f"(для торговли: ${available_for_trading:.2f}, "
+                                f"для вывода: ${available_to_withdraw:.2f}, "
+                                f"trade_protected: ${trade_protected:.2f})"
                             )
                         except (ValueError, TypeError) as e:
                             logger.exception(
-                                f"Ошибка конвертации баланса: {e}, usd={usd_str}, usdAvailable={usd_available_str}"
+                                f"Ошибка конвертации баланса: {e}, usd={usd_str}, usdAvailableToWithdraw={usd_available_to_withdraw_str}"
                             )
                             balance = 0.0
-                            available = 0.0
+                            available_for_trading = 0.0
+                            available_to_withdraw = 0.0
                             total = 0.0
-                            locked = 0.0
+                            locked_for_withdrawal = 0.0
                             trade_protected = 0.0
 
                         return {
                             "success": True,
                             "data": {
                                 "balance": balance,
-                                "available": available,
+                                # FIX: available теперь означает "доступно для торговли"
+                                "available": available_for_trading,
+                                "available_to_withdraw": available_to_withdraw,
                                 "total": total,
-                                "locked": locked,
+                                "locked": locked_for_withdrawal,
                                 "trade_protected": trade_protected,
                             },
                         }

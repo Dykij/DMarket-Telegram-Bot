@@ -84,6 +84,38 @@ arbitrage_filters:
   min_liquidity_score: ${MIN_LIQUIDITY_SCORE:60}
   max_time_to_sell_days: ${MAX_TIME_TO_SELL_DAYS:7}
 
+# Market analysis for trend following (auto-update whitelist)
+market_analysis:
+  enabled: ${MARKET_ANALYSIS_ENABLED:true}
+  update_interval: ${MARKET_ANALYSIS_INTERVAL:3600} # Update trends every hour
+  top_items_count: ${TOP_ITEMS_COUNT:100} # Track top 100 most traded items
+  min_daily_volume: ${MIN_DAILY_VOLUME:50} # Minimum daily sales volume
+
+# Diversification settings (risk management)
+diversification:
+  enabled: ${DIVERSIFICATION_ENABLED:true}
+  max_same_items_in_inventory: ${MAX_SAME_ITEMS:5}  # Max duplicates per item type
+  max_single_item_percent: ${MAX_SINGLE_ITEM_PERCENT:25}  # Max % of balance per item
+  min_different_items: ${MIN_DIFFERENT_ITEMS:5}  # Minimum variety in inventory
+  max_stack_value_percent: ${MAX_STACK_VALUE_PERCENT:15}  # Max % of balance per item type ($6.8 for $45)
+
+# Game attention distribution (for $45-50 balance)
+# Higher weight = more scanning/buying focus
+game_strategy:
+  enabled: ${GAME_STRATEGY_ENABLED:true}
+  weights:
+    tf2: 30    # Keys are stable, quick to sell (30%)
+    csgo: 40   # Cases and skins, high volatility (40%)
+    rust: 20   # Doors and boxes, steady demand (20%)
+    dota2: 10  # Only Inscribed/Immortal items (10%)
+
+# Whitelist configuration
+whitelist:
+  enabled: ${WHITELIST_ENABLED:true}
+  file_path: ${WHITELIST_PATH:data/whitelist.json}
+  priority_only: ${WHITELIST_PRIORITY_ONLY:false} # If true, only buy from whitelist
+  buy_max_overpay_percent: ${BUY_MAX_OVERPAY:2.0} # Max overpay for whitelist items
+
 # Auto-sell configuration (P1-17)
 # Automatic selling after purchase with dynamic pricing
 auto_sell:
@@ -99,3 +131,142 @@ auto_sell:
   delay_before_list_seconds: ${AUTO_SELL_DELAY:5} # Delay before listing
   pricing_strategy: ${AUTO_SELL_STRATEGY:undercut} # undercut, match, fixed_margin, dynamic
   dmarket_fee_percent: ${DMARKET_FEE:7.0} # DMarket commission
+
+# Smart Repricing (age-based price adjustments)
+repricing:
+  enabled: ${REPRICING_ENABLED:true}
+  intervals:
+    - hours: 24
+      action: "reduce_to_target"     # Reduce to 5% profit after 24h
+    - hours: 48
+      action: "reduce_to_break_even" # Sell at break-even after 48h
+    - hours: 72
+      action: "liquidate"            # Emergency exit after 72h
+  max_price_cut_percent: ${REPRICING_MAX_CUT:15} # Max single price reduction
+  # Night mode (aggressive undercutting during low activity hours, UTC)
+  night_mode:
+    enabled: ${NIGHT_MODE_ENABLED:true}
+    start_hour: 2   # 02:00 UTC
+    end_hour: 6     # 06:00 UTC
+    undercut_multiplier: 2.0  # 2x undercut step during night
+
+# Panic Sell Protection (market crash detection)
+panic_protection:
+  enabled: ${PANIC_PROTECTION_ENABLED:true}
+  threshold_percent: ${PANIC_THRESHOLD:15}  # Pause if price drops 15% in 1 hour
+  check_window_hours: 1
+  action: "pause"  # pause, liquidate, or hold
+
+# Blacklist configuration (seller and item filtering)
+blacklist:
+  enabled: ${BLACKLIST_ENABLED:true}
+  file_path: ${BLACKLIST_PATH:data/blacklist.json}
+  auto_blacklist_threshold: ${AUTO_BLACKLIST_THRESHOLD:3}  # Failures before auto-ban
+  failure_expiry_hours: 24  # Reset failure counter after 24h
+  # Forbidden keywords in item names (skip these items)
+  forbidden_keywords:
+    - "Souvenir"           # Low liquidity souvenir skins
+    - "Well-Worn"          # Hardest wear to sell
+    - "Inscribed Gem"      # Cheap Dota 2 gems
+    - "StatTrak™ Music Kit" # Very niche items
+    - "Autograph"          # Unpopular player autographs
+
+# Market Sentiment Analysis (X5 Hunt Mode)
+market_sentiment:
+  enabled: ${MARKET_SENTIMENT_ENABLED:true}
+  check_interval_minutes: ${SENTIMENT_CHECK_INTERVAL:15}  # Check market health every 15 min
+  
+  # Panic protection thresholds
+  panic_sell_threshold: ${PANIC_SELL_THRESHOLD:-0.07}  # -7% triggers crash mode
+  crash_roi_multiplier: 2.5  # Require 2.5x higher ROI during crashes
+  
+  # X5 Hunt Mode (speculative buying)
+  high_risk_hunt: ${HIGH_RISK_HUNT:true}
+  speculative_budget_pct: ${SPECULATIVE_BUDGET_PCT:0.15}  # 15% balance for X5 opportunities
+  
+  # Volume spike detection
+  volume_spike_threshold: 5.0   # 5x normal volume = potential opportunity
+  price_dip_threshold: 20.0     # 20% below average = dip opportunity
+  
+  # Confidence thresholds
+  min_opportunity_confidence: 60  # Only show opportunities with 60%+ confidence
+  
+  # Market indicators (most liquid items to track)
+  market_indicators:
+    - "Fracture Case"
+    - "Recoil Case"
+    - "Dreams & Nightmares Case"
+    - "Mann Co. Supply Crate Key"
+    - "Revolution Case"
+    - "Kilowatt Case"
+    - "Clutch Case"
+    - "Snakebite Case"
+
+# Steam Async Parser (high-performance price fetching)
+steam_parser:
+  enabled: ${STEAM_PARSER_ENABLED:true}
+  cache_ttl: ${STEAM_CACHE_TTL:300}  # Cache prices for 5 minutes
+  max_concurrent_requests: ${STEAM_MAX_CONCURRENT:10}  # Parallel requests
+  request_timeout: ${STEAM_REQUEST_TIMEOUT:5.0}  # Seconds
+  use_proxy: ${STEAM_USE_PROXY:false}
+  proxy_url: ${STEAM_PROXY_URL:}
+  
+  # Rate limiting to avoid Steam bans
+  requests_per_minute: ${STEAM_RATE_LIMIT:30}
+  backoff_on_429: 30  # Wait 30s on rate limit
+  
+  # Price comparison thresholds
+  arbitrage:
+    min_profit_percent: ${STEAM_ARB_MIN_PROFIT:15}  # Min 15% profit
+    max_discount_percent: ${STEAM_ARB_MAX_DISCOUNT:50}  # Suspicious if >50% off
+    use_median_price: true  # Use median instead of lowest for accuracy
+
+# Intelligent Hold (smart inventory retention)
+intelligent_hold:
+  enabled: ${INTELLIGENT_HOLD_ENABLED:true}
+  
+  # Hold decision parameters
+  min_expected_gain: ${HOLD_MIN_GAIN:10}  # Hold if >10% gain expected
+  max_hold_days: ${HOLD_MAX_DAYS:14}  # Maximum hold duration
+  profit_take_threshold: ${HOLD_PROFIT_TAKE:20}  # Sell if already +20% ROI
+  loss_cut_days: ${HOLD_LOSS_CUT_DAYS:7}  # Cut losses after 7 days
+  loss_cut_threshold: ${HOLD_LOSS_CUT_PERCENT:5}  # Cut if <5% ROI after 7 days
+  
+  # Event tracking
+  track_majors: true
+  track_steam_sales: true
+  track_operations: true
+  
+  # Item categories to watch for events
+  event_sensitive_categories:
+    - "stickers"
+    - "capsules"
+    - "cases"
+
+# Universal Money Management (scales with any balance)
+money_management:
+  enabled: ${MONEY_MANAGEMENT_ENABLED:true}
+  
+  # Dynamic limits based on balance
+  small_balance_threshold: ${SMALL_BALANCE:100}  # Under $100 = aggressive
+  medium_balance_threshold: ${MEDIUM_BALANCE:500}  # $100-500 = balanced
+  large_balance_threshold: ${LARGE_BALANCE:1000}  # Over $1000 = conservative
+  
+  # Percentage-based limits (no fixed dollar amounts)
+  max_item_percent:
+    small: 25   # 25% of balance per item when under $100
+    medium: 15  # 15% of balance per item for $100-500
+    large: 10   # 10% of balance per item over $1000
+  
+  min_item_percent: ${MIN_ITEM_PERCENT:0.5}  # Don't buy items < 0.5% of balance
+  reserve_percent: ${RESERVE_PERCENT:5}  # Always keep 5% free for fees
+  
+  # Dynamic ROI targets
+  target_roi:
+    small: 15.0   # Aggressive 15% ROI when balance is small
+    medium: 12.0  # 12% ROI for medium balances
+    large: 8.0    # Conservative 8% ROI for large balances
+  
+  # Balance change protection
+  balance_spike_threshold: ${BALANCE_SPIKE_THRESHOLD:50}  # Pause if balance changes >50%
+  balance_spike_action: "pause_and_confirm"  # pause_and_confirm, ignore, or emergency_stop

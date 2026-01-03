@@ -64,15 +64,15 @@ def generate_ed25519_signature(
     """Генерация подписи с использованием Ed25519."""
     # Строка для подписи
     string_to_sign = f"{timestamp}{method}{path}{body}"
-    
+
     # Декодирование секретного ключа (hex формат)
     signing_key = nacl.signing.SigningKey(
         bytes.fromhex(secret_key)
     )
-    
+
     # Подпись
     signed = signing_key.sign(string_to_sign.encode('utf-8'))
-    
+
     return signed.signature.hex()
 ```
 
@@ -94,7 +94,7 @@ def generate_ed25519_signature(
    ```python
    import hmac
    import hashlib
-   
+
    signature = hmac.new(
        secret_key.encode('utf-8'),
        string_to_sign.encode('utf-8'),
@@ -725,6 +725,37 @@ GET /trade-aggregator/v1/last-sales?gameId=a8db&title=AK-47%20%7C%20Redline%20(F
       "price": "1250",
       "date": 1699876543,
       "txOperationType": "Offer"
+    }
+  ]
+}
+```
+
+### Получить агрегированные продажи (Batch Last Sales)
+```http
+POST /trade-aggregator/v1/batch-last-sales
+```
+
+**Назначение**: Получение истории продаж для нескольких предметов одним запросом.
+
+**Тело запроса**:
+```json
+{
+  "GameID": "a8db",
+  "Titles": [
+    "AK-47 | Redline (Field-Tested)",
+    "AWP | Asiimov (Field-Tested)"
+  ],
+  "Limit": 10
+}
+```
+
+**Ответ**:
+```json
+{
+  "Result": [
+    {
+      "Title": "AK-47 | Redline (Field-Tested)",
+      "Sales": [...]
     }
   ]
 }

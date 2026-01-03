@@ -10,7 +10,6 @@ from telegram.ext import CallbackQueryHandler, ContextTypes
 
 from src.dmarket.enhanced_arbitrage_scanner import EnhancedArbitrageScanner
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -253,6 +252,35 @@ async def show_enhanced_scanner_help(
 
 # Alias для совместимости с register_all_handlers.py
 handle_enhanced_scan_help = show_enhanced_scanner_help
+
+
+async def handle_enhanced_scan_settings(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> None:
+    """Показать настройки Enhanced Scanner."""
+    query = update.callback_query
+    await query.answer()
+
+    settings_text = (
+        "⚙️ <b>Настройки Enhanced Scanner</b>\n\n"
+        "<b>Текущие параметры:</b>\n"
+        "• Мин. скидка: 15%\n"
+        "• Мин. цена: $5.00\n"
+        "• Макс. цена: $100.00\n"
+        "• Лимит результатов: 10\n"
+        "• Внешнее сравнение: ✅\n"
+        "• История продаж: ✅\n\n"
+        "<i>Настройки можно изменить в конфигурации бота.</i>"
+    )
+
+    keyboard = [[InlineKeyboardButton("« Назад", callback_data="enhanced_scanner_menu")]]
+
+    await query.edit_message_text(
+        text=settings_text,
+        reply_markup=InlineKeyboardMarkup(keyboard),
+        parse_mode="HTML",
+    )
 
 
 def register_enhanced_scanner_handlers(application, bot_instance) -> None:

@@ -16,7 +16,6 @@ from typing import Any
 
 import structlog
 
-
 logger = structlog.get_logger(__name__)
 
 
@@ -163,6 +162,12 @@ class AutopilotOrchestrator:
         self.telegram_bot = None
         self.user_id = None
         self._tasks: list[asyncio.Task] = []
+
+        # Link auto-buyer with auto-seller for the "bridge" functionality
+        # This enables automatic sale scheduling after purchase
+        if hasattr(self.buyer, "set_auto_seller") and self.seller:
+            self.buyer.set_auto_seller(self.seller)
+            logger.info("autopilot_buyer_seller_linked")
 
         logger.info(
             "autopilot_orchestrator_initialized",

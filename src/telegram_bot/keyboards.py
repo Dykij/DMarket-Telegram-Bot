@@ -12,8 +12,7 @@ Deprecated: этот файл будет удалён в следующих ве
 import warnings
 
 # Re-export everything from keyboards package
-from src.telegram_bot.keyboards import (  # noqa: F401
-    # Constants
+from src.telegram_bot.keyboards import (  # noqa: F401; Constants; Utils; Arbitrage; Settings; Main; Alerts; WebApp; Filters
     CB_BACK,
     CB_CANCEL,
     CB_GAME_PREFIX,
@@ -22,18 +21,12 @@ from src.telegram_bot.keyboards import (  # noqa: F401
     CB_PREV_PAGE,
     CB_SETTINGS,
     GAMES,
-    # Utils
     build_menu,
-    # Arbitrage
     create_arbitrage_keyboard,
-    # Settings
     create_confirm_keyboard,
     create_game_selection_keyboard,
-    # Main
-    create_main_keyboard,
     create_market_analysis_keyboard,
     create_pagination_keyboard,
-    # Alerts
     create_price_alerts_keyboard,
     create_settings_keyboard,
     extract_callback_data,
@@ -45,35 +38,32 @@ from src.telegram_bot.keyboards import (  # noqa: F401
     get_auto_arbitrage_keyboard,
     get_back_to_arbitrage_keyboard,
     get_back_to_settings_keyboard,
-    # WebApp
     get_combined_web_app_keyboard,
-    # Filters
     get_confirm_cancel_keyboard,
     get_csgo_exterior_keyboard,
     get_csgo_weapon_type_keyboard,
     get_dmarket_webapp_keyboard,
     get_filter_keyboard,
     get_game_selection_keyboard,
-    get_games_keyboard,
     get_language_keyboard,
     get_login_keyboard,
-    get_main_menu_keyboard,
+    get_market_status_keyboard,
     get_marketplace_comparison_keyboard,
     get_modern_arbitrage_keyboard,
     get_pagination_keyboard,
     get_payment_keyboard,
-    get_permanent_reply_keyboard,
     get_price_range_keyboard,
     get_rarity_keyboard,
     get_request_contact_keyboard,
     get_request_location_keyboard,
     get_risk_profile_keyboard,
     get_settings_keyboard,
+    get_smart_trading_keyboard,
     get_webapp_button,
     get_webapp_keyboard,
+    get_x5_opportunities_keyboard,
     remove_keyboard,
 )
-
 
 # Emit deprecation warning
 warnings.warn(

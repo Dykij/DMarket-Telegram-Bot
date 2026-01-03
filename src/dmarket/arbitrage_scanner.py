@@ -97,6 +97,7 @@ class ArbitrageScanner:
         max_competition: int = 3,
         item_filters: "ItemFilters | None" = None,
         enable_steam_check: bool = False,
+        min_profit_percent: float | None = None,
     ) -> None:
         """Инициализирует сканер арбитража.
 
@@ -108,6 +109,7 @@ class ArbitrageScanner:
             max_competition: Максимально допустимое количество конкурирующих ордеров
             item_filters: Фильтры предметов (ItemFilters) для blacklist/whitelist
             enable_steam_check: Включить проверку цен через Steam API
+            min_profit_percent: Минимальный процент прибыли (глобальный оверрайд)
 
         """
         self.api_client = api_client
@@ -146,6 +148,7 @@ class ArbitrageScanner:
 
         # Ограничения для управления рисками
         self.min_profit = 0.5  # Минимальная прибыль в USD
+        self.min_profit_percent = min_profit_percent  # Глобальный минимум %
         self.max_price = 50.0  # Максимальная цена покупки в USD
         self.max_trades = 5  # Максимальное количество сделок за раз
 
@@ -1396,7 +1399,13 @@ class ArbitrageScanner:
             profit_percent = (profit_usd / price_usd * 100) if price_usd > 0 else 0
 
             # Проверяем минимальный процент прибыли
-            min_profit_percent = config["min_profit_percent"]
+            # Используем глобальный оверрайд если задан, иначе из конфига уровня
+            min_profit_percent = (
+                self.min_profit_percent
+                if self.min_profit_percent is not None
+                else config["min_profit_percent"]
+            )
+
             if profit_percent < min_profit_percent:
                 return None
 

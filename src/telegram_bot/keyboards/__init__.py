@@ -30,8 +30,11 @@ from src.telegram_bot.keyboards.arbitrage import (
     get_auto_arbitrage_keyboard,
     get_back_to_arbitrage_keyboard,
     get_game_selection_keyboard,
+    get_market_status_keyboard,
     get_marketplace_comparison_keyboard,
     get_modern_arbitrage_keyboard,
+    get_smart_trading_keyboard,
+    get_x5_opportunities_keyboard,
 )
 
 # Filter keyboards
@@ -87,7 +90,6 @@ from src.telegram_bot.keyboards.webapp import (
     get_webapp_keyboard,
 )
 
-
 __all__ = [
     # Constants
     "CB_BACK",
@@ -132,6 +134,7 @@ __all__ = [
     "get_language_keyboard",
     "get_login_keyboard",
     "get_marketplace_comparison_keyboard",
+    "get_market_status_keyboard",
     "get_modern_arbitrage_keyboard",
     "get_pagination_keyboard",
     "get_payment_keyboard",
@@ -141,7 +144,9 @@ __all__ = [
     "get_request_location_keyboard",
     "get_risk_profile_keyboard",
     "get_settings_keyboard",
+    "get_smart_trading_keyboard",
     "get_webapp_button",
     "get_webapp_keyboard",
+    "get_x5_opportunities_keyboard",
     "remove_keyboard",
 ]
