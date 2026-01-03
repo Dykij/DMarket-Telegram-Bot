@@ -28,6 +28,109 @@ class PriceAnomalyType(StrEnum):
     TRENDING_UP = "trending_up"
     TRENDING_DOWN = "trending_down"
     RARE_TRAITS = "rare_traits"
+
+
+# Phase 2 refactoring: Helper functions to reduce nesting
+def _should_skip_csgo_item(title: str) -> bool:
+    """Check if CS:GO item should be skipped.
+
+    Args:
+        title: Item title
+
+    Returns:
+        True if item should be skipped
+
+    """
+    skip_keywords = ["sticker", "graffiti", "patch"]
+    return any(keyword in title.lower() for keyword in skip_keywords)
+
+
+def _build_item_key(title: str, item: dict[str, Any], game: str) -> str:
+    """Build grouping key for item.
+
+    Args:
+        title: Item title
+        item: Item data
+        game: Game code
+
+    Returns:
+        Composite grouping key
+
+    """
+    key_parts = []
+
+    # Title base (remove wear/exterior from CS:GO items if present)
+    if game == "csgo" and " | " in title and " (" in title:
+        base_title = title.split(" (")[0]
+        key_parts.append(base_title)
+
+        # Add exterior as separate part
+        exterior = title.split("(")[-1].split(")")[0] if "(" in title else ""
+        if exterior:
+            key_parts.append(exterior)
+    else:
+        key_parts.append(title)
+
+    # Extract other attributes for CS:GO
+    if game == "csgo":
+        if "StatTrak™" in title:
+            key_parts.append("StatTrak")
+        if "Souvenir" in title:
+            key_parts.append("Souvenir")
+
+    return "|".join(key_parts)
+
+
+def _extract_item_price(item: dict[str, Any]) -> float | None:
+    """Extract price from item data.
+
+    Args:
+        item: Item data
+
+    Returns:
+        Price in USD or None
+
+    """
+    if "price" not in item:
+        return None
+
+    price_data = item["price"]
+
+    # Handle dict format
+    if isinstance(price_data, dict) and "amount" in price_data:
+        return int(price_data["amount"]) / 100  # Convert cents to USD
+
+    # Handle numeric format
+    if isinstance(price_data, (int, float)):
+        return float(price_data)
+
+    return None
+
+
+def _extract_suggested_price(item: dict[str, Any]) -> float:
+    """Extract suggested price from item data.
+
+    Args:
+        item: Item data
+
+    Returns:
+        Suggested price in USD or 0
+
+    """
+    if "suggestedPrice" not in item:
+        return 0
+
+    suggested_data = item["suggestedPrice"]
+
+    # Handle dict format
+    if isinstance(suggested_data, dict) and "amount" in suggested_data:
+        return int(suggested_data["amount"]) / 100
+
+    # Handle numeric format
+    if isinstance(suggested_data, (int, float)):
+        return float(suggested_data)
+
+    return 0
     NORMAL = "normal"
 
 
@@ -92,30 +195,22 @@ async def find_price_anomalies(
         grouped_items = {}
 
         for item in items:
+            # Early continue for invalid items
             title = item.get("title", "")
             if not title:
                 continue
 
-            # Skip unwanted items (stickers, etc. for CS2)
-            if game == "csgo" and any(
-                x in title.lower() for x in ["sticker", "graffiti", "patch"]
-            ):
+            # Early continue for unwanted items (stickers, etc. for CS2)
+            if game == "csgo" and _should_skip_csgo_item(title):
                 continue
 
-            # Extract key attributes for comparison
-            key_parts = []
-
-            # Title base (remove wear/exterior from CS:GO items if present)
-            if game == "csgo" and " | " in title and " (" in title:
-                base_title = title.split(" (")[0]
-                key_parts.append(base_title)
-
-                # Add exterior as separate part
-                exterior = title.split("(")[-1].split(")")[0] if "(" in title else ""
-                if exterior:
-                    key_parts.append(exterior)
-            else:
-                key_parts.append(title)
+            # Build grouping key
+            key = _build_item_key(title, item, game)
+            
+            # Group items
+            if key not in grouped_items:
+                grouped_items[key] = []
+            grouped_items[key].append(item)
 
             # Extract other attributes for grouping
             if game == "csgo":
@@ -270,31 +365,18 @@ async def find_trending_items(
 
         # Process market items
         for item in market_items.get("items", []):
+            # Early continue for invalid items
             title = item.get("title", "")
             if not title:
                 continue
 
-            # Get price
-            price = None
-            if "price" in item:
-                if isinstance(item["price"], dict) and "amount" in item["price"]:
-                    price = int(item["price"]["amount"]) / 100
-                elif isinstance(item["price"], int | float):
-                    price = float(item["price"])
-
+            # Extract and validate price
+            price = _extract_item_price(item)
             if price is None or price < min_price or price > max_price:
                 continue
 
             # Get recommended price if available
-            suggested_price = 0
-            if "suggestedPrice" in item:
-                if (
-                    isinstance(item["suggestedPrice"], dict)
-                    and "amount" in item["suggestedPrice"]
-                ):
-                    suggested_price = int(item["suggestedPrice"]["amount"]) / 100
-                elif isinstance(item["suggestedPrice"], int | float):
-                    suggested_price = float(item["suggestedPrice"])
+            suggested_price = _extract_suggested_price(item)
 
             # Check available quantity
             market_data[title] = {
