@@ -29,6 +29,7 @@ from src.dmarket.scanner import ARBITRAGE_LEVELS, GAME_IDS, ScannerCache, Scanne
 from src.utils.rate_limiter import RateLimiter
 from src.utils.sentry_breadcrumbs import add_trading_breadcrumb
 
+
 if TYPE_CHECKING:
     from src.dmarket.item_filters import ItemFilters
     from src.interfaces import IDMarketAPI

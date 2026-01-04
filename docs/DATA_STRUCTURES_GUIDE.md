@@ -385,7 +385,7 @@ USING BTREE;
 
 ---
 
-**Last Updated**: December 2025
+**Last updated: January 2026
 **Maintainer**: DMarket Bot Team
 **Related Docs**: 
 - [Performance Guide](PERFORMANCE_IMPROVEMENTS.md)

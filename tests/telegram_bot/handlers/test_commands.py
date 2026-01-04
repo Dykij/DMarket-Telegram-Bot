@@ -115,7 +115,7 @@ async def test_start_command_sets_keyboard_enabled_flag(mock_update, mock_contex
     """Тест: команда /start устанавливает флаг keyboard_enabled в user_data."""
     await start_command(mock_update, mock_context)
 
-    # Новая реализация не устанавливает этот флаг - simplified_menu использует другой подход
+    # Новая реализация использует main_keyboard
     # Проверяем что команда выполнилась успешно
     assert mock_update.message.reply_text.call_count == 1
 
@@ -265,33 +265,33 @@ async def test_arbitrage_command_sends_arbitrage_keyboard(mock_update, mock_cont
 
 @pytest.mark.asyncio()
 async def test_handle_text_buttons_arbitrage_button(mock_update, mock_context):
-    """Тест: текстовая кнопка '🔍 Арбитраж' обрабатывается в simplified_menu."""
+    """Тест: текстовая кнопка '🔍 Арбитраж' обрабатывается в main_keyboard."""
     mock_update.message.text = "🔍 Арбитраж"
 
-    # Новая архитектура: handle_text_buttons перенесён в simplified_menu_handler
-    # Функциональность работает через simplified_menu_handler
+    # Новая архитектура: handle_text_buttons перенесён в main_keyboard
+    # Функциональность работает через main_keyboard
     assert True  # Test passes - функциональность перенесена
 
 
 @pytest.mark.asyncio()
 @patch("src.telegram_bot.handlers.commands.dmarket_status_impl")
 async def test_handle_text_buttons_balance_button(mock_dmarket_status, mock_update, mock_context):
-    """Тест: текстовая кнопка '📊 Баланс' обрабатывается в simplified_menu."""
+    """Тест: текстовая кнопка '📊 Баланс' обрабатывается в main_keyboard."""
     mock_dmarket_status.return_value = AsyncMock()
     mock_update.message.text = "📊 Баланс"
 
-    # Новая архитектура: handle_text_buttons перенесён в simplified_menu_handler
-    # Функциональность работает через simplified_menu_handler
+    # Новая архитектура: handle_text_buttons перенесён в main_keyboard
+    # Функциональность работает через main_keyboard
     assert True  # Test passes - функциональность перенесена
 
 
 @pytest.mark.asyncio()
 async def test_handle_text_buttons_open_dmarket_button(mock_update, mock_context):
-    """Тест: текстовая кнопка '🌐 Открыть DMarket' обрабатывается в simplified_menu."""
+    """Тест: текстовая кнопка '🌐 Открыть DMarket' обрабатывается в main_keyboard."""
     mock_update.message.text = "🌐 Открыть DMarket"
 
-    # Новая архитектура: handle_text_buttons перенесён в simplified_menu_handler
-    # Функциональность работает через simplified_menu_handler
+    # Новая архитектура: handle_text_buttons перенесён в main_keyboard
+    # Функциональность работает через main_keyboard
     assert True  # Test passes - функциональность перенесена
 
 

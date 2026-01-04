@@ -9,6 +9,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 # Белый список высоколиквидных предметов по играм
@@ -83,9 +84,9 @@ WHITELIST_SETTINGS: dict[str, Any] = {
 
 # Веса игр для диверсификации (в процентах внимания)
 GAME_WEIGHTS: dict[str, int] = {
-    "tf2": 30,    # Ключи стабильны, быстро продаются
-    "csgo": 40,   # Кейсы и скины, высокая волатильность
-    "rust": 20,   # Двери и ящики, стабильный спрос
+    "tf2": 30,  # Ключи стабильны, быстро продаются
+    "csgo": 40,  # Кейсы и скины, высокая волатильность
+    "rust": 20,  # Двери и ящики, стабильный спрос
     "dota2": 10,  # Только Inscribed/Immortal предметы
 }
 

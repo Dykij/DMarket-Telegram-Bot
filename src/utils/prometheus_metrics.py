@@ -11,7 +11,6 @@ import time
 
 from prometheus_client import Counter, Gauge, Histogram, Info, generate_latest, make_asgi_app
 
-
 # =============================================================================
 # Bot Metrics (Roadmap Task #8: Enhanced)
 # =============================================================================
@@ -24,10 +23,11 @@ bot_commands_total = Counter(
 )
 
 # Telegram updates
+# Labels: type (message/callback_query/etc.), status (processed/failed)
 telegram_updates_total = Counter(
     "telegram_updates_total",
     "Total number of Telegram updates received",
-    ["type", "status"],  # type: message/callback_query/etc., status: processed/failed
+    ["type", "status"],
 )
 
 # Время обработки команд

@@ -144,7 +144,8 @@ async def get_steam_price(
                 # Парсинг цен
                 try:
                     lowest_price = float(
-                        data.get("lowest_price", "$0")
+                        data
+                        .get("lowest_price", "$0")
                         .replace("$", "")
                         .replace(",", "")
                         .replace("pуб.", "")
@@ -156,7 +157,8 @@ async def get_steam_price(
                     volume = int(data.get("volume", "0").replace(",", "").strip() or "0")
 
                     median_price = float(
-                        data.get("median_price", "$0")
+                        data
+                        .get("median_price", "$0")
                         .replace("$", "")
                         .replace(",", "")
                         .replace("pуб.", "")

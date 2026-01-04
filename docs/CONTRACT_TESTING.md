@@ -1,7 +1,7 @@
 # Contract Testing Guide
 
 **Version**: 1.0.0
-**Last Updated**: December 28, 2025
+**Last updated: January 2026
 **Related**: [API Reference](api_reference.md), [Testing Guide](testing_guide.md)
 
 ---

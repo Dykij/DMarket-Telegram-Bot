@@ -15,14 +15,13 @@ Example:
 """
 
 import asyncio
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import StrEnum
-import logging
 from typing import Any
 
 from src.dmarket.arbitrage_scanner import ArbitrageScanner
-
 
 logger = logging.getLogger(__name__)
 
@@ -145,9 +144,7 @@ class HFTStatistics:
             "total_profit": sum(t.expected_profit for t in successful),
             "total_spent": sum(t.buy_price for t in trades),
             "average_profit": (
-                sum(t.expected_profit for t in successful) / len(successful)
-                if successful
-                else 0
+                sum(t.expected_profit for t in successful) / len(successful) if successful else 0
             ),
         }
 
@@ -206,11 +203,18 @@ class HighFrequencyTrader:
 
         # Get initial balance
         balance_result = await self.api.get_balance()
-        if balance_result.get("error"):
+        if isinstance(balance_result, dict) and balance_result.get("error"):
             logger.error(f"Failed to get initial balance: {balance_result}")
             return False
 
-        self.stats.start_balance = balance_result.get("balance", 0)
+        # DMarket API returns "usd" key in lowercase, value in cents (as string or int)
+        if isinstance(balance_result, dict):
+            usd_cents = balance_result.get("usd", balance_result.get("USD", 0))
+            # Handle string or int
+            usd_cents = int(usd_cents) if usd_cents else 0
+        else:
+            usd_cents = 0
+        self.stats.start_balance = usd_cents / 100.0
         self.stats.current_balance = self.stats.start_balance
         self.stats.start_time = datetime.now()
 
@@ -357,11 +361,19 @@ class HighFrequencyTrader:
         """
         try:
             balance_result = await self.api.get_balance()
-            if balance_result.get("error"):
+            if isinstance(balance_result, dict) and balance_result.get("error"):
                 logger.warning(f"Balance check failed: {balance_result}")
                 return True  # Don't stop on balance check errors
 
-            self.stats.current_balance = balance_result.get("balance", 0)
+            # DMarket API returns "usd" key in lowercase, value in cents
+            if isinstance(balance_result, dict):
+                usd_cents = balance_result.get(
+                    "usd", balance_result.get("USD", balance_result.get("balance", 0))
+                )
+                usd_cents = int(usd_cents) if usd_cents else 0
+            else:
+                usd_cents = 0
+            self.stats.current_balance = usd_cents / 100.0
 
             return self.stats.current_balance >= self.config.stop_orders_balance
 
@@ -371,9 +383,7 @@ class HighFrequencyTrader:
 
     async def _scan_and_trade(self) -> None:
         """Scan for arbitrage and execute trades."""
-        logger.info(
-            f"🔍 HFT Scan: games={self.config.games}, level={self.config.arbitrage_level}"
-        )
+        logger.info(f"🔍 HFT Scan: games={self.config.games}, level={self.config.arbitrage_level}")
 
         opportunities: list[dict[str, Any]] = []
 
@@ -389,8 +399,7 @@ class HighFrequencyTrader:
                 filtered = [
                     item
                     for item in results
-                    if item.get("profit_percent", 0)
-                    >= self.config.auto_buy_threshold_percent
+                    if item.get("profit_percent", 0) >= self.config.auto_buy_threshold_percent
                 ]
 
                 opportunities.extend(filtered)
@@ -418,9 +427,7 @@ class HighFrequencyTrader:
                 final_orders.append(item)
                 budget -= price
 
-        logger.info(
-            f"Found {len(opportunities)} opportunities, executing {len(final_orders)}"
-        )
+        logger.info(f"Found {len(opportunities)} opportunities, executing {len(final_orders)}")
 
         # Execute trades
         for item in final_orders:
@@ -536,9 +543,7 @@ class HighFrequencyTrader:
             "average_profit": self.stats.average_profit,
             "runtime_hours": self.stats.runtime_hours,
             "last_scan": (
-                self.stats.last_scan_time.isoformat()
-                if self.stats.last_scan_time
-                else None
+                self.stats.last_scan_time.isoformat() if self.stats.last_scan_time else None
             ),
             "consecutive_errors": self.consecutive_errors,
         }

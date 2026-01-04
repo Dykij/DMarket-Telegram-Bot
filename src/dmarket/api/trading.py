@@ -66,9 +66,7 @@ class TradingOperationsMixin:
         bot_logger = BotLogger(__name__)
 
         profit_usd = profit or (sell_price - price if sell_price else None)
-        profit_percent = (
-            (profit_usd / price * 100) if profit_usd and price > 0 else None
-        )
+        profit_percent = (profit_usd / price * 100) if profit_usd and price > 0 else None
 
         add_trading_breadcrumb(
             action="buy_item_intent",
@@ -192,9 +190,7 @@ class TradingOperationsMixin:
         bot_logger = BotLogger(__name__)
 
         profit_usd = price - buy_price if buy_price else None
-        profit_percent = (
-            (profit_usd / buy_price * 100) if profit_usd and buy_price else None
-        )
+        profit_percent = (profit_usd / buy_price * 100) if profit_usd and buy_price else None
 
         bot_logger.log_sell_intent(
             item_name=item_name or item_id,

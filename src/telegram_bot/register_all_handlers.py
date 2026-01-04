@@ -61,22 +61,16 @@ def register_all_handlers(application: "Application") -> None:
     application.add_handler(CommandHandler("logs", logs_command))
     application.add_handler(CommandHandler("dailyreport", daily_report_command))
 
-    # Simplified Menu Handler (новый упрощенный интерфейс)
+    # ═══════════════════════════════════════════════════════════════════════════
+    # ГЛАВНАЯ КЛАВИАТУРА (новая упрощённая версия)
+    # ═══════════════════════════════════════════════════════════════════════════
     try:
-        from src.telegram_bot.handlers.simplified_menu_handler import (
-            get_simplified_conversation_handler,
-            register_simplified_callbacks,
-        )
+        from src.telegram_bot.handlers.main_keyboard import register_main_keyboard_handlers
 
-        # Регистрируем ConversationHandler для упрощенного меню
-        application.add_handler(get_simplified_conversation_handler())
-
-        # Регистрируем дополнительные callback handlers
-        register_simplified_callbacks(application)
-
-        logger.info("✅ Simplified Menu Handler зарегистрирован")
+        register_main_keyboard_handlers(application)
+        logger.info("✅ Main Keyboard Handler зарегистрирован")
     except ImportError as e:
-        logger.warning("Не удалось импортировать simplified_menu_handler: %s", e)
+        logger.warning("Не удалось импортировать main_keyboard: %s", e)
 
     # Sentry тестирование (только для отладки и администраторов)
     application.add_handler(CommandHandler("test_sentry", test_sentry_command))
@@ -94,6 +88,15 @@ def register_all_handlers(application: "Application") -> None:
         logger.info("Auto-buy команда зарегистрирована")
     except ImportError as e:
         logger.warning("Не удалось импортировать auto-buy handler: %s", e)
+
+    # Smart Arbitrage команда (NEW - for micro balance trading)
+    try:
+        from src.telegram_bot.handlers.smart_arbitrage_handler import smart_arbitrage_command
+
+        application.add_handler(CommandHandler("smart", smart_arbitrage_command))
+        logger.info("Smart Arbitrage команда зарегистрирована")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать smart arbitrage handler: %s", e)
 
     # Autopilot команды
     try:
@@ -264,7 +267,7 @@ def register_all_handlers(application: "Application") -> None:
     logger.info("Minimal UI message router registered")
 
     # ИСПРАВЛЕНО: Обработчик handle_text_buttons закомментирован
-    # чтобы не конфликтовать с simplified_menu_handler
+    # чтобы не конфликтовать с main_keyboard
     # Удален широкий фильтр filters.TEXT & ~filters.COMMAND
     # который перехватывал все текстовые сообщения включая "🎯 Таргеты"
     # application.add_handler(

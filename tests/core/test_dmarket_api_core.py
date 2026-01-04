@@ -370,15 +370,14 @@ class TestDMarketAPIConstants:
         """Тест эндпоинтов рынка."""
         assert DMarketAPI.ENDPOINT_MARKET_ITEMS == "/exchange/v1/market/items"
         assert (
-            DMarketAPI.ENDPOINT_MARKET_PRICE_AGGREGATED
-            == "/exchange/v1/market/aggregated-prices"
+            DMarketAPI.ENDPOINT_MARKET_PRICE_AGGREGATED == "/exchange/v1/market/aggregated-prices"
         )
 
     def test_user_endpoints(self):
         """Тест эндпоинтов пользователя."""
-        assert DMarketAPI.ENDPOINT_USER_INVENTORY == "/exchange/v1/user/inventory"
-        assert DMarketAPI.ENDPOINT_USER_OFFERS == "/exchange/v1/user/offers"
-        assert DMarketAPI.ENDPOINT_USER_TARGETS == "/exchange/v1/target-lists"
+        assert DMarketAPI.ENDPOINT_USER_INVENTORY == "/inventory/v1/user/items"
+        assert DMarketAPI.ENDPOINT_USER_OFFERS == "/marketplace-api/v1/user-offers"
+        assert DMarketAPI.ENDPOINT_USER_TARGETS == "/main/v2/user-targets"
 
     def test_error_codes(self):
         """Тест констант кодов ошибок."""

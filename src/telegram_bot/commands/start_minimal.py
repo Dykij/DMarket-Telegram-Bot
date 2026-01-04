@@ -17,9 +17,8 @@ import structlog
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from src.telegram_bot.handlers.simplified_menu_handler import get_main_menu_keyboard
+from src.telegram_bot.handlers.main_keyboard import get_main_keyboard
 from src.utils.sentry_breadcrumbs import add_command_breadcrumb
-
 
 logger = structlog.get_logger(__name__)
 std_logger = logging.getLogger(__name__)
@@ -80,7 +79,7 @@ async def start_minimal_command(update: Update, context: ContextTypes.DEFAULT_TY
 
     await update.message.reply_text(
         welcome_text,
-        reply_markup=get_main_menu_keyboard(),
+        reply_markup=get_main_keyboard(),
         parse_mode="HTML",
     )
 

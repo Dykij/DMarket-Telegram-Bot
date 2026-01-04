@@ -4,10 +4,12 @@ Implements the core logic for finding, analyzing, buying, and selling items.
 """
 
 import logging
+
 from src.dmarket.dmarket_api import DMarketAPI
 from src.dmarket.price_analyzer import PriceAnalyzer
 from src.dmarket.steam_api import get_steam_price, normalize_item_name
 from src.telegram_bot.notifier import send_arbitrage_report
+
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +36,7 @@ async def sniper_cycle(
             limit=50,
             order_by="best_deals",
         )
-        
+
         items = items_response.get("objects", [])
         if not items:
             logger.debug("No items found in sniper cycle")
@@ -48,8 +50,8 @@ async def sniper_cycle(
             # 2. Get sales history for analysis
             # Using the new aggregator endpoint
             history_response = await api._request(
-                "GET", 
-                f"/trade-aggregator/v1/last-sales?title={title}&gameId=a8db99ca-dc45-4c0e-9989-11ba71ed97a2"
+                "GET",
+                f"/trade-aggregator/v1/last-sales?title={title}&gameId=a8db99ca-dc45-4c0e-9989-11ba71ed97a2",
             )
             history = history_response.get("sales", [])
 
@@ -69,12 +71,12 @@ async def sniper_cycle(
                     price_cents = int(price_data.get("USD", 0))
                 else:
                     price_cents = int(price_data)
-                
+
                 price_usd = price_cents / 100
 
                 # 5. Buy item
                 logger.info(f"💰 Attempting to buy {title} for ")
-                
+
                 # Construct offer data for purchase
                 offer_id = item.get("extra", {}).get("offerId")
                 if not offer_id:
@@ -82,40 +84,36 @@ async def sniper_cycle(
                     continue
 
                 buy_res = await api._request(
-                    "POST", 
-                    api.ENDPOINT_PURCHASE, 
-                    data={
-                        "offers": [{"offerId": offer_id, "price": item.get("price")}]
-                    }
+                    "POST",
+                    api.ENDPOINT_PURCHASE,
+                    data={"offers": [{"offerId": offer_id, "price": item.get("price")}]},
                 )
 
                 if buy_res.get("status") == "success" or (
                     isinstance(buy_res, dict) and buy_res.get("success")
                 ):
                     logger.info(f"✅ Successfully bought {title}")
-                    
+
                     # Extract asset ID from response
                     # Response format varies, need to handle different structures
                     items_bought = buy_res.get("items", [])
                     asset_id = None
                     if items_bought:
                         asset_id = items_bought[0].get("assetId")
-                    
+
                     if asset_id:
                         # 6. Auto-sell (Arbitrage)
                         # Calculate sell price based on analyzer logic or fixed margin
                         # Using 15% ROI as requested
                         sell_res = await api.sell_with_arbitrage(
-                            asset_id, 
-                            price_cents, 
-                            profit_percent=15.0
+                            asset_id, price_cents, profit_percent=15.0
                         )
-                        
+
                         if sell_res:
                             # Calculate expected profit for report
                             sell_usd = (price_usd * 1.15) / 0.95
                             expected_profit = (sell_usd * 0.95) - price_usd
-                            
+
                             logger.info(f"🚀 Auto-sold {title} for ")
 
                             # Send notification
@@ -127,7 +125,7 @@ async def sniper_cycle(
                                     buy_price=price_usd,
                                     sell_price=sell_usd,
                                     profit=expected_profit,
-                                    roi=15.0
+                                    roi=15.0,
                                 )
                     else:
                         logger.warning(f"Could not find assetId in buy response for {title}")

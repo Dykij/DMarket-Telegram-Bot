@@ -28,6 +28,7 @@ from src.telegram_bot.handlers.callback_handlers import (
 from src.telegram_bot.handlers.callback_router import CallbackRouter
 from src.telegram_bot.keyboards import CB_BACK, CB_CANCEL, CB_GAME_PREFIX, CB_HELP
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -135,6 +136,13 @@ def create_callback_router() -> CallbackRouter:
     router.register_exact("auto_arb_settings", _handle_auto_arb_settings)
     router.register_exact("auto_arb_status", _handle_auto_arb_status)
     router.register_exact("auto_arb_history", _handle_auto_arb_history)
+
+    # Smart Arbitrage (NEW - for $45.50 micro balance)
+    router.register_exact("start_smart_arbitrage", _handle_start_smart_arbitrage)
+    router.register_exact("stop_smart_arbitrage", _handle_stop_smart_arbitrage)
+    router.register_exact("smart_arbitrage_status", _handle_smart_arbitrage_status)
+    router.register_exact("smart", _handle_smart_arbitrage_menu)
+    router.register_exact("smart_create_targets", _handle_smart_create_targets)
 
     # Comparison
     router.register_exact("cmp_steam", _handle_cmp_steam)
@@ -374,8 +382,32 @@ async def _handle_targets(update, context):
 
 
 async def _handle_target_create(update, context):
-    """Stub: Create target."""
-    await handle_temporary_unavailable(update, context, "Создание таргета")
+    """Create target with game selection menu."""
+    if not update.callback_query:
+        return
+
+    from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+
+    keyboard = [
+        [
+            InlineKeyboardButton("CS:GO", callback_data="game_selected:csgo"),
+            InlineKeyboardButton("Dota 2", callback_data="game_selected:dota2"),
+        ],
+        [
+            InlineKeyboardButton("Rust", callback_data="game_selected:rust"),
+            InlineKeyboardButton("TF2", callback_data="game_selected:tf2"),
+        ],
+        [InlineKeyboardButton("◀️ Назад", callback_data="targets")],
+    ]
+
+    await update.callback_query.edit_message_text(
+        "🎯 <b>Создание таргета</b>\n\n"
+        "Выберите игру для настройки параметров покупки.\n"
+        "Бот будет выставлять запросы на покупку (Targets) "
+        "на основе анализа ликвидности.",
+        parse_mode="HTML",
+        reply_markup=InlineKeyboardMarkup(keyboard),
+    )
 
 
 async def _handle_target_list(update, context):
@@ -603,3 +635,192 @@ async def _handle_auto_trade(update, context):
 async def _handle_compare(update, context):
     """Handle compare: prefix."""
     await handle_temporary_unavailable(update, context, "Сравнение")
+
+
+# ============================================================================
+# SMART ARBITRAGE HANDLERS (NEW - For micro balance trading)
+# ============================================================================
+
+
+async def _handle_start_smart_arbitrage(update, context):
+    """Start Smart Arbitrage mode with pagination and auto-buy."""
+    if not update.callback_query:
+        return
+
+    try:
+        # Get smart arbitrage engine from bot_data
+        smart_engine = context.bot_data.get("smart_arbitrage_engine")
+        api = context.bot_data.get("dmarket_api")
+
+        if not smart_engine and api:
+            # Initialize if not exists
+            from src.dmarket.smart_arbitrage import SmartArbitrageEngine
+
+            smart_engine = SmartArbitrageEngine(api)
+            context.bot_data["smart_arbitrage_engine"] = smart_engine
+
+        if smart_engine:
+            if smart_engine.is_running:
+                await update.callback_query.edit_message_text(
+                    "⚠️ Smart Arbitrage уже запущен!\n\nИспользуйте /status для проверки состояния."
+                )
+                return
+
+            # Get current balance and limits
+            limits = await smart_engine.calculate_adaptive_limits()
+            strategy = await smart_engine.get_strategy_description()
+
+            await update.callback_query.edit_message_text(
+                f"🚀 <b>Smart Arbitrage запускается!</b>\n\n"
+                f"💰 Баланс: ${limits.usable_balance:.2f}\n"
+                f"📊 Тир: {limits.tier.upper()}\n"
+                f"🎯 ROI: {limits.min_roi:.0f}%+\n"
+                f"💵 Max цена: ${limits.max_buy_price:.2f}\n\n"
+                f"{strategy}\n\n"
+                f"🔄 Сканирование: 500 предметов (5 страниц)\n"
+                f"⏱ Интервал: {'30с' if limits.usable_balance < 50 else '60с'}\n\n"
+                f"✅ Бот начал поиск арбитражных возможностей!",
+                parse_mode="HTML",
+            )
+
+            # Start in background (don't await - let it run)
+            import asyncio
+
+            asyncio.create_task(smart_engine.start_smart_mode(auto_buy=True))
+
+        else:
+            await update.callback_query.edit_message_text(
+                "❌ Smart Arbitrage Engine не инициализирован.\nПроверьте DMarket API подключение."
+            )
+
+    except Exception as e:
+        logger.exception("Error starting smart arbitrage: %s", e)
+        await update.callback_query.edit_message_text(f"❌ Ошибка: {e}")
+
+
+async def _handle_stop_smart_arbitrage(update, context):
+    """Stop Smart Arbitrage mode."""
+    if not update.callback_query:
+        return
+
+    smart_engine = context.bot_data.get("smart_arbitrage_engine")
+
+    if smart_engine and smart_engine.is_running:
+        smart_engine.stop_smart_mode()
+        await update.callback_query.edit_message_text(
+            "🛑 <b>Smart Arbitrage остановлен</b>\n\n"
+            "Бот прекратил поиск арбитражных возможностей.\n"
+            "Используйте /smart для перезапуска.",
+            parse_mode="HTML",
+        )
+    else:
+        await update.callback_query.edit_message_text("ℹ️ Smart Arbitrage не был запущен.")
+
+
+async def _handle_smart_arbitrage_status(update, context):
+    """Show Smart Arbitrage status."""
+    if not update.callback_query:
+        return
+
+    try:
+        smart_engine = context.bot_data.get("smart_arbitrage_engine")
+        api = context.bot_data.get("dmarket_api")
+
+        if not smart_engine and api:
+            from src.dmarket.smart_arbitrage import SmartArbitrageEngine
+
+            smart_engine = SmartArbitrageEngine(api)
+            context.bot_data["smart_arbitrage_engine"] = smart_engine
+
+        if smart_engine:
+            limits = await smart_engine.calculate_adaptive_limits()
+            is_safe, warning = smart_engine.check_balance_safety()
+
+            status_emoji = "🟢" if smart_engine.is_running else "🔴"
+            safety_text = "✅ В норме" if is_safe else f"⚠️ {warning}"
+
+            await update.callback_query.edit_message_text(
+                f"📊 <b>Smart Arbitrage Status</b>\n\n"
+                f"Статус: {status_emoji} {'Работает' if smart_engine.is_running else 'Остановлен'}\n\n"
+                f"💰 <b>Баланс:</b> ${limits.total_balance:.2f}\n"
+                f"💵 Доступно: ${limits.usable_balance:.2f}\n"
+                f"🏦 Резерв: ${limits.reserve:.2f}\n\n"
+                f"📈 <b>Лимиты:</b>\n"
+                f"• Тир: {limits.tier.upper()}\n"
+                f"• Max цена: ${limits.max_buy_price:.2f}\n"
+                f"• Min ROI: {limits.min_roi:.0f}%\n"
+                f"• Max предметов: {limits.max_inventory_items}\n\n"
+                f"🛡 <b>Безопасность:</b> {safety_text}",
+                parse_mode="HTML",
+            )
+        else:
+            await update.callback_query.edit_message_text(
+                "❌ Smart Arbitrage Engine не инициализирован."
+            )
+
+    except Exception as e:
+        logger.exception("Error getting smart arbitrage status: %s", e)
+        await update.callback_query.edit_message_text(f"❌ Ошибка: {e}")
+
+
+async def _handle_smart_arbitrage_menu(update, context):
+    """Show Smart Arbitrage menu."""
+    if not update.callback_query:
+        return
+
+    from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+
+    keyboard = [
+        [
+            InlineKeyboardButton("🚀 Запустить", callback_data="start_smart_arbitrage"),
+            InlineKeyboardButton("🛑 Остановить", callback_data="stop_smart_arbitrage"),
+        ],
+        [
+            InlineKeyboardButton("📊 Статус", callback_data="smart_arbitrage_status"),
+        ],
+        [
+            InlineKeyboardButton("◀️ Назад", callback_data="back_to_main"),
+        ],
+    ]
+
+    await update.callback_query.edit_message_text(
+        "🎯 <b>Smart Arbitrage</b>\n\n"
+        "Умный арбитраж с автоматической адаптацией под ваш баланс:\n\n"
+        "• 📊 Пагинация: сканирует 500 предметов\n"
+        "• 🎚 Динамический ROI: от 5% для микро-баланса\n"
+        "• ⏱ Trade Lock фильтр: учитывает заморозку\n"
+        "• 🔄 Auto-buy: мгновенная покупка выгодных лотов\n\n"
+        "Выберите действие:",
+        parse_mode="HTML",
+        reply_markup=InlineKeyboardMarkup(keyboard),
+    )
+
+
+async def _handle_smart_create_targets(update, context):
+    """Create smart targets with game selection for micro-balance trading."""
+    if not update.callback_query:
+        return
+
+    from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+
+    keyboard = [
+        [
+            InlineKeyboardButton("CS:GO", callback_data="game_selected:csgo"),
+            InlineKeyboardButton("Dota 2", callback_data="game_selected:dota2"),
+        ],
+        [
+            InlineKeyboardButton("Rust", callback_data="game_selected:rust"),
+            InlineKeyboardButton("TF2", callback_data="game_selected:tf2"),
+        ],
+        [InlineKeyboardButton("◀️ Назад", callback_data="smart")],
+    ]
+
+    await update.callback_query.edit_message_text(
+        "🎯 <b>Создание авто-таргетов</b>\n\n"
+        "Выберите игру для настройки параметров покупки.\n"
+        "Бот будет автоматически выставлять запросы на покупку (Targets) "
+        "на основе анализа ликвидности и вашего баланса.\n\n"
+        "💡 <i>Таргеты помогают покупать предметы дешевле рыночной цены</i>",
+        parse_mode="HTML",
+        reply_markup=InlineKeyboardMarkup(keyboard),
+    )

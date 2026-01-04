@@ -281,9 +281,7 @@ def add_error_breadcrumb(
     )
 
 
-def add_custom_breadcrumb(
-    category: str, message: str, level: str = "info", **data: Any
-) -> None:
+def add_custom_breadcrumb(category: str, message: str, level: str = "info", **data: Any) -> None:
     """Добавить кастомный breadcrumb.
 
     Args:
@@ -304,9 +302,7 @@ def add_custom_breadcrumb(
     if not sentry_sdk.is_initialized():
         return
 
-    sentry_sdk.add_breadcrumb(
-        category=category, message=message, level=level, data=data
-    )
+    sentry_sdk.add_breadcrumb(category=category, message=message, level=level, data=data)
 
     logger.debug(
         "Sentry breadcrumb added: %s/%s",

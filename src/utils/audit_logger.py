@@ -163,9 +163,7 @@ class AuditLogger:
         Returns:
             Созданная запись аудит лога
         """
-        event_type_str = (
-            event_type.value if isinstance(event_type, AuditEventType) else event_type
-        )
+        event_type_str = event_type.value if isinstance(event_type, AuditEventType) else event_type
 
         audit_log = AuditLog(
             timestamp=datetime.now(UTC),
@@ -318,9 +316,7 @@ class AuditLogger:
 
         if event_type:
             event_type_str = (
-                event_type.value
-                if isinstance(event_type, AuditEventType)
-                else event_type
+                event_type.value if isinstance(event_type, AuditEventType) else event_type
             )
             query = query.where(AuditLog.event_type == event_type_str)
 
@@ -394,9 +390,7 @@ class AuditLogger:
 
         if event_type:
             event_type_str = (
-                event_type.value
-                if isinstance(event_type, AuditEventType)
-                else event_type
+                event_type.value if isinstance(event_type, AuditEventType) else event_type
             )
             query = query.where(AuditLog.event_type == event_type_str)
 

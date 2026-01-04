@@ -28,12 +28,12 @@ from typing import TYPE_CHECKING, Any
 import structlog
 
 from src.dmarket.money_manager import (
+    DynamicLimits,
     MoneyManager,
     MoneyManagerConfig,
-    DynamicLimits,
-    BalanceTier,
     calculate_universal_limits,
 )
+
 
 if TYPE_CHECKING:
     from src.interfaces import IDMarketAPI
@@ -44,7 +44,7 @@ logger = structlog.get_logger(__name__)
 @dataclass
 class SmartLimits:
     """Adaptive trading limits based on current balance.
-    
+
     Note: This class is kept for backwards compatibility.
     New code should use DynamicLimits from money_manager.
     """
@@ -60,7 +60,7 @@ class SmartLimits:
     min_item_price: float = 0.10  # Minimum item price
 
     @classmethod
-    def from_dynamic_limits(cls, limits: DynamicLimits) -> "SmartLimits":
+    def from_dynamic_limits(cls, limits: DynamicLimits) -> SmartLimits:
         """Convert DynamicLimits to SmartLimits for compatibility."""
         return cls(
             max_buy_price=limits.max_item_price,
@@ -148,35 +148,23 @@ class SmartArbitrageEngine:
     async def get_current_balance(self, force_refresh: bool = False) -> float:
         """Get current DMarket balance with caching.
 
+        Uses MoneyManager for consistent balance parsing (DRY principle).
+
         Args:
             force_refresh: Force API call even if cached
 
         Returns:
             Current balance in USD
         """
-        # Cache balance for 60 seconds to reduce API calls
-        if (
-            not force_refresh
-            and self._last_balance_check
-            and (datetime.now() - self._last_balance_check).seconds < 60
-        ):
-            return self._current_balance
-
         try:
-            balance_data = await self.api_client.get_balance()
-            if isinstance(balance_data, dict):
-                # Balance is in cents, convert to dollars
-                usd_cents = int(balance_data.get("usd", 0))
-                self._current_balance = usd_cents / 100.0
-            else:
-                self._current_balance = 0.0
-
+            # Delegate to MoneyManager for consistent parsing
+            balance = await self.money_manager.get_balance(force_refresh=force_refresh)
+            self._current_balance = balance
             self._last_balance_check = datetime.now()
             logger.info("smart_balance_fetched", balance=self._current_balance)
             return self._current_balance
-
         except Exception as e:
-            logger.error("smart_balance_error", error=str(e))
+            logger.error("smart_balance_proxy_error", error=str(e))
             return self._current_balance  # Return last known balance
 
     async def calculate_adaptive_limits(self) -> SmartLimits:
@@ -211,7 +199,7 @@ class SmartArbitrageEngine:
 
     async def get_strategy_description(self) -> str:
         """Get human-readable description of current trading strategy.
-        
+
         Returns:
             Strategy description based on current balance tier
         """
@@ -220,7 +208,7 @@ class SmartArbitrageEngine:
 
     def check_balance_safety(self) -> tuple[bool, str]:
         """Check if balance changed significantly (safety feature).
-        
+
         Returns:
             Tuple of (is_safe, warning_message)
         """
@@ -241,6 +229,9 @@ class SmartArbitrageEngine:
     ) -> list[SmartOpportunity]:
         """Find arbitrage opportunities within smart limits.
 
+        Uses pagination to scan up to 500 items (5 pages x 100).
+        DMarket API limit is 100 per request.
+
         Args:
             game: Game to scan
             whitelist: Only consider these items (optional)
@@ -251,27 +242,91 @@ class SmartArbitrageEngine:
         """
         limits = await self.calculate_adaptive_limits()
 
+        # AUTO-CORRECTION: For micro balances (<$100), use lower ROI for faster turnover
+        if self._current_balance < 100.0 and limits.min_roi > 5.0:
+            original_roi = limits.min_roi
+            limits.min_roi = 5.0  # Allow 5% profit for quick trades
+            logger.info(
+                "micro_balance_roi_adjustment",
+                old_roi=original_roi,
+                new_roi=limits.min_roi,
+                balance=self._current_balance,
+            )
+
         if limits.usable_balance <= 0:
             logger.warning("smart_no_balance", usable=limits.usable_balance)
             return []
 
         try:
-            # Fetch market items within DYNAMIC price range
-            # Both min and max are percentage-based!
-            min_price_cents = int(limits.min_item_price * 100)
-            max_price_cents = int(limits.max_buy_price * 100)
+            # PAGINATION: Scan multiple pages (DMarket limit = 100 per request)
+            all_objects: list[dict[str, Any]] = []
+            cursor = ""
+            pages_to_scan = 5  # 5 pages x 100 = 500 items total
 
-            items = await self.api_client.get_market_items(
+            # Note: price_from/price_to are in DOLLARS (API converts to cents)
+            min_price_dollars = limits.min_item_price
+            max_price_dollars = limits.max_buy_price
+
+            for page in range(pages_to_scan):
+                try:
+                    # DEBUG: Log the exact API call parameters
+                    logger.debug(
+                        "smart_api_call",
+                        game=game,
+                        page=page,
+                        price_from=min_price_dollars,
+                        price_to=max_price_dollars,
+                        cursor=cursor[:20] if cursor else "empty",
+                    )
+
+                    items = await self.api_client.get_market_items(
+                        game=game,
+                        limit=100,  # DMarket max limit is 100!
+                        price_from=0.01,  # Start from $0.01 to see all cheap items
+                        price_to=max_price_dollars,
+                        cursor=cursor,  # Empty string for first page, cursor for next
+                        sort="price",  # Sort by price ascending to get cheapest first
+                    )
+
+                    current_objects = items.get("objects", []) if isinstance(items, dict) else []
+                    
+                    # DEBUG: Log what we received from API
+                    logger.info(
+                        "smart_page_received",
+                        page=page,
+                        items_count=len(current_objects),
+                        has_cursor=bool(items.get("cursor", "")),
+                        total_in_response=items.get("total", {}).get("items", 0) if isinstance(items.get("total"), dict) else items.get("total", 0),
+                    )
+                    
+                    if not current_objects:
+                        break
+
+                    all_objects.extend(current_objects)
+
+                    # Get cursor for next page
+                    cursor = items.get("cursor", "")
+                    if not cursor:
+                        break
+
+                    # Small delay to avoid rate limiting
+                    await asyncio.sleep(0.3)
+
+                except Exception as page_err:
+                    logger.warning("pagination_page_error", page=page, error=str(page_err))
+                    break
+
+            # Log total scanned items
+            logger.info(
+                "smart_scan_complete",
                 game=game,
-                limit=100,
-                price_from=min_price_cents,
-                price_to=max_price_cents,
+                total_scanned=len(all_objects),
+                pages=min(page + 1, pages_to_scan),
+                price_range=f"${min_price_dollars:.2f}-${max_price_dollars:.2f}",
             )
 
             opportunities = []
-            objects = items.get("objects", []) if isinstance(items, dict) else []
-
-            for item in objects:
+            for item in all_objects:
                 opp = self._analyze_item(item, limits, whitelist, blacklist)
                 if opp:
                     opportunities.append(opp)
@@ -301,6 +356,11 @@ class SmartArbitrageEngine:
     ) -> SmartOpportunity | None:
         """Analyze single item for smart opportunity.
 
+        Includes Trade Lock handling with hybrid ROI requirements:
+        - No lock: use min_roi (e.g., 5%)
+        - Lock 1-3 days: require 12% ROI
+        - Lock >3 days: require 20% ROI (only super deals)
+
         Args:
             item: Raw item data from API
             limits: Current smart limits
@@ -313,7 +373,7 @@ class SmartArbitrageEngine:
         try:
             title = item.get("title", "")
 
-            # Check whitelist (if provided)
+            # Check whitelist (if provided) - only in priority mode
             if whitelist:
                 if not any(w.lower() in title.lower() for w in whitelist):
                     return None
@@ -323,14 +383,20 @@ class SmartArbitrageEngine:
                 if any(b.lower() in title.lower() for b in blacklist):
                     return None
 
-            # Get prices (in cents)
+            # Get prices (in cents) - bulletproof parsing
             price_data = item.get("price", {})
-            buy_price_cents = int(price_data.get("USD", 0))
+            try:
+                buy_price_cents = int(float(str(price_data.get("USD", 0))))
+            except (ValueError, TypeError):
+                buy_price_cents = 0
             buy_price = buy_price_cents / 100.0
 
             # Get suggested price for profit calculation
             suggested_data = item.get("suggestedPrice", {})
-            sell_price_cents = int(suggested_data.get("USD", buy_price_cents))
+            try:
+                sell_price_cents = int(float(str(suggested_data.get("USD", buy_price_cents))))
+            except (ValueError, TypeError):
+                sell_price_cents = buy_price_cents
             sell_price = sell_price_cents / 100.0
 
             # Skip if price too high or too low (dynamic limits!)
@@ -339,22 +405,53 @@ class SmartArbitrageEngine:
             if buy_price < limits.min_item_price:
                 return None  # Skip items below minimum (avoid dust)
 
-            # Calculate profit
-            # DMarket commission is ~7%
+            # Calculate profit (DMarket commission ~7%)
             commission = sell_price * 0.07
             profit = sell_price - buy_price - commission
             profit_percent = (profit / buy_price) * 100 if buy_price > 0 else 0
 
-            # Skip if profit too low
-            if profit_percent < limits.min_roi:
+            # TRADE LOCK HANDLING (Hybrid Filter)
+            # Get trade lock duration in seconds
+            extra = item.get("extra", {}) or item.get("extraAttributes", {}) or {}
+            trade_lock_seconds = int(extra.get("tradeLockDuration", 0) or 0)
+            trade_lock_days = trade_lock_seconds / 86400
+
+            # Dynamic ROI requirement based on trade lock
+            required_roi = limits.min_roi  # Default (e.g., 5% for micro balance)
+
+            if trade_lock_days > 0.1 and trade_lock_days <= 3:
+                required_roi = max(limits.min_roi, 12.0)  # Lock 1-3 days: 12%+
+            elif trade_lock_days > 3:
+                required_roi = max(limits.min_roi, 20.0)  # Lock >3 days: only super deals (20%+)
+
+            # Skip if profit too low for this trade lock duration
+            if profit_percent < required_roi:
+                logger.debug(
+                    "item_skipped",
+                    reason="low_roi_for_lock",
+                    title=title[:35],
+                    roi=f"{profit_percent:.1f}%",
+                    required=f"{required_roi:.1f}%",
+                    lock_days=f"{trade_lock_days:.1f}",
+                )
                 return None
 
+            # Log found opportunity
+            logger.info(
+                "smart_match_found",
+                title=title[:35],
+                buy_price=f"${buy_price:.2f}",
+                sell_price=f"${sell_price:.2f}",
+                roi=f"{profit_percent:.1f}%",
+                lock=f"{trade_lock_days:.0f}d" if trade_lock_days > 0 else "none",
+            )
+
             # Calculate smart score
-            # Higher profit + lower price = better score
-            # This prioritizes affordable high-margin items
+            # Higher profit + lower price + no lock = better score
             price_factor = 1 - (buy_price / limits.max_buy_price)  # 0-1, higher for cheaper
             profit_factor = profit_percent / 100  # Normalized profit
-            smart_score = (profit_factor * 0.7) + (price_factor * 0.3)
+            lock_penalty = 0.1 if trade_lock_days > 3 else (0.05 if trade_lock_days > 0 else 0)
+            smart_score = (profit_factor * 0.6) + (price_factor * 0.3) - lock_penalty
 
             return SmartOpportunity(
                 item_id=item.get("itemId", ""),
@@ -375,12 +472,14 @@ class SmartArbitrageEngine:
         self,
         games: list[str] | None = None,
         callback: Any = None,
+        auto_buy: bool = True,
     ) -> None:
-        """Start Smart Arbitrage scanning mode.
+        """Start Smart Arbitrage scanning mode with auto-buy.
 
         Args:
             games: Games to scan (default: all supported)
             callback: Function to call with opportunities
+            auto_buy: Enable automatic purchasing (default: True)
         """
         if self._is_running:
             logger.warning("smart_already_running")
@@ -389,7 +488,7 @@ class SmartArbitrageEngine:
         self._is_running = True
         games = games or ["csgo", "dota2", "rust", "tf2"]
 
-        logger.info("smart_mode_started", games=games)
+        logger.info("smart_mode_started", games=games, auto_buy=auto_buy)
 
         try:
             while self._is_running:
@@ -399,16 +498,73 @@ class SmartArbitrageEngine:
 
                     opportunities = await self.find_smart_opportunities(game=game)
 
+                    # Notify via callback if provided
                     if opportunities and callback:
                         await callback(opportunities)
 
+                    # AUTO-BUY MODE: Execute trades if enabled and not in dry-run
+                    if auto_buy and opportunities:
+                        dry_run = getattr(self.api_client, "dry_run", True)
+                        if not dry_run:
+                            # Buy top 3 opportunities per cycle to avoid overspending
+                            for opp in opportunities[:3]:
+                                # Double-check we can still afford
+                                if opp.buy_price > self._current_balance * 0.3:
+                                    logger.info(
+                                        "auto_buy_skipped_expensive",
+                                        item=opp.title[:30],
+                                        price=opp.buy_price,
+                                    )
+                                    continue
+
+                                logger.info(
+                                    "auto_buy_executing",
+                                    item=opp.title[:30],
+                                    price=f"${opp.buy_price:.2f}",
+                                    profit=f"{opp.profit_percent:.1f}%",
+                                )
+
+                                try:
+                                    # Execute purchase
+                                    await self.api_client.buy_item(
+                                        opp.item_id, int(opp.buy_price * 100)
+                                    )
+                                    logger.info("auto_buy_success", item=opp.title[:30])
+
+                                    # Reduce current balance estimate
+                                    self._current_balance -= opp.buy_price
+
+                                    # Rate limit: wait between purchases
+                                    await asyncio.sleep(2)
+
+                                except Exception as buy_err:
+                                    logger.error(
+                                        "auto_buy_failed",
+                                        item=opp.title[:30],
+                                        error=str(buy_err),
+                                    )
+                        else:
+                            # DRY-RUN mode: just log what would be bought
+                            for opp in opportunities[:3]:
+                                logger.info(
+                                    "auto_buy_dry_run",
+                                    item=opp.title[:30],
+                                    price=f"${opp.buy_price:.2f}",
+                                    profit=f"{opp.profit_percent:.1f}%",
+                                )
+
                     # Small delay between games
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(3)
 
                 # Wait before next full scan
-                # Adaptive: faster when balance is low (more urgent)
+                # Adaptive: faster when balance is low (more urgent for turnover)
                 balance = await self.get_current_balance()
                 scan_interval = 30 if balance < 50 else 60
+                logger.info(
+                    "smart_scan_cycle_complete",
+                    balance=f"${balance:.2f}",
+                    next_scan_in=f"{scan_interval}s",
+                )
                 await asyncio.sleep(scan_interval)
 
         except asyncio.CancelledError:

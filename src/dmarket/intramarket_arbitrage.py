@@ -7,13 +7,14 @@ This module provides methods for finding arbitrage opportunities within DMarket 
 - Detection of mispriced rare items
 """
 
+from enum import StrEnum
 import logging
 import operator
-from enum import StrEnum
 from typing import Any
 
 # DMarket API
 from src.dmarket.dmarket_api import DMarketAPI
+
 
 # Logger
 logger = logging.getLogger(__name__)
@@ -130,7 +131,6 @@ def _extract_suggested_price(item: dict[str, Any]) -> float:
         return float(suggested_data)
 
     return 0
-    NORMAL = "normal"
 
 
 # Cache for search results to minimize API calls
@@ -203,29 +203,13 @@ async def find_price_anomalies(
             if game == "csgo" and _should_skip_csgo_item(title):
                 continue
 
-            # Build grouping key
+            # Build grouping key (includes StatTrak/Souvenir handling)
             key = _build_item_key(title, item, game)
 
-            # Group items
+            # Group items by composite key
             if key not in grouped_items:
                 grouped_items[key] = []
             grouped_items[key].append(item)
-
-            # Extract other attributes for grouping
-            if game == "csgo":
-                # Check if StatTrak or Souvenir
-                is_stattrak = "StatTrak™" in title
-                is_souvenir = "Souvenir" in title
-                if is_stattrak:
-                    key_parts.append("StatTrak")
-                if is_souvenir:
-                    key_parts.append("Souvenir")
-
-            # Create a composite key
-            composite_key = "|".join(key_parts)
-
-            if composite_key not in grouped_items:
-                grouped_items[composite_key] = []
 
             # Add price info
             price = None
@@ -236,7 +220,7 @@ async def find_price_anomalies(
                     price = float(item["price"])
 
             if price is not None:
-                grouped_items[composite_key].append(
+                grouped_items[key].append(
                     {
                         "item": item,
                         "price": price,

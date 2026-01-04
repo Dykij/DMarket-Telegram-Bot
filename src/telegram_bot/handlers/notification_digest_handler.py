@@ -97,9 +97,7 @@ class NotificationDigestManager:
     def __init__(self) -> None:
         """Инициализация менеджера дайджестов."""
         # Хранилище накопленных уведомлений {user_id: [NotificationItem]}
-        self._pending_notifications: dict[int, list[NotificationItem]] = defaultdict(
-            list
-        )
+        self._pending_notifications: dict[int, list[NotificationItem]] = defaultdict(list)
 
         # Настройки дайджестов {user_id: DigestSettings}
         self._user_settings: dict[int, DigestSettings] = {}
@@ -121,9 +119,7 @@ class NotificationDigestManager:
             self._user_settings[user_id] = DigestSettings()
         return self._user_settings[user_id]
 
-    def update_user_settings(
-        self, user_id: int, settings: dict[str, Any]
-    ) -> DigestSettings:
+    def update_user_settings(self, user_id: int, settings: dict[str, Any]) -> DigestSettings:
         """Обновить настройки дайджеста пользователя.
 
         Args:
@@ -186,9 +182,7 @@ class NotificationDigestManager:
                 "context": {
                     "user_id": notification.user_id,
                     "type": notification.notification_type,
-                    "pending_count": len(
-                        self._pending_notifications[notification.user_id]
-                    ),
+                    "pending_count": len(self._pending_notifications[notification.user_id]),
                 }
             },
         )
@@ -459,16 +453,8 @@ async def show_digest_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 callback_data=DIGEST_TOGGLE,
             )
         ],
-        [
-            InlineKeyboardButton(
-                f"⏰ Частота: {frequency}", callback_data=DIGEST_FREQUENCY
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                f"📂 Группировка: {grouping}", callback_data=DIGEST_GROUP_BY
-            )
-        ],
+        [InlineKeyboardButton(f"⏰ Частота: {frequency}", callback_data=DIGEST_FREQUENCY)],
+        [InlineKeyboardButton(f"📂 Группировка: {grouping}", callback_data=DIGEST_GROUP_BY)],
         [
             InlineKeyboardButton(
                 f"📊 Мин. уведомлений: {settings.min_items}",
@@ -510,9 +496,7 @@ async def toggle_digest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 @handle_exceptions(logger_instance=logger_instance, reraise=False)
-async def show_frequency_menu(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
+async def show_frequency_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Показать меню выбора частоты отправки."""
     query = update.callback_query
     if not query or not update.effective_user:
@@ -542,22 +526,18 @@ async def show_frequency_menu(
         }
 
         button_text = checkmark + freq_names.get(freq, freq.value)
-        keyboard.append(
-            [
-                InlineKeyboardButton(
-                    button_text,
-                    callback_data=DIGEST_SET_FREQ.format(freq.value),
-                )
-            ]
-        )
+        keyboard.append([
+            InlineKeyboardButton(
+                button_text,
+                callback_data=DIGEST_SET_FREQ.format(freq.value),
+            )
+        ])
 
     keyboard.append([InlineKeyboardButton("◀️ Назад", callback_data=DIGEST_BACK)])
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await query.edit_message_text(
-        text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN
-    )
+    await query.edit_message_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
 
 
 @handle_exceptions(logger_instance=logger_instance, reraise=False)
@@ -583,9 +563,7 @@ async def set_frequency(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 @handle_exceptions(logger_instance=logger_instance, reraise=False)
-async def show_grouping_menu(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
+async def show_grouping_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Показать меню выбора режима группировки."""
     query = update.callback_query
     if not query or not update.effective_user:
@@ -611,22 +589,18 @@ async def show_grouping_menu(
         checkmark = "✅ " if is_selected else "⬜ "
 
         button_text = checkmark + group_names.get(mode, mode.value)
-        keyboard.append(
-            [
-                InlineKeyboardButton(
-                    button_text,
-                    callback_data=DIGEST_SET_GROUP.format(mode.value),
-                )
-            ]
-        )
+        keyboard.append([
+            InlineKeyboardButton(
+                button_text,
+                callback_data=DIGEST_SET_GROUP.format(mode.value),
+            )
+        ])
 
     keyboard.append([InlineKeyboardButton("◀️ Назад", callback_data=DIGEST_BACK)])
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await query.edit_message_text(
-        text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN
-    )
+    await query.edit_message_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
 
 
 @handle_exceptions(logger_instance=logger_instance, reraise=False)
@@ -652,9 +626,7 @@ async def set_grouping_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 
 @handle_exceptions(logger_instance=logger_instance, reraise=False)
-async def show_min_items_menu(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
+async def show_min_items_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Показать меню выбора минимального количества уведомлений."""
     query = update.callback_query
     if not query or not update.effective_user:
@@ -665,9 +637,7 @@ async def show_min_items_menu(
     manager = get_digest_manager()
     settings = manager.get_user_settings(user_id)
 
-    text = (
-        "📊 **Выберите минимальное количество уведомлений**\nдля отправки дайджеста:\n"
-    )
+    text = "📊 **Выберите минимальное количество уведомлений**\nдля отправки дайджеста:\n"
 
     min_values = [1, 3, 5, 10, 15, 20]
 
@@ -677,21 +647,15 @@ async def show_min_items_menu(
         checkmark = "✅ " if is_selected else "⬜ "
 
         button_text = f"{checkmark}{value} уведомлений"
-        keyboard.append(
-            [
-                InlineKeyboardButton(
-                    button_text, callback_data=DIGEST_SET_MIN.format(value)
-                )
-            ]
-        )
+        keyboard.append([
+            InlineKeyboardButton(button_text, callback_data=DIGEST_SET_MIN.format(value))
+        ])
 
     keyboard.append([InlineKeyboardButton("◀️ Назад", callback_data=DIGEST_BACK)])
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await query.edit_message_text(
-        text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN
-    )
+    await query.edit_message_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
 
 
 @handle_exceptions(logger_instance=logger_instance, reraise=False)
@@ -723,9 +687,7 @@ async def set_min_items(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 @handle_exceptions(logger_instance=logger_instance, reraise=False)
-async def reset_digest_settings(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
+async def reset_digest_settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Сбросить настройки дайджеста к значениям по умолчанию.
 
     Args:
@@ -775,30 +737,20 @@ def register_notification_digest_handlers(application: Application) -> None:  # 
     application.add_handler(CommandHandler("digest", digest_command))
 
     # Callback handlers
-    application.add_handler(
-        CallbackQueryHandler(show_digest_menu, pattern=f"^{DIGEST_BACK}$")
-    )
-    application.add_handler(
-        CallbackQueryHandler(toggle_digest, pattern=f"^{DIGEST_TOGGLE}$")
-    )
+    application.add_handler(CallbackQueryHandler(show_digest_menu, pattern=f"^{DIGEST_BACK}$"))
+    application.add_handler(CallbackQueryHandler(toggle_digest, pattern=f"^{DIGEST_TOGGLE}$"))
     application.add_handler(
         CallbackQueryHandler(show_frequency_menu, pattern=f"^{DIGEST_FREQUENCY}$")
     )
-    application.add_handler(
-        CallbackQueryHandler(set_frequency, pattern=r"^digest_set_freq_")
-    )
+    application.add_handler(CallbackQueryHandler(set_frequency, pattern=r"^digest_set_freq_"))
     application.add_handler(
         CallbackQueryHandler(show_grouping_menu, pattern=f"^{DIGEST_GROUP_BY}$")
     )
-    application.add_handler(
-        CallbackQueryHandler(set_grouping_mode, pattern=r"^digest_set_group_")
-    )
+    application.add_handler(CallbackQueryHandler(set_grouping_mode, pattern=r"^digest_set_group_"))
     application.add_handler(
         CallbackQueryHandler(show_min_items_menu, pattern=f"^{DIGEST_MIN_ITEMS}$")
     )
-    application.add_handler(
-        CallbackQueryHandler(set_min_items, pattern=r"^digest_set_min_")
-    )
+    application.add_handler(CallbackQueryHandler(set_min_items, pattern=r"^digest_set_min_"))
     application.add_handler(
         CallbackQueryHandler(reset_digest_settings, pattern=f"^{DIGEST_RESET}$")
     )

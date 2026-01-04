@@ -6,11 +6,12 @@ This module handles:
 - Automatic blacklisting based on failed transactions
 """
 
+from datetime import UTC, datetime, timedelta
 import json
 import logging
-from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -113,22 +114,28 @@ class BlacklistManager:
             self.blacklisted_items = data.get("blacklisted_items", [])
 
             # Load blocked profile settings
-            self.blocked_profiles = data.get("blocked_profiles", {
-                "min_trust_score": 40,
-                "block_private_inventories": True,
-                "block_new_accounts": True,
-                "min_account_age_days": 7,
-            })
+            self.blocked_profiles = data.get(
+                "blocked_profiles",
+                {
+                    "min_trust_score": 40,
+                    "block_private_inventories": True,
+                    "block_new_accounts": True,
+                    "min_account_age_days": 7,
+                },
+            )
 
             # Load suspicious tags
             self.suspicious_tags = data.get("suspicious_tags", [])
 
             # Load price filters
-            self.price_filters = data.get("price_filters", {
-                "max_discount_percent": 60,
-                "min_daily_volume": 5,
-                "max_price_deviation_percent": 25,
-            })
+            self.price_filters = data.get(
+                "price_filters",
+                {
+                    "max_discount_percent": 60,
+                    "min_daily_volume": 5,
+                    "max_price_deviation_percent": 25,
+                },
+            )
 
             logger.info(f"Loaded blacklist from {self.blacklist_file}")
 

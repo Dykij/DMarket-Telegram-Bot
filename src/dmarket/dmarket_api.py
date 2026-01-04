@@ -39,7 +39,8 @@ Example usage:
 
 Documentation: https://docs.dmarket.com/v1/swagger.html
 GitHub examples: https://github.com/dmarket/dm-trading-tools
-Last updated: December 28, 2025
+Last updated: January 4, 2026
+API Version: v1.1.0
 """
 
 import asyncio
@@ -86,12 +87,13 @@ api_cache: dict[str, Any] = {}
 
 # Маппинг коротких имен игр в полные UUID для API v1.1.0
 # FIX: Исправление ошибки 400 Bad Request (Game ID mapping)
+# Note: DMarket API accepts both short names and UUIDs
 GAME_MAP: dict[str, str] = {
-    "csgo": "a8db99ca-dc45-4c0e-9989-11ba71ed97a2",
-    "cs2": "a8db99ca-dc45-4c0e-9989-11ba71ed97a2",  # CS2 = CS:GO
-    "dota2": "9a92e107-160a-493e-80aa-3a5989710777",
-    "rust": "60702081-9b1a-4700-928d-f5421c60a927",
-    "tf2": "440",
+    "csgo": "a8db",  # Short code accepted by DMarket for CS2/CS:GO
+    "cs2": "a8db",   # CS2 = CS:GO
+    "dota2": "9a92",  # Short code for Dota 2
+    "rust": "rust",  # Rust uses string identifier
+    "tf2": "tf2",    # TF2 uses string identifier
 }
 
 
@@ -453,7 +455,7 @@ class DMarketAPI:
             # Try different formats for secret key
             try:
                 logger.debug(f"Processing secret key (length: {len(secret_key_str)})")
-                
+
                 # Format 1: HEX format (64 chars = 32 bytes)
                 if len(secret_key_str) == 64:
                     secret_key_bytes = bytes.fromhex(secret_key_str)
@@ -469,7 +471,9 @@ class DMarketAPI:
                 elif len(secret_key_str) >= 64:
                     # For Ed25519 128-char keys, we need the first 32 bytes (seed)
                     secret_key_bytes = bytes.fromhex(secret_key_str[:64])
-                    logger.debug(f"Using first 32 bytes of long HEX key (original len={len(secret_key_str)})")
+                    logger.debug(
+                        f"Using first 32 bytes of long HEX key (original len={len(secret_key_str)})"
+                    )
                 else:
                     # Fallback: encode string to bytes and pad/truncate to 32
                     secret_key_bytes = secret_key_str.encode("utf-8")[:32].ljust(32, b"\0")
@@ -482,7 +486,9 @@ class DMarketAPI:
             try:
                 signing_key = nacl.signing.SigningKey(secret_key_bytes)
             except Exception as nacl_error:
-                logger.error(f"Failed to create SigningKey: {nacl_error}. Key bytes len: {len(secret_key_bytes)}")
+                logger.error(
+                    f"Failed to create SigningKey: {nacl_error}. Key bytes len: {len(secret_key_bytes)}"
+                )
                 raise
 
             # Sign the message
@@ -824,7 +830,7 @@ class DMarketAPI:
         # ВАЖНО: Если есть params, они должны быть включены в path для подписи
         # И порядок параметров должен совпадать в подписи и в запросе
         path_for_signature = path
-        
+
         # Если params есть, сортируем их и используем отсортированный список для запроса и подписи
         if params:
             # Преобразуем в список кортежей и сортируем по ключу
@@ -832,16 +838,17 @@ class DMarketAPI:
                 params_items = sorted(params.items())
             else:
                 params_items = sorted(params)
-            
+
             # Обновляем params, чтобы httpx отправил их в том же порядке
             params = params_items
-            
+
             if method.upper() == "GET":
                 from urllib.parse import urlencode
+
                 query_string = urlencode(params_items)
                 if query_string:
                     path_for_signature = f"{path}?{query_string}"
-        
+
         logger.debug(f"Path for signature: {path_for_signature}")
         headers = self._generate_signature(method.upper(), path_for_signature, body_json)
 
@@ -1484,6 +1491,7 @@ class DMarketAPI:
         sort: str = "price",
         force_refresh: bool = False,
         tree_filters: str | None = None,
+        cursor: str = "",
     ) -> dict[str, Any]:
         """Get items from the marketplace.
 
@@ -1501,6 +1509,7 @@ class DMarketAPI:
             sort: Sort options (price, price_desc, date, popularity)
             force_refresh: Force refresh cache
             tree_filters: JSON string with category filters (e.g., '{"category":["weapon_knife"]}')
+            cursor: Cursor for pagination (alternative to offset)
 
         Returns:
             Items as dict with 'objects' key containing list of items
@@ -1517,6 +1526,10 @@ class DMarketAPI:
             "currency": currency,
         }
 
+        # Support cursor-based pagination (preferred over offset)
+        if cursor:
+            params["cursor"] = cursor
+
         if price_from is not None:
             params["priceFrom"] = str(int(price_from * 100))  # Price in cents
 
@@ -1532,9 +1545,10 @@ class DMarketAPI:
         if tree_filters:
             params["treeFilters"] = tree_filters
 
-        logger.debug(
-            f"Запрос предметов с маркета: game={game}, limit={limit}, "
-            f"price_from={price_from}, price_to={price_to}, tree_filters={tree_filters}"
+        # Log full request params for debugging
+        logger.info(
+            f"📤 API Request: game={game} (gameId={params.get('gameId')}), "
+            f"limit={limit}, price={price_from}-{price_to}, cursor={cursor[:10] if cursor else 'none'}"
         )
 
         # Use correct endpoint from DMarket API docs
@@ -1563,6 +1577,8 @@ class DMarketAPI:
                         f"⚠️ Ответ API не содержит поле 'objects' или 'items'. "
                         f"Доступные ключи: {list(response.keys())}"
                     )
+            else:
+                logger.warning(f"⚠️ Пустой или некорректный ответ API: {type(response)}")
 
             return response
 
@@ -1946,11 +1962,7 @@ class DMarketAPI:
         """
         # В 2026 году используем marketplace-api для получения личного инвентаря
         endpoint = "/marketplace-api/v1/user-inventory"
-        params = {
-            "GameID": game_id,
-            "Limit": str(limit),
-            "Offset": "0"
-        }
+        params = {"GameID": game_id, "Limit": str(limit), "Offset": "0"}
 
         try:
             response = await self._request("GET", endpoint, params=params)
@@ -2583,6 +2595,42 @@ class DMarketAPI:
             params=params,
         )
 
+    async def get_offers_by_title(
+        self,
+        title: str,
+        limit: int = 100,
+        cursor: str | None = None,
+    ) -> dict[str, Any]:
+        """Get offers by item title.
+
+        API: GET /exchange/v1/offers-by-title
+
+        Args:
+            title: Item title to search for
+            limit: Maximum number of results (default 100)
+            cursor: Pagination cursor
+
+        Returns:
+            Dict containing offers matching the title:
+            {
+                "objects": [...],
+                "total": int,
+                "cursor": str
+            }
+        """
+        params = {
+            "Title": title,
+            "Limit": str(limit),
+        }
+        if cursor:
+            params["Cursor"] = cursor
+
+        return await self._request(
+            "GET",
+            "/exchange/v1/offers-by-title",
+            params=params,
+        )
+
     async def get_market_aggregated_prices(
         self,
         game: str = "csgo",
@@ -2790,6 +2838,50 @@ class DMarketAPI:
         return await self._request(
             "GET",
             self.ENDPOINT_ACCOUNT_OFFERS,
+            params=params,
+        )
+
+    async def get_closed_offers(
+        self,
+        limit: int = 100,
+        cursor: str | None = None,
+        order_dir: str = "desc",
+        status: str | None = None,
+        closed_from: int | None = None,
+        closed_to: int | None = None,
+    ) -> dict[str, Any]:
+        """Get closed offers (completed sales).
+
+        API: GET /marketplace-api/v1/user-offers/closed
+
+        Args:
+            limit: Maximum results (default 100)
+            cursor: Pagination cursor
+            order_dir: Sort direction ("asc" or "desc")
+            status: Filter by status ("successful", "reverted", "trade_protected")
+            closed_from: Filter by close time (timestamp)
+            closed_to: Filter by close time (timestamp)
+
+        Returns:
+            Dict containing closed offers with FinalizationTime
+        """
+        params: dict[str, Any] = {
+            "Limit": str(limit),
+            "OrderDir": order_dir,
+        }
+
+        if cursor:
+            params["Cursor"] = cursor
+        if status:
+            params["Status"] = status
+        if closed_from:
+            params["OfferClosed.From"] = str(closed_from)
+        if closed_to:
+            params["OfferClosed.To"] = str(closed_to)
+
+        return await self._request(
+            "GET",
+            "/marketplace-api/v1/user-offers/closed",
             params=params,
         )
 

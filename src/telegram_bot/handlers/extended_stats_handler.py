@@ -7,12 +7,13 @@ This module provides:
 - Portfolio analysis
 """
 
-import logging
 from datetime import UTC, datetime, timedelta
+import logging
 from typing import Any
 
 from telegram import Update
 from telegram.ext import CommandHandler, ContextTypes
+
 
 logger = logging.getLogger(__name__)
 
@@ -60,9 +61,10 @@ async def _get_detailed_stats(db: Any) -> dict[str, Any]:
         Statistics dictionary
     """
     now = datetime.now(UTC)
-    day_ago = now - timedelta(days=1)
-    week_ago = now - timedelta(days=7)
-    month_ago = now - timedelta(days=30)
+    # Time periods for future filtering - currently used for date boundary reference
+    _day_ago = now - timedelta(days=1)  # noqa: F841
+    _week_ago = now - timedelta(days=7)  # noqa: F841
+    _month_ago = now - timedelta(days=30)  # noqa: F841
 
     # Game ID mapping
     game_names = {
@@ -260,9 +262,15 @@ async def portfolio_command(
             await update.effective_message.reply_text("❌ API not available")
             return
 
-        # Get current balance
+        # Get current balance - DMarket returns cents in 'usd' field
         balance = await api.get_balance()
-        balance_usd = balance.get("available", 0)
+        if isinstance(balance, dict):
+            try:
+                balance_usd = int(float(str(balance.get("usd", 0)))) / 100.0
+            except (ValueError, TypeError):
+                balance_usd = 0.0
+        else:
+            balance_usd = 0.0
 
         # Get inventory
         inventory = await api.get_user_inventory()

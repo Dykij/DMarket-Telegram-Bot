@@ -1,5 +1,5 @@
 """
-DMarket MCP Server для интеграции с AnyTool.
+DMarket MCP Server для AI интеграции.
 
 Предоставляет набор инструментов для работы с DMarket API через Model Context Protocol.
 """
@@ -9,7 +9,6 @@ import json
 from typing import Any
 
 import structlog
-
 
 try:
     from mcp.server import Server
@@ -26,7 +25,6 @@ except ImportError:
 
 from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.config import settings
-
 
 logger = structlog.get_logger(__name__)
 
@@ -45,9 +43,7 @@ class DMarketMCPServer:
             RuntimeError: Если MCP модуль не установлен
         """
         if not MCP_AVAILABLE:
-            raise RuntimeError(
-                "MCP module is not installed. Install it with: pip install mcp"
-            )
+            raise RuntimeError("MCP module is not installed. Install it with: pip install mcp")
 
         self.server = Server("dmarket-bot")
         self.api_client = api_client or DMarketAPI(
@@ -225,9 +221,7 @@ class DMarketMCPServer:
                 return [
                     TextContent(
                         type="text",
-                        text=json.dumps(
-                            {"error": str(e), "tool": name}, ensure_ascii=False
-                        ),
+                        text=json.dumps({"error": str(e), "tool": name}, ensure_ascii=False),
                     )
                 ]
 

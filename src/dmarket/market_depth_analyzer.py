@@ -120,9 +120,7 @@ class MarketDepthAnalyzer:
             logger.exception("market_depth_analysis_failed", error=str(e))
             return self._error_result(game, str(e))
 
-    async def _get_item_titles(
-        self, game: str, items: list[str] | None, limit: int
-    ) -> list[str]:
+    async def _get_item_titles(self, game: str, items: list[str] | None, limit: int) -> list[str]:
         """Get item titles to analyze.
 
         Returns provided items or fetches popular items from market.
@@ -137,20 +135,16 @@ class MarketDepthAnalyzer:
             sort_by="best_deal",
         )
 
-        titles = [
-            item.get("title")
-            for item in market_items.get("items", [])
-            if item.get("title")
-        ][:limit]
+        titles = [item.get("title") for item in market_items.get("items", []) if item.get("title")][
+            :limit
+        ]
 
         if not titles:
             logger.warning("no_items_found_for_analysis", game=game)
 
         return titles
 
-    async def _fetch_aggregated_prices(
-        self, game: str, titles: list[str]
-    ) -> dict[str, Any] | None:
+    async def _fetch_aggregated_prices(self, game: str, titles: list[str]) -> dict[str, Any] | None:
         """Fetch aggregated prices from DMarket API."""
         await rate_limiter.wait_if_needed("market")
 
@@ -242,9 +236,7 @@ class MarketDepthAnalyzer:
 
         return "balanced", "Сбалансированный рынок"
 
-    def _calculate_summary(
-        self, depth_analysis: list[dict[str, Any]]
-    ) -> dict[str, Any]:
+    def _calculate_summary(self, depth_analysis: list[dict[str, Any]]) -> dict[str, Any]:
         """Calculate summary statistics from depth analysis."""
         if not depth_analysis:
             return {}
@@ -253,17 +245,11 @@ class MarketDepthAnalyzer:
             depth_analysis
         )
 
-        avg_spread = sum(item["spread_percent"] for item in depth_analysis) / len(
-            depth_analysis
-        )
+        avg_spread = sum(item["spread_percent"] for item in depth_analysis) / len(depth_analysis)
 
-        high_liquidity_count = sum(
-            1 for item in depth_analysis if item["liquidity_score"] >= 50
-        )
+        high_liquidity_count = sum(1 for item in depth_analysis if item["liquidity_score"] >= 50)
 
-        arbitrage_opportunities = sum(
-            1 for item in depth_analysis if item["arbitrage_potential"]
-        )
+        arbitrage_opportunities = sum(1 for item in depth_analysis if item["arbitrage_potential"])
 
         market_health = self._determine_market_health(avg_liquidity)
 

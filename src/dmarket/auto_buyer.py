@@ -5,14 +5,20 @@ This module implements:
 - Auto-buy based on discount threshold
 - Purchase validation and safety checks
 - DRY_RUN mode support
+- Persistent storage of purchases (survives restarts)
 
 Created: January 2, 2026
+Updated: January 4, 2026 - Added persistence support
 """
 
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
+
+
+if TYPE_CHECKING:
+    from src.utils.trading_persistence import TradingPersistence
 
 logger = structlog.get_logger(__name__)
 
@@ -100,6 +106,7 @@ class AutoBuyer:
         self.config = config or AutoBuyConfig()
         self.purchase_history: list[PurchaseResult] = []
         self._auto_seller = None  # Will be set via set_auto_seller()
+        self._trading_persistence: TradingPersistence | None = None  # Persistence layer
 
         logger.info(
             "auto_buyer_initialized",
@@ -108,6 +115,17 @@ class AutoBuyer:
             max_price=self.config.max_price_usd,
             dry_run=self.config.dry_run,
         )
+
+    def set_trading_persistence(self, persistence: "TradingPersistence") -> None:
+        """Set persistence layer for saving purchases to database.
+
+        This ensures purchases survive bot restarts.
+
+        Args:
+            persistence: TradingPersistence instance
+        """
+        self._trading_persistence = persistence
+        logger.info("trading_persistence_linked", has_persistence=persistence is not None)
 
     def set_auto_seller(self, auto_seller) -> None:
         """Link auto-seller for automatic sale scheduling after purchase.
@@ -277,6 +295,9 @@ class AutoBuyer:
                 order_id=result.order_id,
             )
 
+            # Save to database for persistence (even in DRY_RUN for testing)
+            await self._save_purchase_to_db(item_id, "DRY_RUN_ITEM", price_usd, "csgo")
+
             # Schedule auto-sell even in DRY_RUN mode (for testing)
             await self._schedule_auto_sell(item_id, "DRY_RUN_ITEM", price_usd, "csgo")
 
@@ -288,10 +309,13 @@ class AutoBuyer:
             response = await self.api.buy_item(item_id, price_usd)
 
             if response.get("success"):
+                item_title = response.get("title", "Unknown")
+                game = response.get("game", "csgo")
+
                 result = PurchaseResult(
                     success=True,
                     item_id=item_id,
-                    item_title=response.get("title", "Unknown"),
+                    item_title=item_title,
                     price_usd=price_usd,
                     message="✅ Purchase completed successfully",
                     order_id=response.get("orderId"),
@@ -303,6 +327,10 @@ class AutoBuyer:
                     price=price_usd,
                     order_id=result.order_id,
                 )
+
+                # CRITICAL: Save purchase to database for persistence
+                # This ensures bot remembers the purchase after restart
+                await self._save_purchase_to_db(item_id, item_title, price_usd, game)
 
                 # Auto-schedule for sale after successful purchase
                 await self._schedule_auto_sell(
@@ -423,7 +451,8 @@ class AutoBuyer:
         """
         try:
             balance = await self.api.get_balance()
-            available_cents = balance.get("USD", 0)
+            # DMarket API returns "usd" key in lowercase, value in cents
+            available_cents = balance.get("usd", balance.get("USD", 0))
             available_usd = float(available_cents) / 100
 
             logger.debug(
@@ -502,4 +531,50 @@ class AutoBuyer:
 
         except Exception as e:
             logger.exception("auto_sell_schedule_failed", item_id=item_id, error=str(e))
+            return False
+
+    async def _save_purchase_to_db(
+        self,
+        item_id: str,
+        item_title: str,
+        buy_price: float,
+        game: str = "csgo",
+    ) -> bool:
+        """Save purchase to database for persistence.
+
+        This is CRITICAL for surviving bot restarts. Without this,
+        the bot would "forget" about purchases after shutdown.
+
+        Args:
+            item_id: DMarket item/asset ID
+            item_title: Human-readable item name
+            buy_price: Price paid for item in USD
+            game: Game code (csgo, dota2, etc.)
+
+        Returns:
+            True if saved successfully
+        """
+        if not self._trading_persistence:
+            logger.debug("trading_persistence_not_linked", item_id=item_id)
+            return False
+
+        try:
+            await self._trading_persistence.save_purchase(
+                asset_id=item_id,
+                title=item_title,
+                buy_price=buy_price,
+                game=game,
+            )
+
+            logger.info(
+                "purchase_persisted",
+                item_id=item_id,
+                item_title=item_title,
+                buy_price=buy_price,
+            )
+
+            return True
+
+        except Exception as e:
+            logger.exception("purchase_persistence_failed", item_id=item_id, error=str(e))
             return False

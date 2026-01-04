@@ -105,12 +105,10 @@ def get_csgo_exterior_keyboard() -> InlineKeyboardMarkup:
     for text, data in exteriors:
         keyboard.append([InlineKeyboardButton(text=text, callback_data=data)])
 
-    keyboard.extend(
-        (
-            [InlineKeyboardButton(text="🔄 Все", callback_data="ext_all")],
-            [InlineKeyboardButton(text="◀️ Назад", callback_data="filters")],
-        )
-    )
+    keyboard.extend((
+        [InlineKeyboardButton(text="🔄 Все", callback_data="ext_all")],
+        [InlineKeyboardButton(text="◀️ Назад", callback_data="filters")],
+    ))
 
     return InlineKeyboardMarkup(keyboard)
 
@@ -159,12 +157,10 @@ def get_rarity_keyboard(game: str = "csgo") -> InlineKeyboardMarkup:
     for text, data in rarities:
         keyboard.append([InlineKeyboardButton(text=text, callback_data=data)])
 
-    keyboard.extend(
-        (
-            [InlineKeyboardButton(text="🔄 Все", callback_data="rarity_all")],
-            [InlineKeyboardButton(text="◀️ Назад", callback_data="filters")],
-        )
-    )
+    keyboard.extend((
+        [InlineKeyboardButton(text="🔄 Все", callback_data="rarity_all")],
+        [InlineKeyboardButton(text="◀️ Назад", callback_data="filters")],
+    ))
 
     return InlineKeyboardMarkup(keyboard)
 
@@ -197,12 +193,10 @@ def get_csgo_weapon_type_keyboard() -> InlineKeyboardMarkup:
                 row.append(InlineKeyboardButton(text=text, callback_data=data))
         keyboard.append(row)
 
-    keyboard.extend(
-        (
-            [InlineKeyboardButton(text="🔄 Все", callback_data="weapon_all")],
-            [InlineKeyboardButton(text="◀️ Назад", callback_data="filters")],
-        )
-    )
+    keyboard.extend((
+        [InlineKeyboardButton(text="🔄 Все", callback_data="weapon_all")],
+        [InlineKeyboardButton(text="◀️ Назад", callback_data="filters")],
+    ))
 
     return InlineKeyboardMarkup(keyboard)
 
@@ -249,9 +243,7 @@ def get_pagination_keyboard(
 
     # Кнопка "Первая"
     if current_page > 2:
-        nav_row.append(
-            InlineKeyboardButton(text="⏮️", callback_data=f"{base_callback}_1")
-        )
+        nav_row.append(InlineKeyboardButton(text="⏮️", callback_data=f"{base_callback}_1"))
 
     # Кнопка "Назад"
     if current_page > 1:

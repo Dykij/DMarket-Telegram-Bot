@@ -89,11 +89,7 @@ def format_market_item(item: dict[str, Any], show_details: bool = True) -> str:
             message.append(f"📊 Float: `{item['extra']['floatValue']}`")
 
         # Наклейки (для CS:GO)
-        if (
-            "extra" in item
-            and "stickers" in item["extra"]
-            and item["extra"]["stickers"]
-        ):
+        if "extra" in item and "stickers" in item["extra"] and item["extra"]["stickers"]:
             stickers = item["extra"]["stickers"]
             message.append(f"🏵️ Наклейки: {len(stickers)}")
 
@@ -132,12 +128,10 @@ def format_market_items(
     page_items = items[start_idx:end_idx]
 
     message = [f"📋 *Найдено предметов: {len(items)}*"]
-    message.extend(
-        (
-            f"📄 Страница {page + 1}/{(len(items) + items_per_page - 1) // items_per_page}",
-            "",
-        )
-    )
+    message.extend((
+        f"📄 Страница {page + 1}/{(len(items) + items_per_page - 1) // items_per_page}",
+        "",
+    ))
 
     for i, item in enumerate(page_items, start=start_idx + 1):
         item_text = format_market_item(item, show_details=False)
@@ -171,12 +165,10 @@ def format_opportunities(
     page_items = opportunities[start_idx:end_idx]
 
     message = [f"💰 <b>Найдено возможностей: {len(opportunities)}</b>"]
-    message.extend(
-        (
-            f"📄 Страница {page + 1}/{(len(opportunities) + items_per_page - 1) // items_per_page}",
-            "",
-        )
-    )
+    message.extend((
+        f"📄 Страница {page + 1}/{(len(opportunities) + items_per_page - 1) // items_per_page}",
+        "",
+    ))
 
     for i, opportunity in enumerate(page_items, start=start_idx + 1):
         # Извлекаем данные
@@ -187,13 +179,11 @@ def format_opportunities(
         profit_percent = opportunity.get("profit_percent", 0)
 
         # Форматируем
-        message.extend(
-            (
-                f"{i}. <b>{item_name}</b>",
-                f"💲 Покупка: <b>${buy_price:.2f}</b> ➡️ Продажа: <b>${sell_price:.2f}</b>",
-                f"📈 Прибыль: <b>${profit:.2f}</b> ({profit_percent:.2f}%)",
-            )
-        )
+        message.extend((
+            f"{i}. <b>{item_name}</b>",
+            f"💲 Покупка: <b>${buy_price:.2f}</b> ➡️ Продажа: <b>${sell_price:.2f}</b>",
+            f"📈 Прибыль: <b>${profit:.2f}</b> ({profit_percent:.2f}%)",
+        ))
 
         # Добавляем ссылки если есть
         if "buy_link" in opportunity:
@@ -253,12 +243,10 @@ def format_sales_history(
     page_items = sales[start_idx:end_idx]
 
     message = [f"📊 *История продаж (последние {len(sales)} записей)*"]
-    message.extend(
-        (
-            f"📄 Страница {page + 1}/{(len(sales) + items_per_page - 1) // items_per_page}",
-            "",
-        )
-    )
+    message.extend((
+        f"📄 Страница {page + 1}/{(len(sales) + items_per_page - 1) // items_per_page}",
+        "",
+    ))
 
     for i, sale in enumerate(page_items, start=start_idx + 1):
         # Извлекаем данные
@@ -277,14 +265,12 @@ def format_sales_history(
             date_formatted = "Неизвестно"
 
         # Форматируем
-        message.extend(
-            (
-                f"{i}. *{item_name}*",
-                f"💰 Сумма: *${price_usd:.2f}*",
-                f"🕒 Дата: _{date_formatted}_",
-                "",
-            )
-        )  # Пустая строка между продажами
+        message.extend((
+            f"{i}. *{item_name}*",
+            f"💰 Сумма: *${price_usd:.2f}*",
+            f"🕒 Дата: _{date_formatted}_",
+            "",
+        ))  # Пустая строка между продажами
 
     return "\n".join(message)
 
@@ -620,19 +606,15 @@ def format_best_opportunities(
         profit_percent = opportunity.get("profit_percent", 0)
 
         # Форматируем
-        message.extend(
-            (
-                f"{i}. <b>{item_name}</b>",
-                f"💲 Покупка: <b>${buy_price:.2f}</b> ➡️ Продажа: <b>${sell_price:.2f}</b>",
-                f"📈 Прибыль: <b>${profit:.2f}</b> ({profit_percent:.2f}%)",
-            )
-        )
+        message.extend((
+            f"{i}. <b>{item_name}</b>",
+            f"💲 Покупка: <b>${buy_price:.2f}</b> ➡️ Продажа: <b>${sell_price:.2f}</b>",
+            f"📈 Прибыль: <b>${profit:.2f}</b> ({profit_percent:.2f}%)",
+        ))
 
         # Добавляем информацию о ликвидности если есть
         if "sales_per_day" in opportunity:
-            message.append(
-                f"🔄 Продаж в день: <b>{opportunity['sales_per_day']:.2f}</b>"
-            )
+            message.append(f"🔄 Продаж в день: <b>{opportunity['sales_per_day']:.2f}</b>")
 
         message.append("")  # Пустая строка между возможностями
 
@@ -714,9 +696,7 @@ def format_target_item(target: dict[str, Any]) -> str:
     return "\n".join(message)
 
 
-def format_target_competition_analysis(
-    analysis: dict[str, Any], item_title: str
-) -> str:
+def format_target_competition_analysis(analysis: dict[str, Any], item_title: str) -> str:
     """Форматирует результаты анализа конкуренции buy orders.
 
     Args:
@@ -772,27 +752,19 @@ def format_target_competition_analysis(
     # Рекомендации
     message.append("\n💡 *Рекомендации:*")
     if competition_level == "low":
-        message.extend(
-            (
-                "• Отличная возможность для создания таргета",
-                "• Можно установить более низкую цену",
-            )
-        )
+        message.extend((
+            "• Отличная возможность для создания таргета",
+            "• Можно установить более низкую цену",
+        ))
     elif competition_level == "medium":
-        message.extend(
-            ("• Средняя конкуренция", "• Установите цену чуть выше лучшего buy order")
-        )
+        message.extend(("• Средняя конкуренция", "• Установите цену чуть выше лучшего buy order"))
     else:  # high
-        message.extend(
-            ("• Высокая конкуренция", "• Рекомендуется поднять цену для приоритета")
-        )
+        message.extend(("• Высокая конкуренция", "• Рекомендуется поднять цену для приоритета"))
 
     return "\n".join(message)
 
 
-def format_aggregated_prices(
-    prices: list[dict[str, Any]], show_details: bool = True
-) -> str:
+def format_aggregated_prices(prices: list[dict[str, Any]], show_details: bool = True) -> str:
     """Форматирует агрегированные цены из API v1.1.0.
 
     Args:
@@ -819,13 +791,11 @@ def format_aggregated_prices(
         spread = best_sell - best_buy if best_sell and best_buy else 0
         spread_percent = (spread / best_buy * 100) if best_buy > 0 else 0
 
-        message.extend(
-            (
-                f"{i}. *{title}*",
-                f"   \U0001f7e2 Buy: ${best_buy:.2f} ({buy_count} orders)",
-                f"   🔴 Sell: ${best_sell:.2f} ({sell_count} offers)",
-            )
-        )
+        message.extend((
+            f"{i}. *{title}*",
+            f"   \U0001f7e2 Buy: ${best_buy:.2f} ({buy_count} orders)",
+            f"   🔴 Sell: ${best_sell:.2f} ({sell_count} offers)",
+        ))
 
         if show_details and spread > 0:
             message.append(f"   📊 Спред: ${spread:.2f} ({spread_percent:.1f}%)")
@@ -887,13 +857,11 @@ def format_market_depth(depth_data: dict[str, Any]) -> str:
 
             emoji = "🟢" if liquidity >= 80 else "🟡" if liquidity >= 60 else "🔴"
 
-            message.extend(
-                (
-                    f"{i}. {emoji} *{title}*",
-                    f"   💧 Ликвидность: {liquidity:.0f}/100",
-                    f"   📊 Спред: {spread_pct:.2f}%",
-                    "",
-                )
-            )
+            message.extend((
+                f"{i}. {emoji} *{title}*",
+                f"   💧 Ликвидность: {liquidity:.0f}/100",
+                f"   📊 Спред: {spread_pct:.2f}%",
+                "",
+            ))
 
     return "\n".join(message)

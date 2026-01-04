@@ -2,7 +2,7 @@
 
 **Версия API**: v1.1.0
 **Базовый URL**: `https://api.dmarket.com`
-**Дата документа**: 28 декабря 2025 г.
+**Дата документа**: 4 января 2026 г.
 **Последнее обновление**: Актуализировано с [официальной документацией](https://docs.dmarket.com/v1/swagger.html)
 **Swagger/OpenAPI**: https://docs.dmarket.com/v1/swagger.html
 **GitHub примеры**: https://github.com/dmarket/dm-trading-tools

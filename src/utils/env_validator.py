@@ -51,9 +51,9 @@ def validate_required_env_vars() -> dict[str, Any]:
             continue
 
         try:
-            if var_type == int:
+            if var_type is int:
                 validated[var_name] = int(value)
-            elif var_type == bool:
+            elif var_type is bool:
                 validated[var_name] = value.lower() in {"true", "1", "yes"}
             else:
                 validated[var_name] = value
@@ -66,9 +66,9 @@ def validate_required_env_vars() -> dict[str, Any]:
 
         if value:
             try:
-                if var_type == int:
+                if var_type is int:
                     validated[var_name] = int(value)
-                elif var_type == bool:
+                elif var_type is bool:
                     validated[var_name] = value.lower() in {"true", "1", "yes"}
                 else:
                     validated[var_name] = value

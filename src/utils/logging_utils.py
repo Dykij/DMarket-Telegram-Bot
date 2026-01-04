@@ -139,8 +139,7 @@ def setup_sentry(
         if "extra" in event:
             for key in list(event["extra"].keys()):
                 if any(
-                    sensitive in key.lower()
-                    for sensitive in ["password", "secret", "token", "key"]
+                    sensitive in key.lower() for sensitive in ["password", "secret", "token", "key"]
                 ):
                     event["extra"][key] = "[Filtered]"
 
@@ -260,9 +259,7 @@ def setup_logging(
         )
         file_handler.setLevel(numeric_level)
 
-        file_formatter = (
-            JSONFormatter() if json_format else logging.Formatter(format_string)
-        )
+        file_formatter = JSONFormatter() if json_format else logging.Formatter(format_string)
 
         file_handler.setFormatter(file_formatter)
         root_logger.addHandler(file_handler)

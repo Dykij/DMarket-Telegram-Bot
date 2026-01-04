@@ -11,12 +11,10 @@ from prometheus_client import Counter, Gauge, Histogram, Info, generate_latest
 
 # Информация о версии
 bot_info = Info("dmarket_bot", "DMarket Telegram Bot информация")
-bot_info.info(
-    {
-        "version": "1.0.0",
-        "python_version": "3.11+",
-    }
-)
+bot_info.info({
+    "version": "1.0.0",
+    "python_version": "3.11+",
+})
 
 # Счетчики команд
 commands_total = Counter(
@@ -131,9 +129,7 @@ class MetricsCollector:
         commands_total.labels(command=command, user_id=str(user_id)).inc()
 
     @staticmethod
-    def record_api_request(
-        endpoint: str, method: str, status: int, duration: float
-    ) -> None:
+    def record_api_request(endpoint: str, method: str, status: int, duration: float) -> None:
         """Записать API запрос."""
         api_requests_total.labels(
             endpoint=endpoint,
@@ -149,9 +145,7 @@ class MetricsCollector:
         errors_total.labels(error_type=error_type, module=module).inc()
 
     @staticmethod
-    def record_arbitrage_scan(
-        level: str, game: str, duration: float, found: int
-    ) -> None:
+    def record_arbitrage_scan(level: str, game: str, duration: float, found: int) -> None:
         """Записать сканирование арбитража."""
         arbitrage_scans_total.labels(level=level, game=game).inc()
         arbitrage_opportunities_found.labels(level=level, game=game).inc(found)

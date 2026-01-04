@@ -34,6 +34,9 @@ from src.telegram_bot.keyboards.arbitrage import (
     get_marketplace_comparison_keyboard,
     get_modern_arbitrage_keyboard,
     get_smart_trading_keyboard,
+    get_waxpeer_keyboard,
+    get_waxpeer_listings_keyboard,
+    get_waxpeer_settings_keyboard,
     get_x5_opportunities_keyboard,
 )
 
@@ -48,8 +51,7 @@ from src.telegram_bot.keyboards.filters import (
     get_rarity_keyboard,
 )
 
-# Main keyboards - REMOVED: main.py, main_simplified.py, minimal_main.py
-# Use keyboards from simplified_menu_handler instead
+# Main keyboard is in src.telegram_bot.handlers.main_keyboard
 # Settings keyboards
 from src.telegram_bot.keyboards.settings import (
     create_confirm_keyboard,
@@ -107,7 +109,7 @@ __all__ = [
     # Settings
     "create_confirm_keyboard",
     "create_game_selection_keyboard",
-    # REMOVED from main.py: create_main_keyboard, get_games_keyboard, get_main_menu_keyboard, get_permanent_reply_keyboard
+    # Main keyboard is in src.telegram_bot.handlers.main_keyboard
     "create_market_analysis_keyboard",
     "create_pagination_keyboard",
     # Alerts
@@ -145,6 +147,10 @@ __all__ = [
     "get_risk_profile_keyboard",
     "get_settings_keyboard",
     "get_smart_trading_keyboard",
+    # Waxpeer
+    "get_waxpeer_keyboard",
+    "get_waxpeer_listings_keyboard",
+    "get_waxpeer_settings_keyboard",
     "get_webapp_button",
     "get_webapp_keyboard",
     "get_x5_opportunities_keyboard",

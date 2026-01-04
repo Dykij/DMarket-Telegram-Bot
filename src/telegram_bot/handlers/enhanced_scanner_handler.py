@@ -10,6 +10,7 @@ from telegram.ext import CallbackQueryHandler, ContextTypes
 
 from src.dmarket.enhanced_arbitrage_scanner import EnhancedArbitrageScanner
 
+
 logger = logging.getLogger(__name__)
 
 

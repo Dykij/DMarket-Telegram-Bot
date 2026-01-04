@@ -39,11 +39,12 @@
         // ========== GitHub Copilot (REQUIRED) ==========
         "github.copilot", // GitHub Copilot
         "github.copilot-chat", // GitHub Copilot Chat
-        "github.copilot-labs", // Copilot Labs - experimental features
-        // ========== REST API Testing (OPTIONAL) ==========
+        // ========== REST API Testing (RECOMMENDED) ==========
         "humao.rest-client", // REST client for API testing
         // ========== Jupyter (OPTIONAL) ==========
-        "ms-toolsai.jupyter" // Jupyter notebooks
+        "ms-toolsai.jupyter", // Jupyter notebooks
+        // ========== Security (RECOMMENDED) ==========
+        "snyk-security.vscode-vuln-cost" // Security vulnerabilities
     ],
     "unwantedRecommendations": [
         // Old tools replaced by Ruff
@@ -52,6 +53,7 @@
         "ms-python.isort",
         "ms-python.black-formatter", // Use Ruff instead
         "matangover.mypy", // Use ms-python.mypy-type-checker instead
+        "github.copilot-labs", // Deprecated - features moved to main Copilot
         // Not needed for this project
         "esbenp.prettier-vscode", // Not needed for Python
         "dbaeumer.vscode-eslint" // Not needed for Python

@@ -83,14 +83,10 @@ class PortfolioHandler:
         keyboard = [
             [
                 InlineKeyboardButton("📊 Details", callback_data="portfolio:details"),
-                InlineKeyboardButton(
-                    "📈 Performance", callback_data="portfolio:performance"
-                ),
+                InlineKeyboardButton("📈 Performance", callback_data="portfolio:performance"),
             ],
             [
-                InlineKeyboardButton(
-                    "🎯 Risk Analysis", callback_data="portfolio:risk"
-                ),
+                InlineKeyboardButton("🎯 Risk Analysis", callback_data="portfolio:risk"),
                 InlineKeyboardButton(
                     "🔀 Diversification", callback_data="portfolio:diversification"
                 ),
@@ -100,9 +96,7 @@ class PortfolioHandler:
                 InlineKeyboardButton("🔄 Sync", callback_data="portfolio:sync"),
             ],
             [
-                InlineKeyboardButton(
-                    "💰 Update Prices", callback_data="portfolio:update_prices"
-                ),
+                InlineKeyboardButton("💰 Update Prices", callback_data="portfolio:update_prices"),
             ],
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -241,9 +235,9 @@ class PortfolioHandler:
         if not items:
             await query.edit_message_text(
                 "📋 *Portfolio Items*\n\nNo items in portfolio.",
-                reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("« Back", callback_data="portfolio:back")]]
-                ),
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("« Back", callback_data="portfolio:back")]
+                ]),
                 parse_mode="Markdown",
             )
             return
@@ -263,9 +257,9 @@ class PortfolioHandler:
 
         await query.edit_message_text(
             "\n".join(lines),
-            reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("« Back", callback_data="portfolio:back")]]
-            ),
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("« Back", callback_data="portfolio:back")]
+            ]),
             parse_mode="Markdown",
         )
 
@@ -285,9 +279,9 @@ class PortfolioHandler:
 
         await query.edit_message_text(
             "\n".join(lines),
-            reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("« Back", callback_data="portfolio:back")]]
-            ),
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("« Back", callback_data="portfolio:back")]
+            ]),
             parse_mode="Markdown",
         )
 
@@ -319,9 +313,9 @@ class PortfolioHandler:
 
         await query.edit_message_text(
             "\n".join(lines),
-            reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("« Back", callback_data="portfolio:back")]]
-            ),
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("« Back", callback_data="portfolio:back")]
+            ]),
             parse_mode="Markdown",
         )
 
@@ -351,9 +345,9 @@ class PortfolioHandler:
 
         await query.edit_message_text(
             "\n".join(lines),
-            reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("« Back", callback_data="portfolio:back")]]
-            ),
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("« Back", callback_data="portfolio:back")]
+            ]),
             parse_mode="Markdown",
         )
 
@@ -379,16 +373,16 @@ class PortfolioHandler:
         if synced > 0:
             await query.edit_message_text(
                 f"✅ Synced {synced} items from your inventory!",
-                reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("« Back", callback_data="portfolio:back")]]
-                ),
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("« Back", callback_data="portfolio:back")]
+                ]),
             )
         else:
             await query.edit_message_text(
                 "ℹ️ No new items to sync or API not configured.",
-                reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("« Back", callback_data="portfolio:back")]]
-                ),
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("« Back", callback_data="portfolio:back")]
+                ]),
             )
 
     async def _update_prices(self, query, user_id: int) -> None:
@@ -402,16 +396,16 @@ class PortfolioHandler:
             await query.edit_message_text(
                 f"✅ Updated {updated} prices!\n\n"
                 f"New portfolio value: ${float(metrics.total_value):.2f}",
-                reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("« Back", callback_data="portfolio:back")]]
-                ),
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("« Back", callback_data="portfolio:back")]
+                ]),
             )
         else:
             await query.edit_message_text(
                 "ℹ️ No prices to update or API not configured.",
-                reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("« Back", callback_data="portfolio:back")]]
-                ),
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("« Back", callback_data="portfolio:back")]
+                ]),
             )
 
     async def _remove_item(self, query, user_id: int, item_id: str) -> None:
@@ -421,16 +415,16 @@ class PortfolioHandler:
         if removed:
             await query.edit_message_text(
                 f"✅ Removed {removed.title} from portfolio.",
-                reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("« Back", callback_data="portfolio:back")]]
-                ),
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("« Back", callback_data="portfolio:back")]
+                ]),
             )
         else:
             await query.edit_message_text(
                 "❌ Item not found in portfolio.",
-                reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("« Back", callback_data="portfolio:back")]]
-                ),
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("« Back", callback_data="portfolio:back")]
+                ]),
             )
 
     async def _show_main_menu(self, query, user_id: int) -> None:
@@ -441,14 +435,10 @@ class PortfolioHandler:
         keyboard = [
             [
                 InlineKeyboardButton("📊 Details", callback_data="portfolio:details"),
-                InlineKeyboardButton(
-                    "📈 Performance", callback_data="portfolio:performance"
-                ),
+                InlineKeyboardButton("📈 Performance", callback_data="portfolio:performance"),
             ],
             [
-                InlineKeyboardButton(
-                    "🎯 Risk Analysis", callback_data="portfolio:risk"
-                ),
+                InlineKeyboardButton("🎯 Risk Analysis", callback_data="portfolio:risk"),
                 InlineKeyboardButton(
                     "🔀 Diversification", callback_data="portfolio:diversification"
                 ),
@@ -458,9 +448,7 @@ class PortfolioHandler:
                 InlineKeyboardButton("🔄 Sync", callback_data="portfolio:sync"),
             ],
             [
-                InlineKeyboardButton(
-                    "💰 Update Prices", callback_data="portfolio:update_prices"
-                ),
+                InlineKeyboardButton("💰 Update Prices", callback_data="portfolio:update_prices"),
             ],
         ]
 

@@ -94,9 +94,9 @@ class MoneyManagerConfig:
     medium_threshold: float = 1000.0
     large_threshold: float = 5000.0
 
-    # ROI targets by tier
-    micro_roi: float = 20.0  # Aggressive for tiny balances
-    small_roi: float = 15.0
+    # ROI targets by tier (optimized for liquidity over margin)
+    micro_roi: float = 8.0  # Fast turnover for tiny balances (was 20%)
+    small_roi: float = 10.0  # Balanced approach (was 15%)
     medium_roi: float = 12.0
     large_roi: float = 10.0
     whale_roi: float = 8.0
@@ -160,9 +160,27 @@ class MoneyManager:
 
         try:
             balance_data = await self.api_client.get_balance()
+
+            # Debug log to see what API returns
+            logger.debug("money_manager_raw_balance", data=balance_data)
+
+            new_balance = 0.0
+
             if isinstance(balance_data, dict):
-                usd_cents = int(balance_data.get("usd", 0))
-                new_balance = usd_cents / 100.0
+                # DMarket returns balance in cents as string (e.g., "4550")
+                usd_val = balance_data.get("usd", "0")
+
+                # Handle nested dict case (API structure may vary)
+                if isinstance(usd_val, dict):
+                    usd_val = usd_val.get("amount", "0")
+
+                try:
+                    # Use float(str(...)) for bulletproof parsing
+                    usd_cents = int(float(str(usd_val)))
+                    new_balance = usd_cents / 100.0
+                except (ValueError, TypeError) as parse_err:
+                    logger.error("balance_parse_error", val=usd_val, error=str(parse_err))
+                    new_balance = 0.0
             else:
                 new_balance = 0.0
 
@@ -335,14 +353,14 @@ class MoneyManager:
         """
         tier_strategies = {
             BalanceTier.MICRO: (
-                "🎯 MICRO Strategy: Aggressive growth mode.\n"
-                "Focus: Cheap cases & stickers with high turnover.\n"
-                "Risk: Higher ROI requirements (20%+) to maximize small capital."
+                "🎯 MICRO Strategy: Fast turnover mode.\n"
+                "Focus: Cheap cases, stickers & high-liquidity items.\n"
+                "Target: ROI 5-8% with quick resale. Volume over margin."
             ),
             BalanceTier.SMALL: (
                 "📈 SMALL Strategy: Balanced growth mode.\n"
                 "Focus: Cases, cheap skins, and TF2 keys.\n"
-                "Risk: Moderate ROI (15%+) with diversification."
+                "Target: ROI 10%+ with diversification."
             ),
             BalanceTier.MEDIUM: (
                 "💼 MEDIUM Strategy: Stable growth mode.\n"

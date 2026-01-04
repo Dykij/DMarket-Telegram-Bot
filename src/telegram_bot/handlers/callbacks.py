@@ -12,7 +12,11 @@ from telegram.ext import ContextTypes
 
 from src.dmarket.arbitrage import GAMES, find_arbitrage_opportunities_advanced
 from src.telegram_bot.handlers.dmarket_status import dmarket_status_impl
-from src.telegram_bot.handlers.simplified_menu_handler import get_main_menu_keyboard
+from src.telegram_bot.handlers.main_keyboard import (
+    auto_trade_start,
+    get_main_keyboard,
+    main_menu_callback,
+)
 from src.telegram_bot.keyboards import (
     CB_BACK,
     CB_CANCEL,
@@ -20,20 +24,17 @@ from src.telegram_bot.keyboards import (
     CB_HELP,
     create_pagination_keyboard,
     get_alert_keyboard,
-    get_auto_arbitrage_keyboard,
     get_back_to_arbitrage_keyboard,
     get_dmarket_webapp_keyboard,
     get_game_selection_keyboard,
     get_language_keyboard,
     get_marketplace_comparison_keyboard,
-    get_modern_arbitrage_keyboard,
     get_risk_profile_keyboard,
     get_settings_keyboard,
 )
 from src.telegram_bot.utils.api_client import setup_api_client
 from src.telegram_bot.utils.formatters import format_opportunities
 from src.utils.telegram_error_handlers import telegram_error_boundary
-
 
 logger = logging.getLogger(__name__)
 
@@ -50,83 +51,22 @@ async def arbitrage_callback_impl(
         context: Контекст взаимодействия с ботом
 
     """
-    if not update.callback_query:
-        return
-
-    await update.callback_query.edit_message_text(
-        "🔍 <b>Меню арбитража:</b>",
-        reply_markup=get_modern_arbitrage_keyboard(),
-        parse_mode=ParseMode.HTML,
-    )
+    # Redirect to auto_trade in main_keyboard
+    await auto_trade_start(update, context)
 
 
 async def handle_dmarket_arbitrage_impl(
     update: Update, context: ContextTypes.DEFAULT_TYPE, mode: str = "normal"
 ) -> None:
-    """Обрабатывает callback 'dmarket_arbitrage'.
+    """Обрабатывает callback 'dmarket_arbitrage' - redirect to auto_trade.
 
     Args:
         update: Объект Update от Telegram
         context: Контекст взаимодействия с ботом
-        mode: Режим арбитража
+        mode: Режим арбитража (ignored, redirects to auto_trade)
 
     """
-    if not update.callback_query:
-        return
-
-    query = update.callback_query
-    # Сообщаем пользователю, что начался поиск возможностей
-    await query.edit_message_text(
-        "🔍 <b>Поиск арбитражных возможностей...</b>\n\n"
-        "Это может занять некоторое время, пожалуйста, подождите.",
-        parse_mode=ParseMode.HTML,
-    )
-
-    # Получаем API клиент
-    api_client = setup_api_client()
-    if not api_client:
-        await query.edit_message_text(
-            "❌ <b>Ошибка</b>\n\n"
-            "Не удалось инициализировать API клиент DMarket. "
-            "Проверьте настройки API ключей.",
-            reply_markup=get_back_to_arbitrage_keyboard(),
-            parse_mode=ParseMode.HTML,
-        )
-        return
-
-    try:
-        # Поиск арбитражных возможностей
-        async with api_client:
-            opportunities = await find_arbitrage_opportunities_advanced(
-                api_client=api_client, mode=mode
-            )
-
-        if not opportunities:
-            await query.edit_message_text(
-                "🔍 <b>Арбитражные возможности не найдены</b>\n\n"
-                "Попробуйте изменить параметры поиска или повторить позже.",
-                reply_markup=get_back_to_arbitrage_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
-            return
-
-        # Сохраняем результаты в контексте для пагинации
-        if context.user_data is not None:
-            context.user_data["arbitrage_opportunities"] = opportunities
-            context.user_data["arbitrage_page"] = 0
-            context.user_data["arbitrage_mode"] = mode
-
-        # Форматируем и отображаем результаты
-        await show_arbitrage_opportunities(query, context)
-
-    except Exception as e:
-        logger.exception("Ошибка при поиске арбитражных возможностей: %s", e)
-
-        await query.edit_message_text(
-            f"❌ <b>Ошибка при поиске возможностей</b>\n\nПроизошла ошибка: {e!s}",
-            reply_markup=get_back_to_arbitrage_keyboard(),
-            parse_mode=ParseMode.HTML,
-        )
+    await auto_trade_start(update, context)
 
 
 async def show_arbitrage_opportunities(
@@ -319,19 +259,18 @@ async def button_callback_handler(
     await query.answer()
 
     try:
-        # Skip simplified menu callbacks - they are handled by simplified_menu_handler
-        if callback_data.startswith("simple_"):
-            # These callbacks are handled by the simplified_menu_handler registered in group 1
+        # Skip main keyboard callbacks - they are handled by main_keyboard registered in group 0
+        if callback_data.startswith("auto_trade_") or callback_data.startswith("target"):
+            # These callbacks are handled by the main_keyboard
             return
 
-        # Обработка для упрощенного меню (НОВОЕ)
-        if callback_data == "simple_menu":
-            from src.telegram_bot.handlers.simplified_menu_handler import start_simple_menu
-
-            await start_simple_menu(update, context)
+        # Обработка для главного меню
+        if callback_data == "main_menu":
+            await main_menu_callback(update, context)
+            return
 
         # Обработка для баланса
-        elif callback_data == "balance":
+        if callback_data == "balance":
             await dmarket_status_impl(update, context, status_message=query.message)
 
         # Обработка для поиска
@@ -374,26 +313,21 @@ async def button_callback_handler(
         elif callback_data == "back_to_main":
             await query.edit_message_text(
                 "👋 <b>Главное меню</b>\n\nВыберите действие:",
-                reply_markup=get_main_menu_keyboard(),
+                reply_markup=get_main_keyboard(),
                 parse_mode=ParseMode.HTML,
             )
 
-        # Обработка для арбитража
+        # Обработка для арбитража - redirect to auto_trade
         elif callback_data in {"arbitrage", "arbitrage_menu"}:
-            await arbitrage_callback_impl(update, context)
+            await auto_trade_start(update, context)
 
         elif callback_data == "auto_arbitrage":
-            # Показываем меню автоарбитража
-            keyboard = get_auto_arbitrage_keyboard()
-            await query.edit_message_text(
-                "🤖 <b>Выберите режим автоматического арбитража:</b>",
-                reply_markup=keyboard,
-                parse_mode=ParseMode.HTML,
-            )
+            # Redirect to auto_trade
+            await auto_trade_start(update, context)
 
         elif callback_data == "dmarket_arbitrage":
-            # Делегируем обработку специализированному обработчику
-            await handle_dmarket_arbitrage_impl(update, context, mode="normal")
+            # Redirect to auto_trade
+            await auto_trade_start(update, context)
 
         elif callback_data == "best_opportunities":
             # Делегируем обработку специализированному обработчику
@@ -530,19 +464,11 @@ async def button_callback_handler(
 
         elif callback_data == "back_to_menu":
             # Возврат в главное меню
-            await query.edit_message_text(
-                "👋 <b>Главное меню</b>\n\nВыберите действие:",
-                parse_mode=ParseMode.HTML,
-                reply_markup=get_modern_arbitrage_keyboard(),
-            )
+            await main_menu_callback(update, context)
 
-        # Обработчик для Enhanced Scanner Menu
+        # Обработчик для Enhanced Scanner Menu - redirect to auto_trade
         elif callback_data == "enhanced_scanner_menu":
-            from src.telegram_bot.handlers.enhanced_scanner_handler import (
-                show_enhanced_scanner_menu,
-            )
-
-            await show_enhanced_scanner_menu(update, context)
+            await auto_trade_start(update, context)
 
         # Обработчики для настроек
         elif callback_data == "settings_api_keys":
@@ -648,7 +574,7 @@ async def button_callback_handler(
         elif callback_data == "main_menu":
             await query.edit_message_text(
                 "👋 <b>Главное меню</b>\n\nВыберите действие:",
-                reply_markup=get_main_menu_keyboard(),
+                reply_markup=get_main_keyboard(),
                 parse_mode=ParseMode.HTML,
             )
 
@@ -914,11 +840,8 @@ async def button_callback_handler(
             )
 
         elif callback_data == "arb_auto":
-            await query.edit_message_text(
-                "🤖 <b>Автоматический арбитраж</b>\n\nУправление автоматической торговлей:",
-                reply_markup=get_auto_arbitrage_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
+            # Redirect to auto_trade
+            await auto_trade_start(update, context)
 
         elif callback_data == "arb_analysis":
             await query.edit_message_text(
@@ -927,9 +850,9 @@ async def button_callback_handler(
                 parse_mode=ParseMode.HTML,
             )
 
-        # Auto-arbitrage handlers
+        # Auto-arbitrage handlers - redirect to auto_trade
         elif callback_data == "auto_arb_start":
-            await query.answer("⚠️ Для запуска авто-арбитража настройте API ключи", show_alert=True)
+            await auto_trade_start(update, context)
 
         elif callback_data == "auto_arb_stop":
             await query.answer("ℹ️ Авто-арбитраж не запущен", show_alert=True)
@@ -1202,14 +1125,14 @@ async def button_callback_handler(
         elif callback_data in {CB_BACK, "back"}:
             await query.edit_message_text(
                 "👋 <b>Главное меню</b>\n\nВыберите действие:",
-                reply_markup=get_main_menu_keyboard(),
+                reply_markup=get_main_keyboard(),
                 parse_mode=ParseMode.HTML,
             )
 
         elif callback_data in {CB_CANCEL, "cancel"}:
             await query.edit_message_text(
                 "❌ <b>Действие отменено</b>\n\nВыберите следующее действие:",
-                reply_markup=get_main_menu_keyboard(),
+                reply_markup=get_main_keyboard(),
                 parse_mode=ParseMode.HTML,
             )
 

@@ -80,9 +80,7 @@ class DatabaseManager:
             }
 
             # Check for in-memory SQLite
-            is_memory = (
-                ":memory:" in self.database_url or "mode=memory" in self.database_url
-            )
+            is_memory = ":memory:" in self.database_url or "mode=memory" in self.database_url
 
             if not is_memory:
                 kwargs["pool_size"] = self.pool_size
@@ -216,9 +214,15 @@ class DatabaseManager:
             "CREATE INDEX IF NOT EXISTS idx_trade_history_created_at ON trade_history(created_at DESC)",
             "CREATE INDEX IF NOT EXISTS idx_trade_history_status ON trade_history(status)",
             "CREATE INDEX IF NOT EXISTS idx_trade_history_user_id ON trade_history(user_id)",
+            # Pending trades indexes (table: pending_trades) - NEW for persistence
+            "CREATE INDEX IF NOT EXISTS idx_pending_trades_asset_id ON pending_trades(asset_id)",
+            "CREATE INDEX IF NOT EXISTS idx_pending_trades_status ON pending_trades(status)",
+            "CREATE INDEX IF NOT EXISTS idx_pending_trades_game ON pending_trades(game)",
+            "CREATE INDEX IF NOT EXISTS idx_pending_trades_created_at ON pending_trades(created_at DESC)",
             # Composite indexes for common queries
             "CREATE INDEX IF NOT EXISTS idx_cmdlog_user_cmd ON command_log(user_id, command)",
             "CREATE INDEX IF NOT EXISTS idx_market_game_date ON market_data(game, created_at DESC)",
+            "CREATE INDEX IF NOT EXISTS idx_pending_status_game ON pending_trades(status, game)",
         ]
 
         for index_sql in indexes:
@@ -278,11 +282,7 @@ class DatabaseManager:
 
                 # Return updated user with new data
                 return User(
-                    id=(
-                        UUID(user_row.id)
-                        if isinstance(user_row.id, str)
-                        else user_row.id
-                    ),
+                    id=(UUID(user_row.id) if isinstance(user_row.id, str) else user_row.id),
                     telegram_id=user_row.telegram_id,
                     username=username or user_row.username,
                     first_name=first_name or user_row.first_name,
@@ -684,9 +684,7 @@ class DatabaseManager:
             )
 
     @cached(cache=None, ttl=300, key_prefix="recent_scans")
-    async def get_recent_scans_cached(
-        self, user_id: UUID, limit: int = 10
-    ) -> list[dict[str, Any]]:
+    async def get_recent_scans_cached(self, user_id: UUID, limit: int = 10) -> list[dict[str, Any]]:
         """
         Получить последние сканирования пользователя с кэшированием.
 
@@ -720,15 +718,13 @@ class DatabaseManager:
             scans = []
             for row in result.fetchall():
                 params = json.loads(row[1]) if row[1] else {}
-                scans.append(
-                    {
-                        "command": row[0],
-                        "parameters": params,
-                        "created_at": row[2],
-                        "success": row[3],
-                        "execution_time_ms": row[4],
-                    }
-                )
+                scans.append({
+                    "command": row[0],
+                    "parameters": params,
+                    "created_at": row[2],
+                    "success": row[3],
+                    "execution_time_ms": row[4],
+                })
 
             return scans
 
@@ -767,20 +763,18 @@ class DatabaseManager:
         async with self.get_async_session() as session:
             values = []
             for item in items:
-                values.append(
-                    {
-                        "id": str(uuid4()),
-                        "item_id": item.get("item_id"),
-                        "game": item.get("game"),
-                        "item_name": item.get("item_name"),
-                        "price_usd": item.get("price_usd"),
-                        "price_change_24h": item.get("price_change_24h"),
-                        "volume_24h": item.get("volume_24h"),
-                        "market_cap": item.get("market_cap"),
-                        "data_source": item.get("data_source", "dmarket"),
-                        "created_at": datetime.now(UTC),
-                    }
-                )
+                values.append({
+                    "id": str(uuid4()),
+                    "item_id": item.get("item_id"),
+                    "game": item.get("game"),
+                    "item_name": item.get("item_name"),
+                    "price_usd": item.get("price_usd"),
+                    "price_change_24h": item.get("price_change_24h"),
+                    "volume_24h": item.get("volume_24h"),
+                    "market_cap": item.get("market_cap"),
+                    "data_source": item.get("data_source", "dmarket"),
+                    "created_at": datetime.now(UTC),
+                })
 
             # Batch insert
             await session.execute(

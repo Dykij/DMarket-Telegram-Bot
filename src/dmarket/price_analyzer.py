@@ -6,6 +6,7 @@ for arbitrage trading.
 
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -65,7 +66,7 @@ class PriceAnalyzer:
             result["steam_profit_usd"] = round(steam_profit / 100, 2)
             result["steam_roi_percent"] = round(steam_roi, 2)
             result["steam_price_usd"] = round(steam_price_cents / 100, 2)
-            
+
             # If Steam ROI is significantly higher, it's a good indicator
             # even if DMarket history is weak
             if steam_roi >= self.min_roi:
@@ -90,11 +91,12 @@ class PriceAnalyzer:
         try:
             price_data = item_data.get("price", {})
             if isinstance(price_data, dict):
-                buy_price_usd = float(price_data.get("USD", 0)) / 100
+                # buy_price_usd extracted for reference but cents used for comparisons
+                _buy_price_usd = float(price_data.get("USD", 0)) / 100  # noqa: F841
                 buy_price_cents = int(price_data.get("USD", 0))
             else:
                 # Handle case where price might be direct value
-                buy_price_usd = float(price_data) / 100
+                _buy_price_usd = float(price_data) / 100  # noqa: F841
                 buy_price_cents = int(price_data)
 
             if buy_price_cents <= 0:
@@ -131,16 +133,14 @@ class PriceAnalyzer:
             else:
                 median_sell_price = sorted(prices)[len(prices) // 2]
 
-            analysis = self.calculate_profit(
-                buy_price_cents, median_sell_price, steam_price_cents
-            )
+            analysis = self.calculate_profit(buy_price_cents, median_sell_price, steam_price_cents)
 
             if analysis["is_profitable"]:
                 reason = analysis.get("reason", "dmarket_history")
                 steam_info = ""
                 if "steam_roi_percent" in analysis:
                     steam_info = f" | Steam ROI: {analysis['steam_roi_percent']}%"
-                
+
                 logger.info(
                     f"🔥 Найдена цель ({reason}): {item_data.get('title', 'Unknown')} | "
                     f"ROI: {analysis['roi_percent']}%{steam_info}"

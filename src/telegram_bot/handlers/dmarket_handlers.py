@@ -10,7 +10,6 @@ from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.exceptions import handle_exceptions
 from src.utils.logging_utils import get_logger
 
-
 logger = get_logger(__name__)
 
 
@@ -111,9 +110,15 @@ class DMarketHandler:
                 )
             return
 
-        # Получаем значения в центах (строки)
-        usd_cents = int(balance_data.get("usd", 0))
-        usd_available_cents = int(balance_data.get("usdAvailableToWithdraw", 0))
+        # Получаем значения в центах (строки) - безопасный парсинг
+        try:
+            usd_cents = int(float(str(balance_data.get("usd", 0))))
+        except (ValueError, TypeError):
+            usd_cents = 0
+        try:
+            usd_available_cents = int(float(str(balance_data.get("usdAvailableToWithdraw", 0))))
+        except (ValueError, TypeError):
+            usd_available_cents = 0
 
         # Конвертируем в доллары
         total_balance = usd_cents / 100.0

@@ -100,9 +100,7 @@ async def analyze_target_competition(
             else:
                 # Нет конкурентов, ставим на 5-7% ниже рынка
                 analysis["recommended_price"] = round(market_offer_price * 0.93, 2)
-                analysis["strategy"] = (
-                    "Конкурентов нет, рекомендуется 7% снижение от рыночной цены"
-                )
+                analysis["strategy"] = "Конкурентов нет, рекомендуется 7% снижение от рыночной цены"
 
         logger.info(
             f"Анализ завершен: конкурентов {analysis['total_orders']}, "
@@ -168,7 +166,9 @@ async def assess_competition(
             recommendation = "Нет конкурентов - отличная возможность для таргета"
             suggested_price = None
         elif should_proceed:
-            recommendation = f"Низкая конкуренция ({total_orders} ордеров) - рекомендуется создать таргет"
+            recommendation = (
+                f"Низкая конкуренция ({total_orders} ордеров) - рекомендуется создать таргет"
+            )
             suggested_price = round(best_price + 0.05, 2) if best_price > 0 else None
         else:
             recommendation = (
@@ -238,9 +238,7 @@ async def filter_low_competition_items(
         Список предметов с низкой конкуренцией
 
     """
-    logger.info(
-        f"Фильтрация {len(items)} предметов по конкуренции (макс: {max_competition})"
-    )
+    logger.info(f"Фильтрация {len(items)} предметов по конкуренции (макс: {max_competition})")
 
     filtered_items = []
 

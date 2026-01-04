@@ -14,7 +14,7 @@ Example:
 import functools
 import inspect
 import logging
-from typing import Any
+from typing import Any, TypeVar
 
 from telegram.ext import ContextTypes
 
@@ -22,9 +22,6 @@ from src.interfaces import IDMarketAPI
 
 
 logger = logging.getLogger(__name__)
-
-
-from typing import TypeVar
 
 
 T = TypeVar("T")

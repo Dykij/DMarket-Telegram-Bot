@@ -7,7 +7,6 @@ Phase 2: Code Readability Improvements - Task 9
 import logging
 from typing import Any
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -172,10 +171,26 @@ class BalanceChecker:
             Success result dictionary with balance info
 
         """
-        # Extract balance data
-        usd_balance = response.get("usd", {})
-        available_amount = usd_balance.get("available", 0)
-        frozen_amount = usd_balance.get("frozen", 0)
+        # Extract balance data - handle both formats:
+        # Format 1: {"usd": "4550"} - cents as string
+        # Format 2: {"usd": {"available": 4550, "frozen": 0}}
+        usd_data = response.get("usd", 0)
+
+        if isinstance(usd_data, dict):
+            # Nested format
+            try:
+                available_amount = int(float(str(usd_data.get("available", 0))))
+                frozen_amount = int(float(str(usd_data.get("frozen", 0))))
+            except (ValueError, TypeError):
+                available_amount = 0
+                frozen_amount = 0
+        else:
+            # Simple format - all balance is available
+            try:
+                available_amount = int(float(str(usd_data))) if usd_data else 0
+            except (ValueError, TypeError):
+                available_amount = 0
+            frozen_amount = 0
 
         # Convert from cents to dollars
         available_balance = float(available_amount) / 100
@@ -227,7 +242,9 @@ class BalanceChecker:
         # Sufficient funds
         if has_funds:
             diagnosis = "sufficient_funds"
-            display_message = f"Баланс DMarket: ${available_balance:.2f} USD (достаточно для арбитража)"
+            display_message = (
+                f"Баланс DMarket: ${available_balance:.2f} USD (достаточно для арбитража)"
+            )
             return diagnosis, display_message
 
         # Insufficient funds - zero balance

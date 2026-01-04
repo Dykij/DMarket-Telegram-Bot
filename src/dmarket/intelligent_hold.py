@@ -12,6 +12,7 @@ from typing import Any
 
 import structlog
 
+
 logger = structlog.get_logger(__name__)
 
 

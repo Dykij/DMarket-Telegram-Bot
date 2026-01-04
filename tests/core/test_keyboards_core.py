@@ -1,15 +1,14 @@
 """Тесты для клавиатур Telegram бота.
 
-Покрывают keyboards:
-- Основное меню (УСТАРЕЛО - перемещено в simplified_menu_handler)
+Покрывает:
+- Главная клавиатура (main_keyboard.py)
 - Клавиатура настроек
-- Клавиатура выбора игр (УСТАРЕЛО - перемещено в simplified_menu_handler)
 - Константы callback_data
 """
 
-import pytest
 from telegram import InlineKeyboardMarkup
 
+from src.telegram_bot.handlers.main_keyboard import get_main_keyboard
 from src.telegram_bot.keyboards import (
     CB_BACK,
     CB_CANCEL,
@@ -21,8 +20,6 @@ from src.telegram_bot.keyboards import (
     get_back_to_settings_keyboard,
     get_settings_keyboard,
 )
-
-# REMOVED: get_games_keyboard, get_main_menu_keyboard moved to simplified_menu_handler
 
 
 class TestKeyboardConstants:
@@ -39,23 +36,92 @@ class TestKeyboardConstants:
         assert CB_SETTINGS == "settings"
 
 
-@pytest.mark.skip(reason="MainMenuKeyboard moved to simplified_menu_handler")
-class TestMainMenuKeyboard:
-    """Тесты основного меню (УСТАРЕЛО)."""
+class TestMainKeyboard:
+    """Тесты главной клавиатуры."""
 
-    def test_main_menu_keyboard_creation(self):
-        """Тест создания основного меню."""
+    def test_main_keyboard_creation(self):
+        """Тест создания главной клавиатуры."""
+        keyboard = get_main_keyboard()
 
-    def test_main_menu_has_balance_button(self):
-        """Тест наличия кнопки баланса."""
+        assert isinstance(keyboard, InlineKeyboardMarkup)
+        assert len(keyboard.inline_keyboard) == 6
 
-    def test_main_menu_has_analytics_button(self):
-        """Тест наличия кнопки аналитики."""
+    def test_main_keyboard_with_balance(self):
+        """Тест клавиатуры с балансом."""
+        keyboard = get_main_keyboard(balance=100.50)
 
-    def test_main_menu_has_arbitrage_button(self):
-        """Тест наличия кнопки арбитража."""
+        all_buttons = [btn for row in keyboard.inline_keyboard for btn in row]
+        button_texts = [btn.text for btn in all_buttons]
 
-        assert any("Арбитраж" in text for text in button_texts)
+        assert any("$100.50" in text for text in button_texts)
+
+    def test_main_keyboard_has_auto_trade(self):
+        """Тест наличия кнопки авто-торговли."""
+        keyboard = get_main_keyboard()
+
+        all_buttons = [btn for row in keyboard.inline_keyboard for btn in row]
+        button_texts = [btn.text for btn in all_buttons]
+
+        assert any("АВТО-ТОРГОВЛЯ" in text for text in button_texts)
+
+    def test_main_keyboard_has_targets(self):
+        """Тест наличия кнопки таргетов."""
+        keyboard = get_main_keyboard()
+
+        all_buttons = [btn for row in keyboard.inline_keyboard for btn in row]
+        button_texts = [btn.text for btn in all_buttons]
+
+        assert any("ТАРГЕТЫ" in text for text in button_texts)
+
+    def test_main_keyboard_has_emergency_stop(self):
+        """Тест наличия кнопки экстренной остановки."""
+        keyboard = get_main_keyboard()
+
+        all_buttons = [btn for row in keyboard.inline_keyboard for btn in row]
+        button_texts = [btn.text for btn in all_buttons]
+
+        assert any("ЭКСТРЕННАЯ" in text for text in button_texts)
+
+    def test_main_keyboard_has_whitelist_blacklist(self):
+        """Тест наличия WhiteList и BlackList."""
+        keyboard = get_main_keyboard()
+
+        all_buttons = [btn for row in keyboard.inline_keyboard for btn in row]
+        button_texts = [btn.text for btn in all_buttons]
+
+        assert any("WhiteList" in text for text in button_texts)
+        assert any("BlackList" in text for text in button_texts)
+
+    def test_main_keyboard_has_repricing(self):
+        """Тест наличия кнопки репрайсинга."""
+        keyboard = get_main_keyboard()
+
+        all_buttons = [btn for row in keyboard.inline_keyboard for btn in row]
+        button_texts = [btn.text for btn in all_buttons]
+
+        assert any("Репрайсинг" in text for text in button_texts)
+
+    def test_main_keyboard_has_settings(self):
+        """Тест наличия кнопки настроек."""
+        keyboard = get_main_keyboard()
+
+        all_buttons = [btn for row in keyboard.inline_keyboard for btn in row]
+        button_texts = [btn.text for btn in all_buttons]
+
+        assert any("Настройки" in text for text in button_texts)
+
+    def test_main_keyboard_callback_data(self):
+        """Тест callback_data кнопок."""
+        keyboard = get_main_keyboard()
+
+        all_buttons = [btn for row in keyboard.inline_keyboard for btn in row]
+        callback_data = [btn.callback_data for btn in all_buttons]
+
+        assert "auto_trade_start" in callback_data
+        assert "targets_menu" in callback_data
+        assert "emergency_stop" in callback_data
+        assert "whitelist_menu" in callback_data
+        assert "blacklist_menu" in callback_data
 
 
 class TestSettingsKeyboard:
@@ -105,40 +171,14 @@ class TestBackToSettingsKeyboard:
         assert "Назад" in button.text or "настройкам" in button.text
 
 
-@pytest.mark.skip(reason="GamesKeyboard moved to simplified_menu_handler")
-class TestGamesKeyboard:
-    """Тесты клавиатуры выбора игр (УСТАРЕЛО)."""
-
-    def test_games_keyboard_creation(self):
-        """Тест создания клавиатуры игр."""
-
-    def test_games_keyboard_with_custom_prefix(self):
-        """Тест создания клавиатуры с кастомным префиксом."""
-
-    def test_games_keyboard_has_buttons(self):
-        """Тест наличия кнопок в клавиатуре игр."""
-
-
-@pytest.mark.skip(reason="Uses removed keyboards from main.py")
-class TestKeyboardIntegration:
-    """Интеграционные тесты клавиатур (УСТАРЕЛО)."""
-
-    def test_all_keyboards_are_valid_telegram_objects(self):
-        """Тест что все клавиатуры - валидные объекты Telegram."""
-        pass
-
-    def test_keyboards_have_callback_data(self):
-        """Тест что у кнопок есть callback_data."""
-        pass
-
-
 class TestKeyboardStructure:
     """Тесты структуры клавиатур."""
 
-    @pytest.mark.skip(reason="get_main_menu_keyboard removed")
-    def test_main_menu_has_multiple_rows(self):
-        """Тест что основное меню имеет несколько рядов."""
-        pass
+    def test_main_keyboard_has_multiple_rows(self):
+        """Тест что главная клавиатура имеет несколько рядов."""
+        keyboard = get_main_keyboard()
+
+        assert len(keyboard.inline_keyboard) >= 5
 
     def test_settings_keyboard_has_multiple_rows(self):
         """Тест что настройки имеют несколько рядов."""

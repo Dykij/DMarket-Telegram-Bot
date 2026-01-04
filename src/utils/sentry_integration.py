@@ -100,9 +100,7 @@ def init_sentry(
         )
 
 
-def before_send_callback(
-    event: dict[str, Any], hint: dict[str, Any]
-) -> dict[str, Any] | None:
+def before_send_callback(event: dict[str, Any], hint: dict[str, Any]) -> dict[str, Any] | None:
     """Filter and modify events before sending to Sentry.
 
     Args:

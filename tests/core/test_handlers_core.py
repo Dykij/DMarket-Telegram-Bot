@@ -1,252 +1,457 @@
-"""Комплексные тесты для обработчиков команд Telegram бота.
+"""Тесты для обработчиков команд Telegram бота.
 
-Покрывают основные команды:
-- /start
-- /help
-- /balance
-- /webapp
+Покрывает главную клавиатуру (main_keyboard.py):
+- /start - главное меню
+- Авто-торговля
+- Таргеты
+- Управление (WhiteList, BlackList, Репрайсинг)
+- Баланс, Инвентарь
+- Экстренная остановка
 """
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from telegram import InlineKeyboardMarkup
 
-from src.telegram_bot.handlers.commands import (
-    help_command,
+from src.telegram_bot.handlers.main_keyboard import (
+    auto_trade_start,
+    auto_trade_status,
+    emergency_stop,
+    get_main_keyboard,
+    main_menu_callback,
+    repricing_toggle,
+    settings_menu,
+    show_balance,
     start_command,
-    webapp_command,
+    targets_menu,
 )
+
+
+class TestMainKeyboard:
+    """Тесты главной клавиатуры."""
+
+    def test_get_main_keyboard_without_balance(self):
+        """Тест создания клавиатуры без баланса."""
+        keyboard = get_main_keyboard()
+
+        assert isinstance(keyboard, InlineKeyboardMarkup)
+        assert len(keyboard.inline_keyboard) == 6  # 6 рядов кнопок
+
+    def test_get_main_keyboard_with_balance(self):
+        """Тест создания клавиатуры с балансом."""
+        keyboard = get_main_keyboard(balance=45.50)
+
+        assert isinstance(keyboard, InlineKeyboardMarkup)
+
+        # Проверяем что баланс отображается
+        all_buttons = [btn for row in keyboard.inline_keyboard for btn in row]
+        button_texts = [btn.text for btn in all_buttons]
+
+        assert any("$45.50" in text for text in button_texts)
+
+    def test_main_keyboard_has_auto_trade_button(self):
+        """Тест наличия кнопки авто-торговли."""
+        keyboard = get_main_keyboard()
+
+        all_buttons = [btn for row in keyboard.inline_keyboard for btn in row]
+        button_texts = [btn.text for btn in all_buttons]
+
+        assert any("АВТО-ТОРГОВЛЯ" in text for text in button_texts)
+
+    def test_main_keyboard_has_targets_button(self):
+        """Тест наличия кнопки таргетов."""
+        keyboard = get_main_keyboard()
+
+        all_buttons = [btn for row in keyboard.inline_keyboard for btn in row]
+        button_texts = [btn.text for btn in all_buttons]
+
+        assert any("ТАРГЕТЫ" in text for text in button_texts)
+
+    def test_main_keyboard_has_emergency_stop(self):
+        """Тест наличия кнопки экстренной остановки."""
+        keyboard = get_main_keyboard()
+
+        all_buttons = [btn for row in keyboard.inline_keyboard for btn in row]
+        button_texts = [btn.text for btn in all_buttons]
+
+        assert any("ЭКСТРЕННАЯ ОСТАНОВКА" in text for text in button_texts)
+
+    def test_main_keyboard_has_whitelist_blacklist(self):
+        """Тест наличия кнопок WhiteList и BlackList."""
+        keyboard = get_main_keyboard()
+
+        all_buttons = [btn for row in keyboard.inline_keyboard for btn in row]
+        button_texts = [btn.text for btn in all_buttons]
+
+        assert any("WhiteList" in text for text in button_texts)
+        assert any("BlackList" in text for text in button_texts)
 
 
 class TestStartCommand:
     """Тесты команды /start."""
 
-    @pytest.mark.asyncio()
-    async def test_start_command_sends_welcome_message(self):
-        """Тест отправки приветственного сообщения."""
-        # Arrange
+    @pytest.mark.asyncio
+    async def test_start_command_sends_welcome(self):
+        """Тест отправки приветствия."""
         update = MagicMock()
+        update.effective_user.id = 123456
+        update.effective_user.first_name = "Test"
         update.message.reply_text = AsyncMock()
-        context = MagicMock()
-        context.user_data = {}
 
-        # Act
+        context = MagicMock()
+        context.bot_data = {}
+        context.application = MagicMock()
+        context.application.dmarket_api = None
+
         await start_command(update, context)
 
-        # Assert
-        assert update.message.reply_text.call_count >= 1
-
-        # Проверяем первый вызов - приветствие
-        first_call = update.message.reply_text.call_args_list[0]
-        message_text = first_call[0][0]
-        assert "Привет" in message_text or "бот" in message_text
-
-    @pytest.mark.asyncio()
-    async def test_start_command_enables_keyboard(self):
-        """Тест активации клавиатуры."""
-        # Arrange
-        update = MagicMock()
-        update.message.reply_text = AsyncMock()
-        context = MagicMock()
-        context.user_data = {}
-
-        # Act
-        await start_command(update, context)
-
-        # Assert
-        assert context.user_data.get("keyboard_enabled") is True
-
-    @pytest.mark.asyncio()
-    async def test_start_command_with_existing_user(self):
-        """Тест команды /start для существующего пользователя."""
-        # Arrange
-        update = MagicMock()
-        update.message.reply_text = AsyncMock()
-        context = MagicMock()
-        context.user_data = {"existing": True}
-
-        # Act
-        await start_command(update, context)
-
-        # Assert
-        assert update.message.reply_text.called
-
-
-class TestHelpCommand:
-    """Тесты команды /help."""
-
-    @pytest.mark.asyncio()
-    async def test_help_command_sends_help_text(self):
-        """Тест отправки справочного текста."""
-        # Arrange
-        update = MagicMock()
-        update.message.reply_text = AsyncMock()
-        context = MagicMock()
-
-        # Act
-        await help_command(update, context)
-
-        # Assert
         update.message.reply_text.assert_called_once()
 
-        # Проверяем содержимое справки
+        # Проверяем содержимое сообщения
         call_args = update.message.reply_text.call_args
-        help_text = call_args[0][0]
+        message_text = call_args[0][0]
 
-        assert "/start" in help_text
-        assert "/arbitrage" in help_text or "/balance" in help_text
+        assert "Привет" in message_text
+        assert "Test" in message_text  # Имя пользователя
+        assert "DMarket" in message_text
 
-    @pytest.mark.asyncio()
-    async def test_help_command_includes_keyboard(self):
-        """Тест наличия клавиатуры в ответе /help."""
-        # Arrange
+    @pytest.mark.asyncio
+    async def test_start_command_sends_keyboard(self):
+        """Тест отправки клавиатуры."""
         update = MagicMock()
+        update.effective_user.id = 123456
+        update.effective_user.first_name = "Test"
         update.message.reply_text = AsyncMock()
+
         context = MagicMock()
+        context.bot_data = {}
+        context.application = MagicMock()
+        context.application.dmarket_api = None
 
-        # Act
-        await help_command(update, context)
-
-        # Assert
-        call_args = update.message.reply_text.call_args
-        kwargs = call_args[1] if len(call_args) > 1 else call_args.kwargs
-
-        # Проверяем наличие reply_markup
-        assert "reply_markup" in kwargs
-
-
-class TestWebAppCommand:
-    """Тесты команды /webapp."""
-
-    @pytest.mark.asyncio()
-    async def test_webapp_command_sends_message(self):
-        """Тест отправки сообщения с WebApp."""
-        # Arrange
-        update = MagicMock()
-        update.message.reply_text = AsyncMock()
-        context = MagicMock()
-
-        # Act
-        await webapp_command(update, context)
-
-        # Assert
-        update.message.reply_text.assert_called_once()
-
-
-class TestCommandHandlersIntegration:
-    """Интеграционные тесты обработчиков команд."""
-
-    @pytest.mark.asyncio()
-    async def test_command_flow_start_then_help(self):
-        """Тест последовательности команд /start затем /help."""
-        # Arrange
-        update = MagicMock()
-        update.message.reply_text = AsyncMock()
-        context = MagicMock()
-        context.user_data = {}
-
-        # Act - сначала /start
         await start_command(update, context)
 
-        # Assert - клавиатура активирована
-        assert context.user_data.get("keyboard_enabled") is True
-
-        # Act - затем /help
-        await help_command(update, context)
-
-        # Assert - оба вызова выполнены
-        assert update.message.reply_text.call_count >= 3  # 2 от /start + 1 от /help
-
-    @pytest.mark.asyncio()
-    async def test_multiple_command_calls(self):
-        """Тест множественных вызовов команд."""
-        # Arrange
-        update = MagicMock()
-        update.message.reply_text = AsyncMock()
-        context = MagicMock()
-        context.user_data = {}
-
-        # Act - вызываем команды несколько раз
-        await start_command(update, context)
-        await help_command(update, context)
-        await start_command(update, context)
-
-        # Assert - все вызовы выполнены
-        assert update.message.reply_text.call_count >= 5
-
-
-class TestCommandErrorHandling:
-    """Тесты обработки ошибок в командах."""
-
-    @pytest.mark.asyncio()
-    async def test_start_command_with_none_context(self):
-        """Тест /start с None user_data."""
-        # Arrange
-        update = MagicMock()
-        update.message.reply_text = AsyncMock()
-        context = MagicMock()
-        context.user_data = {}  # Изменено с None на пустой dict
-
-        # Act
-        await start_command(update, context)
-
-        # Assert - команда должна обработаться без исключений
-        assert context.user_data.get("keyboard_enabled") is True
-
-    @pytest.mark.asyncio()
-    async def test_help_command_with_minimal_update(self):
-        """Тест /help с минимальным update объектом."""
-        # Arrange
-        update = MagicMock()
-        update.message.reply_text = AsyncMock()
-        context = MagicMock()
-
-        # Act
-        await help_command(update, context)
-
-        # Assert - должно выполниться без ошибок
-        assert update.message.reply_text.called
-
-
-class TestCommandResponseFormat:
-    """Тесты формата ответов команд."""
-
-    @pytest.mark.asyncio()
-    async def test_start_command_uses_html_parse_mode(self):
-        """Тест использования HTML в /start."""
-        # Arrange
-        update = MagicMock()
-        update.message.reply_text = AsyncMock()
-        context = MagicMock()
-        context.user_data = {}
-
-        # Act
-        await start_command(update, context)
-
-        # Assert - проверяем что parse_mode указан
-        calls = update.message.reply_text.call_args_list
-
-        # Хотя бы один вызов должен использовать parse_mode
-        has_parse_mode = False
-        for call in calls:
-            kwargs = call[1] if len(call) > 1 else call.kwargs
-            if "parse_mode" in kwargs:
-                has_parse_mode = True
-                break
-
-        assert has_parse_mode
-
-    @pytest.mark.asyncio()
-    async def test_help_command_uses_html_parse_mode(self):
-        """Тест использования HTML в /help."""
-        # Arrange
-        update = MagicMock()
-        update.message.reply_text = AsyncMock()
-        context = MagicMock()
-
-        # Act
-        await help_command(update, context)
-
-        # Assert
         call_kwargs = update.message.reply_text.call_args.kwargs
-        assert "parse_mode" in call_kwargs
+        assert "reply_markup" in call_kwargs
+        assert isinstance(call_kwargs["reply_markup"], InlineKeyboardMarkup)
+
+    @pytest.mark.asyncio
+    async def test_start_command_uses_html_parse_mode(self):
+        """Тест использования HTML."""
+        update = MagicMock()
+        update.effective_user.id = 123456
+        update.effective_user.first_name = "Test"
+        update.message.reply_text = AsyncMock()
+
+        context = MagicMock()
+        context.bot_data = {}
+        context.application = MagicMock()
+        context.application.dmarket_api = None
+
+        await start_command(update, context)
+
+        call_kwargs = update.message.reply_text.call_args.kwargs
+        assert call_kwargs.get("parse_mode") == "HTML"
+
+
+class TestMainMenuCallback:
+    """Тесты callback главного меню."""
+
+    @pytest.mark.asyncio
+    async def test_main_menu_callback_edits_message(self):
+        """Тест редактирования сообщения."""
+        query = MagicMock()
+        query.answer = AsyncMock()
+        query.edit_message_text = AsyncMock()
+
+        update = MagicMock()
+        update.callback_query = query
+
+        context = MagicMock()
+        context.bot_data = {}
+        context.application = MagicMock()
+        context.application.dmarket_api = None
+
+        await main_menu_callback(update, context)
+
+        query.answer.assert_called_once()
+        query.edit_message_text.assert_called_once()
+
+
+class TestAutoTradeStart:
+    """Тесты меню авто-торговли."""
+
+    @pytest.mark.asyncio
+    async def test_auto_trade_start_shows_menu(self):
+        """Тест показа меню авто-торговли."""
+        query = MagicMock()
+        query.answer = AsyncMock()
+        query.edit_message_text = AsyncMock()
+
+        update = MagicMock()
+        update.callback_query = query
+
+        context = MagicMock()
+        context.bot_data = {"auto_trade_running": False}
+        context.application = MagicMock()
+        context.application.auto_buyer = None
+        context.application.orchestrator = None
+
+        await auto_trade_start(update, context)
+
+        query.answer.assert_called_once()
+        query.edit_message_text.assert_called_once()
+
+        # Проверяем содержимое
+        call_args = query.edit_message_text.call_args
+        message_text = call_args[0][0]
+
+        assert "АВТО-ТОРГОВЛЯ" in message_text
+        assert "ОСТАНОВЛЕНА" in message_text
+
+    @pytest.mark.asyncio
+    async def test_auto_trade_shows_running_status(self):
+        """Тест показа статуса работающей торговли."""
+        query = MagicMock()
+        query.answer = AsyncMock()
+        query.edit_message_text = AsyncMock()
+
+        update = MagicMock()
+        update.callback_query = query
+
+        context = MagicMock()
+        context.bot_data = {"auto_trade_running": True}
+        context.application = MagicMock()
+        context.application.auto_buyer = MagicMock()
+        context.application.orchestrator = MagicMock()
+
+        await auto_trade_start(update, context)
+
+        call_args = query.edit_message_text.call_args
+        message_text = call_args[0][0]
+
+        assert "РАБОТАЕТ" in message_text
+
+
+class TestTargetsMenu:
+    """Тесты меню таргетов."""
+
+    @pytest.mark.asyncio
+    async def test_targets_menu_shows_info(self):
+        """Тест показа информации о таргетах."""
+        query = MagicMock()
+        query.answer = AsyncMock()
+        query.edit_message_text = AsyncMock()
+
+        update = MagicMock()
+        update.callback_query = query
+
+        context = MagicMock()
+        context.bot_data = {}
+
+        await targets_menu(update, context)
+
+        query.answer.assert_called_once()
+        query.edit_message_text.assert_called_once()
+
+        call_args = query.edit_message_text.call_args
+        message_text = call_args[0][0]
+
+        assert "ТАРГЕТЫ" in message_text
+        assert "Buy Orders" in message_text
+
+
+class TestEmergencyStop:
+    """Тесты экстренной остановки."""
+
+    @pytest.mark.asyncio
+    async def test_emergency_stop_stops_all(self):
+        """Тест остановки всех процессов."""
+        query = MagicMock()
+        query.answer = AsyncMock()
+        query.edit_message_text = AsyncMock()
+
+        update = MagicMock()
+        update.callback_query = query
+
+        auto_buyer = MagicMock()
+        auto_buyer.config = MagicMock()
+        auto_buyer.config.enabled = True
+
+        orchestrator = MagicMock()
+        orchestrator.stop = AsyncMock()
+
+        context = MagicMock()
+        context.bot_data = {"auto_trade_running": True, "repricing_enabled": True}
+        context.application = MagicMock()
+        context.application.auto_buyer = auto_buyer
+        context.application.orchestrator = orchestrator
+
+        await emergency_stop(update, context)
+
+        # Проверяем что всё остановлено
+        assert auto_buyer.config.enabled is False
+        orchestrator.stop.assert_called_once()
+        assert context.bot_data["auto_trade_running"] is False
+        assert context.bot_data["repricing_enabled"] is False
+
+        # Проверяем сообщение
+        call_args = query.edit_message_text.call_args
+        message_text = call_args[0][0]
+
+        assert "ЭКСТРЕННАЯ ОСТАНОВКА" in message_text
+
+
+class TestRepricingToggle:
+    """Тесты переключения репрайсинга."""
+
+    @pytest.mark.asyncio
+    async def test_repricing_toggle_enables(self):
+        """Тест включения репрайсинга."""
+        query = MagicMock()
+        query.answer = AsyncMock()
+        query.edit_message_text = AsyncMock()
+
+        update = MagicMock()
+        update.callback_query = query
+
+        context = MagicMock()
+        context.bot_data = {"repricing_enabled": False}
+
+        await repricing_toggle(update, context)
+
+        assert context.bot_data["repricing_enabled"] is True
+
+    @pytest.mark.asyncio
+    async def test_repricing_toggle_disables(self):
+        """Тест выключения репрайсинга."""
+        query = MagicMock()
+        query.answer = AsyncMock()
+        query.edit_message_text = AsyncMock()
+
+        update = MagicMock()
+        update.callback_query = query
+
+        context = MagicMock()
+        context.bot_data = {"repricing_enabled": True}
+
+        await repricing_toggle(update, context)
+
+        assert context.bot_data["repricing_enabled"] is False
+
+
+class TestShowBalance:
+    """Тесты показа баланса."""
+
+    @pytest.mark.asyncio
+    async def test_show_balance_with_api(self):
+        """Тест показа баланса с API."""
+        query = MagicMock()
+        query.answer = AsyncMock()
+        query.edit_message_text = AsyncMock()
+
+        update = MagicMock()
+        update.callback_query = query
+
+        dmarket_api = MagicMock()
+        dmarket_api.get_balance = AsyncMock(return_value={"usd": 4550, "dmc": 1000})
+
+        context = MagicMock()
+        context.bot_data = {}
+        context.application = MagicMock()
+        context.application.dmarket_api = dmarket_api
+
+        await show_balance(update, context)
+
+        call_args = query.edit_message_text.call_args
+        message_text = call_args[0][0]
+
+        assert "$45.50" in message_text
+        assert "10.00" in message_text  # DMC
+
+    @pytest.mark.asyncio
+    async def test_show_balance_without_api(self):
+        """Тест показа баланса без API."""
+        query = MagicMock()
+        query.answer = AsyncMock()
+        query.edit_message_text = AsyncMock()
+
+        update = MagicMock()
+        update.callback_query = query
+
+        context = MagicMock()
+        context.bot_data = {}
+        context.application = MagicMock()
+        context.application.dmarket_api = None
+
+        await show_balance(update, context)
+
+        call_args = query.edit_message_text.call_args
+        message_text = call_args[0][0]
+
+        assert "Ошибка" in message_text
+
+
+class TestSettingsMenu:
+    """Тесты меню настроек."""
+
+    @pytest.mark.asyncio
+    async def test_settings_menu_shows(self):
+        """Тест показа меню настроек."""
+        query = MagicMock()
+        query.answer = AsyncMock()
+        query.edit_message_text = AsyncMock()
+
+        update = MagicMock()
+        update.callback_query = query
+
+        context = MagicMock()
+        context.bot_data = {}
+
+        with patch.dict("os.environ", {"DRY_RUN": "true"}):
+            await settings_menu(update, context)
+
+        call_args = query.edit_message_text.call_args
+        message_text = call_args[0][0]
+
+        assert "НАСТРОЙКИ" in message_text
+        assert "ТЕСТОВЫЙ" in message_text
+
+
+class TestAutoTradeStatus:
+    """Тесты статуса авто-торговли."""
+
+    @pytest.mark.asyncio
+    async def test_auto_trade_status_with_stats(self):
+        """Тест показа статуса со статистикой."""
+        query = MagicMock()
+        query.answer = AsyncMock()
+        query.edit_message_text = AsyncMock()
+
+        update = MagicMock()
+        update.callback_query = query
+
+        dmarket_api = MagicMock()
+        dmarket_api.get_balance = AsyncMock(return_value={"usd": 4550})
+
+        auto_buyer = MagicMock()
+        auto_buyer.get_purchase_stats = MagicMock(return_value={
+            "total_purchases": 10,
+            "successful": 8,
+            "total_spent_usd": 50.0,
+        })
+
+        context = MagicMock()
+        context.bot_data = {"auto_trade_running": True}
+        context.application = MagicMock()
+        context.application.dmarket_api = dmarket_api
+        context.application.auto_buyer = auto_buyer
+
+        await auto_trade_status(update, context)
+
+        call_args = query.edit_message_text.call_args
+        message_text = call_args[0][0]
+
+        assert "СТАТУС" in message_text
+        assert "$45.50" in message_text
+        assert "10" in message_text  # total_purchases

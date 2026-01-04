@@ -5,14 +5,14 @@
 [project]
 name = "dmarket-bot"
 version = "1.0.0"
-description = "Бот для торговли игровыми предметами на площадке DMarket"
+description = "Бот для торговли игровыми предметами на площадках DMarket и Waxpeer"
 readme = "README.md"
 requires-python = ">=3.11"  # Requires Python 3.11+ (3.12+ recommended)
 license = {text = "MIT"}
 authors = [
     {name = "DMarket Bot Team", email = "example@example.com"}
 ]
-keywords = ["telegram", "bot", "dmarket", "trading", "arbitrage"]
+keywords = ["telegram", "bot", "dmarket", "waxpeer", "trading", "arbitrage", "csgo", "cs2"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",

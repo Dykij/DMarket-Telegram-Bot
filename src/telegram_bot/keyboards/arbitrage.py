@@ -66,6 +66,9 @@ def get_modern_arbitrage_keyboard() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="🔄 Сравнить площадки", callback_data="arb_compare"),
         ],
         [
+            InlineKeyboardButton(text="💎 Waxpeer P2P", callback_data="waxpeer_menu"),
+        ],
+        [
             InlineKeyboardButton(text="◀️ Главное меню", callback_data="main_menu"),
         ],
     ]
@@ -329,4 +332,122 @@ def get_market_status_keyboard() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="◀️ Назад", callback_data="smart_menu"),
         ],
     ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def get_waxpeer_keyboard() -> InlineKeyboardMarkup:
+    """Создать клавиатуру Waxpeer P2P.
+
+    Returns:
+        InlineKeyboardMarkup для управления Waxpeer интеграцией
+    """
+    keyboard = [
+        [
+            InlineKeyboardButton(text="💰 Баланс Waxpeer", callback_data="waxpeer_balance"),
+            InlineKeyboardButton(text="📦 Мои лоты", callback_data="waxpeer_listings"),
+        ],
+        [
+            InlineKeyboardButton(text="📤 Листинг предметов", callback_data="waxpeer_list_items"),
+            InlineKeyboardButton(text="💎 Ценные находки", callback_data="waxpeer_valuable"),
+        ],
+        [
+            InlineKeyboardButton(text="♻️ Авто-репрайсинг", callback_data="waxpeer_reprice"),
+            InlineKeyboardButton(text="📊 Статистика", callback_data="waxpeer_stats"),
+        ],
+        [
+            InlineKeyboardButton(text="⚙️ Настройки", callback_data="waxpeer_settings"),
+        ],
+        [
+            InlineKeyboardButton(text="◀️ Назад", callback_data="arbitrage"),
+        ],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def get_waxpeer_settings_keyboard(
+    reprice_enabled: bool = True,
+    shadow_enabled: bool = True,
+    auto_hold: bool = True,
+) -> InlineKeyboardMarkup:
+    """Создать клавиатуру настроек Waxpeer.
+
+    Args:
+        reprice_enabled: Включен ли авто-репрайсинг
+        shadow_enabled: Включен ли shadow listing
+        auto_hold: Включен ли auto-hold для редких
+
+    Returns:
+        InlineKeyboardMarkup для настроек Waxpeer
+    """
+    reprice_status = "✅" if reprice_enabled else "❌"
+    shadow_status = "✅" if shadow_enabled else "❌"
+    hold_status = "✅" if auto_hold else "❌"
+
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                text=f"{reprice_status} Авто-репрайсинг",
+                callback_data="waxpeer_toggle_reprice",
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text=f"{shadow_status} Shadow Listing",
+                callback_data="waxpeer_toggle_shadow",
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text=f"{hold_status} Auto-Hold редких",
+                callback_data="waxpeer_toggle_hold",
+            ),
+        ],
+        [
+            InlineKeyboardButton(text="💵 Наценки", callback_data="waxpeer_markup_settings"),
+            InlineKeyboardButton(text="⏱️ Интервалы", callback_data="waxpeer_interval_settings"),
+        ],
+        [
+            InlineKeyboardButton(text="◀️ Назад", callback_data="waxpeer_menu"),
+        ],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def get_waxpeer_listings_keyboard(page: int = 1, total_pages: int = 1) -> InlineKeyboardMarkup:
+    """Создать клавиатуру для просмотра лотов Waxpeer.
+
+    Args:
+        page: Текущая страница
+        total_pages: Всего страниц
+
+    Returns:
+        InlineKeyboardMarkup для навигации по лотам
+    """
+    keyboard = []
+
+    # Навигация по страницам
+    if total_pages > 1:
+        nav_row = []
+        if page > 1:
+            nav_row.append(
+                InlineKeyboardButton(text="◀️ Пред.", callback_data=f"waxpeer_page_{page - 1}")
+            )
+        nav_row.append(
+            InlineKeyboardButton(text=f"{page}/{total_pages}", callback_data="waxpeer_page_info")
+        )
+        if page < total_pages:
+            nav_row.append(
+                InlineKeyboardButton(text="След. ▶️", callback_data=f"waxpeer_page_{page + 1}")
+            )
+        keyboard.append(nav_row)
+
+    keyboard.extend([
+        [
+            InlineKeyboardButton(text="🔄 Обновить", callback_data="waxpeer_refresh_listings"),
+            InlineKeyboardButton(text="❌ Снять все", callback_data="waxpeer_remove_all"),
+        ],
+        [
+            InlineKeyboardButton(text="◀️ Назад", callback_data="waxpeer_menu"),
+        ],
+    ])
     return InlineKeyboardMarkup(keyboard)

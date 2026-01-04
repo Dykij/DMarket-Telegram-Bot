@@ -29,6 +29,7 @@ from src.dmarket.parallel_scanner import ParallelScanner
 from src.dmarket.target_cleaner import TargetCleaner
 from src.interfaces import IDMarketAPI
 
+
 logger = structlog.get_logger(__name__)
 
 

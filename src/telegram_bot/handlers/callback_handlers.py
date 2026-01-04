@@ -11,16 +11,15 @@ from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
 from src.telegram_bot.handlers.dmarket_status import dmarket_status_impl
-from src.telegram_bot.handlers.simplified_menu_handler import (
-    get_main_menu_keyboard,
-    start_simple_menu,
+from src.telegram_bot.handlers.main_keyboard import (
+    auto_trade_start,
+    get_main_keyboard,
+    main_menu_callback,
 )
 from src.telegram_bot.keyboards import (
     get_alert_keyboard,
-    get_auto_arbitrage_keyboard,
     get_dmarket_webapp_keyboard,
     get_game_selection_keyboard,
-    get_modern_arbitrage_keyboard,
     get_settings_keyboard,
 )
 
@@ -34,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 async def handle_simple_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle simple_menu callback."""
-    await start_simple_menu(update, context)
+    await main_menu_callback(update, context)
 
 
 async def handle_balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -103,7 +102,7 @@ async def handle_back_to_main(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     await update.callback_query.edit_message_text(
         "👋 <b>Главное меню</b>\n\nВыберите действие:",
-        reply_markup=get_main_menu_keyboard(),
+        reply_markup=get_main_keyboard(),
         parse_mode=ParseMode.HTML,
     )
 
@@ -119,34 +118,18 @@ async def handle_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 
 async def handle_arbitrage_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle arbitrage/arbitrage_menu callback."""
-    if not update.callback_query:
-        return
-
-    await update.callback_query.edit_message_text(
-        "🔍 <b>Меню арбитража:</b>",
-        reply_markup=get_modern_arbitrage_keyboard(),
-        parse_mode=ParseMode.HTML,
-    )
+    """Handle arbitrage/arbitrage_menu callback - redirect to auto_trade."""
+    await auto_trade_start(update, context)
 
 
 async def handle_auto_arbitrage(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle auto_arbitrage callback."""
-    if not update.callback_query:
-        return
-
-    await update.callback_query.edit_message_text(
-        "🤖 <b>Выберите режим автоматического арбитража:</b>",
-        reply_markup=get_auto_arbitrage_keyboard(),
-        parse_mode=ParseMode.HTML,
-    )
+    """Handle auto_arbitrage callback - redirect to auto_trade."""
+    await auto_trade_start(update, context)
 
 
 async def handle_dmarket_arbitrage(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle dmarket_arbitrage callback."""
-    from src.telegram_bot.handlers.callbacks import handle_dmarket_arbitrage_impl
-
-    await handle_dmarket_arbitrage_impl(update, context, mode="normal")
+    """Handle dmarket_arbitrage callback - redirect to auto_trade."""
+    await auto_trade_start(update, context)
 
 
 async def handle_best_opportunities(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -250,5 +233,5 @@ async def handle_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     await update.callback_query.edit_message_text(
         help_text,
         parse_mode=ParseMode.HTML,
-        reply_markup=get_main_menu_keyboard(),
+        reply_markup=get_main_keyboard(),
     )

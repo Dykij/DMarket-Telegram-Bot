@@ -10,13 +10,12 @@ from telegram.ext import ContextTypes
 
 from src.telegram_bot.handlers.dashboard_handler import show_dashboard
 from src.telegram_bot.handlers.dmarket_status import dmarket_status_impl
+from src.telegram_bot.handlers.main_keyboard import get_main_keyboard
 from src.telegram_bot.keyboards import (
     get_marketplace_comparison_keyboard,
-    get_modern_arbitrage_keyboard,
 )
 from src.utils.logging_utils import get_logger
 from src.utils.telegram_error_handlers import telegram_error_boundary
-
 
 logger = get_logger(__name__)
 
@@ -33,9 +32,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     if not update.message:
         return
 
-    # Сразу запускаем упрощенное меню
-    from src.telegram_bot.handlers.simplified_menu_handler import start_simple_menu
-    await start_simple_menu(update, context)
+    # Запускаем главную клавиатуру
+    from src.telegram_bot.handlers.main_keyboard import start_command as main_start
+
+    await main_start(update, context)
 
 
 @telegram_error_boundary(user_friendly_message="❌ Ошибка при отображении справки")
@@ -56,11 +56,10 @@ async def help_command(
     await update.message.reply_text(
         "❓ <b>Доступные команды:</b>\n"
         "/start - Начать работу с ботом\n"
-        "/arbitrage - Меню арбитража\n"
-        "/balance - Проверить баланс\n"
-        "/webapp - Открыть DMarket в WebApp",
+        "/menu - Главное меню\n"
+        "/balance - Проверить баланс",
         parse_mode=ParseMode.HTML,
-        reply_markup=get_modern_arbitrage_keyboard(),
+        reply_markup=get_main_keyboard(),
     )
 
 
@@ -164,10 +163,10 @@ async def arbitrage_command(
 
     await update.effective_chat.send_action(ChatAction.TYPING)
 
-    # Используем современную клавиатуру для арбитража
-    keyboard = get_modern_arbitrage_keyboard()
+    # Redirect to main menu
+    keyboard = get_main_keyboard()
     await update.message.reply_text(
-        "🔍 <b>Меню арбитража:</b>",
+        "🔍 <b>Арбитраж</b>\n\nИспользуйте главное меню для доступа к авто-торговле:",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML,
     )
@@ -190,28 +189,38 @@ async def handle_text_buttons(
 
     text = update.message.text
 
-    # Новые кнопки для упрощенного меню
+    # Кнопки для главного меню
     if text == "⚡ Упрощенное меню":
-        # Вызываем simplified menu handler
-        from src.telegram_bot.handlers.simplified_menu_handler import start_simple_menu
-        await start_simple_menu(update, context)
+        # Вызываем главное меню
+        from src.telegram_bot.handlers.main_keyboard import start_command as main_start
+
+        await main_start(update, context)
         return
     if text in {"💰 Баланс", "📊 Баланс"}:
-        # Для упрощенного доступа вызываем balance_simple
-        from src.telegram_bot.handlers.simplified_menu_handler import balance_simple
-        await balance_simple(update, context)
+        # Показываем баланс
+
+        # Создаём mock update с callback_query
+        await dmarket_status_impl(
+            update,
+            context,
+            status_message=update.message,
+        )
         return
     if text in {"📈 Статистика", "📊 Статистика"}:
-        # Для упрощенного доступа вызываем stats_simple
-        from src.telegram_bot.handlers.simplified_menu_handler import stats_simple
-        await stats_simple(update, context)
+        # Показываем статистику
+        await dmarket_status_impl(
+            update,
+            context,
+            status_message=update.message,
+        )
         return
 
     # Обрабатываем старые текстовые команды от клавиатуры
     if text in {"📊 Арбитраж", "🔍 Арбитраж"}:
-        # Также перенаправляем на упрощенное меню
-        from src.telegram_bot.handlers.simplified_menu_handler import arbitrage_start
-        await arbitrage_start(update, context)
+        # Перенаправляем на главное меню
+        from src.telegram_bot.handlers.main_keyboard import start_command as main_start
+
+        await main_start(update, context)
     elif text in {"💰 Баланс", "📊 Баланс"}:
         await dmarket_status_impl(
             update,
@@ -220,6 +229,7 @@ async def handle_text_buttons(
         )
     elif text == "🎯 Таргеты":
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+
         await update.message.reply_text(
             "🎯 <b>Таргеты (Buy Orders)</b>\n\n"
             "Управление целевыми ордерами на покупку:\n\n"
@@ -236,6 +246,7 @@ async def handle_text_buttons(
         )
     elif text == "📦 Инвентарь":
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+
         await update.message.reply_text(
             "📦 <b>Ваш инвентарь</b>\n\n"
             "⚠️ Для просмотра инвентаря необходимо настроить API ключи DMarket.",
@@ -247,9 +258,9 @@ async def handle_text_buttons(
         )
     elif text in {"📈 Аналитика", "📈 Анализ рынка"}:
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+
         await update.message.reply_text(
-            "📈 <b>Аналитика рынка</b>\n\n"
-            "Выберите раздел аналитики:",
+            "📈 <b>Аналитика рынка</b>\n\nВыберите раздел аналитики:",
             reply_markup=InlineKeyboardMarkup([
                 [
                     InlineKeyboardButton("📊 Тренды", callback_data="analysis_trends"),
@@ -266,6 +277,7 @@ async def handle_text_buttons(
         )
     elif text == "🔔 Оповещения":
         from src.telegram_bot.keyboards import get_alert_keyboard
+
         await update.message.reply_text(
             "🔔 <b>Управление оповещениями</b>\n\n"
             "Настройте оповещения о изменении цен и "
@@ -277,6 +289,7 @@ async def handle_text_buttons(
         await webapp_command(update, context)
     elif text == "⚙️ Настройки":
         from src.telegram_bot.keyboards import get_settings_keyboard
+
         await update.message.reply_text(
             "⚙️ <b>Настройки бота</b>\n\nВыберите раздел для настройки:",
             reply_markup=get_settings_keyboard(),

@@ -214,9 +214,19 @@ class AutopilotOrchestrator:
             asyncio.create_task(self._inventory_monitor()),
         ]
 
-        # Запустить сканер если он не запущен
-        if not self.scanner.is_scanning:
-            await self.scanner.start_continuous_scanning(games=self.config.games, level="medium")
+        # Запустить сканер если он не запущен (безопасная проверка)
+        try:
+            if hasattr(self.scanner, "is_scanning") and not self.scanner.is_scanning:
+                await self.scanner.start_continuous_scanning(
+                    games=self.config.games, level="medium"
+                )
+            elif hasattr(self.scanner, "start_continuous_scanning"):
+                # Просто вызываем старт, сканер сам проверит состояние
+                await self.scanner.start_continuous_scanning(
+                    games=self.config.games, level="medium"
+                )
+        except Exception as e:
+            logger.warning(f"scanner_start_warning: {e}")
 
         logger.info("autopilot_started", tasks=len(self._tasks))
 
@@ -275,8 +285,13 @@ class AutopilotOrchestrator:
 
                 # Получить баланс
                 balance = await self.api.get_balance()
-                usd_cents = balance.get("USD", 0)
-                usd = float(usd_cents) / 100
+                # DMarket API returns "usd" key in lowercase, value in cents
+                if isinstance(balance, dict):
+                    usd_cents = balance.get("usd", balance.get("USD", 0))
+                    usd_cents = int(usd_cents) if usd_cents else 0
+                else:
+                    usd_cents = 0
+                usd = usd_cents / 100.0
 
                 self.stats.balance_checks += 1
 

@@ -1,0 +1,404 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CS2 Rare Filters for Waxpeer Arbitrage",
+  "description": "Полная конфигурация для поиска редких CS2 скинов на DMarket и перепродажи на Waxpeer",
+  "version": "1.0.0",
+  "float_value": {
+    "description": "Пороги Float Value для определения редкости износа",
+    "factory_new": {
+      "quad_zero": {
+        "threshold": 0.0001,
+        "description": "0.000x - Экстремально редкий",
+        "markup_percent": 50,
+        "priority": "ULTRA_RARE"
+      },
+      "triple_zero": {
+        "threshold": 0.001,
+        "description": "0.00x - Очень редкий",
+        "markup_percent": 35,
+        "priority": "RARE"
+      },
+      "double_zero": {
+        "threshold": 0.01,
+        "description": "0.0x - Редкий",
+        "markup_percent": 20,
+        "priority": "GOOD"
+      },
+      "low": {
+        "threshold": 0.03,
+        "description": "Низкий износ",
+        "markup_percent": 10,
+        "priority": "NORMAL"
+      }
+    },
+    "minimal_wear": {
+      "cap_float": {
+        "threshold": 0.0705,
+        "description": "MW с минимальным возможным износом (cap)",
+        "markup_percent": 15,
+        "priority": "GOOD"
+      }
+    },
+    "battle_scarred": {
+      "blackiimov": {
+        "threshold": 0.95,
+        "description": "BS 0.95+ ('черный' скин)",
+        "markup_percent": 25,
+        "priority": "RARE",
+        "applies_to": [
+          "AWP | Asiimov",
+          "AK-47 | Asiimov"
+        ]
+      },
+      "ultra_black": {
+        "threshold": 0.99,
+        "description": "BS 0.99+ (экстремально черный)",
+        "markup_percent": 40,
+        "priority": "ULTRA_RARE"
+      }
+    }
+  },
+  "stickers": {
+    "description": "Ценные наклейки, которые бот должен искать",
+    "katowice_2014_holo": {
+      "priority": "JACKPOT",
+      "requires_manual_review": true,
+      "markup_percent": 100,
+      "description": "Самые дорогие наклейки в игре ($5,000 - $200,000+)",
+      "items": [
+        "iBUYPOWER (Holo) | Katowice 2014",
+        "Titan (Holo) | Katowice 2014",
+        "Reason Gaming (Holo) | Katowice 2014",
+        "VOX Eminor (Holo) | Katowice 2014",
+        "Team LDLC.com (Holo) | Katowice 2014",
+        "Natus Vincere (Holo) | Katowice 2014",
+        "compLexity Gaming (Holo) | Katowice 2014",
+        "HellRaisers (Holo) | Katowice 2014",
+        "Fnatic (Holo) | Katowice 2014",
+        "Ninjas in Pyjamas (Holo) | Katowice 2014",
+        "mousesports (Holo) | Katowice 2014",
+        "3DMAX (Holo) | Katowice 2014",
+        "LGB eSports (Holo) | Katowice 2014",
+        "Clan-Mystik (Holo) | Katowice 2014",
+        "Team Dignitas (Holo) | Katowice 2014",
+        "Virtus.Pro (Holo) | Katowice 2014"
+      ]
+    },
+    "katowice_2014_non_holo": {
+      "priority": "RARE",
+      "markup_percent": 40,
+      "description": "Обычные Katowice 2014 ($50 - $2,000)",
+      "items": [
+        "iBUYPOWER | Katowice 2014",
+        "Titan | Katowice 2014",
+        "Reason Gaming | Katowice 2014",
+        "VOX Eminor | Katowice 2014",
+        "Team LDLC.com | Katowice 2014",
+        "Natus Vincere | Katowice 2014",
+        "compLexity Gaming | Katowice 2014",
+        "HellRaisers | Katowice 2014",
+        "Fnatic | Katowice 2014",
+        "Ninjas in Pyjamas | Katowice 2014",
+        "mousesports | Katowice 2014",
+        "3DMAX | Katowice 2014",
+        "LGB eSports | Katowice 2014",
+        "Clan-Mystik | Katowice 2014"
+      ]
+    },
+    "katowice_2015_holo_foil": {
+      "priority": "GOOD",
+      "markup_percent": 20,
+      "description": "Katowice 2015 Holo/Foil ($20 - $500)",
+      "keywords": [
+        "(Holo) | Katowice 2015",
+        "(Foil) | Katowice 2015"
+      ]
+    },
+    "cologne_2014_holo": {
+      "priority": "GOOD",
+      "markup_percent": 15,
+      "description": "Cologne 2014 Holo ($10 - $200)",
+      "keywords": [
+        "(Holo) | Cologne 2014"
+      ]
+    },
+    "dreamhack_2014_holo": {
+      "priority": "GOOD",
+      "markup_percent": 12,
+      "keywords": [
+        "(Holo) | DreamHack 2014"
+      ]
+    },
+    "premium_community": {
+      "priority": "RARE",
+      "markup_percent": 30,
+      "description": "Ценные комьюнити наклейки",
+      "items": [
+        "Crown (Foil)",
+        "Howling Dawn",
+        "Flammable (Foil)",
+        "Headhunter (Foil)",
+        "Swag (Foil)",
+        "The Firestarter",
+        "The Guru",
+        "The Leader",
+        "The Professional",
+        "LGB eSports (Foil) | Katowice 2015",
+        "VOX Eminor (Foil) | Katowice 2015"
+      ]
+    },
+    "gold_autographs": {
+      "priority": "NORMAL",
+      "markup_percent": 10,
+      "description": "Золотые автографы игроков",
+      "keywords": [
+        "(Gold)"
+      ]
+    },
+    "holo_any": {
+      "priority": "NORMAL",
+      "markup_percent": 8,
+      "description": "Любые голографические наклейки",
+      "min_sticker_price_usd": 10,
+      "keywords": [
+        "(Holo)"
+      ]
+    }
+  },
+  "doppler_phases": {
+    "description": "Фазы Doppler ножей и перчаток",
+    "ruby": {
+      "priority": "JACKPOT",
+      "requires_manual_review": true,
+      "markup_percent": 80,
+      "description": "Полностью красный",
+      "keyword": "Ruby"
+    },
+    "sapphire": {
+      "priority": "JACKPOT",
+      "requires_manual_review": true,
+      "markup_percent": 80,
+      "description": "Полностью синий",
+      "keyword": "Sapphire"
+    },
+    "emerald": {
+      "priority": "JACKPOT",
+      "requires_manual_review": true,
+      "markup_percent": 100,
+      "description": "Полностью зеленый (Gamma Doppler)",
+      "keyword": "Emerald"
+    },
+    "black_pearl": {
+      "priority": "ULTRA_RARE",
+      "requires_manual_review": true,
+      "markup_percent": 70,
+      "description": "Черно-фиолетовый",
+      "keyword": "Black Pearl"
+    },
+    "phase_2": {
+      "priority": "GOOD",
+      "markup_percent": 15,
+      "description": "Много розового (самая популярная)",
+      "keyword": "Phase 2"
+    },
+    "phase_4": {
+      "priority": "GOOD",
+      "markup_percent": 12,
+      "description": "Много синего",
+      "keyword": "Phase 4"
+    },
+    "phase_1": {
+      "priority": "NORMAL",
+      "markup_percent": 5,
+      "keyword": "Phase 1"
+    },
+    "phase_3": {
+      "priority": "NORMAL",
+      "markup_percent": 3,
+      "description": "Много зеленого (менее популярная)",
+      "keyword": "Phase 3"
+    }
+  },
+  "patterns": {
+    "description": "Ценные паттерны для определенных скинов",
+    "case_hardened": {
+      "description": "AK-47/Five-SeveN/Knife Case Hardened Blue Gem",
+      "priority": "RARE",
+      "requires_manual_review": true,
+      "markup_percent": 50,
+      "ak47_blue_gems": {
+        "tier1_patterns": [
+          661,
+          670,
+          321,
+          955,
+          387
+        ],
+        "tier2_patterns": [
+          868,
+          179,
+          760,
+          592,
+          555,
+          571,
+          809
+        ]
+      },
+      "five_seven_blue_gems": {
+        "tier1_patterns": [
+          278,
+          690,
+          872,
+          363
+        ],
+        "tier2_patterns": [
+          648,
+          532,
+          868,
+          670
+        ]
+      },
+      "karambit_blue_gems": {
+        "tier1_patterns": [
+          387,
+          442,
+          463,
+          470,
+          509
+        ],
+        "tier2_patterns": [
+          601,
+          617,
+          671,
+          721,
+          828,
+          853
+        ]
+      }
+    },
+    "fade": {
+      "description": "Fade паттерны (чем больше % - тем дороже)",
+      "priority": "GOOD",
+      "full_fade_100": {
+        "pattern_range": [
+          1,
+          10
+        ],
+        "markup_percent": 25
+      },
+      "high_fade_95": {
+        "pattern_range": [
+          11,
+          50
+        ],
+        "markup_percent": 15
+      },
+      "mid_fade_90": {
+        "pattern_range": [
+          51,
+          100
+        ],
+        "markup_percent": 8
+      }
+    },
+    "marble_fade": {
+      "description": "Marble Fade паттерны",
+      "fire_ice": {
+        "priority": "RARE",
+        "markup_percent": 40,
+        "description": "Красно-синий без желтого"
+      },
+      "tricolor": {
+        "priority": "NORMAL",
+        "markup_percent": 5
+      }
+    },
+    "crimson_web": {
+      "description": "Crimson Web паттерны (центрированные веб-паутины)",
+      "priority": "GOOD",
+      "centered_web": {
+        "markup_percent": 20
+      }
+    },
+    "slaughter": {
+      "description": "Slaughter паттерны (сердце, алмаз, ангел)",
+      "priority": "GOOD",
+      "heart_pattern": {
+        "markup_percent": 15
+      },
+      "diamond_pattern": {
+        "markup_percent": 12
+      },
+      "angel_pattern": {
+        "markup_percent": 10
+      }
+    }
+  },
+  "special_items": {
+    "souvenir": {
+      "description": "Сувенирные скины с подписями",
+      "priority": "GOOD",
+      "markup_percent": 15,
+      "keyword": "Souvenir",
+      "note": "Ценность зависит от турнира и подписей"
+    },
+    "stattrak": {
+      "description": "StatTrak версии",
+      "priority": "NORMAL",
+      "markup_percent": 5,
+      "keyword": "StatTrak™"
+    },
+    "contraband": {
+      "description": "Контрабандные скины (M4A4 Howl)",
+      "priority": "JACKPOT",
+      "requires_manual_review": true,
+      "items": [
+        "M4A4 | Howl"
+      ]
+    }
+  },
+  "waxpeer_settings": {
+    "description": "Настройки для Waxpeer API",
+    "listing": {
+      "default_markup_percent": 10,
+      "undercut_amount_usd": 0.01,
+      "min_profit_percent": 5,
+      "max_hold_days": 7
+    },
+    "repricing": {
+      "interval_minutes": 30,
+      "max_price_drops": 5,
+      "price_drop_percent": 2,
+      "scarcity_threshold": 3,
+      "scarcity_markup_percent": 15
+    },
+    "shadow_listing": {
+      "enabled": true,
+      "wait_for_competitor_sale": true,
+      "competitor_undercut_tolerance_percent": 5
+    }
+  },
+  "risk_management": {
+    "description": "Настройки управления рисками",
+    "max_item_price_percent": 25,
+    "min_balance_reserve_percent": 5,
+    "diversification": {
+      "max_same_items": 3,
+      "max_single_category_percent": 40
+    }
+  },
+  "auto_hold_triggers": {
+    "description": "Триггеры для автоматического удержания (не продавать на Waxpeer)",
+    "hold_for_manual_review": [
+      "katowice_2014_holo",
+      "ruby",
+      "sapphire",
+      "emerald",
+      "black_pearl",
+      "case_hardened_blue_gem",
+      "contraband"
+    ],
+    "send_telegram_alert": true,
+    "alert_message_prefix": "💎 JACKPOT DETECTED!"
+  }
+}

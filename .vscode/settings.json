@@ -309,7 +309,11 @@
     "orjson",
     "msgpack",
     "backoff",
-    "sentry"
+    "sentry",
+    "waxpeer",
+    "mils",
+    "tradelink",
+    "steamid"
   ],
   "cSpell.language": "en,ru",
   "cSpell.ignorePaths": [
@@ -405,7 +409,10 @@
     "Обрабатывай ошибки конкретными типами исключений",
     "Следуй паттерну AAA в тестах (Arrange-Act-Assert)",
     "DMarket API цены в ЦЕНТАХ (не долларах!)",
-    "Используй Pydantic для валидации данных"
+    "Waxpeer API цены в МИЛАХ (1 USD = 1000 mils)",
+    "Waxpeer комиссия 6% на продажу",
+    "Используй Pydantic для валидации данных",
+    "Для арбитража: profit = (waxpeer_price * 0.94) - dmarket_price"
   ],
   "github.copilot.chat.commitMessageGeneration.instructions": [
     "Следуй Conventional Commits: type(scope): message",

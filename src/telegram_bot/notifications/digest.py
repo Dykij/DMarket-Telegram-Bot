@@ -300,7 +300,10 @@ class NotificationDigest:
             lines.append("")
 
         # Footer
-        lines.extend((f"_Всего: {len(self.buffer)} уведомлений_", f"_Период: {self.interval_minutes} минут_"))
+        lines.extend((
+            f"_Всего: {len(self.buffer)} уведомлений_",
+            f"_Период: {self.interval_minutes} минут_",
+        ))
 
         return "\n".join(lines)
 

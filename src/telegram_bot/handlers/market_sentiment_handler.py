@@ -11,6 +11,7 @@ import structlog
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
 
+
 logger = structlog.get_logger(__name__)
 
 
@@ -22,7 +23,8 @@ async def show_market_status(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     # Get market sentiment analyzer from context
     sentiment = context.application.bot_data.get("market_sentiment")
-    api_client = context.application.bot_data.get("dmarket_api")
+    # api_client available in bot_data for future API calls in sentiment analysis
+    _api_client = context.application.bot_data.get("dmarket_api")  # noqa: F841
 
     if not sentiment:
         message = (
@@ -152,7 +154,14 @@ async def show_smart_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     try:
         if api_client and hasattr(api_client, "get_balance"):
             balance_data = await api_client.get_balance()
-            balance = balance_data.get("available", 0.0)
+            if isinstance(balance_data, dict):
+                try:
+                    usd_cents = int(float(str(balance_data.get("usd", 0))))
+                    balance = usd_cents / 100.0
+                except (ValueError, TypeError):
+                    balance = 0.0
+            else:
+                balance = 0.0
     except Exception as e:
         logger.warning("balance_fetch_error", error=str(e))
 
@@ -256,9 +265,16 @@ async def start_smart_arbitrage(update: Update, context: ContextTypes.DEFAULT_TY
         return
 
     try:
-        # Get balance
+        # Get balance - DMarket returns cents in 'usd' field
         balance_data = await api_client.get_balance()
-        balance = balance_data.get("available", 0.0)
+        if isinstance(balance_data, dict):
+            try:
+                usd_cents = int(float(str(balance_data.get("usd", 0))))
+                balance = usd_cents / 100.0
+            except (ValueError, TypeError):
+                balance = 0.0
+        else:
+            balance = 0.0
 
         if balance < 1.0:
             await query.edit_message_text(

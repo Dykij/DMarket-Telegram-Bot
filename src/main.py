@@ -75,6 +75,7 @@ class Application:
             # Load whitelist from JSON file
             try:
                 from src.dmarket.whitelist_config import load_whitelist_from_json
+
                 whitelist_path = os.getenv("WHITELIST_PATH", "data/whitelist.json")
                 if load_whitelist_from_json(whitelist_path):
                     logger.info(f"Whitelist loaded from {whitelist_path}")
@@ -116,10 +117,12 @@ class Application:
 
             # Initialize DMarket API
             logger.info("Initializing DMarket API...")
+            logger.info(f"DRY_RUN mode: {self.config.dry_run}")
             self.dmarket_api = DMarketAPI(
                 public_key=self.config.dmarket.public_key,
                 secret_key=self.config.dmarket.secret_key,
                 api_url=self.config.dmarket.api_url,
+                dry_run=self.config.dry_run,  # Pass dry_run from config
             )
 
             # Test API connection if not in testing mode
@@ -373,14 +376,24 @@ class Application:
                 # Initialize auto-buyer if not exists
                 auto_buyer = getattr(self.bot, "auto_buyer", None)
                 if not auto_buyer:
+                    # Read AUTO_BUY_ENABLED from environment (default: False for safety)
+                    auto_buy_enabled = os.getenv("AUTO_BUY_ENABLED", "false").lower() == "true"
+                    min_discount = float(os.getenv("MIN_DISCOUNT", "30.0"))
+
                     auto_buy_config = AutoBuyConfig(
-                        enabled=False,  # Disabled by default
+                        enabled=auto_buy_enabled,
                         dry_run=self.config.dry_run,
                         max_price_usd=self.config.trading.max_item_price,
-                        min_discount_percent=30.0,  # Default discount, profit is handled by scanner
+                        min_discount_percent=min_discount,
                     )
                     auto_buyer = AutoBuyer(self.dmarket_api, auto_buy_config)
                     self.bot.auto_buyer = auto_buyer
+
+                    if auto_buy_enabled:
+                        logger.warning(
+                            "AUTO_BUY is ENABLED! Bot will make REAL purchases "
+                            f"(dry_run={self.config.dry_run})"
+                        )
 
                 # Initialize auto-seller if not exists
                 auto_seller = getattr(self.bot, "auto_seller", None)
@@ -389,6 +402,23 @@ class Application:
                         api=self.dmarket_api,
                     )
                     self.bot.auto_seller = auto_seller
+
+                # Initialize Trading Persistence (NEW - survives restarts)
+                from src.utils.trading_persistence import init_trading_persistence
+
+                trading_persistence = init_trading_persistence(
+                    database=self.database,
+                    dmarket_api=self.dmarket_api,
+                    telegram_bot=self.bot.bot if self.bot else None,
+                    min_margin_percent=5.0,  # Minimum 5% margin to protect from losses
+                    dmarket_fee_percent=7.0,  # DMarket fee
+                )
+
+                # Link persistence to auto-buyer
+                auto_buyer.set_trading_persistence(trading_persistence)
+                self.bot.trading_persistence = trading_persistence
+
+                logger.info("Trading Persistence initialized - purchases will survive restarts")
 
                 # Create orchestrator config
                 orchestrator_config = AutopilotConfig(
@@ -497,6 +527,10 @@ class Application:
 
             logger.info("Starting DMarket Telegram Bot...")
 
+            # CRITICAL: Recover pending trades from database (NEW)
+            # This ensures bot doesn't "forget" purchases after restart
+            await self._recover_pending_trades()
+
             # Start Daily Report Scheduler
             if self.daily_report_scheduler:
                 await self.daily_report_scheduler.start()
@@ -535,7 +569,11 @@ class Application:
                 and self.inventory_manager
                 and not self.config.testing
             ):
-                undercut_enabled = self.config.inventory.auto_sell if self.config and hasattr(self.config, "inventory") else False
+                undercut_enabled = (
+                    self.config.inventory.auto_sell
+                    if self.config and hasattr(self.config, "inventory")
+                    else False
+                )
                 if undercut_enabled:
                     logger.info("Starting Inventory Manager (Undercutting)...")
                     asyncio.create_task(self.inventory_manager.refresh_inventory_loop())
@@ -891,6 +929,53 @@ class Application:
                 logger.exception(
                     f"Failed to send crash notification to {user_id}: {e}",
                 )
+
+    async def _recover_pending_trades(self) -> None:
+        """Recover pending trades from database after restart.
+
+        This is CRITICAL for bot persistence. Without this, the bot would
+        "forget" about purchased items after shutdown or restart.
+
+        The recovery process:
+        1. Reads pending trades from database
+        2. Syncs with DMarket inventory (what's still there vs sold offline)
+        3. Re-lists items that need to be sold
+        4. Sends summary notification to admin
+        """
+        if not self.bot or self.config.testing:
+            return
+
+        trading_persistence = getattr(self.bot, "trading_persistence", None)
+        if not trading_persistence:
+            logger.debug("Trading persistence not available, skipping recovery")
+            return
+
+        try:
+            logger.info("🔍 Recovering pending trades from database...")
+
+            # Recover trades and sync with inventory
+            results = await trading_persistence.recover_pending_trades()
+
+            if not results:
+                logger.info("✅ No pending trades to recover")
+                return
+
+            # Count actions
+            to_list = sum(1 for r in results if r.get("action") == "list_for_sale")
+            sold_offline = sum(1 for r in results if r.get("action") == "marked_sold")
+
+            logger.info(
+                f"📦 Recovery complete: {sold_offline} sold offline, {to_list} need listing"
+            )
+
+            # Auto-list items that need to be sold
+            if to_list > 0 and self.inventory_manager:
+                logger.info(f"📤 Scheduling {to_list} items for auto-listing...")
+                # Inventory manager will pick them up in next cycle
+
+        except Exception as e:
+            logger.exception(f"Failed to recover pending trades: {e}")
+            # Not critical, continue startup
 
     def _setup_signal_handlers(self) -> None:
         """Setup signal handlers for graceful shutdown."""

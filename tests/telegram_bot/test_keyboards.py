@@ -1,7 +1,7 @@
 """Тесты для модуля keyboards.
 
 Этот модуль тестирует все функции создания клавиатур для Telegram бота:
-- Основное меню
+- Главное меню (main_keyboard.py)
 - Настройки
 - Выбор игр
 - Арбитраж
@@ -9,14 +9,11 @@
 - Пагинация
 - Оповещения
 - Web App клавиатуры
-
-NOTE: Тесты для get_games_keyboard и get_main_menu_keyboard отключены,
-так как эти функции удалены (теперь используется simplified_menu_handler).
 """
 
-import pytest
 from telegram import InlineKeyboardMarkup, ReplyKeyboardRemove
 
+from src.telegram_bot.handlers.main_keyboard import get_main_keyboard
 from src.telegram_bot.keyboards import (
     CB_BACK,
     CB_CANCEL,
@@ -47,10 +44,6 @@ from src.telegram_bot.keyboards import (
     remove_keyboard,
 )
 
-# REMOVED: get_games_keyboard, get_main_menu_keyboard
-# These functions were moved to simplified_menu_handler
-
-
 # ============================================================================
 # ТЕСТЫ КОНСТАНТ
 # ============================================================================
@@ -80,26 +73,34 @@ def test_games_imported():
 
 
 # ============================================================================
-# ТЕСТЫ ОСНОВНЫХ МЕНЮ (УСТАРЕЛО - функции перемещены в simplified_menu_handler)
+# ТЕСТЫ ГЛАВНОЙ КЛАВИАТУРЫ (main_keyboard.py)
 # ============================================================================
 
 
-@pytest.mark.skip(reason="get_main_menu_keyboard moved to simplified_menu_handler")
-def test_get_main_menu_keyboard():
-    """Тест создания основного меню."""
-    pass
+def test_get_main_keyboard():
+    """Тест создания главной клавиатуры."""
+    keyboard = get_main_keyboard()
+
+    assert isinstance(keyboard, InlineKeyboardMarkup)
+    assert len(keyboard.inline_keyboard) == 6
+
+    # Проверяем наличие основных кнопок
+    all_buttons = [btn for row in keyboard.inline_keyboard for btn in row]
+    button_texts = [btn.text for btn in all_buttons]
+
+    assert any("АВТО-ТОРГОВЛЯ" in text for text in button_texts)
+    assert any("ТАРГЕТЫ" in text for text in button_texts)
+    assert any("ЭКСТРЕННАЯ" in text for text in button_texts)
 
 
-@pytest.mark.skip(reason="get_games_keyboard moved to simplified_menu_handler")
-def test_get_games_keyboard_default():
-    """Тест создания клавиатуры выбора игр с дефолтным префиксом."""
-    pass
+def test_get_main_keyboard_with_balance():
+    """Тест клавиатуры с балансом."""
+    keyboard = get_main_keyboard(balance=50.25)
 
+    all_buttons = [btn for row in keyboard.inline_keyboard for btn in row]
+    button_texts = [btn.text for btn in all_buttons]
 
-@pytest.mark.skip(reason="get_games_keyboard moved to simplified_menu_handler")
-def test_get_games_keyboard_custom_prefix():
-    """Тест создания клавиатуры игр с кастомным префиксом."""
-    pass
+    assert any("$50.25" in text for text in button_texts)
 
 
 def test_get_settings_keyboard():
@@ -129,12 +130,6 @@ def test_get_back_to_settings_keyboard():
     assert len(keyboard.inline_keyboard) == 1
     assert len(keyboard.inline_keyboard[0]) == 1
     assert "Назад" in keyboard.inline_keyboard[0][0].text
-
-
-# ============================================================================
-# ТЕСТЫ КЛАВИАТУР ВЫБОРА ИГР (УСТАРЕЛО)
-# ============================================================================
-# Эти тесты отключены, так как функции перемещены в simplified_menu_handler
 
 
 # ============================================================================

@@ -8,6 +8,150 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Updated - API Documentation (January 4, 2026)
+
+#### DMarket API (`docs/DMARKET_API_FULL_SPEC.md`)
+- Updated date to January 4, 2026
+- Verified alignment with https://docs.dmarket.com/v1/swagger.html
+
+#### Telegram Bot API (`docs/TELEGRAM_BOT_API.md`)
+- Updated date to January 4, 2026
+- Confirmed Bot API 9.2 features documented
+
+#### DMarket API Client (`src/dmarket/dmarket_api.py`)
+- **New method `get_offers_by_title()`** - Search offers by item title
+- **New method `get_closed_offers()`** - Get closed offers with filters:
+  - `status`: "successful", "reverted", "trade_protected"
+  - `closed_from` / `closed_to`: Timestamp filters
+  - Supports new `FinalizationTime` field from API v1.1.0
+- Updated docstring with API version v1.1.0
+
+#### Telegram Utils (`src/telegram_bot/utils/api_helper.py`)
+- Added `send_message_with_reply()` helper for Bot API 9.2 reply parameters
+
+### Added - Waxpeer API Documentation (January 4, 2026)
+
+#### Documentation: `docs/WAXPEER_API_SPEC.md`
+Comprehensive Waxpeer API documentation based on https://docs.waxpeer.com/:
+
+- **Endpoints Reference**: All API endpoints with parameters and responses
+- **Authentication**: API key usage guide
+- **Price Conversion**: Mils to USD (1000 mils = $1)
+- **Commission Info**: 6% sell commission calculation
+- **Rate Limits**: Per-endpoint limits
+- **Error Codes**: Complete error reference
+- **Code Examples**: Python async examples
+
+#### Waxpeer API Client Updates (`src/waxpeer/waxpeer_api.py`)
+- **New Games Support**: Added Dota 2, TF2, Rust to `WaxpeerGame` enum
+- **New `WaxpeerPriceInfo` dataclass** with:
+  - `price_mils`, `price_usd`, `count` (liquidity)
+  - `is_liquid` property (count >= 5)
+- **New methods**:
+  - `get_item_price_info()` - Returns `WaxpeerPriceInfo`
+  - `get_bulk_prices()` - Efficient mass price fetch
+  - `get_my_inventory()` - Steam inventory for listing
+  - `check_tradelink()` - Trade link validation
+- **Improved `get_balance()`** - Now includes `can_trade` status
+- **Added `MILS_PER_USD` constant** (1000)
+
+#### Handler Updates (`src/telegram_bot/handlers/waxpeer_handler.py`)
+- `waxpeer_balance_handler()` now fetches real balance via API
+
+### Added - Cross-Platform Arbitrage (January 4, 2026)
+
+#### New Module: `src/dmarket/cross_platform_arbitrage.py`
+Implements advanced DMarket ↔ Waxpeer arbitrage scanner based on analysis:
+
+- **Full Market Scanning** - No `best_deals` filter, sees ALL items
+- **Balance-Aware Purchasing** - Uses `priceTo=balance` to filter affordable items
+- **Trade Lock Analysis** - Supports items with lock up to 8 days (15% min ROI)
+- **Liquidity Checks** - Skips items with < 5 daily sales on Waxpeer
+- **Net Profit Calculation** - Formula: `(Waxpeer_Price * 0.94) - DMarket_Price`
+
+Key classes:
+- `CrossPlatformArbitrageScanner` - Main scanner class
+- `ArbitrageOpportunity` - Data class for opportunities
+- `ScanConfig` - Configuration dataclass
+- `ArbitrageDecision` enum - BUY_INSTANT, BUY_AND_HOLD, SKIP
+
+#### New Handler: `src/telegram_bot/handlers/waxpeer_handler.py`
+- `waxpeer_menu_handler()` - Main Waxpeer menu
+- `waxpeer_balance_handler()` - Balance display
+- `waxpeer_settings_handler()` - Settings management
+- `route_waxpeer_callback()` - Callback router
+
+#### Waxpeer API Enhancements (`src/waxpeer/waxpeer_api.py`)
+- Added `get_items_list()` method for price comparison
+- Used by CrossPlatformArbitrageScanner
+
+### Added - Waxpeer Integration (January 4, 2026)
+
+#### Configuration
+- **Added Waxpeer API configuration** (`src/utils/config.py`):
+  - New `WaxpeerConfig` dataclass with all Waxpeer settings
+  - Environment variable loading for all Waxpeer options
+  - Default values for markup (10%), rare markup (25%), ultra markup (40%)
+- **Updated `.env` file** with Waxpeer API key and settings:
+  - `WAXPEER_ENABLED=true`
+  - `WAXPEER_API_KEY` configured
+  - Markup, repricing, and shadow listing settings
+
+#### Keyboards
+- **Added Waxpeer keyboards** (`src/telegram_bot/keyboards/arbitrage.py`):
+  - `get_waxpeer_keyboard()` - Main Waxpeer menu (balance, listings, repricing)
+  - `get_waxpeer_settings_keyboard()` - Settings with toggles for reprice/shadow/hold
+  - `get_waxpeer_listings_keyboard()` - Paginated listings view
+- **Updated `get_modern_arbitrage_keyboard()`** with "💎 Waxpeer P2P" button
+
+#### Features Enabled
+- Waxpeer P2P integration for CS2 skin reselling
+- Automatic undercut repricing every 30 minutes
+- Smart pricing based on market scarcity
+- Tiered markup system (normal/rare/ultra)
+
+### Fixed - Code Quality (January 4, 2026)
+
+#### Linting Fixes
+- **Fixed undefined variable errors (F821)**:
+  - `src/dmarket/auto_buyer.py` - Added TYPE_CHECKING import for TradingPersistence
+  - `src/dmarket/intramarket_arbitrage.py` - Fixed duplicate code with key_parts/composite_key
+  - `src/dmarket/price_anomaly_detector.py` - Made `_init_api_client` async
+- **Fixed unused variable warnings (F841)**:
+  - Properly marked unused but intentional variables with underscore prefix
+  - Updated files: `item_value_evaluator.py`, `price_analyzer.py`, `command_center.py`
+  - Updated handlers: `extended_stats_handler.py`, `market_sentiment_handler.py`
+  - Updated utils: `collectors_hold.py`
+- **Fixed type comparison issues (E721)**:
+  - `src/utils/env_validator.py` - Changed `==` to `is` for type comparisons
+- **Fixed import order (E402)**:
+  - `src/telegram_bot/dependencies.py` - Moved TypeVar import to top
+- **Fixed whitespace issues (W291, W293)**:
+  - Removed trailing whitespace and blank lines with whitespace
+- **Fixed mypy syntax error**:
+  - `src/utils/prometheus_metrics.py` - Fixed inline type comment causing syntax error
+
+#### Test Fixes
+- **Fixed MCP Server tests**:
+  - Corrected patch paths for `ArbitrageScanner` and `TargetManager`
+  - Fixed test accessing internal `_request_handlers` attribute
+- **Fixed price_anomaly_detector tests**:
+  - Made `_init_api_client` function async to match test expectations
+
+#### Code Formatting
+- 99 files reformatted with `ruff format`
+- 47 import sorting issues fixed automatically
+
+#### Documentation Updates
+- Updated dates in 12+ documentation files from 2025 to January 2026
+- Updated README.md with correct test count (7654+)
+- Updated copilot-instructions.md with correct test count
+
+#### Code Quality Improvements
+- Reduced linting errors from 33 to 0 (critical errors)
+- All 571 unit tests passing
+- All 7 smoke tests passing
+
 ### Changed - Keyboard Refactoring (January 2, 2026)
 
 #### Updated Keyboards

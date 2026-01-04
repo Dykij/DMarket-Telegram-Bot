@@ -200,9 +200,7 @@ GAME_NAMES = {
 # Вспомогательные функции для работы с фильтрами
 
 
-def get_current_filters(
-    context: ContextTypes.DEFAULT_TYPE, game: str
-) -> dict[str, Any]:
+def get_current_filters(context: ContextTypes.DEFAULT_TYPE, game: str) -> dict[str, Any]:
     """Получает текущие фильтры для игры из контекста пользователя."""
     user_data = context.user_data
     if not user_data:
@@ -261,11 +259,7 @@ def _create_common_filter_buttons(game: str) -> list[list[InlineKeyboardButton]]
 def _create_csgo_filter_buttons(game: str) -> list[list[InlineKeyboardButton]]:
     """Создает кнопки фильтров для CS:GO."""
     return [
-        [
-            InlineKeyboardButton(
-                "🔢 Диапазон Float", callback_data=f"float_range:{game}"
-            )
-        ],
+        [InlineKeyboardButton("🔢 Диапазон Float", callback_data=f"float_range:{game}")],
         [InlineKeyboardButton("🔫 Категория", callback_data=f"set_category:{game}")],
         [InlineKeyboardButton("⭐ Редкость", callback_data=f"set_rarity:{game}")],
         [InlineKeyboardButton("🧩 Внешний вид", callback_data=f"set_exterior:{game}")],
@@ -281,11 +275,7 @@ def _create_dota2_filter_buttons(game: str) -> list[list[InlineKeyboardButton]]:
         [InlineKeyboardButton("⭐ Редкость", callback_data=f"set_rarity:{game}")],
         [InlineKeyboardButton("🧩 Слот", callback_data=f"set_slot:{game}")],
         [InlineKeyboardButton("🏆 Качество", callback_data=f"filter:quality:{game}")],
-        [
-            InlineKeyboardButton(
-                "🔄 Обмениваемость", callback_data=f"filter:tradable:{game}"
-            )
-        ],
+        [InlineKeyboardButton("🔄 Обмениваемость", callback_data=f"filter:tradable:{game}")],
     ]
 
 
@@ -296,16 +286,8 @@ def _create_tf2_filter_buttons(game: str) -> list[list[InlineKeyboardButton]]:
         [InlineKeyboardButton("⭐ Качество", callback_data=f"filter:quality:{game}")],
         [InlineKeyboardButton("🔫 Тип", callback_data=f"set_type:{game}")],
         [InlineKeyboardButton("✨ Эффект", callback_data=f"filter:effect:{game}")],
-        [
-            InlineKeyboardButton(
-                "🔢 Killstreak", callback_data=f"filter:killstreak:{game}"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "🔶 Australium", callback_data=f"filter:australium:{game}"
-            )
-        ],
+        [InlineKeyboardButton("🔢 Killstreak", callback_data=f"filter:killstreak:{game}")],
+        [InlineKeyboardButton("🔶 Australium", callback_data=f"filter:australium:{game}")],
     ]
 
 
@@ -321,11 +303,7 @@ def _create_rust_filter_buttons(game: str) -> list[list[InlineKeyboardButton]]:
 def _create_reset_and_back_buttons(game: str) -> list[list[InlineKeyboardButton]]:
     """Создает кнопки сброса и возврата."""
     return [
-        [
-            InlineKeyboardButton(
-                "🔄 Сбросить фильтры", callback_data=f"filter:reset:{game}"
-            )
-        ],
+        [InlineKeyboardButton("🔄 Сбросить фильтры", callback_data=f"filter:reset:{game}")],
         [InlineKeyboardButton("⬅️ Назад", callback_data="back_to_filters:main")],
     ]
 
@@ -358,9 +336,7 @@ def _create_button_rows(
     row = []
 
     for i, item in enumerate(items):
-        row.append(
-            InlineKeyboardButton(item, callback_data=f"{callback_prefix}:{item}:{game}")
-        )
+        row.append(InlineKeyboardButton(item, callback_data=f"{callback_prefix}:{item}:{game}"))
 
         if len(row) == items_per_row or i == len(items) - 1:
             keyboard.append(row.copy())
@@ -372,9 +348,7 @@ def _create_button_rows(
 # Обработчики команд
 
 
-async def handle_game_filters(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
+async def handle_game_filters(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик команды /filters - показывает выбор игры для фильтрации."""
     if not update.message:
         return
@@ -447,28 +421,16 @@ async def handle_price_range_callback(
 
     keyboard = [
         [
-            InlineKeyboardButton(
-                "$1-10", callback_data=f"filter:price_range:1:10:{game}"
-            ),
-            InlineKeyboardButton(
-                "$10-50", callback_data=f"filter:price_range:10:50:{game}"
-            ),
+            InlineKeyboardButton("$1-10", callback_data=f"filter:price_range:1:10:{game}"),
+            InlineKeyboardButton("$10-50", callback_data=f"filter:price_range:10:50:{game}"),
         ],
         [
-            InlineKeyboardButton(
-                "$50-100", callback_data=f"filter:price_range:50:100:{game}"
-            ),
-            InlineKeyboardButton(
-                "$100-500", callback_data=f"filter:price_range:100:500:{game}"
-            ),
+            InlineKeyboardButton("$50-100", callback_data=f"filter:price_range:50:100:{game}"),
+            InlineKeyboardButton("$100-500", callback_data=f"filter:price_range:100:500:{game}"),
         ],
         [
-            InlineKeyboardButton(
-                "$500+", callback_data=f"filter:price_range:500:10000:{game}"
-            ),
-            InlineKeyboardButton(
-                "Сбросить", callback_data=f"filter:price_range:reset:{game}"
-            ),
+            InlineKeyboardButton("$500+", callback_data=f"filter:price_range:500:10000:{game}"),
+            InlineKeyboardButton("Сбросить", callback_data=f"filter:price_range:reset:{game}"),
         ],
         [InlineKeyboardButton("⬅️ Назад", callback_data=f"select_game_filter:{game}")],
     ]
@@ -531,9 +493,7 @@ async def handle_float_range_callback(
                 "Battle-Scarred (0.45-1.00)",
                 callback_data=f"filter:float_range:0.45:1.00:{game}",
             ),
-            InlineKeyboardButton(
-                "Сбросить", callback_data=f"filter:float_range:reset:{game}"
-            ),
+            InlineKeyboardButton("Сбросить", callback_data=f"filter:float_range:reset:{game}"),
         ],
         [InlineKeyboardButton("⬅️ Назад", callback_data=f"select_game_filter:{game}")],
     ]
@@ -565,20 +525,10 @@ async def handle_set_category_callback(
     categories = CS2_CATEGORIES if game == "csgo" else RUST_CATEGORIES
     keyboard = _create_button_rows(categories, "filter:category", game)
 
-    keyboard.extend(
-        [
-            [
-                InlineKeyboardButton(
-                    "Сбросить", callback_data=f"filter:category:reset:{game}"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "⬅️ Назад", callback_data=f"select_game_filter:{game}"
-                )
-            ],
-        ]
-    )
+    keyboard.extend([
+        [InlineKeyboardButton("Сбросить", callback_data=f"filter:category:reset:{game}")],
+        [InlineKeyboardButton("⬅️ Назад", callback_data=f"select_game_filter:{game}")],
+    ])
 
     current_category = filters.get("category", "Не выбрано")
 
@@ -610,20 +560,10 @@ async def handle_set_rarity_callback(
     }.get(game, [])
 
     keyboard = _create_button_rows(rarities, "filter:rarity", game)
-    keyboard.extend(
-        [
-            [
-                InlineKeyboardButton(
-                    "Сбросить", callback_data=f"filter:rarity:reset:{game}"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "⬅️ Назад", callback_data=f"select_game_filter:{game}"
-                )
-            ],
-        ]
-    )
+    keyboard.extend([
+        [InlineKeyboardButton("Сбросить", callback_data=f"filter:rarity:reset:{game}")],
+        [InlineKeyboardButton("⬅️ Назад", callback_data=f"select_game_filter:{game}")],
+    ])
 
     current_rarity = filters.get("rarity", "Не выбрано")
 
@@ -660,20 +600,10 @@ async def handle_set_exterior_callback(
         for ext in CS2_EXTERIORS
     ]
 
-    keyboard.extend(
-        [
-            [
-                InlineKeyboardButton(
-                    "Сбросить", callback_data=f"filter:exterior:reset:{game}"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "⬅️ Назад", callback_data=f"select_game_filter:{game}"
-                )
-            ],
-        ]
-    )
+    keyboard.extend([
+        [InlineKeyboardButton("Сбросить", callback_data=f"filter:exterior:reset:{game}")],
+        [InlineKeyboardButton("⬅️ Назад", callback_data=f"select_game_filter:{game}")],
+    ])
 
     current_exterior = filters.get("exterior", "Не выбрано")
 
@@ -707,20 +637,10 @@ async def handle_set_hero_callback(
     filters = get_current_filters(context, game)
     keyboard = _create_button_rows(DOTA2_HEROES, "filter:hero", game)
 
-    keyboard.extend(
-        [
-            [
-                InlineKeyboardButton(
-                    "Сбросить", callback_data=f"filter:hero:reset:{game}"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "⬅️ Назад", callback_data=f"select_game_filter:{game}"
-                )
-            ],
-        ]
-    )
+    keyboard.extend([
+        [InlineKeyboardButton("Сбросить", callback_data=f"filter:hero:reset:{game}")],
+        [InlineKeyboardButton("⬅️ Назад", callback_data=f"select_game_filter:{game}")],
+    ])
 
     current_hero = filters.get("hero", "Не выбрано")
 
@@ -757,20 +677,10 @@ async def handle_set_class_callback(
         for cls in TF2_CLASSES
     ]
 
-    keyboard.extend(
-        [
-            [
-                InlineKeyboardButton(
-                    "Сбросить", callback_data=f"filter:class:reset:{game}"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "⬅️ Назад", callback_data=f"select_game_filter:{game}"
-                )
-            ],
-        ]
-    )
+    keyboard.extend([
+        [InlineKeyboardButton("Сбросить", callback_data=f"filter:class:reset:{game}")],
+        [InlineKeyboardButton("⬅️ Назад", callback_data=f"select_game_filter:{game}")],
+    ])
 
     current_class = filters.get("class", "Не выбрано")
 
@@ -846,9 +756,9 @@ async def handle_filter_callback(
     if len(data) < 3:
         await query.edit_message_text(
             text="Неверный формат данных фильтра.",
-            reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("⬅️ Назад", callback_data="arbitrage")]]
-            ),
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("⬅️ Назад", callback_data="arbitrage")]
+            ]),
         )
         return
 
@@ -887,9 +797,7 @@ async def handle_back_to_filters_callback(
     data = query.data.split(":")
 
     if len(data) < 2:
-        keyboard = [
-            [InlineKeyboardButton("⬅️ Назад к арбитражу", callback_data="arbitrage")]
-        ]
+        keyboard = [[InlineKeyboardButton("⬅️ Назад к арбитражу", callback_data="arbitrage")]]
         await query.edit_message_text(
             text="Выберите действие:",
             reply_markup=InlineKeyboardMarkup(keyboard),
@@ -901,9 +809,7 @@ async def handle_back_to_filters_callback(
     if back_type == "main":
         await handle_game_filters(update, context)
     else:
-        keyboard = [
-            [InlineKeyboardButton("⬅️ Назад к арбитражу", callback_data="arbitrage")]
-        ]
+        keyboard = [[InlineKeyboardButton("⬅️ Назад к арбитражу", callback_data="arbitrage")]]
         await query.edit_message_text(
             text="Выберите действие:",
             reply_markup=InlineKeyboardMarkup(keyboard),

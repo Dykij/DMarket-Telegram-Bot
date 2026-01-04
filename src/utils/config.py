@@ -156,6 +156,32 @@ class DailyReportConfig:
 
 
 @dataclass
+class WaxpeerConfig:
+    """Waxpeer P2P integration configuration."""
+
+    enabled: bool = False  # Включить интеграцию с Waxpeer
+    api_key: str = ""  # API ключ Waxpeer
+
+    # Настройки наценок
+    markup: float = 10.0  # Наценка для обычных скинов (%)
+    rare_markup: float = 25.0  # Наценка для редких скинов (%)
+    ultra_markup: float = 40.0  # Наценка для JACKPOT скинов (%)
+    min_profit: float = 5.0  # Минимальная прибыль для листинга (%)
+
+    # Авто-репрайсинг
+    reprice: bool = True  # Включить автоматический undercut
+    reprice_interval: int = 30  # Интервал проверки цен (минуты)
+
+    # Shadow Listing
+    shadow: bool = True  # Умное ценообразование
+    scarcity_threshold: int = 3  # Порог дефицита
+
+    # Auto-Hold
+    auto_hold: bool = True  # Не выставлять редкие предметы
+    alert_on_rare: bool = True  # Уведомлять о редких находках
+
+
+@dataclass
 class MonitoringConfig:
     """Monitoring and metrics configuration."""
 
@@ -179,6 +205,7 @@ class Config:
     trading_safety: TradingSafetyConfig = field(default_factory=TradingSafetyConfig)
     rate_limit: RateLimitConfig = field(default_factory=RateLimitConfig)
     daily_report: DailyReportConfig = field(default_factory=DailyReportConfig)
+    waxpeer: WaxpeerConfig = field(default_factory=WaxpeerConfig)
     monitoring: MonitoringConfig = field(default_factory=MonitoringConfig)
     debug: bool = False
     testing: bool = False
@@ -588,6 +615,53 @@ class Config:
         if max_attempts:
             with contextlib.suppress(ValueError):
                 self.rate_limit.max_retry_attempts = int(max_attempts)
+
+        # Waxpeer configuration
+        waxpeer_enabled = os.getenv("WAXPEER_ENABLED", "false").lower()
+        self.waxpeer.enabled = waxpeer_enabled == "true"
+        self.waxpeer.api_key = os.getenv("WAXPEER_API_KEY", self.waxpeer.api_key)
+
+        waxpeer_markup = os.getenv("WAXPEER_MARKUP")
+        if waxpeer_markup:
+            with contextlib.suppress(ValueError):
+                self.waxpeer.markup = float(waxpeer_markup)
+
+        waxpeer_rare_markup = os.getenv("WAXPEER_RARE_MARKUP")
+        if waxpeer_rare_markup:
+            with contextlib.suppress(ValueError):
+                self.waxpeer.rare_markup = float(waxpeer_rare_markup)
+
+        waxpeer_ultra_markup = os.getenv("WAXPEER_ULTRA_MARKUP")
+        if waxpeer_ultra_markup:
+            with contextlib.suppress(ValueError):
+                self.waxpeer.ultra_markup = float(waxpeer_ultra_markup)
+
+        waxpeer_min_profit = os.getenv("WAXPEER_MIN_PROFIT")
+        if waxpeer_min_profit:
+            with contextlib.suppress(ValueError):
+                self.waxpeer.min_profit = float(waxpeer_min_profit)
+
+        waxpeer_reprice = os.getenv("WAXPEER_REPRICE", "true").lower()
+        self.waxpeer.reprice = waxpeer_reprice == "true"
+
+        waxpeer_reprice_interval = os.getenv("WAXPEER_REPRICE_INTERVAL")
+        if waxpeer_reprice_interval:
+            with contextlib.suppress(ValueError):
+                self.waxpeer.reprice_interval = int(waxpeer_reprice_interval)
+
+        waxpeer_shadow = os.getenv("WAXPEER_SHADOW", "true").lower()
+        self.waxpeer.shadow = waxpeer_shadow == "true"
+
+        waxpeer_scarcity = os.getenv("WAXPEER_SCARCITY")
+        if waxpeer_scarcity:
+            with contextlib.suppress(ValueError):
+                self.waxpeer.scarcity_threshold = int(waxpeer_scarcity)
+
+        waxpeer_auto_hold = os.getenv("WAXPEER_AUTO_HOLD", "true").lower()
+        self.waxpeer.auto_hold = waxpeer_auto_hold == "true"
+
+        waxpeer_alert = os.getenv("WAXPEER_ALERT", "true").lower()
+        self.waxpeer.alert_on_rare = waxpeer_alert == "true"
 
     def validate(self) -> None:
         """Validate configuration and raise errors for required missing values."""

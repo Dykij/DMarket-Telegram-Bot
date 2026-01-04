@@ -103,7 +103,7 @@ class AggregatedScanner:
                 "game": game,
                 "title_count": len(titles),
                 "min_margin": min_margin,
-            }
+            },
         )
 
         try:
@@ -168,7 +168,7 @@ class AggregatedScanner:
                 extra={
                     "opportunities_found": len(opportunities),
                     "best_margin": opportunities[0]["margin"] if opportunities else 0,
-                }
+                },
             )
 
             return opportunities
@@ -211,7 +211,7 @@ class AggregatedScanner:
             extra={
                 "total_titles": len(all_titles),
                 "total_batches": total_batches,
-            }
+            },
         )
 
         for i in range(0, len(all_titles), batch_size):
@@ -231,7 +231,7 @@ class AggregatedScanner:
                     extra={
                         "batch": f"{batch_num}/{total_batches}",
                         "opportunities_in_batch": len(opportunities),
-                    }
+                    },
                 )
 
                 # Small delay between batches to respect rate limits
@@ -240,8 +240,7 @@ class AggregatedScanner:
 
             except Exception as e:
                 logger.exception(
-                    "batch_failed",
-                    extra={"batch": f"{batch_num}/{total_batches}", "error": str(e)}
+                    "batch_failed", extra={"batch": f"{batch_num}/{total_batches}", "error": str(e)}
                 )
                 # Continue with next batch even if one fails
                 continue
@@ -250,8 +249,7 @@ class AggregatedScanner:
         all_opportunities.sort(key=operator.itemgetter("margin"), reverse=True)
 
         logger.info(
-            "batch_pre_scan_completed",
-            extra={"total_opportunities": len(all_opportunities)}
+            "batch_pre_scan_completed", extra={"total_opportunities": len(all_opportunities)}
         )
 
         return all_opportunities
@@ -296,7 +294,7 @@ class AggregatedScanner:
                 "original_count": len(opportunities),
                 "filtered_count": len(filtered),
                 "min_ratio": min_ratio,
-            }
+            },
         )
 
         return filtered
