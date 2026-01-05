@@ -232,7 +232,7 @@ def calculate_arbitrage(dmarket_price: float, steam_price: float) -> float:
 
 
 def calculate_net_profit(
-    dmarket_price: float, steam_price: float, dmarket_fee: float = 0.05
+    dmarket_price: float, steam_price: float, dmarket_fee: float = 0.07
 ) -> float:
     """
     Рассчитывает чистую прибыль с учетом обеих комиссий.
@@ -240,7 +240,7 @@ def calculate_net_profit(
     Args:
         dmarket_price: Цена покупки на DMarket
         steam_price: Цена продажи в Steam
-        dmarket_fee: Комиссия DMarket (по умолчанию 5%)
+        dmarket_fee: Комиссия DMarket (по умолчанию 7%)
 
     Returns:
         Абсолютная прибыль в USD
