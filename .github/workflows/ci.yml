@@ -43,7 +43,7 @@ jobs:
             pyproject.toml
 
       - name: Cache linting tools
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-lint-${{ env.CACHE_VERSION }}-${{ hashFiles('requirements.txt', 'pyproject.toml') }}
@@ -121,7 +121,7 @@ jobs:
             pyproject.toml
 
       - name: Cache pip dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ env.CACHE_VERSION }}-py${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}
@@ -243,7 +243,7 @@ jobs:
           cache: 'pip'
 
       - name: Cache security tools
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-security-${{ env.CACHE_VERSION }}
