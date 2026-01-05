@@ -297,7 +297,7 @@ class SmartRepricer:
 
         price_change_percent = (current_price - oldest_price) / oldest_price * 100
 
-        if price_change_percent < -self.panic_threshold_percent:
+        if price_change_percent <= -self.panic_threshold_percent:
             logger.warning(
                 f"🚨 MARKET PANIC detected for {item_title}: "
                 f"{price_change_percent:.1f}% drop in {self.panic_check_hours}h"
