@@ -50,6 +50,7 @@ class Application:
         self.inventory_manager = None
         self.websocket_manager = None
         self.health_check_monitor = None
+        self.ai_scheduler = None  # AI Training Scheduler
         self._shutdown_event = asyncio.Event()
         self._scanner_task: asyncio.Task | None = None
 
@@ -265,6 +266,48 @@ class Application:
                     "Daily Report Scheduler initialized at %s",
                     report_time.strftime("%H:%M"),
                 )
+
+            # Initialize AI Training Scheduler (nightly training at 03:00 UTC)
+            if not self.config.testing and self.dmarket_api:
+                logger.info("Initializing AI Training Scheduler...")
+                try:
+                    from datetime import time as dt_time
+
+                    from src.utils.ai_scheduler import AITrainingScheduler
+
+                    admin_users_raw = (
+                        self.config.security.admin_users
+                        if hasattr(self.config.security, "admin_users")
+                        else []
+                    )
+
+                    if not admin_users_raw and hasattr(
+                        self.config.security,
+                        "allowed_users",
+                    ):
+                        admin_users_raw = self.config.security.allowed_users
+
+                    admin_users_ai: list[int] = [
+                        int(uid) for uid in admin_users_raw if str(uid).isdigit()
+                    ]
+
+                    self.ai_scheduler = AITrainingScheduler(
+                        api_client=self.dmarket_api,
+                        admin_users=admin_users_ai,
+                        bot=self.bot.bot if self.bot else None,
+                        training_time=dt_time(3, 0),  # 03:00 UTC nightly training
+                        data_collection_interval=300,  # 5 minutes
+                        enabled=True,
+                    )
+
+                    self.bot.ai_scheduler = self.ai_scheduler
+
+                    logger.info(
+                        "AI Training Scheduler initialized (training at 03:00 UTC)"
+                    )
+
+                except Exception as e:
+                    logger.warning(f"Failed to initialize AI Training Scheduler: {e}")
 
             # Initialize Scanner Manager (Adaptive, Parallel, Cleanup)
             if not self.config.testing and self.dmarket_api:
@@ -536,6 +579,11 @@ class Application:
                 await self.daily_report_scheduler.start()
                 logger.info("Daily Report Scheduler started")
 
+            # Start AI Training Scheduler (nightly model training + data collection)
+            if self.ai_scheduler:
+                await self.ai_scheduler.start()
+                logger.info("AI Training Scheduler started (nightly training at 03:00 UTC)")
+
             # Start Scanner Manager (background scanning)
             if self.scanner_manager and not self.config.testing:
                 logger.info("Starting Scanner Manager background task...")
@@ -774,6 +822,17 @@ class Application:
                     logger.info("✅ Daily Report Scheduler stopped")
                 except TimeoutError:
                     logger.warning("⚠️  Timeout stopping scheduler")
+
+            # Step 4a: Stop AI Training Scheduler
+            if self.ai_scheduler:
+                try:
+                    await asyncio.wait_for(
+                        self.ai_scheduler.stop(),
+                        timeout=5.0,
+                    )
+                    logger.info("✅ AI Training Scheduler stopped")
+                except TimeoutError:
+                    logger.warning("⚠️  Timeout stopping AI scheduler")
 
             # Step 4: Stop Telegram Bot
             logger.info("Step 5/9: Stopping Telegram Bot...")

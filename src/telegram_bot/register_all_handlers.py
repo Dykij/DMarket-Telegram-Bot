@@ -469,6 +469,15 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать Intelligent Hold команды: %s", e)
 
+    # AI Price Predictor handlers (/ai_train, /ai_status, /ai_scan, /ai_analyze)
+    try:
+        from src.telegram_bot.handlers.ai_handler import register_ai_handlers
+
+        register_ai_handlers(application)
+        logger.info("AI Price Predictor команды зарегистрированы (/ai_train, /ai_status, /ai_scan)")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать AI handler команды: %s", e)
+
     logger.info("Все обработчики успешно зарегистрированы")
 
 
