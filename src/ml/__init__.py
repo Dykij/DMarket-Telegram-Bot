@@ -5,6 +5,7 @@
 - Определения оптимального времени покупки/продажи
 - Классификации рисков сделок
 - Адаптации к текущему балансу пользователя
+- Автоматической настройки гиперпараметров (ModelTuner)
 
 Используемые библиотеки (все бесплатные):
 - scikit-learn: основные ML модели (RandomForest, GradientBoosting, Ridge)
@@ -17,6 +18,8 @@
 - Dota 2
 - TF2 (Team Fortress 2)
 - Rust
+
+Документация: docs/ML_AI_GUIDE.md
 """
 
 from src.ml.price_predictor import (
@@ -46,6 +49,14 @@ from src.ml.enhanced_predictor import (
     ItemCondition,
     MLPipeline,
 )
+from src.ml.model_tuner import (
+    ModelTuner,
+    AutoMLSelector,
+    CVStrategy,
+    ScoringMetric,
+    TuningResult,
+    EvaluationResult,
+)
 
 __all__ = [
     # Price Predictor (базовый)
@@ -60,6 +71,13 @@ __all__ = [
     "ItemRarity",
     "ItemCondition",
     "MLPipeline",
+    # Model Tuner (автонастройка)
+    "ModelTuner",
+    "AutoMLSelector",
+    "CVStrategy",
+    "ScoringMetric",
+    "TuningResult",
+    "EvaluationResult",
     # Trade Classifier
     "AdaptiveTradeClassifier",
     "TradeSignal",
