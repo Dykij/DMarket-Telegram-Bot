@@ -136,6 +136,21 @@ class EnhancedFeatures:
     # Rust specific
     has_skin: bool = True
 
+    # === DMarket Bonus/Discount признаки (новые из API документации) ===
+    # Cumulative Discount - скидка от DMarket
+    dmarket_discount: float = 0.0  # Процент скидки (0-100)
+    # price.bonus - бонус от DMarket
+    dmarket_bonus: float = 0.0  # В USD
+    # Флаг "выгодной сделки" по внутренней статистике DMarket
+    has_dmarket_discount: bool = False
+
+    # === Lock Status признаки (трейд-бан) ===
+    # lockStatus: 0 = доступен сразу, 1 = заблокирован
+    lock_status: int = 0
+    lock_days_remaining: int = 0
+    # Рассчитанный дисконт за lock (3-5%)
+    lock_discount: float = 0.0
+
     # Мета-признаки
     data_quality_score: float = 1.0
     feature_timestamp: datetime = field(default_factory=datetime.utcnow)
@@ -177,6 +192,14 @@ class EnhancedFeatures:
             self.gem_count,
             1.0 if self.is_unusual else 0.0,
             self.effect_value,
+            # DMarket Bonus/Discount (из API документации)
+            self.dmarket_discount,
+            self.dmarket_bonus,
+            1.0 if self.has_dmarket_discount else 0.0,
+            # Lock Status
+            float(self.lock_status),
+            float(self.lock_days_remaining),
+            self.lock_discount,
         ], dtype=np.float64)
 
     def _game_to_numeric(self) -> float:
