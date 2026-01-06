@@ -14,7 +14,8 @@ Usage:
 """
 
 import logging
-from typing import TYPE_CHECKING
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from telegram import Update
 from telegram.ext import CommandHandler, ContextTypes
@@ -24,6 +25,37 @@ if TYPE_CHECKING:
     from telegram.ext import Application
 
 logger = logging.getLogger(__name__)
+
+
+def _get_data_status(output_path: str) -> dict[str, Any]:
+    """Get status of collected training data.
+
+    Args:
+        output_path: Path to the CSV data file
+
+    Returns:
+        Dictionary with data collection status
+    """
+    path = Path(output_path)
+
+    status: dict[str, Any] = {
+        "exists": path.exists(),
+        "rows": 0,
+        "ready_for_training": False,
+        "path": str(path),
+    }
+
+    if path.exists():
+        try:
+            with open(path, encoding="utf-8") as f:
+                # Count rows (excluding header)
+                row_count = sum(1 for _ in f) - 1
+                status["rows"] = max(0, row_count)
+                status["ready_for_training"] = row_count >= 100
+        except Exception as e:
+            logger.warning("data_status_check_failed", error=str(e))
+
+    return status
 
 
 async def ai_train_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -97,14 +129,14 @@ async def ai_status_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     try:
         from src.ai.price_predictor import PricePredictor
-        from src.dmarket.market_data_logger import MarketDataLogger
+        from src.dmarket.market_data_logger import MarketDataLoggerConfig
 
         predictor = PricePredictor()
         model_info = predictor.get_model_info()
 
-        # Get data status
-        data_logger = MarketDataLogger(api=None)  # type: ignore
-        data_status = data_logger.get_data_status()
+        # Get data status (just check file existence, don't need API)
+        config = MarketDataLoggerConfig()
+        data_status = _get_data_status(config.output_path)
 
         # Build status message
         status_parts = ["🤖 <b>AI Status</b>\n"]

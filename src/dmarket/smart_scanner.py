@@ -216,8 +216,14 @@ class SmartScanner:
     1. Fetches items using cursor-based pagination
     2. Filters by trade lock duration
     3. Skips already-processed items using delta filter
-    4. Validates prices with AI prediction
+    4. Validates prices with AI prediction (optional, requires trained model)
     5. Optionally compares with Waxpeer for cross-platform arbitrage
+       (requires waxpeer_api parameter to be provided)
+
+    Note:
+        - AI prediction requires a trained PricePredictor model
+        - Waxpeer integration is optional and only active when waxpeer_api is provided
+        - Trade lock analysis is enabled via allow_trade_ban config option
 
     Example:
         ```python

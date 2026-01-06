@@ -189,11 +189,12 @@ class MarketDataLogger:
             List of item dictionaries
         """
         try:
+            # price_from and price_to are in cents in config, but API expects dollars
             response = await self.api.get_market_items(
                 game=game_id,
                 limit=self.config.max_items_per_scan,
-                price_from=self.config.min_price_cents,
-                price_to=self.config.max_price_cents,
+                price_from=self.config.min_price_cents / 100,  # Convert cents to dollars
+                price_to=self.config.max_price_cents / 100,  # Convert cents to dollars
                 sort="price",
             )
 
