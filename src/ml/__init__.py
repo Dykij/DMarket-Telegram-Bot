@@ -7,9 +7,16 @@
 - Адаптации к текущему балансу пользователя
 
 Используемые библиотеки (все бесплатные):
-- scikit-learn: основные ML модели
+- scikit-learn: основные ML модели (RandomForest, GradientBoosting, Ridge)
+- XGBoost: продвинутый gradient boosting (опционально)
 - NumPy: математические операции
 - Собственные адаптивные алгоритмы
+
+Поддерживаемые игры:
+- CS2 (Counter-Strike 2) / CSGO
+- Dota 2
+- TF2 (Team Fortress 2)
+- Rust
 """
 
 from src.ml.price_predictor import (
@@ -30,12 +37,29 @@ from src.ml.feature_extractor import (
     MarketFeatureExtractor,
     PriceFeatures,
 )
+from src.ml.enhanced_predictor import (
+    EnhancedPricePredictor,
+    EnhancedFeatureExtractor,
+    EnhancedFeatures,
+    GameType,
+    ItemRarity,
+    ItemCondition,
+    MLPipeline,
+)
 
 __all__ = [
-    # Price Predictor
+    # Price Predictor (базовый)
     "AdaptivePricePredictor",
     "PricePrediction",
     "PredictionConfidence",
+    # Enhanced Price Predictor (улучшенный)
+    "EnhancedPricePredictor",
+    "EnhancedFeatureExtractor",
+    "EnhancedFeatures",
+    "GameType",
+    "ItemRarity",
+    "ItemCondition",
+    "MLPipeline",
     # Trade Classifier
     "AdaptiveTradeClassifier",
     "TradeSignal",
