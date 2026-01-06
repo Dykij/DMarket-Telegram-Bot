@@ -98,13 +98,29 @@ class MarketSentimentAnalyzer:
     """
 
     # Default market indicators (most liquid items)
+    # Updated 2026: Added new CS2 cases and high-volume items
     DEFAULT_INDICATORS = [
+        # CS2 Cases (high liquidity)
         "Fracture Case",
         "Recoil Case",
         "Dreams & Nightmares Case",
-        "Mann Co. Supply Crate Key",
         "Revolution Case",
         "Kilowatt Case",
+        "Gallery Case",  # New 2025
+        "Prisma 2 Case",
+        # Keys (stable price reference)
+        "Mann Co. Supply Crate Key",
+        # High-value reference items
+        "Operation Bravo Case",
+        "Chroma Case",
+    ]
+
+    # CS2 Major sticker indicators (for tournament periods)
+    STICKER_INDICATORS = [
+        "Sticker Capsule",
+        "Legends (Holo/Foil)",
+        "Challengers (Holo/Foil)",
+        "Contenders (Holo/Foil)",
     ]
 
     # Steam sale periods (approximate dates, UTC)
@@ -117,7 +133,20 @@ class MarketSentimentAnalyzer:
         (11, 20, 11, 30),
         # Spring Sale: March
         (3, 15, 3, 25),
+        # Lunar New Year Sale: February
+        (2, 8, 2, 15),
+        # Halloween Sale: Late October
+        (10, 26, 11, 1),
     ]
+
+    # Volatility thresholds for market state detection
+    VOLATILITY_THRESHOLDS = {
+        "stable": 0.02,       # < 2% change = stable
+        "volatile": 0.05,     # 2-5% change = volatile
+        "crash": -0.10,       # > -10% = crash
+        "bull_run": 0.10,     # > +10% = bull run
+        "recovery": 0.03,     # +3% after crash = recovery
+    }
 
     def __init__(
         self,
