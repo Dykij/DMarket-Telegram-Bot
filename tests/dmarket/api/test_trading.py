@@ -82,6 +82,66 @@ def trading_mixin_live(mock_request, mock_cache_clear):
     return TestTradingClient()
 
 
+@pytest.fixture()
+def targets_mixin(mock_request, mock_cache_clear):
+    """Fixture providing a TargetsOperationsMixin instance with mocked dependencies."""
+    from src.dmarket.api.targets_api import TargetsOperationsMixin
+
+    class TestTargetsClient(TargetsOperationsMixin):
+        """Test client with mixin."""
+
+        ENDPOINT_USER_TARGETS = "/marketplace-api/v1/user-targets"
+        ENDPOINT_TARGETS_BY_TITLE = "/marketplace-api/v1/targets-by-title"
+
+        def __init__(self) -> None:
+            self._request = mock_request
+            self.clear_cache_for_endpoint = mock_cache_clear
+
+        async def create_target(
+            self,
+            game: str,
+            title: str,
+            price: float,
+            amount: int = 1,
+        ) -> dict:
+            """Create a single target (buy order)."""
+            return await self._request(
+                "POST",
+                "/marketplace-api/v1/user-targets/create",
+                data={
+                    "GameID": game,
+                    "Targets": [
+                        {
+                            "Title": title,
+                            "Amount": amount,
+                            "Price": {"Amount": int(price * 100), "Currency": "USD"},
+                        }
+                    ],
+                },
+            )
+
+        async def update_target(
+            self,
+            target_id: str,
+            new_price: float,
+        ) -> dict:
+            """Update target price."""
+            return await self._request(
+                "PATCH",
+                f"/marketplace-api/v1/user-targets/{target_id}",
+                data={"Price": {"Amount": int(new_price * 100), "Currency": "USD"}},
+            )
+
+        async def delete_target(self, target_id: str) -> dict:
+            """Delete a target."""
+            return await self._request(
+                "DELETE",
+                f"/marketplace-api/v1/user-targets/{target_id}",
+            )
+
+    return TestTargetsClient()
+
+
 # TestBuyItem
 
 
@@ -445,8 +505,8 @@ class TestTradingAPIAdditional:
     """Additional tests for trading to reach 95%."""
 
     @pytest.mark.asyncio()
-    async def test_buy_item_with_price_limit(self, trading_mixin, mock_request):
-        """Test buying item with price limit."""
+    async def test_buy_item_with_game_param(self, trading_mixin, mock_request):
+        """Test buying item with game parameter."""
         # Arrange
         mock_request.return_value = {"success": True, "orderId": "ord_123"}
 
@@ -454,15 +514,15 @@ class TestTradingAPIAdditional:
         result = await trading_mixin.buy_item(
             item_id="item_123",
             price=25.99,
-            max_price=30.00,
+            game="csgo",
         )
 
         # Assert
         assert result is not None
 
     @pytest.mark.asyncio()
-    async def test_sell_item_with_min_price(self, trading_mixin, mock_request):
-        """Test selling item with minimum price."""
+    async def test_sell_item_with_buy_price(self, trading_mixin, mock_request):
+        """Test selling item with buy price for profit calculation."""
         # Arrange
         mock_request.return_value = {"success": True}
 
@@ -470,20 +530,20 @@ class TestTradingAPIAdditional:
         result = await trading_mixin.sell_item(
             item_id="item_456",
             price=50.00,
-            min_price=45.00,
+            buy_price=40.00,
         )
 
         # Assert
         assert result is not None
 
     @pytest.mark.asyncio()
-    async def test_cancel_order_success(self, trading_mixin, mock_request):
-        """Test canceling an order."""
+    async def test_delete_offer_success(self, trading_mixin, mock_request):
+        """Test deleting an offer."""
         # Arrange
         mock_request.return_value = {"success": True}
 
         # Act
-        result = await trading_mixin.cancel_order(order_id="ord_789")
+        result = await trading_mixin.delete_offer(offer_id="offer_789")
 
         # Assert
         assert result["success"] is True
@@ -492,37 +552,41 @@ class TestTradingAPIAdditional:
 class TestAuthAPIAdditional:
     """Additional tests for auth to reach 95%."""
 
-    def test_generate_signature_with_empty_body(self, auth_mixin):
-        """Test signature generation with empty body."""
-        # Arrange
-        method = "GET"
-        path = "/test"
-        timestamp = "1234567890"
+    def test_generate_signature_ed25519_with_empty_body(self):
+        """Test Ed25519 signature generation with empty body."""
+        from src.dmarket.api.auth import generate_signature_ed25519
 
-        # Act
-        result = auth_mixin.generate_signature(
-            method=method,
-            path=path,
-            timestamp=timestamp,
+        # Act - without valid keys, it should return fallback headers
+        result = generate_signature_ed25519(
+            public_key="",
+            secret_key="",
+            method="GET",
+            path="/test",
             body="",
         )
 
         # Assert
         assert result is not None
+        assert "Content-Type" in result
 
-    def test_generate_signature_with_special_characters(self, auth_mixin):
-        """Test signature with special characters in path."""
+    def test_generate_signature_hmac_with_body(self):
+        """Test HMAC signature with body."""
+        from src.dmarket.api.auth import generate_signature_hmac
+
         # Arrange
-        method = "GET"
-        path = "/test?param=value&other=123"
-        timestamp = "1234567890"
+        secret_key = b"test_secret_key_32_bytes________"
 
         # Act
-        result = auth_mixin.generate_signature(
-            method=method,
-            path=path,
-            timestamp=timestamp,
+        result = generate_signature_hmac(
+            public_key="test_public_key",
+            secret_key=secret_key,
+            method="POST",
+            path="/test",
+            body='{"test": "data"}',
         )
 
         # Assert
         assert result is not None
+        assert "X-Api-Key" in result
+        assert "X-Request-Sign" in result
+        assert "X-Sign-Date" in result

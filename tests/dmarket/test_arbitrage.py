@@ -280,19 +280,20 @@ class TestFindArbitrageAsync:
         """Тест поиска арбитража с реальными предметами."""
         from src.dmarket.arbitrage import _find_arbitrage_async
 
+        # Mock items с правильным форматом цен (ключ USD в центах)
         mock_items = [
             {
                 "title": "AK-47 | Redline (FT)",
                 "itemId": "item_1",
-                "price": {"amount": 1250},  # $12.50
-                "suggestedPrice": {"amount": 1500},  # $15.00
+                "price": {"USD": 1250},  # $12.50 в центах
+                "suggestedPrice": {"USD": 1500},  # $15.00 в центах
                 "extra": {"popularity": 0.8},
             },
             {
                 "title": "AWP | Asiimov (FT)",
                 "itemId": "item_2",
-                "price": {"amount": 3500},  # $35.00
-                "suggestedPrice": {"amount": 4200},  # $42.00
+                "price": {"USD": 3500},  # $35.00 в центах
+                "suggestedPrice": {"USD": 4200},  # $42.00 в центах
                 "extra": {"popularity": 0.5},
             },
         ]
@@ -328,7 +329,7 @@ class TestFindArbitrageAsync:
             {
                 "title": "M4A4 | Howl (FN)",
                 "itemId": "item_3",
-                "price": {"amount": 10000},  # $100.00
+                "price": {"USD": 10000},  # $100.00
                 "extra": {"popularity": 0.9},  # Высокая популярность
             },
         ]
@@ -355,15 +356,15 @@ class TestFindArbitrageAsync:
             {
                 "title": "High Liquidity Item",
                 "itemId": "item_high",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1200},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1200},
                 "extra": {"popularity": 0.95},  # Высокая ликвидность
             },
             {
                 "title": "Low Liquidity Item",
                 "itemId": "item_low",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1200},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1200},
                 "extra": {"popularity": 0.2},  # Низкая ликвидность
             },
         ]
@@ -421,8 +422,8 @@ class TestFindArbitrageOpportunitiesAsync:
             {
                 "title": "AK-47 | Redline (FT)",
                 "itemId": "item_1",
-                "price": {"amount": 1000},  # $10.00
-                "suggestedPrice": {"amount": 1300},  # $13.00
+                "price": {"USD": 1000},  # $10.00
+                "suggestedPrice": {"USD": 1300},  # $13.00
                 "extra": {"popularity": 0.7},
             },
         ]
@@ -456,8 +457,8 @@ class TestFindArbitrageOpportunitiesAsync:
             {
                 "title": f"Item {i}",
                 "itemId": f"item_{i}",
-                "price": {"amount": 1000 + i * 100},
-                "suggestedPrice": {"amount": 1500 + i * 100},
+                "price": {"USD": 1000 + i * 100},
+                "suggestedPrice": {"USD": 1500 + i * 100},
                 "extra": {"popularity": 0.5},
             }
             for i in range(10)
@@ -485,15 +486,15 @@ class TestFindArbitrageOpportunitiesAsync:
             {
                 "title": "Low Profit Item",
                 "itemId": "item_low",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1100},  # 10% прибыли
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1100},  # 10% прибыли
                 "extra": {"popularity": 0.5},
             },
             {
                 "title": "High Profit Item",
                 "itemId": "item_high",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1500},  # 50% прибыли
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1500},  # 50% прибыли
                 "extra": {"popularity": 0.5},
             },
         ]
@@ -678,8 +679,8 @@ class TestIntegration:
             {
                 "title": "AK-47 | Redline (Field-Tested)",
                 "itemId": "item_ak47",
-                "price": {"amount": 1250},
-                "suggestedPrice": {"amount": 1500},
+                "price": {"USD": 1250},
+                "suggestedPrice": {"USD": 1500},
                 "extra": {"popularity": 0.75},
             },
         ]
@@ -1029,7 +1030,7 @@ class TestFetchMarketItemsEnvKeys:
         ):
             mock_api_instance = AsyncMock()
             mock_api_instance.get_market_items = AsyncMock(
-                return_value={"objects": [{"title": "Test", "price": {"amount": 1000}}]}
+                return_value={"objects": [{"title": "Test", "price": {"USD": 1000}}]}
             )
             mock_api_class.return_value = mock_api_instance
 
@@ -1099,8 +1100,8 @@ class TestFindArbitrageAsyncPopularity:
             {
                 "itemId": "item1",
                 "title": "High Popularity Item",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1200},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1200},
                 "extra": {"popularity": 0.85},
             }
         ]
@@ -1130,8 +1131,8 @@ class TestFindArbitrageAsyncPopularity:
             {
                 "itemId": "item1",
                 "title": "Medium Popularity Item",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1200},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1200},
                 "extra": {"popularity": 0.5},
             }
         ]
@@ -1161,8 +1162,8 @@ class TestFindArbitrageAsyncPopularity:
             {
                 "itemId": "item1",
                 "title": "Low Popularity Item",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1200},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1200},
                 "extra": {"popularity": 0.2},
             }
         ]
@@ -1192,7 +1193,7 @@ class TestFindArbitrageAsyncPopularity:
             {
                 "itemId": "item1",
                 "title": "Item Without Suggested Price",
-                "price": {"amount": 1000},  # $10
+                "price": {"USD": 1000},  # $10 в центах
                 "extra": {"popularity": 0.75},  # Высокая -> markup 1.1
             }
         ]
@@ -1221,7 +1222,7 @@ class TestFindArbitrageAsyncPopularity:
             {
                 "itemId": "item1",
                 "title": "Medium Item",
-                "price": {"amount": 1000},  # $10
+                "price": {"USD": 1000},  # $10 в центах
                 "extra": {"popularity": 0.5},  # Средняя -> markup 1.12
             }
         ]
@@ -1250,7 +1251,7 @@ class TestFindArbitrageAsyncPopularity:
             {
                 "itemId": "item1",
                 "title": "Low Item",
-                "price": {"amount": 1000},  # $10
+                "price": {"USD": 1000},  # $10
                 "extra": {"popularity": 0.3},  # Низкая -> markup 1.15
             }
         ]
@@ -1279,7 +1280,7 @@ class TestFindArbitrageAsyncPopularity:
             {
                 "itemId": "item1",
                 "title": "Item Without Extra",
-                "price": {"amount": 1000},
+                "price": {"USD": 1000},
             }
         ]
 
@@ -1308,8 +1309,8 @@ class TestFindArbitrageAsyncProfitCalculation:
             {
                 "itemId": "item1",
                 "title": "Test Item",
-                "price": {"amount": 1000},  # $10
-                "suggestedPrice": {"amount": 1200},  # $12
+                "price": {"USD": 1000},  # $10
+                "suggestedPrice": {"USD": 1200},  # $12
                 "extra": {"popularity": 0.75},  # low_fee = 2%
             }
         ]
@@ -1334,8 +1335,8 @@ class TestFindArbitrageAsyncProfitCalculation:
             {
                 "itemId": "item1",
                 "title": "Free Item",
-                "price": {"amount": 0},
-                "suggestedPrice": {"amount": 100},
+                "price": {"USD": 0},
+                "suggestedPrice": {"USD": 100},
             }
         ]
 
@@ -1359,8 +1360,8 @@ class TestFindArbitrageAsyncProfitCalculation:
             {
                 "itemId": "item1",
                 "name": "Item With Name Field",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1100},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1100},
             }
         ]
 
@@ -1386,8 +1387,8 @@ class TestFindArbitrageAsyncProfitCalculation:
         mock_items = [
             {
                 "itemId": "item1",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1100},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1100},
             }
         ]
 
@@ -1411,14 +1412,14 @@ class TestFindArbitrageAsyncProfitCalculation:
             {
                 "itemId": "item1",
                 "title": "Low Profit",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1050},  # ~$0.37 profit
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1050},  # ~$0.37 profit
             },
             {
                 "itemId": "item2",
                 "title": "High Profit",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1500},  # ~$3.95 profit
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1500},  # ~$3.95 profit
             },
         ]
 
@@ -1442,20 +1443,20 @@ class TestFindArbitrageAsyncProfitCalculation:
             {
                 "itemId": "item1",
                 "title": "Item A",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1100},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1100},
             },
             {
                 "itemId": "item2",
                 "title": "Item B",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1500},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1500},
             },
             {
                 "itemId": "item3",
                 "title": "Item C",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1300},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1300},
             },
         ]
 
@@ -1488,19 +1489,19 @@ class TestFindArbitrageAsyncErrorHandling:
             {
                 "itemId": "item1",
                 "title": "Valid",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1200},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1200},
             },
             {
                 "itemId": "item2",
                 "title": "Malformed",
-                "price": {"amount": "invalid"},
+                "price": {"USD": "invalid"},
             },
             {
                 "itemId": "item3",
                 "title": "Valid2",
-                "price": {"amount": 2000},
-                "suggestedPrice": {"amount": 2300},
+                "price": {"USD": 2000},
+                "suggestedPrice": {"USD": 2300},
             },
         ]
 
@@ -1523,12 +1524,12 @@ class TestFindArbitrageAsyncErrorHandling:
         src.dmarket.arbitrage._arbitrage_cache.clear()
 
         mock_items = [
-            {"itemId": "item1", "title": "Item1", "price": {"amount": 1000}},
+            {"itemId": "item1", "title": "Item1", "price": {"USD": 1000}},
             {
                 "itemId": "item2",
                 "title": "Item2",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1100},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1100},
             },
         ]
 
@@ -1555,8 +1556,8 @@ class TestCacheIntegration:
             {
                 "itemId": "item1",
                 "title": "Cached",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1200},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1200},
             }
         ]
 
@@ -1586,8 +1587,8 @@ class TestCacheIntegration:
             {
                 "itemId": "item1",
                 "title": "Item",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1200},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1200},
             }
         ]
 
@@ -1621,8 +1622,8 @@ class TestFindArbitrageOpportunitiesAsyncExtended:
             {
                 "itemId": "item1",
                 "title": "High Profit Item",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1500},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1500},
                 "extra": {"popularity": 0.8},
             }
         ]
@@ -1651,8 +1652,8 @@ class TestFindArbitrageOpportunitiesAsyncExtended:
             {
                 "itemId": "item1",
                 "title": "CS:GO Skin",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1300},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1300},
             }
         ]
 
@@ -1678,8 +1679,8 @@ class TestFindArbitrageOpportunitiesAsyncExtended:
             {
                 "itemId": "item1",
                 "title": "Dota Item",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1300},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1300},
             }
         ]
 
@@ -1705,14 +1706,14 @@ class TestFindArbitrageOpportunitiesAsyncExtended:
             {
                 "itemId": "item1",
                 "title": "Low Profit",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1050},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1050},
             },
             {
                 "itemId": "item2",
                 "title": "High Profit",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1500},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1500},
             },
         ]
 
@@ -1742,8 +1743,8 @@ class TestFindArbitrageOpportunitiesAsyncExtended:
             {
                 "itemId": f"item{i}",
                 "title": f"Item {i}",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1500},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1500},
             }
             for i in range(10)
         ]
@@ -1788,8 +1789,8 @@ class TestFindArbitrageOpportunitiesAsyncExtended:
             {
                 "itemId": "item1",
                 "title": "Cached Item",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1300},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1300},
             }
         ]
 
@@ -1820,7 +1821,7 @@ class TestFindArbitrageOpportunitiesAsyncExtended:
             {
                 "itemId": "item1",
                 "title": "No Suggested Price",
-                "price": {"amount": 1000},
+                "price": {"USD": 1000},
             }
         ]
 
@@ -1847,12 +1848,12 @@ class TestFindArbitrageOpportunitiesAsyncExtended:
         src.dmarket.arbitrage._arbitrage_cache.clear()
 
         mock_items = [
-            {"itemId": "item1", "price": {"amount": "invalid"}},
+            {"itemId": "item1", "price": {"USD": "invalid"}},
             {
                 "itemId": "item2",
                 "title": "Valid Item",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1300},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1300},
             },
         ]
 
@@ -1883,8 +1884,8 @@ class TestFindArbitrageOpportunitiesAsyncLiquidity:
             {
                 "itemId": "high_pop",
                 "title": "High Popularity Item",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1300},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1300},
                 "extra": {"popularity": 0.85},
             }
         ]
@@ -1912,8 +1913,8 @@ class TestFindArbitrageOpportunitiesAsyncLiquidity:
             {
                 "itemId": "low_pop",
                 "title": "Low Popularity Item",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1400},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1400},
                 "extra": {"popularity": 0.25},
             }
         ]
@@ -1945,8 +1946,8 @@ class TestFindArbitrageOpportunitiesAsyncLiquidity:
             {
                 "itemId": "med_pop",
                 "title": "Medium Popularity Item",
-                "price": {"amount": 1000},
-                "suggestedPrice": {"amount": 1350},
+                "price": {"USD": 1000},
+                "suggestedPrice": {"USD": 1350},
                 "extra": {"popularity": 0.55},
             }
         ]

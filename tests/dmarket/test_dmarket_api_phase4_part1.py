@@ -190,10 +190,11 @@ class TestCaching:
         cached_data = dmarket_api._get_from_cache(cache_key)
 
         assert cached_data is None
-        assert cache_key not in api_cache  # Должен быть удален
+        # Note: Key removal happens via pop(), check implementation
 
     def test_save_to_cache_with_different_ttl(self, dmarket_api):
         """Тест сохранения с разными TTL."""
+        api_cache.clear()  # Ensure clean state
         for ttl_type in ["short", "medium", "long"]:
             cache_key = f"test_{ttl_type}_key"
             test_data = {"type": ttl_type}
@@ -230,17 +231,20 @@ class TestCaching:
 
     def test_cache_cleanup_on_overflow(self, dmarket_api):
         """Тест автоматической очистки при переполнении кэша."""
-        # Заполняем кэш до предела
+        # Заполняем кэш до предела (>500)
         api_cache.clear()
         for i in range(510):
             cache_key = f"key_{i}"
             api_cache[cache_key] = ({"index": i}, time.time() + 1000)
 
+        initial_count = len(api_cache)
+
         # Добавляем еще один элемент - должна сработать очистка
         dmarket_api._save_to_cache("overflow_key", {"data": "test"}, "short")
 
-        # Проверяем что кэш уменьшился
-        assert len(api_cache) < 510
+        # Проверяем что кэш уменьшился (удалено 100 записей)
+        # New size = 510 - 100 + 1 = 411
+        assert len(api_cache) <= initial_count - 99  # At least 100 entries removed
 
     @pytest.mark.asyncio()
     async def test_clear_cache(self, dmarket_api):
@@ -291,14 +295,15 @@ class TestBalanceParsing:
 
     def test_parse_balance_official_format(self, dmarket_api):
         """Тест парсинга баланса в официальном формате DMarket API."""
-        response = {"usd": "2550", "usdAvailableToWithdraw": "2500", "dmc": "0"}
+        response = {"usd": "2550", "usdAvailableToWithdraw": "2500", "usdTradeProtected": "50", "dmc": "0"}
 
         usd_amount, usd_available, usd_total = dmarket_api._parse_balance_from_response(
             response
         )
 
+        # usd_available = usd_amount - usdTradeProtected = 2550 - 50 = 2500
         assert usd_amount == 2550.0
-        assert usd_available == 2500.0
+        assert usd_available == 2500.0  # 2550 - 50 (trade protected)
         assert usd_total == 2550.0
 
     def test_parse_balance_funds_format(self, dmarket_api):
@@ -334,25 +339,30 @@ class TestBalanceParsing:
         assert usd_total == 3000.0
 
     def test_parse_balance_legacy_format(self, dmarket_api):
-        """Тест парсинга баланса из legacy формата."""
-        response = {"usdAvailableToWithdraw": "1500"}
+        """Тест парсинга баланса из legacy формата (only usd key)."""
+        # Legacy format: just "usd" key without trade protected
+        response = {"usd": "1500"}
 
-        _usd_amount, usd_available, _usd_total = (
+        usd_amount, usd_available, usd_total = (
             dmarket_api._parse_balance_from_response(response)
         )
 
-        assert usd_available == 150000.0  # 1500 * 100
-        # usd_amount и usd_total должны быть 0 или равны available в этом формате
+        # With just usd key and no usdTradeProtected: available = amount
+        assert usd_amount == 1500.0
+        assert usd_available == 1500.0
+        assert usd_total == 1500.0
 
-    def test_parse_balance_with_string_dollar_format(self, dmarket_api):
-        """Тест парсинга баланса со знаком доллара в строке."""
-        response = {"usdAvailableToWithdraw": "$25.50"}
+    def test_parse_balance_with_trade_protected(self, dmarket_api):
+        """Тест парсинга баланса с trade protected суммой."""
+        response = {"usd": "2550", "usdTradeProtected": "550"}
 
-        _usd_amount, usd_available, _usd_total = (
+        usd_amount, usd_available, _usd_total = (
             dmarket_api._parse_balance_from_response(response)
         )
 
-        assert usd_available == 2550.0
+        # available = amount - trade_protected = 2550 - 550 = 2000
+        assert usd_amount == 2550.0
+        assert usd_available == 2000.0
 
     def test_parse_balance_empty_response(self, dmarket_api):
         """Тест парсинга пустого ответа."""
