@@ -477,6 +477,7 @@ async def _handle_cmp_steam(update, context):
 
     try:
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+
         from src.utils.steam_async_parser import SteamAsyncParser
 
         # Configuration constants
@@ -948,4 +949,3 @@ async def _handle_waxpeer_scan(update, context):
         await waxpeer_scan_handler(update, context)
     except ImportError:
         await handle_temporary_unavailable(update, context, "Waxpeer сканирование")
-

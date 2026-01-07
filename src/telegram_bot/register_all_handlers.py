@@ -31,6 +31,7 @@ from src.telegram_bot.handlers.commands import (
 from src.telegram_bot.handlers.minimal_menu_router import minimal_menu_router
 from src.telegram_bot.handlers.view_items_handler import handle_view_items_callback
 
+
 if TYPE_CHECKING:
     from telegram.ext import Application
 

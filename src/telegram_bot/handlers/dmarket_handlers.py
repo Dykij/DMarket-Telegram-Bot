@@ -10,6 +10,7 @@ from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.exceptions import handle_exceptions
 from src.utils.logging_utils import get_logger
 
+
 logger = get_logger(__name__)
 
 

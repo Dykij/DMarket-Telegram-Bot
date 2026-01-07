@@ -473,17 +473,18 @@ def register_notification_handlers(
     )
 
     # Start periodic alerts checker
+    # NOTE: The alerts checker is now started via post_init hook in main.py
+    # to avoid "no running event loop" error during handler registration
     api = getattr(application, "dmarket_api", None)  # Изменено с bot_data на атрибут
 
     if api:
-        _ = asyncio.create_task(
-            run_alerts_checker(
-                bot=application.bot,
-                api=api,
-                check_interval=300,
-            )
-        )
-        logger.info("Запущена периодическая проверка оповещений")
+        # Store the coroutine function in bot_data for later execution
+        # This will be started when the application starts
+        application.bot_data["alerts_checker_config"] = {
+            "api": api,
+            "check_interval": 300,
+        }
+        logger.info("Конфигурация периодической проверки оповещений сохранена")
     else:
         logger.warning(
             "DMarket API не найден в application, периодическая проверка оповещений не запущена"

@@ -10,8 +10,7 @@ import os
 import signal
 import sys
 
-from telegram.ext import Application as TelegramApplication
-from telegram.ext import ApplicationBuilder, PersistenceInput
+from telegram.ext import Application as TelegramApplication, ApplicationBuilder, PersistenceInput
 
 from src.dmarket.dmarket_api import DMarketAPI
 from src.dmarket.scanner_manager import ScannerManager
@@ -24,6 +23,7 @@ from src.utils.database import DatabaseManager
 from src.utils.logging_utils import BotLogger, setup_logging
 from src.utils.sentry_integration import init_sentry
 from src.utils.state_manager import StateManager
+
 
 logger = logging.getLogger(__name__)
 bot_logger = BotLogger(__name__)

@@ -10,6 +10,7 @@ from typing import Any
 
 import structlog
 
+
 try:
     from mcp.server import Server
     from mcp.server.stdio import stdio_server
@@ -25,6 +26,7 @@ except ImportError:
 
 from src.dmarket.dmarket_api import DMarketAPI
 from src.utils.config import settings
+
 
 logger = structlog.get_logger(__name__)
 

@@ -17,6 +17,7 @@ from src.telegram_bot.keyboards import (
 from src.utils.logging_utils import get_logger
 from src.utils.telegram_error_handlers import telegram_error_boundary
 
+
 logger = get_logger(__name__)
 
 

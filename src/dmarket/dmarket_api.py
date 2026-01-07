@@ -51,12 +51,13 @@ import time
 import traceback
 from typing import TYPE_CHECKING, Any
 
+from circuitbreaker import CircuitBreakerError  # type: ignore[import-untyped]
 import httpx
 import nacl.signing
-from circuitbreaker import CircuitBreakerError  # type: ignore[import-untyped]
 
 from src.dmarket.api_validator import validate_response
 from src.utils import json_utils as json
+
 
 if TYPE_CHECKING:
     from src.telegram_bot.notifier import Notifier
@@ -72,6 +73,7 @@ from src.dmarket.schemas import (
 from src.utils.api_circuit_breaker import call_with_circuit_breaker
 from src.utils.rate_limiter import DMarketRateLimiter, RateLimiter
 from src.utils.sentry_breadcrumbs import add_api_breadcrumb, add_trading_breadcrumb
+
 
 logger = logging.getLogger(__name__)
 
