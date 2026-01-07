@@ -299,14 +299,16 @@ class TestCachePerformance:
 
     def test_cache_memory_efficiency(self):
         """Тест эффективности памяти кэша."""
-        # Сохраняем много записей
-        for i in range(100):
+        # MAX_CACHE_SIZE = 20, so we test within that limit
+        num_items = 15  # Less than MAX_CACHE_SIZE to ensure all fit
+        # Сохраняем записи
+        for i in range(num_items):
             cache_key = ("csgo", "low", float(i), float(i + 1))
             items = [{"title": f"Item {i}"}]
             _save_to_cache(cache_key, items)
 
-        # Кэш должен содержать все записи
-        assert len(_arbitrage_cache) == 100
+        # Кэш должен содержать все записи (since num_items < MAX_CACHE_SIZE)
+        assert len(_arbitrage_cache) == num_items
 
 
 class TestCacheTTL:
