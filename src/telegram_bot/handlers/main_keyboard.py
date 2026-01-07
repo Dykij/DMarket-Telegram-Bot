@@ -11,6 +11,7 @@
 """
 
 import os
+from typing import Any
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
@@ -851,7 +852,7 @@ async def show_inventory(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def _delete_all_targets(dmarket_api: Any) -> int:
     """Delete all active targets across all games.
-    
+
     Returns:
         Number of deleted targets.
     """

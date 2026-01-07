@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ProfessionalBotConfig:
     """Профессиональные настройки бота для арбитража.
-    
+
     Эти параметры обеспечивают баланс между скоростью и безопасностью ToS.
     """
 
@@ -95,7 +95,7 @@ class ProfessionalBotConfig:
 
 class SilentModeLogger:
     """Логгер для Silent Mode.
-    
+
     В Silent Mode логи пишутся в файл, а в Telegram отправляются
     только важные события (покупки, ошибки).
     """
@@ -106,7 +106,7 @@ class SilentModeLogger:
         notifier: Any | None = None,
     ):
         """Инициализация логгера.
-        
+
         Args:
             config: Конфигурация бота
             notifier: Telegram notifier (опционально)
@@ -147,7 +147,7 @@ class SilentModeLogger:
         scan_time_ms: float,
     ) -> None:
         """Логирует результат сканирования (только в файл в Silent Mode).
-        
+
         Args:
             items_scanned: Количество просканированных предметов
             opportunities_found: Найденных возможностей
@@ -176,7 +176,7 @@ class SilentModeLogger:
         profit_percent: float,
     ) -> None:
         """Логирует покупку (всегда отправляется в Telegram).
-        
+
         Args:
             item_name: Название предмета
             buy_price: Цена покупки
@@ -202,7 +202,7 @@ class SilentModeLogger:
         critical: bool = False,
     ) -> None:
         """Логирует ошибку.
-        
+
         Args:
             error_type: Тип ошибки
             error_message: Сообщение об ошибке
@@ -264,13 +264,13 @@ class SilentModeLogger:
 
 class LocalDeltaTracker:
     """Отслеживание изменений для пропуска дубликатов.
-    
+
     Экономит CPU и API запросы, обрабатывая только изменившиеся предметы.
     """
 
     def __init__(self, config: ProfessionalBotConfig):
         """Инициализация трекера дельты.
-        
+
         Args:
             config: Конфигурация бота
         """
@@ -284,10 +284,10 @@ class LocalDeltaTracker:
 
     def _compute_hash(self, item_data: dict[str, Any]) -> str:
         """Вычисляет хэш предмета.
-        
+
         Args:
             item_data: Данные предмета
-        
+
         Returns:
             Хэш строка
         """
@@ -307,11 +307,11 @@ class LocalDeltaTracker:
 
     def is_changed(self, item_id: str, item_data: dict[str, Any]) -> bool:
         """Проверяет, изменился ли предмет с последнего раза.
-        
+
         Args:
             item_id: ID предмета
             item_data: Данные предмета
-        
+
         Returns:
             True если предмет изменился или новый
         """
@@ -346,7 +346,7 @@ class LocalDeltaTracker:
 
     def cleanup_expired(self) -> int:
         """Очищает устаревшие записи из кэша.
-        
+
         Returns:
             Количество удалённых записей
         """
@@ -365,7 +365,7 @@ class LocalDeltaTracker:
 
     def get_stats(self) -> dict[str, Any]:
         """Получить статистику.
-        
+
         Returns:
             Словарь со статистикой
         """
@@ -395,14 +395,14 @@ class LocalDeltaTracker:
 
 class AdaptiveRateLimiter:
     """Адаптивный rate limiter с защитой от 429 ошибок.
-    
+
     Автоматически увеличивает задержку при получении 429 и
     постепенно уменьшает при успешных запросах.
     """
 
     def __init__(self, config: ProfessionalBotConfig):
         """Инициализация rate limiter.
-        
+
         Args:
             config: Конфигурация бота
         """
@@ -432,7 +432,7 @@ class AdaptiveRateLimiter:
 
     async def _async_sleep(self, seconds: float) -> None:
         """Асинхронное ожидание.
-        
+
         Args:
             seconds: Количество секунд
         """
@@ -451,10 +451,10 @@ class AdaptiveRateLimiter:
 
     def record_429_error(self, retry_after: int | None = None) -> float:
         """Фиксирует ошибку 429 и возвращает время ожидания.
-        
+
         Args:
             retry_after: Значение из заголовка Retry-After
-        
+
         Returns:
             Время ожидания в секундах
         """
@@ -495,7 +495,7 @@ class AdaptiveRateLimiter:
 
     def get_stats(self) -> dict[str, Any]:
         """Получить статистику.
-        
+
         Returns:
             Словарь со статистикой
         """
@@ -518,7 +518,7 @@ class AdaptiveRateLimiter:
 @dataclass
 class AIProtectionSettings:
     """Настройки защиты AI от галлюцинаций и переобучения.
-    
+
     min_samples_leaf=5 предотвращает модель от принятия решений
     на основе слишком малого количества примеров.
     """
@@ -543,7 +543,7 @@ class AIProtectionSettings:
 
     def get_random_forest_params(self) -> dict[str, Any]:
         """Получить параметры для RandomForest.
-        
+
         Returns:
             Словарь параметров
         """
@@ -558,7 +558,7 @@ class AIProtectionSettings:
 
     def get_gradient_boosting_params(self) -> dict[str, Any]:
         """Получить параметры для GradientBoosting.
-        
+
         Returns:
             Словарь параметров
         """
@@ -578,12 +578,12 @@ class AIProtectionSettings:
         confidence: float,
     ) -> tuple[bool, str]:
         """Валидирует предсказание AI.
-        
+
         Args:
             predicted_price: Предсказанная цена
             current_price: Текущая цена
             confidence: Уверенность модели
-        
+
         Returns:
             (is_valid, reason)
         """
@@ -615,7 +615,7 @@ class AIProtectionSettings:
 @dataclass
 class SmartScannerConfig:
     """Конфигурация умного сканера.
-    
+
     Объединяет cursor навигацию, lockStatus фильтр и delta tracking.
     """
 
@@ -643,7 +643,7 @@ class SmartScannerConfig:
 
     def to_dict(self) -> dict[str, Any]:
         """Конвертирует в словарь.
-        
+
         Returns:
             Словарь с настройками
         """
@@ -682,11 +682,11 @@ def create_professional_config(
     risk_profile: str = "moderate",
 ) -> ProfessionalBotConfig:
     """Создает профессиональную конфигурацию на основе баланса.
-    
+
     Args:
         balance: Текущий баланс в USD
         risk_profile: Профиль риска (conservative, moderate, aggressive)
-    
+
     Returns:
         Настроенная конфигурация
     """
@@ -733,10 +733,10 @@ def create_professional_config(
 
 def create_ai_protection_settings(strict: bool = True) -> AIProtectionSettings:
     """Создает настройки защиты AI.
-    
+
     Args:
         strict: Использовать строгие настройки
-    
+
     Returns:
         Настройки защиты
     """
@@ -762,10 +762,10 @@ def create_smart_scanner_config(
     for_small_balance: bool = True,
 ) -> SmartScannerConfig:
     """Создает конфигурацию умного сканера.
-    
+
     Args:
         for_small_balance: Оптимизировать для маленького баланса
-    
+
     Returns:
         Конфигурация сканера
     """

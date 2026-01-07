@@ -31,7 +31,7 @@ COMMISSION_RATES = {
 
 class LockStatus(int, Enum):
     """Статус блокировки предмета для вывода.
-    
+
     lockStatus: 0 = доступен сразу
     lockStatus: 1 = заблокирован на 7 дней (трейд-бан)
     """
@@ -75,7 +75,7 @@ class AggregatedPrice:
     @property
     def effective_price(self) -> float:
         """Эффективная цена с учетом скидки и бонуса.
-        
+
         Если предмет в холде, добавляем дисконт за ожидание.
         """
         base_price = self.min_price - self.bonus_amount
@@ -93,7 +93,7 @@ class AggregatedPrice:
     @property
     def is_good_deal(self) -> bool:
         """Проверяет, является ли предмет выгодной сделкой.
-        
+
         Условия:
         1. Цена ниже средней на >5%
         2. Есть бонус от DMarket
@@ -128,10 +128,10 @@ class PriceAggregatorConfig:
 
 class PriceAggregator:
     """Агрегатор цен для batch-запросов.
-    
+
     Использует /market-items/v1/price-aggregated для эффективного
     получения цен на весь whitelist.
-    
+
     Example:
         >>> aggregator = PriceAggregator(api_client)
         >>> prices = await aggregator.get_whitelist_prices(whitelist_items)
@@ -146,7 +146,7 @@ class PriceAggregator:
         config: PriceAggregatorConfig | None = None,
     ):
         """Инициализация Price Aggregator.
-        
+
         Args:
             api_client: DMarket API клиент
             config: Конфигурация
@@ -177,12 +177,12 @@ class PriceAggregator:
         force_refresh: bool = False,
     ) -> list[AggregatedPrice]:
         """Получить агрегированные цены для списка предметов.
-        
+
         Args:
             item_names: Список названий предметов
             game: Идентификатор игры
             force_refresh: Принудительно обновить кэш
-            
+
         Returns:
             Список агрегированных цен
         """
@@ -212,7 +212,7 @@ class PriceAggregator:
         game: str,
     ) -> None:
         """Загрузить цены через batch-запрос.
-        
+
         Использует /market-items/v1/price-aggregated endpoint.
         """
         if not self.api:
@@ -258,7 +258,7 @@ class PriceAggregator:
         game: str,
     ) -> dict[str, Any]:
         """Вызов API для получения цен.
-        
+
         Endpoint: /price-aggregator/v1/aggregated-prices
         """
         if hasattr(self.api, "get_aggregated_prices"):
@@ -338,10 +338,10 @@ class PriceAggregator:
         prices: list[AggregatedPrice],
     ) -> list[AggregatedPrice]:
         """Фильтрует только доступные предметы (без lock).
-        
+
         Args:
             prices: Список агрегированных цен
-            
+
         Returns:
             Только предметы с lockStatus: 0
         """
@@ -353,11 +353,11 @@ class PriceAggregator:
         min_discount: float = 3.0,
     ) -> list[AggregatedPrice]:
         """Фильтрует предметы со скидкой.
-        
+
         Args:
             prices: Список агрегированных цен
             min_discount: Минимальная скидка (%)
-            
+
         Returns:
             Предметы со скидкой >= min_discount
         """
@@ -371,7 +371,7 @@ class PriceAggregator:
         prices: list[AggregatedPrice],
     ) -> list[AggregatedPrice]:
         """Получить выгодные сделки.
-        
+
         Критерии:
         1. Цена ниже средней
         2. Есть бонус/скидка от DMarket

@@ -102,12 +102,12 @@ class EvaluationResult:
 
 class ModelTuner:
     """Класс для настройки и оптимизации ML моделей.
-    
+
     Использует лучшие практики scikit-learn:
     - Pipeline для безопасной предобработки
     - GridSearchCV/RandomizedSearchCV для подбора параметров
     - Cross-validation для оценки качества
-    
+
     Example:
         >>> tuner = ModelTuner()
         >>> result = tuner.tune_random_forest(X_train, y_train)
@@ -150,7 +150,7 @@ class ModelTuner:
         random_state: int = 42,
     ):
         """Инициализация тюнера.
-        
+
         Args:
             cv_strategy: Стратегия кросс-валидации
             cv_folds: Количество фолдов
@@ -208,16 +208,16 @@ class ModelTuner:
         n_features_to_select: int | None = None,
     ) -> Any:
         """Создать Pipeline для предобработки и модели.
-        
+
         Pipeline предотвращает утечку данных при кросс-валидации,
         применяя preprocessing только к training data в каждом fold.
-        
+
         Args:
             model: ML модель
             use_scaling: Использовать StandardScaler
             use_feature_selection: Использовать SelectKBest
             n_features_to_select: Количество признаков для отбора
-            
+
         Returns:
             sklearn.pipeline.Pipeline
         """
@@ -259,14 +259,14 @@ class ModelTuner:
         n_iter: int = 50,
     ) -> TuningResult:
         """Настроить RandomForestRegressor.
-        
+
         Args:
             X: Признаки
             y: Целевая переменная
             param_grid: Сетка параметров (по умолчанию предустановленная)
             use_randomized: Использовать RandomizedSearchCV (быстрее)
             n_iter: Количество итераций для RandomizedSearchCV
-            
+
         Returns:
             TuningResult с лучшими параметрами
         """
@@ -468,16 +468,16 @@ class ModelTuner:
         feature_names: list[str] | None = None,
     ) -> EvaluationResult:
         """Оценить модель с кросс-валидацией.
-        
+
         Использует cross_val_score для получения train и test scores
         на каждом fold, что позволяет оценить переобучение.
-        
+
         Args:
             model: Обученная модель или pipeline
             X: Признаки
             y: Целевая переменная
             feature_names: Названия признаков для feature importance
-            
+
         Returns:
             EvaluationResult с метриками
         """
@@ -541,12 +541,12 @@ class ModelTuner:
         models: list[str] | None = None,
     ) -> dict[str, EvaluationResult]:
         """Сравнить несколько моделей.
-        
+
         Args:
             X: Признаки
             y: Целевая переменная
             models: Список названий моделей (по умолчанию все)
-            
+
         Returns:
             Dict с результатами для каждой модели
         """
@@ -623,10 +623,10 @@ class ModelTuner:
 
 class AutoMLSelector:
     """Автоматический выбор лучшей модели.
-    
+
     Сравнивает несколько моделей, тюнит гиперпараметры
     и выбирает лучшую на основе кросс-валидации.
-    
+
     Example:
         >>> selector = AutoMLSelector()
         >>> best_model, results = selector.select_best_model(X, y)
@@ -640,7 +640,7 @@ class AutoMLSelector:
         time_budget_seconds: int = 300,
     ):
         """Инициализация AutoML.
-        
+
         Args:
             cv_folds: Количество фолдов CV
             scoring: Метрика для оптимизации
@@ -663,12 +663,12 @@ class AutoMLSelector:
         include_xgboost: bool = True,
     ) -> tuple[Any, dict[str, TuningResult]]:
         """Выбрать лучшую модель.
-        
+
         Args:
             X: Признаки
             y: Целевая переменная
             include_xgboost: Включить XGBoost в сравнение
-            
+
         Returns:
             Tuple (лучшая модель, dict с результатами всех моделей)
         """
@@ -729,10 +729,10 @@ class AutoMLSelector:
         results: dict[str, TuningResult],
     ) -> list[str]:
         """Получить рекомендации на основе результатов.
-        
+
         Args:
             results: Результаты сравнения моделей
-            
+
         Returns:
             Список рекомендаций
         """

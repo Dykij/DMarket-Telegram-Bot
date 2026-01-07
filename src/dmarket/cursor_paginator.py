@@ -93,10 +93,10 @@ class CursorPaginatorConfig:
 
 class CursorPaginator:
     """Пагинатор с использованием cursor.
-    
+
     Оптимизирован для DMarket API - использует cursor вместо offset,
     что даёт ускорение на 100-200ms на каждый запрос.
-    
+
     Example:
         >>> paginator = CursorPaginator(api_client)
         >>> async for items in paginator.paginate(game="csgo"):
@@ -111,7 +111,7 @@ class CursorPaginator:
         config: CursorPaginatorConfig | None = None,
     ):
         """Инициализация пагинатора.
-        
+
         Args:
             api_client: DMarket API клиент
             config: Конфигурация
@@ -138,12 +138,12 @@ class CursorPaginator:
         start_cursor: str | None = None,
     ) -> AsyncIterator[list[dict[str, Any]]]:
         """Итератор по страницам с использованием cursor.
-        
+
         Args:
             game: Идентификатор игры
             filters: Дополнительные фильтры
             start_cursor: Курсор для возобновления
-            
+
         Yields:
             Списки предметов постранично
         """
@@ -214,7 +214,7 @@ class CursorPaginator:
         filters: dict[str, Any] | None,
     ) -> tuple[list[dict[str, Any]], str | None, int | None]:
         """Загрузка одной страницы с cursor.
-        
+
         Returns:
             (items, next_cursor, total_count)
         """
@@ -329,12 +329,12 @@ class CursorPaginator:
         max_items: int | None = None,
     ) -> list[dict[str, Any]]:
         """Получить все предметы за один вызов.
-        
+
         Args:
             game: Идентификатор игры
             filters: Фильтры
             max_items: Максимальное количество предметов
-            
+
         Returns:
             Все предметы
         """

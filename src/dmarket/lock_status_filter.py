@@ -1,7 +1,7 @@
 """Lock Status Filter - Фильтрация предметов по статусу блокировки.
 
-Частая ошибка новичков: покупка скина с выгодной ценой, который заблокирован 
-на вывод на 7-8 дней. При балансе в $45.50 нельзя позволить себе «заморозить» 
+Частая ошибка новичков: покупка скина с выгодной ценой, который заблокирован
+на вывод на 7-8 дней. При балансе в $45.50 нельзя позволить себе «заморозить»
 деньги на неделю.
 
 Этот модуль реализует:
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 class LockStatus(IntEnum):
     """Статус блокировки предмета.
-    
+
     DMarket API возвращает lockStatus:
     - 0: Предмет доступен для вывода сразу
     - 1: Предмет заблокирован (трейд-бан)
@@ -109,13 +109,13 @@ class ItemWithLock:
 
 class LockStatusFilter:
     """Фильтр предметов по статусу блокировки.
-    
+
     Функции:
     1. Фильтрация locked предметов
     2. Расчет дисконта за ожидание
     3. Корректировка profit с учетом lock
     4. Приоритизация unlocked предметов
-    
+
     Example:
         >>> filter = LockStatusFilter()
         >>> items = await api.get_market_items()
@@ -125,7 +125,7 @@ class LockStatusFilter:
 
     def __init__(self, config: LockFilterConfig | None = None):
         """Инициализация фильтра.
-        
+
         Args:
             config: Конфигурация фильтра
         """
@@ -142,10 +142,10 @@ class LockStatusFilter:
 
     def parse_lock_info(self, item_data: dict[str, Any]) -> LockInfo:
         """Извлечь информацию о блокировке из данных API.
-        
+
         Args:
             item_data: Данные предмета из API
-            
+
         Returns:
             LockInfo с информацией о блокировке
         """
@@ -182,13 +182,13 @@ class LockStatusFilter:
 
     def calculate_lock_discount(self, days: int) -> float:
         """Рассчитать дисконт за lock.
-        
+
         Формула: min_discount + (days * discount_per_day)
         Максимум: max_discount
-        
+
         Args:
             days: Количество дней блокировки
-            
+
         Returns:
             Дисконт в процентах
         """
@@ -208,14 +208,14 @@ class LockStatusFilter:
         lock_info: LockInfo,
     ) -> float:
         """Применить дисконт за lock к цене.
-        
+
         Предмет в холде должен стоить на 3-5% дешевле,
         чтобы оправдать простой капитала.
-        
+
         Args:
             price: Исходная цена
             lock_info: Информация о блокировке
-            
+
         Returns:
             Максимальная цена покупки с учетом lock
         """
@@ -231,14 +231,14 @@ class LockStatusFilter:
         lock_info: LockInfo,
     ) -> float:
         """Скорректировать профит с учетом lock.
-        
+
         Если предмет в lock, уменьшаем ожидаемый профит
         на величину lock дисконта.
-        
+
         Args:
             base_profit_percent: Базовый профит (%)
             lock_info: Информация о блокировке
-            
+
         Returns:
             Скорректированный профит (%)
         """
@@ -256,11 +256,11 @@ class LockStatusFilter:
         allow_locked: bool | None = None,
     ) -> list[ItemWithLock]:
         """Фильтрация и обогащение предметов информацией о lock.
-        
+
         Args:
             items: Список предметов из API
             allow_locked: Разрешить locked предметы (None = использовать config)
-            
+
         Returns:
             Отфильтрованные и обогащенные предметы
         """
@@ -327,7 +327,7 @@ class LockStatusFilter:
         bonus: float,
     ) -> float:
         """Рассчитать приоритет предмета.
-        
+
         Формула:
         - +100 если unlocked
         - +discount (скидка от DMarket)
@@ -357,12 +357,12 @@ class LockStatusFilter:
         current_balance: float,
     ) -> tuple[bool, str]:
         """Проверить, стоит ли покупать предмет.
-        
+
         Args:
             item: Предмет с информацией о lock
             target_profit: Целевой профит (%)
             current_balance: Текущий баланс
-            
+
         Returns:
             (should_buy, reason)
         """
@@ -397,10 +397,10 @@ class LockStatusFilter:
         items: list[ItemWithLock],
     ) -> dict[str, Any]:
         """Получить статистику по lock.
-        
+
         Args:
             items: Список предметов
-            
+
         Returns:
             Статистика
         """

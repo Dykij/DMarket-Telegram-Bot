@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 @pytest.fixture(autouse=True)
 def reset_circuit_breakers_for_integration() -> Generator[None, None, None]:
     """Reset all circuit breakers before and after each integration test.
-    
+
     This ensures tests are isolated from circuit breaker state.
     autouse=True means this runs automatically for all tests in this directory.
     """

@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def _parse_log_line(line: str) -> dict[str, Any] | None:
     """Parse a single log line for INTENT logs.
-    
+
     Returns:
         Parsed log entry or None if not an INTENT log.
     """
@@ -38,7 +38,7 @@ def _parse_log_line(line: str) -> dict[str, Any] | None:
 
 def _collect_intent_logs_from_file(log_file: Path, max_logs: int) -> list[dict[str, Any]]:
     """Collect INTENT logs from a single log file.
-    
+
     Returns:
         List of parsed INTENT log entries.
     """
