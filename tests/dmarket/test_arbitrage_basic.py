@@ -12,6 +12,7 @@ from src.dmarket.arbitrage import (
     GAMES,
     HIGH_FEE,
     LOW_FEE,
+    MAX_CACHE_SIZE,
     MAX_RETRIES,
     MIN_PROFIT_PERCENT,
     PRICE_RANGES,
@@ -299,8 +300,8 @@ class TestCachePerformance:
 
     def test_cache_memory_efficiency(self):
         """Тест эффективности памяти кэша."""
-        # MAX_CACHE_SIZE = 20, so we test within that limit
-        num_items = 15  # Less than MAX_CACHE_SIZE to ensure all fit
+        # Use MAX_CACHE_SIZE constant to ensure test stays synchronized with implementation
+        num_items = MAX_CACHE_SIZE - 5  # Slightly less than max to ensure all fit
         # Сохраняем записи
         for i in range(num_items):
             cache_key = ("csgo", "low", float(i), float(i + 1))
