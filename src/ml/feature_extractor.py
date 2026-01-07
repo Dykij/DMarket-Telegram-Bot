@@ -6,7 +6,7 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 import logging
 from typing import Any
 
@@ -16,7 +16,7 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
-class TrendDirection(str, Enum):
+class TrendDirection(StrEnum):
     """Направление тренда цены."""
 
     UP = "up"

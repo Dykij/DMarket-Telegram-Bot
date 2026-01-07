@@ -13,7 +13,7 @@ Usage:
     full_url = f"{DMarketEndpoints.BASE_URL}{DMarketEndpoints.MARKET_ITEMS}"
 """
 
-from enum import Enum
+from enum import StrEnum
 
 
 class DMarketEndpoints:
@@ -212,7 +212,7 @@ class SteamEndpoints:
     PRICE_HISTORY = "/market/pricehistory/"
 
 
-class GameID(str, Enum):
+class GameID(StrEnum):
     """Идентификаторы игр для DMarket API.
 
     Используйте эти константы вместо хардкода строк.

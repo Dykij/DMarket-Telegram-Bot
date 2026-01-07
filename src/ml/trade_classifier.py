@@ -9,8 +9,8 @@
 """
 
 from dataclasses import dataclass
-from datetime import datetime
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 import logging
 from typing import Any
 
@@ -22,7 +22,7 @@ from src.ml.feature_extractor import MarketFeatureExtractor, PriceFeatures, Tren
 logger = logging.getLogger(__name__)
 
 
-class TradeSignal(str, Enum):
+class TradeSignal(StrEnum):
     """Торговый сигнал."""
 
     STRONG_BUY = "strong_buy"
@@ -33,7 +33,7 @@ class TradeSignal(str, Enum):
     SKIP = "skip"  # Не торговать (высокий риск, низкая ликвидность)
 
 
-class RiskLevel(str, Enum):
+class RiskLevel(StrEnum):
     """Уровень риска сделки."""
 
     VERY_LOW = "very_low"  # <10% вероятность убытка
@@ -255,7 +255,7 @@ class AdaptiveTradeClassifier:
             risk_score=risk_score,
             recommended_position_size=position_size,
             max_loss_percent=max_loss,
-            classification_timestamp=datetime.utcnow(),
+            classification_timestamp=datetime.now(UTC),
             reasoning=reasoning,
             expected_profit_percent=expected_profit_percent,
             profit_probability=profit_probability,

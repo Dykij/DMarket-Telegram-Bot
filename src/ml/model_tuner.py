@@ -14,7 +14,7 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 import logging
 from typing import Any
 
@@ -24,7 +24,7 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
-class CVStrategy(str, Enum):
+class CVStrategy(StrEnum):
     """Стратегии кросс-валидации."""
 
     KFOLD = "kfold"  # Стандартная K-Fold CV
@@ -32,7 +32,7 @@ class CVStrategy(str, Enum):
     STRATIFIED = "stratified"  # StratifiedKFold для классификации
 
 
-class ScoringMetric(str, Enum):
+class ScoringMetric(StrEnum):
     """Метрики для оценки моделей."""
 
     # Регрессия

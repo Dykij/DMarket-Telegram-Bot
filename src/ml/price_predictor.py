@@ -15,7 +15,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 import logging
 from pathlib import Path
 import pickle
@@ -29,7 +29,7 @@ from src.ml.feature_extractor import MarketFeatureExtractor, PriceFeatures
 logger = logging.getLogger(__name__)
 
 
-class PredictionConfidence(str, Enum):
+class PredictionConfidence(StrEnum):
     """Уровень уверенности в прогнозе."""
 
     VERY_HIGH = "very_high"  # >85% уверенность

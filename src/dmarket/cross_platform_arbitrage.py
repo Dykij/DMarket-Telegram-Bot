@@ -12,7 +12,7 @@ Based on analysis from January 2026.
 
 from dataclasses import dataclass, field
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 
 import structlog
@@ -48,7 +48,7 @@ DEFAULT_MAX_LOCK_DAYS = 8  # Maximum trade lock days to consider
 DEFAULT_MIN_LIQUIDITY = 5  # Minimum daily sales on Waxpeer
 
 
-class ArbitrageDecision(str, Enum):
+class ArbitrageDecision(StrEnum):
     """Decision types for arbitrage opportunities."""
 
     BUY_INSTANT = "buy_instant"  # No lock, good profit - buy immediately
@@ -57,7 +57,7 @@ class ArbitrageDecision(str, Enum):
     INSUFFICIENT_LIQUIDITY = "insufficient_liquidity"  # Item sells too slowly
 
 
-class ItemCategory(str, Enum):
+class ItemCategory(StrEnum):
     """Item categories for whitelist/blacklist filtering."""
 
     CASE = "Case"

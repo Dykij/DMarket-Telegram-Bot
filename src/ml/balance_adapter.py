@@ -11,7 +11,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 import logging
 from typing import Any
 
@@ -19,7 +19,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-class BalanceCategory(str, Enum):
+class BalanceCategory(StrEnum):
     """Категория баланса пользователя."""
 
     MICRO = "micro"  # < $20 - очень маленький баланс
@@ -29,7 +29,7 @@ class BalanceCategory(str, Enum):
     WHALE = "whale"  # > $2000 - очень большой баланс
 
 
-class StrategyMode(str, Enum):
+class StrategyMode(StrEnum):
     """Режим стратегии."""
 
     GROWTH = "growth"  # Агрессивный рост капитала

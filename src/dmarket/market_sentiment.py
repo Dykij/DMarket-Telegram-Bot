@@ -13,7 +13,7 @@ This module helps the bot adapt to market conditions automatically.
 import asyncio
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -339,8 +339,8 @@ class MarketSentimentAnalyzer:
                     return True
             else:
                 # Normal date range within same year
-                start_date = datetime(now.year, start_month, start_day)
-                end_date = datetime(now.year, end_month, end_day)
+                start_date = datetime(now.year, start_month, start_day, tzinfo=UTC)
+                end_date = datetime(now.year, end_month, end_day, tzinfo=UTC)
                 if start_date <= now <= end_date:
                     return True
 

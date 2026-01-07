@@ -11,7 +11,7 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 import logging
 from pathlib import Path
 import pickle
@@ -23,7 +23,7 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
-class GameType(str, Enum):
+class GameType(StrEnum):
     """Поддерживаемые игры."""
 
     CS2 = "cs2"
@@ -33,7 +33,7 @@ class GameType(str, Enum):
     RUST = "rust"
 
 
-class ItemRarity(str, Enum):
+class ItemRarity(StrEnum):
     """Редкость предмета."""
 
     CONSUMER = "consumer"
@@ -48,7 +48,7 @@ class ItemRarity(str, Enum):
     UNUSUAL = "unusual"  # TF2
 
 
-class ItemCondition(str, Enum):
+class ItemCondition(StrEnum):
     """Состояние предмета (CS2/Rust)."""
 
     FACTORY_NEW = "factory_new"

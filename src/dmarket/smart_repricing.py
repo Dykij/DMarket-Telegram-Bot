@@ -8,7 +8,7 @@ This module handles:
 """
 
 from datetime import UTC, datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class RepricingAction(str, Enum):
+class RepricingAction(StrEnum):
     """Actions for repricing based on listing age."""
 
     HOLD = "hold"  # Keep current price

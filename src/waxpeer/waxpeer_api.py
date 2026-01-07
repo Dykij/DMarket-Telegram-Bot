@@ -25,7 +25,7 @@ import asyncio
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import httpx
@@ -39,7 +39,7 @@ MILS_PER_USD = 1000  # 1 USD = 1000 mils
 WAXPEER_COMMISSION = Decimal("0.06")  # 6% комиссия на продажу
 
 
-class WaxpeerGame(str, Enum):
+class WaxpeerGame(StrEnum):
     """Поддерживаемые игры на Waxpeer."""
 
     CS2 = "cs2"
@@ -49,7 +49,7 @@ class WaxpeerGame(str, Enum):
     RUST = "rust"
 
 
-class ListingStatus(str, Enum):
+class ListingStatus(StrEnum):
     """Статусы листинга на Waxpeer."""
 
     ACTIVE = "active"

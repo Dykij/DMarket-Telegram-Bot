@@ -6,7 +6,7 @@ whether to hold items for potential price increase.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -205,8 +205,8 @@ class IntelligentHoldManager:
                 event = MarketEvent(
                     event_type=event_data["type"],
                     name=event_data["name"],
-                    start_date=datetime.strptime(event_data["start"], "%Y-%m-%d"),
-                    end_date=datetime.strptime(event_data["end"], "%Y-%m-%d")
+                    start_date=datetime.strptime(event_data["start"], "%Y-%m-%d").replace(tzinfo=UTC),
+                    end_date=datetime.strptime(event_data["end"], "%Y-%m-%d").replace(tzinfo=UTC)
                     if "end" in event_data
                     else None,
                     expected_impact=event_data.get("impact", 0.0),
