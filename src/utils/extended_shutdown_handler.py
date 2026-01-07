@@ -10,6 +10,7 @@ Features:
 - Cleanup of temporary resources
 """
 
+import aiofiles
 import asyncio
 from datetime import datetime
 import json
@@ -118,10 +119,10 @@ class ExtendedShutdownHandler:
                 state["trading_state"] = trading_state
                 logger.info("trading_state_saved")
 
-            # Write to file
+            # Write to file (async)
             self.state_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.state_file, "w") as f:
-                json.dump(state, f, indent=2, default=str)
+            async with aiofiles.open(self.state_file, "w") as f:
+                await f.write(json.dumps(state, indent=2, default=str))
 
             logger.info("state_saved_to_file", file=str(self.state_file))
             return True
@@ -164,8 +165,9 @@ class ExtendedShutdownHandler:
             return None
 
         try:
-            with open(self.state_file) as f:
-                state = json.load(f)
+            async with aiofiles.open(self.state_file) as f:
+                content = await f.read()
+                state = json.loads(content)
 
             logger.info(
                 "state_loaded",

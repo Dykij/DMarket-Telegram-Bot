@@ -279,31 +279,34 @@ class MarketDataCollector:
             result = await session.execute(query)
             snapshots = result.scalars().all()
 
-        # Write to CSV
-        with open(output_path, "w", newline="", encoding="utf-8") as csvfile:
-            fieldnames = [
-                "timestamp",
-                "total_items",
-                "total_sales",
-                "csgo_items",
-                "dota2_items",
-                "tf2_items",
-                "rust_items",
-            ]
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
+        # Write to CSV (run in thread to avoid blocking)
+        def write_csv():
+            with open(output_path, "w", newline="", encoding="utf-8") as csvfile:
+                fieldnames = [
+                    "timestamp",
+                    "total_items",
+                    "total_sales",
+                    "csgo_items",
+                    "dota2_items",
+                    "tf2_items",
+                    "rust_items",
+                ]
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
 
-            for snapshot in snapshots:
-                row = {
-                    "timestamp": snapshot.timestamp.isoformat(),
-                    "total_items": snapshot.total_items,
-                    "total_sales": snapshot.total_sales,
-                    "csgo_items": snapshot.games_data.get("csgo", {}).get("items_count", 0),
-                    "dota2_items": snapshot.games_data.get("dota2", {}).get("items_count", 0),
-                    "tf2_items": snapshot.games_data.get("tf2", {}).get("items_count", 0),
-                    "rust_items": snapshot.games_data.get("rust", {}).get("items_count", 0),
-                }
-                writer.writerow(row)
+                for snapshot in snapshots:
+                    row = {
+                        "timestamp": snapshot.timestamp.isoformat(),
+                        "total_items": snapshot.total_items,
+                        "total_sales": snapshot.total_sales,
+                        "csgo_items": snapshot.games_data.get("csgo", {}).get("items_count", 0),
+                        "dota2_items": snapshot.games_data.get("dota2", {}).get("items_count", 0),
+                        "tf2_items": snapshot.games_data.get("tf2", {}).get("items_count", 0),
+                        "rust_items": snapshot.games_data.get("rust", {}).get("items_count", 0),
+                    }
+                    writer.writerow(row)
+
+        await asyncio.to_thread(write_csv)
 
         logger.info(
             "data_exported",

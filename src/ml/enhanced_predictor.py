@@ -1136,7 +1136,7 @@ class EnhancedPricePredictor:
         weights = [w / total_weight for w in weights[:len(predictions)]]
 
         # Взвешенное среднее
-        prediction = sum(p * w for p, w in zip(predictions, weights))
+        prediction = sum(p * w for p, w in zip(predictions, weights, strict=False))
 
         # Стандартное отклонение
         if len(predictions) >= 2:

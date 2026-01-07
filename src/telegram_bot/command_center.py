@@ -28,10 +28,12 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import UTC, datetime
 import logging
 from typing import TYPE_CHECKING
 
+import aiofiles
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 
@@ -445,17 +447,21 @@ class CommandCenter:
             return
 
         try:
+            import os
             from pathlib import Path
 
             log_file = Path("logs/bot.log")
 
-            if not log_file.exists():
+            # Async check for file existence
+            file_exists = await asyncio.to_thread(os.path.exists, log_file)
+            if not file_exists:
                 await update.message.reply_text("📋 Файл логов не найден.")
                 return
 
-            # Читаем последние 50 строк
-            with log_file.open("r", encoding="utf-8") as f:
-                lines = f.readlines()
+            # Читаем последние 50 строк (async)
+            async with aiofiles.open(log_file, encoding="utf-8") as f:
+                content = await f.read()
+                lines = content.splitlines(keepends=True)
                 last_lines = lines[-50:]
 
             # Форматируем

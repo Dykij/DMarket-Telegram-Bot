@@ -512,13 +512,13 @@ class ModelTuner:
         feature_importances = None
         if hasattr(model, "feature_importances_") and feature_names:
             importances = model.feature_importances_
-            feature_importances = dict(zip(feature_names, importances))
+            feature_importances = dict(zip(feature_names, importances, strict=False))
         elif hasattr(model, "named_steps"):
             # Pipeline case
             final_model = model.named_steps.get("model")
             if hasattr(final_model, "feature_importances_") and feature_names:
                 importances = final_model.feature_importances_
-                feature_importances = dict(zip(feature_names, importances))
+                feature_importances = dict(zip(feature_names, importances, strict=False))
 
         mean_train = float(np.mean(train_scores))
         mean_test = float(np.mean(test_scores))
