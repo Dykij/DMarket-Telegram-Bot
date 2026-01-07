@@ -219,7 +219,7 @@ async def test_scan_game_without_cache(scanner):
     with (
         patch("src.dmarket.arbitrage_scanner.rate_limiter.wait_if_needed"),
         patch(
-            "src.dmarket.arbitrage_scanner.arbitrage_mid",
+            "src.dmarket.arbitrage_scanner.arbitrage_mid_async",
             return_value=[{"item": "from_func"}],
         ),
     ):
@@ -235,7 +235,7 @@ async def test_scan_game_boost_mode(scanner):
     with (
         patch("src.dmarket.arbitrage_scanner.rate_limiter.wait_if_needed"),
         patch(
-            "src.dmarket.arbitrage_scanner.arbitrage_boost",
+            "src.dmarket.arbitrage_scanner.arbitrage_boost_async",
             return_value=[{"item": "boost"}],
         ) as mock_boost,
     ):
@@ -251,7 +251,7 @@ async def test_scan_game_pro_mode(scanner):
     with (
         patch("src.dmarket.arbitrage_scanner.rate_limiter.wait_if_needed"),
         patch(
-            "src.dmarket.arbitrage_scanner.arbitrage_pro",
+            "src.dmarket.arbitrage_scanner.arbitrage_pro_async",
             return_value=[{"item": "pro"}],
         ) as mock_pro,
     ):
@@ -285,7 +285,7 @@ async def test_scan_game_api_error(scanner):
     with (
         patch("src.dmarket.arbitrage_scanner.rate_limiter.wait_if_needed"),
         patch(
-            "src.dmarket.arbitrage_scanner.arbitrage_mid",
+            "src.dmarket.arbitrage_scanner.arbitrage_mid_async",
             side_effect=Exception("API Error"),
         ),
     ):
@@ -421,8 +421,8 @@ async def test_scan_multiple_games_one_fails(scanner):
 async def test_check_user_balance_success(scanner):
     """Тест успешной проверки баланса."""
     # Мокируем _request для возврата баланса в центах
-    # Формат: {"usd": {"available": 10050, "frozen": 0}} = $100.50
-    scanner.api_client._request = AsyncMock(return_value={"usd": {"available": 10050, "frozen": 0}})
+    # Формат: {"usd": {"amount": 10050}} = $100.50 (amount in cents)
+    scanner.api_client._request = AsyncMock(return_value={"usd": {"amount": 10050}})
 
     result = await scanner.check_user_balance()
 
@@ -929,7 +929,7 @@ async def test_full_arbitrage_workflow(scanner):
     with (
         patch("src.dmarket.arbitrage_scanner.rate_limiter.wait_if_needed"),
         patch(
-            "src.dmarket.arbitrage_scanner.arbitrage_mid",
+            "src.dmarket.arbitrage_scanner.arbitrage_mid_async",
             return_value=[
                 {
                     "itemId": "int_001",

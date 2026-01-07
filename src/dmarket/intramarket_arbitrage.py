@@ -191,7 +191,7 @@ async def find_price_anomalies(
             return []
 
         # Group items by title/name for comparison
-        grouped_items = {}
+        grouped_items: dict[str, list[dict[str, Any]]] = {}
 
         for item in items:
             # Early continue for invalid items
@@ -206,11 +206,6 @@ async def find_price_anomalies(
             # Build grouping key (includes StatTrak/Souvenir handling)
             key = _build_item_key(title, item, game)
 
-            # Group items by composite key
-            if key not in grouped_items:
-                grouped_items[key] = []
-            grouped_items[key].append(item)
-
             # Add price info
             price = None
             if "price" in item:
@@ -220,6 +215,9 @@ async def find_price_anomalies(
                     price = float(item["price"])
 
             if price is not None:
+                # Group items by composite key with normalized price data
+                if key not in grouped_items:
+                    grouped_items[key] = []
                 grouped_items[key].append(
                     {
                         "item": item,

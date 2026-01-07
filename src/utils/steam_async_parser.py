@@ -178,7 +178,7 @@ class SteamAsyncParser:
                 return {"status": "timeout", "item_name": item_hash_name}
             except Exception as e:
                 self._stats["errors"] += 1
-                logger.error(f"Steam price fetch error: {e}")
+                logger.exception(f"Steam price fetch error: {e}")
                 return {"status": "error", "item_name": item_hash_name, "message": str(e)}
 
     async def get_batch_prices(
@@ -258,7 +258,7 @@ class SteamAsyncParser:
                     return {"status": "error", "error_code": response.status_code}
 
             except Exception as e:
-                logger.error(f"Order histogram fetch error: {e}")
+                logger.exception(f"Order histogram fetch error: {e}")
                 return {"status": "error", "message": str(e)}
 
     def calculate_arbitrage_opportunity(

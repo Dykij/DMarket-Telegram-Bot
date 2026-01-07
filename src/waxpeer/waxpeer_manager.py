@@ -506,6 +506,6 @@ class WaxpeerManager:
                     )
 
             except Exception as e:
-                logger.error("waxpeer_reprice_error", error=str(e))
+                logger.exception("waxpeer_reprice_error", error=str(e))
 
             await asyncio.sleep(interval * 60)

@@ -544,7 +544,7 @@ def test_price_anomaly_type_enum():
     assert PriceAnomalyType.TRENDING_UP == "trending_up"
     assert PriceAnomalyType.TRENDING_DOWN == "trending_down"
     assert PriceAnomalyType.RARE_TRAITS == "rare_traits"
-    assert PriceAnomalyType.NORMAL == "normal"
+    # Note: NORMAL type removed from enum - not needed for anomaly detection
 
 
 # ======================== Тесты для TF2 ========================

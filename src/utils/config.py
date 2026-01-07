@@ -5,13 +5,14 @@ from various sources including environment variables, YAML files, and defaults.
 """
 
 import contextlib
+from dataclasses import dataclass, field
 import logging
 import os
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 import yaml
+
 
 # Load environment variables from .env file
 try:

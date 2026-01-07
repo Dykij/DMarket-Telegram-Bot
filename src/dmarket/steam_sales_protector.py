@@ -42,13 +42,18 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from enum import StrEnum
 import logging
 from typing import Any
 
 
 logger = logging.getLogger(__name__)
+
+
+def _get_today_utc() -> date:
+    """Get current date in UTC timezone."""
+    return datetime.now(UTC).date()
 
 
 class SaleMode(StrEnum):
@@ -92,19 +97,19 @@ class SaleEvent:
     def is_active(self, current_date: date | None = None) -> bool:
         """Активна ли распродажа сейчас."""
         if current_date is None:
-            current_date = date.today()
+            current_date = _get_today_utc()
         return self.start_date <= current_date <= self.end_date
 
     def days_until_start(self, current_date: date | None = None) -> int:
         """Дней до начала распродажи."""
         if current_date is None:
-            current_date = date.today()
+            current_date = _get_today_utc()
         return (self.start_date - current_date).days
 
     def days_since_end(self, current_date: date | None = None) -> int:
         """Дней после окончания распродажи."""
         if current_date is None:
-            current_date = date.today()
+            current_date = _get_today_utc()
         return (current_date - self.end_date).days
 
 
@@ -284,7 +289,7 @@ class SteamSalesProtector:
             Активное событие или None
         """
         if current_date is None:
-            current_date = date.today()
+            current_date = _get_today_utc()
 
         for sale in self._sales_calendar:
             if sale.is_active(current_date):
@@ -306,7 +311,7 @@ class SteamSalesProtector:
             Ближайшее событие или None
         """
         if current_date is None:
-            current_date = date.today()
+            current_date = _get_today_utc()
 
         for sale in self._sales_calendar:
             days_until = sale.days_until_start(current_date)
@@ -329,7 +334,7 @@ class SteamSalesProtector:
             Недавнее событие или None
         """
         if current_date is None:
-            current_date = date.today()
+            current_date = _get_today_utc()
 
         for sale in reversed(self._sales_calendar):
             days_since = sale.days_since_end(current_date)
@@ -347,7 +352,7 @@ class SteamSalesProtector:
             SaleModeStatus с полной информацией
         """
         if current_date is None:
-            current_date = date.today()
+            current_date = _get_today_utc()
 
         # 1. Проверяем активную распродажу
         active_sale = self.get_active_sale(current_date)
@@ -475,7 +480,7 @@ class SteamSalesProtector:
             Список (дата, событие, дней до события)
         """
         if current_date is None:
-            current_date = date.today()
+            current_date = _get_today_utc()
 
         notifications: list[tuple[date, SaleEvent, int]] = []
 

@@ -175,7 +175,7 @@ class MarketSentimentAnalyzer:
                 if self.high_risk_hunt:
                     await self.scan_for_x5_opportunities()
             except Exception as e:
-                logger.error("market_sentiment_update_error", error=str(e))
+                logger.exception("market_sentiment_update_error", error=str(e))
 
             await asyncio.sleep(self.check_interval * 60)
 

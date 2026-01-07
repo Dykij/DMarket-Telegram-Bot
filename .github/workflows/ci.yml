@@ -282,10 +282,75 @@ jobs:
           retention-days: 7
         continue-on-error: true
 
+  ai-tests:
+    name: AI/ML Module Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-format
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install AI dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-asyncio pytest-cov pytest-mock
+          pip install scikit-learn pandas numpy scipy joblib
+          # Install project dependencies
+          pip install -r requirements.txt || echo "::warning::Some dependencies failed"
+
+      - name: Create test environment
+        run: |
+          echo "TELEGRAM_BOT_TOKEN=test_token" > .env
+          echo "DMARKET_PUBLIC_KEY=test_key" >> .env
+          echo "DMARKET_SECRET_KEY=test_secret" >> .env
+          echo "DATABASE_URL=sqlite:///test.db" >> .env
+          echo "TESTING=true" >> .env
+
+      - name: Run AI module tests
+        run: |
+          export PYTHONPATH=$GITHUB_WORKSPACE:$PYTHONPATH
+          python -m pytest tests/unit/ai/ tests/unit/dmarket/test_smart_scanner.py \
+            --cov=src/ai \
+            --cov=src/dmarket/smart_scanner \
+            --cov-report=xml:ai-coverage.xml \
+            --cov-report=term \
+            -v \
+            --tb=short \
+            || { echo "::error::AI tests failed"; exit 1; }
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+      - name: Upload AI coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-coverage-report
+          path: ai-coverage.xml
+          retention-days: 7
+        continue-on-error: true
+
+      - name: AI Tests Summary
+        if: always()
+        run: |
+          echo "## 🤖 AI Module Tests" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Module | Description |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| PricePredictor | ML-based price prediction with hallucination protection |" >> $GITHUB_STEP_SUMMARY
+          echo "| SmartScanner | Cursor-based pagination with trade lock filtering |" >> $GITHUB_STEP_SUMMARY
+          echo "| AIScheduler | Nightly training + continuous data collection |" >> $GITHUB_STEP_SUMMARY
+
   summary:
     name: Build Summary
     runs-on: ubuntu-latest
-    needs: [lint-and-format, test, security-basic]
+    needs: [lint-and-format, test, security-basic, ai-tests]
     if: always()
 
     steps:
@@ -298,6 +363,7 @@ jobs:
           echo "| Lint & Format | ${{ needs.lint-and-format.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Tests | ${{ needs.test.result == 'success' && '✅ Passed' || '⚠️ Check logs' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Security | ${{ needs.security-basic.result == 'success' && '✅ Passed' || '⚠️ Check logs' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| AI/ML Tests | ${{ needs.ai-tests.result == 'success' && '✅ Passed' || '⚠️ Check logs' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY

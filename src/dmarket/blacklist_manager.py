@@ -159,8 +159,8 @@ class BlacklistManager:
 
             logger.debug(f"Saved blacklist to {self.blacklist_file}")
 
-        except OSError as e:
-            logger.error(f"Failed to save blacklist: {e}")
+        except OSError:
+            logger.exception("Failed to save blacklist")
 
     def is_seller_blacklisted(self, seller_id: str) -> bool:
         """Check if a seller is blacklisted.

@@ -67,7 +67,7 @@ async def hold_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         )
 
     except Exception as e:
-        logger.error(f"Hold command error: {e}")
+        logger.exception(f"Hold command error: {e}")
         await update.message.reply_text("❌ Ошибка при получении данных. Попробуйте позже.")
 
 
@@ -142,7 +142,7 @@ async def hold_callback_handler(update: Update, context: ContextTypes.DEFAULT_TY
                         message += f"• {event['name']} ({event['days_until']}д)\n"
 
             except Exception as e:
-                logger.error(f"Inventory analysis error: {e}")
+                logger.exception(f"Inventory analysis error: {e}")
                 message = f"❌ Ошибка анализа: {str(e)[:100]}"
 
             keyboard = [[InlineKeyboardButton("🔙 Назад", callback_data="hold_menu")]]
@@ -292,7 +292,7 @@ async def hold_callback_handler(update: Update, context: ContextTypes.DEFAULT_TY
             )
 
     except Exception as e:
-        logger.error(f"Hold callback error: {e}")
+        logger.exception(f"Hold callback error: {e}")
         await query.edit_message_text(f"❌ Ошибка: {str(e)[:100]}")
 
 

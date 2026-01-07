@@ -103,7 +103,7 @@ class CommandCenter:
                     balance_data = await self.api.get_balance()
                     balance_usd = float(balance_data.get("usd", 0)) / 100
                 except Exception as e:
-                    logger.error(f"Failed to get balance: {e}")
+                    logger.exception(f"Failed to get balance: {e}")
 
             # Получаем статистику из БД
             # active_trades: Tracked for future dashboard expansion
@@ -126,7 +126,7 @@ class CommandCenter:
                             total_invested += float(item[2])
 
                 except Exception as e:
-                    logger.error(f"Failed to get DB stats: {e}")
+                    logger.exception(f"Failed to get DB stats: {e}")
 
             # Сокровища
             if self.collectors_hold:
@@ -343,7 +343,7 @@ class CommandCenter:
                         sold_count += 1
 
                 except Exception as e:
-                    logger.error(f"Failed to list item {title}: {e}")
+                    logger.exception(f"Failed to list item {title}: {e}")
 
             await update.message.reply_text(
                 f"✅ **PANIC SELL завершен**\n\n"

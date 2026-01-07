@@ -12,7 +12,6 @@ This module contains all handlers for notification-related commands and callback
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 from datetime import datetime
 import logging
@@ -22,7 +21,6 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 
 from .alerts import add_price_alert, get_user_alerts, remove_price_alert, update_user_settings
-from .checker import run_alerts_checker
 from .constants import NOTIFICATION_TYPES
 from .formatters import format_alert_message
 from .storage import get_storage, load_user_alerts
@@ -473,17 +471,18 @@ def register_notification_handlers(
     )
 
     # Start periodic alerts checker
+    # NOTE: The alerts checker is now started via post_init hook in main.py
+    # to avoid "no running event loop" error during handler registration
     api = getattr(application, "dmarket_api", None)  # Изменено с bot_data на атрибут
 
     if api:
-        _ = asyncio.create_task(
-            run_alerts_checker(
-                bot=application.bot,
-                api=api,
-                check_interval=300,
-            )
-        )
-        logger.info("Запущена периодическая проверка оповещений")
+        # Store the coroutine function in bot_data for later execution
+        # This will be started when the application starts
+        application.bot_data["alerts_checker_config"] = {
+            "api": api,
+            "check_interval": 300,
+        }
+        logger.info("Конфигурация периодической проверки оповещений сохранена")
     else:
         logger.warning(
             "DMarket API не найден в application, периодическая проверка оповещений не запущена"

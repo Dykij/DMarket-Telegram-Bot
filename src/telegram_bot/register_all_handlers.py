@@ -31,6 +31,7 @@ from src.telegram_bot.handlers.commands import (
 from src.telegram_bot.handlers.minimal_menu_router import minimal_menu_router
 from src.telegram_bot.handlers.view_items_handler import handle_view_items_callback
 
+
 if TYPE_CHECKING:
     from telegram.ext import Application
 
@@ -247,7 +248,7 @@ def register_all_handlers(application: "Application") -> None:
         application.add_handler(CallbackQueryHandler(button_callback_handler_v2))
         logger.info("✅ Router-based callback handler registered")
     except Exception as e:
-        logger.error("Failed to initialize callback router, falling back to old handler: %s", e)
+        logger.exception("Failed to initialize callback router, falling back to old handler: %s", e)
         # Fallback to old handler if new one fails
         application.add_handler(CallbackQueryHandler(button_callback_handler))
         logger.warning("⚠️ Using legacy callback handler (973 lines)")
@@ -468,6 +469,15 @@ def register_all_handlers(application: "Application") -> None:
         logger.info("Intelligent Hold команды зарегистрированы (/hold)")
     except ImportError as e:
         logger.warning("Не удалось импортировать Intelligent Hold команды: %s", e)
+
+    # AI Price Predictor handlers (/ai_train, /ai_status, /ai_scan, /ai_analyze)
+    try:
+        from src.telegram_bot.handlers.ai_handler import register_ai_handlers
+
+        register_ai_handlers(application)
+        logger.info("AI Price Predictor команды зарегистрированы (/ai_train, /ai_status, /ai_scan)")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать AI handler команды: %s", e)
 
     logger.info("Все обработчики успешно зарегистрированы")
 

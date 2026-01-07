@@ -307,19 +307,18 @@ class TestGetUserInventory:
 
             call_args = mock_req.call_args
             assert call_args is not None
-            assert (
-                "/inventory" in call_args[0][1] or "/user/inventory" in call_args[0][1]
-            )
+            # Current endpoint is /marketplace-api/v1/user-inventory
+            assert "/user-inventory" in call_args[0][1]
 
     @pytest.mark.asyncio()
     async def test_get_user_inventory_with_game_filter(self, dmarket_api):
-        """Тест с фильтром по игре."""
+        """Тест с фильтром по игре (game_id parameter)."""
         mock_response = {"objects": []}
 
         with patch.object(
             dmarket_api, "_request", return_value=mock_response
         ) as mock_req:
-            await dmarket_api.get_user_inventory(game="csgo")
+            await dmarket_api.get_user_inventory(game_id="csgo_game_id")
 
             call_kwargs = mock_req.call_args.kwargs if mock_req.call_args else {}
             # Проверяем что параметры переданы

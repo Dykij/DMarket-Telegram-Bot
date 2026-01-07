@@ -156,7 +156,7 @@ def load_whitelist_from_json(file_path: str = "data/whitelist.json") -> bool:
         return True
 
     except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse whitelist JSON: {e}")
+        logger.exception(f"Failed to parse whitelist JSON: {e}")
         return False
     except Exception as e:
         logger.exception(f"Error loading whitelist: {e}")
