@@ -26,11 +26,11 @@
 **Решение**:
 ```bash
 # Добавить в requirements.txt или requirements.in:
-apscheduler>=3.10.0
-aiolimiter>=1.1.0
-fastapi>=0.100.0
-uvicorn>=0.23.0
+apscheduler>=3.10.0  # Для DailyReportScheduler
+aiolimiter>=1.1.0    # Уже есть в pyproject.toml, но может отсутствовать в venv
 ```
+
+**Примечание**: `fastapi` и `uvicorn` уже присутствуют в requirements.txt (uvicorn==0.40.0).
 
 **Безопасность**: Не влияет на логику бота, только добавляет недостающие зависимости.
 
@@ -41,12 +41,21 @@ uvicorn>=0.23.0
 **Проблема**: MyPy обнаружил неиспользуемые корутины - потенциальная утечка ресурсов.
 
 **Файлы**:
-- `src/main.py:569` - `health_check_server.start()` без await
-- `src/main.py:888` - `health_check_server.stop()` без await
+- `src/main.py:569` - `health_check_server.start()` без await (async метод в HealthCheckServer)
+- `src/main.py:888` - `health_check_server.stop()` без await (async метод в HealthCheckServer)
 - `src/utils/shutdown_handler.py:53`
 - `src/utils/extended_shutdown_handler.py:276`
 - `src/dmarket/arbitrage_scanner.py:506`
 - `src/telegram_bot/handlers/callback_registry.py:768`
+
+**Подтверждение**: В `src/telegram_bot/health_check.py`:
+```python
+class HealthCheckServer:
+    async def start(self) -> None:  # Line 77
+        ...
+    async def stop(self) -> None:   # Line 108
+        ...
+```
 
 **Решение**:
 ```python
@@ -72,11 +81,13 @@ await health_check_server.start()
 @pytest.fixture(autouse=True)
 def reset_circuit_breakers():
     """Reset all circuit breakers before each test."""
-    from src.utils.api_circuit_breaker import reset_all_breakers
-    reset_all_breakers()
+    from src.utils.api_circuit_breaker import reset_all_circuit_breakers
+    reset_all_circuit_breakers()
     yield
-    reset_all_breakers()
+    reset_all_circuit_breakers()
 ```
+
+**Примечание**: Функция `reset_all_circuit_breakers()` существует в `src/utils/api_circuit_breaker.py:312`.
 
 **Безопасность**: Только тестовая изоляция, не влияет на production код.
 
@@ -92,17 +103,17 @@ def reset_circuit_breakers():
 - `tests/integration/test_dmarket_vcr.py`
 
 **Ошибки**:
-- `DMarketAPI.get_market_items()` получает `game_id` вместо `gameId`
+- `DMarketAPI.get_market_items()` получает `game_id` вместо `game` (актуальная сигнатура: `game: str = "csgo"`)
 - `create_target` переименован в `create_targets`
 - `cancel_target` отсутствует
 
 **Решение**: Обновить тесты в соответствии с актуальным API:
 ```python
-# До:
+# До (устаревший параметр в тестах):
 await api.get_market_items(game_id="csgo")
 
-# После:
-await api.get_market_items(gameId="csgo")
+# После (актуальная сигнатура из src/dmarket/dmarket_api.py:1484):
+await api.get_market_items(game="csgo")
 ```
 
 **Безопасность**: Только исправление тестов, не влияет на логику бота.
