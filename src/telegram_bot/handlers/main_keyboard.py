@@ -860,11 +860,14 @@ async def _delete_all_targets(dmarket_api: Any) -> int:
         try:
             targets_response = await dmarket_api.get_user_targets(game=game)
             targets = targets_response.get("Items", [])
-            for target in targets:
-                target_id = target.get("TargetID") or target.get("targetId")
-                if target_id:
-                    await dmarket_api.delete_target(target_id)
-                    deleted_count += 1
+            target_ids = [
+                target.get("TargetID") or target.get("targetId")
+                for target in targets
+                if target.get("TargetID") or target.get("targetId")
+            ]
+            if target_ids:
+                await dmarket_api.delete_targets(target_ids=target_ids)
+                deleted_count += len(target_ids)
         except Exception:
             continue
     return deleted_count
