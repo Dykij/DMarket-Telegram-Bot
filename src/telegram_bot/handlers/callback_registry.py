@@ -479,6 +479,18 @@ async def _handle_cmp_steam(update, context):
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
         from src.utils.steam_async_parser import SteamAsyncParser
 
+        # Configuration constants
+        STEAM_CACHE_TTL = 300  # 5 minutes
+        STEAM_MAX_CONCURRENT = 5
+        ITEM_NAME_MAX_LEN = 30
+
+        # Sample popular items to compare (can be expanded via config)
+        SAMPLE_ITEMS = [
+            "AK-47 | Redline (Field-Tested)",
+            "AWP | Asiimov (Field-Tested)",
+            "M4A4 | Asiimov (Field-Tested)",
+        ]
+
         # Get API client and fetch some popular items
         api = context.bot_data.get("dmarket_api")
 
@@ -488,33 +500,27 @@ async def _handle_cmp_steam(update, context):
             )
             return
 
-        parser = SteamAsyncParser(cache_ttl=300, max_concurrent=5)
+        parser = SteamAsyncParser(cache_ttl=STEAM_CACHE_TTL, max_concurrent=STEAM_MAX_CONCURRENT)
 
-        # Sample popular items to compare
-        sample_items = [
-            "AK-47 | Redline (Field-Tested)",
-            "AWP | Asiimov (Field-Tested)",
-            "M4A4 | Asiimov (Field-Tested)",
-        ]
-
-        results = await parser.get_batch_prices(sample_items, game="csgo")
+        results = await parser.get_batch_prices(SAMPLE_ITEMS, game="csgo")
 
         # Format results
         comparison_text = "📊 <b>Сравнение цен со Steam Market</b>\n\n"
 
         for result in results:
+            item_name = result.get("item_name", "Unknown")
+            truncated_name = item_name[:ITEM_NAME_MAX_LEN]
+
             if result.get("status") == "success":
-                item_name = result.get("item_name", "Unknown")
                 lowest = result.get("lowest_price", "N/A")
                 median = result.get("median_price", "N/A")
                 volume = result.get("volume", "0")
 
-                comparison_text += f"<b>{item_name[:30]}...</b>\n"
+                comparison_text += f"<b>{truncated_name}...</b>\n"
                 comparison_text += f"  └ Steam: ${lowest} (медиана ${median})\n"
                 comparison_text += f"  └ Объем: {volume} шт/день\n\n"
             else:
-                item_name = result.get("item_name", "Unknown")
-                comparison_text += f"<b>{item_name[:30]}...</b>\n"
+                comparison_text += f"<b>{truncated_name}...</b>\n"
                 comparison_text += f"  └ ⚠️ {result.get('status', 'error')}\n\n"
 
         comparison_text += "\n💡 <i>Цены обновляются каждые 5 минут</i>"
