@@ -10,7 +10,7 @@ from telegram import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, 
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
-from src.dmarket.arbitrage import GAMES
+from src.dmarket.arbitrage import GAMES, find_arbitrage_opportunities_advanced
 from src.telegram_bot.handlers.dmarket_status import dmarket_status_impl
 from src.telegram_bot.handlers.main_keyboard import (
     auto_trade_start,
@@ -32,10 +32,33 @@ from src.telegram_bot.keyboards import (
     get_risk_profile_keyboard,
     get_settings_keyboard,
 )
+from src.telegram_bot.utils.api_client import setup_api_client
 from src.telegram_bot.utils.formatters import format_opportunities
 from src.utils.telegram_error_handlers import telegram_error_boundary
 
+
 logger = logging.getLogger(__name__)
+
+
+def _get_api_client(context: ContextTypes.DEFAULT_TYPE):
+    """Get API client from context or create new one.
+
+    Args:
+        context: Bot context
+
+    Returns:
+        DMarketAPI instance or None if not available
+    """
+    # First try to get from bot_data (preferred)
+    api = context.bot_data.get("dmarket_api") if context.bot_data else None
+
+    # If not found, try to create new client from env
+    if api is None:
+        api = setup_api_client()
+        if api and context.bot_data is not None:
+            context.bot_data["dmarket_api"] = api
+
+    return api
 
 
 @telegram_error_boundary(user_friendly_message="❌ Ошибка меню арбитража")
@@ -66,6 +89,41 @@ async def handle_dmarket_arbitrage_impl(
 
     """
     await auto_trade_start(update, context)
+
+
+async def search_arbitrage_for_game(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    game: str,
+) -> list[dict]:
+    """Search for arbitrage opportunities for a specific game.
+
+    Uses find_arbitrage_opportunities_advanced for intelligent search.
+
+    Args:
+        update: Telegram update
+        context: Bot context
+        game: Game code (csgo, dota2, tf2, rust)
+
+    Returns:
+        List of arbitrage opportunities
+    """
+    api = _get_api_client(context)
+    if not api:
+        logger.warning("API client not available for arbitrage search")
+        return []
+
+    try:
+        # Use advanced arbitrage search with smart filtering
+        return await find_arbitrage_opportunities_advanced(
+            api=api,
+            game=game,
+            min_profit_percent=5.0,  # 5% minimum profit
+            max_items=50,  # Limit results
+        )
+    except Exception as e:
+        logger.exception(f"Error searching arbitrage for {game}: {e}")
+        return []
 
 
 async def show_arbitrage_opportunities(
@@ -320,11 +378,7 @@ async def button_callback_handler(
         elif callback_data in {"arbitrage", "arbitrage_menu"}:
             await auto_trade_start(update, context)
 
-        elif callback_data == "auto_arbitrage":
-            # Redirect to auto_trade
-            await auto_trade_start(update, context)
-
-        elif callback_data == "dmarket_arbitrage":
+        elif callback_data == "auto_arbitrage" or callback_data == "dmarket_arbitrage":
             # Redirect to auto_trade
             await auto_trade_start(update, context)
 
