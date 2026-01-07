@@ -12,7 +12,6 @@ This module contains all handlers for notification-related commands and callback
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 from datetime import datetime
 import logging
@@ -22,7 +21,6 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 
 from .alerts import add_price_alert, get_user_alerts, remove_price_alert, update_user_settings
-from .checker import run_alerts_checker
 from .constants import NOTIFICATION_TYPES
 from .formatters import format_alert_message
 from .storage import get_storage, load_user_alerts

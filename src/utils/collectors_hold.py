@@ -502,7 +502,7 @@ class CollectorsHoldManager:
                     },
                 )
             except Exception as e:
-                logger.error(f"Failed to save treasure to DB: {e}")
+                logger.exception(f"Failed to save treasure to DB: {e}")
 
     def get_treasures(self) -> list[HoldDecision]:
         """Получить список всех сокровищ."""

@@ -248,7 +248,7 @@ def register_all_handlers(application: "Application") -> None:
         application.add_handler(CallbackQueryHandler(button_callback_handler_v2))
         logger.info("✅ Router-based callback handler registered")
     except Exception as e:
-        logger.error("Failed to initialize callback router, falling back to old handler: %s", e)
+        logger.exception("Failed to initialize callback router, falling back to old handler: %s", e)
         # Fallback to old handler if new one fails
         application.add_handler(CallbackQueryHandler(button_callback_handler))
         logger.warning("⚠️ Using legacy callback handler (973 lines)")

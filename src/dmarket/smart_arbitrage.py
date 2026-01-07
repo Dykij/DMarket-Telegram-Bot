@@ -164,7 +164,7 @@ class SmartArbitrageEngine:
             logger.info("smart_balance_fetched", balance=self._current_balance)
             return self._current_balance
         except Exception as e:
-            logger.error("smart_balance_proxy_error", error=str(e))
+            logger.exception("smart_balance_proxy_error", error=str(e))
             return self._current_balance  # Return last known balance
 
     async def calculate_adaptive_limits(self) -> SmartLimits:
@@ -344,7 +344,7 @@ class SmartArbitrageEngine:
             return opportunities[:20]  # Return top 20
 
         except Exception as e:
-            logger.error("smart_scan_error", game=game, error=str(e))
+            logger.exception("smart_scan_error", game=game, error=str(e))
             return []
 
     def _analyze_item(
@@ -538,7 +538,7 @@ class SmartArbitrageEngine:
                                     await asyncio.sleep(2)
 
                                 except Exception as buy_err:
-                                    logger.error(
+                                    logger.exception(
                                         "auto_buy_failed",
                                         item=opp.title[:30],
                                         error=str(buy_err),
@@ -570,7 +570,7 @@ class SmartArbitrageEngine:
         except asyncio.CancelledError:
             logger.info("smart_mode_cancelled")
         except Exception as e:
-            logger.error("smart_mode_error", error=str(e))
+            logger.exception("smart_mode_error", error=str(e))
         finally:
             self._is_running = False
             logger.info("smart_mode_stopped")

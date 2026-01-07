@@ -168,7 +168,7 @@ class IntelligentHoldManager:
                 )
                 self.events.append(event)
             except Exception as e:
-                logger.error("event_load_error", event=event_data.get("name"), error=str(e))
+                logger.exception("event_load_error", event=event_data.get("name"), error=str(e))
 
     def add_event(self, event: MarketEvent) -> None:
         """Add a custom event to track."""

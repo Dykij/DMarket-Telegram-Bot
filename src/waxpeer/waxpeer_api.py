@@ -81,7 +81,7 @@ class WaxpeerBalance:
     wallet: Decimal  # В долларах
     wallet_mils: int  # В милах
     available_for_withdrawal: Decimal
-    pending: Decimal = Decimal("0")
+    pending: Decimal = Decimal(0)
     can_trade: bool = False
 
 

@@ -344,7 +344,7 @@ async def start_smart_arbitrage(update: Update, context: ContextTypes.DEFAULT_TY
         )
 
     except Exception as e:
-        logger.error("smart_arbitrage_start_error", error=str(e))
+        logger.exception("smart_arbitrage_start_error", error=str(e))
         await query.edit_message_text(
             f"❌ Ошибка запуска: {e!s}\n\nПроверьте подключение к DMarket API."
         )
@@ -394,7 +394,7 @@ async def scan_x5_now(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         )
 
     except Exception as e:
-        logger.error("x5_scan_error", error=str(e))
+        logger.exception("x5_scan_error", error=str(e))
         await query.answer(f"❌ Ошибка: {e!s}", show_alert=True)
 
 

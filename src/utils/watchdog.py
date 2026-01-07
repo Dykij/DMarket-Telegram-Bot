@@ -230,7 +230,7 @@ class Watchdog:
                 )
 
         except Exception as e:
-            logger.error(f"Failed to start main process: {e}")
+            logger.exception(f"Failed to start main process: {e}")
             self.state = ProcessState.CRASHED
             raise
 
@@ -309,7 +309,7 @@ class Watchdog:
             logger.warning("Health check timeout")
             return False
         except Exception as e:
-            logger.error(f"Health check unexpected error: {e}")
+            logger.exception(f"Health check unexpected error: {e}")
             return False
 
     async def _handle_crash(self) -> None:
@@ -397,7 +397,7 @@ class Watchdog:
                         logger.warning(f"Failed to send Telegram alert: {response.status}")
 
         except Exception as e:
-            logger.error(f"Error sending Telegram alert: {e}")
+            logger.exception(f"Error sending Telegram alert: {e}")
 
     @staticmethod
     def _format_uptime(seconds: float) -> str:

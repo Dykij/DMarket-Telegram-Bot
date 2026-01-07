@@ -488,7 +488,7 @@ class DMarketAPI:
             try:
                 signing_key = nacl.signing.SigningKey(secret_key_bytes)
             except Exception as nacl_error:
-                logger.error(
+                logger.exception(
                     f"Failed to create SigningKey: {nacl_error}. Key bytes len: {len(secret_key_bytes)}"
                 )
                 raise
@@ -919,7 +919,7 @@ class DMarketAPI:
                     result = response.json()
                 except (json.JSONDecodeError, TypeError, Exception):
                     # Если не получается распарсить JSON, возвращаем текст
-                    logger.error(
+                    logger.exception(
                         f"Ошибка парсинга JSON. Код: {response.status_code}. Текст: {response.text[:200]}"
                     )
                     result = {
@@ -1976,7 +1976,7 @@ class DMarketAPI:
 
             return response
         except Exception as e:
-            logger.error(f"❌ Критическая ошибка при получении инвентаря: {e!s}")
+            logger.exception(f"❌ Критическая ошибка при получении инвентаря: {e!s}")
             return {"objects": []}
 
     async def get_suggested_price(

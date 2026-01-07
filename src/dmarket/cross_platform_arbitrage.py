@@ -222,7 +222,7 @@ class CrossPlatformArbitrageScanner:
             usd_cents = balance_data.get("usd", 0)
             return Decimal(str(usd_cents)) / Decimal(100)
         except Exception as e:
-            logger.error("failed_to_get_balance", error=str(e))
+            logger.exception("failed_to_get_balance", error=str(e))
             return Decimal(0)
 
     async def scan_full_market(
@@ -328,7 +328,7 @@ class CrossPlatformArbitrageScanner:
             return result.get("objects", []) or result.get("items", [])
 
         except Exception as e:
-            logger.error("failed_to_fetch_market_items", error=str(e))
+            logger.exception("failed_to_fetch_market_items", error=str(e))
             return []
 
     async def _analyze_item(self, item: dict[str, Any]) -> ArbitrageOpportunity | None:
@@ -417,7 +417,7 @@ class CrossPlatformArbitrageScanner:
             )
 
         except Exception as e:
-            logger.error("item_analysis_failed", error=str(e), item=item.get("title", ""))
+            logger.exception("item_analysis_failed", error=str(e), item=item.get("title", ""))
             return None
 
     async def _get_waxpeer_price(self, item_name: str) -> tuple[Decimal, int]:
@@ -443,7 +443,7 @@ class CrossPlatformArbitrageScanner:
                     result = (price_info.price_usd, price_info.count)
                     self._waxpeer_cache[item_name] = result
                     return result
-                return Decimal("0"), 0
+                return Decimal(0), 0
 
             # Fallback to get_items_list
             result = await self.waxpeer.get_items_list(names=[item_name])
@@ -465,7 +465,7 @@ class CrossPlatformArbitrageScanner:
             return price_usd, liquidity
 
         except Exception as e:
-            logger.error("waxpeer_price_fetch_failed", error=str(e), item=item_name)
+            logger.exception("waxpeer_price_fetch_failed", error=str(e), item=item_name)
             return Decimal(0), 0
 
     def _make_decision(
@@ -594,7 +594,7 @@ class CrossPlatformArbitrageScanner:
             return success
 
         except Exception as e:
-            logger.error("purchase_failed", error=str(e), title=opportunity.title)
+            logger.exception("purchase_failed", error=str(e), title=opportunity.title)
             return False
 
     def format_opportunity_message(self, opp: ArbitrageOpportunity) -> str:

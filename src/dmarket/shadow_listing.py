@@ -170,7 +170,7 @@ class ShadowListingManager:
                 limit=20,  # Берем топ-20 для анализа
             )
         except Exception as e:
-            logger.error(f"Failed to fetch market data: {e}")
+            logger.exception(f"Failed to fetch market data: {e}")
             return self._create_default_analysis(item_title, our_current_price)
 
         # Парсим данные

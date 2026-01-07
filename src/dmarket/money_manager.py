@@ -180,7 +180,7 @@ class MoneyManager:
                     usd_cents = int(float(str(usd_val)))
                     new_balance = usd_cents / 100.0
                 except (ValueError, TypeError) as parse_err:
-                    logger.error("balance_parse_error", val=usd_val, error=str(parse_err))
+                    logger.exception("balance_parse_error", val=usd_val, error=str(parse_err))
                     new_balance = 0.0
             else:
                 new_balance = 0.0
@@ -208,7 +208,7 @@ class MoneyManager:
             return self._current_balance
 
         except Exception as e:
-            logger.error("balance_fetch_error", error=str(e))
+            logger.exception("balance_fetch_error", error=str(e))
             return self._current_balance
 
     def _determine_tier(self, balance: float) -> BalanceTier:
