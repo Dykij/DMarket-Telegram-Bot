@@ -280,19 +280,20 @@ class TestFindArbitrageAsync:
         """Тест поиска арбитража с реальными предметами."""
         from src.dmarket.arbitrage import _find_arbitrage_async
 
+        # Mock items с правильным форматом цен (ключ USD в центах)
         mock_items = [
             {
                 "title": "AK-47 | Redline (FT)",
                 "itemId": "item_1",
-                "price": {"USD": 1250},  # Price in cents: $12.50
-                "suggestedPrice": {"USD": 1500},  # Suggested price in cents: $15.00
+                "price": {"USD": 1250},  # $12.50 в центах
+                "suggestedPrice": {"USD": 1500},  # $15.00 в центах
                 "extra": {"popularity": 0.8},
             },
             {
                 "title": "AWP | Asiimov (FT)",
                 "itemId": "item_2",
-                "price": {"USD": 3500},  # Price in cents: $35.00
-                "suggestedPrice": {"USD": 4200},  # Suggested price in cents: $42.00
+                "price": {"USD": 3500},  # $35.00 в центах
+                "suggestedPrice": {"USD": 4200},  # $42.00 в центах
                 "extra": {"popularity": 0.5},
             },
         ]
@@ -1192,7 +1193,7 @@ class TestFindArbitrageAsyncPopularity:
             {
                 "itemId": "item1",
                 "title": "Item Without Suggested Price",
-                "price": {"USD": 1000},  # $10
+                "price": {"USD": 1000},  # $10 в центах
                 "extra": {"popularity": 0.75},  # Высокая -> markup 1.1
             }
         ]
@@ -1221,7 +1222,7 @@ class TestFindArbitrageAsyncPopularity:
             {
                 "itemId": "item1",
                 "title": "Medium Item",
-                "price": {"USD": 1000},  # $10
+                "price": {"USD": 1000},  # $10 в центах
                 "extra": {"popularity": 0.5},  # Средняя -> markup 1.12
             }
         ]

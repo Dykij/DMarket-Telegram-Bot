@@ -22,7 +22,7 @@ class PriceAnalyzer:
         """
         self.min_roi = min_roi
         self.max_price_usd = max_price_usd
-        self.market_fee = 0.05  # 5% DMarket commission
+        self.market_fee = 0.07  # 7% DMarket commission
 
     def calculate_profit(
         self,

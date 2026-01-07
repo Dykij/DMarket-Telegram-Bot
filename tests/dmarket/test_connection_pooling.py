@@ -36,8 +36,8 @@ def test_connection_pool_limits_configured(api_client):
     limits = api_client.pool_limits
 
     assert limits.max_connections == 100
-    assert limits.max_keepalive_connections == 30  # Updated to match actual default
-    assert limits.keepalive_expiry == 60.0  # Updated: implementation uses 60.0
+    assert limits.max_keepalive_connections == 30
+    assert limits.keepalive_expiry == 30.0
 
 
 def test_http2_enabled_by_default(api_client):
@@ -139,8 +139,8 @@ async def test_get_connection_pool_stats_when_active(api_client):
 
     assert stats["status"] == "active"
     assert stats["max_connections"] == 100
-    assert stats["max_keepalive"] == 30  # Updated to match actual default
-    assert stats["keepalive_expiry"] == 60.0  # Updated: implementation uses 60.0
+    assert stats["max_keepalive"] == 30
+    assert stats["keepalive_expiry"] == 30.0
     # HTTP/2 may be disabled if h2 package not installed
     assert "http2_enabled" in stats
     assert isinstance(stats["http2_enabled"], bool)

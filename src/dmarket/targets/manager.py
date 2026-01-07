@@ -488,10 +488,12 @@ class TargetManager:
             if not title or market_price <= 0:
                 continue
 
-            # Рассчитываем цену покупки
-            # Целевая цена = рыночная цена / (1 + маржа + комиссия)
-            commission = 0.07  # 7% комиссия DMarket
-            target_price = round(market_price / (1 + profit_margin + commission), 2)
+            # Рассчитываем цену покупки (target_price)
+            # Комиссия DMarket (7%) взимается при ПРОДАЖЕ, не при покупке
+            # Для достижения желаемой маржи: target_price * (1 + margin) = market_price * 0.93
+            # Следовательно: target_price = market_price * 0.93 / (1 + margin)
+            commission_multiplier = 0.93  # 1 - 0.07 (комиссия 7% при продаже)
+            target_price = round(market_price * commission_multiplier / (1 + profit_margin), 2)
 
             # Проверяем конкуренцию
             if check_competition:

@@ -456,8 +456,11 @@ class CrossPlatformArbitrageScanner:
             min_price_mils = items[0].get("price", 0)
             price_usd = Decimal(str(min_price_mils)) / Decimal(1000)
 
-            # Get liquidity (items sold in 24h)
-            liquidity = items[0].get("count", 0) or len(items)
+            # Get availability count from Waxpeer API
+            # Note: "count" represents items available for sale, used as a proxy for liquidity
+            # Higher count generally indicates better liquidity (easier to sell)
+            # Use 0 as default - do NOT use len(items) as fallback since it's misleading
+            liquidity = items[0].get("count", 0)
 
             # Cache result
             self._waxpeer_cache[item_name] = (price_usd, liquidity)

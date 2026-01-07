@@ -165,7 +165,8 @@ class SmartRepricer:
             return None
 
         # Calculate price limits
-        break_even_price = int(buy_price * (1 + self.dmarket_fee_percent / 100))
+        # Break-even: sell_price * 0.93 = buy_price -> sell_price = buy_price / 0.93
+        break_even_price = int(buy_price / (1 - self.dmarket_fee_percent / 100))
         max_cut_price = int(current_price * (1 - self.max_price_cut_percent / 100))
         undercut_step = self.get_undercut_step()
 
@@ -297,7 +298,7 @@ class SmartRepricer:
 
         price_change_percent = (current_price - oldest_price) / oldest_price * 100
 
-        if price_change_percent < -self.panic_threshold_percent:
+        if price_change_percent <= -self.panic_threshold_percent:
             logger.warning(
                 f"🚨 MARKET PANIC detected for {item_title}: "
                 f"{price_change_percent:.1f}% drop in {self.panic_check_hours}h"

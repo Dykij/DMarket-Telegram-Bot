@@ -98,7 +98,7 @@ class IntelligentHoldManager:
             "impact": -0.15,
             "games": ["csgo", "dota2", "tf2", "rust"],
         },
-        # CS2 Majors
+        # CS2 Majors 2026 (based on Valve's typical schedule)
         {
             "type": EventType.MAJOR_TOURNAMENT,
             "name": "PGL Copenhagen Major 2026",
@@ -107,6 +107,53 @@ class IntelligentHoldManager:
             "impact": 0.25,  # Sticker prices up 25%
             "items": ["Sticker", "Capsule", "Copenhagen"],
             "games": ["csgo"],
+        },
+        {
+            "type": EventType.MAJOR_TOURNAMENT,
+            "name": "IEM Cologne Major 2026",
+            "start": "2026-07-15",
+            "end": "2026-07-28",
+            "impact": 0.30,  # Summer major - higher impact
+            "items": ["Sticker", "Capsule", "Cologne"],
+            "games": ["csgo"],
+        },
+        # RMR Events (Regional Minor Rankings) - sticker capsules available
+        {
+            "type": EventType.MINOR_TOURNAMENT,
+            "name": "Europe RMR Spring 2026",
+            "start": "2026-02-20",
+            "end": "2026-02-28",
+            "impact": 0.10,  # Moderate price increase
+            "items": ["Sticker", "Capsule"],
+            "games": ["csgo"],
+        },
+        {
+            "type": EventType.MINOR_TOURNAMENT,
+            "name": "Americas RMR Spring 2026",
+            "start": "2026-03-01",
+            "end": "2026-03-08",
+            "impact": 0.10,
+            "items": ["Sticker", "Capsule"],
+            "games": ["csgo"],
+        },
+        # Steam Autumn Sale
+        {
+            "type": EventType.STEAM_SALE,
+            "name": "Steam Autumn Sale 2026",
+            "start": "2026-11-25",
+            "end": "2026-12-02",
+            "impact": -0.18,
+            "games": ["csgo", "dota2", "tf2", "rust"],
+        },
+        # The International (Dota 2)
+        {
+            "type": EventType.MAJOR_TOURNAMENT,
+            "name": "The International 2026",
+            "start": "2026-08-15",
+            "end": "2026-08-30",
+            "impact": 0.35,  # TI has huge impact on Dota 2 items
+            "items": ["Immortal", "Arcana", "Collector's Cache"],
+            "games": ["dota2"],
         },
     ]
 

@@ -1,7 +1,17 @@
 """Whitelist configuration for high-liquidity items.
 
-This module contains curated lists of highly liquid items for each game
-that are safe to trade and quick to sell.
+This module contains curated lists of RECOMMENDED highly liquid items for each game.
+These are suggestions, not strict requirements - items may or may not be available
+on DMarket at any given time.
+
+ВАЖНО: Это РЕКОМЕНДАТЕЛЬНЫЙ список, а не обязательный!
+- Предметы из списка получают приоритет при сканировании
+- Но сканер НЕ ограничивается только этими предметами
+- Список используется для определения ликвидности и снижения порога профита
+
+Usage modes:
+    1. PRIORITY_MODE (default): Whitelist items get profit boost, but all items scanned
+    2. STRICT_MODE: Only whitelist items are considered (not recommended)
 """
 
 import json
@@ -12,26 +22,51 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-# Белый список высоколиквидных предметов по играм
+
+class WhitelistMode:
+    """Режимы работы whitelist."""
+
+    # Рекомендательный режим: whitelist предметы получают приоритет,
+    # но все предметы сканируются (РЕКОМЕНДУЕТСЯ)
+    PRIORITY = "priority"
+
+    # Строгий режим: только whitelist предметы (НЕ рекомендуется)
+    STRICT = "strict"
+
+    # Отключен: whitelist не используется
+    DISABLED = "disabled"
+
+
+# Белый список РЕКОМЕНДУЕМЫХ высоколиквидных предметов по играм
+# ВАЖНО: Это рекомендации, а не жёсткие требования!
 # App ID маппинг: CS2=730, Rust=252490, Dota2=570, TF2=440
 WHITELIST_ITEMS = {
-    "730": [  # CS:GO/CS2
-        "Chroma 3 Case",
-        "Clutch Case",
+    "730": [  # CS:GO/CS2 - Кейсы и популярные скины
+        # Новые кейсы 2025-2026 (высокая ликвидность)
+        "Gallery Case",
+        "Kilowatt Case",
+        "Revolution Case",
+        "Recoil Case",
         "Dreams & Nightmares Case",
         "Fracture Case",
-        "Recoil Case",
+        # Классические кейсы (стабильная ликвидность)
+        "Clutch Case",
         "Snakebite Case",
-        "Revolution Case",
-        "Kilowatt Case",
-        "AK-47 | Slate (Field-Tested)",
-        "Desert Eagle | Mecha Industries (Field-Tested)",
-        "Glock-18 | Candy Apple (Factory New)",
-        "USP-S | Cyrex (Field-Tested)",
-        "M4A4 | Desolate Space (Field-Tested)",
-        "AWP | Phobos (Field-Tested)",
+        "Chroma 3 Case",
+        "Prisma 2 Case",
+        "Operation Bravo Case",
+        # Ликвидные скины (быстро продаются)
+        "AK-47 | Slate",
+        "AK-47 | Redline",
+        "AWP | Asiimov",
+        "AWP | Lightning Strike",
+        "Desert Eagle | Mecha Industries",
+        "Glock-18 | Candy Apple",
+        "USP-S | Cyrex",
+        "M4A4 | Desolate Space",
+        "AWP | Phobos",
     ],
-    "252490": [  # Rust
+    "252490": [  # Rust - Популярные предметы
         "Wood Storage Box",
         "Large Wood Box",
         "Sheet Metal Door",
@@ -41,8 +76,11 @@ WHITELIST_ITEMS = {
         "Metal Chest Plate",
         "Road Sign Kilt",
         "Coffee Can Helmet",
+        # Декоративные предметы (турнирная тематика)
+        "Tempered AK47",
+        "Glory AK47",
     ],
-    "570": [  # Dota 2
+    "570": [  # Dota 2 - Immortals и Arcanas
         "Immortal Treasure",
         "Inscribed Murder of Crows",
         "Manifold Paradox",
@@ -50,8 +88,11 @@ WHITELIST_ITEMS = {
         "Fractal Horns of Inner Abysm",
         "Genuine Monarch Bow",
         "Dragonclaw Hook",
+        # TI2026 предметы (ожидаемая высокая ликвидность)
+        "Collector's Cache",
+        "Battle Pass",
     ],
-    "440": [  # TF2 (Самое ликвидное)
+    "440": [  # TF2 - Ключи и металл (стабильная валюта)
         "Mann Co. Supply Crate Key",  # Ключи — лучшая валюта
         "Tour of Duty Ticket",
         "Refined Metal",
@@ -73,13 +114,18 @@ GAME_APP_ID_MAP = {
 }
 
 # Настройки whitelist (могут быть переопределены из JSON)
+# ВАЖНО: По умолчанию работает в режиме PRIORITY (рекомендательный)
 WHITELIST_SETTINGS: dict[str, Any] = {
     "enabled": True,
-    "priority_only": False,
+    "mode": WhitelistMode.PRIORITY,  # PRIORITY = рекомендательный, STRICT = только whitelist
+    "priority_only": False,  # Deprecated: use mode instead
     "max_same_items_in_inventory": 5,
     "buy_max_overpay_percent": 2.0,
     "max_stack_value_percent": 15,
     "min_liquidity_score": 70,
+    # Настройки приоритета для whitelist предметов
+    "profit_boost_percent": 2.0,  # Снижение порога профита для whitelist
+    "liquidity_boost": True,  # Считать whitelist предметы ликвидными
 }
 
 # Веса игр для диверсификации (в процентах внимания)

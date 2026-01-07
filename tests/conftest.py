@@ -515,3 +515,151 @@ class LogAssertions:
             if level is None or record.levelname == level.upper():
                 messages.append(record.message)
         return messages
+
+
+# =============================================================================
+# ФИКСТУРЫ ДЛЯ ИЗОЛЯЦИИ ОТ CIRCUIT BREAKER
+# =============================================================================
+
+
+@pytest.fixture()
+def disable_circuit_breaker(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Отключает Circuit Breaker для изоляции тестов.
+
+    Circuit Breaker может блокировать запросы после сбоев,
+    что мешает тестированию. Эта фикстура отключает его.
+
+    Usage:
+        def test_api_call(disable_circuit_breaker):
+            # CB не будет блокировать запросы
+            result = await api.get_items()
+    """
+    try:
+        # Патчим is_open чтобы всегда возвращал False (CB закрыт)
+        monkeypatch.setattr(
+            "src.utils.api_circuit_breaker.CircuitBreaker.is_open",
+            property(lambda self: False),
+        )
+        # Патчим should_allow_request чтобы всегда разрешал
+        monkeypatch.setattr(
+            "src.utils.api_circuit_breaker.CircuitBreaker.should_allow_request",
+            lambda self: True,
+        )
+    except (ImportError, AttributeError):
+        pass  # Модуль не импортирован
+
+
+@pytest.fixture()
+def reset_circuit_breaker() -> Generator[None, None, None]:
+    """Сбрасывает состояние Circuit Breaker до и после теста.
+
+    Usage:
+        def test_with_fresh_cb(reset_circuit_breaker):
+            # CB в начальном состоянии
+            ...
+    """
+    try:
+        from src.utils.api_circuit_breaker import CircuitBreaker
+
+        # Сбрасываем перед тестом
+        CircuitBreaker._instances = {}
+    except ImportError:
+        pass
+
+    yield
+
+    try:
+        from src.utils.api_circuit_breaker import CircuitBreaker
+
+        # Сбрасываем после теста
+        CircuitBreaker._instances = {}
+    except ImportError:
+        pass
+
+
+# =============================================================================
+# ФИКСТУРЫ ДЛЯ MOCK ДАННЫХ
+# =============================================================================
+
+
+@pytest.fixture()
+def mock_balance_response() -> dict[str, Any]:
+    """Стандартный mock ответ баланса DMarket.
+
+    Returns:
+        Dict в формате DMarket API с балансом $1000 USD
+    """
+    return {
+        "usd": {
+            "amount": "100000",  # $1000.00 в центах
+            "currency": "USD",
+        },
+        "dmc": {
+            "amount": "50000",  # $500.00 DMC
+            "currency": "DMC",
+        },
+    }
+
+
+@pytest.fixture()
+def mock_item_response() -> dict[str, Any]:
+    """Стандартный mock предмет DMarket.
+
+    Returns:
+        Dict в формате DMarket API
+    """
+    return {
+        "itemId": "test_item_123",
+        "title": "AK-47 | Redline (Field-Tested)",
+        "price": {"USD": "1500"},  # $15.00
+        "suggestedPrice": {"USD": "1800"},  # $18.00
+        "gameId": "a8db",
+        "image": "https://example.com/item.png",
+        "tradable": True,
+        "extra": {
+            "exterior": "Field-Tested",
+            "rarity": "Classified",
+        },
+    }
+
+
+@pytest.fixture()
+def mock_items_list_response() -> dict[str, Any]:
+    """Стандартный mock списка предметов DMarket.
+
+    Returns:
+        Dict с 5 предметами
+    """
+    items = []
+    for i in range(5):
+        price = 1000 + i * 200  # $10, $12, $14, $16, $18
+        items.append({
+            "itemId": f"item_{i}",
+            "title": f"Test Item {i + 1}",
+            "price": {"USD": str(price)},
+            "suggestedPrice": {"USD": str(int(price * 1.2))},
+            "gameId": "a8db",
+            "tradable": True,
+        })
+
+    return {
+        "objects": items,
+        "total": {"items": 5},
+    }
+
+
+@pytest.fixture()
+def mock_target_response() -> dict[str, Any]:
+    """Стандартный mock таргета DMarket.
+
+    Returns:
+        Dict в формате DMarket API
+    """
+    return {
+        "targetId": "target_123",
+        "title": "AK-47 | Redline (Field-Tested)",
+        "price": {"USD": "1400"},  # $14.00
+        "gameId": "a8db",
+        "status": "active",
+        "createdAt": "2026-01-01T00:00:00Z",
+    }

@@ -129,6 +129,11 @@ class WaxpeerAPI:
     - Снятие предметов с продажи
     - Получение истории продаж
 
+    Rate Limits (согласно документации Waxpeer):
+    - GET запросы: 60 в минуту
+    - POST запросы: 30 в минуту
+    - Специальные эндпоинты (list-items-steam): 10 в минуту
+
     Пример использования:
         ```python
         async with WaxpeerAPI(api_key="your_key") as api:
@@ -139,12 +144,21 @@ class WaxpeerAPI:
 
     BASE_URL = "https://api.waxpeer.com/v1"
 
+    # Rate limits per minute (from Waxpeer documentation)
+    RATE_LIMITS = {
+        "default_get": 60,      # GET requests per minute
+        "default_post": 30,     # POST requests per minute
+        "list_items": 10,       # List items per minute (expensive operation)
+        "prices": 30,           # Price queries per minute
+    }
+
     def __init__(
         self,
         api_key: str,
         timeout: float = 10.0,
         max_retries: int = 3,
         retry_delay: float = 1.0,
+        respect_rate_limits: bool = True,
     ) -> None:
         """
         Инициализация клиента.
@@ -154,12 +168,22 @@ class WaxpeerAPI:
             timeout: Таймаут запросов в секундах
             max_retries: Максимальное количество повторных попыток
             retry_delay: Задержка между повторными попытками
+            respect_rate_limits: Автоматически соблюдать rate limits
         """
         self.api_key = api_key
         self.timeout = timeout
         self.max_retries = max_retries
         self.retry_delay = retry_delay
+        self.respect_rate_limits = respect_rate_limits
         self._client: httpx.AsyncClient | None = None
+
+        # Request tracking for rate limiting
+        self._request_timestamps: dict[str, list[float]] = {
+            "get": [],
+            "post": [],
+            "list_items": [],
+        }
+        self._rate_limit_lock = asyncio.Lock()
 
     async def __aenter__(self) -> "WaxpeerAPI":
         """Создание HTTP клиента при входе в контекст."""

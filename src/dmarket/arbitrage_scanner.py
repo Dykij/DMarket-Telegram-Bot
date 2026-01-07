@@ -1395,8 +1395,11 @@ class ArbitrageScanner:
             else:
                 suggested_price = price_usd * 1.2
 
-            # Рассчитываем фактическую прибыль
-            profit_usd = suggested_price - price_usd
+            # Рассчитываем фактическую прибыль С УЧЁТОМ КОМИССИИ DMarket (7%)
+            # При продаже DMarket забирает 7% от цены продажи
+            commission_rate = 0.07  # 7% комиссия DMarket
+            net_sell_price = suggested_price * (1 - commission_rate)
+            profit_usd = net_sell_price - price_usd
             profit_percent = (profit_usd / price_usd * 100) if price_usd > 0 else 0
 
             # Проверяем минимальный процент прибыли

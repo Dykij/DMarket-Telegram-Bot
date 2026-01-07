@@ -90,7 +90,7 @@ class TestDMarketAPIInitialization:
             secret_key="test_secret",
         )
         assert api.pool_limits.max_connections == 100
-        assert api.pool_limits.max_keepalive_connections == 30
+        assert api.pool_limits.max_keepalive_connections == 30  # Updated to match actual default
 
     def test_init_custom_pool_limits(self):
         """Тест custom connection pool."""
@@ -179,6 +179,7 @@ class TestDMarketAPIEndpoints:
 
     def test_user_endpoints(self):
         """Тест endpoints для пользователя."""
+        # Updated to match actual DMarket API v1.1.0 endpoints
         assert DMarketAPI.ENDPOINT_USER_INVENTORY == "/inventory/v1/user/items"
         assert DMarketAPI.ENDPOINT_USER_OFFERS == "/marketplace-api/v1/user-offers"
         assert DMarketAPI.ENDPOINT_USER_TARGETS == "/main/v2/user-targets"

@@ -421,7 +421,7 @@ async def test_scan_multiple_games_one_fails(scanner):
 async def test_check_user_balance_success(scanner):
     """Тест успешной проверки баланса."""
     # Мокируем _request для возврата баланса в центах
-    # Формат: {"usd": {"amount": 10050}} = $100.50 (amount in cents)
+    # Формат: {"usd": {"amount": 10050}} = $100.50 (amount в центах)
     scanner.api_client._request = AsyncMock(return_value={"usd": {"amount": 10050}})
 
     result = await scanner.check_user_balance()
@@ -434,7 +434,7 @@ async def test_check_user_balance_success(scanner):
 @pytest.mark.asyncio()
 async def test_check_user_balance_api_error(scanner):
     """Тест обработки ошибки при проверке баланса."""
-    scanner.api_client.get_balance = AsyncMock(side_effect=Exception("API Error"))
+    scanner.api_client._request = AsyncMock(side_effect=Exception("API Error"))
 
     result = await scanner.check_user_balance()
 

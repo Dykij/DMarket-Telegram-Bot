@@ -156,11 +156,13 @@ class ProtectorConfig:
     # Временные окна (дни)
     pre_sale_days: int = 3  # За сколько дней начинаем готовиться
     post_sale_days: int = 3  # Сколько дней после распродажи ждем
+    major_sale_pre_days: int = 5  # Для крупных распродаж готовимся раньше
 
     # Модификаторы цен
     pre_sale_price_reduction: float = 0.02  # -2% на цены перед распродажей
     sale_buy_min_discount: float = 0.25  # Минимум 25% скидка для покупки
     post_sale_price_recovery: float = 0.98  # 98% от нормальной цены после
+    major_sale_price_reduction: float = 0.05  # -5% для крупных распродаж
 
     # Лимиты
     max_inventory_before_sale: int = 5  # Максимум вещей перед распродажей
@@ -168,6 +170,10 @@ class ProtectorConfig:
 
     # Уведомления
     notify_days_before: list[int] = field(default_factory=lambda: [7, 3, 1])
+
+    # Автоматическое восстановление после распродажи
+    auto_recovery_enabled: bool = True
+    recovery_price_step: float = 0.01  # +1% каждый день после распродажи
 
 
 class SteamSalesProtector:
