@@ -333,7 +333,7 @@ class CollectorsHoldManager:
         Returns:
             Tuple of (reason, details, multiplier) or (None, "", 1.0)
         """
-        if game in ("csgo", "cs2"):
+        if game in {"csgo", "cs2"}:
             return self._check_cs2_triggers(item_data, evaluation)
         if game == "dota2":
             return self._check_dota2_triggers(item_data, evaluation)

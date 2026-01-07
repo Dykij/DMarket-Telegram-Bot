@@ -267,11 +267,11 @@ def get_game_id(game: str) -> str:
     """
     game_lower = game.lower()
 
-    if game_lower in ("csgo", "cs2", "cs", "counter-strike"):
+    if game_lower in {"csgo", "cs2", "cs", "counter-strike"}:
         return GameID.CSGO.value
-    if game_lower in ("dota2", "dota"):
+    if game_lower in {"dota2", "dota"}:
         return GameID.DOTA2.value
-    if game_lower in ("tf2", "team fortress"):
+    if game_lower in {"tf2", "team fortress"}:
         return GameID.TF2.value
     if game_lower == "rust":
         return GameID.RUST.value

@@ -156,10 +156,10 @@ class OpportunityScore:
     @property
     def is_recommended(self) -> bool:
         """Check if opportunity is recommended for execution."""
-        return self.total_score >= 60 and self.risk_level in (
+        return self.total_score >= 60 and self.risk_level in {
             RiskLevel.LOW,
             RiskLevel.MEDIUM,
-        )
+        }
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""

@@ -58,7 +58,7 @@ class MarketHealth:
     @property
     def is_safe_to_buy(self) -> bool:
         """Check if market is safe for normal buying."""
-        return self.state in [MarketState.STABLE, MarketState.RECOVERY, MarketState.BULL_RUN]
+        return self.state in {MarketState.STABLE, MarketState.RECOVERY, MarketState.BULL_RUN}
 
     @property
     def is_crash(self) -> bool:
@@ -68,7 +68,7 @@ class MarketHealth:
     @property
     def is_opportunity(self) -> bool:
         """Check if there's a buying opportunity (dip or recovery)."""
-        return self.state in [MarketState.SALE_PERIOD, MarketState.RECOVERY]
+        return self.state in {MarketState.SALE_PERIOD, MarketState.RECOVERY}
 
 
 @dataclass

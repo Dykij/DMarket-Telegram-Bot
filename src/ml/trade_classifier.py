@@ -69,12 +69,12 @@ class TradeClassification:
 
     def is_actionable(self) -> bool:
         """Проверить, стоит ли действовать по сигналу."""
-        return self.signal in (
+        return self.signal in {
             TradeSignal.STRONG_BUY,
             TradeSignal.BUY,
             TradeSignal.SELL,
             TradeSignal.STRONG_SELL,
-        )
+        }
 
 
 class AdaptiveTradeClassifier:
@@ -167,7 +167,7 @@ class AdaptiveTradeClassifier:
 
     def set_risk_tolerance(self, tolerance: str):
         """Установить толерантность к риску."""
-        if tolerance in ("conservative", "moderate", "aggressive"):
+        if tolerance in {"conservative", "moderate", "aggressive"}:
             self.risk_tolerance = tolerance
             self._update_thresholds()
 
@@ -431,7 +431,7 @@ class AdaptiveTradeClassifier:
             base_size = max_position * 0.8
         elif signal == TradeSignal.BUY:
             base_size = max_position * 0.5
-        elif signal in (TradeSignal.HOLD, TradeSignal.SKIP):
+        elif signal in {TradeSignal.HOLD, TradeSignal.SKIP}:
             return 0.0
         else:
             base_size = max_position * 0.3

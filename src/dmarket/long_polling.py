@@ -405,7 +405,7 @@ class BatchUpdateChecker:
                 self._last_prices[item_name] = current_price
 
             except Exception as e:
-                logger.error(
+                logger.exception(
                     "check_price_error",
                     item=item_name,
                     error=str(e),

@@ -124,7 +124,7 @@ class ArbitrageOpportunity:
     @property
     def is_profitable(self) -> bool:
         """Check if opportunity is profitable."""
-        return self.decision in (ArbitrageDecision.BUY_INSTANT, ArbitrageDecision.BUY_AND_HOLD)
+        return self.decision in {ArbitrageDecision.BUY_INSTANT, ArbitrageDecision.BUY_AND_HOLD}
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""

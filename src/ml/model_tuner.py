@@ -443,7 +443,7 @@ class ModelTuner:
             )
 
         except Exception as e:
-            logger.error(f"Grid search failed: {e}")
+            logger.exception(f"Grid search failed: {e}")
             return self._fallback_result(model_name)
 
     def _fallback_result(self, model_name: str) -> TuningResult:

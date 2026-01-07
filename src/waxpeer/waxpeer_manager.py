@@ -181,7 +181,7 @@ class WaxpeerManager:
             for phase in self.filters.doppler_phases:
                 if phase.lower() in title.lower():
                     # Ruby/Sapphire/Emerald = ULTRA RARE
-                    if phase in ["Ruby", "Sapphire", "Emerald", "Black Pearl"]:
+                    if phase in {"Ruby", "Sapphire", "Emerald", "Black Pearl"}:
                         return True, f"Premium Doppler: {phase}", 0.50
                     return True, f"Doppler {phase}", 0.15
 

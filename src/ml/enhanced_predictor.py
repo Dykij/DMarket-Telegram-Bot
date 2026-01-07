@@ -539,7 +539,7 @@ class EnhancedFeatureExtractor:
         item_name: str,
     ) -> EnhancedFeatures:
         """Извлечь game-specific признаки."""
-        if game in (GameType.CS2, GameType.CSGO):
+        if game in {GameType.CS2, GameType.CSGO}:
             features = self._extract_cs2_features(features, item_data, item_name)
         elif game == GameType.DOTA2:
             features = self._extract_dota2_features(features, item_data)
@@ -694,9 +694,9 @@ class EnhancedFeatureExtractor:
 
         # Case Hardened blue gems
         if "case hardened" in name_lower:
-            if pattern_index in [661, 387, 955]:  # Tier 1 blue gems
+            if pattern_index in {661, 387, 955}:  # Tier 1 blue gems
                 return 1.0
-            if pattern_index in [321, 555, 828, 868, 179]:  # Tier 2
+            if pattern_index in {321, 555, 828, 868, 179}:  # Tier 2
                 return 0.8
             if 100 <= pattern_index <= 200:
                 return 0.3
@@ -1067,9 +1067,9 @@ class EnhancedPricePredictor:
             "model_version": self.MODEL_VERSION,
             "timestamp": datetime.now(UTC).isoformat(),
             # Game-specific info
-            "float_value": features.float_value if features.game_type in (GameType.CS2, GameType.CSGO) else None,
-            "pattern_score": features.pattern_score if features.game_type in (GameType.CS2, GameType.CSGO) else None,
-            "sticker_value": features.sticker_value if features.game_type in (GameType.CS2, GameType.CSGO) else None,
+            "float_value": features.float_value if features.game_type in {GameType.CS2, GameType.CSGO} else None,
+            "pattern_score": features.pattern_score if features.game_type in {GameType.CS2, GameType.CSGO} else None,
+            "sticker_value": features.sticker_value if features.game_type in {GameType.CS2, GameType.CSGO} else None,
             "relative_strength": round(features.relative_strength, 3),
             "time_since_last_sale_hours": round(features.time_since_last_sale / 3600, 1) if features.time_since_last_sale > 0 else None,
         }
@@ -1310,7 +1310,7 @@ class EnhancedPricePredictor:
 
     def _get_game_context(self, features: EnhancedFeatures) -> str | None:
         """Получить игровой контекст для рекомендации."""
-        if features.game_type in (GameType.CS2, GameType.CSGO):
+        if features.game_type in {GameType.CS2, GameType.CSGO}:
             if features.float_value > 0 and features.float_value < 0.01:
                 return "Low float (FN)"
             if features.sticker_value > 100:
