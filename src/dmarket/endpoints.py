@@ -43,7 +43,7 @@ class DMarketEndpoints:
 
     # Агрегированные данные по предмету (цены, объемы)
     MARKET_AGGREGATED_PRICES = "/price-aggregator/v1/aggregated-prices"
-    
+
     # НОВЫЙ: Batch запрос для получения цен на весь whitelist (1 запрос/30сек)
     # Отдает минимальные цены сразу на все популярные скины одним пакетом
     PRICE_AGGREGATED_BATCH = "/market-items/v1/price-aggregated"

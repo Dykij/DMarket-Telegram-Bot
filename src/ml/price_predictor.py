@@ -13,17 +13,18 @@
 Все библиотеки бесплатные (scikit-learn, numpy).
 """
 
-import logging
-import pickle
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
+import logging
 from pathlib import Path
+import pickle
 from typing import Any
 
 import numpy as np
 
 from src.ml.feature_extractor import MarketFeatureExtractor, PriceFeatures
+
 
 logger = logging.getLogger(__name__)
 
@@ -532,7 +533,7 @@ class AdaptivePricePredictor:
                 self._save_model()
 
         except Exception as e:
-            logger.error(f"Training failed: {e}")
+            logger.exception(f"Training failed: {e}")
 
     def _save_model(self):
         """Сохранить модели на диск."""
@@ -552,7 +553,7 @@ class AdaptivePricePredictor:
                 pickle.dump(data, f)
             logger.info(f"Model saved to {self.model_path}")
         except Exception as e:
-            logger.error(f"Failed to save model: {e}")
+            logger.exception(f"Failed to save model: {e}")
 
     def _load_model(self):
         """Загрузить модели с диска."""
@@ -570,7 +571,7 @@ class AdaptivePricePredictor:
 
             logger.info(f"Model loaded from {self.model_path}")
         except Exception as e:
-            logger.error(f"Failed to load model: {e}")
+            logger.exception(f"Failed to load model: {e}")
 
     def batch_predict(
         self,

@@ -8,15 +8,16 @@
 Использует Random Forest из sklearn (бесплатно).
 """
 
-import logging
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+import logging
 from typing import Any
 
 import numpy as np
 
 from src.ml.feature_extractor import MarketFeatureExtractor, PriceFeatures, TrendDirection
+
 
 logger = logging.getLogger(__name__)
 

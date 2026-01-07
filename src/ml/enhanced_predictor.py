@@ -9,15 +9,16 @@
 Все библиотеки бесплатные (scikit-learn, xgboost опционально).
 """
 
-import logging
-import pickle
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
+import logging
 from pathlib import Path
+import pickle
 from typing import Any
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -1377,7 +1378,7 @@ class EnhancedPricePredictor:
                 self._save_model()
 
         except Exception as e:
-            logger.error(f"Training failed: {e}")
+            logger.exception(f"Training failed: {e}")
 
     def _save_model(self):
         """Сохранить модели на диск."""
@@ -1400,7 +1401,7 @@ class EnhancedPricePredictor:
                 pickle.dump(data, f)
             logger.info(f"Model saved to {self.model_path}")
         except Exception as e:
-            logger.error(f"Failed to save model: {e}")
+            logger.exception(f"Failed to save model: {e}")
 
     def _load_model(self):
         """Загрузить модели с диска."""
@@ -1422,4 +1423,4 @@ class EnhancedPricePredictor:
 
             logger.info(f"Model loaded from {self.model_path}")
         except Exception as e:
-            logger.error(f"Failed to load model: {e}")
+            logger.exception(f"Failed to load model: {e}")

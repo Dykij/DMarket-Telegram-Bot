@@ -11,10 +11,10 @@ Features:
 """
 
 import asyncio
-import json
-import signal
 from datetime import datetime
+import json
 from pathlib import Path
+import signal
 from typing import Any, Callable
 
 import structlog

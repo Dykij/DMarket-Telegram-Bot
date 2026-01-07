@@ -363,7 +363,7 @@ class MultiPlatformAggregator:
             )
 
         except Exception as e:
-            logger.error("dmarket_fetch_error", item=item_name, error=str(e))
+            logger.exception("dmarket_fetch_error", item=item_name, error=str(e))
             return None
 
     async def _fetch_waxpeer_price(
@@ -412,7 +412,7 @@ class MultiPlatformAggregator:
             )
 
         except Exception as e:
-            logger.error("waxpeer_fetch_error", item=item_name, error=str(e))
+            logger.exception("waxpeer_fetch_error", item=item_name, error=str(e))
             return None
 
     async def _fetch_steam_price(
@@ -438,7 +438,7 @@ class MultiPlatformAggregator:
             return None
 
         except Exception as e:
-            logger.error("steam_fetch_error", item=item_name, error=str(e))
+            logger.exception("steam_fetch_error", item=item_name, error=str(e))
             return None
 
     async def get_best_buy_platform(

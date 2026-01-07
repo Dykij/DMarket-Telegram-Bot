@@ -10,14 +10,14 @@
 Глобальные настройки обеспечивают баланс между скоростью и безопасностью ToS.
 """
 
-import logging
-import hashlib
-import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
+import hashlib
+import logging
 from pathlib import Path
+import time
 from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -32,22 +32,22 @@ class ProfessionalBotConfig:
     
     Эти параметры обеспечивают баланс между скоростью и безопасностью ToS.
     """
-    
+
     # === Настройки прибыли и ликвидности ===
     min_profit_pct: float = 0.05  # Минимум 5% чистой прибыли
     min_profit_usd: float = 0.50  # Минимум $0.50 абсолютной прибыли
     max_item_price: float = 100.0  # Максимальная цена предмета
-    
+
     # === Lock Status (Трейд-бан) ===
     max_item_lock_days: int = 0  # 0 = берем только скины без трейд-бана
     lock_discount_per_day: float = 0.5  # % дисконта за каждый день блокировки
     max_lock_discount: float = 5.0  # Максимальный дисконт за lock (%)
-    
+
     # === Навигация ===
     use_cursor_navigation: bool = True  # Использовать быстрые курсоры вместо offset
     items_per_page: int = 100  # Предметов на страницу
     max_pages_per_scan: int = 50  # Максимум страниц за один скан
-    
+
     # === Silent Mode ===
     silent_mode: bool = True  # Писать в ТГ только о покупках
     log_to_file: bool = True  # Логировать в файл вместо консоли
@@ -55,34 +55,34 @@ class ProfessionalBotConfig:
     telegram_notify_on_buy: bool = True  # Уведомлять в TG о покупках
     telegram_notify_on_error: bool = True  # Уведомлять в TG об ошибках
     telegram_notify_interval_minutes: int = 30  # Минимальный интервал между сводками
-    
+
     # === Rate Limiting ===
     enable_adaptive_limiter: bool = True  # Включить умный rate limiter
     base_request_delay: float = 0.5  # Базовая задержка между запросами (сек)
     max_requests_per_minute: int = 60  # Максимум запросов в минуту
     backoff_multiplier: float = 2.0  # Множитель для экспоненциального backoff
     max_backoff_seconds: float = 60.0  # Максимальная задержка backoff
-    
+
     # === Local Delta (Дедупликация) ===
     enable_local_delta: bool = True  # Пропускать дубликаты
     delta_cache_ttl_seconds: int = 300  # TTL кэша дельты (5 минут)
     delta_hash_algorithm: str = "md5"  # Алгоритм хэширования (md5 быстрее)
-    
+
     # === AI Predictor ===
     min_samples_leaf: int = 5  # Защита от галлюцинаций (переобучения)
     min_samples_for_prediction: int = 10  # Минимум данных для прогноза
     max_prediction_confidence: float = 0.95  # Максимальная уверенность (защита от overconfidence)
     use_ensemble_voting: bool = True  # Голосование ансамбля моделей
-    
+
     # === Whitelist/Blacklist ===
     whitelist_priority_boost: float = 0.02  # Бонус к прибыли для whitelist (+2%)
     blacklist_strict: bool = True  # Строгий blacklist (никогда не покупать)
-    
+
     # === Batch Requests ===
     use_batch_price_requests: bool = True  # Использовать batch endpoint
     batch_update_interval_seconds: int = 30  # Интервал обновления цен
     max_items_per_batch: int = 100  # Максимум предметов в одном batch
-    
+
     # === Safety ===
     max_balance_percent_per_item: float = 0.25  # Максимум 25% баланса на один предмет
     max_balance_in_locked_items: float = 0.25  # Максимум 25% баланса в locked предметах
@@ -99,7 +99,7 @@ class SilentModeLogger:
     В Silent Mode логи пишутся в файл, а в Telegram отправляются
     только важные события (покупки, ошибки).
     """
-    
+
     def __init__(
         self,
         config: ProfessionalBotConfig,
@@ -116,16 +116,16 @@ class SilentModeLogger:
         self._last_summary_time: datetime | None = None
         self._pending_events: list[dict[str, Any]] = []
         self._setup_file_logger()
-    
+
     def _setup_file_logger(self) -> None:
         """Настройка файлового логгера."""
         if not self.config.log_to_file:
             return
-        
+
         # Создаем директорию для логов
         log_path = Path(self.config.log_file_path)
         log_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Настраиваем file handler
         self._file_handler = logging.FileHandler(
             log_path,
@@ -135,11 +135,11 @@ class SilentModeLogger:
         self._file_handler.setFormatter(logging.Formatter(
             "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
         ))
-        
+
         # Добавляем к root logger
         logging.getLogger().addHandler(self._file_handler)
         logger.info("Silent Mode: логирование в файл %s", log_path)
-    
+
     def log_scan_result(
         self,
         items_scanned: int,
@@ -157,7 +157,7 @@ class SilentModeLogger:
             f"Scan complete: {items_scanned} items, "
             f"{opportunities_found} opportunities, {scan_time_ms:.0f}ms"
         )
-        
+
         if self.config.silent_mode:
             logger.info(msg)  # Только в файл
         else:
@@ -167,7 +167,7 @@ class SilentModeLogger:
                 "message": msg,
                 "timestamp": datetime.utcnow(),
             })
-    
+
     async def log_purchase(
         self,
         item_name: str,
@@ -188,13 +188,13 @@ class SilentModeLogger:
             f"Price: ${buy_price:.2f}\n"
             f"Expected profit: ${expected_profit:.2f} ({profit_percent:.1f}%)"
         )
-        
+
         logger.info(msg)
-        
+
         # В Telegram отправляем всегда
         if self.notifier and self.config.telegram_notify_on_buy:
             await self.notifier.send_message(msg, priority="high")
-    
+
     async def log_error(
         self,
         error_type: str,
@@ -209,47 +209,47 @@ class SilentModeLogger:
             critical: Критическая ошибка
         """
         msg = f"❌ ERROR [{error_type}]: {error_message}"
-        
+
         if critical:
             logger.error(msg)
         else:
             logger.warning(msg)
-        
+
         # Критические ошибки всегда в Telegram
         if self.notifier and self.config.telegram_notify_on_error and critical:
             await self.notifier.send_message(msg, priority="critical")
-    
+
     async def send_summary_if_needed(self) -> None:
         """Отправляет сводку, если прошло достаточно времени."""
         if not self.notifier or not self._pending_events:
             return
-        
+
         now = datetime.utcnow()
         interval = self.config.telegram_notify_interval_minutes
-        
+
         # Проверяем, прошло ли достаточно времени
         if self._last_summary_time:
             minutes_passed = (now - self._last_summary_time).total_seconds() / 60
             if minutes_passed < interval:
                 return
-        
+
         # Формируем сводку
         summary = self._format_summary()
         await self.notifier.send_message(summary, priority="low")
-        
+
         self._last_summary_time = now
         self._pending_events.clear()
-    
+
     def _format_summary(self) -> str:
         """Форматирует сводку событий."""
         scans = [e for e in self._pending_events if e["type"] == "scan"]
-        
+
         if not scans:
             return "📊 Нет новых событий"
-        
+
         total_items = sum(e.get("items_scanned", 0) for e in scans)
         total_opportunities = sum(e.get("opportunities_found", 0) for e in scans)
-        
+
         return (
             f"📊 Сводка за последние {self.config.telegram_notify_interval_minutes} мин:\n"
             f"• Сканирований: {len(scans)}\n"
@@ -267,7 +267,7 @@ class LocalDeltaTracker:
     
     Экономит CPU и API запросы, обрабатывая только изменившиеся предметы.
     """
-    
+
     def __init__(self, config: ProfessionalBotConfig):
         """Инициализация трекера дельты.
         
@@ -281,7 +281,7 @@ class LocalDeltaTracker:
             "skipped_duplicates": 0,
             "processed_changes": 0,
         }
-    
+
     def _compute_hash(self, item_data: dict[str, Any]) -> str:
         """Вычисляет хэш предмета.
         
@@ -298,14 +298,14 @@ class LocalDeltaTracker:
             str(item_data.get("lockStatus", 0)),
             str(item_data.get("discount", 0)),
         ]
-        
+
         data_str = "|".join(key_fields)
-        
+
         if self.config.delta_hash_algorithm == "md5":
             return hashlib.md5(data_str.encode()).hexdigest()[:16]  # noqa: S324
         else:
             return hashlib.sha256(data_str.encode()).hexdigest()[:16]
-    
+
     def is_changed(self, item_id: str, item_data: dict[str, Any]) -> bool:
         """Проверяет, изменился ли предмет с последнего раза.
         
@@ -318,33 +318,33 @@ class LocalDeltaTracker:
         """
         if not self.config.enable_local_delta:
             return True  # Если отключено, всегда обрабатываем
-        
+
         self._stats["total_items"] += 1
-        
+
         new_hash = self._compute_hash(item_data)
         current_time = time.time()
-        
+
         # Проверяем кэш
         if item_id in self._cache:
             old_hash, timestamp = self._cache[item_id]
-            
+
             # Проверяем TTL
             if current_time - timestamp > self.config.delta_cache_ttl_seconds:
                 # TTL истёк, считаем изменённым
                 self._cache[item_id] = (new_hash, current_time)
                 self._stats["processed_changes"] += 1
                 return True
-            
+
             # Сравниваем хэши
             if old_hash == new_hash:
                 self._stats["skipped_duplicates"] += 1
                 return False
-        
+
         # Новый предмет или изменился
         self._cache[item_id] = (new_hash, current_time)
         self._stats["processed_changes"] += 1
         return True
-    
+
     def cleanup_expired(self) -> int:
         """Очищает устаревшие записи из кэша.
         
@@ -353,17 +353,17 @@ class LocalDeltaTracker:
         """
         current_time = time.time()
         ttl = self.config.delta_cache_ttl_seconds
-        
+
         expired = [
             item_id for item_id, (_, ts) in self._cache.items()
             if current_time - ts > ttl
         ]
-        
+
         for item_id in expired:
             del self._cache[item_id]
-        
+
         return len(expired)
-    
+
     def get_stats(self) -> dict[str, Any]:
         """Получить статистику.
         
@@ -372,15 +372,15 @@ class LocalDeltaTracker:
         """
         total = self._stats["total_items"]
         skipped = self._stats["skipped_duplicates"]
-        
+
         skip_rate = (skipped / total * 100) if total > 0 else 0.0
-        
+
         return {
             **self._stats,
             "cache_size": len(self._cache),
             "skip_rate_percent": round(skip_rate, 1),
         }
-    
+
     def reset_stats(self) -> None:
         """Сброс статистики."""
         self._stats = {
@@ -400,7 +400,7 @@ class AdaptiveRateLimiter:
     Автоматически увеличивает задержку при получении 429 и
     постепенно уменьшает при успешных запросах.
     """
-    
+
     def __init__(self, config: ProfessionalBotConfig):
         """Инициализация rate limiter.
         
@@ -414,23 +414,23 @@ class AdaptiveRateLimiter:
         self._last_request_time = 0.0
         self._total_requests = 0
         self._total_429s = 0
-    
+
     async def wait_before_request(self) -> None:
         """Ожидание перед следующим запросом."""
         if not self.config.enable_adaptive_limiter:
             return
-        
+
         current_time = time.time()
         elapsed = current_time - self._last_request_time
-        
+
         # Если с последнего запроса прошло меньше текущей задержки
         if elapsed < self._current_delay:
             wait_time = self._current_delay - elapsed
             await self._async_sleep(wait_time)
-        
+
         self._last_request_time = time.time()
         self._total_requests += 1
-    
+
     async def _async_sleep(self, seconds: float) -> None:
         """Асинхронное ожидание.
         
@@ -439,17 +439,17 @@ class AdaptiveRateLimiter:
         """
         import asyncio
         await asyncio.sleep(seconds)
-    
+
     def record_success(self) -> None:
         """Фиксирует успешный запрос."""
         self._consecutive_429s = 0
         self._consecutive_successes += 1
-        
+
         # После 10 успешных запросов уменьшаем задержку
         if self._consecutive_successes >= 10:
             self._decrease_delay()
             self._consecutive_successes = 0
-    
+
     def record_429_error(self, retry_after: int | None = None) -> float:
         """Фиксирует ошибку 429 и возвращает время ожидания.
         
@@ -462,16 +462,16 @@ class AdaptiveRateLimiter:
         self._consecutive_successes = 0
         self._consecutive_429s += 1
         self._total_429s += 1
-        
+
         # Экспоненциальное увеличение задержки
         self._increase_delay()
-        
+
         # Если есть Retry-After, используем его
         if retry_after and retry_after > 0:
             return float(retry_after)
-        
+
         return self._current_delay
-    
+
     def _increase_delay(self) -> None:
         """Увеличивает задержку (exponential backoff)."""
         self._current_delay = min(
@@ -482,7 +482,7 @@ class AdaptiveRateLimiter:
             f"Rate limit: задержка увеличена до {self._current_delay:.1f}s "
             f"(429 ошибок подряд: {self._consecutive_429s})"
         )
-    
+
     def _decrease_delay(self) -> None:
         """Уменьшает задержку после успешных запросов."""
         if self._current_delay > self.config.base_request_delay:
@@ -493,7 +493,7 @@ class AdaptiveRateLimiter:
             logger.info(
                 f"Rate limit: задержка уменьшена до {self._current_delay:.1f}s"
             )
-    
+
     def get_stats(self) -> dict[str, Any]:
         """Получить статистику.
         
@@ -523,25 +523,25 @@ class AIProtectionSettings:
     min_samples_leaf=5 предотвращает модель от принятия решений
     на основе слишком малого количества примеров.
     """
-    
+
     # === RandomForest/GradientBoosting настройки ===
     min_samples_leaf: int = 5  # Минимум примеров в листе
     min_samples_split: int = 10  # Минимум примеров для разделения
     max_depth: int = 10  # Максимальная глубина дерева (защита от переобучения)
-    
+
     # === Валидация предсказаний ===
     min_samples_for_prediction: int = 10  # Минимум данных для прогноза
     max_prediction_confidence: float = 0.95  # Защита от overconfidence
     min_prediction_confidence: float = 0.3  # Минимальная уверенность
-    
+
     # === Outlier detection ===
     outlier_std_threshold: float = 3.0  # Порог для выбросов (3 стандартных отклонения)
     max_price_change_percent: float = 50.0  # Максимальное изменение цены за раз
-    
+
     # === Feature validation ===
     min_feature_importance: float = 0.01  # Минимальная важность признака
     max_feature_correlation: float = 0.95  # Максимальная корреляция между признаками
-    
+
     def get_random_forest_params(self) -> dict[str, Any]:
         """Получить параметры для RandomForest.
         
@@ -556,7 +556,7 @@ class AIProtectionSettings:
             "random_state": 42,
             "n_jobs": -1,
         }
-    
+
     def get_gradient_boosting_params(self) -> dict[str, Any]:
         """Получить параметры для GradientBoosting.
         
@@ -571,7 +571,7 @@ class AIProtectionSettings:
             "learning_rate": 0.1,
             "random_state": 42,
         }
-    
+
     def validate_prediction(
         self,
         predicted_price: float,
@@ -591,21 +591,21 @@ class AIProtectionSettings:
         # Проверка уверенности
         if confidence < self.min_prediction_confidence:
             return False, f"Confidence too low: {confidence:.2f}"
-        
+
         if confidence > self.max_prediction_confidence:
             # Подозрительно высокая уверенность - может быть переобучение
             logger.warning(
                 f"Suspiciously high confidence: {confidence:.2f}. "
                 "Possible overfitting."
             )
-        
+
         # Проверка изменения цены
         if current_price > 0:
             price_change_pct = abs(predicted_price - current_price) / current_price * 100
-            
+
             if price_change_pct > self.max_price_change_percent:
                 return False, f"Price change too large: {price_change_pct:.1f}%"
-        
+
         return True, "OK"
 
 
@@ -619,29 +619,29 @@ class SmartScannerConfig:
     
     Объединяет cursor навигацию, lockStatus фильтр и delta tracking.
     """
-    
+
     # Navigation
     use_cursor: bool = True
     items_per_request: int = 100
     max_requests_per_scan: int = 50
-    
+
     # Lock Status Filter
     max_lock_days: int = 0  # 0 = только без блокировки
     lock_discount_per_day: float = 0.5  # % дисконта за день
-    
+
     # Delta Tracking
     enable_delta: bool = True
     delta_ttl_seconds: int = 300
-    
+
     # Parallel Scanning
     enable_parallel: bool = True
     max_concurrent_requests: int = 3
-    
+
     # Smart Filters
     min_profit_percent: float = 5.0
     min_liquidity_score: int = 50
     max_competition_level: float = 0.8
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Конвертирует в словарь.
         
@@ -692,7 +692,7 @@ def create_professional_config(
         Настроенная конфигурация
     """
     config = ProfessionalBotConfig()
-    
+
     # Адаптация к балансу
     if balance < 50:
         # Маленький баланс - консервативные настройки
@@ -718,7 +718,7 @@ def create_professional_config(
         config.max_item_price = 200.0  # Абсолютный лимит
         config.max_item_lock_days = 7
         config.max_balance_percent_per_item = 0.1
-    
+
     # Адаптация к профилю риска
     if risk_profile == "conservative":
         config.min_profit_pct *= 1.5
@@ -728,7 +728,7 @@ def create_professional_config(
         config.min_profit_pct *= 0.7
         config.max_item_lock_days += 3
         config.max_balance_percent_per_item *= 1.2
-    
+
     return config
 
 
@@ -742,7 +742,7 @@ def create_ai_protection_settings(strict: bool = True) -> AIProtectionSettings:
         Настройки защиты
     """
     settings = AIProtectionSettings()
-    
+
     if strict:
         settings.min_samples_leaf = 5
         settings.min_samples_split = 10
@@ -755,7 +755,7 @@ def create_ai_protection_settings(strict: bool = True) -> AIProtectionSettings:
         settings.max_depth = 12
         settings.max_prediction_confidence = 0.98
         settings.max_price_change_percent = 50.0
-    
+
     return settings
 
 
@@ -771,7 +771,7 @@ def create_smart_scanner_config(
         Конфигурация сканера
     """
     config = SmartScannerConfig()
-    
+
     if for_small_balance:
         config.max_lock_days = 0  # Только без блокировки
         config.min_profit_percent = 7.0  # Выше порог
@@ -782,7 +782,7 @@ def create_smart_scanner_config(
         config.min_profit_percent = 4.0
         config.min_liquidity_score = 40
         config.max_concurrent_requests = 5
-    
+
     return config
 
 

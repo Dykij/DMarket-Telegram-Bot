@@ -10,10 +10,36 @@ import pytest_asyncio
 
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator
+    from collections.abc import AsyncGenerator, Generator
 
     from src.dmarket.dmarket_api import DMarketAPI
     from src.utils.database import DatabaseManager
+
+
+@pytest.fixture(autouse=True)
+def reset_circuit_breakers_for_integration() -> Generator[None, None, None]:
+    """Reset all circuit breakers before and after each integration test.
+    
+    This ensures tests are isolated from circuit breaker state.
+    autouse=True means this runs automatically for all tests in this directory.
+    """
+    try:
+        from src.utils.api_circuit_breaker import reset_all_circuit_breakers
+
+        # Reset before test
+        reset_all_circuit_breakers()
+    except ImportError:
+        pass
+
+    yield
+
+    try:
+        from src.utils.api_circuit_breaker import reset_all_circuit_breakers
+
+        # Reset after test
+        reset_all_circuit_breakers()
+    except ImportError:
+        pass
 
 
 @pytest_asyncio.fixture

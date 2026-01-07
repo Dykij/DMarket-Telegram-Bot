@@ -4,14 +4,14 @@
 для использования в ML моделях прогнозирования.
 """
 
-import logging
-import math
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
+import logging
 from typing import Any
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 

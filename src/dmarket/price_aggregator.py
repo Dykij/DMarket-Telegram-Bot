@@ -11,13 +11,12 @@
 Основано на документации DMarket API.
 """
 
-import asyncio
-import logging
-import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
+import logging
 from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -43,36 +42,36 @@ class LockStatus(int, Enum):
 @dataclass
 class AggregatedPrice:
     """Агрегированная цена предмета."""
-    
+
     item_name: str
     market_hash_name: str
-    
+
     # Цены (в центах)
     min_price: int  # Минимальная цена на рынке
     max_price: int  # Максимальная цена
     avg_price: float  # Средняя цена
     median_price: float  # Медианная цена
-    
+
     # Количество лотов
     listings_count: int
-    
+
     # Бонусы и скидки
     has_discount: bool = False
     discount_percent: float = 0.0
     bonus_amount: int = 0  # price.bonus из API
-    
+
     # Lock status
     lock_status: LockStatus = LockStatus.AVAILABLE
     lock_days_remaining: int = 0
-    
+
     # Время обновления
     updated_at: datetime = field(default_factory=datetime.now)
-    
+
     @property
     def min_price_usd(self) -> float:
         """Минимальная цена в USD."""
         return self.min_price / 100
-    
+
     @property
     def effective_price(self) -> float:
         """Эффективная цена с учетом скидки и бонуса.
@@ -80,17 +79,17 @@ class AggregatedPrice:
         Если предмет в холде, добавляем дисконт за ожидание.
         """
         base_price = self.min_price - self.bonus_amount
-        
+
         if self.has_discount:
             base_price = base_price * (1 - self.discount_percent / 100)
-        
+
         # Дисконт за lock (3-5% в зависимости от срока)
         if self.lock_status == LockStatus.LOCKED:
             lock_discount = min(0.05, 0.03 + (self.lock_days_remaining * 0.003))
             base_price = base_price * (1 - lock_discount)
-        
+
         return base_price / 100  # Возвращаем в USD
-    
+
     @property
     def is_good_deal(self) -> bool:
         """Проверяет, является ли предмет выгодной сделкой.
@@ -103,26 +102,26 @@ class AggregatedPrice:
         below_avg = self.min_price < self.avg_price * 0.95
         has_bonus = self.bonus_amount > 0 or self.has_discount
         not_locked = self.lock_status == LockStatus.AVAILABLE
-        
+
         return below_avg and has_bonus and not_locked
 
 
 @dataclass
 class PriceAggregatorConfig:
     """Конфигурация Price Aggregator."""
-    
+
     # Интервал обновления (секунды)
     update_interval: int = 30
-    
+
     # Максимальное количество предметов в batch-запросе
     batch_size: int = 100
-    
+
     # Приоритизировать предметы без lock
     prioritize_unlocked: bool = True
-    
+
     # Минимальный дисконт за lock (%)
     min_lock_discount: float = 3.0
-    
+
     # Максимальный дисконт за lock (%)
     max_lock_discount: float = 5.0
 
@@ -140,7 +139,7 @@ class PriceAggregator:
         ...     if item.is_good_deal:
         ...         print(f"{item.item_name}: ${item.effective_price:.2f}")
     """
-    
+
     def __init__(
         self,
         api_client: Any = None,
@@ -154,15 +153,15 @@ class PriceAggregator:
         """
         self.api = api_client
         self.config = config or PriceAggregatorConfig()
-        
+
         # Кэш цен
         self._price_cache: dict[str, AggregatedPrice] = {}
         self._last_update: datetime | None = None
-        
+
         # Статистика
         self._requests_made = 0
         self._cache_hits = 0
-        
+
         logger.info(
             "PriceAggregator initialized",
             extra={
@@ -170,7 +169,7 @@ class PriceAggregator:
                 "batch_size": self.config.batch_size,
             }
         )
-    
+
     async def get_aggregated_prices(
         self,
         item_names: list[str],
@@ -193,20 +192,20 @@ class PriceAggregator:
             or self._last_update is None
             or (datetime.now() - self._last_update).seconds > self.config.update_interval
         )
-        
+
         if needs_update:
             await self._fetch_prices(item_names, game)
         else:
             self._cache_hits += 1
-        
+
         # Возвращаем из кэша
         result = []
         for name in item_names:
             if name in self._price_cache:
                 result.append(self._price_cache[name])
-        
+
         return result
-    
+
     async def _fetch_prices(
         self,
         item_names: list[str],
@@ -220,27 +219,27 @@ class PriceAggregator:
             # Mock режим для тестов
             await self._mock_fetch_prices(item_names)
             return
-        
+
         try:
             # Разбиваем на batch'и
             batches = [
                 item_names[i:i + self.config.batch_size]
                 for i in range(0, len(item_names), self.config.batch_size)
             ]
-            
+
             for batch in batches:
                 # Запрос к API
                 response = await self._call_price_api(batch, game)
-                
+
                 # Парсим ответ
                 for item_data in response.get("objects", []):
                     price = self._parse_price_data(item_data)
                     self._price_cache[price.item_name] = price
-                
+
                 self._requests_made += 1
-            
+
             self._last_update = datetime.now()
-            
+
             logger.debug(
                 "Prices updated",
                 extra={
@@ -248,11 +247,11 @@ class PriceAggregator:
                     "batches": len(batches),
                 }
             )
-            
+
         except Exception as e:
-            logger.error(f"Failed to fetch aggregated prices: {e}")
+            logger.exception(f"Failed to fetch aggregated prices: {e}")
             raise
-    
+
     async def _call_price_api(
         self,
         item_names: list[str],
@@ -267,33 +266,33 @@ class PriceAggregator:
                 titles=item_names,
                 game_id=game,
             )
-        
+
         # Fallback для обычного API
         params = {
             "gameId": game,
             "titles": ",".join(item_names),
             "currency": "USD",
         }
-        
+
         response = await self.api._request(
             method="GET",
             path="/price-aggregator/v1/aggregated-prices",
             params=params,
         )
-        
+
         return response
-    
+
     def _parse_price_data(self, data: dict[str, Any]) -> AggregatedPrice:
         """Парсинг данных цены из API ответа."""
         # Извлекаем бонус/скидку
         price_data = data.get("price", {})
         discount = data.get("discount", 0)
         bonus = price_data.get("bonus", 0)
-        
+
         # Lock status
         lock_status = LockStatus(data.get("lockStatus", 0))
         lock_days = data.get("lockDaysRemaining", 0)
-        
+
         return AggregatedPrice(
             item_name=data.get("title", ""),
             market_hash_name=data.get("extra", {}).get("nameHash", ""),
@@ -309,14 +308,14 @@ class PriceAggregator:
             lock_days_remaining=lock_days,
             updated_at=datetime.now(),
         )
-    
+
     async def _mock_fetch_prices(self, item_names: list[str]) -> None:
         """Mock загрузка для тестов."""
         import random
-        
+
         for name in item_names:
             base_price = random.randint(100, 10000)  # $1-$100
-            
+
             self._price_cache[name] = AggregatedPrice(
                 item_name=name,
                 market_hash_name=name.replace(" ", "_"),
@@ -331,9 +330,9 @@ class PriceAggregator:
                 lock_status=LockStatus.AVAILABLE if random.random() > 0.2 else LockStatus.LOCKED,
                 lock_days_remaining=random.randint(1, 7) if random.random() > 0.8 else 0,
             )
-        
+
         self._last_update = datetime.now()
-    
+
     def filter_available_items(
         self,
         prices: list[AggregatedPrice],
@@ -347,7 +346,7 @@ class PriceAggregator:
             Только предметы с lockStatus: 0
         """
         return [p for p in prices if p.lock_status == LockStatus.AVAILABLE]
-    
+
     def filter_discounted_items(
         self,
         prices: list[AggregatedPrice],
@@ -366,7 +365,7 @@ class PriceAggregator:
             p for p in prices
             if p.has_discount and p.discount_percent >= min_discount
         ]
-    
+
     def get_good_deals(
         self,
         prices: list[AggregatedPrice],
@@ -379,7 +378,7 @@ class PriceAggregator:
         3. Доступен сразу (не в холде)
         """
         return [p for p in prices if p.is_good_deal]
-    
+
     def get_stats(self) -> dict[str, Any]:
         """Получить статистику работы."""
         return {

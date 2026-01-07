@@ -22,41 +22,42 @@
 Документация: docs/ML_AI_GUIDE.md
 """
 
-from src.ml.price_predictor import (
-    AdaptivePricePredictor,
-    PricePrediction,
-    PredictionConfidence,
-)
-from src.ml.trade_classifier import (
-    AdaptiveTradeClassifier,
-    TradeSignal,
-    RiskLevel,
-)
 from src.ml.balance_adapter import (
     BalanceAdaptiveStrategy,
     StrategyRecommendation,
+)
+from src.ml.enhanced_predictor import (
+    EnhancedFeatureExtractor,
+    EnhancedFeatures,
+    EnhancedPricePredictor,
+    GameType,
+    ItemCondition,
+    ItemRarity,
+    MLPipeline,
 )
 from src.ml.feature_extractor import (
     MarketFeatureExtractor,
     PriceFeatures,
 )
-from src.ml.enhanced_predictor import (
-    EnhancedPricePredictor,
-    EnhancedFeatureExtractor,
-    EnhancedFeatures,
-    GameType,
-    ItemRarity,
-    ItemCondition,
-    MLPipeline,
-)
 from src.ml.model_tuner import (
-    ModelTuner,
     AutoMLSelector,
     CVStrategy,
+    EvaluationResult,
+    ModelTuner,
     ScoringMetric,
     TuningResult,
-    EvaluationResult,
 )
+from src.ml.price_predictor import (
+    AdaptivePricePredictor,
+    PredictionConfidence,
+    PricePrediction,
+)
+from src.ml.trade_classifier import (
+    AdaptiveTradeClassifier,
+    RiskLevel,
+    TradeSignal,
+)
+
 
 __all__ = [
     # Price Predictor (базовый)

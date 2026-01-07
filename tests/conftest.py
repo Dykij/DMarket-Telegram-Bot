@@ -559,20 +559,20 @@ def reset_circuit_breaker() -> Generator[None, None, None]:
             ...
     """
     try:
-        from src.utils.api_circuit_breaker import CircuitBreaker
+        from src.utils.api_circuit_breaker import reset_all_circuit_breakers
 
         # Сбрасываем перед тестом
-        CircuitBreaker._instances = {}
+        reset_all_circuit_breakers()
     except ImportError:
         pass
 
     yield
 
     try:
-        from src.utils.api_circuit_breaker import CircuitBreaker
+        from src.utils.api_circuit_breaker import reset_all_circuit_breakers
 
         # Сбрасываем после теста
-        CircuitBreaker._instances = {}
+        reset_all_circuit_breakers()
     except ImportError:
         pass
 

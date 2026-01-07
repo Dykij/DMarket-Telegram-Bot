@@ -566,7 +566,7 @@ class Application:
             # Start health check server (if enabled)
             if health_check_server:
                 health_check_server.update_status("starting")
-                health_check_server.start()
+                await health_check_server.start()
 
             logger.info("Starting DMarket Telegram Bot...")
 
@@ -885,7 +885,7 @@ class Application:
             logger.info("Stopping health check server...")
             try:
                 if health_check_server:
-                    health_check_server.stop()
+                    await health_check_server.stop()
                 logger.info("✅ Health check server stopped")
             except Exception as e:
                 logger.exception(f"❌ Error stopping health check: {e}")

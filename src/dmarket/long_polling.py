@@ -32,7 +32,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 
@@ -187,7 +187,7 @@ class LongPollingClient:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error("long_polling_error", error=str(e))
+                logger.exception("long_polling_error", error=str(e))
                 await asyncio.sleep(self.poll_interval)
 
     def stop(self) -> None:
@@ -229,7 +229,7 @@ class LongPollingClient:
                     updates.append(update)
 
         except Exception as e:
-            logger.error("poll_delta_error", game=game, error=str(e))
+            logger.exception("poll_delta_error", game=game, error=str(e))
 
         return updates
 
@@ -440,7 +440,7 @@ class BatchUpdateChecker:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error("continuous_check_error", error=str(e))
+                logger.exception("continuous_check_error", error=str(e))
                 await asyncio.sleep(self.check_interval)
 
 

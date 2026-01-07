@@ -49,7 +49,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 
@@ -303,7 +303,7 @@ class AdaptivePollingEngine:
                             try:
                                 await self.on_price_change(change)
                             except Exception as e:
-                                logger.error("price_change_callback_error", error=str(e))
+                                logger.exception("price_change_callback_error", error=str(e))
 
                 self._poll_count += 1
                 self._last_poll_time = datetime.now(UTC)
@@ -314,7 +314,7 @@ class AdaptivePollingEngine:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error("polling_error", error=str(e))
+                logger.exception("polling_error", error=str(e))
                 await asyncio.sleep(self.config.base_interval)
 
     def _calculate_interval(self) -> float:
@@ -382,7 +382,7 @@ class AdaptivePollingEngine:
                         try:
                             await self.on_new_listing(item)
                         except Exception as e:
-                            logger.error("new_listing_callback_error", error=str(e))
+                            logger.exception("new_listing_callback_error", error=str(e))
                     continue
 
                 # Check for price change
@@ -391,7 +391,7 @@ class AdaptivePollingEngine:
                     changes.append(change)
 
         except Exception as e:
-            logger.error("poll_game_error", game=game, error=str(e))
+            logger.exception("poll_game_error", game=game, error=str(e))
 
         return changes
 

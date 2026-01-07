@@ -7,11 +7,11 @@ This module provides:
 """
 
 import asyncio
+from collections import deque
+from dataclasses import dataclass, field
 import functools
 import logging
 import time
-from collections import deque
-from dataclasses import dataclass, field
 from typing import Any, Callable, TypeVar
 
 import structlog
