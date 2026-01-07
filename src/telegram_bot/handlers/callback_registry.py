@@ -125,6 +125,14 @@ def create_callback_router() -> CallbackRouter:
     router.register_exact("target_list", _handle_target_list)
     router.register_exact("target_stats", _handle_target_stats)
 
+    # Waxpeer P2P Integration
+    router.register_exact("waxpeer_menu", _handle_waxpeer_menu)
+    router.register_exact("waxpeer_balance", _handle_waxpeer_balance)
+    router.register_exact("waxpeer_settings", _handle_waxpeer_settings)
+    router.register_exact("waxpeer_list_items", _handle_waxpeer_scan)
+    router.register_exact("waxpeer_valuable", _handle_waxpeer_scan)
+    router.register_exact("waxpeer_reprice", _handle_waxpeer_settings)
+
     # Other features
     router.register_exact("inventory", _handle_inventory)
     router.register_exact("analytics", _handle_analytics)
@@ -461,8 +469,72 @@ async def _handle_auto_arb_history(update, context):
 
 
 async def _handle_cmp_steam(update, context):
-    """Stub: Compare with Steam."""
-    await handle_temporary_unavailable(update, context, "Сравнение с Steam")
+    """Compare prices with Steam Market."""
+    if not update.callback_query:
+        return
+
+    await update.callback_query.answer("Загрузка цен Steam...")
+
+    try:
+        from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+        from src.utils.steam_async_parser import SteamAsyncParser
+
+        # Get API client and fetch some popular items
+        api = context.bot_data.get("dmarket_api")
+
+        if not api:
+            await update.callback_query.edit_message_text(
+                "❌ DMarket API не инициализирован. Используйте /start для настройки."
+            )
+            return
+
+        parser = SteamAsyncParser(cache_ttl=300, max_concurrent=5)
+
+        # Sample popular items to compare
+        sample_items = [
+            "AK-47 | Redline (Field-Tested)",
+            "AWP | Asiimov (Field-Tested)",
+            "M4A4 | Asiimov (Field-Tested)",
+        ]
+
+        results = await parser.get_batch_prices(sample_items, game="csgo")
+
+        # Format results
+        comparison_text = "📊 <b>Сравнение цен со Steam Market</b>\n\n"
+
+        for result in results:
+            if result.get("status") == "success":
+                item_name = result.get("item_name", "Unknown")
+                lowest = result.get("lowest_price", "N/A")
+                median = result.get("median_price", "N/A")
+                volume = result.get("volume", "0")
+
+                comparison_text += f"<b>{item_name[:30]}...</b>\n"
+                comparison_text += f"  └ Steam: ${lowest} (медиана ${median})\n"
+                comparison_text += f"  └ Объем: {volume} шт/день\n\n"
+            else:
+                item_name = result.get("item_name", "Unknown")
+                comparison_text += f"<b>{item_name[:30]}...</b>\n"
+                comparison_text += f"  └ ⚠️ {result.get('status', 'error')}\n\n"
+
+        comparison_text += "\n💡 <i>Цены обновляются каждые 5 минут</i>"
+
+        keyboard = [
+            [InlineKeyboardButton("🔄 Обновить", callback_data="cmp_steam")],
+            [InlineKeyboardButton("◀️ Назад", callback_data="arb_compare")],
+        ]
+
+        await update.callback_query.edit_message_text(
+            comparison_text,
+            parse_mode="HTML",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
+
+    except Exception as e:
+        logger.exception("Error comparing Steam prices: %s", e)
+        await update.callback_query.edit_message_text(
+            f"❌ Ошибка получения цен Steam: {e}"
+        )
 
 
 async def _handle_cmp_buff(update, context):
@@ -739,9 +811,10 @@ async def _handle_smart_arbitrage_status(update, context):
             status_emoji = "🟢" if smart_engine.is_running else "🔴"
             safety_text = "✅ В норме" if is_safe else f"⚠️ {warning}"
 
+            status_running = "Работает" if smart_engine.is_running else "Остановлен"
             await update.callback_query.edit_message_text(
                 f"📊 <b>Smart Arbitrage Status</b>\n\n"
-                f"Статус: {status_emoji} {'Работает' if smart_engine.is_running else 'Остановлен'}\n\n"
+                f"Статус: {status_emoji} {status_running}\n\n"
                 f"💰 <b>Баланс:</b> ${limits.total_balance:.2f}\n"
                 f"💵 Доступно: ${limits.usable_balance:.2f}\n"
                 f"🏦 Резерв: ${limits.reserve:.2f}\n\n"
@@ -824,3 +897,49 @@ async def _handle_smart_create_targets(update, context):
         parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup(keyboard),
     )
+
+
+# ============================================================================
+# WAXPEER HANDLERS
+# ============================================================================
+
+
+async def _handle_waxpeer_menu(update, context):
+    """Handle Waxpeer menu callback."""
+    try:
+        from src.telegram_bot.handlers.waxpeer_handler import waxpeer_menu_handler
+
+        await waxpeer_menu_handler(update, context)
+    except ImportError:
+        await handle_temporary_unavailable(update, context, "Waxpeer P2P")
+
+
+async def _handle_waxpeer_balance(update, context):
+    """Handle Waxpeer balance callback."""
+    try:
+        from src.telegram_bot.handlers.waxpeer_handler import waxpeer_balance_handler
+
+        await waxpeer_balance_handler(update, context)
+    except ImportError:
+        await handle_temporary_unavailable(update, context, "Waxpeer баланс")
+
+
+async def _handle_waxpeer_settings(update, context):
+    """Handle Waxpeer settings callback."""
+    try:
+        from src.telegram_bot.handlers.waxpeer_handler import waxpeer_settings_handler
+
+        await waxpeer_settings_handler(update, context)
+    except ImportError:
+        await handle_temporary_unavailable(update, context, "Waxpeer настройки")
+
+
+async def _handle_waxpeer_scan(update, context):
+    """Handle Waxpeer scan callback."""
+    try:
+        from src.telegram_bot.handlers.waxpeer_handler import waxpeer_scan_handler
+
+        await waxpeer_scan_handler(update, context)
+    except ImportError:
+        await handle_temporary_unavailable(update, context, "Waxpeer сканирование")
+
