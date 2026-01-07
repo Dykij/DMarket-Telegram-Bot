@@ -289,7 +289,7 @@ class SmartArbitrageEngine:
                     )
 
                     current_objects = items.get("objects", []) if isinstance(items, dict) else []
-                    
+
                     # DEBUG: Log what we received from API
                     logger.info(
                         "smart_page_received",
@@ -298,7 +298,7 @@ class SmartArbitrageEngine:
                         has_cursor=bool(items.get("cursor", "")),
                         total_in_response=items.get("total", {}).get("items", 0) if isinstance(items.get("total"), dict) else items.get("total", 0),
                     )
-                    
+
                     if not current_objects:
                         break
 

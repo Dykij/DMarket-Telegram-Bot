@@ -170,8 +170,8 @@ async def auto_trade_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     # Проверяем статус авто-торговли
     is_running = context.bot_data.get("auto_trade_running", False)
-    auto_buyer = _get_auto_buyer(context)
-    orchestrator = _get_orchestrator(context)
+    _auto_buyer = _get_auto_buyer(context)  # Reserved for future status display
+    _orchestrator = _get_orchestrator(context)  # Reserved for future status display
 
     if is_running:
         # Показать меню управления
@@ -773,7 +773,7 @@ async def show_balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             raise ValueError("API не инициализирован")
 
         balance_data = await dmarket_api.get_balance()
-        
+
         # Безопасная распаковка баланса
         if isinstance(balance_data, dict):
             usd = float(balance_data.get("usd", "0")) / 100
@@ -850,7 +850,7 @@ async def show_inventory(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def emergency_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Экстренная остановка всех процессов.
-    
+
     Останавливает:
     - Авто-торговлю (auto_buyer, orchestrator)
     - Сканирование рынка

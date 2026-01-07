@@ -10,7 +10,7 @@ from telegram import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, 
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
-from src.dmarket.arbitrage import GAMES, find_arbitrage_opportunities_advanced
+from src.dmarket.arbitrage import GAMES
 from src.telegram_bot.handlers.dmarket_status import dmarket_status_impl
 from src.telegram_bot.handlers.main_keyboard import (
     auto_trade_start,
@@ -32,7 +32,6 @@ from src.telegram_bot.keyboards import (
     get_risk_profile_keyboard,
     get_settings_keyboard,
 )
-from src.telegram_bot.utils.api_client import setup_api_client
 from src.telegram_bot.utils.formatters import format_opportunities
 from src.utils.telegram_error_handlers import telegram_error_boundary
 

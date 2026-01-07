@@ -186,8 +186,9 @@ class LocalDeltaFilter:
             price_val = price
 
         # Create unique hash for item + price
+        # Using sha256 for security best practices (non-cryptographic use but safer default)
         hash_input = f"{item_id}_{price_val}".encode()
-        item_hash = hashlib.md5(hash_input).hexdigest()
+        item_hash = hashlib.sha256(hash_input).hexdigest()[:16]  # Truncate for efficiency
 
         # Check if already seen
         if item_hash in self.seen_hashes:
