@@ -108,7 +108,7 @@ class PricePredictor:
         except Exception as e:
             logger.warning(
                 "price_predictor_load_failed: error=%s",
-                str(e),
+                e,
             )
 
     def train_model(
@@ -254,7 +254,7 @@ class PricePredictor:
 
         except Exception as e:
             error_msg = f"❌ Ошибка обучения модели: {e}"
-            logger.exception("training_failed: error=%s", str(e))
+            logger.exception("training_failed: error=%s", e)
             return error_msg
 
     def predict_with_guard(
@@ -360,7 +360,7 @@ class PricePredictor:
             logger.exception(
                 "prediction_failed: item=%s, error=%s",
                 item_name,
-                str(e),
+                e,
             )
             return None
 
