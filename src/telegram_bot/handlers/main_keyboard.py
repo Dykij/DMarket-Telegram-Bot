@@ -849,6 +849,27 @@ async def show_inventory(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 # ═══════════════════════════════════════════════════════════════════════════
 
 
+async def _delete_all_targets(dmarket_api: Any) -> int:
+    """Delete all active targets across all games.
+    
+    Returns:
+        Number of deleted targets.
+    """
+    deleted_count = 0
+    for game in ["csgo", "dota2", "tf2", "rust"]:
+        try:
+            targets_response = await dmarket_api.get_user_targets(game=game)
+            targets = targets_response.get("Items", [])
+            for target in targets:
+                target_id = target.get("TargetID") or target.get("targetId")
+                if target_id:
+                    await dmarket_api.delete_target(target_id)
+                    deleted_count += 1
+        except Exception:
+            continue
+    return deleted_count
+
+
 async def emergency_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Экстренная остановка всех процессов.
 
@@ -887,22 +908,11 @@ async def emergency_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         context.bot_data["auto_trade_running"] = False
         context.bot_data["repricing_enabled"] = False
 
-        # 5. Опционально: удаляем все активные таргеты
+        # 5. Опционально: удаляем все активные таргеты (refactored to reduce nesting)
         dmarket_api = _get_dmarket_api(context)
         if dmarket_api:
             try:
-                deleted_count = 0
-                for game in ["csgo", "dota2", "tf2", "rust"]:
-                    try:
-                        targets_response = await dmarket_api.get_user_targets(game=game)
-                        targets = targets_response.get("Items", [])
-                        for target in targets:
-                            target_id = target.get("TargetID") or target.get("targetId")
-                            if target_id:
-                                await dmarket_api.delete_target(target_id)
-                                deleted_count += 1
-                    except Exception:
-                        continue
+                deleted_count = await _delete_all_targets(dmarket_api)
                 if deleted_count > 0:
                     results.append(f"✅ Удалено таргетов: {deleted_count}")
             except Exception as e:

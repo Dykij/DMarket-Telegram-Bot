@@ -115,7 +115,7 @@ class TestDMarketAPIIntegration:
 
             # Call API
             result = await mock_dmarket_api.get_market_items(
-                game_id="a8db",  # CS:GO game ID
+                game="csgo",  # Changed from game_id to game (actual API signature)
                 limit=100,
             )
 
@@ -183,7 +183,7 @@ class TestDMarketAPIIntegration:
             mock_request.return_value = response
 
             result = await mock_dmarket_api.get_market_items(
-                game_id="a8db",
+                game="csgo",  # Changed from game_id to game (actual API signature)
                 price_from=200,  # $2.00 minimum
                 price_to=8000,  # $80.00 maximum
             )
@@ -230,7 +230,7 @@ class TestDMarketAPIIntegration:
             )
 
             with pytest.raises(RateLimitError) as exc_info:
-                await mock_dmarket_api.get_market_items(game_id="a8db")
+                await mock_dmarket_api.get_market_items(game="csgo")  # Changed from game_id to game
 
             assert exc_info.value.retry_after == 60
 
@@ -265,12 +265,10 @@ class TestDMarketAPIEndpoints:
 
     @pytest.mark.asyncio
     @pytest.mark.integration
-    async def test_create_target_endpoint(self, mock_dmarket_api):
-        """Test create target (buy order) endpoint."""
+    async def test_create_targets_endpoint(self, mock_dmarket_api):
+        """Test create targets (buy orders) endpoint."""
         target_response = {
-            "OrderID": "target_001",
-            "Status": "TargetCreated",
-            "Price": "1000",
+            "Result": [{"OrderID": "target_001", "Successful": True}],
         }
 
         with patch.object(
@@ -278,30 +276,40 @@ class TestDMarketAPIEndpoints:
         ) as mock_request:
             mock_request.return_value = target_response
 
-            result = await mock_dmarket_api.create_target(
-                item_name="AK-47 | Redline (Field-Tested)",
-                price=10.0,
-                amount=1,
+            # Use the actual create_targets method with proper signature
+            targets = [
+                {
+                    "Title": "AK-47 | Redline (Field-Tested)",
+                    "Amount": 1,
+                    "Price": {"Amount": 1000, "Currency": "USD"},
+                }
+            ]
+            result = await mock_dmarket_api.create_targets(
+                game_id="csgo",
+                targets=targets,
             )
 
-            assert "OrderID" in result or "orderId" in result.get("OrderID", result)
+            assert "Result" in result
+            assert len(result["Result"]) > 0
 
     @pytest.mark.asyncio
     @pytest.mark.integration
-    async def test_cancel_target_endpoint(self, mock_dmarket_api):
-        """Test cancel target endpoint."""
-        cancel_response = {
-            "Status": "TargetCancelled",
+    async def test_delete_targets_endpoint(self, mock_dmarket_api):
+        """Test delete targets endpoint."""
+        delete_response = {
+            "Result": [{"TargetID": "target_001", "Successful": True}],
         }
 
         with patch.object(
             mock_dmarket_api, "_request", new_callable=AsyncMock
         ) as mock_request:
-            mock_request.return_value = cancel_response
+            mock_request.return_value = delete_response
 
-            result = await mock_dmarket_api.cancel_target(target_id="target_001")
+            # Use the actual delete_targets method
+            result = await mock_dmarket_api.delete_targets(target_ids=["target_001"])
 
-            assert result["Status"] == "TargetCancelled"
+            assert "Result" in result
+            assert result["Result"][0]["Successful"] is True
 
 
 class TestDMarketAPIWithVCRCassettes:
@@ -331,7 +339,7 @@ class TestDMarketAPIWithVCRCassettes:
             )
 
             result = await api.get_market_items(
-                game_id="a8db",
+                game="csgo",  # Changed from game_id to game (actual API signature)
                 limit=10,
             )
 

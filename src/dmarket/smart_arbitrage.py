@@ -468,6 +468,68 @@ class SmartArbitrageEngine:
             logger.debug("smart_item_analysis_error", error=str(e))
             return None
 
+    async def _execute_auto_buy_real(
+        self,
+        opportunities: list[SmartOpportunity],
+    ) -> None:
+        """Execute auto-buy for opportunities (real mode)."""
+        for opp in opportunities[:3]:
+            # Skip expensive items (>30% of balance)
+            if opp.buy_price > self._current_balance * 0.3:
+                logger.info(
+                    "auto_buy_skipped_expensive",
+                    item=opp.title[:30],
+                    price=opp.buy_price,
+                )
+                continue
+
+            logger.info(
+                "auto_buy_executing",
+                item=opp.title[:30],
+                price=f"${opp.buy_price:.2f}",
+                profit=f"{opp.profit_percent:.1f}%",
+            )
+
+            try:
+                await self.api_client.buy_item(opp.item_id, int(opp.buy_price * 100))
+                logger.info("auto_buy_success", item=opp.title[:30])
+                self._current_balance -= opp.buy_price
+                await asyncio.sleep(2)  # Rate limit between purchases
+            except Exception as buy_err:
+                logger.exception(
+                    "auto_buy_failed",
+                    item=opp.title[:30],
+                    error=str(buy_err),
+                )
+
+    async def _execute_auto_buy_dry_run(
+        self,
+        opportunities: list[SmartOpportunity],
+    ) -> None:
+        """Log auto-buy opportunities (dry-run mode)."""
+        for opp in opportunities[:3]:
+            logger.info(
+                "auto_buy_dry_run",
+                item=opp.title[:30],
+                price=f"${opp.buy_price:.2f}",
+                profit=f"{opp.profit_percent:.1f}%",
+            )
+
+    async def _process_auto_buy(
+        self,
+        opportunities: list[SmartOpportunity],
+        auto_buy: bool,
+    ) -> None:
+        """Process auto-buy for opportunities."""
+        if not auto_buy or not opportunities:
+            return
+
+        dry_run = getattr(self.api_client, "dry_run", True)
+        if dry_run:
+            await self._execute_auto_buy_dry_run(opportunities)
+        else:
+            await self._execute_auto_buy_real(opportunities)
+
     async def start_smart_mode(
         self,
         games: list[str] | None = None,
@@ -502,56 +564,8 @@ class SmartArbitrageEngine:
                     if opportunities and callback:
                         await callback(opportunities)
 
-                    # AUTO-BUY MODE: Execute trades if enabled and not in dry-run
-                    if auto_buy and opportunities:
-                        dry_run = getattr(self.api_client, "dry_run", True)
-                        if not dry_run:
-                            # Buy top 3 opportunities per cycle to avoid overspending
-                            for opp in opportunities[:3]:
-                                # Double-check we can still afford
-                                if opp.buy_price > self._current_balance * 0.3:
-                                    logger.info(
-                                        "auto_buy_skipped_expensive",
-                                        item=opp.title[:30],
-                                        price=opp.buy_price,
-                                    )
-                                    continue
-
-                                logger.info(
-                                    "auto_buy_executing",
-                                    item=opp.title[:30],
-                                    price=f"${opp.buy_price:.2f}",
-                                    profit=f"{opp.profit_percent:.1f}%",
-                                )
-
-                                try:
-                                    # Execute purchase
-                                    await self.api_client.buy_item(
-                                        opp.item_id, int(opp.buy_price * 100)
-                                    )
-                                    logger.info("auto_buy_success", item=opp.title[:30])
-
-                                    # Reduce current balance estimate
-                                    self._current_balance -= opp.buy_price
-
-                                    # Rate limit: wait between purchases
-                                    await asyncio.sleep(2)
-
-                                except Exception as buy_err:
-                                    logger.exception(
-                                        "auto_buy_failed",
-                                        item=opp.title[:30],
-                                        error=str(buy_err),
-                                    )
-                        else:
-                            # DRY-RUN mode: just log what would be bought
-                            for opp in opportunities[:3]:
-                                logger.info(
-                                    "auto_buy_dry_run",
-                                    item=opp.title[:30],
-                                    price=f"${opp.buy_price:.2f}",
-                                    profit=f"{opp.profit_percent:.1f}%",
-                                )
+                    # Process auto-buy (refactored to reduce nesting)
+                    await self._process_auto_buy(opportunities, auto_buy)
 
                     # Small delay between games
                     await asyncio.sleep(3)
