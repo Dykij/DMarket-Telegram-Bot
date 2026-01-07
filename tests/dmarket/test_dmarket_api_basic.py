@@ -181,7 +181,7 @@ class TestDMarketAPIEndpoints:
         """Тест endpoints для пользователя."""
         assert DMarketAPI.ENDPOINT_USER_INVENTORY == "/inventory/v1/user/items"
         assert DMarketAPI.ENDPOINT_USER_OFFERS == "/marketplace-api/v1/user-offers"
-        assert DMarketAPI.ENDPOINT_USER_TARGETS == "/exchange/v1/target-lists"
+        assert DMarketAPI.ENDPOINT_USER_TARGETS == "/main/v2/user-targets"
 
     def test_operations_endpoints(self):
         """Тест endpoints для операций."""

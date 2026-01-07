@@ -302,7 +302,7 @@ def reset_circuit_breaker(endpoint_type: EndpointType) -> None:
         endpoint_type: Type of endpoint to reset
     """
     breaker = get_circuit_breaker(endpoint_type)
-    breaker.close()
+    breaker.reset()
     logger.info(
         "circuit_breaker_manual_reset",
         endpoint=endpoint_type.value,
@@ -315,7 +315,7 @@ def reset_all_circuit_breakers() -> None:
     Use with extreme caution - only for emergency recovery.
     """
     for endpoint_name, breaker in _circuit_breakers.items():
-        breaker.close()
+        breaker.reset()
         logger.warning(
             "circuit_breaker_emergency_reset",
             endpoint=endpoint_name,

@@ -8,6 +8,26 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def reset_circuit_breakers_fixture():
+    """Reset all circuit breakers before each test to prevent state leakage."""
+    try:
+        from src.utils.api_circuit_breaker import reset_all_circuit_breakers
+
+        reset_all_circuit_breakers()
+    except ImportError:
+        pass  # Circuit breaker module not available
+    yield
+    # Reset again after test completes
+    try:
+        from src.utils.api_circuit_breaker import reset_all_circuit_breakers
+
+        reset_all_circuit_breakers()
+    except ImportError:
+        pass
+
+
+
 @pytest.fixture()
 def mock_api_client():
     """Создает мок объект DMarket API клиента."""
