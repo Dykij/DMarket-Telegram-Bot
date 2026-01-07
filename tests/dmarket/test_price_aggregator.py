@@ -16,12 +16,12 @@ from src.dmarket.price_aggregator import (
 
 class TestLockStatus:
     """Тесты для LockStatus enum."""
-    
+
     def test_available_value(self):
         """Тест значения AVAILABLE."""
         assert LockStatus.AVAILABLE == 0
         assert LockStatus.AVAILABLE.value == 0
-    
+
     def test_locked_value(self):
         """Тест значения LOCKED."""
         assert LockStatus.LOCKED == 1
@@ -30,7 +30,7 @@ class TestLockStatus:
 
 class TestAggregatedPrice:
     """Тесты для AggregatedPrice dataclass."""
-    
+
     def test_min_price_usd(self):
         """Тест конвертации цены в USD."""
         price = AggregatedPrice(
@@ -43,7 +43,7 @@ class TestAggregatedPrice:
             listings_count=10,
         )
         assert price.min_price_usd == 10.0
-    
+
     def test_effective_price_no_discount(self):
         """Тест effective price без скидок."""
         price = AggregatedPrice(
@@ -59,7 +59,7 @@ class TestAggregatedPrice:
             lock_status=LockStatus.AVAILABLE,
         )
         assert price.effective_price == 10.0  # $10
-    
+
     def test_effective_price_with_discount(self):
         """Тест effective price со скидкой."""
         price = AggregatedPrice(
@@ -77,7 +77,7 @@ class TestAggregatedPrice:
         )
         # $10 - 10% = $9
         assert abs(price.effective_price - 9.0) < 0.01
-    
+
     def test_effective_price_with_bonus(self):
         """Тест effective price с бонусом."""
         price = AggregatedPrice(
@@ -94,7 +94,7 @@ class TestAggregatedPrice:
         )
         # ($10 - $1) = $9
         assert abs(price.effective_price - 9.0) < 0.01
-    
+
     def test_effective_price_with_lock(self):
         """Тест effective price с lock."""
         price = AggregatedPrice(
@@ -115,7 +115,7 @@ class TestAggregatedPrice:
         # $10 - 4.5% = $9.55
         assert price.effective_price < 10.0
         assert price.effective_price > 9.0
-    
+
     def test_is_good_deal_true(self):
         """Тест is_good_deal = True."""
         price = AggregatedPrice(
@@ -132,7 +132,7 @@ class TestAggregatedPrice:
             lock_status=LockStatus.AVAILABLE,
         )
         assert price.is_good_deal is True
-    
+
     def test_is_good_deal_false_locked(self):
         """Тест is_good_deal = False из-за lock."""
         price = AggregatedPrice(
@@ -153,7 +153,7 @@ class TestAggregatedPrice:
 
 class TestPriceAggregatorConfig:
     """Тесты для PriceAggregatorConfig."""
-    
+
     def test_default_values(self):
         """Тест значений по умолчанию."""
         config = PriceAggregatorConfig()
@@ -162,7 +162,7 @@ class TestPriceAggregatorConfig:
         assert config.prioritize_unlocked is True
         assert config.min_lock_discount == 3.0
         assert config.max_lock_discount == 5.0
-    
+
     def test_custom_values(self):
         """Тест пользовательских значений."""
         config = PriceAggregatorConfig(
@@ -177,56 +177,56 @@ class TestPriceAggregatorConfig:
 
 class TestPriceAggregator:
     """Тесты для PriceAggregator."""
-    
+
     @pytest.fixture
     def aggregator(self):
         """Создать агрегатор без API (mock режим)."""
         return PriceAggregator()
-    
+
     @pytest.mark.asyncio
     async def test_get_aggregated_prices_mock(self, aggregator):
         """Тест получения цен в mock режиме."""
         items = ["AK-47 | Redline", "AWP | Asiimov", "M4A4 | Howl"]
-        
+
         prices = await aggregator.get_aggregated_prices(items)
-        
+
         assert len(prices) == 3
         for price in prices:
             assert isinstance(price, AggregatedPrice)
             assert price.min_price > 0
             assert price.listings_count > 0
-    
+
     @pytest.mark.asyncio
     async def test_cache_hit(self, aggregator):
         """Тест попадания в кэш."""
         items = ["Test Item"]
-        
+
         # Первый запрос
         await aggregator.get_aggregated_prices(items)
         initial_requests = aggregator._requests_made
-        
+
         # Второй запрос (из кэша)
         await aggregator.get_aggregated_prices(items, force_refresh=False)
-        
+
         # Запросы не должны увеличиться
         # (mock режим не увеличивает счетчик, но кэш работает)
         assert aggregator._cache_hits >= 1
-    
+
     @pytest.mark.asyncio
     async def test_force_refresh(self, aggregator):
         """Тест принудительного обновления."""
         items = ["Test Item"]
-        
+
         await aggregator.get_aggregated_prices(items)
         first_update = aggregator._last_update
-        
+
         await asyncio.sleep(0.1)
-        
+
         await aggregator.get_aggregated_prices(items, force_refresh=True)
         second_update = aggregator._last_update
-        
+
         assert second_update > first_update
-    
+
     def test_filter_available_items(self, aggregator):
         """Тест фильтрации доступных предметов."""
         prices = [
@@ -251,12 +251,12 @@ class TestPriceAggregator:
                 lock_status=LockStatus.LOCKED,
             ),
         ]
-        
+
         filtered = aggregator.filter_available_items(prices)
-        
+
         assert len(filtered) == 1
         assert filtered[0].item_name == "Available"
-    
+
     def test_filter_discounted_items(self, aggregator):
         """Тест фильтрации предметов со скидкой."""
         prices = [
@@ -282,12 +282,12 @@ class TestPriceAggregator:
                 has_discount=False,
             ),
         ]
-        
+
         filtered = aggregator.filter_discounted_items(prices, min_discount=3.0)
-        
+
         assert len(filtered) == 1
         assert filtered[0].item_name == "Discounted"
-    
+
     def test_get_good_deals(self, aggregator):
         """Тест получения выгодных сделок."""
         prices = [
@@ -315,16 +315,16 @@ class TestPriceAggregator:
                 lock_status=LockStatus.AVAILABLE,
             ),
         ]
-        
+
         deals = aggregator.get_good_deals(prices)
-        
+
         assert len(deals) == 1
         assert deals[0].item_name == "Good Deal"
-    
+
     def test_get_stats(self, aggregator):
         """Тест получения статистики."""
         stats = aggregator.get_stats()
-        
+
         assert "requests_made" in stats
         assert "cache_hits" in stats
         assert "cache_size" in stats
@@ -334,7 +334,7 @@ class TestPriceAggregator:
 
 class TestPriceAggregatorWithAPI:
     """Тесты PriceAggregator с mock API."""
-    
+
     @pytest.fixture
     def mock_api(self):
         """Создать mock API клиент."""
@@ -362,18 +362,18 @@ class TestPriceAggregatorWithAPI:
             ]
         })
         return api
-    
+
     @pytest.mark.asyncio
     async def test_fetch_prices_with_api(self, mock_api):
         """Тест получения цен через API."""
         aggregator = PriceAggregator(api_client=mock_api)
-        
+
         prices = await aggregator.get_aggregated_prices(
             item_names=["AK-47 | Redline"],
             game="csgo",
             force_refresh=True,
         )
-        
+
         assert len(prices) == 1
         assert prices[0].item_name == "AK-47 | Redline"
         assert prices[0].min_price == 1000

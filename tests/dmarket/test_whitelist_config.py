@@ -123,7 +123,7 @@ class TestWhitelistChecker:
     def test_get_adjusted_profit_margin_whitelist_boost(self):
         """Verify whitelist items get profit margin boost."""
         checker = WhitelistChecker(enable_priority_boost=True, profit_boost_percent=2.0)
-        
+
         # Whitelist item gets lower threshold
         adjusted = checker.get_adjusted_profit_margin(10.0, is_whitelist=True)
         assert adjusted == 8.0  # 10% - 2% boost
@@ -131,7 +131,7 @@ class TestWhitelistChecker:
     def test_get_adjusted_profit_margin_non_whitelist(self):
         """Verify non-whitelist items keep original margin."""
         checker = WhitelistChecker(enable_priority_boost=True, profit_boost_percent=2.0)
-        
+
         # Non-whitelist keeps original
         adjusted = checker.get_adjusted_profit_margin(10.0, is_whitelist=False)
         assert adjusted == 10.0
@@ -139,7 +139,7 @@ class TestWhitelistChecker:
     def test_get_adjusted_profit_margin_minimum_threshold(self):
         """Verify minimum profit threshold is respected."""
         checker = WhitelistChecker(enable_priority_boost=True, profit_boost_percent=5.0)
-        
+
         # Should not go below 3%
         adjusted = checker.get_adjusted_profit_margin(5.0, is_whitelist=True)
         assert adjusted == 3.0  # Minimum is 3%
@@ -147,7 +147,7 @@ class TestWhitelistChecker:
     def test_priority_boost_disabled(self):
         """Verify priority boost can be disabled."""
         checker = WhitelistChecker(enable_priority_boost=False)
-        
+
         adjusted = checker.get_adjusted_profit_margin(10.0, is_whitelist=True)
         assert adjusted == 10.0  # No boost when disabled
 
@@ -181,11 +181,11 @@ class TestAddRemoveWhitelist:
         # Add a test item
         result = add_to_whitelist("csgo", "Test Item For Testing")
         assert result is True
-        
+
         # Verify it's in the list
         whitelist = get_whitelist_for_game("csgo")
         assert "Test Item For Testing" in whitelist
-        
+
         # Cleanup
         remove_from_whitelist("csgo", "Test Item For Testing")
 
@@ -193,11 +193,11 @@ class TestAddRemoveWhitelist:
         """Test adding duplicate item returns False."""
         # First add should succeed
         add_to_whitelist("csgo", "Duplicate Test Item")
-        
+
         # Second add should fail (already exists)
         result = add_to_whitelist("csgo", "Duplicate Test Item")
         assert result is False
-        
+
         # Cleanup
         remove_from_whitelist("csgo", "Duplicate Test Item")
 
@@ -212,7 +212,7 @@ class TestAddRemoveWhitelist:
         add_to_whitelist("csgo", "Item To Remove")
         result = remove_from_whitelist("csgo", "Item To Remove")
         assert result is True
-        
+
         # Verify it's gone
         whitelist = get_whitelist_for_game("csgo")
         assert "Item To Remove" not in whitelist

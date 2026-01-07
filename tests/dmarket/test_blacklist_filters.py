@@ -207,9 +207,9 @@ class TestItemQualityFilter:
             {"title": "Souvenir AWP | Dragon Lore", "statistics": {"sales24h": 10, "avg_sales_per_day": 5}},
             {"title": "M4A1-S | Hyper Beast (FN)", "statistics": {"sales24h": 10, "avg_sales_per_day": 5}},
         ]
-        
+
         filtered = filter_.filter_items(items)
-        
+
         # Souvenir should be filtered out
         assert len(filtered) == 2
         assert all("souvenir" not in item["title"].lower() for item in filtered)
@@ -221,9 +221,9 @@ class TestItemQualityFilter:
             {"title": "AK-47 | Redline (FT)", "statistics": {"sales24h": 10, "avg_sales_per_day": 5}},
             {"title": "Rare Knife | Pattern", "statistics": {"sales24h": 0, "avg_sales_per_day": 0}},
         ]
-        
+
         filtered = filter_.filter_items(items)
-        
+
         # Illiquid item should be filtered out
         assert len(filtered) == 1
         assert filtered[0]["title"] == "AK-47 | Redline (FT)"
@@ -236,9 +236,9 @@ class TestItemQualityFilter:
             {"title": "AWP | Asiimov (FT)", "statistics": {"sales24h": 20, "avg_sales_per_day": 8}},
             {"title": "M4A1-S | Hyper Beast (FN)", "statistics": {"sales24h": 15, "avg_sales_per_day": 6}},
         ]
-        
+
         filtered = filter_.filter_items(items)
-        
+
         # All good items should pass
         assert len(filtered) == 3
 
@@ -261,7 +261,7 @@ class TestBlacklistIsObligatory:
             enable_sticker_boost_filter=False,
             enable_pattern_filter=False,
         )
-        
+
         # Souvenir MUST be blacklisted
         item = {"title": "Souvenir M4A1-S | Knight"}
         assert filter_.is_blacklisted(item) is True
@@ -269,7 +269,7 @@ class TestBlacklistIsObligatory:
     def test_blacklist_protects_from_bad_trades(self):
         """Verify blacklist prevents known bad trades."""
         filter_ = ItemBlacklistFilter()
-        
+
         # All these should be blacklisted - OBLIGATORY protection
         bad_items = [
             {"title": "Souvenir AWP | Dragon Lore"},
@@ -278,6 +278,6 @@ class TestBlacklistIsObligatory:
             {"title": "Music Kit | Darude, Sandstorm"},
             {"title": "Patch | Howling Dawn"},
         ]
-        
+
         for item in bad_items:
             assert filter_.is_blacklisted(item) is True, f"Should blacklist: {item['title']}"

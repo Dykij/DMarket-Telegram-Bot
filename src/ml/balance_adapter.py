@@ -10,7 +10,7 @@
 """
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 import logging
 from typing import Any
@@ -206,7 +206,7 @@ class BalanceAdaptiveStrategy:
             recommended_scan_interval=params["scan_interval"],
             hold_time_recommendation=params["hold_time"],
             recommendations=recommendations,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             balance_usd=self.user_balance,
         )
 

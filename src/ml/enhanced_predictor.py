@@ -10,7 +10,7 @@
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 import logging
 from pathlib import Path
@@ -345,7 +345,7 @@ class EnhancedFeatureExtractor:
         )
 
         # Временные признаки
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         features.hour_of_day = now.hour
         features.day_of_week = now.weekday()
         features.is_weekend = features.day_of_week >= 5
@@ -696,9 +696,9 @@ class EnhancedFeatureExtractor:
         if "case hardened" in name_lower:
             if pattern_index in [661, 387, 955]:  # Tier 1 blue gems
                 return 1.0
-            elif pattern_index in [321, 555, 828, 868, 179]:  # Tier 2
+            if pattern_index in [321, 555, 828, 868, 179]:  # Tier 2
                 return 0.8
-            elif 100 <= pattern_index <= 200:
+            if 100 <= pattern_index <= 200:
                 return 0.3
             return 0.1
 
@@ -706,7 +706,7 @@ class EnhancedFeatureExtractor:
         if "fade" in name_lower:
             if pattern_index >= 95:  # Full fade
                 return 0.9
-            elif pattern_index >= 90:
+            if pattern_index >= 90:
                 return 0.7
             return 0.3
 
@@ -759,13 +759,13 @@ class EnhancedFeatureExtractor:
 
         if "factory new" in text_lower or "fn" in text_lower:
             return ItemCondition.FACTORY_NEW
-        elif "minimal wear" in text_lower or "mw" in text_lower:
+        if "minimal wear" in text_lower or "mw" in text_lower:
             return ItemCondition.MINIMAL_WEAR
-        elif "field-tested" in text_lower or "ft" in text_lower:
+        if "field-tested" in text_lower or "ft" in text_lower:
             return ItemCondition.FIELD_TESTED
-        elif "well-worn" in text_lower or "ww" in text_lower:
+        if "well-worn" in text_lower or "ww" in text_lower:
             return ItemCondition.WELL_WORN
-        elif "battle-scarred" in text_lower or "bs" in text_lower:
+        if "battle-scarred" in text_lower or "bs" in text_lower:
             return ItemCondition.BATTLE_SCARRED
 
         return ItemCondition.FIELD_TESTED
@@ -776,17 +776,17 @@ class EnhancedFeatureExtractor:
 
         if "covert" in rarity or "red" in rarity:
             return ItemRarity.COVERT
-        elif "classified" in rarity or "pink" in rarity:
+        if "classified" in rarity or "pink" in rarity:
             return ItemRarity.CLASSIFIED
-        elif "restricted" in rarity or "purple" in rarity:
+        if "restricted" in rarity or "purple" in rarity:
             return ItemRarity.RESTRICTED
-        elif "mil-spec" in rarity or "blue" in rarity:
+        if "mil-spec" in rarity or "blue" in rarity:
             return ItemRarity.MIL_SPEC
-        elif "industrial" in rarity:
+        if "industrial" in rarity:
             return ItemRarity.INDUSTRIAL
-        elif "consumer" in rarity:
+        if "consumer" in rarity:
             return ItemRarity.CONSUMER
-        elif "contraband" in rarity:
+        if "contraband" in rarity:
             return ItemRarity.CONTRABAND
 
         return ItemRarity.MIL_SPEC
@@ -996,7 +996,7 @@ class EnhancedPricePredictor:
         cache_key = f"{game.value}:{item_name}:{current_price:.2f}"
         if use_cache and cache_key in self._prediction_cache:
             cached_time, cached_pred = self._prediction_cache[cache_key]
-            if datetime.utcnow() - cached_time < self._cache_ttl:
+            if datetime.now(UTC) - cached_time < self._cache_ttl:
                 return cached_pred
 
         # Извлекаем признаки
@@ -1014,7 +1014,7 @@ class EnhancedPricePredictor:
         prediction = self._make_prediction(item_name, features)
 
         # Кэшируем результат
-        self._prediction_cache[cache_key] = (datetime.utcnow(), prediction)
+        self._prediction_cache[cache_key] = (datetime.now(UTC), prediction)
 
         return prediction
 
@@ -1065,7 +1065,7 @@ class EnhancedPricePredictor:
             "reasoning": reasoning,
             "expected_profit_24h_percent": round(((predicted_24h - current_price) / current_price) * 100, 2) if current_price > 0 else 0,
             "model_version": self.MODEL_VERSION,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             # Game-specific info
             "float_value": features.float_value if features.game_type in (GameType.CS2, GameType.CSGO) else None,
             "pattern_score": features.pattern_score if features.game_type in (GameType.CS2, GameType.CSGO) else None,
@@ -1222,14 +1222,13 @@ class EnhancedPricePredictor:
         """Преобразовать числовую уверенность в уровень."""
         if score >= 0.85:
             return "very_high"
-        elif score >= 0.70:
+        if score >= 0.70:
             return "high"
-        elif score >= 0.50:
+        if score >= 0.50:
             return "medium"
-        elif score >= 0.30:
+        if score >= 0.30:
             return "low"
-        else:
-            return "very_low"
+        return "very_low"
 
     def _generate_recommendation(
         self,
@@ -1301,14 +1300,13 @@ class EnhancedPricePredictor:
         """Получить фактор адаптации к балансу."""
         if self.user_balance < 50:
             return 1.5
-        elif self.user_balance < 100:
+        if self.user_balance < 100:
             return 1.3
-        elif self.user_balance < 300:
+        if self.user_balance < 300:
             return 1.0
-        elif self.user_balance < 500:
+        if self.user_balance < 500:
             return 0.9
-        else:
-            return 0.8
+        return 0.8
 
     def _get_game_context(self, features: EnhancedFeatures) -> str | None:
         """Получить игровой контекст для рекомендации."""

@@ -14,7 +14,7 @@
 """
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 import logging
 from pathlib import Path
@@ -194,7 +194,7 @@ class AdaptivePricePredictor:
         cache_key = f"{item_name}:{current_price:.2f}"
         if use_cache and cache_key in self._prediction_cache:
             cached_time, cached_pred = self._prediction_cache[cache_key]
-            if datetime.utcnow() - cached_time < self._cache_ttl:
+            if datetime.now(UTC) - cached_time < self._cache_ttl:
                 return cached_pred
 
         # Извлекаем признаки
@@ -210,7 +210,7 @@ class AdaptivePricePredictor:
         prediction = self._make_prediction(item_name, features)
 
         # Кэшируем результат
-        self._prediction_cache[cache_key] = (datetime.utcnow(), prediction)
+        self._prediction_cache[cache_key] = (datetime.now(UTC), prediction)
 
         return prediction
 
@@ -261,7 +261,7 @@ class AdaptivePricePredictor:
             price_range_1h=price_range_1h,
             price_range_24h=price_range_24h,
             price_range_7d=price_range_7d,
-            prediction_timestamp=datetime.utcnow(),
+            prediction_timestamp=datetime.now(UTC),
             model_version=self.MODEL_VERSION,
             buy_recommendation=buy_recommendation,
             reasoning=reasoning,
@@ -301,9 +301,7 @@ class AdaptivePricePredictor:
         prediction = 0.7 * gb_pred + 0.3 * ridge_pred
 
         # Масштабирование по горизонту
-        if horizon_hours == 1:
-            scale = 1.0
-        elif horizon_hours == 24:
+        if horizon_hours == 1 or horizon_hours == 24:
             scale = 1.0
         else:  # 7 days
             scale = 1.2  # Больше неопределённости
@@ -386,14 +384,13 @@ class AdaptivePricePredictor:
         """Преобразовать числовую уверенность в категорию."""
         if score >= 0.85:
             return PredictionConfidence.VERY_HIGH
-        elif score >= 0.70:
+        if score >= 0.70:
             return PredictionConfidence.HIGH
-        elif score >= 0.50:
+        if score >= 0.50:
             return PredictionConfidence.MEDIUM
-        elif score >= 0.30:
+        if score >= 0.30:
             return PredictionConfidence.LOW
-        else:
-            return PredictionConfidence.VERY_LOW
+        return PredictionConfidence.VERY_LOW
 
     def _generate_recommendation(
         self,
@@ -470,14 +467,13 @@ class AdaptivePricePredictor:
         """
         if self.user_balance < 50:
             return 1.5  # Очень консервативно
-        elif self.user_balance < 100:
+        if self.user_balance < 100:
             return 1.3
-        elif self.user_balance < 300:
+        if self.user_balance < 300:
             return 1.0  # Стандартно
-        elif self.user_balance < 500:
+        if self.user_balance < 500:
             return 0.9
-        else:
-            return 0.8  # Более агрессивно
+        return 0.8  # Более агрессивно
 
     def add_training_example(
         self,

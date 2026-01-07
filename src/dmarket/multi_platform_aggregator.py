@@ -310,12 +310,11 @@ class MultiPlatformAggregator:
         """Fetch price from a specific platform."""
         if platform == Platform.DMARKET:
             return await self._fetch_dmarket_price(item_name, game)
-        elif platform == Platform.WAXPEER:
+        if platform == Platform.WAXPEER:
             return await self._fetch_waxpeer_price(item_name, game)
-        elif platform == Platform.STEAM:
+        if platform == Platform.STEAM:
             return await self._fetch_steam_price(item_name, game)
-        else:
-            return None
+        return None
 
     async def _fetch_dmarket_price(
         self,

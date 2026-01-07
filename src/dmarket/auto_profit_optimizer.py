@@ -400,23 +400,21 @@ class AutoProfitOptimizer:
         """Assess current market condition."""
         if volatility > 0.25:
             return MarketCondition.VOLATILE
-        elif volume > 50 and volatility < 0.10:
+        if volume > 50 and volatility < 0.10:
             return MarketCondition.BULL
-        elif volume < 10:
+        if volume < 10:
             return MarketCondition.BEAR
-        else:
-            return MarketCondition.STABLE
+        return MarketCondition.STABLE
 
     def _calculate_volatility_adjustment(self, volatility: float) -> float:
         """Calculate adjustment factor based on volatility."""
         if volatility < 0.05:
             return 0.8  # Low volatility: can accept lower margins
-        elif volatility < 0.15:
+        if volatility < 0.15:
             return 1.0  # Normal
-        elif volatility < 0.25:
+        if volatility < 0.25:
             return 1.3  # High volatility: need higher margins
-        else:
-            return 1.5  # Very high volatility
+        return 1.5  # Very high volatility
 
     def _calculate_entry_discount(
         self,

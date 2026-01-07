@@ -261,7 +261,7 @@ class PriceAggregator:
         
         Endpoint: /price-aggregator/v1/aggregated-prices
         """
-        if hasattr(self.api, 'get_aggregated_prices'):
+        if hasattr(self.api, "get_aggregated_prices"):
             return await self.api.get_aggregated_prices(
                 titles=item_names,
                 game_id=game,

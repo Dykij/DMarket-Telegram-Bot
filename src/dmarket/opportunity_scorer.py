@@ -338,16 +338,15 @@ class OpportunityScorer:
 
         if roi >= self.ROI_THRESHOLDS["excellent"]:
             return 100.0
-        elif roi >= self.ROI_THRESHOLDS["good"]:
+        if roi >= self.ROI_THRESHOLDS["good"]:
             return 80.0 + (roi - 10) * 2  # 80-100 range
-        elif roi >= self.ROI_THRESHOLDS["acceptable"]:
+        if roi >= self.ROI_THRESHOLDS["acceptable"]:
             return 60.0 + (roi - 5) * 4  # 60-80 range
-        elif roi >= self.ROI_THRESHOLDS["minimum"]:
+        if roi >= self.ROI_THRESHOLDS["minimum"]:
             return 40.0 + (roi - 3) * 10  # 40-60 range
-        elif roi > 0:
+        if roi > 0:
             return roi * (40 / 3)  # 0-40 range
-        else:
-            return 0.0
+        return 0.0
 
     def _score_liquidity(self, opportunity: TradeOpportunity) -> float:
         """Score based on market liquidity."""
@@ -358,14 +357,13 @@ class OpportunityScorer:
 
         if volume >= self.VOLUME_THRESHOLDS["high"]:
             return 100.0
-        elif volume >= self.VOLUME_THRESHOLDS["medium"]:
+        if volume >= self.VOLUME_THRESHOLDS["medium"]:
             return 70.0 + (volume - 20) * 1  # 70-100 range
-        elif volume >= self.VOLUME_THRESHOLDS["low"]:
+        if volume >= self.VOLUME_THRESHOLDS["low"]:
             return 40.0 + (volume - 5) * 2  # 40-70 range
-        elif volume > 0:
+        if volume > 0:
             return volume * 8  # 0-40 range
-        else:
-            return 10.0  # Very low liquidity
+        return 10.0  # Very low liquidity
 
     def _score_risk(
         self,
@@ -391,14 +389,13 @@ class OpportunityScorer:
         # Lower volatility = higher score
         if volatility < 0.05:
             return 100.0  # Very stable
-        elif volatility < 0.10:
+        if volatility < 0.10:
             return 80.0  # Stable
-        elif volatility < 0.20:
+        if volatility < 0.20:
             return 60.0  # Moderate volatility
-        elif volatility < 0.30:
+        if volatility < 0.30:
             return 40.0  # High volatility
-        else:
-            return 20.0  # Very high volatility
+        return 20.0  # Very high volatility
 
     def _score_speed(self, opportunity: TradeOpportunity) -> float:
         """Score based on expected time to sell."""
@@ -414,16 +411,15 @@ class OpportunityScorer:
 
         if sell_time <= 1:
             return 100.0  # Sells within 1 hour
-        elif sell_time <= 6:
+        if sell_time <= 6:
             return 85.0  # Sells within 6 hours
-        elif sell_time <= 24:
+        if sell_time <= 24:
             return 70.0  # Sells within a day
-        elif sell_time <= 72:
+        if sell_time <= 72:
             return 50.0  # Sells within 3 days
-        elif sell_time <= 168:
+        if sell_time <= 168:
             return 30.0  # Sells within a week
-        else:
-            return 10.0  # Takes longer than a week
+        return 10.0  # Takes longer than a week
 
     def _score_competition(self, opportunity: TradeOpportunity) -> float:
         """Score based on competition (lower competition = higher score)."""
@@ -434,14 +430,13 @@ class OpportunityScorer:
 
         if competition == 0:
             return 100.0  # No competition
-        elif competition <= 3:
+        if competition <= 3:
             return 85.0  # Low competition
-        elif competition <= 10:
+        if competition <= 10:
             return 70.0  # Medium competition
-        elif competition <= 25:
+        if competition <= 25:
             return 50.0  # High competition
-        else:
-            return 30.0  # Very high competition
+        return 30.0  # Very high competition
 
     def _score_confidence(self, opportunity: TradeOpportunity) -> float:
         """Score based on data completeness and confidence."""
@@ -497,12 +492,11 @@ class OpportunityScorer:
 
         if risk_factors >= 4:
             return RiskLevel.VERY_HIGH
-        elif risk_factors >= 3:
+        if risk_factors >= 3:
             return RiskLevel.HIGH
-        elif risk_factors >= 1:
+        if risk_factors >= 1:
             return RiskLevel.MEDIUM
-        else:
-            return RiskLevel.LOW
+        return RiskLevel.LOW
 
     def _determine_action(
         self,
@@ -522,14 +516,13 @@ class OpportunityScorer:
 
         if total_score >= 80:
             return "strong_buy"  # Excellent opportunity
-        elif total_score >= 70:
+        if total_score >= 70:
             return "buy"  # Good opportunity
-        elif total_score >= 60:
+        if total_score >= 60:
             return "consider"  # Consider buying
-        elif total_score >= 50:
+        if total_score >= 50:
             return "monitor"  # Monitor for better entry
-        else:
-            return "skip"  # Not recommended
+        return "skip"  # Not recommended
 
 
 # Singleton instance

@@ -5,7 +5,7 @@
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 import logging
 from typing import Any
@@ -162,7 +162,7 @@ class MarketFeatureExtractor:
         features = PriceFeatures(current_price=current_price)
 
         # Временные признаки
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         features.hour_of_day = now.hour
         features.day_of_week = now.weekday()
         features.is_weekend = features.day_of_week >= 5
@@ -370,10 +370,9 @@ class MarketFeatureExtractor:
         # Определяем по изменению цены за 7 дней
         if price_change_7d > 5:
             return TrendDirection.UP
-        elif price_change_7d < -5:
+        if price_change_7d < -5:
             return TrendDirection.DOWN
-        else:
-            return TrendDirection.STABLE
+        return TrendDirection.STABLE
 
     def batch_extract(
         self,

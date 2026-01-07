@@ -11,7 +11,7 @@
 """
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 import hashlib
 import logging
 from pathlib import Path
@@ -165,7 +165,7 @@ class SilentModeLogger:
             self._pending_events.append({
                 "type": "scan",
                 "message": msg,
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(UTC),
             })
 
     async def log_purchase(
@@ -224,7 +224,7 @@ class SilentModeLogger:
         if not self.notifier or not self._pending_events:
             return
 
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         interval = self.config.telegram_notify_interval_minutes
 
         # Проверяем, прошло ли достаточно времени
@@ -303,8 +303,7 @@ class LocalDeltaTracker:
 
         if self.config.delta_hash_algorithm == "md5":
             return hashlib.md5(data_str.encode()).hexdigest()[:16]  # noqa: S324
-        else:
-            return hashlib.sha256(data_str.encode()).hexdigest()[:16]
+        return hashlib.sha256(data_str.encode()).hexdigest()[:16]
 
     def is_changed(self, item_id: str, item_data: dict[str, Any]) -> bool:
         """Проверяет, изменился ли предмет с последнего раза.

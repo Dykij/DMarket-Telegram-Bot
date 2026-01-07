@@ -77,7 +77,7 @@ class TestGetSteamPrice:
             # Backoff should be active now
             backoff_status = get_backoff_status()
             assert backoff_status["active"] is True
-            
+
         # Clean up after test
         reset_backoff()
 
@@ -154,7 +154,7 @@ class TestCalculateArbitrage:
         # Negative dmarket_price
         result = calculate_arbitrage(dmarket_price=-10.0, steam_price=15.0)
         assert result == 0.0
-        
+
         # Zero dmarket_price
         result = calculate_arbitrage(dmarket_price=0.0, steam_price=15.0)
         assert result == 0.0

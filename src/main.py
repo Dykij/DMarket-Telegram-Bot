@@ -535,7 +535,7 @@ class Application:
                         )
 
                         # Register components for monitoring
-                        if self.dmarket_api:
+                        if self.dmarket_api is not None:
                             self.health_check_monitor.register_api_client(self.dmarket_api)
 
                         if self.websocket_manager:
@@ -642,7 +642,7 @@ class Application:
                 logger.info("Health Check Monitor started - 15min intervals")
 
             # Start the bot (webhook or polling)
-            if self.bot:
+            if self.bot is not None:
                 await self.bot.start()
 
                 # Check if webhook mode is enabled (Roadmap Task #1)
@@ -775,7 +775,7 @@ class Application:
 
             # Step 2: Stop accepting new updates
             logger.info("Step 2/9: Stopping new updates...")
-            if self.bot:
+            if self.bot is not None:
                 try:
                     if self.bot.updater is not None and self.bot.updater.running:
                         await asyncio.wait_for(
@@ -836,7 +836,7 @@ class Application:
 
             # Step 4: Stop Telegram Bot
             logger.info("Step 5/9: Stopping Telegram Bot...")
-            if self.bot:
+            if self.bot is not None:
                 try:
                     if self.bot.running:
                         await asyncio.wait_for(
@@ -855,7 +855,7 @@ class Application:
 
             # Step 5: Close DMarket API connections
             logger.info("Step 6/9: Closing DMarket API connections...")
-            if self.dmarket_api:
+            if self.dmarket_api is not None:
                 try:
                     await asyncio.wait_for(
                         self.dmarket_api._close_client(),

@@ -152,14 +152,13 @@ class AdaptiveTradeClassifier:
         """Получить фактор масштабирования по балансу."""
         if self.user_balance < 50:
             return 2.0  # Очень консервативно
-        elif self.user_balance < 100:
+        if self.user_balance < 100:
             return 1.5
-        elif self.user_balance < 300:
+        if self.user_balance < 300:
             return 1.0
-        elif self.user_balance < 500:
+        if self.user_balance < 500:
             return 0.8
-        else:
-            return 0.6
+        return 0.6
 
     def set_user_balance(self, balance: float):
         """Установить баланс пользователя."""
@@ -323,14 +322,13 @@ class AdaptiveTradeClassifier:
         """Преобразовать числовой скор в уровень риска."""
         if score < 0.1:
             return RiskLevel.VERY_LOW
-        elif score < 0.25:
+        if score < 0.25:
             return RiskLevel.LOW
-        elif score < 0.4:
+        if score < 0.4:
             return RiskLevel.MEDIUM
-        elif score < 0.6:
+        if score < 0.6:
             return RiskLevel.HIGH
-        else:
-            return RiskLevel.VERY_HIGH
+        return RiskLevel.VERY_HIGH
 
     def _calculate_liquidity_score(self, features: PriceFeatures) -> float:
         """Рассчитать скор ликвидности (0-1)."""

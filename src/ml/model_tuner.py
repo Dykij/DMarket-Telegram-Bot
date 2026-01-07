@@ -188,18 +188,17 @@ class ModelTuner:
 
         if self.cv_strategy == CVStrategy.TIME_SERIES:
             return TimeSeriesSplit(n_splits=self.cv_folds)
-        elif self.cv_strategy == CVStrategy.STRATIFIED:
+        if self.cv_strategy == CVStrategy.STRATIFIED:
             return StratifiedKFold(
                 n_splits=self.cv_folds,
                 shuffle=True,
                 random_state=self.random_state,
             )
-        else:
-            return KFold(
-                n_splits=self.cv_folds,
-                shuffle=True,
-                random_state=self.random_state,
-            )
+        return KFold(
+            n_splits=self.cv_folds,
+            shuffle=True,
+            random_state=self.random_state,
+        )
 
     def create_pipeline(
         self,

@@ -153,11 +153,9 @@ class PerformanceMonitor:
         else:
             stats.failed_requests += 1
 
-        if execution_time < stats.min_time:
-            stats.min_time = execution_time
+        stats.min_time = min(stats.min_time, execution_time)
 
-        if execution_time > stats.max_time:
-            stats.max_time = execution_time
+        stats.max_time = max(stats.max_time, execution_time)
 
         is_slow = execution_time > self.slow_threshold
         if is_slow:

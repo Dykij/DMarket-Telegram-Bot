@@ -222,7 +222,7 @@ class ExtendedShutdownHandler:
                     else:
                         cleanup_func()
                     logger.info("cleanup_task_completed", task=cleanup_func.__name__)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     logger.warning("cleanup_task_timeout", task=cleanup_func.__name__)
                 except Exception as e:
                     logger.exception(

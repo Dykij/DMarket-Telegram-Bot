@@ -295,7 +295,7 @@ class TestHighFrequencyTrader:
                 "error": False,
             }
         )
-        
+
         trader = HighFrequencyTrader(mock_api, hft_config)
         result = await trader._check_balance()
 
