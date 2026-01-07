@@ -97,8 +97,8 @@ class PricePredictor:
                 self.encoder = joblib.load(self.encoder_path)
                 self.is_trained = True
                 logger.info(
-                    "price_predictor_loaded",
-                    model_path=self.model_path,
+                    "price_predictor_loaded: model_path=%s",
+                    self.model_path,
                 )
         except ImportError:
             logger.warning(
@@ -107,8 +107,8 @@ class PricePredictor:
             )
         except Exception as e:
             logger.warning(
-                "price_predictor_load_failed",
-                error=str(e),
+                "price_predictor_load_failed: error=%s",
+                str(e),
             )
 
     def train_model(
@@ -154,7 +154,7 @@ class PricePredictor:
         # Check if history file exists
         if not os.path.exists(history_path):
             error_msg = f"❌ Нет данных для обучения. Файл не найден: {history_path}"
-            logger.error("training_data_not_found", path=history_path)
+            logger.error("training_data_not_found: path=%s", history_path)
             return error_msg
 
         try:
@@ -169,8 +169,8 @@ class PricePredictor:
                 )
 
             logger.info(
-                "training_started",
-                samples_before_cleaning=len(df),
+                "training_started: samples_before_cleaning=%d",
+                len(df),
             )
 
             # Validate required columns
@@ -188,9 +188,9 @@ class PricePredictor:
             removed_count = original_len - len(df)
             if removed_count > 0:
                 logger.info(
-                    "outliers_removed",
-                    removed=removed_count,
-                    remaining=len(df),
+                    "outliers_removed: removed=%d, remaining=%d",
+                    removed_count,
+                    len(df),
                 )
 
             # Ensure we still have enough data after cleaning
@@ -244,17 +244,17 @@ class PricePredictor:
             )
 
             logger.info(
-                "training_completed",
-                samples=len(df),
-                unique_items=unique_items,
-                outliers_removed=removed_count,
+                "training_completed: samples=%d, unique_items=%d, outliers_removed=%d",
+                len(df),
+                unique_items,
+                removed_count,
             )
 
             return result_msg
 
         except Exception as e:
             error_msg = f"❌ Ошибка обучения модели: {e}"
-            logger.exception("training_failed", error=str(e))
+            logger.exception("training_failed: error=%s", str(e))
             return error_msg
 
     def predict_with_guard(
@@ -301,8 +301,8 @@ class PricePredictor:
             # Check if item is known to the model
             if item_name not in self.encoder.classes_:
                 logger.debug(
-                    "unknown_item",
-                    item_name=item_name,
+                    "unknown_item: item_name=%s",
+                    item_name,
                 )
                 return None
 
@@ -326,10 +326,10 @@ class PricePredictor:
             # SAFETY GUARD 1: No profit = no recommendation
             if ai_price <= market_price:
                 logger.debug(
-                    "no_profit_opportunity",
-                    item_name=item_name,
-                    market_price=market_price,
-                    ai_price=ai_price,
+                    "no_profit_opportunity: item=%s, market=%.2f, ai=%.2f",
+                    item_name,
+                    market_price,
+                    ai_price,
                 )
                 return None
 
@@ -338,29 +338,29 @@ class PricePredictor:
             profit_percent = (ai_price - market_price) / market_price
             if profit_percent > MAX_PROFIT_DEVIATION:
                 logger.warning(
-                    "hallucination_detected",
-                    item_name=item_name,
-                    market_price=market_price,
-                    ai_price=ai_price,
-                    profit_percent=profit_percent,
+                    "hallucination_detected: item=%s, market=%.2f, ai=%.2f, profit=%.1f%%",
+                    item_name,
+                    market_price,
+                    ai_price,
+                    profit_percent * 100,
                 )
                 return None
 
             logger.debug(
-                "price_predicted",
-                item_name=item_name,
-                market_price=market_price,
-                ai_price=ai_price,
-                profit_percent=profit_percent,
+                "price_predicted: item=%s, market=%.2f, ai=%.2f, profit=%.1f%%",
+                item_name,
+                market_price,
+                ai_price,
+                profit_percent * 100,
             )
 
             return ai_price
 
         except Exception as e:
             logger.exception(
-                "prediction_failed",
-                item_name=item_name,
-                error=str(e),
+                "prediction_failed: item=%s, error=%s",
+                item_name,
+                str(e),
             )
             return None
 
