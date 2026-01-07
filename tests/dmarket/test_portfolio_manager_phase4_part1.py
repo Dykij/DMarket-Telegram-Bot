@@ -95,14 +95,14 @@ def sample_snapshot(sample_asset):
     return PortfolioSnapshot(
         timestamp=datetime.now(UTC),
         assets=[sample_asset],
-        total_value_usd=10.0,
+        total_value_usd=110.0,
         cash_balance=100.0,
         inventory_value=10.0,
         listed_value=0.0,
-        target_value=0.0,
-        asset_allocation={AssetType.INVENTORY: 10.0, AssetType.CASH: 100.0},
-        game_allocation={"csgo": 10.0},
-        category_allocation={"Rifle": 10.0},
+        targets_value=0.0,
+        asset_count=1,
+        game_distribution={"csgo": 10.0},
+        category_distribution={"Rifle": 10.0},
     )
 
 
@@ -188,10 +188,10 @@ class TestRiskAnalysis:
             cash_balance=100.0,
             inventory_value=0.0,
             listed_value=0.0,
-            target_value=0.0,
-            asset_allocation={},
-            game_allocation={},
-            category_allocation={},
+            targets_value=0.0,
+            asset_count=0,
+            game_distribution={},
+            category_distribution={},
         )
 
         risk = await portfolio_manager.analyze_risk(snapshot)
@@ -217,7 +217,7 @@ class TestPerformanceMetrics:
     @pytest.mark.asyncio()
     async def test_get_performance_metrics_with_days_parameter(self, portfolio_manager):
         """Тест метрик за определенный период."""
-        metrics = await portfolio_manager.get_performance_metrics(days=7)
+        metrics = await portfolio_manager.get_performance_metrics(period_days=7)
 
         assert isinstance(metrics, dict)
 
@@ -236,8 +236,12 @@ class TestReportFormatting:
         """Тест что format_portfolio_report возвращает строку."""
         risk = RiskAnalysis(
             overall_risk=RiskLevel.LOW,
-            concentration_score=0.1,
-            liquidity_score=0.9,
+            concentration_score=10.0,
+            single_item_risk=5.0,
+            single_game_risk=100.0,
+            illiquidity_risk=0.0,
+            stale_items_risk=0.0,
+            diversification_score=90.0,
             risk_factors=[],
             recommendations=[],
         )
@@ -253,8 +257,12 @@ class TestReportFormatting:
         """Тест что отчет включает общую стоимость."""
         risk = RiskAnalysis(
             overall_risk=RiskLevel.LOW,
-            concentration_score=0.1,
-            liquidity_score=0.9,
+            concentration_score=10.0,
+            single_item_risk=5.0,
+            single_game_risk=100.0,
+            illiquidity_risk=0.0,
+            stale_items_risk=0.0,
+            diversification_score=90.0,
             risk_factors=[],
             recommendations=[],
         )
@@ -273,8 +281,12 @@ class TestReportFormatting:
         """Тест что отчет включает уровень риска."""
         risk = RiskAnalysis(
             overall_risk=RiskLevel.MEDIUM,
-            concentration_score=0.5,
-            liquidity_score=0.5,
+            concentration_score=50.0,
+            single_item_risk=30.0,
+            single_game_risk=100.0,
+            illiquidity_risk=10.0,
+            stale_items_risk=0.0,
+            diversification_score=50.0,
             risk_factors=[],
             recommendations=[],
         )
@@ -289,8 +301,12 @@ class TestReportFormatting:
         """Тест что отчет включает количество активов."""
         risk = RiskAnalysis(
             overall_risk=RiskLevel.LOW,
-            concentration_score=0.1,
-            liquidity_score=0.9,
+            concentration_score=10.0,
+            single_item_risk=5.0,
+            single_game_risk=100.0,
+            illiquidity_risk=0.0,
+            stale_items_risk=0.0,
+            diversification_score=90.0,
             risk_factors=[],
             recommendations=[],
         )
@@ -306,8 +322,12 @@ class TestReportFormatting:
         """Тест форматирования отчета с высоким риском."""
         risk = RiskAnalysis(
             overall_risk=RiskLevel.CRITICAL,
-            concentration_score=0.9,
-            liquidity_score=0.1,
+            concentration_score=90.0,
+            single_item_risk=70.0,
+            single_game_risk=100.0,
+            illiquidity_risk=50.0,
+            stale_items_risk=30.0,
+            diversification_score=10.0,
             risk_factors=["High concentration", "Low liquidity"],
             recommendations=["Diversify", "Increase cash"],
         )
@@ -326,16 +346,20 @@ class TestReportFormatting:
             cash_balance=0.0,
             inventory_value=0.0,
             listed_value=0.0,
-            target_value=0.0,
-            asset_allocation={},
-            game_allocation={},
-            category_allocation={},
+            targets_value=0.0,
+            asset_count=0,
+            game_distribution={},
+            category_distribution={},
         )
 
         risk = RiskAnalysis(
             overall_risk=RiskLevel.LOW,
             concentration_score=0.0,
-            liquidity_score=1.0,
+            single_item_risk=0.0,
+            single_game_risk=0.0,
+            illiquidity_risk=0.0,
+            stale_items_risk=0.0,
+            diversification_score=100.0,
             risk_factors=[],
             recommendations=[],
         )

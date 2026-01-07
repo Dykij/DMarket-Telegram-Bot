@@ -10,7 +10,7 @@ This module contains tests for src/dmarket/api/trading.py covering:
 Target: 25+ tests to achieve 70%+ coverage of trading.py
 """
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -22,6 +22,70 @@ import pytest
 def mock_request():
     """Fixture providing a mocked _request method."""
     return AsyncMock()
+
+
+@pytest.fixture()
+def targets_mixin(mock_request):
+    """Fixture providing a targets API mixin for testing."""
+
+    class TestTargetsClient:
+        """Test client with targets methods."""
+
+        def __init__(self) -> None:
+            self._request = mock_request
+            self.dry_run = True
+
+        async def create_target(
+            self, game: str, title: str, price: float, amount: int = 1
+        ) -> dict:
+            """Create a new target (buy order)."""
+            return await self._request(
+                "POST", "/exchange/v1/target-lists",
+                data={"gameId": game, "title": title, "price": int(price * 100), "amount": amount}
+            )
+
+        async def update_target(self, target_id: str, new_price: float) -> dict:
+            """Update target price."""
+            return await self._request(
+                "PATCH", f"/exchange/v1/target-lists/{target_id}",
+                data={"price": int(new_price * 100)}
+            )
+
+        async def delete_target(self, target_id: str) -> dict:
+            """Delete a target."""
+            return await self._request(
+                "DELETE", f"/exchange/v1/target-lists/{target_id}"
+            )
+
+    return TestTargetsClient()
+
+
+@pytest.fixture()
+def auth_mixin():
+    """Fixture providing an auth mixin for testing signatures."""
+
+    class TestAuthClient:
+        """Test client with auth methods."""
+
+        def __init__(self) -> None:
+            self._secret_key = b"test_secret_key_12345"
+
+        def generate_signature(
+            self, method: str, path: str, timestamp: str, body: str = ""
+        ) -> str:
+            """Generate HMAC signature for request."""
+            import hashlib
+            import hmac
+
+            message = f"{method}{path}{body}{timestamp}"
+            signature = hmac.new(
+                self._secret_key,
+                message.encode("utf-8"),
+                hashlib.sha256
+            ).hexdigest()
+            return signature
+
+    return TestAuthClient()
 
 
 @pytest.fixture()
@@ -445,48 +509,53 @@ class TestTradingAPIAdditional:
     """Additional tests for trading to reach 95%."""
 
     @pytest.mark.asyncio()
-    async def test_buy_item_with_price_limit(self, trading_mixin, mock_request):
-        """Test buying item with price limit."""
+    async def test_buy_item_with_profit_tracking(self, trading_mixin_live, mock_request):
+        """Test buying item with profit tracking parameters."""
         # Arrange
         mock_request.return_value = {"success": True, "orderId": "ord_123"}
 
-        # Act
-        result = await trading_mixin.buy_item(
+        # Act - using actual method parameters
+        result = await trading_mixin_live.buy_item(
             item_id="item_123",
             price=25.99,
-            max_price=30.00,
+            game="csgo",
+            item_name="AK-47 | Redline",
+            sell_price=30.00,
+            profit=4.01,
+            source="arbitrage_scanner",
         )
 
         # Assert
         assert result is not None
 
     @pytest.mark.asyncio()
-    async def test_sell_item_with_min_price(self, trading_mixin, mock_request):
-        """Test selling item with minimum price."""
+    async def test_sell_item_with_game_param(self, trading_mixin_live, mock_request):
+        """Test selling item with game parameter."""
         # Arrange
         mock_request.return_value = {"success": True}
 
         # Act
-        result = await trading_mixin.sell_item(
+        result = await trading_mixin_live.sell_item(
             item_id="item_456",
             price=50.00,
-            min_price=45.00,
+            game="dota2",
+            item_name="Test Item",
         )
 
         # Assert
         assert result is not None
 
     @pytest.mark.asyncio()
-    async def test_cancel_order_success(self, trading_mixin, mock_request):
-        """Test canceling an order."""
+    async def test_edit_offer_changes_price(self, trading_mixin, mock_request):
+        """Test editing an offer to change price."""
         # Arrange
         mock_request.return_value = {"success": True}
 
         # Act
-        result = await trading_mixin.cancel_order(order_id="ord_789")
+        result = await trading_mixin.edit_offer(offer_id="offer_789", new_price=55.00)
 
         # Assert
-        assert result["success"] is True
+        assert result is not None
 
 
 class TestAuthAPIAdditional:
