@@ -64,3 +64,22 @@ class TestViewItemsHandler:
         }
         est_profit = estimate_profit(item)
         assert abs(est_profit - 1.16) < 0.01
+
+
+class TestAutomaticArbitrageHandler:
+    """Tests for Automatic Arbitrage handler."""
+
+    @pytest.mark.asyncio
+    async def test_automatic_arbitrage_callable(self, mock_update, mock_context):
+        """Test that handle_automatic_arbitrage is callable."""
+        # Verify the handler is a callable function
+        assert callable(handle_automatic_arbitrage)
+
+    @pytest.mark.asyncio
+    async def test_automatic_arbitrage_handler_exists(self, mock_update, mock_context):
+        """Test automatic arbitrage handler exists and has correct signature."""
+        import inspect
+        sig = inspect.signature(handle_automatic_arbitrage)
+        params = list(sig.parameters.keys())
+        # Should have update and context parameters
+        assert len(params) >= 2

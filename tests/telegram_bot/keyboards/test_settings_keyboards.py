@@ -122,3 +122,40 @@ class TestCreateGameSelectionKeyboard:
         cs2_buttons = [btn for btn in all_buttons if "CS" in btn.text]
         assert len(cs2_buttons) >= 1
         assert any(btn.callback_data == f"{CB_GAME_PREFIX}csgo" for btn in cs2_buttons)
+
+
+class TestCreateSettingsKeyboard:
+    """Tests for create_settings_keyboard function."""
+
+    def test_returns_inline_keyboard_markup(self):
+        result = create_settings_keyboard()
+        assert isinstance(result, InlineKeyboardMarkup)
+
+    def test_has_settings_buttons(self):
+        result = create_settings_keyboard()
+        assert len(result.inline_keyboard) > 0
+
+
+class TestGetBackToSettingsKeyboard:
+    """Tests for get_back_to_settings_keyboard function."""
+
+    def test_returns_inline_keyboard_markup(self):
+        result = get_back_to_settings_keyboard()
+        assert isinstance(result, InlineKeyboardMarkup)
+
+    def test_has_back_button(self):
+        result = get_back_to_settings_keyboard()
+        assert len(result.inline_keyboard) > 0
+        # Back button should be present
+        all_buttons = [btn for row in result.inline_keyboard for btn in row]
+        assert any("Назад" in btn.text or "назад" in btn.text.lower() for btn in all_buttons)
+
+
+class TestCancelCallback:
+    """Tests for CB_CANCEL constant usage."""
+
+    def test_cancel_callback_is_string(self):
+        assert isinstance(CB_CANCEL, str)
+
+    def test_cancel_callback_not_empty(self):
+        assert len(CB_CANCEL) > 0

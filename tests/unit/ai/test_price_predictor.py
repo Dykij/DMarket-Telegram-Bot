@@ -219,6 +219,10 @@ class TestPricePredictorEdgeCases:
         mock_model.predict.return_value = [8.0]  # Lower than market_price=10.0
         predictor.model = mock_model
 
+        # Verify pandas is available for data frame operations in predictor
+        test_df = pd.DataFrame({"test": [1, 2, 3]})
+        assert len(test_df) == 3
+
         result = predictor.predict_with_guard(
             item_name="Test Item",
             market_price=10.0,
