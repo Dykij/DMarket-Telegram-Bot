@@ -11,20 +11,18 @@ import pytest
 @pytest.fixture(autouse=True)
 def reset_circuit_breakers_fixture():
     """Reset all circuit breakers before each test to prevent state leakage."""
+    reset_func = None
     try:
         from src.utils.api_circuit_breaker import reset_all_circuit_breakers
 
-        reset_all_circuit_breakers()
+        reset_func = reset_all_circuit_breakers
+        reset_func()
     except ImportError:
         pass  # Circuit breaker module not available
     yield
     # Reset again after test completes
-    try:
-        from src.utils.api_circuit_breaker import reset_all_circuit_breakers
-
-        reset_all_circuit_breakers()
-    except ImportError:
-        pass
+    if reset_func:
+        reset_func()
 
 
 

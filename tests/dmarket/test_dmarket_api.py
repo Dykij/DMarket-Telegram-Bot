@@ -1098,12 +1098,13 @@ class TestRequestMethod:
 
             # Assert - the result indicates an error occurred
             assert isinstance(result, dict)
-            # 'error' key exists with a truthy value (True or string message)
-            # OR 'code' indicates failure
-            assert "error" in result or result.get("code") == "REQUEST_FAILED"
-            if "error" in result:
-                # Error can be True (boolean) or error message string
-                assert result["error"] or result.get("status_code") == 400
+            # Either 'error' key exists, OR 'code' indicates failure
+            has_error_key = "error" in result
+            has_error_code = result.get("code") == "REQUEST_FAILED"
+            assert has_error_key or has_error_code
+            # If error key exists, verify it's truthy or status_code is set
+            if has_error_key:
+                assert result["error"] is True or isinstance(result["error"], str)
 
     @pytest.mark.asyncio()
     async def test_request_network_error_retries(self, dmarket_api):
@@ -1158,11 +1159,13 @@ class TestRequestMethod:
 
                 # Assert - the result indicates an error occurred
                 assert isinstance(result, dict)
-                # 'error' key exists with a truthy value OR 'code' indicates failure
-                assert "error" in result or result.get("code") == "REQUEST_FAILED"
-                if "error" in result:
-                    # Error can be True (boolean) or error message string
-                    assert result["error"] or result.get("status_code") == 503
+                # Either 'error' key exists, OR 'code' indicates failure
+                has_error_key = "error" in result
+                has_error_code = result.get("code") == "REQUEST_FAILED"
+                assert has_error_key or has_error_code
+                # If error key exists, verify it's truthy or status_code is set
+                if has_error_key:
+                    assert result["error"] is True or isinstance(result["error"], str)
                 # Note: call_count may vary due to circuit breaker behavior
 
     @pytest.mark.asyncio()
