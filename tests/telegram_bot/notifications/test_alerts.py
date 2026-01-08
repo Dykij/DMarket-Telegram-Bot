@@ -325,7 +325,7 @@ class TestUpdateUserSettings:
             "src.telegram_bot.notifications.alerts.get_storage",
             return_value=mock_storage,
         ):
-            # update_user_settings returns None (success)
+            # update_user_settings has no return statement, so it returns None implicitly
             result = await update_user_settings(
                 user_id=12345,
                 settings={
@@ -334,7 +334,7 @@ class TestUpdateUserSettings:
                 },
             )
 
-            # Should return None on success (no explicit return)
+            # Function returns None (no explicit return)
             assert result is None
             mock_storage.save_user_alerts.assert_called()
 
@@ -345,7 +345,7 @@ class TestUpdateUserSettings:
             "src.telegram_bot.notifications.alerts.get_storage",
             return_value=mock_storage,
         ):
-            # update_user_settings returns None (success)
+            # update_user_settings has no return statement, so it returns None implicitly
             result = await update_user_settings(
                 user_id=12345,
                 settings={
@@ -353,7 +353,7 @@ class TestUpdateUserSettings:
                 },
             )
 
-            # Should return None on success (no explicit return)
+            # Function returns None (no explicit return)
             assert result is None
             mock_storage.save_user_alerts.assert_called()
 
