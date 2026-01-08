@@ -25,30 +25,29 @@ async def test_setup_bot_commands_success():
     # Проверяем вызовы
     calls = mock_bot.set_my_commands.call_args_list
 
-    # Первый вызов - английские команды
+    # Первый вызов - английские команды (теперь только 3 основных)
     en_commands = calls[0][0][0]
     assert isinstance(en_commands, list)
-    assert len(en_commands) == 10
+    assert len(en_commands) == 3
     assert all(isinstance(cmd, BotCommand) for cmd in en_commands)
     assert calls[0][1]["language_code"] == "en"
 
     # Проверяем несколько команд
     command_names = [cmd.command for cmd in en_commands]
     assert "start" in command_names
-    assert "balance" in command_names
-    assert "arbitrage" in command_names
     assert "help" in command_names
+    assert "settings" in command_names
 
     # Второй вызов - русские команды
     ru_commands = calls[1][0][0]
     assert isinstance(ru_commands, list)
-    assert len(ru_commands) == 10
+    assert len(ru_commands) == 3
     assert calls[1][1]["language_code"] == "ru"
 
     # Третий вызов - команды по умолчанию
     default_commands = calls[2][0][0]
     assert isinstance(default_commands, list)
-    assert len(default_commands) == 10
+    assert len(default_commands) == 3
 
 
 @pytest.mark.asyncio()
@@ -65,7 +64,8 @@ async def test_setup_bot_commands_structure():
     calls = mock_bot.set_my_commands.call_args_list
     en_commands = calls[0][0][0]
 
-    # Проверяем структуру команд
+    # Проверяем структуру команд (теперь 3 команды)
+    assert len(en_commands) == 3
     for cmd in en_commands:
         assert hasattr(cmd, "command")
         assert hasattr(cmd, "description")

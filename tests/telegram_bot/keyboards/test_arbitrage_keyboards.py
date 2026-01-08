@@ -115,8 +115,8 @@ class TestGetModernArbitrageKeyboard:
         """Test that keyboard has correct number of rows."""
         result = get_modern_arbitrage_keyboard()
 
-        # 6 rows total
-        assert len(result.inline_keyboard) == 6
+        # 7 rows total (including Waxpeer P2P row)
+        assert len(result.inline_keyboard) == 7
 
     def test_has_simple_menu_button(self):
         """Test that simple menu button exists."""
@@ -194,7 +194,7 @@ class TestGetModernArbitrageKeyboard:
         """Test that main menu button exists."""
         result = get_modern_arbitrage_keyboard()
 
-        main_button = result.inline_keyboard[5][0]
+        main_button = result.inline_keyboard[6][0]
         assert "Главное" in main_button.text
         assert main_button.callback_data == "main_menu"
 
