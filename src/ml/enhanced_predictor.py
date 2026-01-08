@@ -279,6 +279,14 @@ class EnhancedFeatures:
             "gem_count",
             "is_unusual",
             "effect_value",
+            # DMarket Bonus/Discount (новые из API документации)
+            "dmarket_discount",
+            "dmarket_bonus",
+            "has_dmarket_discount",
+            # Lock Status
+            "lock_status",
+            "lock_days_remaining",
+            "lock_discount",
         ]
 
 

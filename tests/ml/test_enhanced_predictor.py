@@ -9,7 +9,7 @@
 
 import numpy as np
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from src.ml.enhanced_predictor import (
     EnhancedFeatures,
@@ -43,7 +43,7 @@ class TestEnhancedFeatures:
 
         assert isinstance(arr, np.ndarray)
         assert arr.dtype == np.float64
-        assert len(arr) == 32  # 32 признака
+        assert len(arr) == 38  # 38 признаков (базовые + DMarket + Lock)
 
     def test_feature_names_match_array_length(self):
         """Тест соответствия количества имён и признаков."""
@@ -108,7 +108,7 @@ class TestEnhancedFeatureExtractor:
 
     def test_extract_with_price_history(self, extractor):
         """Тест с историей цен."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         price_history = [
             (now - timedelta(days=6), 9.0),
             (now - timedelta(days=5), 9.5),
@@ -132,7 +132,7 @@ class TestEnhancedFeatureExtractor:
 
     def test_extract_with_sales_history(self, extractor):
         """Тест с историей продаж."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         sales_history = [
             {"timestamp": (now - timedelta(hours=i)).isoformat(), "price": 10.0}
             for i in range(24)
@@ -260,7 +260,7 @@ class TestEnhancedFeatureExtractor:
 
     def test_relative_strength_calculation(self, extractor):
         """Тест расчёта Relative Strength."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         price_history = [(now - timedelta(days=i), 50.0) for i in range(7)]
 
         features = extractor.extract_features(
