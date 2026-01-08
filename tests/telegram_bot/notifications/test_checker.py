@@ -338,8 +338,12 @@ class TestCheckPriceAlert:
                     alert=alert,
                 )
 
-                # check_price_alert doesn't check active flag, so it may return result
-                assert result is None or result is not None
+                # check_price_alert doesn't check active flag internally
+                # Function still checks the alert type, so price_drop with price <= threshold triggers
+                # With price=10.0 and threshold=15.0, it should trigger
+                assert result is not None
+                assert isinstance(result, dict)
+                assert "current_price" in result
 
     @pytest.mark.asyncio()
     async def test_check_alert_with_none_price(self, mock_api, mock_storage):
@@ -586,9 +590,10 @@ class TestCheckerEdgeCases:
                     alert=alert,
                 )
 
-                # Returns dict if triggered or None
                 # At exactly threshold, price_drop returns triggered (current_price <= threshold)
-                assert result is not None or result is None
+                assert result is not None
+                assert isinstance(result, dict)
+                assert result["current_price"] == 10.0
 
     @pytest.mark.asyncio()
     async def test_price_with_very_small_difference(self, mock_api, mock_storage):
@@ -673,8 +678,10 @@ class TestCheckerEdgeCases:
                         alert=alert,
                     )
 
-                    # Returns dict if triggered or None
-                    assert result is not None or result is None
+                    # Volume alerts check history volume against threshold
+                    # With volume=60 >= threshold=50, it should trigger
+                    assert result is not None
+                    assert isinstance(result, dict)
 
     @pytest.mark.asyncio()
     async def test_trend_change_alert(self, mock_api, mock_storage):
@@ -703,8 +710,10 @@ class TestCheckerEdgeCases:
                     alert=alert,
                 )
 
-                # Returns dict if triggered or None
-                assert result is not None or result is None
+                # Trend change alert with non-stable trend and confidence >= threshold
+                # With trend="up" (not stable) and confidence=0.8 >= 0/100, should trigger
+                assert result is not None
+                assert isinstance(result, dict)
 
 
 # =============================================================================
