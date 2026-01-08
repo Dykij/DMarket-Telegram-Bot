@@ -154,7 +154,7 @@ class EnhancedFeatures:
 
     # Мета-признаки
     data_quality_score: float = 1.0
-    feature_timestamp: datetime = field(default_factory=datetime.utcnow)
+    feature_timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_array(self) -> np.ndarray:
         """Преобразовать признаки в numpy массив для ML модели."""
