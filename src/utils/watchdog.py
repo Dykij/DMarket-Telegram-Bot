@@ -29,7 +29,7 @@ import logging
 import os
 from pathlib import Path
 import signal
-import subprocess
+import subprocess  # noqa: S404 - Required for process management in watchdog
 import sys
 from typing import Any
 
@@ -209,7 +209,7 @@ class Watchdog:
             # Определяем рабочую директорию
             working_dir = Path(__file__).parent.parent.parent  # Корень проекта
 
-            self._process = subprocess.Popen(
+            self._process = subprocess.Popen(  # noqa: ASYNC220, S603 - Required for process management
                 [self.config.python_executable, "-m", "src.main"],
                 cwd=working_dir,
                 stdout=subprocess.PIPE,

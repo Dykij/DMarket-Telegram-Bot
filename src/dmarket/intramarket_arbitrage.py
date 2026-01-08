@@ -133,6 +133,89 @@ def _extract_suggested_price(item: dict[str, Any]) -> float:
     return 0
 
 
+def _find_group_anomalies(
+    key: str,
+    items_list: list[dict[str, Any]],
+    game: str,
+    price_diff_percent: float,
+) -> list[dict[str, Any]]:
+    """Find price anomalies within a single group of items.
+
+    Args:
+        key: Composite key for the item group
+        items_list: List of items in the group
+        game: Game code
+        price_diff_percent: Minimum price difference threshold
+
+    Returns:
+        List of anomaly dicts for this group
+
+    """
+    if len(items_list) < 2:
+        return []
+
+    # Sort by price
+    items_list.sort(key=operator.itemgetter("price"))
+    anomalies = []
+
+    # Compare each item with others to find price differences
+    for i in range(len(items_list)):
+        low_item = items_list[i]
+        for j in range(i + 1, len(items_list)):
+            anomaly = _check_item_pair_anomaly(key, low_item, items_list[j], game, price_diff_percent)
+            if anomaly:
+                anomalies.append(anomaly)
+
+    return anomalies
+
+
+def _check_item_pair_anomaly(
+    key: str,
+    low_item: dict[str, Any],
+    high_item: dict[str, Any],
+    game: str,
+    price_diff_percent: float,
+) -> dict[str, Any] | None:
+    """Check if a pair of items constitutes a price anomaly.
+
+    Args:
+        key: Composite key
+        low_item: Lower priced item
+        high_item: Higher priced item
+        game: Game code
+        price_diff_percent: Minimum price difference threshold
+
+    Returns:
+        Anomaly dict if found, None otherwise
+
+    """
+    price_diff = high_item["price"] - low_item["price"]
+    price_diff_pct = (price_diff / low_item["price"]) * 100
+
+    if price_diff_pct < price_diff_percent:
+        return None
+
+    # Calculate profit after fees
+    fee_percent = 7.0  # DMarket fee
+    profit_after_fee = high_item["price"] * (1 - fee_percent / 100) - low_item["price"]
+
+    if profit_after_fee <= 0:
+        return None
+
+    return {
+        "game": game,
+        "item_to_buy": low_item["item"],
+        "item_to_sell": high_item["item"],
+        "buy_price": low_item["price"],
+        "sell_price": high_item["price"],
+        "price_difference": price_diff,
+        "profit_percentage": price_diff_pct,
+        "profit_after_fee": profit_after_fee,
+        "fee_percent": fee_percent,
+        "composite_key": key,
+    }
+
+
 # Cache for search results to minimize API calls
 _cache = {}
 _cache_ttl = 300  # Cache TTL in seconds (5 min)
@@ -229,48 +312,8 @@ async def find_price_anomalies(
         anomalies = []
 
         for key, items_list in grouped_items.items():
-            # Skip if only one price point
-            if len(items_list) < 2:
-                continue
-
-            # Sort by price
-            items_list.sort(key=operator.itemgetter("price"))
-
-            # Compare each item with others to find price differences
-            for i in range(len(items_list)):
-                low_item = items_list[i]
-
-                for j in range(i + 1, len(items_list)):
-                    high_item = items_list[j]
-
-                    # Calculate price difference
-                    price_diff = high_item["price"] - low_item["price"]
-                    price_diff_pct = (price_diff / low_item["price"]) * 100
-
-                    # Apply minimum difference threshold
-                    if price_diff_pct >= price_diff_percent:
-                        # Calculate profit after fees
-                        fee_percent = 7.0  # DMarket fee
-                        profit_after_fee = (
-                            high_item["price"] * (1 - fee_percent / 100) - low_item["price"]
-                        )
-
-                        # Only include if profitable after fees
-                        if profit_after_fee > 0:
-                            anomalies.append(
-                                {
-                                    "game": game,
-                                    "item_to_buy": low_item["item"],
-                                    "item_to_sell": high_item["item"],
-                                    "buy_price": low_item["price"],
-                                    "sell_price": high_item["price"],
-                                    "price_difference": price_diff,
-                                    "profit_percentage": price_diff_pct,
-                                    "profit_after_fee": profit_after_fee,
-                                    "fee_percent": fee_percent,
-                                    "composite_key": key,
-                                },
-                            )
+            group_anomalies = _find_group_anomalies(key, items_list, game, price_diff_percent)
+            anomalies.extend(group_anomalies)
 
         # Sort by profit percentage in descending order
         anomalies.sort(key=operator.itemgetter("profit_percentage"), reverse=True)
@@ -316,7 +359,7 @@ async def find_trending_items(
         dmarket_api = create_dmarket_api_client(None)
         close_api = True
 
-    try:
+    try:  # noqa: PLR1702
         # Get recent sales history and popular items
         trending_items = []
 

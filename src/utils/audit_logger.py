@@ -126,7 +126,7 @@ class AuditLogger:
         """
         self.session = session
 
-    async def log(
+    async def log(  # noqa: PLR0917
         self,
         event_type: AuditEventType | str,
         action: str,

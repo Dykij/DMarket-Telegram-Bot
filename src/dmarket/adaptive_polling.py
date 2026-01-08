@@ -286,36 +286,36 @@ class AdaptivePollingEngine:
         """Main polling loop with adaptive intervals."""
         while self._running:
             try:
-                # Determine current interval
-                interval = self._calculate_interval()
-
-                # Poll all games
-                for game in self.games:
-                    if not self._running:
-                        break
-
-                    changes = await self._poll_game(game)
-
-                    # Process changes
-                    for change in changes:
-                        self._changes_detected += 1
-                        if self.on_price_change:
-                            try:
-                                await self.on_price_change(change)
-                            except Exception as e:
-                                logger.exception("price_change_callback_error", error=str(e))
-
-                self._poll_count += 1
-                self._last_poll_time = datetime.now(UTC)
-
-                # Wait for next poll
-                await asyncio.sleep(interval)
-
+                await self._execute_poll_cycle()
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 logger.exception("polling_error", error=str(e))
                 await asyncio.sleep(self.config.base_interval)
+
+    async def _execute_poll_cycle(self) -> None:
+        """Execute a single poll cycle for all games."""
+        interval = self._calculate_interval()
+
+        for game in self.games:
+            if not self._running:
+                break
+            changes = await self._poll_game(game)
+            await self._process_changes(changes)
+
+        self._poll_count += 1
+        self._last_poll_time = datetime.now(UTC)
+        await asyncio.sleep(interval)
+
+    async def _process_changes(self, changes: list) -> None:
+        """Process detected price changes."""
+        for change in changes:
+            self._changes_detected += 1
+            if self.on_price_change:
+                try:
+                    await self.on_price_change(change)
+                except Exception as e:
+                    logger.exception("price_change_callback_error", error=str(e))
 
     def _calculate_interval(self) -> float:
         """Calculate adaptive polling interval."""

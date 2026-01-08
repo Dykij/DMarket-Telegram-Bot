@@ -118,7 +118,7 @@ class WaxpeerAuthError(WaxpeerAPIError):
     """Ошибка аутентификации API."""
 
 
-class WaxpeerAPI:
+class WaxpeerAPI:  # noqa: PLR0904
     """
     Асинхронный клиент для Waxpeer API.
 

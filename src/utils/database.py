@@ -30,7 +30,7 @@ from src.utils.memory_cache import _user_cache, cached, get_all_cache_stats
 logger = logging.getLogger(__name__)
 
 
-class DatabaseManager:
+class DatabaseManager:  # noqa: PLR0904
     """Database connection and operations manager."""
 
     def __init__(

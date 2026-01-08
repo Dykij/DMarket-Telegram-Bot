@@ -785,27 +785,9 @@ class Backtester:
         historical_prices: dict[str, list[PricePoint]] = {item: [] for item in items_to_test}
 
         for timestamp in sorted_timestamps:
-            # Update historical prices
-            for item in items_to_test:
-                if item in self.data:
-                    current_prices = [p for p in self.data[item].prices if p.timestamp == timestamp]
-                    for price in current_prices:
-                        historical_prices[item].append(price)
-
-                        # Check for position closes first
-                        self._check_and_close_positions(strategy, price)
-
-                        # Evaluate strategy for new positions
-                        if len(self.open_positions) < max_positions:
-                            action, price_val, reason = strategy.evaluate(
-                                current_price=price,
-                                historical_prices=historical_prices[item],
-                                open_positions=self.open_positions,
-                                balance=self.current_balance,
-                            )
-
-                            if action == TradeAction.BUY and price_val is not None:
-                                self._execute_buy(price, reason or "")
+            self._process_timestamp(
+                timestamp, items_to_test, historical_prices, strategy, max_positions
+            )
 
             # Record equity
             total_equity = self.current_balance + sum(
@@ -823,6 +805,60 @@ class Backtester:
             end_date=sorted_timestamps[-1],
             equity_curve=equity_curve,
         )
+
+    def _process_timestamp(
+        self,
+        timestamp: datetime,
+        items_to_test: list[str],
+        historical_prices: dict[str, list[PricePoint]],
+        strategy: TradingStrategy,
+        max_positions: int,
+    ) -> None:
+        """Process a single timestamp in the backtest simulation.
+
+        Args:
+            timestamp: Current timestamp to process
+            items_to_test: List of item IDs to test
+            historical_prices: Historical price data accumulator
+            strategy: Trading strategy to evaluate
+            max_positions: Maximum number of open positions allowed
+        """
+        for item in items_to_test:
+            if item not in self.data:
+                continue
+            current_prices = [p for p in self.data[item].prices if p.timestamp == timestamp]
+            for price in current_prices:
+                historical_prices[item].append(price)
+                self._check_and_close_positions(strategy, price)
+                self._evaluate_and_execute_buy(strategy, price, historical_prices[item], max_positions)
+
+    def _evaluate_and_execute_buy(
+        self,
+        strategy: TradingStrategy,
+        price: PricePoint,
+        historical_prices: list[PricePoint],
+        max_positions: int,
+    ) -> None:
+        """Evaluate strategy and execute buy if conditions are met.
+
+        Args:
+            strategy: Trading strategy to evaluate
+            price: Current price point
+            historical_prices: Historical price data for this item
+            max_positions: Maximum number of open positions allowed
+        """
+        if len(self.open_positions) >= max_positions:
+            return
+
+        action, price_val, reason = strategy.evaluate(
+            current_price=price,
+            historical_prices=historical_prices,
+            open_positions=self.open_positions,
+            balance=self.current_balance,
+        )
+
+        if action == TradeAction.BUY and price_val is not None:
+            self._execute_buy(price, reason or "")
 
     def _execute_buy(self, price_point: PricePoint, reason: str) -> None:
         """Execute a buy trade.

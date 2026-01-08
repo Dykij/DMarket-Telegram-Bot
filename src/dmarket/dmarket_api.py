@@ -99,7 +99,7 @@ GAME_MAP: dict[str, str] = {
 }
 
 
-class DMarketAPI:
+class DMarketAPI:  # noqa: PLR0904
     """Асинхронный клиент для работы с DMarket API.
 
     Основные возможности:
@@ -1481,7 +1481,7 @@ class DMarketAPI:
         return await self.get_balance()
 
     @validate_response(MarketItemsResponse, endpoint="/exchange/v1/market/items")
-    async def get_market_items(
+    async def get_market_items(  # noqa: PLR0917
         self,
         game: str = "csgo",
         limit: int = 100,

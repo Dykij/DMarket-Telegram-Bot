@@ -334,7 +334,7 @@ class RealtimePriceWatcher:
             items_by_game[game].append(item_id)
 
         # Обновляем цены для каждой игры
-        for game, item_ids in items_by_game.items():
+        for game, item_ids in items_by_game.items():  # noqa: PLR1702
             # Разбиваем на чанки по 50 предметов для избежания слишком длинных запросов
             chunk_size = 50
             for i in range(0, len(item_ids), chunk_size):

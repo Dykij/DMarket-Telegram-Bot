@@ -33,7 +33,7 @@ class WebhookConfig:
         self,
         url: str,
         port: int = 8443,
-        listen: str = "0.0.0.0",
+        listen: str = "0.0.0.0",  # noqa: S104 - Required for Docker container networking
         url_path: str = "telegram-webhook",
         cert_path: str | None = None,
         key_path: str | None = None,
@@ -115,7 +115,7 @@ class WebhookConfig:
         return cls(
             url=webhook_url,
             port=int(os.getenv("WEBHOOK_PORT", "8443")),
-            listen=os.getenv("WEBHOOK_LISTEN", "0.0.0.0"),
+            listen=os.getenv("WEBHOOK_LISTEN", "0.0.0.0"),  # noqa: S104 - Required for Docker
             url_path=os.getenv("WEBHOOK_PATH", "telegram-webhook"),
             cert_path=os.getenv("WEBHOOK_CERT"),
             key_path=os.getenv("WEBHOOK_KEY"),
@@ -167,7 +167,7 @@ async def setup_webhook(
         # Read certificate if provided
         certificate = None
         if config.cert_path:
-            certificate = pathlib.Path(config.cert_path).read_bytes()
+            certificate = pathlib.Path(config.cert_path).read_bytes()  # noqa: ASYNC240 - Sync file read for SSL cert
             logger.info(f"  📜 Using SSL certificate: {config.cert_path}")
 
         # Set webhook with Telegram

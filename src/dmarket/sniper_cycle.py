@@ -28,7 +28,7 @@ async def sniper_cycle(
         bot: Telegram bot instance for notifications
         admin_id: User ID to send notifications to
     """
-    try:
+    try:  # noqa: PLR1702
         # 1. Get best deals (items with high discount)
         # Using "best_deals" type if supported, or standard market items
         items_response = await api.get_market_items(

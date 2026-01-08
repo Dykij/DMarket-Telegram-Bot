@@ -35,7 +35,7 @@ class HealthCheckServer:
 
     def __init__(
         self,
-        host: str = "0.0.0.0",
+        host: str = "0.0.0.0",  # noqa: S104 - Required for Docker container networking
         port: int = 8080,
         bot_app: Any = None,
         db_manager: Any = None,
@@ -355,7 +355,7 @@ def get_health_check_server() -> HealthCheckServer | None:
 
 
 def init_health_check_server(
-    host: str = "0.0.0.0",
+    host: str = "0.0.0.0",  # noqa: S104 - Required for Docker container networking
     port: int = 8080,
     **kwargs: Any,
 ) -> HealthCheckServer:

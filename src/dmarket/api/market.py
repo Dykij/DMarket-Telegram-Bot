@@ -170,7 +170,7 @@ class MarketOperationsMixin:
 
         return all_items[:max_items]
 
-    async def list_market_items(
+    async def list_market_items(  # noqa: PLR0917
         self,
         game_id: str = "a8db",
         limit: int = 100,

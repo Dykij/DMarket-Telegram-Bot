@@ -14,7 +14,7 @@ from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 import logging
 from pathlib import Path
-import pickle
+import pickle  # noqa: S403 - Required for ML model serialization
 from typing import Any
 
 import numpy as np
@@ -1414,7 +1414,7 @@ class EnhancedPricePredictor:
 
         try:
             with open(self.model_path, "rb") as f:
-                data = pickle.load(f)
+                data = pickle.load(f)  # noqa: S301 - Trusted local ML model file
 
             self._random_forest = data.get("random_forest")
             self._gradient_boost = data.get("gradient_boost")

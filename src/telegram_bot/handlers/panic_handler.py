@@ -61,7 +61,7 @@ async def panic_button_command(update: Update, context: ContextTypes.DEFAULT_TYP
         parse_mode=ParseMode.HTML,
     )
 
-    try:
+    try:  # noqa: PLR1702
         # Get necessary instances
         orchestrator = context.bot_data.get("orchestrator")
         auto_buyer = context.bot_data.get("auto_buyer")

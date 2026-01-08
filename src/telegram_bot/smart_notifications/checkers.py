@@ -49,7 +49,7 @@ async def check_price_alerts(
     active_alerts_ = get_active_alerts()
     user_preferences = get_user_preferences()
 
-    for user_id_str, alerts in active_alerts_.items():
+    for user_id_str, alerts in active_alerts_.items():  # noqa: PLR1702
         # Skip if no active alerts
         active_alerts = [a for a in alerts if a["active"] and a["type"] == "price_alert"]
         if not active_alerts:
