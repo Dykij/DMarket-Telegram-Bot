@@ -155,7 +155,7 @@ def _is_rare_float(attributes: dict[str, str]) -> bool:
     float_str = attributes.get("float_value") or attributes.get("floatValue", "")
 
     # Если float не указан - не считаем редким
-    if not float_str or float_str == "":
+    if not float_str:
         return False
 
     try:

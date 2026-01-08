@@ -177,7 +177,6 @@ class AggregatedScanner:
             logger.exception(
                 "aggregated_pre_scan_failed",
                 extra={"error": str(e), "game": game},
-                exc_info=True,
             )
             raise
 

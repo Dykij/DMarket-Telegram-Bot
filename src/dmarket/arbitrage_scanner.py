@@ -513,7 +513,7 @@ class ArbitrageScanner:
             loop = asyncio.get_event_loop()
             loop.call_later(
                 self._notification_cooldown,
-                lambda id=item_id: self._sent_notifications.discard(id),
+                lambda item_id_=item_id: self._sent_notifications.discard(item_id_),
             )
 
             logger.info(

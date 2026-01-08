@@ -169,7 +169,7 @@ class ModelTuner:
     def _check_sklearn(self) -> bool:
         """Проверить доступность sklearn."""
         try:
-            import sklearn
+            import sklearn  # noqa: F401
             return True
         except ImportError:
             logger.warning("scikit-learn not available")

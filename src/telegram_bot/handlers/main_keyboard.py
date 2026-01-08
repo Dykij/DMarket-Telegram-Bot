@@ -579,7 +579,8 @@ async def target_list(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
                 for t in targets:
                     t["game"] = game
                 all_targets.extend(targets)
-            except Exception:
+            except Exception as e:
+                logger.debug(f"Failed to get targets for {game}: {e}")
                 continue
 
         keyboard = [
@@ -869,7 +870,8 @@ async def _delete_all_targets(dmarket_api: Any) -> int:
             if target_ids:
                 await dmarket_api.delete_targets(target_ids=target_ids)
                 deleted_count += len(target_ids)
-        except Exception:
+        except Exception as e:
+            logger.debug(f"Failed to delete targets for {game}: {e}")
             continue
     return deleted_count
 

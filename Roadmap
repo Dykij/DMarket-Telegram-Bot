@@ -220,10 +220,10 @@ model = load("model.joblib")
 
 | Метрика | Текущее | Цель | Дедлайн |
 |---------|---------|------|---------|
-| Tests passed | 4922 | 4948+ | 2 недели |
-| Tests failed | 2 | 0 | 1 неделя |
+| Tests passed | 4924+ | 4948+ | 2 недели |
+| Tests failed | 0 | 0 | ✅ |
 | Tests skipped | 24 | 10 | 1 месяц |
-| Ruff warnings | 35 | 0 | 2 месяца |
+| Ruff warnings | 27 | 0 | 2 месяца |
 | Code coverage | ~80% | 85%+ | 1 месяц |
 
 ---
@@ -264,6 +264,11 @@ python -m src.main --debug
 
 ### Из Roadmap:
 - [x] P1: deprecated datetime.utcfromtimestamp → datetime.fromtimestamp(tz=UTC) (2 файла)
+- [x] P2: A006 lambda builtin shadowing → renamed `id` to `item_id_` (arbitrage_scanner.py)
+- [x] P2: G202 redundant exc_info → removed (aggregated_scanner.py)
+- [x] P2: F401 unused import → added noqa (model_tuner.py)
+- [x] P2: PLC1901 string check simplification → simplified (rare_patterns.py)
+- [x] P2: S112 try-except-continue → added logging (main_keyboard.py x2)
 
 ---
 
