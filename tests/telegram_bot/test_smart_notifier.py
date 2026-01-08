@@ -10,6 +10,7 @@ class TestSmartNotifierImports:
         """Test that importing smart_notifier emits deprecation warning."""
         # Clear any cached import
         import sys
+        import importlib
 
         if "src.telegram_bot.smart_notifier" in sys.modules:
             del sys.modules["src.telegram_bot.smart_notifier"]
@@ -17,7 +18,9 @@ class TestSmartNotifierImports:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
 
-            # Import the module
+            # Import the module - this should emit deprecation warning
+            import src.telegram_bot.smart_notifier  # noqa: F401
+            importlib.reload(src.telegram_bot.smart_notifier)
 
             # Verify deprecation warning was issued
             assert len(w) >= 1
