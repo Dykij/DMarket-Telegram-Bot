@@ -37,6 +37,8 @@
 
 ### 2. Разблокировать 24 пропущенных теста
 
+**Статус**: ⏸️ Отложено - требует полные зависимости (structlog, numpy и т.д.)
+
 **Файлы**:
 - `tests/telegram_bot/notifications/test_notification_handlers.py` - 12 тестов
 - `tests/dmarket/api/test_auth.py` - 6 тестов
@@ -259,6 +261,9 @@ python -m src.main --debug
 - [x] P0: test_notifier (17 тестов), test_initialization (3 теста), test_telegram_bot_modules (2 теста)
 - [x] P1: test_adaptive_polling (1 тест), test_smart_notifier (1 тест), test_dmarket_api_phase4_part1 (частично)
 - [x] P2: 37 Ruff auto-fixes (577 → 35 warnings)
+
+### Из Roadmap:
+- [x] P1: deprecated datetime.utcfromtimestamp → datetime.fromtimestamp(tz=UTC) (2 файла)
 
 ---
 
