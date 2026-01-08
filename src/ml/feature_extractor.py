@@ -276,7 +276,7 @@ class MarketFeatureExtractor:
                 except (ValueError, TypeError):
                     continue
             elif isinstance(sale_time, (int, float)):
-                sale_time = datetime.utcfromtimestamp(sale_time)
+                sale_time = datetime.fromtimestamp(sale_time, tz=UTC)
 
             if sale_time and sale_time >= cutoff_7d:
                 sales_7d += 1

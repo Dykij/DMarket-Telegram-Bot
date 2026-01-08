@@ -58,25 +58,23 @@
 
 ---
 
-### 3. Исправить deprecated datetime.utcfromtimestamp
+### 3. ✅ ВЫПОЛНЕНО - Исправлен deprecated datetime.utcfromtimestamp
 
-**Файлы**:
-- `src/dmarket/dmarket_api.py` (2 места)
+**Файлы исправлены**:
+- `src/ml/feature_extractor.py` (строка 279)
+- `src/ml/enhanced_predictor.py` (строка 471)
 
-**Проблема**: `datetime.utcfromtimestamp()` deprecated в Python 3.12+
-
-**Решение**:
+**Было**:
 ```python
-# До:
-datetime.utcfromtimestamp(timestamp)
-
-# После:
-datetime.fromtimestamp(timestamp, tz=timezone.utc)
+datetime.utcfromtimestamp(sale_time)
 ```
 
-**Приоритет**: Средний
-**Сложность**: Низкая
-**Время**: ~30 минут
+**Стало**:
+```python
+datetime.fromtimestamp(sale_time, tz=UTC)
+```
+
+**Статус**: ✅ Выполнено
 
 ---
 
