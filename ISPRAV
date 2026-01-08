@@ -1,0 +1,151 @@
+# 📊 ISPRAV - Отчет об отладке репозитория
+
+**Дата**: 2026-01-08
+**Версия Python**: 3.12.3
+**Статус**: ⚠️ ТРЕБУЕТ ИСПРАВЛЕНИЙ
+
+---
+
+## 📈 СВОДКА РЕЗУЛЬТАТОВ
+
+| Метрика | Значение | Статус |
+|---------|----------|--------|
+| **Тестов пройдено** | 4911 | 🟢 |
+| **Тестов провалено** | 26 | 🔴 |
+| **Тестов пропущено** | 22 | ⚠️ |
+| **Ruff ошибок** | 577 | 🟠 |
+
+---
+
+## 🔴 P0 - КРИТИЧЕСКИЕ (исправить немедленно)
+
+### 1. test_notifier.py - 17 провалов
+
+**Файл**: `tests/telegram_bot/test_notifier.py`
+
+**Проблема**: Тесты не синхронизированы с текущей реализацией notifier.
+API функций изменился, но тесты не обновлены.
+
+**Провалившиеся тесты**:
+- `test_load_user_alerts_file_exists`
+- `test_load_user_alerts_file_not_exists`
+- `test_add_price_alert_new_user`
+- `test_add_price_alert_existing_user`
+- `test_remove_price_alert_success`
+- `test_get_user_alerts_existing_user`
+- `test_get_user_alerts_multiple`
+- `test_update_user_settings_new_user`
+- `test_update_user_settings_existing_user`
+- `test_update_user_settings_partial`
+- `test_add_multiple_alerts_same_user`
+- `test_remove_alert_with_multiple_alerts`
+- `test_load_user_alerts_json_error`
+- `test_check_all_alerts_resets_daily_counter`
+- `test_check_all_alerts_sends_notification`
+- `test_check_all_alerts_increments_notification_counter`
+- `test_check_all_alerts_deactivates_one_time_alert`
+
+**Решение**: Обновить тесты для соответствия текущему API notifier
+
+---
+
+### 2. test_initialization.py - 3 провала
+
+**Файл**: `tests/telegram_bot/test_initialization.py`
+
+**Проблемы**:
+1. `test_setup_logging_custom_level` - неверный mock
+2. `test_initialize_bot_with_persistence` - PicklePersistence не экспортируется
+3. `test_setup_bot_commands_includes_standard_commands` - команды изменились (теперь только start, help, settings)
+
+**Решение**: Обновить тесты под текущую реализацию
+
+---
+
+### 3. test_telegram_bot_modules.py - 2 провала
+
+**Файл**: `tests/telegram_bot/test_telegram_bot_modules.py`
+
+**Проблема**: `sales_analysis_callbacks` не экспортируется из `src.telegram_bot`
+
+**Решение**: Либо добавить экспорт, либо удалить тесты
+
+---
+
+## 🟠 P1 - ВАЖНЫЕ (исправить в ближайшее время)
+
+### 4. test_dmarket_api_phase4_part1.py - 2 провала
+
+**Файл**: `tests/dmarket/test_dmarket_api_phase4_part1.py`
+
+**Проблемы**:
+- `test_save_to_cache_with_different_ttl` - кэш не сохраняет
+- `test_cache_cleanup_on_overflow` - неверная математика cleanup
+
+---
+
+### 5. test_adaptive_polling.py - 1 провал
+
+**Файл**: `tests/dmarket/test_adaptive_polling.py`
+
+**Проблема**: `test_force_poll_detects_changes` - mock не работает правильно
+
+---
+
+### 6. test_smart_notifier.py - 1 провал
+
+**Файл**: `tests/telegram_bot/test_smart_notifier.py`
+
+**Проблема**: `test_deprecation_warning_on_import` - warning не выдаётся
+
+---
+
+## 🟡 P2 - НИЗКИЙ ПРИОРИТЕТ (Ruff warnings)
+
+### Основные категории Ruff (577 ошибок):
+
+| Категория | Кол-во | Описание |
+|-----------|--------|----------|
+| PLC2701 | 97 | Import private name from external module |
+| PT023 | 96 | pytest-incorrect-mark-parentheses-style |
+| PLC1901 | 51 | compare-to-empty-string |
+| DTZ001 | 39 | datetime without tzinfo |
+| PT001 | 34 | pytest-fixture-incorrect-parentheses-style |
+| I001 | 29 | unsorted-imports |
+| F401 | 23 | unused-import |
+| PLR0904 | 12 | too-many-public-methods |
+| PLR1702 | 9 | too-many-nested-blocks |
+| S104 | 6 | hardcoded-bind-all-interfaces |
+| S301/S403 | 4 | pickle security warnings |
+
+### Критические файлы для рефакторинга:
+
+1. `src/dmarket/dmarket_api.py` - 50 public methods (PLR0904)
+2. `src/dmarket/adaptive_polling.py` - deep nesting (PLR1702)
+3. `src/dmarket/backtester.py` - deep nesting (PLR1702)
+4. `src/dmarket/intramarket_arbitrage.py` - deep nesting (PLR1702)
+5. `src/telegram_bot/health_check.py` - binding to all interfaces (S104)
+6. `src/ml/enhanced_predictor.py` - pickle security (S301)
+
+---
+
+## 📋 ПЛАН ИСПРАВЛЕНИЙ
+
+### Немедленно (P0):
+1. [ ] Обновить `tests/telegram_bot/test_notifier.py` - 17 тестов
+2. [ ] Исправить `tests/telegram_bot/test_initialization.py` - 3 теста
+3. [ ] Исправить `tests/telegram_bot/test_telegram_bot_modules.py` - 2 теста
+
+### В ближайшее время (P1):
+4. [ ] Исправить `tests/dmarket/test_dmarket_api_phase4_part1.py` - 2 теста
+5. [ ] Исправить `tests/dmarket/test_adaptive_polling.py` - 1 тест
+6. [ ] Исправить `tests/telegram_bot/test_smart_notifier.py` - 1 тест
+
+### Позже (P2):
+7. [ ] Исправить 190 auto-fixable Ruff ошибок
+8. [ ] Рефакторинг deep nesting в 5 файлах
+9. [ ] Security fixes для pickle и bind-all-interfaces
+
+---
+
+*Отчет создан: 2026-01-08*
