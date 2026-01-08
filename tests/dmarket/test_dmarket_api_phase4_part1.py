@@ -233,18 +233,32 @@ class TestCaching:
         """Тест автоматической очистки при переполнении кэша."""
         # Заполняем кэш до предела (>500)
         api_cache.clear()
+        base_time = time.time()
         for i in range(510):
             cache_key = f"key_{i}"
-            api_cache[cache_key] = ({"index": i}, time.time() + 1000)
+            # Используем разное время истечения - старые записи будут удалены первыми
+            # key_0 истекает раньше чем key_509
+            api_cache[cache_key] = ({"index": i}, base_time + i)
 
         initial_count = len(api_cache)
+        assert initial_count == 510
 
-        # Добавляем еще один элемент - должна сработать очистка
-        dmarket_api._save_to_cache("overflow_key", {"data": "test"}, "short")
+        # Добавляем еще один элемент с большим TTL (long = 1800 секунд)
+        # чтобы overflow_key не был удалён при cleanup
+        dmarket_api._save_to_cache("overflow_key", {"data": "test"}, "long")
 
-        # Проверяем что кэш уменьшился (удалено 100 записей)
-        # New size = 510 - 100 + 1 = 411
-        assert len(api_cache) <= initial_count - 99  # At least 100 entries removed
+        # После добавления overflow_key: 511 записей, cleanup удаляет 100 → 411
+        # Удаляются записи с наименьшим expire_time (key_0..key_99)
+        final_count = len(api_cache)
+        # Cleanup должен оставить ~411 записей (511 - 100)
+        assert final_count <= initial_count - 99, f"Expected <= 411, got {final_count}"
+        # overflow_key должен быть в кэше (его TTL high = base_time + 1800+)
+        assert "overflow_key" in api_cache, "overflow_key should survive cleanup"
+        # Первые 100 записей (key_0..key_99) должны быть удалены
+        assert "key_0" not in api_cache, "key_0 should be cleaned up"
+        assert "key_99" not in api_cache, "key_99 should be cleaned up"
+        # Записи с большим индексом должны остаться
+        assert "key_100" in api_cache, "key_100 should survive cleanup"
 
     @pytest.mark.asyncio()
     async def test_clear_cache(self, dmarket_api):
