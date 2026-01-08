@@ -95,11 +95,14 @@ from datetime import datetime, timezone
 
 **Проблема**: `keepalive_expiry` = 60.0, но тест ожидает 30.0
 
-**Решение**:
+**Решение**: Обновить тест для соответствия текущей конфигурации:
 ```python
-# Обновить тест или код:
-# Текущее значение: keepalive_expiry=60.0
-# Ожидаемое в тесте: 30.0
+# В файле tests/dmarket/test_connection_pooling.py
+# Изменить ожидаемое значение с 30.0 на 60.0:
+# assert limits.keepalive_expiry == 60.0  # Было: 30.0
+
+# Или изменить конфигурацию в src/dmarket/dmarket_api.py:
+# limits = httpx.Limits(..., keepalive_expiry=30.0)  # Вернуть старое значение
 ```
 
 ---
@@ -199,13 +202,14 @@ from datetime import datetime, timezone
 
 2. **Исправить datetime timezone проблемы**:
    ```python
-   # До:
-   datetime.datetime()
-   datetime.utcnow()
+   # До (неправильно):
+   datetime.datetime(2024, 1, 1)  # naive datetime
+   datetime.datetime.utcnow()     # deprecated и naive
 
-   # После:
-   datetime.datetime(..., tzinfo=timezone.utc)
-   datetime.now(timezone.utc)
+   # После (правильно):
+   from datetime import datetime, timezone
+   datetime.datetime(2024, 1, 1, tzinfo=timezone.utc)  # aware datetime
+   datetime.datetime.now(timezone.utc)                  # aware datetime
    ```
 
 3. **Синхронизировать тесты notification модулей с API**
