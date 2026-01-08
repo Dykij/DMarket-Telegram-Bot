@@ -325,6 +325,7 @@ class TestUpdateUserSettings:
             "src.telegram_bot.notifications.alerts.get_storage",
             return_value=mock_storage,
         ):
+            # update_user_settings returns None (success)
             result = await update_user_settings(
                 user_id=12345,
                 settings={
@@ -333,8 +334,9 @@ class TestUpdateUserSettings:
                 },
             )
 
-            # Should return updated settings or success
-            assert result is not None
+            # Should return None on success (no explicit return)
+            assert result is None
+            mock_storage.save_user_alerts.assert_called()
 
     @pytest.mark.asyncio()
     async def test_update_user_settings_partial_update(self, mock_storage):
@@ -343,6 +345,7 @@ class TestUpdateUserSettings:
             "src.telegram_bot.notifications.alerts.get_storage",
             return_value=mock_storage,
         ):
+            # update_user_settings returns None (success)
             result = await update_user_settings(
                 user_id=12345,
                 settings={
@@ -350,7 +353,9 @@ class TestUpdateUserSettings:
                 },
             )
 
-            assert result is not None
+            # Should return None on success (no explicit return)
+            assert result is None
+            mock_storage.save_user_alerts.assert_called()
 
     @pytest.mark.asyncio()
     async def test_update_user_settings_saves_changes(self, mock_storage):
@@ -431,11 +436,15 @@ class TestEdgeCases:
     async def test_get_alerts_for_different_users(self, mock_storage_with_alerts):
         """Test that alerts are user-specific."""
         storage1 = MagicMock()
-        storage1.get_user_data = MagicMock(return_value={"alerts": [{"id": "1"}]})
+        storage1.get_user_data = MagicMock(
+            return_value={"alerts": [{"id": "1", "active": True}]}
+        )
 
         storage2 = MagicMock()
         storage2.get_user_data = MagicMock(
-            return_value={"alerts": [{"id": "2"}, {"id": "3"}]}
+            return_value={
+                "alerts": [{"id": "2", "active": True}, {"id": "3", "active": True}]
+            }
         )
 
         with patch(

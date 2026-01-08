@@ -348,25 +348,30 @@ class TestPriceCache:
         storage = AlertStorage()
         storage._current_prices_cache = {}
 
-        storage.set_cached_price("csgo:item1", 15.50)
+        current_time = time.time()
+        storage.set_cached_price("csgo:item1", 15.50, current_time)
 
         assert "csgo:item1" in storage._current_prices_cache
         assert storage._current_prices_cache["csgo:item1"]["price"] == 15.50
         assert "timestamp" in storage._current_prices_cache["csgo:item1"]
+        assert storage._current_prices_cache["csgo:item1"]["timestamp"] == current_time
 
     def test_cache_update_overwrites(self, reset_singleton):
         """Test that setting cache overwrites old value."""
         storage = AlertStorage()
+        current_time = time.time()
         storage._current_prices_cache = {
             "csgo:item1": {
                 "price": 10.0,
-                "timestamp": time.time() - 100,
+                "timestamp": current_time - 100,
             }
         }
 
-        storage.set_cached_price("csgo:item1", 12.0)
+        new_time = time.time()
+        storage.set_cached_price("csgo:item1", 12.0, new_time)
 
         assert storage._current_prices_cache["csgo:item1"]["price"] == 12.0
+        assert storage._current_prices_cache["csgo:item1"]["timestamp"] == new_time
 
 
 # =============================================================================
@@ -541,9 +546,10 @@ class TestStorageIntegration:
         user_data["alerts"].append({"id": "alert1"})
         storage.save_user_alerts()
 
-        # Set up cache
-        storage.set_cached_price("csgo:item1", 10.0)
-        storage.set_cached_price("csgo:item2", 20.0)
+        # Set up cache with timestamp
+        current_time = time.time()
+        storage.set_cached_price("csgo:item1", 10.0, current_time)
+        storage.set_cached_price("csgo:item2", 20.0, current_time)
 
         # Both should work independently
         assert len(storage.get_user_data(12345)["alerts"]) >= 1
