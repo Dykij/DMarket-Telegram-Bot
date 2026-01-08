@@ -168,10 +168,7 @@ def _is_rare_float(attributes: dict[str, str]) -> bool:
         return True
 
     # Очень высокий float (Battle-Scarred максимум)
-    if float_val >= RARE_CONFIG["min_float_to_hold"]:
-        return True
-
-    return False
+    return float_val >= RARE_CONFIG["min_float_to_hold"]
 
 
 def _is_rare_doppler_phase(title: str) -> bool:
@@ -197,10 +194,7 @@ def _is_rare_doppler_phase(title: str) -> bool:
     # Проверяем Phase 2 и Phase 4 точно (не Phase 1, Phase 3)
     if "phase 2" in title_lower or "(phase 2)" in title_lower:
         return True
-    if "phase 4" in title_lower or "(phase 4)" in title_lower:
-        return True
-
-    return False
+    return bool("phase 4" in title_lower or "(phase 4)" in title_lower)
 
 
 def _is_rare_pattern(title: str, attributes: dict[str, str]) -> bool:

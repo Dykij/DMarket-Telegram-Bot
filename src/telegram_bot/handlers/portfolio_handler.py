@@ -298,14 +298,14 @@ class PortfolioHandler:
         }.get(report.risk_level, "⚪")
 
         lines = [
-            f"🎯 *Risk Analysis*\n\n"
+            (f"🎯 *Risk Analysis*\n\n"
             f"{risk_emoji} *Risk Level:* {report.risk_level.upper()}\n"
             f"*Overall Score:* {report.overall_risk_score:.0f}/100\n\n"
             f"*Breakdown:*\n"
             f"  Volatility: {report.volatility_score:.0f}/100\n"
             f"  Liquidity: {report.liquidity_score:.0f}/100\n"
             f"  Concentration: {report.concentration_score:.0f}/100\n\n"
-            f"*Recommendations:*"
+            f"*Recommendations:*")
         ]
 
         for rec in report.recommendations[:3]:
@@ -325,9 +325,9 @@ class PortfolioHandler:
         report = self._analyzer.analyze_diversification(portfolio)
 
         lines = [
-            f"🔀 *Diversification Analysis*\n\n"
+            (f"🔀 *Diversification Analysis*\n\n"
             f"*Score:* {report.diversification_score:.0f}/100\n\n"
-            f"*By Game:*"
+            f"*By Game:*")
         ]
 
         for game, pct in report.by_game.items():

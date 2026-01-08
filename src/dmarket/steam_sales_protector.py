@@ -45,6 +45,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
 from enum import StrEnum
 import logging
+import operator
 from typing import Any
 
 
@@ -459,8 +460,8 @@ class SteamSalesProtector:
             if item_discount_percent < status.buy_discount_threshold * 100:
                 return (
                     False,
-                    f"Discount {item_discount_percent:.1f}% below threshold "
-                    f"{status.buy_discount_threshold * 100:.0f}%",
+                    (f"Discount {item_discount_percent:.1f}% below threshold "
+                    f"{status.buy_discount_threshold * 100:.0f}%"),
                 )
 
         return True, "OK to buy"
@@ -496,7 +497,7 @@ class SteamSalesProtector:
                 if notify_date >= current_date:
                     notifications.append((notify_date, sale, days_before))
 
-        return sorted(notifications, key=lambda x: x[0])
+        return sorted(notifications, key=operator.itemgetter(0))
 
     def format_status_message(self, current_date: date | None = None) -> str:
         """Форматировать статус для отображения в Telegram.
@@ -522,17 +523,12 @@ class SteamSalesProtector:
         ]
 
         if status.active_sale:
-            lines.append(f"📢 Active: {status.active_sale.name}")
-            lines.append(
-                f"   Expected price drop: -{status.active_sale.expected_discount_percent:.0f}%"
-            )
+            lines.extend((f"📢 Active: {status.active_sale.name}", f"   Expected price drop: -{status.active_sale.expected_discount_percent:.0f}%"))
 
         if status.upcoming_sale and status.days_until_event > 0:
-            lines.append(f"⏰ Upcoming: {status.upcoming_sale.name}")
-            lines.append(f"   Starts in: {status.days_until_event} days")
+            lines.extend((f"⏰ Upcoming: {status.upcoming_sale.name}", f"   Starts in: {status.days_until_event} days"))
 
-        lines.append("")
-        lines.append(f"💡 {status.reason}")
+        lines.extend(("", f"💡 {status.reason}"))
 
         if status.should_stop_buying:
             lines.append("🛑 **BUYING PAUSED**")

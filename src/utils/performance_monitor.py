@@ -278,8 +278,7 @@ class PerformanceMonitor:
                 error_message = None
 
                 try:
-                    result = await func(*args, **kwargs)
-                    return result
+                    return await func(*args, **kwargs)
                 except Exception as e:
                     success = False
                     error_message = str(e)
@@ -305,8 +304,7 @@ class PerformanceMonitor:
             error_message = None
 
             try:
-                result = func(*args, **kwargs)
-                return result
+                return func(*args, **kwargs)
             except Exception as e:
                 success = False
                 error_message = str(e)

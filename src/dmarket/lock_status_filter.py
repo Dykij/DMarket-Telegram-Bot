@@ -160,7 +160,7 @@ class LockStatusFilter:
             tradable_after = extra.get("tradableAfter")
             if tradable_after:
                 try:
-                    unlock_date = datetime.fromisoformat(tradable_after.replace("Z", "+00:00"))
+                    unlock_date = datetime.fromisoformat(tradable_after)
                     days_remaining = max(0, (unlock_date - datetime.now()).days)
                 except (ValueError, TypeError):
                     pass

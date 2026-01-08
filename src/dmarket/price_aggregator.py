@@ -81,12 +81,12 @@ class AggregatedPrice:
         base_price = self.min_price - self.bonus_amount
 
         if self.has_discount:
-            base_price = base_price * (1 - self.discount_percent / 100)
+            base_price *= (1 - self.discount_percent / 100)
 
         # Дисконт за lock (3-5% в зависимости от срока)
         if self.lock_status == LockStatus.LOCKED:
             lock_discount = min(0.05, 0.03 + (self.lock_days_remaining * 0.003))
-            base_price = base_price * (1 - lock_discount)
+            base_price *= (1 - lock_discount)
 
         return base_price / 100  # Возвращаем в USD
 
@@ -274,13 +274,11 @@ class PriceAggregator:
             "currency": "USD",
         }
 
-        response = await self.api._request(
+        return await self.api._request(
             method="GET",
             path="/price-aggregator/v1/aggregated-prices",
             params=params,
         )
-
-        return response
 
     def _parse_price_data(self, data: dict[str, Any]) -> AggregatedPrice:
         """Парсинг данных цены из API ответа."""

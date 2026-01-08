@@ -317,7 +317,7 @@ async def button_callback_handler(
 
     try:
         # Skip main keyboard callbacks - they are handled by main_keyboard registered in group 0
-        if callback_data.startswith("auto_trade_") or callback_data.startswith("target"):
+        if callback_data.startswith(("auto_trade_", "target")):
             # These callbacks are handled by the main_keyboard
             return
 
@@ -378,7 +378,7 @@ async def button_callback_handler(
         elif callback_data in {"arbitrage", "arbitrage_menu"}:
             await auto_trade_start(update, context)
 
-        elif callback_data == "auto_arbitrage" or callback_data == "dmarket_arbitrage":
+        elif callback_data in {"auto_arbitrage", "dmarket_arbitrage"}:
             # Redirect to auto_trade
             await auto_trade_start(update, context)
 

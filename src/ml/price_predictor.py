@@ -301,7 +301,7 @@ class AdaptivePricePredictor:
         prediction = 0.7 * gb_pred + 0.3 * ridge_pred
 
         # Масштабирование по горизонту
-        if horizon_hours == 1 or horizon_hours == 24:
+        if horizon_hours in {1, 24}:
             scale = 1.0
         else:  # 7 days
             scale = 1.2  # Больше неопределённости
@@ -423,8 +423,7 @@ class AdaptivePricePredictor:
         if expected_change >= strong_buy_threshold and confidence_score >= 0.6:
             if can_afford:
                 recommendation = "strong_buy"
-                reasoning_parts.append(f"Expected growth: {expected_change:.1f}%")
-                reasoning_parts.append(f"Confidence: {confidence_score:.0%}")
+                reasoning_parts.extend((f"Expected growth: {expected_change:.1f}%", f"Confidence: {confidence_score:.0%}"))
             else:
                 recommendation = "buy"
                 reasoning_parts.append("Strong signal but exceeds position size limit")

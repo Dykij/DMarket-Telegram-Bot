@@ -10,7 +10,6 @@ Features:
 - Cleanup of temporary resources
 """
 
-import aiofiles
 import asyncio
 from datetime import datetime
 import json
@@ -18,6 +17,7 @@ from pathlib import Path
 import signal
 from typing import Any, Callable
 
+import aiofiles
 import structlog
 
 

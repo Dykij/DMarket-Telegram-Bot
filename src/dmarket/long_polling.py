@@ -30,7 +30,6 @@ Created: January 6, 2026
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
@@ -40,6 +39,8 @@ import structlog
 
 
 if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+
     from src.dmarket.dmarket_api import DMarketAPI
 
 

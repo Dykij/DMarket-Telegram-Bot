@@ -348,7 +348,7 @@ class SmartRepricer:
             if listed_at_str:
                 try:
                     if isinstance(listed_at_str, str):
-                        listed_at = datetime.fromisoformat(listed_at_str.replace("Z", "+00:00"))
+                        listed_at = datetime.fromisoformat(listed_at_str)
                     else:
                         listed_at = listed_at_str
                     action = self.determine_repricing_action(listed_at, now)

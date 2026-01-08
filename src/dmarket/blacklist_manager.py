@@ -183,10 +183,7 @@ class BlacklistManager:
             True if item should be skipped
         """
         title_lower = item_title.lower()
-        for keyword in self.forbidden_keywords:
-            if keyword.lower() in title_lower:
-                return True
-        return False
+        return any(keyword.lower() in title_lower for keyword in self.forbidden_keywords)
 
     def should_skip_item(
         self,

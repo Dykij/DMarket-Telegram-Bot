@@ -372,10 +372,7 @@ class ShadowListingManager:
 
         # Если undercut был недавно по такой же цене - продолжаем ждать
         recent = [p for t, p in history if t > now - timedelta(hours=1)]
-        if len(recent) >= 1 and recent[-1] == competitor_price:
-            return True
-
-        return False
+        return bool(len(recent) >= 1 and recent[-1] == competitor_price)
 
     def _create_default_analysis(
         self,

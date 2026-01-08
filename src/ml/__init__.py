@@ -62,31 +62,31 @@ from src.ml.trade_classifier import (
 __all__ = [
     # Price Predictor (базовый)
     "AdaptivePricePredictor",
-    "PricePrediction",
-    "PredictionConfidence",
-    # Enhanced Price Predictor (улучшенный)
-    "EnhancedPricePredictor",
-    "EnhancedFeatureExtractor",
-    "EnhancedFeatures",
-    "GameType",
-    "ItemRarity",
-    "ItemCondition",
-    "MLPipeline",
-    # Model Tuner (автонастройка)
-    "ModelTuner",
-    "AutoMLSelector",
-    "CVStrategy",
-    "ScoringMetric",
-    "TuningResult",
-    "EvaluationResult",
     # Trade Classifier
     "AdaptiveTradeClassifier",
-    "TradeSignal",
-    "RiskLevel",
+    "AutoMLSelector",
     # Balance Adapter
     "BalanceAdaptiveStrategy",
-    "StrategyRecommendation",
+    "CVStrategy",
+    "EnhancedFeatureExtractor",
+    "EnhancedFeatures",
+    # Enhanced Price Predictor (улучшенный)
+    "EnhancedPricePredictor",
+    "EvaluationResult",
+    "GameType",
+    "ItemCondition",
+    "ItemRarity",
+    "MLPipeline",
     # Feature Extractor
     "MarketFeatureExtractor",
+    # Model Tuner (автонастройка)
+    "ModelTuner",
+    "PredictionConfidence",
     "PriceFeatures",
+    "PricePrediction",
+    "RiskLevel",
+    "ScoringMetric",
+    "StrategyRecommendation",
+    "TradeSignal",
+    "TuningResult",
 ]

@@ -272,7 +272,7 @@ class MarketFeatureExtractor:
             sale_time = sale.get("timestamp") or sale.get("date")
             if isinstance(sale_time, str):
                 try:
-                    sale_time = datetime.fromisoformat(sale_time.replace("Z", "+00:00"))
+                    sale_time = datetime.fromisoformat(sale_time)
                 except (ValueError, TypeError):
                     continue
             elif isinstance(sale_time, (int, float)):

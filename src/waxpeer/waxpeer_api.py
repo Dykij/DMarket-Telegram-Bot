@@ -504,7 +504,7 @@ class WaxpeerAPI:
         """
         # Waxpeer принимает названия через запятую
         names_param = ",".join(item_names)
-        data = await self._request(
+        return await self._request(
             "GET",
             "get-items-list",
             params={
@@ -512,7 +512,6 @@ class WaxpeerAPI:
                 "game": game.value,
             },
         )
-        return data
 
     async def get_items_list(
         self,

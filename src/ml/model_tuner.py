@@ -708,7 +708,7 @@ class AutoMLSelector:
         best_model = None
         best_score = float("inf") if "neg" in self.scoring.value else float("-inf")
 
-        for name, result in results.items():
+        for result in results.values():
             if result.best_estimator is None:
                 continue
 

@@ -464,7 +464,7 @@ class EnhancedFeatureExtractor:
             sale_time = sale.get("timestamp") or sale.get("date")
             if isinstance(sale_time, str):
                 try:
-                    sale_time = datetime.fromisoformat(sale_time.replace("Z", "+00:00"))
+                    sale_time = datetime.fromisoformat(sale_time)
                 except (ValueError, TypeError):
                     continue
             elif isinstance(sale_time, (int, float)):
@@ -840,16 +840,14 @@ class MLPipeline:
 
         try:
             X_imputed = self._imputer.transform(X)
-            X_scaled = self._scaler.transform(X_imputed)
-            return X_scaled
+            return self._scaler.transform(X_imputed)
         except Exception:
             return self._basic_clean(X)
 
     def _basic_clean(self, X: np.ndarray) -> np.ndarray:
         """Базовая очистка данных без sklearn."""
         # Заменяем NaN и Inf
-        X = np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
-        return X
+        return np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
 
 
 class EnhancedPricePredictor:

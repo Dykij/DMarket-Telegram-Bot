@@ -153,7 +153,7 @@ class ScanConfig:
     min_liquidity: int = DEFAULT_MIN_LIQUIDITY
     use_balance_limit: bool = True
     include_locked: bool = True
-    allowed_categories: set[ItemCategory] = field(default_factory=lambda: ALLOWED_CATEGORIES.copy())
+    allowed_categories: set[ItemCategory] = field(default_factory=ALLOWED_CATEGORIES.copy)
     dry_run: bool = True
 
 

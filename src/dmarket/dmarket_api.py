@@ -401,7 +401,7 @@ class DMarketAPI:
         target_multiplier = 1 + (profit_percent / 100)
 
         sell_price_usd = (buy_price_cents / 100 * target_multiplier) / fee_factor
-        sell_price_cents = int(round(sell_price_usd * 100))
+        sell_price_cents = round(sell_price_usd * 100)
 
         payload = {
             "offers": [
