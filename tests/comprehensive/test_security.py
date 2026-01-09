@@ -310,7 +310,8 @@ class TestRateLimitingSecurity:
 
         # Different users should have separate limits
         result = await limiter.check_limit(user_id=1, action="default")
-        assert result is True or result is False  # Either is valid
+        # Result is a tuple or bool
+        assert result is not None
 
 
 class TestCircuitBreakerSecurity:
@@ -471,7 +472,7 @@ class TestCryptoSecurity:
         api = DMarketAPI("public", "secret")
 
         # Check signature format indicates secure algorithm
-        headers = api._generate_headers("GET", "/test", "12345")
+        headers = api._generate_headers("GET", "/test", body="")
         signature = headers["X-Request-Sign"]
 
         # Should be Ed25519 (dmar ed25519) or HMAC-SHA256 (64 hex chars)
@@ -482,10 +483,11 @@ class TestCryptoSecurity:
         from src.dmarket.dmarket_api import DMarketAPI
 
         api = DMarketAPI("public", "secret")
-        headers = api._generate_headers("GET", "/test", "123456789")
+        headers = api._generate_headers("GET", "/test", body="")
 
         assert "X-Sign-Date" in headers
-        assert headers["X-Sign-Date"] == "123456789"
+        # Timestamp should be a valid integer
+        assert int(headers["X-Sign-Date"]) > 0
 
 
 # =============================================================================

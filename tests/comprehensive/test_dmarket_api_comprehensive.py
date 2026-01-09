@@ -196,11 +196,10 @@ class TestDMarketAPIAuthentication:
         # Generate signature for a test request
         method = "GET"
         path = "/exchange/v1/user/balance"
-        timestamp = str(int(time.time()))
 
         # The API should generate a valid signature
         # This tests the internal signing mechanism
-        headers = api._get_headers(method, path, timestamp)
+        headers = api._generate_headers(method, path, body="")
 
         assert "X-Api-Key" in headers
         assert "X-Sign-Date" in headers
@@ -395,7 +394,7 @@ class TestDMarketAPITargets:
 
         with patch.object(api, "_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = mock_targets_response
-            targets = await api.get_targets(game="csgo")
+            targets = await api.get_user_targets(game_id="a8db")
 
             assert targets is not None
             mock_request.assert_called_once()
@@ -461,7 +460,7 @@ class TestDMarketAPISalesHistory:
 
         with patch.object(api, "_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = mock_sales_history_response
-            history = await api.get_sales_history("AK-47 | Redline")
+            history = await api.get_sales_history(game="csgo", title="AK-47 | Redline")
 
             assert history is not None
             mock_request.assert_called_once()
@@ -480,7 +479,7 @@ class TestDMarketAPISalesHistory:
 
         with patch.object(api, "_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = mock_sales_history_response
-            history = await api.get_sales_history("AK-47 | Redline", game="csgo")
+            history = await api.get_sales_history(game="csgo", title="AK-47 | Redline", days=14)
 
             assert history is not None
 
@@ -663,7 +662,7 @@ class TestDMarketAPIInventory:
 
         with patch.object(api, "_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = {"objects": [], "total": {"items": 0}}
-            inventory = await api.get_user_inventory(game="csgo")
+            inventory = await api.get_user_inventory(game_id="a8db")
 
             assert inventory is not None
 
@@ -693,7 +692,7 @@ class TestDMarketAPIAggregatedPrices:
 
         with patch.object(api, "_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = mock_response
-            prices = await api.get_aggregated_prices(game="csgo", limit=100)
+            prices = await api.get_aggregated_prices(titles=["AK-47 | Redline"], game_id="a8db")
 
             assert prices is not None
 
