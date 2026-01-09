@@ -202,21 +202,24 @@ async def auto_trade_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
         keyboard = [
             [InlineKeyboardButton("🚀 ЗАПУСТИТЬ", callback_data="auto_trade_run")],
+            [InlineKeyboardButton("🔎 СКАНИРОВАТЬ ВСЕ СТРАТЕГИИ", callback_data="auto_trade_scan_all")],
             [InlineKeyboardButton("⚙️ Настройки", callback_data="auto_trade_settings")],
             [InlineKeyboardButton("◀️ Главное меню", callback_data="main_menu")],
         ]
 
         await query.edit_message_text(
-            f"🤖 <b>АВТО-ТОРГОВЛЯ</b>\n\n"
+            f"🤖 <b>АВТО-АРБИТРАЖ</b>\n\n"
             f"🔴 <b>Статус: ОСТАНОВЛЕНА</b>\n\n"
             f"Режим: {mode}\n\n"
-            f"<b>Что делает авто-торговля:</b>\n"
-            f"• 🔍 Сканирует все игры (CS2, Dota 2, TF2, Rust)\n"
-            f"• 📊 Ищет предметы с высоким ROI (>10%)\n"
-            f"• 🛒 Автоматически покупает выгодные\n"
-            f"• 💸 Выставляет на продажу с наценкой\n"
-            f"• 💎 Редкие предметы оставляет в инвентаре\n\n"
-            f"<i>Нажмите ЗАПУСТИТЬ для старта</i>",
+            f"<b>Доступные стратегии поиска:</b>\n"
+            f"• 🔄 <b>Cross-Platform</b> — DMarket ↔ Waxpeer\n"
+            f"• 📊 <b>Intramarket</b> — ценовые аномалии внутри DMarket\n"
+            f"• 🎯 <b>Float Value</b> — премиальные флоаты\n"
+            f"• 💎 <b>Pattern/Phase</b> — Blue Gem, Doppler\n"
+            f"• 🧠 <b>Smart Finder</b> — AI-анализ рынка\n\n"
+            f"<b>ЗАПУСТИТЬ</b> — включить авто-покупку\n"
+            f"<b>СКАНИРОВАТЬ</b> — найти возможности без покупки\n\n"
+            f"<i>Выберите действие:</i>",
             parse_mode=ParseMode.HTML,
             reply_markup=InlineKeyboardMarkup(keyboard),
         )
@@ -337,6 +340,210 @@ async def auto_trade_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     except Exception as e:
         logger.exception(f"Failed to stop auto-trade: {e}")
+
+
+async def auto_trade_scan_all(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Сканировать всеми стратегиями для поиска арбитражных возможностей на DMarket.
+
+    Применяет ВСЕ доступные стратегии:
+    - Cross-Platform Arbitrage (DMarket → Waxpeer)
+    - Intramarket Arbitrage (ценовые аномалии)
+    - Float Value Arbitrage (премиальные флоаты)
+    - Smart Market Finder (AI-анализ)
+    """
+    query = update.callback_query
+    await query.answer("Запускаю сканирование всеми стратегиями...")
+
+    await query.edit_message_text(
+        "🔎 <b>СКАНИРОВАНИЕ ВСЕМИ СТРАТЕГИЯМИ</b>\n\n"
+        "⏳ <b>Инициализация...</b>\n\n"
+        "Применяются стратегии:\n"
+        "• 🔄 Cross-Platform Arbitrage\n"
+        "• 📊 Intramarket Arbitrage\n"
+        "• 🎯 Float Value Arbitrage\n"
+        "• 🧠 Smart Market Finder\n\n"
+        "<i>Это может занять 30-60 секунд...</i>",
+        parse_mode=ParseMode.HTML,
+    )
+
+    try:
+        dmarket_api = _get_dmarket_api(context)
+        if not dmarket_api:
+            await query.edit_message_text(
+                "❌ <b>Ошибка</b>\n\nAPI клиент не инициализирован.\nПерезапустите бота.",
+                parse_mode=ParseMode.HTML,
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("◀️ Назад", callback_data="auto_trade_start")]
+                ]),
+            )
+            return
+
+        # Проверяем API
+        balance_data = await dmarket_api.get_balance()
+        if isinstance(balance_data, dict) and balance_data.get("error"):
+            await query.edit_message_text(
+                f"❌ <b>API Error</b>\n\n{balance_data.get('error_message', 'Unknown')}",
+                parse_mode=ParseMode.HTML,
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("◀️ Назад", callback_data="auto_trade_start")]
+                ]),
+            )
+            return
+
+        # Получаем баланс для отображения
+        if isinstance(balance_data, dict):
+            balance = float(balance_data.get("usd", "0")) / 100
+        else:
+            balance = float(balance_data) / 100 if balance_data else 0.0
+
+        # Импортируем Unified Strategy System
+        from decimal import Decimal
+
+        from src.dmarket.unified_strategy_system import (
+            StrategyConfig,
+            create_strategy_manager,
+        )
+
+        # Создаём менеджер стратегий
+        waxpeer_api = getattr(context.application, "waxpeer_api", None)
+        strategy_manager = create_strategy_manager(
+            dmarket_api=dmarket_api,
+            waxpeer_api=waxpeer_api,
+        )
+
+        # Конфигурация для сканирования
+        config = StrategyConfig(
+            game="csgo",  # Основная игра
+            min_price=Decimal("0.50"),
+            max_price=Decimal("200.0"),
+            min_profit_percent=Decimal("5.0"),  # Минимум 5% прибыли
+            limit=20,
+        )
+
+        await query.edit_message_text(
+            "🔎 <b>СКАНИРОВАНИЕ ВСЕМИ СТРАТЕГИЯМИ</b>\n\n"
+            "⏳ <b>Сканирование рынка...</b>\n\n"
+            f"💰 Баланс: <b>${balance:.2f}</b>\n"
+            f"📊 Мин. прибыль: <b>5%</b>\n"
+            f"💵 Диапазон: <b>$0.50 - $200</b>\n\n"
+            "<i>Анализирую данные...</i>",
+            parse_mode=ParseMode.HTML,
+        )
+
+        # Сканируем всеми стратегиями и получаем лучшие результаты
+        best_opportunities = await strategy_manager.find_best_opportunities_combined(
+            config=config,
+            top_n=15,
+        )
+
+        if not best_opportunities:
+            await query.edit_message_text(
+                "🔎 <b>РЕЗУЛЬТАТЫ СКАНИРОВАНИЯ</b>\n\n"
+                "ℹ️ <b>Возможности не найдены</b>\n\n"
+                f"💰 Баланс: ${balance:.2f}\n\n"
+                "Причины:\n"
+                "• Рынок сейчас стабилен\n"
+                "• Нет достаточного спреда\n"
+                "• Попробуйте позже\n\n"
+                "<i>Рекомендация: повторите через 5-10 минут</i>",
+                parse_mode=ParseMode.HTML,
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("🔄 Повторить", callback_data="auto_trade_scan_all")],
+                    [InlineKeyboardButton("◀️ Назад", callback_data="auto_trade_start")],
+                ]),
+            )
+            return
+
+        # Группируем по стратегиям
+        by_strategy: dict[str, list] = {}
+        for opp in best_opportunities:
+            strategy_name = opp.strategy_type.value
+            if strategy_name not in by_strategy:
+                by_strategy[strategy_name] = []
+            by_strategy[strategy_name].append(opp)
+
+        # Формируем результат
+        result_text = (
+            f"🎯 <b>НАЙДЕНО {len(best_opportunities)} ВОЗМОЖНОСТЕЙ!</b>\n\n"
+            f"💰 Баланс: <b>${balance:.2f}</b>\n\n"
+        )
+
+        # Краткая статистика по стратегиям
+        result_text += "<b>📊 По стратегиям:</b>\n"
+        strategy_emojis = {
+            "cross_platform": "🔄",
+            "intramarket": "📈",
+            "float_value": "🎯",
+            "smart_market": "🧠",
+            "pattern_phase": "💎",
+        }
+        for strategy, opps in by_strategy.items():
+            emoji = strategy_emojis.get(strategy, "📌")
+            result_text += f"{emoji} {strategy}: <b>{len(opps)}</b> шт.\n"
+
+        result_text += "\n<b>🔥 ТОП-5 возможностей:</b>\n\n"
+
+        # Показываем топ-5
+        for i, opp in enumerate(best_opportunities[:5], 1):
+            profit_emoji = "🔥" if float(opp.profit_percent) >= 15 else "💰"
+            risk_emoji = {"very_low": "🟢", "low": "🟡", "medium": "🟠", "high": "🔴", "very_high": "⚫"}.get(opp.risk_level.value, "⚪")
+
+            title_short = opp.title[:30] + "..." if len(opp.title) > 30 else opp.title
+            result_text += (
+                f"<b>{i}.</b> {title_short}\n"
+                f"   💵 ${float(opp.buy_price):.2f} → ${float(opp.sell_price):.2f}\n"
+                f"   {profit_emoji} <b>+{float(opp.profit_percent):.1f}%</b> | {risk_emoji} Score: {opp.score.total_score:.0f}\n\n"
+            )
+
+        if len(best_opportunities) > 5:
+            result_text += f"<i>...и ещё {len(best_opportunities) - 5} возможностей</i>\n\n"
+
+        result_text += (
+            "💡 <b>Рекомендация:</b>\n"
+            "Предметы с Score > 70 и низким риском — лучший выбор!"
+        )
+
+        keyboard = [
+            [InlineKeyboardButton("🔄 Сканировать снова", callback_data="auto_trade_scan_all")],
+            [InlineKeyboardButton("🚀 Запустить авто-покупку", callback_data="auto_trade_run")],
+            [InlineKeyboardButton("◀️ Назад", callback_data="auto_trade_start")],
+        ]
+
+        await query.edit_message_text(
+            result_text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
+
+        logger.info(
+            "all_strategies_scan_complete",
+            opportunities_found=len(best_opportunities),
+            by_strategy={k: len(v) for k, v in by_strategy.items()},
+        )
+
+    except ImportError as e:
+        logger.warning(f"Strategy module not available: {e}")
+        await query.edit_message_text(
+            "⚠️ <b>Модуль стратегий недоступен</b>\n\n"
+            f"Ошибка: {str(e)[:100]}\n\n"
+            "Попробуйте использовать базовый сканер.",
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Назад", callback_data="auto_trade_start")]
+            ]),
+        )
+
+    except Exception as e:
+        logger.exception(f"All strategies scan failed: {e}")
+        await query.edit_message_text(
+            f"❌ <b>Ошибка сканирования</b>\n\n{str(e)[:200]}\n\n"
+            "Попробуйте повторить позже.",
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("🔄 Повторить", callback_data="auto_trade_scan_all")],
+                [InlineKeyboardButton("◀️ Назад", callback_data="auto_trade_start")],
+            ]),
+        )
 
 
 async def auto_trade_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -972,6 +1179,7 @@ def register_main_keyboard_handlers(application) -> None:
     application.add_handler(CallbackQueryHandler(auto_trade_start, pattern="^auto_trade_start$"))
     application.add_handler(CallbackQueryHandler(auto_trade_run, pattern="^auto_trade_run$"))
     application.add_handler(CallbackQueryHandler(auto_trade_stop, pattern="^auto_trade_stop$"))
+    application.add_handler(CallbackQueryHandler(auto_trade_scan_all, pattern="^auto_trade_scan_all$"))
     application.add_handler(CallbackQueryHandler(auto_trade_status, pattern="^auto_trade_status$"))
     application.add_handler(
         CallbackQueryHandler(auto_trade_settings, pattern="^auto_trade_settings$")
