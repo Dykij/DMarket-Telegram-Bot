@@ -1,6 +1,6 @@
 """Tests for Float Value Arbitrage module.
 
-Тесты для модуля арбитража на основе Float Value.
+Tests for float_value_arbitrage.py with float-based arbitrage strategies.
 """
 
 from unittest.mock import AsyncMock, MagicMock

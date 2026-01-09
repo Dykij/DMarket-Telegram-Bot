@@ -1,6 +1,6 @@
 """Tests for Advanced Order System module.
 
-Тесты для системы расширенных ордеров (аналог CS Float Advanced Buy Orders).
+Tests for the advanced order system (CS Float-style Advanced Buy Orders).
 """
 
 from unittest.mock import AsyncMock, MagicMock

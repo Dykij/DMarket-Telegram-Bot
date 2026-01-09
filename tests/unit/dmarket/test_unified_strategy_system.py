@@ -1,6 +1,6 @@
 """Tests for Unified Strategy System module.
 
-Тесты для системы унифицированных стратегий поиска предметов.
+Tests for the unified strategy system for finding items.
 """
 
 from decimal import Decimal
@@ -223,17 +223,23 @@ class TestUnifiedOpportunity:
 
     def test_opportunity_default_values(self):
         """Test opportunity default values."""
-        score = OpportunityScore(70, 60, 30, 80, 65)
+        score = OpportunityScore(
+            profit_score=70,
+            liquidity_score=60,
+            risk_score=30,
+            confidence_score=80,
+            time_score=65,
+        )
         opp = UnifiedOpportunity(
             id="test",
             title="Test",
             game="csgo",
             strategy_type=StrategyType.INTRAMARKET_ARBITRAGE,
             action_type=ActionType.BUY_NOW,
-            buy_price=Decimal(10),
-            sell_price=Decimal(12),
-            profit_usd=Decimal(2),
-            profit_percent=Decimal(20),
+            buy_price=Decimal("10"),
+            sell_price=Decimal("12"),
+            profit_usd=Decimal("2"),
+            profit_percent=Decimal("20"),
             score=score,
             risk_level=RiskLevel.LOW,
         )
@@ -245,7 +251,13 @@ class TestUnifiedOpportunity:
 
     def test_opportunity_to_dict(self):
         """Test opportunity to_dict method."""
-        score = OpportunityScore(70, 60, 30, 80, 65)
+        score = OpportunityScore(
+            profit_score=70,
+            liquidity_score=60,
+            risk_score=30,
+            confidence_score=80,
+            time_score=65,
+        )
         opp = UnifiedOpportunity(
             id="item_123",
             title="AK-47 | Redline",
@@ -274,17 +286,23 @@ class TestUnifiedOpportunity:
 
     def test_opportunity_with_metadata(self):
         """Test opportunity with metadata."""
-        score = OpportunityScore(70, 60, 30, 80, 65)
+        score = OpportunityScore(
+            profit_score=70,
+            liquidity_score=60,
+            risk_score=30,
+            confidence_score=80,
+            time_score=65,
+        )
         opp = UnifiedOpportunity(
             id="test",
             title="Test",
             game="csgo",
             strategy_type=StrategyType.FLOAT_VALUE_ARBITRAGE,
             action_type=ActionType.BUY_NOW,
-            buy_price=Decimal(10),
-            sell_price=Decimal(15),
-            profit_usd=Decimal(5),
-            profit_percent=Decimal(50),
+            buy_price=Decimal("10"),
+            sell_price=Decimal("15"),
+            profit_usd=Decimal("5"),
+            profit_percent=Decimal("50"),
             score=score,
             risk_level=RiskLevel.MEDIUM,
             metadata={"float_quality": "premium", "wear": "FN"},

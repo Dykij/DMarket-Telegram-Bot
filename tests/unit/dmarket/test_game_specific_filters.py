@@ -1,6 +1,6 @@
 """Tests for Game-Specific Filters module.
 
-Тесты для модуля game_specific_filters.py с фильтрами для CS:GO, Dota 2, TF2 и Rust.
+Tests for game_specific_filters.py with filters for CS:GO, Dota 2, TF2 and Rust.
 """
 
 
