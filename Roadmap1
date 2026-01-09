@@ -1,0 +1,122 @@
+# 🗺️ Roadmap1 - План улучшений репозитория DMarket-Telegram-Bot
+
+**Дата создания**: 2026-01-09
+**Последнее обновление**: 2026-01-09 07:30 UTC
+**Версия Python**: 3.12.3
+**Текущий статус**: 🟡 В процессе исправлений
+
+---
+
+## 📊 Текущее состояние
+
+| Метрика | Значение | Статус |
+|---------|----------|--------|
+| **Тестов всего** | 7603 | 🟢 |
+| **Тесты пройдено** | 7555+ | 🟢 |
+| **Тесты провалено** | ~8 | 🟡 |
+| **Тесты пропущено** | ~51 | ⚠️ |
+| **Ошибки сбора** | ~18 | 🔴 |
+| **Ruff warnings** | 0 | 🟢 |
+| **CodeQL alerts** | 0 | 🟢 |
+
+---
+
+## ✅ ВЫПОЛНЕНО (P0)
+
+### 1. ✅ Тест State Manager timestamp (1 тест)
+**Файл**: `src/utils/state_manager.py`
+- Исправлено: `datetime.utcnow` → `datetime.now(UTC)` в CheckpointData
+- **Коммит**: текущая сессия
+
+### 2. ✅ Тест Prometheus Server port (1 тест)
+**Файл**: `tests/utils/test_prometheus_server.py`
+- Исправлено: дефолтный порт 8000 → 9090 (соответствует src)
+- **Коммит**: текущая сессия
+
+### 3. ✅ Тест Performance Monitor (1 тест)
+**Файл**: `tests/utils/test_performance_monitor.py`
+- Исправлено: `execution_time` → `total_time` (правильный атрибут PerformanceMetrics)
+- **Коммит**: текущая сессия
+
+### 4. ✅ Тест PostgreSQL (1 тест)
+**Файл**: `tests/test_database.py`
+- Исправлено: добавлен `pytest.importorskip("asyncpg")`
+- **Коммит**: текущая сессия
+
+### 5. ✅ Тесты Circuit Breaker (11 тестов)
+**Файлы**: 
+- `src/utils/api_circuit_breaker.py`
+- `tests/utils/test_api_circuit_breaker.py`
+- `tests/utils/test_circuit_breaker_enhanced.py`
+
+**Исправлено**:
+- `current_state` → `state` (правильный атрибут circuitbreaker)
+- `failure_count` → `_failure_count`
+- `last_failure_time` → `last_failure`
+- `failure_threshold` → `FAILURE_THRESHOLD`
+- `recovery_timeout` → `RECOVERY_TIMEOUT`
+- `open()` → `_state = "open"` (force open)
+- Добавлены autouse fixtures для изоляции состояния
+
+**Коммит**: текущая сессия
+
+---
+
+## 🔴 P0 - Оставшиеся ошибки
+
+### 6. Ошибки кэширования DMarket API (2 теста)
+**Файл**: `tests/dmarket/test_dmarket_api_phase4_part1.py`
+- `test_save_to_cache_with_different_ttl`
+- `test_cache_cleanup_on_overflow`
+
+**Причина**: Логика TTL кэширования
+**Приоритет**: P0
+**Статус**: В очереди
+
+### 7. Ошибка logging config (1 тест)
+**Файл**: `tests/test_logging_config.py`
+- `test_mock_logger_fixture`
+
+**Причина**: logger.exception не вызывается
+**Приоритет**: P0
+**Статус**: В очереди
+
+### 8. Ошибка shutdown (1 тест)
+**Файл**: `tests/test_main.py`
+- `test_shutdown_with_errors`
+
+**Причина**: `_close_client` вызывается когда не должен
+**Приоритет**: P0
+**Статус**: В очереди
+
+---
+
+## 🟡 P1 - Ошибки сбора тестов (18 errors)
+
+### 1. Ошибки cursor_pagination (8 тестов)
+**Файл**: `tests/unit/dmarket/test_cursor_pagination.py`
+**Приоритет**: P1
+
+### 2. Ошибки scanner_manager (6 тестов)
+**Файл**: `tests/unit/dmarket/test_scanner_manager.py`
+**Приоритет**: P1
+
+---
+
+## 🔧 Команды для мониторинга
+
+```bash
+# Запуск тестов
+pytest tests/ --ignore=tests/e2e --ignore=tests/integration -q --tb=no
+
+# Проверка Ruff
+ruff check src/ --statistics
+
+# Запуск исправленных тестов
+pytest tests/utils/test_state_manager.py tests/utils/test_prometheus_server.py tests/utils/test_performance_monitor.py tests/utils/test_api_circuit_breaker.py tests/utils/test_circuit_breaker_enhanced.py -v
+```
+
+---
+
+*Roadmap1 создан: 2026-01-09*
+*Последнее обновление: 2026-01-09*

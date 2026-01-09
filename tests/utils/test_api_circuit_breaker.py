@@ -13,9 +13,27 @@ import pytest
 
 from src.utils.api_circuit_breaker import (
     APICircuitBreaker,
+    _circuit_breakers,
     call_with_circuit_breaker,
     dmarket_api_breaker,
+    reset_all_circuit_breakers,
 )
+
+
+@pytest.fixture(autouse=True)
+def reset_circuit_breakers_before_test():
+    """Reset all circuit breakers before each test to ensure isolation."""
+    # Clear the internal breaker storage
+    _circuit_breakers.clear()
+    # Reset the legacy dmarket_api_breaker
+    try:
+        dmarket_api_breaker._failure_count = 0
+        dmarket_api_breaker._state = "closed"
+    except AttributeError:
+        pass  # Some implementations may differ
+    yield
+    # Cleanup after test
+    _circuit_breakers.clear()
 
 
 # TestAPICircuitBreakerInit

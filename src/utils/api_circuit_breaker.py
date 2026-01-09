@@ -281,12 +281,12 @@ def get_circuit_breaker_stats() -> dict[str, dict[str, Any]]:
 
     for endpoint_name, breaker in _circuit_breakers.items():
         stats[endpoint_name] = {
-            "state": breaker.current_state,
-            "failure_count": breaker.failure_count,
-            "last_failure": str(breaker.last_failure_time) if breaker.last_failure_time else None,
+            "state": breaker.state,
+            "failure_count": breaker._failure_count,
+            "last_failure": str(breaker.last_failure) if breaker.last_failure else None,
             "config": {
-                "failure_threshold": breaker.failure_threshold,
-                "recovery_timeout": breaker.recovery_timeout,
+                "failure_threshold": breaker.FAILURE_THRESHOLD,
+                "recovery_timeout": breaker.RECOVERY_TIMEOUT,
             },
         }
 

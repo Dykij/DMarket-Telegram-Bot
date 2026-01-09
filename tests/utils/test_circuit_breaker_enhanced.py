@@ -16,12 +16,21 @@ import pytest
 
 from src.utils.api_circuit_breaker import (
     EndpointType,
+    _circuit_breakers,
     call_with_circuit_breaker,
     get_circuit_breaker,
     get_circuit_breaker_stats,
     reset_all_circuit_breakers,
     reset_circuit_breaker,
 )
+
+
+@pytest.fixture(autouse=True)
+def reset_circuit_breakers_before_test():
+    """Reset all circuit breakers before each test to ensure isolation."""
+    _circuit_breakers.clear()
+    yield
+    _circuit_breakers.clear()
 
 
 class TestEndpointTypes:
@@ -189,23 +198,25 @@ class TestCircuitBreakerReset:
         """Test that resetting a breaker changes its state to closed."""
         breaker = get_circuit_breaker(EndpointType.BALANCE)
 
-        # Open circuit manually
-        breaker.open()
+        # Force open circuit by setting failure count above threshold
+        breaker._failure_count = breaker.FAILURE_THRESHOLD + 1
+        breaker._state = "open"
 
         # Reset should close it
         reset_circuit_breaker(EndpointType.BALANCE)
-        final_state = breaker.current_state
+        final_state = breaker.state
 
-        # State should change (may not be exactly "open" to "closed" due to timing)
+        # State should change to closed
         assert final_state == "closed"
 
     def test_reset_all_breakers_affects_multiple(self):
         """Test that reset_all affects all circuit breakers."""
-        # Initialize multiple breakers and open them
+        # Initialize multiple breakers and force open them
         breakers = []
         for endpoint_type in [EndpointType.MARKET, EndpointType.TARGETS, EndpointType.BALANCE]:
             breaker = get_circuit_breaker(endpoint_type)
-            breaker.open()
+            breaker._failure_count = breaker.FAILURE_THRESHOLD + 1
+            breaker._state = "open"
             breakers.append(breaker)
 
         # Reset all
@@ -213,7 +224,7 @@ class TestCircuitBreakerReset:
 
         # All should be closed
         for breaker in breakers:
-            assert breaker.current_state == "closed"
+            assert breaker.state == "closed"
 
 
 class TestDifferentEndpointBehavior:
@@ -245,11 +256,11 @@ class TestDifferentEndpointBehavior:
 
         # Market should be affected
         market_breaker = get_circuit_breaker(EndpointType.MARKET)
-        market_state = market_breaker.current_state
+        market_state = market_breaker.state
 
         # Targets should still be in good state
         targets_breaker = get_circuit_breaker(EndpointType.TARGETS)
-        targets_state = targets_breaker.current_state
+        targets_state = targets_breaker.state
 
         # They should be different
         assert market_state == "open"

@@ -40,7 +40,7 @@ class CheckpointData(BaseModel):
     cursor: str | None = None
     processed_items: int = 0
     total_items: int | None = None
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     extra_data: dict[str, Any] = Field(default_factory=dict)
     status: str = "in_progress"  # in_progress, completed, failed
 

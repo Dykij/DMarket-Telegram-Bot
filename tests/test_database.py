@@ -231,6 +231,7 @@ class TestDatabaseEngines:
     @pytest.mark.asyncio()
     async def test_postgresql_url_conversion(self):
         """Test PostgreSQL URL conversion to async."""
+        pytest.importorskip("asyncpg")  # Skip if asyncpg not installed
         db_manager = DatabaseManager("postgresql://user:pass@localhost/db")
 
         # Access async engine to trigger conversion
