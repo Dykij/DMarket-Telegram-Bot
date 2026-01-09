@@ -40,7 +40,7 @@ def get_arbitrage_keyboard() -> InlineKeyboardMarkup:
 def get_modern_arbitrage_keyboard() -> InlineKeyboardMarkup:
     """Создать современную клавиатуру арбитража с упрощенным меню.
 
-    Обновленная версия с ссылкой на /simple.
+    Обновленная версия с ссылкой на /simple и новыми стратегиями.
 
     Returns:
         InlineKeyboardMarkup с расширенными опциями
@@ -49,6 +49,13 @@ def get_modern_arbitrage_keyboard() -> InlineKeyboardMarkup:
         [
             InlineKeyboardButton(text="⚡ Упрощенное меню", callback_data="simple_menu"),
         ],
+        # Новая секция: Unified Strategy System
+        [
+            InlineKeyboardButton(
+                text="🔎 ВСЕ СТРАТЕГИИ",
+                callback_data="auto_trade_scan_all",
+            ),
+        ],
         [
             InlineKeyboardButton(text="🚀 Быстрый скан", callback_data="arb_quick"),
             InlineKeyboardButton(text="🔬 Глубокий скан", callback_data="arb_deep"),
@@ -56,6 +63,11 @@ def get_modern_arbitrage_keyboard() -> InlineKeyboardMarkup:
         [
             InlineKeyboardButton(text="📈 Анализ рынка", callback_data="arb_market_analysis"),
             InlineKeyboardButton(text="🔍 Многоуровневый скан", callback_data="scanner"),
+        ],
+        # Новые стратегии
+        [
+            InlineKeyboardButton(text="🎯 Float арбитраж", callback_data="float_arbitrage_menu"),
+            InlineKeyboardButton(text="📝 Расширенные ордера", callback_data="advanced_orders_menu"),
         ],
         [
             InlineKeyboardButton(text="⚡ Enhanced Scanner", callback_data="enhanced_scanner_menu"),
@@ -450,4 +462,171 @@ def get_waxpeer_listings_keyboard(page: int = 1, total_pages: int = 1) -> Inline
             InlineKeyboardButton(text="◀️ Назад", callback_data="waxpeer_menu"),
         ],
     ])
+    return InlineKeyboardMarkup(keyboard)
+
+
+def get_float_arbitrage_keyboard() -> InlineKeyboardMarkup:
+    """Создать клавиатуру Float Value арбитража.
+
+    Returns:
+        InlineKeyboardMarkup для работы с Float арбитражем
+    """
+    keyboard = [
+        [
+            InlineKeyboardButton(text="🔍 Сканировать Float", callback_data="float_scan"),
+            InlineKeyboardButton(text="📊 Квартильный анализ", callback_data="float_quartile"),
+        ],
+        [
+            InlineKeyboardButton(text="🎯 Премиальные флоаты", callback_data="float_premium"),
+            InlineKeyboardButton(text="💎 Редкие паттерны", callback_data="float_patterns"),
+        ],
+        [
+            InlineKeyboardButton(text="📝 Создать Float ордер", callback_data="float_create_order"),
+            InlineKeyboardButton(text="📋 Мои Float ордера", callback_data="float_my_orders"),
+        ],
+        [
+            InlineKeyboardButton(text="⚙️ Настройки Float", callback_data="float_settings"),
+        ],
+        [
+            InlineKeyboardButton(text="◀️ Назад", callback_data="arbitrage"),
+        ],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def get_advanced_orders_keyboard() -> InlineKeyboardMarkup:
+    """Создать клавиатуру расширенных ордеров.
+
+    Returns:
+        InlineKeyboardMarkup для работы с расширенными ордерами
+    """
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                text="🎯 Float Range ордер",
+                callback_data="adv_order_float",
+            ),
+        ],
+        [
+            InlineKeyboardButton(text="💎 Doppler Phase", callback_data="adv_order_doppler"),
+            InlineKeyboardButton(text="🔵 Blue Gem", callback_data="adv_order_pattern"),
+        ],
+        [
+            InlineKeyboardButton(text="🏷️ Sticker ордер", callback_data="adv_order_sticker"),
+            InlineKeyboardButton(text="📊 StatTrak", callback_data="adv_order_stattrak"),
+        ],
+        [
+            InlineKeyboardButton(text="📋 Шаблоны ордеров", callback_data="adv_order_templates"),
+            InlineKeyboardButton(text="📜 Мои ордера", callback_data="adv_order_my_orders"),
+        ],
+        [
+            InlineKeyboardButton(text="⚙️ Настройки", callback_data="adv_order_settings"),
+        ],
+        [
+            InlineKeyboardButton(text="◀️ Назад", callback_data="arbitrage"),
+        ],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def get_unified_strategies_keyboard() -> InlineKeyboardMarkup:
+    """Создать клавиатуру унифицированных стратегий.
+
+    Returns:
+        InlineKeyboardMarkup для выбора стратегий поиска
+    """
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                text="🔎 СКАНИРОВАТЬ ВСЕ",
+                callback_data="auto_trade_scan_all",
+            ),
+        ],
+        # Индивидуальные стратегии
+        [
+            InlineKeyboardButton(text="🔄 Cross-Platform", callback_data="strategy_cross_platform"),
+            InlineKeyboardButton(text="📊 Intramarket", callback_data="strategy_intramarket"),
+        ],
+        [
+            InlineKeyboardButton(text="🎯 Float Value", callback_data="strategy_float"),
+            InlineKeyboardButton(text="💎 Pattern/Phase", callback_data="strategy_pattern"),
+        ],
+        [
+            InlineKeyboardButton(text="🎯 Targets", callback_data="strategy_targets"),
+            InlineKeyboardButton(text="🧠 Smart Finder", callback_data="strategy_smart"),
+        ],
+        # Пресеты
+        [
+            InlineKeyboardButton(text="⚡ Boost ($0.5-$3)", callback_data="preset_boost"),
+            InlineKeyboardButton(text="📈 Standard ($3-$15)", callback_data="preset_standard"),
+        ],
+        [
+            InlineKeyboardButton(text="💰 Medium ($15-$50)", callback_data="preset_medium"),
+            InlineKeyboardButton(text="🏆 Pro ($200+)", callback_data="preset_pro"),
+        ],
+        [
+            InlineKeyboardButton(text="◀️ Назад", callback_data="arbitrage"),
+        ],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def get_doppler_phases_keyboard() -> InlineKeyboardMarkup:
+    """Создать клавиатуру выбора Doppler фаз.
+
+    Returns:
+        InlineKeyboardMarkup для выбора фазы Doppler
+    """
+    keyboard = [
+        [
+            InlineKeyboardButton(text="🔴 Ruby (x6)", callback_data="doppler_ruby"),
+            InlineKeyboardButton(text="🔵 Sapphire (x5)", callback_data="doppler_sapphire"),
+        ],
+        [
+            InlineKeyboardButton(text="⚫ Black Pearl (x4)", callback_data="doppler_black_pearl"),
+            InlineKeyboardButton(text="🟢 Emerald (x3)", callback_data="doppler_emerald"),
+        ],
+        [
+            InlineKeyboardButton(text="Phase 1", callback_data="doppler_phase1"),
+            InlineKeyboardButton(text="Phase 2", callback_data="doppler_phase2"),
+        ],
+        [
+            InlineKeyboardButton(text="Phase 3", callback_data="doppler_phase3"),
+            InlineKeyboardButton(text="Phase 4", callback_data="doppler_phase4"),
+        ],
+        [
+            InlineKeyboardButton(text="◀️ Назад", callback_data="advanced_orders_menu"),
+        ],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def get_pattern_selection_keyboard() -> InlineKeyboardMarkup:
+    """Создать клавиатуру выбора паттернов (Blue Gem и др.).
+
+    Returns:
+        InlineKeyboardMarkup для выбора редких паттернов
+    """
+    keyboard = [
+        [
+            InlineKeyboardButton(text="🔵 Blue Gem Tier 1", callback_data="pattern_blue_gem_t1"),
+        ],
+        [
+            InlineKeyboardButton(text="💎 #661 (Best)", callback_data="pattern_661"),
+            InlineKeyboardButton(text="💎 #670 (2nd)", callback_data="pattern_670"),
+        ],
+        [
+            InlineKeyboardButton(text="💎 #321 (3rd)", callback_data="pattern_321"),
+            InlineKeyboardButton(text="💎 #387 (4th)", callback_data="pattern_387"),
+        ],
+        [
+            InlineKeyboardButton(text="🔷 Другие Blue Gems", callback_data="pattern_blue_gem_other"),
+        ],
+        [
+            InlineKeyboardButton(text="⚙️ Свой паттерн ID", callback_data="pattern_custom"),
+        ],
+        [
+            InlineKeyboardButton(text="◀️ Назад", callback_data="advanced_orders_menu"),
+        ],
+    ]
     return InlineKeyboardMarkup(keyboard)
