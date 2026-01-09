@@ -133,6 +133,67 @@ def create_callback_router() -> CallbackRouter:
     router.register_exact("waxpeer_valuable", _handle_waxpeer_scan)
     router.register_exact("waxpeer_reprice", _handle_waxpeer_settings)
 
+    # ========================================================================
+    # FLOAT ARBITRAGE HANDLERS (NEW)
+    # ========================================================================
+    router.register_exact("float_arbitrage_menu", _handle_float_arbitrage_menu)
+    router.register_exact("float_scan", _handle_float_scan)
+    router.register_exact("float_quartile", _handle_float_quartile)
+    router.register_exact("float_premium", _handle_float_premium)
+    router.register_exact("float_patterns", _handle_float_patterns)
+    router.register_exact("float_create_order", _handle_float_create_order)
+    router.register_exact("float_my_orders", _handle_float_my_orders)
+    router.register_exact("float_settings", _handle_float_settings)
+
+    # ========================================================================
+    # ADVANCED ORDERS HANDLERS (NEW)
+    # ========================================================================
+    router.register_exact("advanced_orders_menu", _handle_advanced_orders_menu)
+    router.register_exact("adv_order_float", _handle_adv_order_float)
+    router.register_exact("adv_order_doppler", _handle_adv_order_doppler)
+    router.register_exact("adv_order_pattern", _handle_adv_order_pattern)
+    router.register_exact("adv_order_sticker", _handle_adv_order_sticker)
+    router.register_exact("adv_order_stattrak", _handle_adv_order_stattrak)
+    router.register_exact("adv_order_templates", _handle_adv_order_templates)
+    router.register_exact("adv_order_my_orders", _handle_adv_order_my_orders)
+    router.register_exact("adv_order_settings", _handle_adv_order_settings)
+
+    # Doppler phases
+    router.register_exact("doppler_ruby", _handle_doppler_phase)
+    router.register_exact("doppler_sapphire", _handle_doppler_phase)
+    router.register_exact("doppler_black_pearl", _handle_doppler_phase)
+    router.register_exact("doppler_emerald", _handle_doppler_phase)
+    router.register_exact("doppler_phase1", _handle_doppler_phase)
+    router.register_exact("doppler_phase2", _handle_doppler_phase)
+    router.register_exact("doppler_phase3", _handle_doppler_phase)
+    router.register_exact("doppler_phase4", _handle_doppler_phase)
+
+    # Pattern selection (Blue Gem)
+    router.register_exact("pattern_blue_gem_t1", _handle_pattern_selection)
+    router.register_exact("pattern_661", _handle_pattern_selection)
+    router.register_exact("pattern_670", _handle_pattern_selection)
+    router.register_exact("pattern_321", _handle_pattern_selection)
+    router.register_exact("pattern_387", _handle_pattern_selection)
+    router.register_exact("pattern_blue_gem_other", _handle_pattern_selection)
+    router.register_exact("pattern_custom", _handle_pattern_custom)
+
+    # ========================================================================
+    # UNIFIED STRATEGY HANDLERS (NEW)
+    # ========================================================================
+    router.register_exact("auto_trade_scan_all", _handle_scan_all_strategies)
+    router.register_exact("strategy_cross_platform", _handle_strategy_cross_platform)
+    router.register_exact("strategy_intramarket", _handle_strategy_intramarket)
+    router.register_exact("strategy_float", _handle_strategy_float)
+    router.register_exact("strategy_pattern", _handle_strategy_pattern)
+    router.register_exact("strategy_targets", _handle_strategy_targets)
+    router.register_exact("strategy_smart", _handle_strategy_smart)
+
+    # Strategy presets
+    router.register_exact("preset_boost", _handle_preset_boost)
+    router.register_exact("preset_standard", _handle_preset_standard)
+    router.register_exact("preset_medium", _handle_preset_medium)
+    router.register_exact("preset_pro", _handle_preset_pro)
+
     # Other features
     router.register_exact("inventory", _handle_inventory)
     router.register_exact("analytics", _handle_analytics)
@@ -949,3 +1010,350 @@ async def _handle_waxpeer_scan(update, context):
         await waxpeer_scan_handler(update, context)
     except ImportError:
         await handle_temporary_unavailable(update, context, "Waxpeer сканирование")
+
+
+# ============================================================================
+# FLOAT ARBITRAGE HANDLERS (NEW)
+# ============================================================================
+
+
+async def _handle_float_arbitrage_menu(update, context):
+    """Show Float Value Arbitrage menu."""
+    if not update.callback_query:
+        return
+
+    from src.telegram_bot.keyboards import get_float_arbitrage_keyboard
+
+    await update.callback_query.edit_message_text(
+        "🎯 <b>Float Value Arbitrage</b>\n\n"
+        "Поиск предметов с премиальным флоатом для перепродажи:\n\n"
+        "• <b>Сканировать Float</b> — найти недооценённые скины по флоату\n"
+        "• <b>Квартильный анализ</b> — покупка только ниже Q1\n"
+        "• <b>Премиальные флоаты</b> — предметы с лучшим состоянием\n"
+        "• <b>Редкие паттерны</b> — Blue Gem, Doppler и др.\n\n"
+        "<i>Выберите действие:</i>",
+        parse_mode="HTML",
+        reply_markup=get_float_arbitrage_keyboard(),
+    )
+
+
+async def _handle_float_scan(update, context):
+    """Scan for float arbitrage opportunities."""
+    await handle_temporary_unavailable(update, context, "Float сканирование")
+
+
+async def _handle_float_quartile(update, context):
+    """Show quartile analysis."""
+    await handle_temporary_unavailable(update, context, "Квартильный анализ")
+
+
+async def _handle_float_premium(update, context):
+    """Show premium float items."""
+    await handle_temporary_unavailable(update, context, "Премиальные флоаты")
+
+
+async def _handle_float_patterns(update, context):
+    """Show rare patterns."""
+    if not update.callback_query:
+        return
+
+    from src.telegram_bot.keyboards import get_pattern_selection_keyboard
+
+    await update.callback_query.edit_message_text(
+        "💎 <b>Редкие паттерны</b>\n\n"
+        "Выберите тип редкого паттерна:\n\n"
+        "• <b>Blue Gem</b> — Case Hardened с синим паттерном\n"
+        "• <b>Doppler Phases</b> — Ruby, Sapphire, Black Pearl\n\n"
+        "<i>Blue Gem seeds #661, #670 — самые дорогие!</i>",
+        parse_mode="HTML",
+        reply_markup=get_pattern_selection_keyboard(),
+    )
+
+
+async def _handle_float_create_order(update, context):
+    """Create float order."""
+    await handle_temporary_unavailable(update, context, "Создание Float ордера")
+
+
+async def _handle_float_my_orders(update, context):
+    """Show user's float orders."""
+    await handle_temporary_unavailable(update, context, "Мои Float ордера")
+
+
+async def _handle_float_settings(update, context):
+    """Float arbitrage settings."""
+    await handle_temporary_unavailable(update, context, "Настройки Float")
+
+
+# ============================================================================
+# ADVANCED ORDERS HANDLERS (NEW)
+# ============================================================================
+
+
+async def _handle_advanced_orders_menu(update, context):
+    """Show Advanced Orders menu."""
+    if not update.callback_query:
+        return
+
+    from src.telegram_bot.keyboards import get_advanced_orders_keyboard
+
+    await update.callback_query.edit_message_text(
+        "📝 <b>Расширенные ордера</b>\n\n"
+        "Создание ордеров с фильтрами:\n\n"
+        "• <b>Float Range</b> — диапазон флоата (0.15-0.155)\n"
+        "• <b>Doppler Phase</b> — Ruby, Sapphire, BP, Emerald\n"
+        "• <b>Blue Gem</b> — паттерны Case Hardened\n"
+        "• <b>Sticker</b> — с определёнными стикерами\n"
+        "• <b>StatTrak</b> — только StatTrak версии\n\n"
+        "<i>Выберите тип ордера:</i>",
+        parse_mode="HTML",
+        reply_markup=get_advanced_orders_keyboard(),
+    )
+
+
+async def _handle_adv_order_float(update, context):
+    """Create float range order."""
+    await handle_temporary_unavailable(update, context, "Float Range ордер")
+
+
+async def _handle_adv_order_doppler(update, context):
+    """Create Doppler phase order."""
+    if not update.callback_query:
+        return
+
+    from src.telegram_bot.keyboards import get_doppler_phases_keyboard
+
+    await update.callback_query.edit_message_text(
+        "💎 <b>Doppler Phase Order</b>\n\n"
+        "Выберите фазу Doppler:\n\n"
+        "• 🔴 <b>Ruby</b> — x6 множитель к базовой цене\n"
+        "• 🔵 <b>Sapphire</b> — x5 множитель\n"
+        "• ⚫ <b>Black Pearl</b> — x4 множитель\n"
+        "• 🟢 <b>Emerald</b> — x3 множитель (только Gamma)\n\n"
+        "<i>Phase 1-4 — стандартные фазы</i>",
+        parse_mode="HTML",
+        reply_markup=get_doppler_phases_keyboard(),
+    )
+
+
+async def _handle_adv_order_pattern(update, context):
+    """Create pattern order (Blue Gem)."""
+    if not update.callback_query:
+        return
+
+    from src.telegram_bot.keyboards import get_pattern_selection_keyboard
+
+    await update.callback_query.edit_message_text(
+        "🔵 <b>Blue Gem Pattern Order</b>\n\n"
+        "Выберите паттерн Case Hardened:\n\n"
+        "• 💎 <b>#661</b> — лучший Blue Gem seed\n"
+        "• 💎 <b>#670</b> — 2-й по ценности\n"
+        "• 💎 <b>#321</b> — 3-й по ценности\n"
+        "• 💎 <b>#387</b> — 4-й по ценности\n\n"
+        "<i>Или укажите свой Pattern ID</i>",
+        parse_mode="HTML",
+        reply_markup=get_pattern_selection_keyboard(),
+    )
+
+
+async def _handle_adv_order_sticker(update, context):
+    """Create sticker order."""
+    await handle_temporary_unavailable(update, context, "Sticker ордер")
+
+
+async def _handle_adv_order_stattrak(update, context):
+    """Create StatTrak order."""
+    await handle_temporary_unavailable(update, context, "StatTrak ордер")
+
+
+async def _handle_adv_order_templates(update, context):
+    """Show order templates."""
+    if not update.callback_query:
+        return
+
+    await update.callback_query.edit_message_text(
+        "📋 <b>Шаблоны ордеров</b>\n\n"
+        "Готовые конфигурации для быстрого создания ордеров:\n\n"
+        "1. <b>AK-47 Redline FT (Low Float)</b>\n"
+        "   Float: 0.15-0.16, ROI: ~50%\n\n"
+        "2. <b>AWP Asiimov FT (BTA)</b>\n"
+        "   Float: 0.18-0.21, ROI: ~30%\n\n"
+        "3. <b>Karambit Doppler Ruby</b>\n"
+        "   Phase: Ruby, ROI: ~25%\n\n"
+        "4. <b>AK Case Hardened Blue Gem</b>\n"
+        "   Pattern: #661, ROI: ~100%+\n\n"
+        "<i>Функционал в разработке</i>",
+        parse_mode="HTML",
+    )
+
+
+async def _handle_adv_order_my_orders(update, context):
+    """Show user's advanced orders."""
+    await handle_temporary_unavailable(update, context, "Мои ордера")
+
+
+async def _handle_adv_order_settings(update, context):
+    """Advanced order settings."""
+    await handle_temporary_unavailable(update, context, "Настройки ордеров")
+
+
+async def _handle_doppler_phase(update, context):
+    """Handle Doppler phase selection."""
+    if not update.callback_query or not update.callback_query.data:
+        return
+
+    phase = update.callback_query.data.replace("doppler_", "").upper()
+
+    await update.callback_query.edit_message_text(
+        f"💎 <b>Doppler {phase} Order</b>\n\n"
+        f"Вы выбрали фазу: <b>{phase}</b>\n\n"
+        f"Для создания ордера укажите:\n"
+        f"• Название предмета (например: Karambit Doppler FN)\n"
+        f"• Максимальную цену покупки\n\n"
+        f"<i>Функционал создания в разработке</i>",
+        parse_mode="HTML",
+    )
+
+
+async def _handle_pattern_selection(update, context):
+    """Handle pattern selection (Blue Gem)."""
+    if not update.callback_query or not update.callback_query.data:
+        return
+
+    pattern_data = update.callback_query.data.replace("pattern_", "")
+
+    if pattern_data == "blue_gem_t1":
+        desc = "Tier 1 Blue Gem (топ паттерны)"
+    elif pattern_data == "blue_gem_other":
+        desc = "Другие Blue Gem паттерны"
+    else:
+        desc = f"Pattern ID #{pattern_data}"
+
+    await update.callback_query.edit_message_text(
+        f"🔵 <b>Blue Gem Order</b>\n\n"
+        f"Вы выбрали: <b>{desc}</b>\n\n"
+        f"Для создания ордера укажите:\n"
+        f"• Тип предмета (AK-47, Five-SeveN, etc.)\n"
+        f"• Максимальную цену покупки\n\n"
+        f"<i>Функционал создания в разработке</i>",
+        parse_mode="HTML",
+    )
+
+
+async def _handle_pattern_custom(update, context):
+    """Handle custom pattern ID input."""
+    await handle_temporary_unavailable(update, context, "Свой Pattern ID")
+
+
+# ============================================================================
+# UNIFIED STRATEGY HANDLERS (NEW)
+# ============================================================================
+
+
+async def _handle_scan_all_strategies(update, context):
+    """Scan all strategies for arbitrage opportunities."""
+    try:
+        from src.telegram_bot.handlers.main_keyboard import auto_trade_scan_all
+
+        await auto_trade_scan_all(update, context)
+    except ImportError:
+        await handle_temporary_unavailable(update, context, "Сканирование всех стратегий")
+
+
+async def _handle_strategy_cross_platform(update, context):
+    """Cross-platform arbitrage strategy."""
+    await handle_temporary_unavailable(update, context, "Cross-Platform Arbitrage")
+
+
+async def _handle_strategy_intramarket(update, context):
+    """Intramarket arbitrage strategy."""
+    await handle_temporary_unavailable(update, context, "Intramarket Arbitrage")
+
+
+async def _handle_strategy_float(update, context):
+    """Float value arbitrage strategy."""
+    await _handle_float_arbitrage_menu(update, context)
+
+
+async def _handle_strategy_pattern(update, context):
+    """Pattern/Phase arbitrage strategy."""
+    await _handle_adv_order_pattern(update, context)
+
+
+async def _handle_strategy_targets(update, context):
+    """Target system strategy."""
+    await _handle_targets(update, context)
+
+
+async def _handle_strategy_smart(update, context):
+    """Smart market finder strategy."""
+    await _handle_smart_arbitrage_menu(update, context)
+
+
+async def _handle_preset_boost(update, context):
+    """Boost preset ($0.50-$3)."""
+    if not update.callback_query:
+        return
+
+    await update.callback_query.edit_message_text(
+        "⚡ <b>Preset: BOOST</b>\n\n"
+        "Настройки для быстрого оборота:\n\n"
+        "• 💰 Диапазон цен: $0.50 - $3.00\n"
+        "• 📊 Min ROI: 8%\n"
+        "• 🔄 Быстрая ликвидность\n"
+        "• ⏱ Без Trade Lock\n\n"
+        "<i>Идеально для разгона баланса</i>",
+        parse_mode="HTML",
+    )
+
+
+async def _handle_preset_standard(update, context):
+    """Standard preset ($3-$15)."""
+    if not update.callback_query:
+        return
+
+    await update.callback_query.edit_message_text(
+        "📈 <b>Preset: STANDARD</b>\n\n"
+        "Сбалансированные настройки:\n\n"
+        "• 💰 Диапазон цен: $3.00 - $15.00\n"
+        "• 📊 Min ROI: 10%\n"
+        "• 🔄 Средняя ликвидность\n"
+        "• ⏱ Trade Lock до 3 дней\n\n"
+        "<i>Оптимальное соотношение риска и прибыли</i>",
+        parse_mode="HTML",
+    )
+
+
+async def _handle_preset_medium(update, context):
+    """Medium preset ($15-$50)."""
+    if not update.callback_query:
+        return
+
+    await update.callback_query.edit_message_text(
+        "💰 <b>Preset: MEDIUM</b>\n\n"
+        "Настройки для среднего баланса:\n\n"
+        "• 💰 Диапазон цен: $15.00 - $50.00\n"
+        "• 📊 Min ROI: 12%\n"
+        "• 🔄 Проверка ликвидности\n"
+        "• ⏱ Trade Lock до 5 дней\n\n"
+        "<i>Для баланса $100-$500</i>",
+        parse_mode="HTML",
+    )
+
+
+async def _handle_preset_pro(update, context):
+    """Pro preset ($200+)."""
+    if not update.callback_query:
+        return
+
+    await update.callback_query.edit_message_text(
+        "🏆 <b>Preset: PRO</b>\n\n"
+        "Настройки для крупных сделок:\n\n"
+        "• 💰 Диапазон цен: $200.00+\n"
+        "• 📊 Min ROI: 15%\n"
+        "• 🔄 Высокая ликвидность обязательна\n"
+        "• ⏱ Trade Lock до 7 дней\n"
+        "• 💎 Float Value анализ включен\n\n"
+        "<i>Для профессиональной торговли</i>",
+        parse_mode="HTML",
+    )
