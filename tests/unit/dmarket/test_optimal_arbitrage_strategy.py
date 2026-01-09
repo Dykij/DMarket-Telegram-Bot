@@ -573,3 +573,487 @@ class TestTradeLockStrategy:
         assert TradeLockStrategy.INSTANT_ONLY.value == "instant_only"
         assert TradeLockStrategy.SHORT_LOCK.value == "short_lock"
         assert TradeLockStrategy.INVESTMENT.value == "investment"
+
+
+class TestOpportunityScoreBonuses:
+    """Tests for opportunity score bonus calculations."""
+
+    def test_score_with_rare_doppler_phase(self):
+        """Test score bonus for rare Doppler phases (Ruby, Sapphire, Black Pearl)."""
+        strategy = OptimalArbitrageStrategy()
+        opp = ArbitrageOpportunity(
+            item_id="test123",
+            item_name="Karambit Doppler (FN)",
+            game="csgo",
+            buy_price=500.0,
+            sell_price=600.0,
+            buy_platform="dmarket",
+            sell_platform="waxpeer",
+            gross_profit=100.0,
+            net_profit=64.0,
+            roi_percent=12.8,
+            fees_paid=36.0,
+            liquidity_score=0.8,
+            risk_level=RiskLevel.LOW,
+            phase="Ruby",  # Rare phase
+        )
+        score = strategy.calculate_opportunity_score(opp)
+        # Should have bonus for Ruby phase
+        assert score > 50
+
+    def test_score_with_sapphire_phase(self):
+        """Test score bonus for Sapphire phase."""
+        strategy = OptimalArbitrageStrategy()
+        opp = ArbitrageOpportunity(
+            item_id="test456",
+            item_name="Bayonet Doppler (FN)",
+            game="csgo",
+            buy_price=400.0,
+            sell_price=480.0,
+            buy_platform="dmarket",
+            sell_platform="waxpeer",
+            gross_profit=80.0,
+            net_profit=51.2,
+            roi_percent=12.8,
+            fees_paid=28.8,
+            liquidity_score=0.7,
+            risk_level=RiskLevel.LOW,
+            phase="Sapphire",
+        )
+        score = strategy.calculate_opportunity_score(opp)
+        assert score > 50
+
+    def test_score_with_black_pearl_phase(self):
+        """Test score bonus for Black Pearl phase."""
+        strategy = OptimalArbitrageStrategy()
+        opp = ArbitrageOpportunity(
+            item_id="test789",
+            item_name="Flip Knife Doppler (FN)",
+            game="csgo",
+            buy_price=300.0,
+            sell_price=360.0,
+            buy_platform="dmarket",
+            sell_platform="waxpeer",
+            gross_profit=60.0,
+            net_profit=38.4,
+            roi_percent=12.8,
+            fees_paid=21.6,
+            liquidity_score=0.7,
+            risk_level=RiskLevel.LOW,
+            phase="Black Pearl",
+        )
+        score = strategy.calculate_opportunity_score(opp)
+        assert score > 50
+
+    def test_score_with_blue_gem_pattern_661(self):
+        """Test score bonus for Blue Gem pattern #661."""
+        strategy = OptimalArbitrageStrategy()
+        opp = ArbitrageOpportunity(
+            item_id="test_bg_661",
+            item_name="AK-47 | Case Hardened (FT)",
+            game="csgo",
+            buy_price=1000.0,
+            sell_price=1200.0,
+            buy_platform="dmarket",
+            sell_platform="waxpeer",
+            gross_profit=200.0,
+            net_profit=128.0,
+            roi_percent=12.8,
+            fees_paid=72.0,
+            liquidity_score=0.6,
+            risk_level=RiskLevel.MEDIUM,
+            pattern_id=661,  # Famous Blue Gem pattern
+        )
+        score = strategy.calculate_opportunity_score(opp)
+        assert score > 50
+
+    def test_score_with_blue_gem_pattern_670(self):
+        """Test score bonus for Blue Gem pattern #670."""
+        strategy = OptimalArbitrageStrategy()
+        opp = ArbitrageOpportunity(
+            item_id="test_bg_670",
+            item_name="AK-47 | Case Hardened (MW)",
+            game="csgo",
+            buy_price=1500.0,
+            sell_price=1800.0,
+            buy_platform="dmarket",
+            sell_platform="waxpeer",
+            gross_profit=300.0,
+            net_profit=192.0,
+            roi_percent=12.8,
+            fees_paid=108.0,
+            liquidity_score=0.8,  # Higher liquidity for better score
+            risk_level=RiskLevel.LOW,  # Lower risk for better score
+            pattern_id=670,
+        )
+        score = strategy.calculate_opportunity_score(opp)
+        assert score > 50
+
+    def test_score_with_blue_gem_pattern_321(self):
+        """Test score bonus for Blue Gem pattern #321."""
+        strategy = OptimalArbitrageStrategy()
+        opp = ArbitrageOpportunity(
+            item_id="test_bg_321",
+            item_name="AK-47 | Case Hardened (FT)",
+            game="csgo",
+            buy_price=800.0,
+            sell_price=960.0,
+            buy_platform="dmarket",
+            sell_platform="waxpeer",
+            gross_profit=160.0,
+            net_profit=102.4,
+            roi_percent=12.8,
+            fees_paid=57.6,
+            liquidity_score=0.6,
+            risk_level=RiskLevel.MEDIUM,
+            pattern_id=321,
+        )
+        score = strategy.calculate_opportunity_score(opp)
+        assert score > 50
+
+    def test_score_with_blue_gem_pattern_387(self):
+        """Test score bonus for Blue Gem pattern #387 (Karambit)."""
+        strategy = OptimalArbitrageStrategy()
+        opp = ArbitrageOpportunity(
+            item_id="test_bg_387",
+            item_name="Karambit | Case Hardened (FT)",
+            game="csgo",
+            buy_price=2000.0,
+            sell_price=2400.0,
+            buy_platform="dmarket",
+            sell_platform="waxpeer",
+            gross_profit=400.0,
+            net_profit=256.0,
+            roi_percent=12.8,
+            fees_paid=144.0,
+            liquidity_score=0.8,  # Higher liquidity for better score
+            risk_level=RiskLevel.LOW,  # Lower risk for better score
+            pattern_id=387,
+        )
+        score = strategy.calculate_opportunity_score(opp)
+        assert score > 50
+
+
+class TestFilterOpportunityEdgeCases:
+    """Tests for edge cases in filter_opportunity."""
+
+    @pytest.fixture()
+    def strategy_with_limits(self):
+        """Create strategy with specific limits for testing."""
+        settings = StrategySettings(
+            min_price=5.0,
+            max_price=100.0,
+            max_single_trade=50.0,
+            min_sales_per_day=1.0,
+            max_days_to_sell=14,
+            max_lock_days=3,
+        )
+        return OptimalArbitrageStrategy(settings=settings)
+
+    def test_filter_rejects_price_below_min(self, strategy_with_limits):
+        """Test filter rejects items below min price."""
+        opp = ArbitrageOpportunity(
+            item_id="test",
+            item_name="Cheap Item",
+            game="csgo",
+            buy_price=2.0,  # Below min_price of 5.0
+            sell_price=3.0,
+            buy_platform="dmarket",
+            sell_platform="waxpeer",
+            gross_profit=1.0,
+            net_profit=0.5,
+            roi_percent=25.0,
+            fees_paid=0.5,
+            liquidity_score=0.8,
+            risk_level=RiskLevel.LOW,
+        )
+        is_valid, reason = strategy_with_limits.filter_opportunity(opp)
+        assert is_valid is False
+        assert "min" in reason.lower()
+
+    def test_filter_rejects_price_above_max(self, strategy_with_limits):
+        """Test filter rejects items above max price."""
+        opp = ArbitrageOpportunity(
+            item_id="test",
+            item_name="Expensive Item",
+            game="csgo",
+            buy_price=150.0,  # Above max_price of 100.0
+            sell_price=180.0,
+            buy_platform="dmarket",
+            sell_platform="waxpeer",
+            gross_profit=30.0,
+            net_profit=19.2,
+            roi_percent=12.8,
+            fees_paid=10.8,
+            liquidity_score=0.8,
+            risk_level=RiskLevel.LOW,
+        )
+        is_valid, reason = strategy_with_limits.filter_opportunity(opp)
+        assert is_valid is False
+        assert "max" in reason.lower()
+
+    def test_filter_rejects_exceeds_single_trade_max(self, strategy_with_limits):
+        """Test filter rejects items exceeding max_single_trade."""
+        opp = ArbitrageOpportunity(
+            item_id="test",
+            item_name="Big Trade Item",
+            game="csgo",
+            buy_price=75.0,  # Above max_single_trade of 50.0 but below max_price
+            sell_price=90.0,
+            buy_platform="dmarket",
+            sell_platform="waxpeer",
+            gross_profit=15.0,
+            net_profit=9.6,
+            roi_percent=12.8,
+            fees_paid=5.4,
+            liquidity_score=0.8,
+            risk_level=RiskLevel.LOW,
+        )
+        is_valid, reason = strategy_with_limits.filter_opportunity(opp)
+        assert is_valid is False
+        assert "single trade" in reason.lower()
+
+    def test_filter_rejects_low_sales_per_day(self, strategy_with_limits):
+        """Test filter rejects items with low sales per day."""
+        opp = ArbitrageOpportunity(
+            item_id="test",
+            item_name="Low Volume Item",
+            game="csgo",
+            buy_price=20.0,
+            sell_price=24.0,
+            buy_platform="dmarket",
+            sell_platform="waxpeer",
+            gross_profit=4.0,
+            net_profit=2.56,
+            roi_percent=12.8,
+            fees_paid=1.44,
+            liquidity_score=0.8,
+            risk_level=RiskLevel.LOW,
+            sales_per_day=0.5,  # Below min_sales_per_day of 1.0
+        )
+        is_valid, reason = strategy_with_limits.filter_opportunity(opp)
+        assert is_valid is False
+        assert "sales" in reason.lower()
+
+    def test_filter_rejects_too_long_to_sell(self, strategy_with_limits):
+        """Test filter rejects items that take too long to sell."""
+        opp = ArbitrageOpportunity(
+            item_id="test",
+            item_name="Slow Seller",
+            game="csgo",
+            buy_price=20.0,
+            sell_price=24.0,
+            buy_platform="dmarket",
+            sell_platform="waxpeer",
+            gross_profit=4.0,
+            net_profit=2.56,
+            roi_percent=12.8,
+            fees_paid=1.44,
+            liquidity_score=0.3,
+            risk_level=RiskLevel.LOW,
+            sales_per_day=2.0,
+            days_to_sell=20,  # Above max_days_to_sell of 14
+        )
+        is_valid, reason = strategy_with_limits.filter_opportunity(opp)
+        assert is_valid is False
+        assert "days" in reason.lower()
+
+    def test_filter_rejects_too_long_lock(self, strategy_with_limits):
+        """Test filter rejects items with lock exceeding max_lock_days."""
+        opp = ArbitrageOpportunity(
+            item_id="test",
+            item_name="Long Lock Item",
+            game="csgo",
+            buy_price=20.0,
+            sell_price=24.0,
+            buy_platform="dmarket",
+            sell_platform="waxpeer",
+            gross_profit=4.0,
+            net_profit=2.56,
+            roi_percent=12.8,
+            fees_paid=1.44,
+            liquidity_score=0.8,
+            risk_level=RiskLevel.LOW,
+            sales_per_day=5.0,
+            has_trade_lock=True,
+            lock_days=7,  # Above max_lock_days of 3
+        )
+        is_valid, reason = strategy_with_limits.filter_opportunity(opp)
+        assert is_valid is False
+        assert "lock" in reason.lower()
+
+
+class TestAnalyzeItemEdgeCases:
+    """Tests for edge cases in analyze_item."""
+
+    def test_analyze_item_with_exception(self):
+        """Test analyze_item handles exceptions gracefully."""
+        strategy = OptimalArbitrageStrategy()
+        # Item with missing required data that will cause exception
+        item = {
+            # Missing 'price' key which will raise KeyError/TypeError
+        }
+        result = strategy.analyze_item(item, "dmarket", "waxpeer", 100.0)
+        assert result is None
+
+    def test_analyze_item_with_invalid_price_format(self):
+        """Test analyze_item handles invalid price format."""
+        strategy = OptimalArbitrageStrategy()
+        item = {
+            "itemId": "test",
+            "title": "Test",
+            "price": {"USD": "invalid"},  # Not a valid number
+        }
+        result = strategy.analyze_item(item, "dmarket", "waxpeer", 100.0)
+        assert result is None
+
+    def test_analyze_item_with_default_sales_per_day(self):
+        """Test analyze_item uses default sales_per_day when no history."""
+        strategy = OptimalArbitrageStrategy()
+        item = {
+            "itemId": "test",
+            "title": "Test Item",
+            "price": {"USD": "10000"},  # $100
+            # No salesHistory
+        }
+        opp = strategy.analyze_item(item, "dmarket", "waxpeer", 120.0)
+        assert opp is not None
+        assert opp.sales_per_day == 0.5  # Default value
+
+
+class TestDailyLimitsFiltering:
+    """Tests for daily limits in filter_opportunity."""
+
+    def test_filter_rejects_when_daily_trades_exceeded(self):
+        """Test filter rejects when daily trade limit exceeded."""
+        settings = StrategySettings(max_daily_trades=10)
+        strategy = OptimalArbitrageStrategy(settings=settings)
+        # Simulate having reached daily trades limit
+        strategy.daily_trades = 10
+
+        opp = ArbitrageOpportunity(
+            item_id="test",
+            item_name="Good Item",
+            game="csgo",
+            buy_price=20.0,
+            sell_price=24.0,
+            buy_platform="dmarket",
+            sell_platform="waxpeer",
+            gross_profit=4.0,
+            net_profit=2.56,
+            roi_percent=12.8,
+            fees_paid=1.44,
+            liquidity_score=0.8,
+            risk_level=RiskLevel.LOW,
+            sales_per_day=5.0,
+        )
+        is_valid, reason = strategy.filter_opportunity(opp)
+        assert is_valid is False
+        assert "daily trades limit" in reason.lower()
+
+    def test_filter_rejects_when_daily_spend_exceeded(self):
+        """Test filter rejects when daily spend limit would be exceeded."""
+        settings = StrategySettings(max_daily_spend=100.0)
+        strategy = OptimalArbitrageStrategy(settings=settings)
+        # Simulate having spent most of daily budget
+        strategy.daily_spend = 90.0
+
+        opp = ArbitrageOpportunity(
+            item_id="test",
+            item_name="Expensive Item",
+            game="csgo",
+            buy_price=20.0,  # Would exceed 100.0 limit
+            sell_price=24.0,
+            buy_platform="dmarket",
+            sell_platform="waxpeer",
+            gross_profit=4.0,
+            net_profit=2.56,
+            roi_percent=12.8,
+            fees_paid=1.44,
+            liquidity_score=0.8,
+            risk_level=RiskLevel.LOW,
+            sales_per_day=5.0,
+        )
+        is_valid, reason = strategy.filter_opportunity(opp)
+        assert is_valid is False
+        assert "daily spend limit" in reason.lower()
+
+
+class TestFindBestOpportunitiesLogging:
+    """Tests for find_best_opportunities with rejected items logging."""
+
+    def test_find_best_opportunities_logs_rejected(self):
+        """Test that rejected opportunities are logged."""
+        settings = StrategySettings(min_roi_percent=15.0)
+        strategy = OptimalArbitrageStrategy(settings=settings)
+
+        opportunities = [
+            ArbitrageOpportunity(
+                item_id="rejected",
+                item_name="Low ROI Item",
+                game="csgo",
+                buy_price=10.0,
+                sell_price=11.0,
+                buy_platform="dmarket",
+                sell_platform="waxpeer",
+                gross_profit=1.0,
+                net_profit=0.28,
+                roi_percent=2.8,  # Below 15% min
+                fees_paid=0.72,
+                liquidity_score=0.8,
+                risk_level=RiskLevel.LOW,
+                sales_per_day=5.0,
+                opportunity_score=30,
+            ),
+        ]
+
+        result = strategy.find_best_opportunities(opportunities)
+        assert len(result) == 0  # All rejected
+
+
+class TestRecordTradeAverageROI:
+    """Tests for record_trade with average ROI calculation."""
+
+    def test_record_trade_updates_average_roi(self):
+        """Test that recording trades updates average ROI correctly."""
+        strategy = OptimalArbitrageStrategy()
+
+        opp1 = ArbitrageOpportunity(
+            item_id="trade1",
+            item_name="Item 1",
+            game="csgo",
+            buy_price=10.0,
+            sell_price=12.0,
+            buy_platform="dmarket",
+            sell_platform="waxpeer",
+            gross_profit=2.0,
+            net_profit=1.28,
+            roi_percent=12.8,
+            fees_paid=0.72,
+        )
+
+        opp2 = ArbitrageOpportunity(
+            item_id="trade2",
+            item_name="Item 2",
+            game="csgo",
+            buy_price=20.0,
+            sell_price=25.0,
+            buy_platform="dmarket",
+            sell_platform="waxpeer",
+            gross_profit=5.0,
+            net_profit=3.5,
+            roi_percent=17.5,
+            fees_paid=1.5,
+        )
+
+        strategy.record_trade(opp1)
+        assert strategy.stats["trades_executed"] == 1
+        assert strategy.stats["total_profit"] == 1.28
+
+        strategy.record_trade(opp2)
+        assert strategy.stats["trades_executed"] == 2
+        assert strategy.stats["total_profit"] == 1.28 + 3.5
+
+        # Average ROI should be calculated
+        expected_avg_roi = (1.28 + 3.5) / (10.0 + 20.0) * 100
+        assert abs(strategy.stats["average_roi"] - expected_avg_roi) < 0.1
