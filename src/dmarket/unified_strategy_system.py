@@ -1202,10 +1202,243 @@ def get_strategy_config_preset(preset_name: str) -> StrategyConfig:
 
 
 # ============================================================================
+# Multi-Game Support
+# ============================================================================
+
+# Поддерживаемые игры на DMarket
+SUPPORTED_GAMES = ["csgo", "dota2", "tf2", "rust"]
+
+# Эмодзи для игр
+GAME_EMOJIS = {
+    "csgo": "🔫",
+    "dota2": "⚔️",
+    "tf2": "🎩",
+    "rust": "🏚️",
+}
+
+# Названия игр для отображения
+GAME_NAMES = {
+    "csgo": "CS:GO / CS2",
+    "dota2": "Dota 2",
+    "tf2": "Team Fortress 2",
+    "rust": "Rust",
+}
+
+
+def get_game_specific_config(game: str, base_preset: str = "standard") -> StrategyConfig:
+    """Получить конфигурацию специфичную для игры.
+
+    Каждая игра имеет свои особенности рынка:
+    - CS:GO: Float value, паттерны, stickers, большой рынок
+    - Dota 2: Immortals, Arcana, gems, стили
+    - TF2: Unusual hats, killstreak, странные предметы
+    - Rust: Skins с паттернами, ограниченные предметы
+
+    Args:
+        game: Код игры (csgo, dota2, tf2, rust)
+        base_preset: Базовый пресет для параметров цены
+
+    Returns:
+        StrategyConfig адаптированный под игру
+    """
+    base = get_strategy_config_preset(base_preset)
+
+    # Специфичные настройки для каждой игры
+    game_adjustments = {
+        "csgo": {
+            # CS:GO - самый большой рынок, много арбитража
+            "min_profit_percent": Decimal("5.0"),
+            "min_daily_sales": 3,
+            "limit": 50,
+        },
+        "dota2": {
+            # Dota 2 - меньше рынок, но есть редкие предметы
+            "min_profit_percent": Decimal("7.0"),
+            "min_daily_sales": 2,
+            "limit": 30,
+            # Dota предметы часто дешевле
+            "max_price": min(base.max_price, Decimal("100.0")),
+        },
+        "tf2": {
+            # TF2 - уникальный рынок с unusual эффектами
+            "min_profit_percent": Decimal("8.0"),
+            "min_daily_sales": 1,
+            "limit": 20,
+            # TF2 предметы обычно дешевле
+            "max_price": min(base.max_price, Decimal("50.0")),
+        },
+        "rust": {
+            # Rust - быстрорастущий рынок
+            "min_profit_percent": Decimal("6.0"),
+            "min_daily_sales": 2,
+            "limit": 30,
+        },
+    }
+
+    adjustments = game_adjustments.get(game, {})
+
+    return StrategyConfig(
+        game=game,
+        min_price=base.min_price,
+        max_price=adjustments.get("max_price", base.max_price),
+        min_profit_percent=adjustments.get("min_profit_percent", base.min_profit_percent),
+        min_profit_usd=base.min_profit_usd,
+        limit=adjustments.get("limit", base.limit),
+        max_risk_level=base.max_risk_level,
+        min_liquidity_score=base.min_liquidity_score,
+        min_daily_sales=adjustments.get("min_daily_sales", base.min_daily_sales),
+        max_trade_lock_days=base.max_trade_lock_days,
+        float_min=base.float_min,
+        float_max=base.float_max,
+        pattern_ids=base.pattern_ids,
+        phases=base.phases,
+        cache_ttl_seconds=base.cache_ttl_seconds,
+    )
+
+
+async def scan_all_games(
+    strategy_manager: UnifiedStrategyManager,
+    base_preset: str = "standard",
+    games: list[str] | None = None,
+    top_n_per_game: int = 10,
+) -> dict[str, list[UnifiedOpportunity]]:
+    """Сканировать все игры на арбитражные возможности.
+
+    Args:
+        strategy_manager: Менеджер стратегий
+        base_preset: Базовый пресет для настроек
+        games: Список игр для сканирования (по умолчанию все)
+        top_n_per_game: Количество лучших возможностей на игру
+
+    Returns:
+        Словарь с возможностями по играм
+    """
+    if games is None:
+        games = SUPPORTED_GAMES
+
+    results: dict[str, list[UnifiedOpportunity]] = {}
+
+    for game in games:
+        if game not in SUPPORTED_GAMES:
+            continue
+
+        config = get_game_specific_config(game, base_preset)
+
+        try:
+            opportunities = await strategy_manager.find_best_opportunities_combined(
+                config=config,
+                top_n=top_n_per_game,
+            )
+            results[game] = opportunities
+
+            logger.info(
+                "game_scan_complete",
+                game=game,
+                found=len(opportunities),
+            )
+        except Exception as e:
+            logger.exception(f"game_scan_error: {game}", error=str(e))
+            results[game] = []
+
+    return results
+
+
+async def scan_all_games_combined(
+    strategy_manager: UnifiedStrategyManager,
+    base_preset: str = "standard",
+    games: list[str] | None = None,
+    top_n: int = 30,
+) -> list[UnifiedOpportunity]:
+    """Сканировать все игры и вернуть объединённый список лучших возможностей.
+
+    Args:
+        strategy_manager: Менеджер стратегий
+        base_preset: Базовый пресет
+        games: Список игр
+        top_n: Общее количество лучших возможностей
+
+    Returns:
+        Отсортированный список лучших возможностей из всех игр
+    """
+    game_results = await scan_all_games(
+        strategy_manager=strategy_manager,
+        base_preset=base_preset,
+        games=games,
+        top_n_per_game=top_n // len(games or SUPPORTED_GAMES) + 5,
+    )
+
+    # Объединяем все возможности
+    all_opportunities: list[UnifiedOpportunity] = []
+    for game_opportunities in game_results.values():
+        all_opportunities.extend(game_opportunities)
+
+    # Сортируем по score
+    all_opportunities.sort(key=lambda x: x.score.total_score, reverse=True)
+
+    # Убираем дубликаты
+    seen_ids: set[str] = set()
+    unique: list[UnifiedOpportunity] = []
+    for opp in all_opportunities:
+        if opp.id not in seen_ids:
+            seen_ids.add(opp.id)
+            unique.append(opp)
+
+    return unique[:top_n]
+
+
+# ============================================================================
+# Game-Specific Strategies
+# ============================================================================
+
+
+# Dota 2 специфичные паттерны и типы предметов
+DOTA2_VALUABLE_TYPES = [
+    "Arcana",  # Аркана - самые ценные
+    "Immortal",  # Иммортал предметы
+    "Genuine",  # Подлинные
+    "Unusual Courier",  # Необычные курьеры
+    "Golden",  # Золотые версии
+]
+
+# TF2 специфичные эффекты и типы
+TF2_VALUABLE_EFFECTS = [
+    "Burning Flames",
+    "Scorching Flames",
+    "Sunbeams",
+    "Circling Hearts",
+    "Energy Orb",
+]
+
+TF2_VALUABLE_TYPES = [
+    "Unusual",  # С эффектами
+    "Strange",  # Со счётчиком
+    "Killstreak",  # С полосой убийств
+    "Australium",  # Австралиум версии
+]
+
+# Rust специфичные категории
+RUST_VALUABLE_CATEGORIES = [
+    "Garage Door",  # Дорогие двери
+    "Metal Door",
+    "AK-47",  # Популярные оружия
+    "LR-300",
+    "M249",
+    "Rock",  # Редкие скины камней
+]
+
+
+# ============================================================================
 # Public API
 # ============================================================================
 
 __all__ = [
+    "DOTA2_VALUABLE_TYPES",
+    "GAME_EMOJIS",
+    "GAME_NAMES",
+    "RUST_VALUABLE_CATEGORIES",
+    "SUPPORTED_GAMES",
+    "TF2_VALUABLE_EFFECTS",
+    "TF2_VALUABLE_TYPES",
     "ActionType",
     "CrossPlatformArbitrageStrategy",
     "FloatValueArbitrageStrategy",
@@ -1220,5 +1453,8 @@ __all__ = [
     "UnifiedOpportunity",
     "UnifiedStrategyManager",
     "create_strategy_manager",
+    "get_game_specific_config",
     "get_strategy_config_preset",
+    "scan_all_games",
+    "scan_all_games_combined",
 ]

@@ -343,26 +343,33 @@ async def auto_trade_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 
 async def auto_trade_scan_all(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Сканировать всеми стратегиями для поиска арбитражных возможностей на DMarket.
+    """Сканировать всеми стратегиями ВСЕ 4 ИГРЫ на арбитражные возможности.
+
+    Игры: CS:GO/CS2, Dota 2, TF2, Rust
 
     Применяет ВСЕ доступные стратегии:
     - Cross-Platform Arbitrage (DMarket → Waxpeer)
     - Intramarket Arbitrage (ценовые аномалии)
-    - Float Value Arbitrage (премиальные флоаты)
+    - Float Value Arbitrage (премиальные флоаты) - для CS:GO
     - Smart Market Finder (AI-анализ)
     """
     query = update.callback_query
-    await query.answer("Запускаю сканирование всеми стратегиями...")
+    await query.answer("Запускаю сканирование ВСЕХ ИГР...")
 
     await query.edit_message_text(
-        "🔎 <b>СКАНИРОВАНИЕ ВСЕМИ СТРАТЕГИЯМИ</b>\n\n"
+        "🔎 <b>СКАНИРОВАНИЕ ВСЕХ ИГР</b>\n\n"
         "⏳ <b>Инициализация...</b>\n\n"
-        "Применяются стратегии:\n"
+        "<b>Игры:</b>\n"
+        "• 🔫 CS:GO / CS2\n"
+        "• ⚔️ Dota 2\n"
+        "• 🎩 Team Fortress 2\n"
+        "• 🏚️ Rust\n\n"
+        "<b>Стратегии:</b>\n"
         "• 🔄 Cross-Platform Arbitrage\n"
         "• 📊 Intramarket Arbitrage\n"
         "• 🎯 Float Value Arbitrage\n"
         "• 🧠 Smart Market Finder\n\n"
-        "<i>Это может занять 30-60 секунд...</i>",
+        "<i>Это может занять 60-120 секунд...</i>",
         parse_mode=ParseMode.HTML,
     )
 
@@ -396,12 +403,13 @@ async def auto_trade_scan_all(update: Update, context: ContextTypes.DEFAULT_TYPE
         else:
             balance = float(balance_data) / 100 if balance_data else 0.0
 
-        # Импортируем Unified Strategy System
-        from decimal import Decimal
-
+        # Импортируем Unified Strategy System с поддержкой мульти-игр
         from src.dmarket.unified_strategy_system import (
-            StrategyConfig,
+            GAME_EMOJIS,
+            GAME_NAMES,
+            SUPPORTED_GAMES,
             create_strategy_manager,
+            scan_all_games,
         )
 
         # Создаём менеджер стратегий
@@ -411,38 +419,40 @@ async def auto_trade_scan_all(update: Update, context: ContextTypes.DEFAULT_TYPE
             waxpeer_api=waxpeer_api,
         )
 
-        # Конфигурация для сканирования
-        config = StrategyConfig(
-            game="csgo",  # Основная игра
-            min_price=Decimal("0.50"),
-            max_price=Decimal("200.0"),
-            min_profit_percent=Decimal("5.0"),  # Минимум 5% прибыли
-            limit=20,
-        )
-
         await query.edit_message_text(
-            "🔎 <b>СКАНИРОВАНИЕ ВСЕМИ СТРАТЕГИЯМИ</b>\n\n"
-            "⏳ <b>Сканирование рынка...</b>\n\n"
+            "🔎 <b>СКАНИРОВАНИЕ ВСЕХ ИГР</b>\n\n"
+            "⏳ <b>Сканирование рынков...</b>\n\n"
             f"💰 Баланс: <b>${balance:.2f}</b>\n"
-            f"📊 Мин. прибыль: <b>5%</b>\n"
-            f"💵 Диапазон: <b>$0.50 - $200</b>\n\n"
+            f"🎮 Игры: <b>4</b>\n"
+            f"📊 Мин. прибыль: <b>5-8%</b>\n\n"
+            "📡 Прогресс:\n"
+            "• 🔫 CS:GO... ⏳\n"
+            "• ⚔️ Dota 2... ⏳\n"
+            "• 🎩 TF2... ⏳\n"
+            "• 🏚️ Rust... ⏳\n\n"
             "<i>Анализирую данные...</i>",
             parse_mode=ParseMode.HTML,
         )
 
-        # Сканируем всеми стратегиями и получаем лучшие результаты
-        best_opportunities = await strategy_manager.find_best_opportunities_combined(
-            config=config,
-            top_n=15,
+        # Сканируем ВСЕ 4 ИГРЫ
+        game_results = await scan_all_games(
+            strategy_manager=strategy_manager,
+            base_preset="standard",
+            games=SUPPORTED_GAMES,
+            top_n_per_game=10,
         )
 
-        if not best_opportunities:
+        # Подсчитываем общее количество
+        total_opportunities = sum(len(opps) for opps in game_results.values())
+
+        if total_opportunities == 0:
             await query.edit_message_text(
                 "🔎 <b>РЕЗУЛЬТАТЫ СКАНИРОВАНИЯ</b>\n\n"
                 "ℹ️ <b>Возможности не найдены</b>\n\n"
-                f"💰 Баланс: ${balance:.2f}\n\n"
+                f"💰 Баланс: ${balance:.2f}\n"
+                f"🎮 Просканировано игр: {len(SUPPORTED_GAMES)}\n\n"
                 "Причины:\n"
-                "• Рынок сейчас стабилен\n"
+                "• Рынки сейчас стабильны\n"
                 "• Нет достаточного спреда\n"
                 "• Попробуйте позже\n\n"
                 "<i>Рекомендация: повторите через 5-10 минут</i>",
@@ -454,57 +464,63 @@ async def auto_trade_scan_all(update: Update, context: ContextTypes.DEFAULT_TYPE
             )
             return
 
-        # Группируем по стратегиям
-        by_strategy: dict[str, list] = {}
-        for opp in best_opportunities:
-            strategy_name = opp.strategy_type.value
-            if strategy_name not in by_strategy:
-                by_strategy[strategy_name] = []
-            by_strategy[strategy_name].append(opp)
-
         # Формируем результат
         result_text = (
-            f"🎯 <b>НАЙДЕНО {len(best_opportunities)} ВОЗМОЖНОСТЕЙ!</b>\n\n"
+            f"🎯 <b>НАЙДЕНО {total_opportunities} ВОЗМОЖНОСТЕЙ!</b>\n\n"
             f"💰 Баланс: <b>${balance:.2f}</b>\n\n"
         )
 
-        # Краткая статистика по стратегиям
-        result_text += "<b>📊 По стратегиям:</b>\n"
-        strategy_emojis = {
-            "cross_platform": "🔄",
-            "intramarket": "📈",
-            "float_value": "🎯",
-            "smart_market": "🧠",
-            "pattern_phase": "💎",
-        }
-        for strategy, opps in by_strategy.items():
-            emoji = strategy_emojis.get(strategy, "📌")
-            result_text += f"{emoji} {strategy}: <b>{len(opps)}</b> шт.\n"
+        # Статистика по играм
+        result_text += "<b>🎮 По играм:</b>\n"
+        for game in SUPPORTED_GAMES:
+            emoji = GAME_EMOJIS.get(game, "🎮")
+            name = GAME_NAMES.get(game, game.upper())
+            count = len(game_results.get(game, []))
+            result_text += f"{emoji} {name}: <b>{count}</b> шт.\n"
 
-        result_text += "\n<b>🔥 ТОП-5 возможностей:</b>\n\n"
+        # Объединяем и сортируем все возможности
+        all_opportunities = []
+        for game, opps in game_results.items():
+            all_opportunities.extend(opps)
+        all_opportunities.sort(key=lambda x: x.score.total_score, reverse=True)
 
-        # Показываем топ-5
-        for i, opp in enumerate(best_opportunities[:5], 1):
+        result_text += "\n<b>🔥 ТОП-6 возможностей (все игры):</b>\n\n"
+
+        # Показываем топ-6
+        for i, opp in enumerate(all_opportunities[:6], 1):
+            game_emoji = GAME_EMOJIS.get(opp.game, "🎮")
             profit_emoji = "🔥" if float(opp.profit_percent) >= 15 else "💰"
-            risk_emoji = {"very_low": "🟢", "low": "🟡", "medium": "🟠", "high": "🔴", "very_high": "⚫"}.get(opp.risk_level.value, "⚪")
+            risk_emoji = {
+                "very_low": "🟢", "low": "🟡", "medium": "🟠",
+                "high": "🔴", "very_high": "⚫"
+            }.get(opp.risk_level.value, "⚪")
 
-            title_short = opp.title[:30] + "..." if len(opp.title) > 30 else opp.title
+            title_short = opp.title[:25] + "..." if len(opp.title) > 25 else opp.title
             result_text += (
-                f"<b>{i}.</b> {title_short}\n"
+                f"<b>{i}.</b> {game_emoji} {title_short}\n"
                 f"   💵 ${float(opp.buy_price):.2f} → ${float(opp.sell_price):.2f}\n"
-                f"   {profit_emoji} <b>+{float(opp.profit_percent):.1f}%</b> | {risk_emoji} Score: {opp.score.total_score:.0f}\n\n"
+                f"   {profit_emoji} <b>+{float(opp.profit_percent):.1f}%</b> | "
+                f"{risk_emoji} Score: {opp.score.total_score:.0f}\n\n"
             )
 
-        if len(best_opportunities) > 5:
-            result_text += f"<i>...и ещё {len(best_opportunities) - 5} возможностей</i>\n\n"
+        if len(all_opportunities) > 6:
+            result_text += f"<i>...и ещё {len(all_opportunities) - 6} возможностей</i>\n\n"
 
         result_text += (
             "💡 <b>Рекомендация:</b>\n"
-            "Предметы с Score > 70 и низким риском — лучший выбор!"
+            "Предметы с Score > 70 и 🟢/🟡 риском — лучший выбор!"
         )
 
         keyboard = [
             [InlineKeyboardButton("🔄 Сканировать снова", callback_data="auto_trade_scan_all")],
+            [
+                InlineKeyboardButton("🔫 CS:GO", callback_data="scan_game_csgo"),
+                InlineKeyboardButton("⚔️ Dota 2", callback_data="scan_game_dota2"),
+            ],
+            [
+                InlineKeyboardButton("🎩 TF2", callback_data="scan_game_tf2"),
+                InlineKeyboardButton("🏚️ Rust", callback_data="scan_game_rust"),
+            ],
             [InlineKeyboardButton("🚀 Запустить авто-покупку", callback_data="auto_trade_run")],
             [InlineKeyboardButton("◀️ Назад", callback_data="auto_trade_start")],
         ]
@@ -516,9 +532,9 @@ async def auto_trade_scan_all(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
 
         logger.info(
-            "all_strategies_scan_complete",
-            opportunities_found=len(best_opportunities),
-            by_strategy={k: len(v) for k, v in by_strategy.items()},
+            "all_games_scan_complete",
+            total_opportunities=total_opportunities,
+            by_game={k: len(v) for k, v in game_results.items()},
         )
 
     except ImportError as e:
@@ -534,7 +550,7 @@ async def auto_trade_scan_all(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
 
     except Exception as e:
-        logger.exception(f"All strategies scan failed: {e}")
+        logger.exception(f"All games scan failed: {e}")
         await query.edit_message_text(
             f"❌ <b>Ошибка сканирования</b>\n\n{str(e)[:200]}\n\n"
             "Попробуйте повторить позже.",
@@ -542,6 +558,174 @@ async def auto_trade_scan_all(update: Update, context: ContextTypes.DEFAULT_TYPE
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("🔄 Повторить", callback_data="auto_trade_scan_all")],
                 [InlineKeyboardButton("◀️ Назад", callback_data="auto_trade_start")],
+            ]),
+        )
+
+
+async def scan_single_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Сканировать конкретную игру на арбитражные возможности.
+
+    Обрабатывает callback: scan_game_csgo, scan_game_dota2, scan_game_tf2, scan_game_rust
+    """
+    query = update.callback_query
+    callback_data = query.data
+
+    # Извлекаем игру из callback_data (scan_game_csgo -> csgo)
+    game = callback_data.replace("scan_game_", "")
+
+    # Импортируем здесь чтобы избежать циклических импортов
+    from src.dmarket.unified_strategy_system import (
+        GAME_EMOJIS,
+        GAME_NAMES,
+        create_strategy_manager,
+        get_game_specific_config,
+    )
+
+    game_emoji = GAME_EMOJIS.get(game, "🎮")
+    game_name = GAME_NAMES.get(game, game.upper())
+
+    await query.answer(f"Сканирую {game_name}...")
+
+    await query.edit_message_text(
+        f"{game_emoji} <b>СКАНИРОВАНИЕ {game_name.upper()}</b>\n\n"
+        "⏳ <b>Инициализация...</b>\n\n"
+        "<b>Стратегии:</b>\n"
+        "• 🔄 Cross-Platform Arbitrage\n"
+        "• 📊 Intramarket Arbitrage\n"
+        f"{'• 🎯 Float Value Arbitrage' if game == 'csgo' else ''}\n"
+        "• 🧠 Smart Market Finder\n\n"
+        "<i>Это может занять 20-40 секунд...</i>",
+        parse_mode=ParseMode.HTML,
+    )
+
+    try:
+        dmarket_api = _get_dmarket_api(context)
+        if not dmarket_api:
+            await query.edit_message_text(
+                "❌ <b>Ошибка</b>\n\nAPI клиент не инициализирован.",
+                parse_mode=ParseMode.HTML,
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("◀️ Назад", callback_data="auto_trade_scan_all")]
+                ]),
+            )
+            return
+
+        # Получаем баланс
+        balance_data = await dmarket_api.get_balance()
+        if isinstance(balance_data, dict):
+            balance = float(balance_data.get("usd", "0")) / 100
+        else:
+            balance = float(balance_data) / 100 if balance_data else 0.0
+
+        # Создаём менеджер стратегий
+        waxpeer_api = getattr(context.application, "waxpeer_api", None)
+        strategy_manager = create_strategy_manager(
+            dmarket_api=dmarket_api,
+            waxpeer_api=waxpeer_api,
+        )
+
+        # Получаем конфиг для конкретной игры
+        config = get_game_specific_config(game, "standard")
+
+        # Сканируем
+        opportunities = await strategy_manager.find_best_opportunities_combined(
+            config=config,
+            top_n=15,
+        )
+
+        if not opportunities:
+            await query.edit_message_text(
+                f"{game_emoji} <b>РЕЗУЛЬТАТЫ - {game_name.upper()}</b>\n\n"
+                "ℹ️ <b>Возможности не найдены</b>\n\n"
+                f"💰 Баланс: ${balance:.2f}\n\n"
+                "Причины:\n"
+                f"• Рынок {game_name} сейчас стабилен\n"
+                "• Нет достаточного спреда\n"
+                "• Попробуйте позже\n",
+                parse_mode=ParseMode.HTML,
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("🔄 Повторить", callback_data=f"scan_game_{game}")],
+                    [InlineKeyboardButton("🔎 Все игры", callback_data="auto_trade_scan_all")],
+                    [InlineKeyboardButton("◀️ Назад", callback_data="auto_trade_start")],
+                ]),
+            )
+            return
+
+        # Формируем результат
+        result_text = (
+            f"{game_emoji} <b>НАЙДЕНО {len(opportunities)} ВОЗМОЖНОСТЕЙ</b>\n"
+            f"<i>{game_name}</i>\n\n"
+            f"💰 Баланс: <b>${balance:.2f}</b>\n\n"
+        )
+
+        # Группируем по стратегиям
+        by_strategy: dict[str, list] = {}
+        for opp in opportunities:
+            strategy_name = opp.strategy_type.value
+            if strategy_name not in by_strategy:
+                by_strategy[strategy_name] = []
+            by_strategy[strategy_name].append(opp)
+
+        result_text += "<b>📊 По стратегиям:</b>\n"
+        strategy_emojis = {
+            "cross_platform": "🔄",
+            "intramarket": "📈",
+            "float_value": "🎯",
+            "smart_market": "🧠",
+            "pattern_phase": "💎",
+        }
+        for strategy, opps in by_strategy.items():
+            emoji = strategy_emojis.get(strategy, "📌")
+            result_text += f"{emoji} {strategy}: <b>{len(opps)}</b>\n"
+
+        result_text += "\n<b>🔥 ТОП-5 возможностей:</b>\n\n"
+
+        for i, opp in enumerate(opportunities[:5], 1):
+            profit_emoji = "🔥" if float(opp.profit_percent) >= 15 else "💰"
+            risk_emoji = {
+                "very_low": "🟢", "low": "🟡", "medium": "🟠",
+                "high": "🔴", "very_high": "⚫"
+            }.get(opp.risk_level.value, "⚪")
+
+            title_short = opp.title[:25] + "..." if len(opp.title) > 25 else opp.title
+            result_text += (
+                f"<b>{i}.</b> {title_short}\n"
+                f"   💵 ${float(opp.buy_price):.2f} → ${float(opp.sell_price):.2f}\n"
+                f"   {profit_emoji} <b>+{float(opp.profit_percent):.1f}%</b> | "
+                f"{risk_emoji} Score: {opp.score.total_score:.0f}\n\n"
+            )
+
+        if len(opportunities) > 5:
+            result_text += f"<i>...и ещё {len(opportunities) - 5} возможностей</i>\n"
+
+        keyboard = [
+            [InlineKeyboardButton("🔄 Повторить", callback_data=f"scan_game_{game}")],
+            [InlineKeyboardButton("🔎 Все игры", callback_data="auto_trade_scan_all")],
+            [InlineKeyboardButton("🚀 Авто-покупка", callback_data="auto_trade_run")],
+            [InlineKeyboardButton("◀️ Назад", callback_data="auto_trade_start")],
+        ]
+
+        await query.edit_message_text(
+            result_text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
+
+        logger.info(
+            "single_game_scan_complete",
+            game=game,
+            opportunities_found=len(opportunities),
+        )
+
+    except Exception as e:
+        logger.exception(f"Single game scan failed: {e}")
+        await query.edit_message_text(
+            f"❌ <b>Ошибка сканирования {game_name}</b>\n\n"
+            f"{str(e)[:200]}",
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("🔄 Повторить", callback_data=f"scan_game_{game}")],
+                [InlineKeyboardButton("◀️ Назад", callback_data="auto_trade_scan_all")],
             ]),
         )
 
@@ -1185,6 +1369,12 @@ def register_main_keyboard_handlers(application) -> None:
         CallbackQueryHandler(auto_trade_settings, pattern="^auto_trade_settings$")
     )
 
+    # Сканирование отдельных игр
+    application.add_handler(CallbackQueryHandler(scan_single_game, pattern="^scan_game_csgo$"))
+    application.add_handler(CallbackQueryHandler(scan_single_game, pattern="^scan_game_dota2$"))
+    application.add_handler(CallbackQueryHandler(scan_single_game, pattern="^scan_game_tf2$"))
+    application.add_handler(CallbackQueryHandler(scan_single_game, pattern="^scan_game_rust$"))
+
     # Таргеты
     application.add_handler(CallbackQueryHandler(targets_menu, pattern="^targets_menu$"))
     application.add_handler(CallbackQueryHandler(target_create, pattern="^target_create$"))
@@ -1204,4 +1394,4 @@ def register_main_keyboard_handlers(application) -> None:
     # Экстренная остановка
     application.add_handler(CallbackQueryHandler(emergency_stop, pattern="^emergency_stop$"))
 
-    logger.info("✅ Main keyboard handlers registered")
+    logger.info("✅ Main keyboard handlers registered (incl. multi-game scan)")
