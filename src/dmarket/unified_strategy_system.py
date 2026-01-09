@@ -1428,6 +1428,224 @@ RUST_VALUABLE_CATEGORIES = [
 
 
 # ============================================================================
+# Extended Game-Specific Filters
+# ============================================================================
+
+
+def get_extended_game_filters(game: str) -> dict[str, Any]:
+    """Получить расширенные фильтры для игры.
+
+    Включает детальные фильтры для каждой игры:
+    - CS:GO: Float, Doppler, Stickers, Patterns
+    - Dota 2: Gems, Styles, Heroes
+    - TF2: Unusual effects, Killstreak, Australium
+    - Rust: Luminescent, Tempered, Limited
+
+    Args:
+        game: Код игры
+
+    Returns:
+        Словарь с расширенными фильтрами
+    """
+    from src.dmarket.game_specific_filters import (
+        CSGO_BLUE_GEM_PATTERNS,
+        CSGO_DOPPLER_PREMIUMS,
+        CSGO_FLOAT_RANGES,
+        CSGO_KATOWICE_2014_STICKERS,
+        DOTA2_ETHEREAL_GEMS,
+        DOTA2_PRISMATIC_GEMS,
+        DOTA2_VALUABLE_ITEMS,
+        RUST_LUMINESCENT_PREMIUM,
+        RUST_TEMPERED_PREMIUM,
+        RUST_TWITCH_DROPS,
+        RUST_VALUABLE_SKINS,
+        TF2_AUSTRALIUM_WEAPONS,
+        TF2_KILLSTREAK_SHEENS,
+        TF2_KILLSTREAKERS,
+        TF2_UNUSUAL_EFFECTS,
+        get_preset_filter,
+        list_preset_filters,
+    )
+
+    if game == "csgo":
+        return {
+            "float_ranges": CSGO_FLOAT_RANGES,
+            "doppler_premiums": CSGO_DOPPLER_PREMIUMS,
+            "blue_gem_patterns": CSGO_BLUE_GEM_PATTERNS,
+            "katowice_stickers": CSGO_KATOWICE_2014_STICKERS,
+            "preset_filters": list_preset_filters("csgo"),
+            "get_preset": lambda name: get_preset_filter("csgo", name),
+        }
+    if game == "dota2":
+        return {
+            "ethereal_gems": DOTA2_ETHEREAL_GEMS,
+            "prismatic_gems": DOTA2_PRISMATIC_GEMS,
+            "valuable_items": DOTA2_VALUABLE_ITEMS,
+            "preset_filters": list_preset_filters("dota2"),
+            "get_preset": lambda name: get_preset_filter("dota2", name),
+        }
+    if game == "tf2":
+        return {
+            "unusual_effects": TF2_UNUSUAL_EFFECTS,
+            "australium_weapons": TF2_AUSTRALIUM_WEAPONS,
+            "killstreak_sheens": TF2_KILLSTREAK_SHEENS,
+            "killstreakers": TF2_KILLSTREAKERS,
+            "preset_filters": list_preset_filters("tf2"),
+            "get_preset": lambda name: get_preset_filter("tf2", name),
+        }
+    if game == "rust":
+        return {
+            "valuable_skins": RUST_VALUABLE_SKINS,
+            "twitch_drops": RUST_TWITCH_DROPS,
+            "luminescent_premium": RUST_LUMINESCENT_PREMIUM,
+            "tempered_premium": RUST_TEMPERED_PREMIUM,
+            "preset_filters": list_preset_filters("rust"),
+            "get_preset": lambda name: get_preset_filter("rust", name),
+        }
+    return {}
+
+
+def apply_game_filter(
+    item: dict[str, Any],
+    game: str,
+    filter_preset: str | None = None,
+) -> tuple[bool, float]:
+    """Применить игровой фильтр к предмету.
+
+    Args:
+        item: Предмет для проверки
+        game: Код игры
+        filter_preset: Название пресета фильтра (опционально)
+
+    Returns:
+        Tuple (matches: bool, premium: float)
+    """
+    from src.dmarket.game_specific_filters import (
+        CSGOFilter,
+        Dota2Filter,
+        RustFilter,
+        TF2Filter,
+        get_preset_filter,
+    )
+
+    # Получаем фильтр
+    if filter_preset:
+        game_filter = get_preset_filter(game, filter_preset)
+    # Используем дефолтный фильтр
+    elif game == "csgo":
+        game_filter = CSGOFilter()
+    elif game == "dota2":
+        game_filter = Dota2Filter()
+    elif game == "tf2":
+        game_filter = TF2Filter()
+    elif game == "rust":
+        game_filter = RustFilter()
+    else:
+        return True, 1.0
+
+    if game_filter is None:
+        return True, 1.0
+
+    # Проверяем соответствие
+    matches = game_filter.matches(item)
+    if not matches:
+        return False, 0.0
+
+    # Рассчитываем премию
+    premium = game_filter.calculate_premium(item)
+    return True, premium
+
+
+# ============================================================================
+# Smart Filter Selection
+# ============================================================================
+
+
+def get_recommended_filters(
+    game: str,
+    price_range: tuple[float, float] = (1.0, 100.0),
+    strategy: str = "quick_flip",
+) -> list[str]:
+    """Получить рекомендуемые фильтры для стратегии.
+
+    Args:
+        game: Код игры
+        price_range: Диапазон цен (min, max)
+        strategy: Тип стратегии (quick_flip, investment, collector)
+
+    Returns:
+        Список рекомендуемых пресетов фильтров
+    """
+    recommendations = {
+        "csgo": {
+            "quick_flip": ["premium_ft", "low_float_fn"],
+            "investment": ["doppler_ruby", "doppler_sapphire", "blue_gem_ak"],
+            "collector": ["blue_gem_karambit"],
+        },
+        "dota2": {
+            "quick_flip": ["arcana"],
+            "investment": ["unusual_courier"],
+            "collector": ["unusual_courier"],
+        },
+        "tf2": {
+            "quick_flip": ["australium"],
+            "investment": ["unusual_high", "unusual_god"],
+            "collector": ["unusual_god"],
+        },
+        "rust": {
+            "quick_flip": ["valuable_weapons"],
+            "investment": ["garage_doors"],
+            "collector": ["garage_doors"],
+        },
+    }
+
+    game_recs = recommendations.get(game, {})
+    return game_recs.get(strategy, [])
+
+
+def auto_select_filters(
+    items: list[dict[str, Any]],
+    game: str,
+) -> list[tuple[dict[str, Any], str, float]]:
+    """Автоматически выбрать лучшие фильтры для предметов.
+
+    Анализирует предметы и определяет какие фильтры применить
+    для максимальной прибыли.
+
+    Args:
+        items: Список предметов
+        game: Код игры
+
+    Returns:
+        Список (item, best_filter, premium) для каждого предмета
+    """
+    from src.dmarket.game_specific_filters import list_preset_filters
+
+    results: list[tuple[dict[str, Any], str, float]] = []
+    available_presets = list_preset_filters(game)
+
+    for item in items:
+        best_filter = ""
+        best_premium = 1.0
+
+        # Пробуем каждый пресет
+        for preset in available_presets:
+            matches, premium = apply_game_filter(item, game, preset)
+            if matches and premium > best_premium:
+                best_premium = premium
+                best_filter = preset
+
+        # Если нет подходящего пресета, используем дефолтный
+        if not best_filter:
+            _, premium = apply_game_filter(item, game, None)
+            best_premium = premium
+
+        results.append((item, best_filter, best_premium))
+
+    return results
+
+
+# ============================================================================
 # Public API
 # ============================================================================
 
@@ -1452,8 +1670,12 @@ __all__ = [
     "StrategyType",
     "UnifiedOpportunity",
     "UnifiedStrategyManager",
+    "apply_game_filter",
+    "auto_select_filters",
     "create_strategy_manager",
+    "get_extended_game_filters",
     "get_game_specific_config",
+    "get_recommended_filters",
     "get_strategy_config_preset",
     "scan_all_games",
     "scan_all_games_combined",
