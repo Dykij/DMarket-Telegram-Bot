@@ -189,13 +189,13 @@ class TestFloatValueArbitrageProperties:
 
         quality = get_quality(float_val)
 
-        assert quality in [
+        assert quality in {
             "Factory New",
             "Minimal Wear",
             "Field-Tested",
             "Well-Worn",
             "Battle-Scarred",
-        ], f"Unknown quality for float {float_val}"
+        }, f"Unknown quality for float {float_val}"
 
     @given(
         float_val=st.floats(min_value=0.0, max_value=0.07, allow_nan=False),
@@ -315,7 +315,7 @@ class TestGameFilterProperties:
         premium = premiums.get(phase, 1.0)
 
         assert premium >= 1.0, f"Phase {phase} should have premium >= 1.0"
-        if phase in ["Ruby", "Sapphire", "Black Pearl"]:
+        if phase in {"Ruby", "Sapphire", "Black Pearl"}:
             assert premium >= 4.0, f"Rare phase {phase} should have high premium"
 
     @given(game=supported_games)
@@ -395,7 +395,7 @@ class TestRiskAssessmentProperties:
 
         risk = assess_risk(roi, liquidity, lock_days, price)
 
-        assert risk in ["very_low", "low", "medium", "high", "very_high"]
+        assert risk in {"very_low", "low", "medium", "high", "very_high"}
 
     @given(
         roi=roi_percent,
@@ -457,10 +457,9 @@ class TestDiversificationProperties:
     ) -> None:
         """Diversification limit is correctly enforced."""
 
-        def can_buy(current: int, max_allowed: int) -> bool:
-            return current < max_allowed
+        import operator
 
-        result = can_buy(current_count, max_same)
+        result = operator.lt(current_count, max_same)
 
         if current_count >= max_same:
             assert not result, "Should not allow buying over limit"

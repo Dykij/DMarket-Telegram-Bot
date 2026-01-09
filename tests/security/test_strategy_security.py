@@ -93,8 +93,7 @@ class TestStrategyInputValidation:
             # Remove SQL comment markers
             sanitized = sanitized.replace("--", "")
             # Limit length
-            sanitized = sanitized[:100]
-            return sanitized
+            return sanitized[:100]
 
         # Test XSS attempt
         malicious = '<script>alert("xss")</script>AK-47'
@@ -246,9 +245,7 @@ class TestStrategyAccessControl:
         regular_presets = ["conservative", "balanced", "standard"]
 
         def can_use_preset(preset: str, is_admin: bool) -> bool:
-            if preset in admin_only_presets and not is_admin:
-                return False
-            return True
+            return not (preset in admin_only_presets and not is_admin)
 
         # Admin can use all
         assert can_use_preset("scalper", is_admin=True)
@@ -292,11 +289,11 @@ class TestStrategyAccessControl:
 
         # First 10 requests should succeed
         for i in range(10):
-            can, remaining = limiter.can_request(user_id=123)
+            can, _ = limiter.can_request(user_id=123)
             assert can, f"Request {i + 1} should succeed"
 
         # 11th request should fail
-        can, remaining = limiter.can_request(user_id=123)
+        can, _remaining = limiter.can_request(user_id=123)
         assert not can, "11th request should be rate limited"
 
     def test_user_cannot_access_other_user_settings(self):

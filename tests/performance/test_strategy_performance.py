@@ -6,6 +6,7 @@ Uses pytest-benchmark (if available) and timing measurements for:
 - Unified strategy scanning
 """
 
+import operator
 import time
 
 import pytest
@@ -114,7 +115,7 @@ class TestOpportunityScoringPerformance:
             bonus = 0
             if opp.get("float_value", 1.0) < 0.07:
                 bonus += 5
-            if opp.get("doppler_phase") in ["Ruby", "Sapphire", "Black Pearl"]:
+            if opp.get("doppler_phase") in {"Ruby", "Sapphire", "Black Pearl"}:
                 bonus += 5
 
             return roi_score + liq_score + risk_score + bonus
@@ -144,7 +145,7 @@ class TestOpportunityScoringPerformance:
 
             return sorted(
                 [{"opp": opp, "score": score(opp)} for opp in opps],
-                key=lambda x: x["score"],
+                key=operator.itemgetter("score"),
                 reverse=True,
             )
 
@@ -294,7 +295,7 @@ class TestRiskAssessmentPerformance:
             return "very_high"
 
         result = benchmark(assess_risk, opportunity)
-        assert result in ["very_low", "low", "medium", "high", "very_high"]
+        assert result in {"very_low", "low", "medium", "high", "very_high"}
 
     def test_batch_risk_assessment_speed(self, benchmark):
         """Benchmark risk assessment for many opportunities."""
@@ -423,7 +424,7 @@ class TestTimingWithoutBenchmark:
 
         start = time.perf_counter()
         scored = [(item, score(item)) for item in items]
-        sorted_items = sorted(scored, key=lambda x: x[1], reverse=True)
+        sorted_items = sorted(scored, key=operator.itemgetter(1), reverse=True)
         elapsed = time.perf_counter() - start
 
         assert elapsed < 0.1, f"Scoring and sorting took {elapsed}s, should be < 0.1s"
@@ -446,7 +447,7 @@ class TestTimingWithoutBenchmark:
             all_items.extend(items)
 
         # Sort
-        sorted_items = sorted(all_items, key=lambda x: x["score"], reverse=True)
+        sorted_items = sorted(all_items, key=operator.itemgetter("score"), reverse=True)
 
         # Top 100
         top_100 = sorted_items[:100]

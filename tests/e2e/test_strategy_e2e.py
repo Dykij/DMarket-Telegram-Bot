@@ -4,21 +4,15 @@ Tests the complete flow from strategy configuration to opportunity detection
 and trading decision making.
 """
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 
 from src.dmarket.optimal_arbitrage_strategy import (
-    OptimalArbitrageStrategy,
-    StrategySettings,
     STRATEGY_PRESETS,
-    create_strategy,
     ArbitrageOpportunity,
+    OptimalArbitrageStrategy,
     RiskLevel,
+    StrategySettings,
 )
 from src.dmarket.unified_strategy_system import (
-    UnifiedStrategyManager,
-    StrategyType,
-    StrategyConfig,
     get_strategy_config_preset,
 )
 
@@ -146,7 +140,7 @@ class TestStrategyPresetFlow:
         for preset_name in presets:
             settings = STRATEGY_PRESETS.get(preset_name)
             assert settings is not None, f"Preset {preset_name} not found"
-            
+
             strategy = OptimalArbitrageStrategy(settings)
             assert strategy is not None
 

@@ -4,6 +4,8 @@ These tests validate business requirements for the unified strategy system,
 optimal arbitrage strategy, and game-specific filters from a user's perspective.
 """
 
+import operator
+
 import pytest
 
 
@@ -88,7 +90,7 @@ class TestOptimalArbitrageStrategyFeature:
             for opp in opps:
                 if opp["roi"] >= settings["min_roi"]:
                     if settings["trade_lock_strategy"] == "instant_only" and opp["is_instant"]:
-                        if opp["risk_level"] in ["very_low", "low"]:
+                        if opp["risk_level"] in {"very_low", "low"}:
                             filtered.append(opp)
             return filtered
 
@@ -99,7 +101,7 @@ class TestOptimalArbitrageStrategyFeature:
         for opp in filtered:
             assert opp["roi"] >= 15.0, f"ROI {opp['roi']} should be >= 15%"
             assert opp["is_instant"], "Should be instant trade"
-            assert opp["risk_level"] in ["very_low", "low"]
+            assert opp["risk_level"] in {"very_low", "low"}
 
     def test_aggressive_preset_includes_trade_locked_items(self, strategy_context, user_context):
         """
@@ -258,7 +260,7 @@ class TestUnifiedStrategySystemFeature:
         for game in enabled_games:
             all_opportunities.extend(game_results.get(game, []))
 
-        ranked = sorted(all_opportunities, key=lambda x: x["score"], reverse=True)
+        ranked = sorted(all_opportunities, key=operator.itemgetter("score"), reverse=True)
 
         # Then
         assert len(ranked) == 4  # One from each game
