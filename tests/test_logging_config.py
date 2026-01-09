@@ -51,7 +51,7 @@ class TestLoggingFixtures:
         mock_logger.warning("test")
         mock_logger.error("test")
         mock_logger.critical("test")
-        mock_logger.error("test")
+        mock_logger.exception("test exception")
 
         assert mock_logger.info.called
         assert mock_logger.debug.called

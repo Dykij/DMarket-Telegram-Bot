@@ -258,7 +258,11 @@ class TestApplication:
     async def test_shutdown_with_errors(
         self, mock_database, mock_dmarket_api, mock_bot
     ):
-        """Тест проверяет, что shutdown перехватывает ошибки и не падает."""
+        """Тест проверяет, что shutdown перехватывает ошибки и не падает.
+        
+        Graceful shutdown должен продолжить закрывать оставшиеся компоненты
+        даже если один из них выбросил исключение.
+        """
         # Arrange
         app = Application()
         app.bot = mock_bot
@@ -273,11 +277,10 @@ class TestApplication:
 
         # Assert - проверяем что bot.stop был вызван
         mock_bot.stop.assert_called_once()
-        # Примечание: из-за ошибки в bot.stop, остальные компоненты не закрываются
-        # Это известное поведение - весь блок try прерывается при первой ошибке
-        # Поэтому _close_client и close НЕ вызываются
-        mock_dmarket_api._close_client.assert_not_called()
-        mock_database.close.assert_not_called()
+        # Graceful shutdown продолжает закрывать остальные компоненты
+        # даже после ошибки в одном из них
+        mock_dmarket_api._close_client.assert_called_once()
+        mock_database.close.assert_called_once()
 
     @pytest.mark.asyncio()
     async def test_shutdown_partial_components(self):
