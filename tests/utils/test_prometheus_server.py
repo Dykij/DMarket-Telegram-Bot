@@ -17,7 +17,7 @@ class TestPrometheusServer:
     def test_init_default_port(self) -> None:
         """Test server initialization with default port."""
         server = PrometheusServer()
-        assert server.port == 8000
+        assert server.port == 9090  # Default port is 9090
         assert server.app is not None
         assert server.runner is None
         assert server.site is None
