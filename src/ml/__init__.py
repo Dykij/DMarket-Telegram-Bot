@@ -6,6 +6,8 @@
 - Классификации рисков сделок
 - Адаптации к текущему балансу пользователя
 - Автоматической настройки гиперпараметров (ModelTuner)
+- Обнаружения аномалий и манипуляций
+- Умных рекомендаций по покупке/продаже
 
 Используемые библиотеки (все бесплатные):
 - scikit-learn: основные ML модели (RandomForest, GradientBoosting, Ridge)
@@ -57,6 +59,21 @@ from src.ml.trade_classifier import (
     RiskLevel,
     TradeSignal,
 )
+from src.ml.anomaly_detection import (
+    AnomalyDetector,
+    AnomalyResult,
+    AnomalyType,
+    AnomalySeverity,
+    create_anomaly_detector,
+)
+from src.ml.smart_recommendations import (
+    SmartRecommendations,
+    ItemRecommendation,
+    RecommendationBatch,
+    RecommendationType,
+    RiskLevel as RecommendationRiskLevel,
+    create_smart_recommendations,
+)
 
 
 __all__ = [
@@ -89,4 +106,17 @@ __all__ = [
     # Feature Extractor
     "MarketFeatureExtractor",
     "PriceFeatures",
+    # Anomaly Detection
+    "AnomalyDetector",
+    "AnomalyResult",
+    "AnomalyType",
+    "AnomalySeverity",
+    "create_anomaly_detector",
+    # Smart Recommendations
+    "SmartRecommendations",
+    "ItemRecommendation",
+    "RecommendationBatch",
+    "RecommendationType",
+    "RecommendationRiskLevel",
+    "create_smart_recommendations",
 ]
