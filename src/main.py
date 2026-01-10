@@ -51,6 +51,7 @@ class Application:
         self.websocket_manager = None
         self.health_check_monitor = None
         self.ai_scheduler = None  # AI Training Scheduler
+        self.bot_integrator = None  # Bot Integrator for all new improvements
         self._shutdown_event = asyncio.Event()
         self._scanner_task: asyncio.Task | None = None
 
@@ -551,6 +552,100 @@ class Application:
                     logger.warning(f"Failed to initialize Health Check Monitor: {e}")
                     # Not critical, continue without health check
 
+            # Initialize Bot Integrator for all new improvements
+            if not self.config.testing and self.dmarket_api:
+                logger.info("Initializing Bot Integrator (unified improvements)...")
+                try:
+                    from src.integration.bot_integrator import (
+                        BotIntegrator,
+                        IntegratorConfig,
+                        set_integrator,
+                    )
+
+                    # Create integrator config from main config
+                    integrator_config = IntegratorConfig(
+                        enable_enhanced_polling=getattr(
+                            self.config, "enable_enhanced_polling", True
+                        ),
+                        enable_price_analytics=getattr(
+                            self.config, "enable_price_analytics", True
+                        ),
+                        enable_auto_listing=getattr(
+                            self.config, "enable_auto_listing", True
+                        ),
+                        enable_portfolio_tracker=getattr(
+                            self.config, "enable_portfolio_tracker", True
+                        ),
+                        enable_custom_alerts=getattr(
+                            self.config, "enable_custom_alerts", True
+                        ),
+                        enable_watchlist=getattr(
+                            self.config, "enable_watchlist", True
+                        ),
+                        enable_anomaly_detection=getattr(
+                            self.config, "enable_anomaly_detection", True
+                        ),
+                        enable_smart_recommendations=getattr(
+                            self.config, "enable_smart_recommendations", True
+                        ),
+                        enable_trading_automation=getattr(
+                            self.config, "enable_trading_automation", True
+                        ),
+                        enable_reports=getattr(
+                            self.config, "enable_reports", True
+                        ),
+                        enable_security=getattr(
+                            self.config, "enable_security", True
+                        ),
+                        min_item_price_for_listing=getattr(
+                            self.config, "min_listing_price", 50.0
+                        ),
+                        target_profit_margin=getattr(
+                            self.config, "target_margin", 0.10
+                        ),
+                    )
+
+                    # Get Waxpeer API if available
+                    waxpeer_api = None
+                    try:
+                        from src.waxpeer.waxpeer_api import WaxpeerAPI
+
+                        waxpeer_api_key = os.getenv("WAXPEER_API_KEY")
+                        if waxpeer_api_key:
+                            waxpeer_api = WaxpeerAPI(api_key=waxpeer_api_key)
+                    except Exception as e:
+                        logger.debug(f"Waxpeer API not available: {e}")
+
+                    # Create integrator
+                    self.bot_integrator = BotIntegrator(
+                        dmarket_api=self.dmarket_api,
+                        waxpeer_api=waxpeer_api,
+                        telegram_bot=self.bot.bot if self.bot else None,
+                        database=self.database,
+                        config=integrator_config,
+                    )
+
+                    # Initialize all modules
+                    init_results = await self.bot_integrator.initialize()
+
+                    # Set global integrator for easy access
+                    set_integrator(self.bot_integrator)
+
+                    # Store as application attribute
+                    self.bot.bot_integrator = self.bot_integrator
+
+                    # Log results
+                    success_count = sum(1 for v in init_results.values() if v)
+                    total_count = len(init_results)
+                    logger.info(
+                        f"Bot Integrator initialized: "
+                        f"{success_count}/{total_count} modules active"
+                    )
+
+                except Exception as e:
+                    logger.warning(f"Failed to initialize Bot Integrator: {e}")
+                    # Not critical, continue without integrator
+
         except Exception as e:
             logger.exception(f"Failed to initialize application: {e}")
             raise
@@ -640,6 +735,12 @@ class Application:
                 logger.info("Starting Health Check Monitor...")
                 asyncio.create_task(self.health_check_monitor.start())
                 logger.info("Health Check Monitor started - 15min intervals")
+
+            # Start Bot Integrator (all new improvements)
+            if hasattr(self, "bot_integrator") and self.bot_integrator:
+                logger.info("Starting Bot Integrator...")
+                await self.bot_integrator.start()
+                logger.info("Bot Integrator started - all improvements active")
 
             # Start the bot (webhook or polling)
             if self.bot is not None:
@@ -755,7 +856,7 @@ class Application:
 
             # Step 1: Stop Scanner Manager
             if self.scanner_manager:
-                logger.info("Step 1/9: Stopping Scanner Manager...")
+                logger.info("Step 1/10: Stopping Scanner Manager...")
                 try:
                     await asyncio.wait_for(
                         self.scanner_manager.stop(),
@@ -772,6 +873,20 @@ class Application:
                     logger.warning("⚠️ Scanner Manager stop timeout")
                 except Exception as e:
                     logger.exception(f"❌ Error stopping Scanner Manager: {e}")
+
+            # Step 1a: Stop Bot Integrator (all new improvements)
+            if hasattr(self, "bot_integrator") and self.bot_integrator:
+                logger.info("Step 1a/10: Stopping Bot Integrator...")
+                try:
+                    await asyncio.wait_for(
+                        self.bot_integrator.stop(),
+                        timeout=10.0,
+                    )
+                    logger.info("✅ Bot Integrator stopped")
+                except TimeoutError:
+                    logger.warning("⚠️ Bot Integrator stop timeout")
+                except Exception as e:
+                    logger.exception(f"❌ Error stopping Bot Integrator: {e}")
 
             # Step 2: Stop accepting new updates
             logger.info("Step 2/9: Stopping new updates...")

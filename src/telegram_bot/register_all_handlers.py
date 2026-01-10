@@ -479,6 +479,20 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать AI handler команды: %s", e)
 
+    # Bot Improvements handlers (/improvements, /analytics, /portfolio, etc.)
+    try:
+        from src.telegram_bot.handlers.improvements_handler import (
+            register_improvements_handlers,
+        )
+
+        register_improvements_handlers(application)
+        logger.info(
+            "Bot Improvements команды зарегистрированы "
+            "(/improvements, /analytics, /portfolio, /alerts, /watchlist, /automation, /reports, /security)"
+        )
+    except ImportError as e:
+        logger.warning("Не удалось импортировать Bot Improvements команды: %s", e)
+
     logger.info("Все обработчики успешно зарегистрированы")
 
 
