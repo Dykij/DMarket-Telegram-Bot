@@ -1,6 +1,19 @@
 """Waxpeer callback handler for Telegram bot.
 
 Handles Waxpeer-related button callbacks for cross-platform arbitrage.
+
+Commands:
+    /waxpeer - Open Waxpeer P2P menu
+    /waxpeer_scan - Start cross-platform arbitrage scan
+
+Callbacks:
+    waxpeer_menu - Show main Waxpeer menu
+    waxpeer_balance - Check Waxpeer balance
+    waxpeer_settings - Open Waxpeer settings
+    waxpeer_list_items - Start scanning
+    waxpeer_valuable - Find valuable items
+    waxpeer_stats - Show statistics
+    waxpeer_listings - Show current listings
 """
 
 from telegram import Update
@@ -8,6 +21,71 @@ from telegram.ext import ContextTypes
 
 from src.telegram_bot.keyboards.arbitrage import get_waxpeer_keyboard, get_waxpeer_settings_keyboard
 from src.utils.config import Config
+
+
+async def waxpeer_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /waxpeer command - opens Waxpeer P2P menu.
+
+    Args:
+        update: Telegram update
+        context: Callback context
+    """
+    await waxpeer_menu_handler(update, context)
+
+
+async def waxpeer_scan_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /waxpeer_scan command - starts cross-platform arbitrage scan.
+
+    Args:
+        update: Telegram update
+        context: Callback context
+    """
+    if not update.message:
+        return
+
+    config = Config.load()
+
+    if not config.waxpeer.enabled:
+        await update.message.reply_text(
+            "❌ *Waxpeer интеграция отключена*\n\n"
+            "Для включения установите `WAXPEER_ENABLED=true` в .env файле.",
+            parse_mode="Markdown",
+        )
+        return
+
+    # Check for API keys
+    dmarket_api = getattr(context.application, "dmarket_api", None)
+    if not dmarket_api:
+        await update.message.reply_text(
+            "❌ *DMarket API не настроен*\n\n"
+            "Настройте DMarket API ключи для кросс-платформенного арбитража.",
+            parse_mode="Markdown",
+        )
+        return
+
+    if not config.waxpeer.api_key:
+        await update.message.reply_text(
+            "❌ *Waxpeer API ключ не настроен*\n\n"
+            "Добавьте `WAXPEER_API_KEY` в .env файл.",
+            parse_mode="Markdown",
+        )
+        return
+
+    # Start scanning
+    await update.message.reply_text(
+        "🔍 *Cross-Platform Арбитраж*\n\n"
+        "Сканирование DMarket → Waxpeer...\n\n"
+        "Стратегия:\n"
+        "1️⃣ Проверка баланса DMarket\n"
+        "2️⃣ Поиск предметов в бюджете\n"
+        "3️⃣ Сравнение цен с Waxpeer\n"
+        "4️⃣ Расчет чистой прибыли (6% комиссия)\n"
+        "5️⃣ Фильтр ликвидности\n\n"
+        "🔄 Сканирование запущено...\n\n"
+        "Используйте /waxpeer для управления.",
+        reply_markup=get_waxpeer_keyboard(),
+        parse_mode="Markdown",
+    )
 
 
 async def waxpeer_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

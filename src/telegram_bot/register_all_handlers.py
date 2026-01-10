@@ -479,6 +479,128 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать AI handler команды: %s", e)
 
+    # ═══════════════════════════════════════════════════════════════════════════
+    # НОВЫЕ ИНТЕГРИРОВАННЫЕ МОДУЛИ (Phase 2)
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    # Steam commands handlers (/stats, /top, /steam_settings)
+    try:
+        from src.telegram_bot.handlers.steam_commands import (
+            steam_settings_command,
+            steam_stats_command,
+            steam_top_command,
+        )
+
+        application.add_handler(CommandHandler("stats", steam_stats_command))
+        application.add_handler(CommandHandler("top", steam_top_command))
+        application.add_handler(CommandHandler("steam_settings", steam_settings_command))
+        logger.info("✅ Steam команды зарегистрированы (/stats, /top, /steam_settings)")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать Steam commands: %s", e)
+
+    # Sales Analysis handlers (/sales_analysis, /arbitrage_sales, /liquidity, /sales_volume)
+    try:
+        from src.telegram_bot.handlers.sales_analysis_handlers import (
+            handle_arbitrage_with_sales,
+            handle_liquidity_analysis,
+            handle_sales_analysis,
+            handle_sales_volume_stats,
+        )
+
+        application.add_handler(CommandHandler("sales_analysis", handle_sales_analysis))
+        application.add_handler(CommandHandler("arbitrage_sales", handle_arbitrage_with_sales))
+        application.add_handler(CommandHandler("liquidity", handle_liquidity_analysis))
+        application.add_handler(CommandHandler("sales_volume", handle_sales_volume_stats))
+        logger.info(
+            "✅ Sales Analysis команды зарегистрированы "
+            "(/sales_analysis, /arbitrage_sales, /liquidity, /sales_volume)"
+        )
+    except ImportError as e:
+        logger.warning("Не удалось импортировать Sales Analysis handlers: %s", e)
+
+    # Price Alerts handler (/price_alerts)
+    try:
+        dmarket_api = getattr(application, "dmarket_api", None)
+        if dmarket_api:
+            from src.telegram_bot.handlers.price_alerts_handler import PriceAlertsHandler
+
+            price_alerts_handler = PriceAlertsHandler(api_client=dmarket_api)
+            for handler in price_alerts_handler.get_handlers():
+                application.add_handler(handler)
+            logger.info("✅ Price Alerts команда зарегистрирована (/price_alerts)")
+        else:
+            logger.info("Price Alerts handler пропущен - DMarket API не инициализирован")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать Price Alerts handler: %s", e)
+
+    # Auto-Sell handler (/auto_sell)
+    try:
+        auto_seller = getattr(application, "auto_seller", None)
+        if auto_seller:
+            from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
+
+            auto_sell_handler = AutoSellHandler(auto_seller=auto_seller)
+            for handler in auto_sell_handler.get_handlers():
+                application.add_handler(handler)
+            logger.info("✅ Auto-Sell команда зарегистрирована (/auto_sell)")
+        else:
+            # Создаем handler без auto_seller - он может быть установлен позже
+            from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
+
+            auto_sell_handler = AutoSellHandler()
+            for handler in auto_sell_handler.get_handlers():
+                application.add_handler(handler)
+            # Сохраняем handler для возможной позже инициализации
+            application.bot_data["auto_sell_handler"] = auto_sell_handler
+            logger.info("✅ Auto-Sell команда зарегистрирована (/auto_sell) - ожидает инициализации")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать Auto-Sell handler: %s", e)
+
+    # Portfolio handler (/portfolio)
+    try:
+        from src.telegram_bot.handlers.portfolio_handler import PortfolioHandler
+
+        dmarket_api = getattr(application, "dmarket_api", None)
+        portfolio_handler = PortfolioHandler(api=dmarket_api)
+        for handler in portfolio_handler.get_handlers():
+            application.add_handler(handler)
+        # Сохраняем handler для возможной позже инициализации API
+        application.bot_data["portfolio_handler"] = portfolio_handler
+        logger.info("✅ Portfolio команда зарегистрирована (/portfolio)")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать Portfolio handler: %s", e)
+
+    # Backtest handler (/backtest_advanced)
+    try:
+        from src.telegram_bot.handlers.backtest_handler import BacktestHandler
+
+        dmarket_api = getattr(application, "dmarket_api", None)
+        backtest_handler = BacktestHandler(api=dmarket_api)
+        for handler in backtest_handler.get_handlers():
+            application.add_handler(handler)
+        # Сохраняем handler для возможной позже инициализации API
+        application.bot_data["backtest_handler"] = backtest_handler
+        logger.info("✅ Backtest Advanced команда зарегистрирована (/backtest)")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать Backtest handler: %s", e)
+
+    # Waxpeer handler (commands and callbacks for cross-platform arbitrage)
+    try:
+        from src.telegram_bot.handlers.waxpeer_handler import (
+            route_waxpeer_callback,
+            waxpeer_command,
+            waxpeer_scan_command,
+        )
+
+        application.add_handler(CommandHandler("waxpeer", waxpeer_command))
+        application.add_handler(CommandHandler("waxpeer_scan", waxpeer_scan_command))
+        application.add_handler(
+            CallbackQueryHandler(route_waxpeer_callback, pattern="^waxpeer_")
+        )
+        logger.info("✅ Waxpeer команды и callback handlers зарегистрированы (/waxpeer, /waxpeer_scan)")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать Waxpeer handler: %s", e)
+
     logger.info("Все обработчики успешно зарегистрированы")
 
 
