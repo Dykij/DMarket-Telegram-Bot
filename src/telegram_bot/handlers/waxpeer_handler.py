@@ -65,8 +65,7 @@ async def waxpeer_scan_command(update: Update, context: ContextTypes.DEFAULT_TYP
 
     if not config.waxpeer.api_key:
         await update.message.reply_text(
-            "❌ *Waxpeer API ключ не настроен*\n\n"
-            "Добавьте `WAXPEER_API_KEY` в .env файл.",
+            "❌ *Waxpeer API ключ не настроен*\n\nДобавьте `WAXPEER_API_KEY` в .env файл.",
             parse_mode="Markdown",
         )
         return

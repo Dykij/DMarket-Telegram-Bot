@@ -552,7 +552,9 @@ def register_all_handlers(application: "Application") -> None:
                 application.add_handler(handler)
             # Сохраняем handler для возможной позже инициализации
             application.bot_data["auto_sell_handler"] = auto_sell_handler
-            logger.info("✅ Auto-Sell команда зарегистрирована (/auto_sell) - ожидает инициализации")
+            logger.info(
+                "✅ Auto-Sell команда зарегистрирована (/auto_sell) - ожидает инициализации"
+            )
     except ImportError as e:
         logger.warning("Не удалось импортировать Auto-Sell handler: %s", e)
 
@@ -594,10 +596,10 @@ def register_all_handlers(application: "Application") -> None:
 
         application.add_handler(CommandHandler("waxpeer", waxpeer_command))
         application.add_handler(CommandHandler("waxpeer_scan", waxpeer_scan_command))
-        application.add_handler(
-            CallbackQueryHandler(route_waxpeer_callback, pattern="^waxpeer_")
+        application.add_handler(CallbackQueryHandler(route_waxpeer_callback, pattern="^waxpeer_"))
+        logger.info(
+            "✅ Waxpeer команды и callback handlers зарегистрированы (/waxpeer, /waxpeer_scan)"
         )
-        logger.info("✅ Waxpeer команды и callback handlers зарегистрированы (/waxpeer, /waxpeer_scan)")
     except ImportError as e:
         logger.warning("Не удалось импортировать Waxpeer handler: %s", e)
 
