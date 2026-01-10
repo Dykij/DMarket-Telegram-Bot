@@ -166,8 +166,17 @@ class TestAdaptivePollingEngine:
 
     @pytest.mark.asyncio
     async def test_force_poll_detects_changes(self, engine, mock_api):
-        """Test change detection on second poll."""
-        # First poll - cache items
+        """Test change detection after multiple polls.
+
+        The polling logic works as follows:
+        1. First poll: item is added to _known_item_ids, on_new_listing called
+        2. Second poll: item is already known, added to _price_cache
+        3. Third poll: price change can be detected
+        """
+        # First poll - items added to known_item_ids
+        await engine.force_poll("csgo")
+
+        # Second poll - items added to price cache
         await engine.force_poll("csgo")
 
         # Update mock to return different price
@@ -182,7 +191,7 @@ class TestAdaptivePollingEngine:
             ]
         })
 
-        # Second poll - should detect change
+        # Third poll - should detect change
         changes = await engine.force_poll("csgo")
         assert len(changes) == 1
         assert changes[0].old_price == 10.0
