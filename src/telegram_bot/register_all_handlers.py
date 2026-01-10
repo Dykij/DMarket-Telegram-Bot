@@ -62,6 +62,15 @@ def register_all_handlers(application: "Application") -> None:
     application.add_handler(CommandHandler("logs", logs_command))
     application.add_handler(CommandHandler("dailyreport", daily_report_command))
 
+    # Resume command (для возобновления после паузы из-за ошибок)
+    try:
+        from src.telegram_bot.commands.resume_command import resume_command
+
+        application.add_handler(CommandHandler("resume", resume_command))
+        logger.info("✅ Resume команда зарегистрирована (/resume)")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать resume_command: %s", e)
+
     # ═══════════════════════════════════════════════════════════════════════════
     # ГЛАВНАЯ КЛАВИАТУРА (новая упрощённая версия)
     # ═══════════════════════════════════════════════════════════════════════════
@@ -602,6 +611,26 @@ def register_all_handlers(application: "Application") -> None:
         )
     except ImportError as e:
         logger.warning("Не удалось импортировать Waxpeer handler: %s", e)
+
+    # Rate Limit Admin commands (admin only)
+    try:
+        from src.telegram_bot.handlers.rate_limit_admin import (
+            rate_limit_config_command,
+            rate_limit_reset_command,
+            rate_limit_stats_command,
+            rate_limit_whitelist_command,
+        )
+
+        application.add_handler(CommandHandler("ratelimit_stats", rate_limit_stats_command))
+        application.add_handler(CommandHandler("ratelimit_reset", rate_limit_reset_command))
+        application.add_handler(CommandHandler("ratelimit_whitelist", rate_limit_whitelist_command))
+        application.add_handler(CommandHandler("ratelimit_config", rate_limit_config_command))
+        logger.info(
+            "✅ Rate Limit Admin команды зарегистрированы "
+            "(/ratelimit_stats, /ratelimit_reset, /ratelimit_whitelist, /ratelimit_config)"
+        )
+    except ImportError as e:
+        logger.warning("Не удалось импортировать Rate Limit Admin commands: %s", e)
 
     logger.info("Все обработчики успешно зарегистрированы")
 
