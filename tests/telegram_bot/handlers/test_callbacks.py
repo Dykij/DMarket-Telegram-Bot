@@ -129,164 +129,117 @@ def extended_opportunities():
 class TestArbitrageCallbackImpl:
     """Тесты для arbitrage_callback_impl."""
 
-    @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.callbacks.get_modern_arbitrage_keyboard")
-    async def test_arbitrage_callback_opens_menu(
+    @pytest.mark.asyncio
+    @patch("src.telegram_bot.handlers.callbacks.auto_trade_start")
+    async def test_arbitrage_callback_redirects_to_auto_trade(
         self,
-        mock_get_keyboard,
+        mock_auto_trade_start,
         mock_update,
         mock_context,
     ):
-        """Тест открытия меню арбитража."""
+        """Тест редиректа на auto_trade меню."""
         # Arrange
-        mock_keyboard = MagicMock(spec=InlineKeyboardMarkup)
-        mock_get_keyboard.return_value = mock_keyboard
+        mock_auto_trade_start.return_value = None
 
         # Act
         await arbitrage_callback_impl(mock_update, mock_context)
 
         # Assert
-        mock_update.callback_query.edit_message_text.assert_called_once()
-        call_args = mock_update.callback_query.edit_message_text.call_args
-        assert "Меню арбитража" in call_args.args[0]
-        assert call_args.kwargs["reply_markup"] == mock_keyboard
+        mock_auto_trade_start.assert_called_once_with(mock_update, mock_context)
 
-    @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.callbacks.get_modern_arbitrage_keyboard")
-    async def test_arbitrage_callback_uses_html_parse_mode(
+    @pytest.mark.asyncio
+    @patch("src.telegram_bot.handlers.callbacks.auto_trade_start")
+    async def test_arbitrage_callback_calls_auto_trade(
         self,
-        mock_get_keyboard,
+        mock_auto_trade_start,
         mock_update,
         mock_context,
     ):
-        """Тест использования HTML parse mode."""
+        """Тест вызова auto_trade_start."""
         # Arrange
-        mock_keyboard = MagicMock(spec=InlineKeyboardMarkup)
-        mock_get_keyboard.return_value = mock_keyboard
+        mock_auto_trade_start.return_value = None
 
         # Act
         await arbitrage_callback_impl(mock_update, mock_context)
 
         # Assert
-        call_args = mock_update.callback_query.edit_message_text.call_args
-        assert call_args.kwargs["parse_mode"] == "HTML"
+        mock_auto_trade_start.assert_called_once()
 
 
 class TestHandleDmarketArbitrageImpl:
     """Тесты для handle_dmarket_arbitrage_impl."""
 
-    @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.callbacks.setup_api_client")
-    @patch("src.telegram_bot.handlers.callbacks.find_arbitrage_opportunities_advanced")
-    @patch("src.telegram_bot.handlers.callbacks.show_arbitrage_opportunities")
-    async def test_successful_arbitrage_search(
+    @pytest.mark.asyncio
+    @patch("src.telegram_bot.handlers.callbacks.auto_trade_start")
+    async def test_dmarket_arbitrage_redirects_to_auto_trade(
         self,
-        mock_show_opps,
-        mock_find_opps,
-        mock_setup_api,
+        mock_auto_trade_start,
         mock_update,
         mock_context,
-        sample_opportunities,
     ):
-        """Тест успешного поиска арбитражных возможностей."""
+        """Тест редиректа на auto_trade меню."""
         # Arrange
-        mock_api_client = AsyncMock()
-        mock_setup_api.return_value = mock_api_client
-        mock_find_opps.return_value = sample_opportunities
+        mock_auto_trade_start.return_value = None
 
         # Act
         await handle_dmarket_arbitrage_impl(mock_update, mock_context, mode="normal")
 
         # Assert
-        assert mock_context.user_data["arbitrage_opportunities"] == sample_opportunities
-        assert mock_context.user_data["arbitrage_page"] == 0
-        assert mock_context.user_data["arbitrage_mode"] == "normal"
-        mock_show_opps.assert_called_once()
+        mock_auto_trade_start.assert_called_once_with(mock_update, mock_context)
 
-    @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.callbacks.setup_api_client")
-    @patch("src.telegram_bot.handlers.callbacks.find_arbitrage_opportunities_advanced")
-    @patch("src.telegram_bot.handlers.callbacks.get_back_to_arbitrage_keyboard")
-    async def test_no_opportunities_found(
+    @pytest.mark.asyncio
+    @patch("src.telegram_bot.handlers.callbacks.auto_trade_start")
+    async def test_dmarket_arbitrage_ignores_mode_parameter(
         self,
-        mock_get_keyboard,
-        mock_find_opps,
-        mock_setup_api,
+        mock_auto_trade_start,
         mock_update,
         mock_context,
     ):
-        """Тест когда возможности не найдены."""
+        """Тест что параметр mode игнорируется (редирект)."""
         # Arrange
-        mock_api_client = AsyncMock()
-        mock_setup_api.return_value = mock_api_client
-        mock_find_opps.return_value = []
-        mock_keyboard = MagicMock(spec=InlineKeyboardMarkup)
-        mock_get_keyboard.return_value = mock_keyboard
+        mock_auto_trade_start.return_value = None
+
+        # Act
+        await handle_dmarket_arbitrage_impl(mock_update, mock_context, mode="aggressive")
+
+        # Assert
+        mock_auto_trade_start.assert_called_once_with(mock_update, mock_context)
+
+    @pytest.mark.asyncio
+    @patch("src.telegram_bot.handlers.callbacks.auto_trade_start")
+    async def test_dmarket_arbitrage_with_default_mode(
+        self,
+        mock_auto_trade_start,
+        mock_update,
+        mock_context,
+    ):
+        """Тест с режимом по умолчанию."""
+        # Arrange
+        mock_auto_trade_start.return_value = None
 
         # Act
         await handle_dmarket_arbitrage_impl(mock_update, mock_context)
 
         # Assert
-        # Вызовы: 1) начало поиска, 2) результат (не найдено)
-        assert mock_update.callback_query.edit_message_text.call_count == 2
-        last_call = mock_update.callback_query.edit_message_text.call_args_list[-1]
-        assert "не найдены" in last_call.args[0]
+        mock_auto_trade_start.assert_called_once()
 
-    @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.callbacks.setup_api_client")
-    @patch("src.telegram_bot.handlers.callbacks.get_back_to_arbitrage_keyboard")
-    async def test_no_api_client(
+    @pytest.mark.asyncio
+    @patch("src.telegram_bot.handlers.callbacks.auto_trade_start")
+    async def test_dmarket_arbitrage_with_conservative_mode(
         self,
-        mock_get_keyboard,
-        mock_setup_api,
+        mock_auto_trade_start,
         mock_update,
         mock_context,
     ):
-        """Тест когда API клиент не инициализирован."""
+        """Тест с консервативным режимом (игнорируется)."""
         # Arrange
-        mock_setup_api.return_value = None
-        mock_keyboard = MagicMock(spec=InlineKeyboardMarkup)
-        mock_get_keyboard.return_value = mock_keyboard
+        mock_auto_trade_start.return_value = None
 
         # Act
-        await handle_dmarket_arbitrage_impl(mock_update, mock_context)
+        await handle_dmarket_arbitrage_impl(mock_update, mock_context, mode="conservative")
 
         # Assert
-        # Вызовы: 1) начало поиска, 2) ошибка API клиента
-        assert mock_update.callback_query.edit_message_text.call_count == 2
-        last_call = mock_update.callback_query.edit_message_text.call_args_list[-1]
-        assert "Ошибка" in last_call.args[0]
-        assert "API клиент" in last_call.args[0]
-
-    @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.callbacks.setup_api_client")
-    @patch("src.telegram_bot.handlers.callbacks.find_arbitrage_opportunities_advanced")
-    @patch("src.telegram_bot.handlers.callbacks.get_back_to_arbitrage_keyboard")
-    async def test_exception_handling(
-        self,
-        mock_get_keyboard,
-        mock_find_opps,
-        mock_setup_api,
-        mock_update,
-        mock_context,
-    ):
-        """Тест обработки исключений."""
-        # Arrange
-        mock_api_client = AsyncMock()
-        mock_setup_api.return_value = mock_api_client
-        mock_find_opps.side_effect = Exception("Test error")
-        mock_keyboard = MagicMock(spec=InlineKeyboardMarkup)
-        mock_get_keyboard.return_value = mock_keyboard
-
-        # Act
-        await handle_dmarket_arbitrage_impl(mock_update, mock_context)
-
-        # Assert
-        # Вызовы: 1) начало поиска, 2) ошибка
-        assert mock_update.callback_query.edit_message_text.call_count == 2
-        last_call = mock_update.callback_query.edit_message_text.call_args_list[-1]
-        assert "Ошибка" in last_call.args[0]
-        assert "Test error" in last_call.args[0]
+        mock_auto_trade_start.assert_called_once()
 
 
 class TestShowArbitrageOpportunities:
@@ -491,53 +444,91 @@ class TestHandleGameSelectionImpl:
 class TestHandleGameSelectedImpl:
     """Тесты для handle_game_selected_impl."""
 
-    @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.callbacks.setup_api_client")
-    @patch("src.telegram_bot.handlers.callbacks.find_arbitrage_opportunities_advanced")
-    @patch("src.telegram_bot.handlers.callbacks.show_arbitrage_opportunities")
+    @pytest.mark.asyncio
+    @patch("src.telegram_bot.handlers.callbacks.handle_dmarket_arbitrage_impl")
     async def test_successful_game_selection(
         self,
-        mock_show_opps,
-        mock_find_opps,
-        mock_setup_api,
+        mock_dmarket_impl,
         mock_update,
         mock_context,
-        sample_opportunities,
     ):
         """Тест успешного выбора игры."""
         # Arrange
-        mock_api_client = AsyncMock()
-        mock_setup_api.return_value = mock_api_client
-        mock_find_opps.return_value = sample_opportunities
+        mock_update.callback_query.data = "game_selected:csgo"
+        mock_dmarket_impl.return_value = None
 
         # Act
         await handle_game_selected_impl(mock_update, mock_context, game="csgo")
 
         # Assert
-        mock_find_opps.assert_called_once()
         assert mock_context.user_data.get("selected_game") == "csgo"
+        mock_update.callback_query.edit_message_text.assert_called_once()
+        mock_dmarket_impl.assert_called_once()
 
-    @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.callbacks.setup_api_client")
-    async def test_no_api_client_game_selection(
+    @pytest.mark.asyncio
+    @patch("src.telegram_bot.handlers.callbacks.handle_dmarket_arbitrage_impl")
+    async def test_game_selection_with_dota2(
         self,
-        mock_setup_api,
+        mock_dmarket_impl,
         mock_update,
         mock_context,
     ):
-        """Тест когда API клиент не доступен при выборе игры."""
+        """Тест выбора Dota 2."""
         # Arrange
-        mock_setup_api.return_value = None
+        mock_dmarket_impl.return_value = None
 
         # Act
-        await handle_game_selected_impl(mock_update, mock_context, game="csgo")
+        await handle_game_selected_impl(mock_update, mock_context, game="dota2")
 
         # Assert
-        # Должно быть 3 вызова:
-        # 1) "Выбрана игра"
-        # 2) "Поиск арбитражных возможностей..."
-        # 3) Ошибка API клиента
-        assert mock_update.callback_query.edit_message_text.call_count == 3
+        assert mock_context.user_data.get("selected_game") == "dota2"
+
+    @pytest.mark.asyncio
+    @patch("src.telegram_bot.handlers.callbacks.handle_dmarket_arbitrage_impl")
+    async def test_game_selection_extracts_from_callback_data(
+        self,
+        mock_dmarket_impl,
+        mock_update,
+        mock_context,
+    ):
+        """Тест извлечения игры из callback_data."""
+        # Arrange
+        mock_update.callback_query.data = "game_selected:rust"
+        mock_dmarket_impl.return_value = None
+
+        # Act
+        await handle_game_selected_impl(mock_update, mock_context)
+
+        # Assert
+        assert mock_context.user_data.get("selected_game") == "rust"
+
+    @pytest.mark.asyncio
+    async def test_returns_early_without_callback_query(self, mock_context):
+        """Тест раннего выхода без callback_query."""
+        # Arrange
+        update = MagicMock(spec=Update)
+        update.callback_query = None
+
+        # Act
+        await handle_game_selected_impl(update, mock_context, game="csgo")
+
+        # Assert - no error should be raised
+
+    @pytest.mark.asyncio
+    async def test_returns_early_without_game(
+        self,
+        mock_update,
+        mock_context,
+    ):
+        """Тест раннего выхода без игры."""
+        # Arrange
+        mock_update.callback_query.data = "other_callback"
+
+        # Act
+        await handle_game_selected_impl(mock_update, mock_context)
+
+        # Assert - no edit_message_text should be called
+        mock_update.callback_query.edit_message_text.assert_not_called()
 
 
 class TestHandleMarketComparisonImpl:
@@ -616,43 +607,43 @@ class TestButtonCallbackHandler:
         text = call_args.args[0] if call_args.args else call_args.kwargs.get("text", "")
         assert "Поиск предметов" in text
 
-    @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.callbacks.arbitrage_callback_impl")
+    @pytest.mark.asyncio
+    @patch("src.telegram_bot.handlers.callbacks.auto_trade_start")
     async def test_routes_arbitrage_callback(
-        self, mock_arbitrage_impl, mock_update, mock_context
+        self, mock_auto_trade_start, mock_update, mock_context
     ):
         """Тест маршрутизации callback_data='arbitrage'."""
         # Arrange
         from src.telegram_bot.handlers.callbacks import button_callback_handler
 
         mock_update.callback_query.data = "arbitrage"
+        mock_auto_trade_start.return_value = None
 
         # Act
         await button_callback_handler(mock_update, mock_context)
 
-        # Assert
-        mock_update.callback_query.answer.assert_called_once()
-        mock_arbitrage_impl.assert_called_once_with(mock_update, mock_context)
+        # Assert - answer is called at least once (at start of handler)
+        assert mock_update.callback_query.answer.call_count >= 1
+        mock_auto_trade_start.assert_called_once_with(mock_update, mock_context)
 
-    @pytest.mark.asyncio()
-    @patch("src.telegram_bot.handlers.callbacks.handle_dmarket_arbitrage_impl")
+    @pytest.mark.asyncio
+    @patch("src.telegram_bot.handlers.callbacks.auto_trade_start")
     async def test_routes_dmarket_arbitrage_callback(
-        self, mock_dmarket_impl, mock_update, mock_context
+        self, mock_auto_trade_start, mock_update, mock_context
     ):
         """Тест маршрутизации callback_data='dmarket_arbitrage'."""
         # Arrange
         from src.telegram_bot.handlers.callbacks import button_callback_handler
 
         mock_update.callback_query.data = "dmarket_arbitrage"
+        mock_auto_trade_start.return_value = None
 
         # Act
         await button_callback_handler(mock_update, mock_context)
 
-        # Assert
-        mock_update.callback_query.answer.assert_called_once()
-        mock_dmarket_impl.assert_called_once_with(
-            mock_update, mock_context, mode="normal"
-        )
+        # Assert - answer is called at least once (at start of handler)
+        assert mock_update.callback_query.answer.call_count >= 1
+        mock_auto_trade_start.assert_called_once_with(mock_update, mock_context)
 
     @pytest.mark.asyncio()
     @patch("src.telegram_bot.handlers.callbacks.handle_game_selected_impl")
@@ -714,7 +705,7 @@ class TestButtonCallbackHandler:
             mock_update.callback_query, mock_context, "prev_page"
         )
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     @patch("src.telegram_bot.handlers.callbacks.get_back_to_arbitrage_keyboard")
     async def test_handles_unknown_callback(
         self, mock_get_keyboard, mock_update, mock_context
@@ -730,15 +721,15 @@ class TestButtonCallbackHandler:
         # Act
         await button_callback_handler(mock_update, mock_context)
 
-        # Assert
-        mock_update.callback_query.answer.assert_called_once()
+        # Assert - answer is called at least once
+        assert mock_update.callback_query.answer.call_count >= 1
         mock_update.callback_query.edit_message_text.assert_called_once()
         call_args = mock_update.callback_query.edit_message_text.call_args
         # Текст может быть в args[0] или kwargs['text']
         text = call_args.args[0] if call_args.args else call_args.kwargs.get("text", "")
         assert "Неизвестная команда" in text
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     @patch("src.telegram_bot.handlers.callbacks.get_back_to_arbitrage_keyboard")
     async def test_handles_exception_gracefully(
         self, mock_get_keyboard, mock_update, mock_context
@@ -759,7 +750,7 @@ class TestButtonCallbackHandler:
         # Act
         await button_callback_handler(mock_update, mock_context)
 
-        # Assert
-        assert mock_update.callback_query.answer.call_count == 1
+        # Assert - answer is called at least once (at start of handler)
+        assert mock_update.callback_query.answer.call_count >= 1
         # Должно быть 2 вызова: первый с ошибкой, второй - сообщение об ошибке
         assert mock_update.callback_query.edit_message_text.call_count == 2

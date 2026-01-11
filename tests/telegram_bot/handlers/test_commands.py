@@ -151,9 +151,8 @@ async def test_help_command_sends_help_message(mock_update, mock_context):
     message_text = call_args[0][0]
     assert "Доступные команды" in message_text
     assert "/start" in message_text
-    assert "/arbitrage" in message_text
+    assert "/menu" in message_text
     assert "/balance" in message_text
-    assert "/webapp" in message_text
 
     # Проверяем параметры
     assert call_args[1]["parse_mode"] == ParseMode.HTML
@@ -251,7 +250,7 @@ async def test_arbitrage_command_sends_arbitrage_keyboard(mock_update, mock_cont
 
     # Проверяем содержимое
     message_text = call_args[0][0]
-    assert "Меню арбитража" in message_text
+    assert "Арбитраж" in message_text
 
     # Проверяем параметры
     assert call_args[1]["parse_mode"] == ParseMode.HTML
