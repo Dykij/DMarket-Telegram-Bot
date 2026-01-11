@@ -9,21 +9,30 @@ class TestSmartNotifierImports:
     def test_deprecation_warning_on_import(self):
         """Test that importing smart_notifier emits deprecation warning."""
         # Clear any cached import
+        import importlib
         import sys
 
-        if "src.telegram_bot.smart_notifier" in sys.modules:
-            del sys.modules["src.telegram_bot.smart_notifier"]
+        # Remove module and its parent from cache to force re-import
+        modules_to_remove = [
+            key for key in sys.modules.keys()
+            if "smart_notifier" in key
+        ]
+        for mod in modules_to_remove:
+            del sys.modules[mod]
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
 
-            # Import the module
+            # Import the module - this should trigger deprecation warning
+            import src.telegram_bot.smart_notifier  # noqa: F401
+            importlib.reload(src.telegram_bot.smart_notifier)
 
             # Verify deprecation warning was issued
-            assert len(w) >= 1
-            assert any(
-                issubclass(warning.category, DeprecationWarning) for warning in w
-            )
+            deprecation_warnings = [
+                warning for warning in w
+                if issubclass(warning.category, DeprecationWarning)
+            ]
+            assert len(deprecation_warnings) >= 1, f"Expected deprecation warning, got: {[str(w.message) for w in w]}"
 
     def test_exports_constants(self):
         """Test that module exports required constants."""

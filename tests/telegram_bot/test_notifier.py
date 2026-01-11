@@ -27,16 +27,27 @@ from src.telegram_bot.notifier import (
 @pytest.fixture(autouse=True)
 def reset_user_alerts():
     """Сбрасывает глобальный словарь alerts перед каждым тестом."""
-    from src.telegram_bot.notifications.storage import get_storage
+    import importlib
+    import sys
 
-    # Получаем синглтон и очищаем его данные
-    storage = get_storage()
-    storage.user_alerts.clear()
-    storage.prices_cache.clear()
+    from src.telegram_bot.notifications.storage import AlertStorage
+
+    # Сбрасываем синглтон
+    AlertStorage._instance = None
+    AlertStorage._initialized = False
+
+    # Перезагружаем модуль notifier чтобы он использовал новый storage
+    if "src.telegram_bot.notifier" in sys.modules:
+        del sys.modules["src.telegram_bot.notifier"]
+
+    # Импортируем заново
+    import src.telegram_bot.notifier
+
     yield
-    # Очищаем после теста тоже
-    storage.user_alerts.clear()
-    storage.prices_cache.clear()
+
+    # Очищаем после теста
+    AlertStorage._instance = None
+    AlertStorage._initialized = False
 
 
 @pytest.fixture()
