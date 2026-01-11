@@ -7,8 +7,7 @@
 import logging
 from typing import TYPE_CHECKING
 
-from telegram import Update
-from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes, MessageHandler, filters
+from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler, filters
 
 from src.telegram_bot.commands.backtesting_commands import backtest_command, backtest_help
 from src.telegram_bot.commands.daily_report_command import daily_report_command
@@ -62,30 +61,6 @@ def register_all_handlers(application: "Application") -> None:
     application.add_handler(CommandHandler("webapp", webapp_command))
     application.add_handler(CommandHandler("logs", logs_command))
     application.add_handler(CommandHandler("dailyreport", daily_report_command))
-
-    # Balance command - проверка баланса DMarket
-    try:
-        from src.telegram_bot.commands.balance_command import check_balance_command
-
-        async def balance_command_handler(
-            update: Update, context: ContextTypes.DEFAULT_TYPE
-        ) -> None:
-            """Обертка для check_balance_command."""
-            await check_balance_command(update, context)
-
-        application.add_handler(CommandHandler("balance", balance_command_handler))
-        logger.info("✅ Balance команда зарегистрирована (/balance)")
-    except ImportError as e:
-        logger.warning("Не удалось импортировать balance_command: %s", e)
-
-    # Resume command (для возобновления после паузы из-за ошибок)
-    try:
-        from src.telegram_bot.commands.resume_command import resume_command
-
-        application.add_handler(CommandHandler("resume", resume_command))
-        logger.info("✅ Resume команда зарегистрирована (/resume)")
-    except ImportError as e:
-        logger.warning("Не удалось импортировать resume_command: %s", e)
 
     # ═══════════════════════════════════════════════════════════════════════════
     # ГЛАВНАЯ КЛАВИАТУРА (новая упрощённая версия)
@@ -504,158 +479,19 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать AI handler команды: %s", e)
 
-    # ═══════════════════════════════════════════════════════════════════════════
-    # НОВЫЕ ИНТЕГРИРОВАННЫЕ МОДУЛИ (Phase 2)
-    # ═══════════════════════════════════════════════════════════════════════════
-
-    # Steam commands handlers (/stats, /top, /steam_settings)
+    # Bot Improvements handlers (/improvements, /analytics, /portfolio, etc.)
     try:
-        from src.telegram_bot.handlers.steam_commands import (
-            steam_settings_command,
-            steam_stats_command,
-            steam_top_command,
+        from src.telegram_bot.handlers.improvements_handler import (
+            register_improvements_handlers,
         )
 
-        application.add_handler(CommandHandler("stats", steam_stats_command))
-        application.add_handler(CommandHandler("top", steam_top_command))
-        application.add_handler(CommandHandler("steam_settings", steam_settings_command))
-        logger.info("✅ Steam команды зарегистрированы (/stats, /top, /steam_settings)")
-    except ImportError as e:
-        logger.warning("Не удалось импортировать Steam commands: %s", e)
-
-    # Sales Analysis handlers (/sales_analysis, /arbitrage_sales, /liquidity, /sales_volume)
-    try:
-        from src.telegram_bot.handlers.sales_analysis_handlers import (
-            handle_arbitrage_with_sales,
-            handle_liquidity_analysis,
-            handle_sales_analysis,
-            handle_sales_volume_stats,
-        )
-
-        application.add_handler(CommandHandler("sales_analysis", handle_sales_analysis))
-        application.add_handler(CommandHandler("arbitrage_sales", handle_arbitrage_with_sales))
-        application.add_handler(CommandHandler("liquidity", handle_liquidity_analysis))
-        application.add_handler(CommandHandler("sales_volume", handle_sales_volume_stats))
+        register_improvements_handlers(application)
         logger.info(
-            "✅ Sales Analysis команды зарегистрированы "
-            "(/sales_analysis, /arbitrage_sales, /liquidity, /sales_volume)"
+            "Bot Improvements команды зарегистрированы "
+            "(/improvements, /analytics, /portfolio, /alerts, /watchlist, /automation, /reports, /security)"
         )
     except ImportError as e:
-        logger.warning("Не удалось импортировать Sales Analysis handlers: %s", e)
-
-    # Price Alerts handler (/price_alerts)
-    try:
-        dmarket_api = getattr(application, "dmarket_api", None)
-        if dmarket_api:
-            from src.telegram_bot.handlers.price_alerts_handler import PriceAlertsHandler
-
-            price_alerts_handler = PriceAlertsHandler(api_client=dmarket_api)
-            for handler in price_alerts_handler.get_handlers():
-                application.add_handler(handler)
-            logger.info("✅ Price Alerts команда зарегистрирована (/price_alerts)")
-        else:
-            logger.info("Price Alerts handler пропущен - DMarket API не инициализирован")
-    except ImportError as e:
-        logger.warning("Не удалось импортировать Price Alerts handler: %s", e)
-
-    # Auto-Sell handler (/auto_sell)
-    try:
-        auto_seller = getattr(application, "auto_seller", None)
-        if auto_seller:
-            from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
-
-            auto_sell_handler = AutoSellHandler(auto_seller=auto_seller)
-            for handler in auto_sell_handler.get_handlers():
-                application.add_handler(handler)
-            logger.info("✅ Auto-Sell команда зарегистрирована (/auto_sell)")
-        else:
-            # Создаем handler без auto_seller - он может быть установлен позже
-            from src.telegram_bot.handlers.auto_sell_handler import AutoSellHandler
-
-            auto_sell_handler = AutoSellHandler()
-            for handler in auto_sell_handler.get_handlers():
-                application.add_handler(handler)
-            # Сохраняем handler для возможной позже инициализации
-            application.bot_data["auto_sell_handler"] = auto_sell_handler
-            logger.info(
-                "✅ Auto-Sell команда зарегистрирована (/auto_sell) - ожидает инициализации"
-            )
-    except ImportError as e:
-        logger.warning("Не удалось импортировать Auto-Sell handler: %s", e)
-
-    # Portfolio handler (/portfolio)
-    try:
-        from src.telegram_bot.handlers.portfolio_handler import PortfolioHandler
-
-        dmarket_api = getattr(application, "dmarket_api", None)
-        portfolio_handler = PortfolioHandler(api=dmarket_api)
-        for handler in portfolio_handler.get_handlers():
-            application.add_handler(handler)
-        # Сохраняем handler для возможной позже инициализации API
-        application.bot_data["portfolio_handler"] = portfolio_handler
-        logger.info("✅ Portfolio команда зарегистрирована (/portfolio)")
-    except ImportError as e:
-        logger.warning("Не удалось импортировать Portfolio handler: %s", e)
-
-    # Backtest handler (/backtest_advanced)
-    try:
-        from src.telegram_bot.handlers.backtest_handler import BacktestHandler
-
-        dmarket_api = getattr(application, "dmarket_api", None)
-        backtest_handler = BacktestHandler(api=dmarket_api)
-        for handler in backtest_handler.get_handlers():
-            application.add_handler(handler)
-        # Сохраняем handler для возможной позже инициализации API
-        application.bot_data["backtest_handler"] = backtest_handler
-        logger.info("✅ Backtest Advanced команда зарегистрирована (/backtest)")
-    except ImportError as e:
-        logger.warning("Не удалось импортировать Backtest handler: %s", e)
-
-    # Waxpeer handler (commands and callbacks for cross-platform arbitrage)
-    try:
-        from src.telegram_bot.handlers.waxpeer_handler import (
-            route_waxpeer_callback,
-            waxpeer_command,
-            waxpeer_scan_command,
-        )
-
-        application.add_handler(CommandHandler("waxpeer", waxpeer_command))
-        application.add_handler(CommandHandler("waxpeer_scan", waxpeer_scan_command))
-        application.add_handler(CallbackQueryHandler(route_waxpeer_callback, pattern="^waxpeer_"))
-        logger.info(
-            "✅ Waxpeer команды и callback handlers зарегистрированы (/waxpeer, /waxpeer_scan)"
-        )
-    except ImportError as e:
-        logger.warning("Не удалось импортировать Waxpeer handler: %s", e)
-
-    # Rate Limit Admin commands (admin only)
-    try:
-        from src.telegram_bot.handlers.rate_limit_admin import (
-            rate_limit_config_command,
-            rate_limit_reset_command,
-            rate_limit_stats_command,
-            rate_limit_whitelist_command,
-        )
-
-        application.add_handler(CommandHandler("ratelimit_stats", rate_limit_stats_command))
-        application.add_handler(CommandHandler("ratelimit_reset", rate_limit_reset_command))
-        application.add_handler(CommandHandler("ratelimit_whitelist", rate_limit_whitelist_command))
-        application.add_handler(CommandHandler("ratelimit_config", rate_limit_config_command))
-        logger.info(
-            "✅ Rate Limit Admin команды зарегистрированы "
-            "(/ratelimit_stats, /ratelimit_reset, /ratelimit_whitelist, /ratelimit_config)"
-        )
-    except ImportError as e:
-        logger.warning("Не удалось импортировать Rate Limit Admin commands: %s", e)
-
-    # Error handler - глобальная обработка ошибок
-    try:
-        from src.telegram_bot.handlers.error_handlers import error_handler
-
-        application.add_error_handler(error_handler)
-        logger.info("✅ Error handler зарегистрирован")
-    except ImportError as e:
-        logger.warning("Не удалось импортировать error_handler: %s", e)
+        logger.warning("Не удалось импортировать Bot Improvements команды: %s", e)
 
     logger.info("Все обработчики успешно зарегистрированы")
 

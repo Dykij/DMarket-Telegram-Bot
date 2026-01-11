@@ -64,7 +64,8 @@ class TestCheckpointData:
         """Test that timestamp is set automatically."""
         # Arrange
         scan_id = uuid4()
-        before = datetime.now(UTC)
+        # Use naive datetime since CheckpointData uses datetime.utcnow()
+        before = datetime.utcnow()
 
         # Act
         checkpoint = CheckpointData(scan_id=scan_id)

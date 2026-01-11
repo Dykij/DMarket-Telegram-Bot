@@ -6,6 +6,8 @@
 - Классификации рисков сделок
 - Адаптации к текущему балансу пользователя
 - Автоматической настройки гиперпараметров (ModelTuner)
+- Обнаружения аномалий и манипуляций
+- Умных рекомендаций по покупке/продаже
 
 Используемые библиотеки (все бесплатные):
 - scikit-learn: основные ML модели (RandomForest, GradientBoosting, Ridge)
@@ -57,36 +59,64 @@ from src.ml.trade_classifier import (
     RiskLevel,
     TradeSignal,
 )
+from src.ml.anomaly_detection import (
+    AnomalyDetector,
+    AnomalyResult,
+    AnomalyType,
+    AnomalySeverity,
+    create_anomaly_detector,
+)
+from src.ml.smart_recommendations import (
+    SmartRecommendations,
+    ItemRecommendation,
+    RecommendationBatch,
+    RecommendationType,
+    RiskLevel as RecommendationRiskLevel,
+    create_smart_recommendations,
+)
 
 
 __all__ = [
     # Price Predictor (базовый)
     "AdaptivePricePredictor",
-    # Trade Classifier
-    "AdaptiveTradeClassifier",
-    "AutoMLSelector",
-    # Balance Adapter
-    "BalanceAdaptiveStrategy",
-    "CVStrategy",
-    "EnhancedFeatureExtractor",
-    "EnhancedFeatures",
+    "PricePrediction",
+    "PredictionConfidence",
     # Enhanced Price Predictor (улучшенный)
     "EnhancedPricePredictor",
-    "EvaluationResult",
+    "EnhancedFeatureExtractor",
+    "EnhancedFeatures",
     "GameType",
-    "ItemCondition",
     "ItemRarity",
+    "ItemCondition",
     "MLPipeline",
-    # Feature Extractor
-    "MarketFeatureExtractor",
     # Model Tuner (автонастройка)
     "ModelTuner",
-    "PredictionConfidence",
-    "PriceFeatures",
-    "PricePrediction",
-    "RiskLevel",
+    "AutoMLSelector",
+    "CVStrategy",
     "ScoringMetric",
-    "StrategyRecommendation",
-    "TradeSignal",
     "TuningResult",
+    "EvaluationResult",
+    # Trade Classifier
+    "AdaptiveTradeClassifier",
+    "TradeSignal",
+    "RiskLevel",
+    # Balance Adapter
+    "BalanceAdaptiveStrategy",
+    "StrategyRecommendation",
+    # Feature Extractor
+    "MarketFeatureExtractor",
+    "PriceFeatures",
+    # Anomaly Detection
+    "AnomalyDetector",
+    "AnomalyResult",
+    "AnomalyType",
+    "AnomalySeverity",
+    "create_anomaly_detector",
+    # Smart Recommendations
+    "SmartRecommendations",
+    "ItemRecommendation",
+    "RecommendationBatch",
+    "RecommendationType",
+    "RecommendationRiskLevel",
+    "create_smart_recommendations",
 ]

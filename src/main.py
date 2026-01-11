@@ -2,17 +2,6 @@
 
 This module provides the main entry point for running the DMarket Telegram Bot,
 including initialization, configuration loading, and graceful shutdown handling.
-
-Integrated utils modules:
-- env_validator: Environment validation on startup
-- shutdown_handler: Graceful shutdown handling
-- health_monitor: Service health monitoring
-- feature_flags: Feature flags management
-- discord_notifier: Discord webhook notifications
-- prometheus_metrics: Prometheus metrics export
-- rate_limit_decorator: Rate limiting for commands
-- retry_decorator: Retry logic for API calls
-- watchdog: Bot supervision and auto-restart
 """
 
 import asyncio
@@ -34,44 +23,6 @@ from src.utils.database import DatabaseManager
 from src.utils.logging_utils import BotLogger, setup_logging
 from src.utils.sentry_integration import init_sentry
 from src.utils.state_manager import StateManager
-
-# Optional utils imports - graceful degradation if not available
-try:
-    from src.utils.env_validator import validate_on_startup
-except ImportError:
-    validate_on_startup = None
-
-try:
-    from src.utils.shutdown_handler import shutdown_handler
-except ImportError:
-    shutdown_handler = None
-
-try:
-    from src.utils.health_monitor import HealthMonitor, HeartbeatConfig
-except ImportError:
-    HealthMonitor = None
-    HeartbeatConfig = None
-
-try:
-    from src.utils.feature_flags import init_feature_flags
-except ImportError:
-    init_feature_flags = None
-
-try:
-    from src.utils.discord_notifier import create_discord_notifier_from_env
-except ImportError:
-    create_discord_notifier_from_env = None
-
-try:
-    from src.utils.prometheus_metrics import (
-        app_info,
-        set_bot_uptime,
-        track_command,
-    )
-except ImportError:
-    app_info = None
-    set_bot_uptime = None
-    track_command = None
 
 
 logger = logging.getLogger(__name__)
@@ -100,21 +51,13 @@ class Application:
         self.websocket_manager = None
         self.health_check_monitor = None
         self.ai_scheduler = None  # AI Training Scheduler
+        self.bot_integrator = None  # Bot Integrator for all new improvements
         self._shutdown_event = asyncio.Event()
         self._scanner_task: asyncio.Task | None = None
-        # New utils integrations
-        self.health_monitor = None  # HealthMonitor from utils
-        self.feature_flags = None  # FeatureFlagsManager
-        self.discord_notifier = None  # DiscordNotifier
-        self._start_time = None  # For uptime tracking
 
     async def initialize(self) -> None:
         """Initialize all application components."""
         try:
-            # Track start time for uptime metrics
-            import time
-            self._start_time = time.time()
-
             # Load configuration
             logger.info("Loading configuration...")
             self.config = Config.load(self.config_path)
@@ -130,35 +73,6 @@ class Application:
             logger.info("Configuration loaded successfully")
             logger.info(f"Debug mode: {self.config.debug}")
             logger.info(f"Testing mode: {self.config.testing}")
-
-            # Initialize Prometheus app info (if available)
-            if app_info and not self.config.testing:
-                app_info.info({
-                    "version": os.getenv("APP_VERSION", "1.0.0"),
-                    "environment": "production" if not self.config.debug else "development",
-                })
-                logger.info("Prometheus metrics initialized")
-
-            # Initialize Feature Flags (if available)
-            if init_feature_flags and not self.config.testing:
-                try:
-                    self.feature_flags = init_feature_flags(
-                        config_path="config/feature_flags.yaml",
-                    )
-                    logger.info("Feature flags manager initialized")
-                except Exception as e:
-                    logger.warning(f"Failed to initialize feature flags: {e}")
-
-            # Initialize Discord Notifier (if available)
-            if create_discord_notifier_from_env and not self.config.testing:
-                try:
-                    self.discord_notifier = create_discord_notifier_from_env()
-                    if self.discord_notifier.enabled:
-                        logger.info("Discord notifier initialized")
-                    else:
-                        logger.info("Discord notifier disabled (no webhook URL)")
-                except Exception as e:
-                    logger.warning(f"Failed to initialize Discord notifier: {e}")
 
             # Load whitelist from JSON file
             try:
@@ -638,48 +552,99 @@ class Application:
                     logger.warning(f"Failed to initialize Health Check Monitor: {e}")
                     # Not critical, continue without health check
 
-            # Initialize HealthMonitor from utils (comprehensive service monitoring)
-            if not self.config.testing and HealthMonitor:
-                logger.info("Initializing HealthMonitor (service monitoring)...")
+            # Initialize Bot Integrator for all new improvements
+            if not self.config.testing and self.dmarket_api:
+                logger.info("Initializing Bot Integrator (unified improvements)...")
                 try:
-                    config = HeartbeatConfig(
-                        interval_seconds=60,  # Check every minute
-                        timeout_seconds=10,
-                        failure_threshold=3,
-                        recovery_threshold=2,
+                    from src.integration.bot_integrator import (
+                        BotIntegrator,
+                        IntegratorConfig,
+                        set_integrator,
                     )
 
-                    self.health_monitor = HealthMonitor(
+                    # Create integrator config from main config
+                    integrator_config = IntegratorConfig(
+                        enable_enhanced_polling=getattr(
+                            self.config, "enable_enhanced_polling", True
+                        ),
+                        enable_price_analytics=getattr(
+                            self.config, "enable_price_analytics", True
+                        ),
+                        enable_auto_listing=getattr(
+                            self.config, "enable_auto_listing", True
+                        ),
+                        enable_portfolio_tracker=getattr(
+                            self.config, "enable_portfolio_tracker", True
+                        ),
+                        enable_custom_alerts=getattr(
+                            self.config, "enable_custom_alerts", True
+                        ),
+                        enable_watchlist=getattr(
+                            self.config, "enable_watchlist", True
+                        ),
+                        enable_anomaly_detection=getattr(
+                            self.config, "enable_anomaly_detection", True
+                        ),
+                        enable_smart_recommendations=getattr(
+                            self.config, "enable_smart_recommendations", True
+                        ),
+                        enable_trading_automation=getattr(
+                            self.config, "enable_trading_automation", True
+                        ),
+                        enable_reports=getattr(
+                            self.config, "enable_reports", True
+                        ),
+                        enable_security=getattr(
+                            self.config, "enable_security", True
+                        ),
+                        min_item_price_for_listing=getattr(
+                            self.config, "min_listing_price", 50.0
+                        ),
+                        target_profit_margin=getattr(
+                            self.config, "target_margin", 0.10
+                        ),
+                    )
+
+                    # Get Waxpeer API if available
+                    waxpeer_api = None
+                    try:
+                        from src.waxpeer.waxpeer_api import WaxpeerAPI
+
+                        waxpeer_api_key = os.getenv("WAXPEER_API_KEY")
+                        if waxpeer_api_key:
+                            waxpeer_api = WaxpeerAPI(api_key=waxpeer_api_key)
+                    except Exception as e:
+                        logger.debug(f"Waxpeer API not available: {e}")
+
+                    # Create integrator
+                    self.bot_integrator = BotIntegrator(
+                        dmarket_api=self.dmarket_api,
+                        waxpeer_api=waxpeer_api,
+                        telegram_bot=self.bot.bot if self.bot else None,
                         database=self.database,
-                        redis_cache=None,  # Will be set later if Redis is initialized
-                        dmarket_api_url=self.config.dmarket.api_url,
-                        telegram_bot_token=self.config.bot.token,
-                        config=config,
+                        config=integrator_config,
                     )
 
-                    # Register Discord alert callback if available
-                    if self.discord_notifier and self.discord_notifier.enabled:
-                        async def discord_health_alert(result):
-                            """Send health alert to Discord."""
-                            await self.discord_notifier.send_health_check(
-                                status=result.status.value,
-                                components={result.service: result.message},
-                            )
+                    # Initialize all modules
+                    init_results = await self.bot_integrator.initialize()
 
-                        self.health_monitor.register_alert_callback(discord_health_alert)
+                    # Set global integrator for easy access
+                    set_integrator(self.bot_integrator)
 
-                    self.bot.health_monitor = self.health_monitor
-                    logger.info("HealthMonitor initialized successfully")
+                    # Store as application attribute
+                    self.bot.bot_integrator = self.bot_integrator
+
+                    # Log results
+                    success_count = sum(1 for v in init_results.values() if v)
+                    total_count = len(init_results)
+                    logger.info(
+                        f"Bot Integrator initialized: "
+                        f"{success_count}/{total_count} modules active"
+                    )
 
                 except Exception as e:
-                    logger.warning(f"Failed to initialize HealthMonitor: {e}")
-
-            # Store feature flags and discord notifier in bot
-            if self.bot:
-                if self.feature_flags:
-                    self.bot.feature_flags = self.feature_flags
-                if self.discord_notifier:
-                    self.bot.discord_notifier = self.discord_notifier
+                    logger.warning(f"Failed to initialize Bot Integrator: {e}")
+                    # Not critical, continue without integrator
 
         except Exception as e:
             logger.exception(f"Failed to initialize application: {e}")
@@ -771,29 +736,11 @@ class Application:
                 asyncio.create_task(self.health_check_monitor.start())
                 logger.info("Health Check Monitor started - 15min intervals")
 
-            # Start HealthMonitor heartbeat (comprehensive service monitoring)
-            if self.health_monitor:
-                logger.info("Starting HealthMonitor heartbeat...")
-                await self.health_monitor.start_heartbeat()
-                logger.info("HealthMonitor heartbeat started - 60s intervals")
-
-            # Start uptime tracking (if Prometheus metrics available)
-            if set_bot_uptime and self._start_time:
-                async def update_uptime():
-                    """Update uptime metrics periodically."""
-                    import time
-                    while True:
-                        try:
-                            uptime = time.time() - self._start_time
-                            set_bot_uptime(uptime)
-                            await asyncio.sleep(60)  # Update every minute
-                        except asyncio.CancelledError:
-                            break
-                        except Exception:
-                            pass
-
-                asyncio.create_task(update_uptime())
-                logger.info("Uptime tracking started")
+            # Start Bot Integrator (all new improvements)
+            if hasattr(self, "bot_integrator") and self.bot_integrator:
+                logger.info("Starting Bot Integrator...")
+                await self.bot_integrator.start()
+                logger.info("Bot Integrator started - all improvements active")
 
             # Start the bot (webhook or polling)
             if self.bot is not None:
@@ -907,22 +854,9 @@ class Application:
                 except Exception as e:
                     logger.exception(f"❌ Error stopping WebSocket: {e}")
 
-            # Stop HealthMonitor heartbeat
-            if self.health_monitor:
-                try:
-                    await asyncio.wait_for(
-                        self.health_monitor.stop_heartbeat(),
-                        timeout=5.0,
-                    )
-                    logger.info("✅ HealthMonitor heartbeat stopped")
-                except TimeoutError:
-                    logger.warning("⚠️ HealthMonitor stop timeout")
-                except Exception as e:
-                    logger.exception(f"❌ Error stopping HealthMonitor: {e}")
-
             # Step 1: Stop Scanner Manager
             if self.scanner_manager:
-                logger.info("Step 1/9: Stopping Scanner Manager...")
+                logger.info("Step 1/10: Stopping Scanner Manager...")
                 try:
                     await asyncio.wait_for(
                         self.scanner_manager.stop(),
@@ -939,6 +873,20 @@ class Application:
                     logger.warning("⚠️ Scanner Manager stop timeout")
                 except Exception as e:
                     logger.exception(f"❌ Error stopping Scanner Manager: {e}")
+
+            # Step 1a: Stop Bot Integrator (all new improvements)
+            if hasattr(self, "bot_integrator") and self.bot_integrator:
+                logger.info("Step 1a/10: Stopping Bot Integrator...")
+                try:
+                    await asyncio.wait_for(
+                        self.bot_integrator.stop(),
+                        timeout=10.0,
+                    )
+                    logger.info("✅ Bot Integrator stopped")
+                except TimeoutError:
+                    logger.warning("⚠️ Bot Integrator stop timeout")
+                except Exception as e:
+                    logger.exception(f"❌ Error stopping Bot Integrator: {e}")
 
             # Step 2: Stop accepting new updates
             logger.info("Step 2/9: Stopping new updates...")

@@ -217,7 +217,7 @@ class TestPerformanceMonitorDecorator:
         assert result == "result"
         metrics = monitor.get_metrics("sync_func")
         assert metrics.total_requests == 1
-        assert metrics.total_time > 0  # Changed from execution_time to total_time
+        assert metrics.total_time > 0
 
     @pytest.mark.asyncio
     async def test_track_async_function(self, monitor):

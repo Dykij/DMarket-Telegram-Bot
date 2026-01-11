@@ -16,21 +16,12 @@ import pytest
 
 from src.utils.api_circuit_breaker import (
     EndpointType,
-    _circuit_breakers,
     call_with_circuit_breaker,
     get_circuit_breaker,
     get_circuit_breaker_stats,
     reset_all_circuit_breakers,
     reset_circuit_breaker,
 )
-
-
-@pytest.fixture(autouse=True)
-def reset_circuit_breakers_before_test():
-    """Reset all circuit breakers before each test to ensure isolation."""
-    _circuit_breakers.clear()
-    yield
-    _circuit_breakers.clear()
 
 
 class TestEndpointTypes:
@@ -194,29 +185,66 @@ class TestCircuitBreakerStats:
 class TestCircuitBreakerReset:
     """Test manual circuit breaker reset functionality."""
 
-    def test_reset_single_breaker_changes_state(self):
+    @pytest.mark.asyncio()
+    async def test_reset_single_breaker_changes_state(self):
         """Test that resetting a breaker changes its state to closed."""
+        reset_circuit_breaker(EndpointType.BALANCE)
         breaker = get_circuit_breaker(EndpointType.BALANCE)
 
-        # Force open circuit by setting failure count above threshold
-        breaker._failure_count = breaker.FAILURE_THRESHOLD + 1
-        breaker._state = "open"
+        async def mock_failing_call():
+            raise httpx.HTTPStatusError(
+                "API Error",
+                request=MagicMock(),
+                response=MagicMock(status_code=500),
+            )
+
+        # Trigger enough failures to open circuit (balance has threshold of 3)
+        for _ in range(4):
+            try:
+                await call_with_circuit_breaker(
+                    mock_failing_call,
+                    endpoint_type=EndpointType.BALANCE,
+                )
+            except (httpx.HTTPStatusError, CircuitBreakerError):
+                pass
+            await asyncio.sleep(0.01)
+
+        # Verify breaker is open or has failures
+        assert breaker.failure_count > 0 or breaker.state == "open"
 
         # Reset should close it
         reset_circuit_breaker(EndpointType.BALANCE)
-        final_state = breaker.state
+        
+        # State should be closed after reset
+        assert breaker.state == "closed"
 
-        # State should change to closed
-        assert final_state == "closed"
-
-    def test_reset_all_breakers_affects_multiple(self):
+    @pytest.mark.asyncio()
+    async def test_reset_all_breakers_affects_multiple(self):
         """Test that reset_all affects all circuit breakers."""
-        # Initialize multiple breakers and force open them
+        # Initialize and reset all first
+        for endpoint_type in [EndpointType.MARKET, EndpointType.TARGETS, EndpointType.BALANCE]:
+            reset_circuit_breaker(endpoint_type)
+
+        async def mock_failing_call():
+            raise httpx.HTTPStatusError(
+                "API Error",
+                request=MagicMock(),
+                response=MagicMock(status_code=500),
+            )
+
+        # Trigger failures on multiple breakers
         breakers = []
         for endpoint_type in [EndpointType.MARKET, EndpointType.TARGETS, EndpointType.BALANCE]:
             breaker = get_circuit_breaker(endpoint_type)
-            breaker._failure_count = breaker.FAILURE_THRESHOLD + 1
-            breaker._state = "open"
+            for _ in range(6):  # Trigger enough failures
+                try:
+                    await call_with_circuit_breaker(
+                        mock_failing_call,
+                        endpoint_type=endpoint_type,
+                    )
+                except (httpx.HTTPStatusError, CircuitBreakerError):
+                    pass
+                await asyncio.sleep(0.01)
             breakers.append(breaker)
 
         # Reset all
