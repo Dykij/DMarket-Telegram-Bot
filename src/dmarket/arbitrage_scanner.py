@@ -360,7 +360,7 @@ class ArbitrageScanner:
                 logger.warning(f"Ошибка при использовании ArbitrageTrader: {e!s}")
 
             # Сортируем все найденные предметы по прибыльности (от большей к меньшей)
-            items.sort(key=lambda x: x.get("profit", 0), reverse=True)
+            items.sort(key=lambda x: float(x.get("profit", 0)), reverse=True)
 
             # Если включен фильтр ликвидности, проверяем топ предметов
             if self.enable_liquidity_filter and self.liquidity_analyzer:
@@ -493,7 +493,7 @@ class ArbitrageScanner:
                 continue
 
             # Проверяем минимальный профит
-            profit = item.get("profit", 0)
+            profit = float(item.get("profit", 0))
             if profit < self.min_profit:
                 logger.debug(f"Пропускаем предмет с низким профитом: ${profit:.2f}")
                 continue

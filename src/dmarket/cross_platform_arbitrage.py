@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 
-
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
     from src.waxpeer.waxpeer_api import WaxpeerAPI
@@ -218,9 +217,9 @@ class CrossPlatformArbitrageScanner:
         """
         try:
             balance_data = await self.dmarket.get_balance()
-            # DMarket returns balance in cents
-            usd_cents = balance_data.get("usd", 0)
-            return Decimal(str(usd_cents)) / Decimal(100)
+            # DMarket API returns 'balance' field in dollars directly
+            balance_usd = balance_data.get("balance", 0)
+            return Decimal(str(balance_usd))
         except Exception as e:
             logger.exception("failed_to_get_balance", error=str(e))
             return Decimal(0)

@@ -33,12 +33,11 @@ Usage:
 from __future__ import annotations
 
 import asyncio
+import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
-import logging
 from typing import TYPE_CHECKING, Any
-
 
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
@@ -794,7 +793,8 @@ class AutoSeller:
 
         try:
             # Get current inventory
-            inventory_response = await self.api.get_user_inventory(game="csgo", limit=100)
+            # game_id for CS:GO is "a8db99ca-dc45-4c0e-9989-11ba71ed97a2" (default)
+            inventory_response = await self.api.get_user_inventory(limit=100)
 
             if not inventory_response:
                 return 0

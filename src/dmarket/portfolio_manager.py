@@ -33,12 +33,11 @@ Usage:
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
-import logging
 from typing import TYPE_CHECKING, Any
-
 
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
@@ -278,9 +277,9 @@ class PortfolioManager:
         # Fetch data from API if available
         if self._api:
             try:
-                # Get balance
+                # Get balance - API returns balance in USD directly
                 balance_data = await self._api.get_balance()
-                cash_balance = float(balance_data.get("usd", 0)) / 100  # cents to USD
+                cash_balance = float(balance_data.get("balance", 0))
 
                 # Get inventory (use configurable game_id and limit)
                 inventory_data = await self._api.get_user_inventory(

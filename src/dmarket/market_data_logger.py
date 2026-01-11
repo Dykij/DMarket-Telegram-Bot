@@ -16,19 +16,18 @@ Usage:
     ```
 
 CSV Output Format:
-    item_name,price_usd,float_value,is_stat_trak,game_id,timestamp
+    item_name,price,float_value,is_stat_trak,game_id,timestamp
 """
 
 import asyncio
 import csv
-from dataclasses import dataclass
-from datetime import datetime
 import logging
 import os
-from pathlib import Path
 import time
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
-
 
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
@@ -138,7 +137,7 @@ class MarketDataLogger:
                 writer = csv.writer(f)
                 writer.writerow([
                     "item_name",
-                    "price_usd",
+                    "price",
                     "float_value",
                     "is_stat_trak",
                     "game_id",
@@ -157,7 +156,7 @@ class MarketDataLogger:
         items_logged = 0
 
         try:
-            for game_id in (self.config.games or ["a8db"]):
+            for game_id in self.config.games or ["a8db"]:
                 items = await self._fetch_items(game_id)
 
                 if items:
@@ -228,9 +227,7 @@ class MarketDataLogger:
                     # Get price
                     price_data = item.get("price", {})
                     if isinstance(price_data, dict):
-                        price_cents = int(
-                            price_data.get("USD", 0) or price_data.get("amount", 0)
-                        )
+                        price_cents = int(price_data.get("USD", 0) or price_data.get("amount", 0))
                     else:
                         price_cents = int(price_data)
 
@@ -319,9 +316,7 @@ class MarketDataLogger:
             elapsed = time.time() - self.stats["start_time"]
             result["elapsed_hours"] = elapsed / 3600
             result["items_per_hour"] = (
-                self.stats["total_items_logged"] / (elapsed / 3600)
-                if elapsed > 0
-                else 0
+                self.stats["total_items_logged"] / (elapsed / 3600) if elapsed > 0 else 0
             )
 
         return result

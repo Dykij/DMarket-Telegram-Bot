@@ -16,7 +16,6 @@ from typing import Any
 
 import structlog
 
-
 logger = structlog.get_logger(__name__)
 
 
@@ -285,14 +284,11 @@ class AutopilotOrchestrator:
                 await asyncio.sleep(self.config.balance_check_interval)
 
                 # Получить баланс
-                balance = await self.api.get_balance()
-                # DMarket API returns "usd" key in lowercase, value in cents
-                if isinstance(balance, dict):
-                    usd_cents = balance.get("usd", balance.get("USD", 0))
-                    usd_cents = int(usd_cents) if usd_cents else 0
-                else:
-                    usd_cents = 0
-                usd = usd_cents / 100.0
+                balance_data = await self.api.get_balance()
+                # get_balance() returns {"balance": float} in USD (already converted from cents)
+                usd = (
+                    float(balance_data.get("balance", 0)) if isinstance(balance_data, dict) else 0.0
+                )
 
                 self.stats.balance_checks += 1
 

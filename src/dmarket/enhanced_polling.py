@@ -86,11 +86,11 @@ class BackoffConfig:
             delay = self.base_delay * (attempt + 1)
 
         elif self.strategy == BackoffStrategy.EXPONENTIAL:
-            delay = self.base_delay * (2 ** attempt)
+            delay = self.base_delay * (2**attempt)
 
         elif self.strategy == BackoffStrategy.EXPONENTIAL_JITTER:
             # AWS recommendation: full jitter
-            exp_delay = self.base_delay * (2 ** attempt)
+            exp_delay = self.base_delay * (2**attempt)
             # Non-cryptographic randomness for backoff timing
             delay = random.uniform(0, min(self.max_delay, exp_delay))  # noqa: S311
 
@@ -461,8 +461,6 @@ class EnhancedPollingEngine:
             response = await self.api.get_market_items(
                 game=game,
                 limit=self.config.batch_size,
-                order_by="updated",
-                order_dir="desc",
             )
 
         items = response.get("objects", [])

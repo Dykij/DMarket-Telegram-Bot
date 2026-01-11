@@ -111,13 +111,15 @@ class DMarketHandler:
                 )
             return
 
-        # Получаем значения в центах (строки) - безопасный парсинг
+        # DMarket API returns 'balance' in dollars directly
         try:
-            usd_cents = int(float(str(balance_data.get("usd", 0))))
+            usd_balance = float(balance_data.get("balance", 0))
+            usd_cents = int(usd_balance * 100)
         except (ValueError, TypeError):
             usd_cents = 0
         try:
-            usd_available_cents = int(float(str(balance_data.get("usdAvailableToWithdraw", 0))))
+            usd_available = float(balance_data.get("available_balance", 0))
+            usd_available_cents = int(usd_available * 100)
         except (ValueError, TypeError):
             usd_available_cents = 0
 

@@ -18,9 +18,7 @@ Usage:
 
     # Predict fair price with protection
     fair_price = predictor.predict_with_guard(
-        item_name="AK-47 | Redline (Field-Tested)",
-        market_price=10.0,
-        current_float=0.25
+        item_name="AK-47 | Redline (Field-Tested)", market_price=10.0, current_float=0.25
     )
 
     if fair_price and fair_price > market_price:
@@ -31,7 +29,6 @@ Usage:
 import logging
 import os
 from typing import Any
-
 
 logger = logging.getLogger(__name__)
 
@@ -102,8 +99,7 @@ class PricePredictor:
                 )
         except ImportError:
             logger.warning(
-                "joblib not installed, cannot load model. "
-                "Install with: pip install joblib"
+                "joblib not installed, cannot load model. Install with: pip install joblib"
             )
         except Exception as e:
             logger.warning(
@@ -174,7 +170,7 @@ class PricePredictor:
             )
 
             # Validate required columns
-            required_columns = {"item_name", "price_usd"}
+            required_columns = {"item_name", "price"}
             if not required_columns.issubset(df.columns):
                 missing = required_columns - set(df.columns)
                 return f"❌ Отсутствуют обязательные колонки: {missing}"
@@ -182,7 +178,7 @@ class PricePredictor:
             # Clean data: remove anomalies using Z-score
             # Only items with price deviation < 3 standard deviations are kept
             original_len = len(df)
-            z_scores = np.abs(stats.zscore(df["price_usd"]))
+            z_scores = np.abs(stats.zscore(df["price"]))
             df = df[z_scores < MAX_ZSCORE]
 
             removed_count = original_len - len(df)
@@ -214,7 +210,7 @@ class PricePredictor:
             # Prepare features and target
             feature_columns = ["item_id", "float_value", "is_stat_trak"]
             X = df[feature_columns]
-            y = df["price_usd"]
+            y = df["price"]
 
             # Train RandomForest with overfitting protection
             # min_samples_leaf=5 prevents the model from memorizing single outliers

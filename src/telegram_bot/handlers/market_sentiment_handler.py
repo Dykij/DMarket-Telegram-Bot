@@ -11,7 +11,6 @@ import structlog
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
 
-
 logger = structlog.get_logger(__name__)
 
 
@@ -155,9 +154,9 @@ async def show_smart_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         if api_client and hasattr(api_client, "get_balance"):
             balance_data = await api_client.get_balance()
             if isinstance(balance_data, dict):
+                # DMarket API returns 'balance' field in dollars directly
                 try:
-                    usd_cents = int(float(str(balance_data.get("usd", 0))))
-                    balance = usd_cents / 100.0
+                    balance = float(balance_data.get("balance", 0))
                 except (ValueError, TypeError):
                     balance = 0.0
             else:
@@ -265,12 +264,11 @@ async def start_smart_arbitrage(update: Update, context: ContextTypes.DEFAULT_TY
         return
 
     try:
-        # Get balance - DMarket returns cents in 'usd' field
+        # Get balance - DMarket API returns 'balance' field in dollars directly
         balance_data = await api_client.get_balance()
         if isinstance(balance_data, dict):
             try:
-                usd_cents = int(float(str(balance_data.get("usd", 0))))
-                balance = usd_cents / 100.0
+                balance = float(balance_data.get("balance", 0))
             except (ValueError, TypeError):
                 balance = 0.0
         else:

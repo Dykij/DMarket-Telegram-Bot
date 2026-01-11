@@ -29,14 +29,13 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import UTC, datetime
 import logging
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import aiofiles
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
-
 
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
@@ -103,7 +102,8 @@ class CommandCenter:
             if self.api:
                 try:
                     balance_data = await self.api.get_balance()
-                    balance_usd = float(balance_data.get("usd", 0)) / 100
+                    # API возвращает balance в долларах напрямую
+                    balance_usd = float(balance_data.get("balance", 0))
                 except Exception as e:
                     logger.exception(f"Failed to get balance: {e}")
 
@@ -512,7 +512,8 @@ class CommandCenter:
             # Баланс
             if self.api:
                 balance_data = await self.api.get_balance()
-                balance_usd = float(balance_data.get("usd", 0)) / 100
+                # API возвращает balance в долларах напрямую
+                balance_usd = float(balance_data.get("balance", 0))
                 portfolio_value += balance_usd
 
             # Инвентарь

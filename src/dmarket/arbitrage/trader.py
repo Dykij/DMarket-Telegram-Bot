@@ -35,7 +35,6 @@ from src.dmarket.arbitrage.constants import (
     GAMES,
 )
 
-
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
 
@@ -148,7 +147,8 @@ class ArbitrageTrader:
             async with self.api:
                 balance_data = await self.api.get_balance()
 
-            balance_usd = float(balance_data.get("usd", 0)) / 100  # Центы -> доллары
+            # API возвращает balance в долларах напрямую
+            balance_usd = float(balance_data.get("balance", 0))
             has_funds = balance_usd >= DEFAULT_MIN_BALANCE
 
             return has_funds, balance_usd

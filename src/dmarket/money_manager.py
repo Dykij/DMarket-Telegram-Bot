@@ -25,7 +25,6 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 
-
 if TYPE_CHECKING:
     from src.interfaces import IDMarketAPI
 
@@ -168,19 +167,11 @@ class MoneyManager:
             new_balance = 0.0
 
             if isinstance(balance_data, dict):
-                # DMarket returns balance in cents as string (e.g., "4550")
-                usd_val = balance_data.get("usd", "0")
-
-                # Handle nested dict case (API structure may vary)
-                if isinstance(usd_val, dict):
-                    usd_val = usd_val.get("amount", "0")
-
+                # DMarket API returns 'balance' field in dollars directly
                 try:
-                    # Use float(str(...)) for bulletproof parsing
-                    usd_cents = int(float(str(usd_val)))
-                    new_balance = usd_cents / 100.0
+                    new_balance = float(balance_data.get("balance", 0))
                 except (ValueError, TypeError) as parse_err:
-                    logger.exception("balance_parse_error", val=usd_val, error=str(parse_err))
+                    logger.exception("balance_parse_error", data=balance_data, error=str(parse_err))
                     new_balance = 0.0
             else:
                 new_balance = 0.0

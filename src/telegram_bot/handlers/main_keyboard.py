@@ -11,14 +11,17 @@
 """
 
 import os
+import pathlib
+from pathlib import Path
 from typing import Any
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
 from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
 
+from src.ai.price_predictor import PricePredictor
+from src.dmarket.market_data_logger import MarketDataLogger
 from src.utils.logging_utils import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -43,6 +46,7 @@ def get_main_keyboard(balance: float | None = None) -> InlineKeyboardMarkup:
         # ═══════════ ГЛАВНЫЕ ФУНКЦИИ ═══════════
         [InlineKeyboardButton("🤖 АВТО-ТОРГОВЛЯ", callback_data="auto_trade_start")],
         [InlineKeyboardButton("🎯 ТАРГЕТЫ", callback_data="targets_menu")],
+        [InlineKeyboardButton("🧠 ML/AI ОБУЧЕНИЕ", callback_data="ml_ai_menu")],
         # ═══════════ ИНФОРМАЦИЯ ═══════════
         [
             InlineKeyboardButton(balance_text, callback_data="show_balance"),
@@ -79,12 +83,11 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         dmarket_api = _get_dmarket_api(context)
         if dmarket_api:
             balance_data = await dmarket_api.get_balance()
-            # API может вернуть dict или уже число
+            # API returns balance in dollars directly in 'balance' field
             if isinstance(balance_data, dict):
-                raw_usd = balance_data.get("usd", "0")
-                balance = float(raw_usd) / 100
+                balance = float(balance_data.get("balance", 0))
             else:
-                balance = float(balance_data) / 100
+                balance = float(balance_data) if balance_data else 0.0
     except (ValueError, TypeError, AttributeError) as e:
         logger.warning(f"Failed to parse balance: {e}")
     except Exception as e:
@@ -119,9 +122,10 @@ async def main_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE)
         if dmarket_api:
             balance_data = await dmarket_api.get_balance()
             if isinstance(balance_data, dict):
-                balance = float(balance_data.get("usd", "0")) / 100
+                # DMarket API returns 'balance' field in dollars directly
+                balance = float(balance_data.get("balance", 0))
             else:
-                balance = float(balance_data) / 100 if balance_data else 0.0
+                balance = float(balance_data) if balance_data else 0.0
     except Exception:
         pass
 
@@ -202,7 +206,11 @@ async def auto_trade_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
         keyboard = [
             [InlineKeyboardButton("🚀 ЗАПУСТИТЬ", callback_data="auto_trade_run")],
-            [InlineKeyboardButton("🔎 СКАНИРОВАТЬ ВСЕ СТРАТЕГИИ", callback_data="auto_trade_scan_all")],
+            [
+                InlineKeyboardButton(
+                    "🔎 СКАНИРОВАТЬ ВСЕ СТРАТЕГИИ", callback_data="auto_trade_scan_all"
+                )
+            ],
             [InlineKeyboardButton("⚙️ Настройки", callback_data="auto_trade_settings")],
             [InlineKeyboardButton("◀️ Главное меню", callback_data="main_menu")],
         ]
@@ -267,8 +275,8 @@ async def auto_trade_run(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         # Получаем баланс (безопасно)
         balance_data = await dmarket_api.get_balance()
         if isinstance(balance_data, dict):
-            raw_usd = balance_data.get("usd", "0")
-            balance = float(raw_usd) / 100
+            # API returns balance in dollars directly in 'balance' field
+            balance = float(balance_data.get("balance", 0))
         else:
             balance = float(balance_data) / 100 if balance_data else 0.0
 
@@ -399,9 +407,9 @@ async def auto_trade_scan_all(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         # Получаем баланс для отображения
         if isinstance(balance_data, dict):
-            balance = float(balance_data.get("usd", "0")) / 100
+            balance = float(balance_data.get("balance", 0))
         else:
-            balance = float(balance_data) / 100 if balance_data else 0.0
+            balance = float(balance_data) if balance_data else 0.0
 
         # Импортируем Unified Strategy System с поддержкой мульти-игр
         from src.dmarket.unified_strategy_system import (
@@ -491,8 +499,11 @@ async def auto_trade_scan_all(update: Update, context: ContextTypes.DEFAULT_TYPE
             game_emoji = GAME_EMOJIS.get(opp.game, "🎮")
             profit_emoji = "🔥" if float(opp.profit_percent) >= 15 else "💰"
             risk_emoji = {
-                "very_low": "🟢", "low": "🟡", "medium": "🟠",
-                "high": "🔴", "very_high": "⚫"
+                "very_low": "🟢",
+                "low": "🟡",
+                "medium": "🟠",
+                "high": "🔴",
+                "very_high": "⚫",
             }.get(opp.risk_level.value, "⚪")
 
             title_short = opp.title[:25] + "..." if len(opp.title) > 25 else opp.title
@@ -507,8 +518,7 @@ async def auto_trade_scan_all(update: Update, context: ContextTypes.DEFAULT_TYPE
             result_text += f"<i>...и ещё {len(all_opportunities) - 6} возможностей</i>\n\n"
 
         result_text += (
-            "💡 <b>Рекомендация:</b>\n"
-            "Предметы с Score > 70 и 🟢/🟡 риском — лучший выбор!"
+            "💡 <b>Рекомендация:</b>\nПредметы с Score > 70 и 🟢/🟡 риском — лучший выбор!"
         )
 
         keyboard = [
@@ -552,8 +562,7 @@ async def auto_trade_scan_all(update: Update, context: ContextTypes.DEFAULT_TYPE
     except Exception as e:
         logger.exception(f"All games scan failed: {e}")
         await query.edit_message_text(
-            f"❌ <b>Ошибка сканирования</b>\n\n{str(e)[:200]}\n\n"
-            "Попробуйте повторить позже.",
+            f"❌ <b>Ошибка сканирования</b>\n\n{str(e)[:200]}\n\nПопробуйте повторить позже.",
             parse_mode=ParseMode.HTML,
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("🔄 Повторить", callback_data="auto_trade_scan_all")],
@@ -612,10 +621,11 @@ async def scan_single_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
         # Получаем баланс
         balance_data = await dmarket_api.get_balance()
+        # API returns balance in dollars directly in 'balance' field
         if isinstance(balance_data, dict):
-            balance = float(balance_data.get("usd", "0")) / 100
+            balance = float(balance_data.get("balance", 0))
         else:
-            balance = float(balance_data) / 100 if balance_data else 0.0
+            balance = float(balance_data) if balance_data else 0.0
 
         # Создаём менеджер стратегий
         waxpeer_api = getattr(context.application, "waxpeer_api", None)
@@ -683,8 +693,11 @@ async def scan_single_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         for i, opp in enumerate(opportunities[:5], 1):
             profit_emoji = "🔥" if float(opp.profit_percent) >= 15 else "💰"
             risk_emoji = {
-                "very_low": "🟢", "low": "🟡", "medium": "🟠",
-                "high": "🔴", "very_high": "⚫"
+                "very_low": "🟢",
+                "low": "🟡",
+                "medium": "🟠",
+                "high": "🔴",
+                "very_high": "⚫",
             }.get(opp.risk_level.value, "⚪")
 
             title_short = opp.title[:25] + "..." if len(opp.title) > 25 else opp.title
@@ -720,8 +733,7 @@ async def scan_single_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     except Exception as e:
         logger.exception(f"Single game scan failed: {e}")
         await query.edit_message_text(
-            f"❌ <b>Ошибка сканирования {game_name}</b>\n\n"
-            f"{str(e)[:200]}",
+            f"❌ <b>Ошибка сканирования {game_name}</b>\n\n{str(e)[:200]}",
             parse_mode=ParseMode.HTML,
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("🔄 Повторить", callback_data=f"scan_game_{game}")],
@@ -743,10 +755,11 @@ async def auto_trade_status(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         balance = 0.0
         if dmarket_api:
             balance_data = await dmarket_api.get_balance()
+            # API returns balance in dollars directly in 'balance' field
             if isinstance(balance_data, dict):
-                balance = float(balance_data.get("usd", "0")) / 100
+                balance = float(balance_data.get("balance", 0))
             else:
-                balance = float(balance_data) / 100 if balance_data else 0.0
+                balance = float(balance_data) if balance_data else 0.0
 
         # Статистика покупок
         stats = {"total_purchases": 0, "successful": 0, "total_spent_usd": 0}
@@ -1170,8 +1183,8 @@ async def show_balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
         # Безопасная распаковка баланса
         if isinstance(balance_data, dict):
-            usd = float(balance_data.get("usd", "0")) / 100
-            dmc = float(balance_data.get("dmc", "0")) / 100
+            usd = float(balance_data.get("balance", 0))
+            dmc = float(balance_data.get("dmc_balance", 0))
         else:
             usd = 0.0
             dmc = 0.0
@@ -1203,8 +1216,8 @@ async def show_inventory(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         if not dmarket_api:
             raise ValueError("API не инициализирован")
 
-        # Получаем инвентарь
-        inventory = await dmarket_api.get_user_inventory(game="csgo", limit=20)
+        # Получаем инвентарь (CS:GO game_id по умолчанию)
+        inventory = await dmarket_api.get_user_inventory(limit=20)
         items = inventory.get("objects", [])
 
         if not items:
@@ -1265,6 +1278,315 @@ async def _delete_all_targets(dmarket_api: Any) -> int:
             logger.debug(f"Failed to delete targets for {game}: {e}")
             continue
     return deleted_count
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ML/AI ОБУЧЕНИЕ - Callback handlers
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+async def ml_ai_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """ML/AI меню - выбор действий для обучения модели."""
+    query = update.callback_query
+    await query.answer()
+
+    keyboard = [
+        [InlineKeyboardButton("🎓 Обучить модель", callback_data="ml_ai_train")],
+        [InlineKeyboardButton("📊 Статус AI", callback_data="ml_ai_status")],
+        [InlineKeyboardButton("◀️ Главное меню", callback_data="main_menu")],
+    ]
+
+    text = (
+        "🧠 <b>ML/AI ОБУЧЕНИЕ</b>\n\n"
+        "Используйте машинное обучение для предсказания цен.\n\n"
+        "• <b>Обучить модель</b> - запуск тренировки на истории цен\n"
+        "• <b>Статус AI</b> - текущее состояние модели\n"
+    )
+
+    await query.edit_message_text(
+        text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=InlineKeyboardMarkup(keyboard),
+    )
+
+
+async def ml_ai_train_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Запуск обучения ML модели предсказания цен."""
+    query = update.callback_query
+    await query.answer("🎓 Запуск обучения...")
+
+    # Показать статус "обучается"
+    await query.edit_message_text(
+        "🔄 <b>Обучение модели...</b>\n\n"
+        "⏳ Это может занять несколько минут.\n"
+        "Пожалуйста, подождите...",
+        parse_mode=ParseMode.HTML,
+    )
+
+    try:
+        # Создаем PricePredictor
+        predictor = PricePredictor()
+
+        # Проверяем наличие файла истории рынка (абсолютный путь)
+        from pathlib import Path
+
+        project_root = Path(__file__).resolve().parents[3]  # project root
+        history_path = project_root / "data" / "market_history.csv"
+
+        if history_path.exists():
+            # Обучаем модель на реальных данных
+            result = predictor.train_model(str(history_path), force_retrain=True)
+
+            model_info = predictor.get_model_info()
+
+            keyboard = [
+                [InlineKeyboardButton("📊 Статус AI", callback_data="ml_ai_status")],
+                [InlineKeyboardButton("◀️ Назад", callback_data="ml_ai_menu")],
+            ]
+
+            await query.edit_message_text(
+                "✅ <b>Модель успешно обучена!</b>\n\n"
+                f"📁 Модель: <code>data/price_model.pkl</code>\n"
+                f"📊 Статус: {result}\n"
+                f"🎯 Алгоритм: RandomForest\n"
+                f"📈 Модель готова: {'Да' if model_info.get('model_loaded') else 'Нет'}\n\n"
+                "Теперь AI может предсказывать цены!",
+                parse_mode=ParseMode.HTML,
+                reply_markup=InlineKeyboardMarkup(keyboard),
+            )
+        else:
+            # Нет данных для обучения - предложить собрать
+            keyboard = [
+                [InlineKeyboardButton("📈 Собрать данные", callback_data="ml_ai_collect_data")],
+                [InlineKeyboardButton("📝 Создать демо данные", callback_data="ml_ai_create_demo")],
+                [InlineKeyboardButton("◀️ Назад", callback_data="ml_ai_menu")],
+            ]
+
+            await query.edit_message_text(
+                "⚠️ <b>Нет данных для обучения</b>\n\n"
+                f"📁 Ожидаемый файл: <code>{history_path}</code>\n\n"
+                "Для обучения модели нужны исторические данные о ценах.\n"
+                "Выберите способ получения данных:",
+                parse_mode=ParseMode.HTML,
+                reply_markup=InlineKeyboardMarkup(keyboard),
+            )
+
+    except Exception as e:
+        logger.error(f"ML training error: {e}")
+        keyboard = [
+            [InlineKeyboardButton("🔄 Попробовать снова", callback_data="ml_ai_train")],
+            [InlineKeyboardButton("◀️ Назад", callback_data="ml_ai_menu")],
+        ]
+        await query.edit_message_text(
+            f"❌ <b>Ошибка обучения</b>\n\n<code>{str(e)[:200]}</code>",
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
+
+
+async def ml_ai_status_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Показать статус ML/AI модели."""
+    query = update.callback_query
+    await query.answer()
+
+    # Абсолютные пути к файлам
+    from pathlib import Path
+
+    project_root = Path(__file__).resolve().parents[3]
+    model_path = project_root / "data" / "price_model.pkl"
+    history_path = project_root / "data" / "market_history.csv"
+    model_exists = model_path.exists()
+    history_exists = history_path.exists()
+
+    if model_exists:
+        file_size = pathlib.Path(model_path).stat().st_size
+        file_size_kb = file_size / 1024
+
+        # Проверим историю
+        history_info = ""
+        if history_exists:
+            try:
+                import pandas as pd
+
+                df = pd.read_csv(history_path)
+                history_info = f"📊 Данные: {len(df)} записей\n"
+            except Exception:
+                history_info = "📊 Данные: файл есть\n"
+
+        status_text = (
+            "🧠 <b>Статус ML/AI модели</b>\n\n"
+            "✅ <b>Модель обучена</b>\n\n"
+            f"📁 Путь: <code>{model_path}</code>\n"
+            f"💾 Размер: {file_size_kb:.1f} KB\n"
+            f"{history_info}"
+            f"🎯 Алгоритм: RandomForest\n"
+            f"📈 Готова к предсказаниям: Да\n"
+        )
+    else:
+        status_text = "🧠 <b>Статус ML/AI модели</b>\n\n❌ <b>Модель не обучена</b>\n\n"
+        if history_exists:
+            status_text += "✅ Файл истории найден - можно обучить\n"
+        else:
+            status_text += "⚠️ Нет данных для обучения\n"
+            status_text += "Создайте демо данные или соберите реальные.\n"
+
+    keyboard = [
+        [InlineKeyboardButton("🎓 Обучить модель", callback_data="ml_ai_train")],
+        [InlineKeyboardButton("📝 Создать демо данные", callback_data="ml_ai_create_demo")],
+        [InlineKeyboardButton("◀️ Назад", callback_data="ml_ai_menu")],
+    ]
+
+    await query.edit_message_text(
+        status_text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=InlineKeyboardMarkup(keyboard),
+    )
+
+
+async def ml_ai_create_demo_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Создать демо данные для обучения модели."""
+    query = update.callback_query
+    await query.answer("Создаю демо данные...")
+
+    try:
+        from datetime import datetime, timedelta
+        from pathlib import Path
+
+        import numpy as np
+        import pandas as pd
+
+        # Абсолютный путь к директории data
+        project_root = Path(__file__).resolve().parents[3]
+        data_dir = project_root / "data"
+        data_dir.mkdir(exist_ok=True)
+
+        # Генерируем реалистичные демо данные
+        n_samples = 500
+        items = [
+            "AK-47 | Redline (Field-Tested)",
+            "AWP | Asiimov (Field-Tested)",
+            "M4A4 | Desolate Space (Field-Tested)",
+            "USP-S | Kill Confirmed (Field-Tested)",
+            "Glock-18 | Water Elemental (Factory New)",
+        ]
+
+        data = []
+        base_date = datetime.now() - timedelta(days=30)
+
+        for i in range(n_samples):
+            item = np.random.choice(items)
+            base_price = 10 + np.random.rand() * 90  # $10-100
+            suggested = base_price * (1.05 + np.random.rand() * 0.15)
+            profit = suggested * 0.93 - base_price
+            # Generate realistic float values for CS:GO skins
+            float_value = round(np.random.uniform(0.0, 1.0), 4)
+            is_stat_trak = int(np.random.rand() < 0.15)  # 15% chance of StatTrak
+
+            data.append({
+                "date": (base_date + timedelta(hours=i)).isoformat(),
+                "item_name": item,
+                "price": round(base_price, 2),
+                "suggested_price": round(suggested, 2),
+                "profit": round(profit, 2),
+                "profit_percent": round((profit / base_price) * 100, 2),
+                "game": "csgo",
+                "float_value": float_value,
+                "is_stat_trak": is_stat_trak,
+            })
+
+        df = pd.DataFrame(data)
+        history_path = data_dir / "market_history.csv"
+        df.to_csv(history_path, index=False)
+
+        keyboard = [
+            [InlineKeyboardButton("🎓 Обучить модель", callback_data="ml_ai_train")],
+            [InlineKeyboardButton("◀️ Назад", callback_data="ml_ai_menu")],
+        ]
+
+        await query.edit_message_text(
+            "✅ <b>Демо данные созданы!</b>\n\n"
+            f"📊 Записей: {n_samples}\n"
+            f"📁 Файл: <code>{history_path}</code>\n"
+            f"🎮 Предметов: {len(items)} типов\n\n"
+            "Теперь можно обучить модель.",
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
+
+    except Exception as e:
+        keyboard = [
+            [InlineKeyboardButton("◀️ Назад", callback_data="ml_ai_menu")],
+        ]
+        await query.edit_message_text(
+            f"❌ <b>Ошибка создания данных</b>\n\n<code>{str(e)[:200]}</code>",
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
+
+
+async def ml_ai_collect_data_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Собрать реальные данные с DMarket для обучения ML модели.
+
+    Использует MarketDataLogger для сбора текущих рыночных данных
+    и сохранения в data/market_history.csv для последующего обучения.
+    """
+    query = update.callback_query
+    await query.answer()
+
+    try:
+        # Получаем API из контекста бота
+        dmarket_api = context.bot_data.get("dmarket_api")
+        if not dmarket_api:
+            await query.edit_message_text(
+                "❌ <b>Ошибка:</b> DMarket API не настроен.\n\n"
+                "Проверьте настройки API ключей в конфигурации бота.",
+                parse_mode=ParseMode.HTML,
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("◀️ Назад", callback_data="ml_ai_menu")]
+                ]),
+            )
+            return
+
+        # Показываем статус сбора
+        await query.edit_message_text(
+            "⏳ <b>Сбор данных с DMarket...</b>\n\nЭто может занять некоторое время.",
+            parse_mode=ParseMode.HTML,
+        )
+
+        # Создаём логгер и собираем данные
+        data_logger = MarketDataLogger(dmarket_api)
+        items_logged = await data_logger.log_market_data()
+
+        # Проверяем файл данных
+        data_path = Path("data/market_history.csv")
+        file_size = data_path.stat().st_size if data_path.exists() else 0
+        file_size_kb = file_size / 1024
+
+        # Показываем результат
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("🎓 Обучить модель", callback_data="ml_ai_train")],
+            [InlineKeyboardButton("📈 Собрать ещё", callback_data="ml_ai_collect_data")],
+            [InlineKeyboardButton("◀️ Назад", callback_data="ml_ai_menu")],
+        ])
+        await query.edit_message_text(
+            f"✅ <b>Данные собраны!</b>\n\n"
+            f"📊 Записано предметов: <code>{items_logged}</code>\n"
+            f"📁 Файл: <code>data/market_history.csv</code>\n"
+            f"💾 Размер: <code>{file_size_kb:.1f} KB</code>\n\n"
+            "Теперь можно обучить модель на реальных данных рынка.",
+            parse_mode=ParseMode.HTML,
+            reply_markup=keyboard,
+        )
+
+    except Exception as e:
+        logger.error(f"Ошибка сбора данных: {e}")
+        await query.edit_message_text(
+            f"❌ <b>Ошибка сбора данных:</b>\n\n<code>{str(e)[:300]}</code>",
+            parse_mode=ParseMode.HTML,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("◀️ Назад", callback_data="ml_ai_menu")]
+            ]),
+        )
 
 
 async def emergency_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1363,7 +1685,9 @@ def register_main_keyboard_handlers(application) -> None:
     application.add_handler(CallbackQueryHandler(auto_trade_start, pattern="^auto_trade_start$"))
     application.add_handler(CallbackQueryHandler(auto_trade_run, pattern="^auto_trade_run$"))
     application.add_handler(CallbackQueryHandler(auto_trade_stop, pattern="^auto_trade_stop$"))
-    application.add_handler(CallbackQueryHandler(auto_trade_scan_all, pattern="^auto_trade_scan_all$"))
+    application.add_handler(
+        CallbackQueryHandler(auto_trade_scan_all, pattern="^auto_trade_scan_all$")
+    )
     application.add_handler(CallbackQueryHandler(auto_trade_status, pattern="^auto_trade_status$"))
     application.add_handler(
         CallbackQueryHandler(auto_trade_settings, pattern="^auto_trade_settings$")
@@ -1394,4 +1718,15 @@ def register_main_keyboard_handlers(application) -> None:
     # Экстренная остановка
     application.add_handler(CallbackQueryHandler(emergency_stop, pattern="^emergency_stop$"))
 
-    logger.info("✅ Main keyboard handlers registered (incl. multi-game scan)")
+    # ML/AI обучение
+    application.add_handler(CallbackQueryHandler(ml_ai_menu_callback, pattern="^ml_ai_menu$"))
+    application.add_handler(CallbackQueryHandler(ml_ai_train_callback, pattern="^ml_ai_train$"))
+    application.add_handler(CallbackQueryHandler(ml_ai_status_callback, pattern="^ml_ai_status$"))
+    application.add_handler(
+        CallbackQueryHandler(ml_ai_create_demo_callback, pattern="^ml_ai_create_demo$")
+    )
+    application.add_handler(
+        CallbackQueryHandler(ml_ai_collect_data_callback, pattern="^ml_ai_collect_data$")
+    )
+
+    logger.info("✅ Main keyboard handlers registered (incl. multi-game scan, ML/AI)")
