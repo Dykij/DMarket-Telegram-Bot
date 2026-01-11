@@ -7,7 +7,8 @@
 import logging
 from typing import TYPE_CHECKING
 
-from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler, filters
+from telegram import Update
+from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes, MessageHandler, filters
 
 from src.telegram_bot.commands.backtesting_commands import backtest_command, backtest_help
 from src.telegram_bot.commands.daily_report_command import daily_report_command
@@ -61,6 +62,21 @@ def register_all_handlers(application: "Application") -> None:
     application.add_handler(CommandHandler("webapp", webapp_command))
     application.add_handler(CommandHandler("logs", logs_command))
     application.add_handler(CommandHandler("dailyreport", daily_report_command))
+
+    # Balance command - проверка баланса DMarket
+    try:
+        from src.telegram_bot.commands.balance_command import check_balance_command
+
+        async def balance_command_handler(
+            update: Update, context: ContextTypes.DEFAULT_TYPE
+        ) -> None:
+            """Обертка для check_balance_command."""
+            await check_balance_command(update, context)
+
+        application.add_handler(CommandHandler("balance", balance_command_handler))
+        logger.info("✅ Balance команда зарегистрирована (/balance)")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать balance_command: %s", e)
 
     # Resume command (для возобновления после паузы из-за ошибок)
     try:
@@ -631,6 +647,15 @@ def register_all_handlers(application: "Application") -> None:
         )
     except ImportError as e:
         logger.warning("Не удалось импортировать Rate Limit Admin commands: %s", e)
+
+    # Error handler - глобальная обработка ошибок
+    try:
+        from src.telegram_bot.handlers.error_handlers import error_handler
+
+        application.add_error_handler(error_handler)
+        logger.info("✅ Error handler зарегистрирован")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать error_handler: %s", e)
 
     logger.info("Все обработчики успешно зарегистрированы")
 
