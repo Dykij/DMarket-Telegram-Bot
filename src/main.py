@@ -2,6 +2,17 @@
 
 This module provides the main entry point for running the DMarket Telegram Bot,
 including initialization, configuration loading, and graceful shutdown handling.
+
+Integrated utils modules:
+- env_validator: Environment validation on startup
+- shutdown_handler: Graceful shutdown handling
+- health_monitor: Service health monitoring
+- feature_flags: Feature flags management
+- discord_notifier: Discord webhook notifications
+- prometheus_metrics: Prometheus metrics export
+- rate_limit_decorator: Rate limiting for commands
+- retry_decorator: Retry logic for API calls
+- watchdog: Bot supervision and auto-restart
 """
 
 import asyncio
@@ -23,6 +34,44 @@ from src.utils.database import DatabaseManager
 from src.utils.logging_utils import BotLogger, setup_logging
 from src.utils.sentry_integration import init_sentry
 from src.utils.state_manager import StateManager
+
+# Optional utils imports - graceful degradation if not available
+try:
+    from src.utils.env_validator import validate_on_startup
+except ImportError:
+    validate_on_startup = None
+
+try:
+    from src.utils.shutdown_handler import shutdown_handler
+except ImportError:
+    shutdown_handler = None
+
+try:
+    from src.utils.health_monitor import HealthMonitor, HeartbeatConfig
+except ImportError:
+    HealthMonitor = None
+    HeartbeatConfig = None
+
+try:
+    from src.utils.feature_flags import init_feature_flags
+except ImportError:
+    init_feature_flags = None
+
+try:
+    from src.utils.discord_notifier import create_discord_notifier_from_env
+except ImportError:
+    create_discord_notifier_from_env = None
+
+try:
+    from src.utils.prometheus_metrics import (
+        app_info,
+        set_bot_uptime,
+        track_command,
+    )
+except ImportError:
+    app_info = None
+    set_bot_uptime = None
+    track_command = None
 
 
 logger = logging.getLogger(__name__)
@@ -53,10 +102,19 @@ class Application:
         self.ai_scheduler = None  # AI Training Scheduler
         self._shutdown_event = asyncio.Event()
         self._scanner_task: asyncio.Task | None = None
+        # New utils integrations
+        self.health_monitor = None  # HealthMonitor from utils
+        self.feature_flags = None  # FeatureFlagsManager
+        self.discord_notifier = None  # DiscordNotifier
+        self._start_time = None  # For uptime tracking
 
     async def initialize(self) -> None:
         """Initialize all application components."""
         try:
+            # Track start time for uptime metrics
+            import time
+            self._start_time = time.time()
+
             # Load configuration
             logger.info("Loading configuration...")
             self.config = Config.load(self.config_path)
@@ -72,6 +130,35 @@ class Application:
             logger.info("Configuration loaded successfully")
             logger.info(f"Debug mode: {self.config.debug}")
             logger.info(f"Testing mode: {self.config.testing}")
+
+            # Initialize Prometheus app info (if available)
+            if app_info and not self.config.testing:
+                app_info.info({
+                    "version": os.getenv("APP_VERSION", "1.0.0"),
+                    "environment": "production" if not self.config.debug else "development",
+                })
+                logger.info("Prometheus metrics initialized")
+
+            # Initialize Feature Flags (if available)
+            if init_feature_flags and not self.config.testing:
+                try:
+                    self.feature_flags = init_feature_flags(
+                        config_path="config/feature_flags.yaml",
+                    )
+                    logger.info("Feature flags manager initialized")
+                except Exception as e:
+                    logger.warning(f"Failed to initialize feature flags: {e}")
+
+            # Initialize Discord Notifier (if available)
+            if create_discord_notifier_from_env and not self.config.testing:
+                try:
+                    self.discord_notifier = create_discord_notifier_from_env()
+                    if self.discord_notifier.enabled:
+                        logger.info("Discord notifier initialized")
+                    else:
+                        logger.info("Discord notifier disabled (no webhook URL)")
+                except Exception as e:
+                    logger.warning(f"Failed to initialize Discord notifier: {e}")
 
             # Load whitelist from JSON file
             try:
@@ -551,6 +638,49 @@ class Application:
                     logger.warning(f"Failed to initialize Health Check Monitor: {e}")
                     # Not critical, continue without health check
 
+            # Initialize HealthMonitor from utils (comprehensive service monitoring)
+            if not self.config.testing and HealthMonitor:
+                logger.info("Initializing HealthMonitor (service monitoring)...")
+                try:
+                    config = HeartbeatConfig(
+                        interval_seconds=60,  # Check every minute
+                        timeout_seconds=10,
+                        failure_threshold=3,
+                        recovery_threshold=2,
+                    )
+
+                    self.health_monitor = HealthMonitor(
+                        database=self.database,
+                        redis_cache=None,  # Will be set later if Redis is initialized
+                        dmarket_api_url=self.config.dmarket.api_url,
+                        telegram_bot_token=self.config.bot.token,
+                        config=config,
+                    )
+
+                    # Register Discord alert callback if available
+                    if self.discord_notifier and self.discord_notifier.enabled:
+                        async def discord_health_alert(result):
+                            """Send health alert to Discord."""
+                            await self.discord_notifier.send_health_check(
+                                status=result.status.value,
+                                components={result.service: result.message},
+                            )
+
+                        self.health_monitor.register_alert_callback(discord_health_alert)
+
+                    self.bot.health_monitor = self.health_monitor
+                    logger.info("HealthMonitor initialized successfully")
+
+                except Exception as e:
+                    logger.warning(f"Failed to initialize HealthMonitor: {e}")
+
+            # Store feature flags and discord notifier in bot
+            if self.bot:
+                if self.feature_flags:
+                    self.bot.feature_flags = self.feature_flags
+                if self.discord_notifier:
+                    self.bot.discord_notifier = self.discord_notifier
+
         except Exception as e:
             logger.exception(f"Failed to initialize application: {e}")
             raise
@@ -640,6 +770,30 @@ class Application:
                 logger.info("Starting Health Check Monitor...")
                 asyncio.create_task(self.health_check_monitor.start())
                 logger.info("Health Check Monitor started - 15min intervals")
+
+            # Start HealthMonitor heartbeat (comprehensive service monitoring)
+            if self.health_monitor:
+                logger.info("Starting HealthMonitor heartbeat...")
+                await self.health_monitor.start_heartbeat()
+                logger.info("HealthMonitor heartbeat started - 60s intervals")
+
+            # Start uptime tracking (if Prometheus metrics available)
+            if set_bot_uptime and self._start_time:
+                async def update_uptime():
+                    """Update uptime metrics periodically."""
+                    import time
+                    while True:
+                        try:
+                            uptime = time.time() - self._start_time
+                            set_bot_uptime(uptime)
+                            await asyncio.sleep(60)  # Update every minute
+                        except asyncio.CancelledError:
+                            break
+                        except Exception:
+                            pass
+
+                asyncio.create_task(update_uptime())
+                logger.info("Uptime tracking started")
 
             # Start the bot (webhook or polling)
             if self.bot is not None:
@@ -752,6 +906,19 @@ class Application:
                     logger.warning("⚠️ WebSocket Listener stop timeout")
                 except Exception as e:
                     logger.exception(f"❌ Error stopping WebSocket: {e}")
+
+            # Stop HealthMonitor heartbeat
+            if self.health_monitor:
+                try:
+                    await asyncio.wait_for(
+                        self.health_monitor.stop_heartbeat(),
+                        timeout=5.0,
+                    )
+                    logger.info("✅ HealthMonitor heartbeat stopped")
+                except TimeoutError:
+                    logger.warning("⚠️ HealthMonitor stop timeout")
+                except Exception as e:
+                    logger.exception(f"❌ Error stopping HealthMonitor: {e}")
 
             # Step 1: Stop Scanner Manager
             if self.scanner_manager:
