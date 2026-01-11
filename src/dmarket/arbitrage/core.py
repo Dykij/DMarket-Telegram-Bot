@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import asyncio
+import concurrent.futures
 import logging
 import operator
 import os
@@ -307,9 +308,7 @@ def arbitrage_boost(game: str = "csgo") -> list[SkinResult]:
         # No running event loop - create new one
         return asyncio.run(arbitrage_boost_async(game))
     else:
-        # There's a running loop - use run_coroutine_threadsafe or raise
-        import concurrent.futures
-
+        # There's a running loop - use run_coroutine_threadsafe
         future = asyncio.run_coroutine_threadsafe(arbitrage_boost_async(game), loop)
         return future.result(timeout=60)
 
@@ -322,9 +321,7 @@ def arbitrage_mid(game: str = "csgo") -> list[SkinResult]:
         # No running event loop - create new one
         return asyncio.run(arbitrage_mid_async(game))
     else:
-        # There's a running loop - use run_coroutine_threadsafe or raise
-        import concurrent.futures
-
+        # There's a running loop - use run_coroutine_threadsafe
         future = asyncio.run_coroutine_threadsafe(arbitrage_mid_async(game), loop)
         return future.result(timeout=60)
 
@@ -337,9 +334,7 @@ def arbitrage_pro(game: str = "csgo") -> list[SkinResult]:
         # No running event loop - create new one
         return asyncio.run(arbitrage_pro_async(game))
     else:
-        # There's a running loop - use run_coroutine_threadsafe or raise
-        import concurrent.futures
-
+        # There's a running loop - use run_coroutine_threadsafe
         future = asyncio.run_coroutine_threadsafe(arbitrage_pro_async(game), loop)
         return future.result(timeout=60)
 
@@ -477,8 +472,6 @@ def find_arbitrage_opportunities(
         )
     else:
         # There's a running loop - use run_coroutine_threadsafe
-        import concurrent.futures
-
         future = asyncio.run_coroutine_threadsafe(
             find_arbitrage_opportunities_async(
                 min_profit_percentage,
