@@ -1,8 +1,8 @@
 ````chatagent
 ---
 name: ProjectPlan
-description: "🎯 Профессиональный планировщик для DMarket Telegram Bot — создание детальных технических планов с учетом архитектуры, тестирования, CI/CD и современных практик Python 3.12+. Специализация: арбитраж, API интеграции, Telegram боты."
-argument-hint: "Опишите задачу для планирования: 'добавить ultra level арбитража', 'рефакторинг nested functions в handlers', 'интеграция ML для предсказания цен', 'улучшить тестовое покрытие модуля X'"
+description: "🎯 Профессиональный планировщик для DMarket Telegram Bot — создание детальных технических планов с учетом архитектуры, тестирования, CI/CD и современных практик Python 3.12+. Специализация: арбитраж, API интеграции (DMarket, Waxpeer, Steam), Telegram боты, AI/ML предсказания цен, унифицированные стратегии."
+argument-hint: "Опишите задачу: 'добавить ultra level арбитража', 'настроить BotIntegrator', 'AI предсказание цен', 'интеграция Waxpeer', 'улучшить E2E тесты', 'настроить HealthMonitor'"
 tools: ['vscode', 'execute', 'read', 'edit', 'search', 'web', 'gitkraken/*', 'copilot-container-tools/*', 'agent', 'memory', 'github.vscode-pull-request-github/copilotCodingAgent', 'github.vscode-pull-request-github/issue_fetch', 'github.vscode-pull-request-github/suggest-fix', 'github.vscode-pull-request-github/searchSyntax', 'github.vscode-pull-request-github/doSearch', 'github.vscode-pull-request-github/renderIssues', 'github.vscode-pull-request-github/activePullRequest', 'github.vscode-pull-request-github/openPullRequest', 'ms-mssql.mssql/mssql_show_schema', 'ms-mssql.mssql/mssql_connect', 'ms-mssql.mssql/mssql_disconnect', 'ms-mssql.mssql/mssql_list_servers', 'ms-mssql.mssql/mssql_list_databases', 'ms-mssql.mssql/mssql_get_connection_details', 'ms-mssql.mssql/mssql_change_database', 'ms-mssql.mssql/mssql_list_tables', 'ms-mssql.mssql/mssql_list_schemas', 'ms-mssql.mssql/mssql_list_views', 'ms-mssql.mssql/mssql_list_functions', 'ms-mssql.mssql/mssql_run_query', 'ms-python.python/getPythonEnvironmentInfo', 'ms-python.python/getPythonExecutableCommand', 'ms-python.python/installPythonPackage', 'ms-python.python/configurePythonEnvironment', 'ms-toolsai.jupyter/configureNotebook', 'ms-toolsai.jupyter/listNotebookPackages', 'ms-toolsai.jupyter/installNotebookPackages', 'todo']
 model: Claude Sonnet 4
 handoffs:
@@ -120,6 +120,76 @@ handoffs:
   - label: "📖 Сгенерировать API docs"
     agent: agent
     prompt: "Проверь docstrings для новых/измененных функций. Формат Google-style с примерами."
+    send: false
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 🤖 BOTINTEGRATOR & AI/ML
+  # ═══════════════════════════════════════════════════════════════════════════
+  - label: "🤖 Запустить BotIntegrator"
+    agent: agent
+    prompt: |
+      Используй BotIntegrator для применения улучшений:
+      from src.integrations.bot_integrator import BotIntegrator
+      integrator = BotIntegrator()
+      await integrator.apply_improvements()
+    send: false
+
+  - label: "🧠 AI/ML Предсказание цен"
+    agent: agent
+    prompt: |
+      Настрой AI/ML предсказание цен с Llama 3.1 8B Q4:
+      1. Проверь src/ai/llm_price_predictor.py
+      2. Запусти тесты: pytest tests/ai/ -v
+      3. Интегрируй с арбитражным сканером
+    send: false
+
+  - label: "📊 HealthMonitor статус"
+    agent: agent
+    prompt: "Проверь статус HealthMonitor: src/utils/health_monitor.py. Показать heartbeat, метрики, алерты."
+    send: false
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 🌐 WAXPEER & STEAM INTEGRATION
+  # ═══════════════════════════════════════════════════════════════════════════
+  - label: "🌐 Waxpeer интеграция"
+    agent: agent
+    prompt: |
+      Проверь Waxpeer интеграцию:
+      1. src/waxpeer/waxpeer_api.py - API клиент
+      2. src/dmarket/cross_platform_arbitrage.py - кросс-арбитраж DMarket↔Waxpeer
+      3. Тесты: pytest tests/waxpeer/ -v
+    send: false
+
+  - label: "🎮 Steam API интеграция"
+    agent: agent
+    prompt: "Проверь Steam API: src/steam/steam_market_api.py, steam_inventory.py. Запусти tests/steam/"
+    send: false
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 📈 СТРАТЕГИИ & АВТОМАТИЗАЦИЯ
+  # ═══════════════════════════════════════════════════════════════════════════
+  - label: "⚡ Unified Strategy System"
+    agent: agent
+    prompt: |
+      Проверь унифицированную систему стратегий:
+      1. src/dmarket/unified_strategy_system.py
+      2. src/dmarket/optimal_arbitrage_strategy.py
+      3. Режимы: conservative, balanced, aggressive, ultra_aggressive
+    send: false
+
+  - label: "🎯 Float Value Arbitrage"
+    agent: agent
+    prompt: "Настрой арбитраж по float value: src/dmarket/float_value_arbitrage.py. Проверь FloatRange фильтры."
+    send: false
+
+  - label: "📦 Advanced Order System"
+    agent: agent
+    prompt: "Проверь систему умных ордеров: src/dmarket/advanced_order_system.py"
+    send: false
+
+  - label: "🔄 Auto-Sell система"
+    agent: agent
+    prompt: "Настрой автопродажу: config/auto_sell.yaml, src/telegram_bot/handlers/auto_sell_handler.py"
     send: false
 ---
 
