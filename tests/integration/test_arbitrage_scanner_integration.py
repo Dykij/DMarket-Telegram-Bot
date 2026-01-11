@@ -54,7 +54,7 @@ async def test_scan_game_with_liquidity_filter_enabled(
 
     # Patch the external functions used in scan_game
     with (
-        patch("src.dmarket.arbitrage_scanner.arbitrage_mid", return_value=mock_items),
+        patch("src.dmarket.arbitrage_scanner.arbitrage_mid_async", return_value=mock_items),
         patch("src.dmarket.arbitrage_scanner.ArbitrageTrader") as MockTrader,
     ):
         # Configure ArbitrageTrader mock to return empty list to avoid duplicates/complexity
@@ -95,7 +95,7 @@ async def test_scan_game_with_liquidity_filter_disabled(mock_api_client):
     ]
 
     with (
-        patch("src.dmarket.arbitrage_scanner.arbitrage_mid", return_value=mock_items),
+        patch("src.dmarket.arbitrage_scanner.arbitrage_mid_async", return_value=mock_items),
         patch("src.dmarket.arbitrage_scanner.ArbitrageTrader") as MockTrader,
     ):
         mock_trader_instance = MockTrader.return_value
@@ -127,7 +127,7 @@ async def test_scan_game_filtering_logic(scanner, mock_liquidity_analyzer):
     mock_liquidity_analyzer.filter_liquid_items.return_value = sorted_items
 
     with (
-        patch("src.dmarket.arbitrage_scanner.arbitrage_mid", return_value=mock_items),
+        patch("src.dmarket.arbitrage_scanner.arbitrage_mid_async", return_value=mock_items),
         patch("src.dmarket.arbitrage_scanner.ArbitrageTrader") as MockTrader,
     ):
         mock_trader_instance = MockTrader.return_value

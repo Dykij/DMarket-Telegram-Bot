@@ -21,7 +21,8 @@ async def api_client():
     """Fixture for DMarket API client."""
     client = DMarketAPI(public_key="test_public_key", secret_key="test_secret_key")
     yield client
-    await client.close()
+    # DMarketAPI uses context manager pattern, not close()
+    # Teardown not needed for test client with mocked requests
 
 
 @pytest.mark.integration()
