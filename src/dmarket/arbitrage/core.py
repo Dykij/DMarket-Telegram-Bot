@@ -301,20 +301,47 @@ async def arbitrage_pro_async(
 
 def arbitrage_boost(game: str = "csgo") -> list[SkinResult]:
     """Синхронная версия arbitrage_boost_async для совместимости."""
-    loop = asyncio.get_event_loop()
-    return loop.run_until_complete(arbitrage_boost_async(game))
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        # No running event loop - create new one
+        return asyncio.run(arbitrage_boost_async(game))
+    else:
+        # There's a running loop - use run_coroutine_threadsafe or raise
+        import concurrent.futures
+
+        future = asyncio.run_coroutine_threadsafe(arbitrage_boost_async(game), loop)
+        return future.result(timeout=60)
 
 
 def arbitrage_mid(game: str = "csgo") -> list[SkinResult]:
     """Синхронная версия arbitrage_mid_async для совместимости."""
-    loop = asyncio.get_event_loop()
-    return loop.run_until_complete(arbitrage_mid_async(game))
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        # No running event loop - create new one
+        return asyncio.run(arbitrage_mid_async(game))
+    else:
+        # There's a running loop - use run_coroutine_threadsafe or raise
+        import concurrent.futures
+
+        future = asyncio.run_coroutine_threadsafe(arbitrage_mid_async(game), loop)
+        return future.result(timeout=60)
 
 
 def arbitrage_pro(game: str = "csgo") -> list[SkinResult]:
     """Синхронная версия arbitrage_pro_async для совместимости."""
-    loop = asyncio.get_event_loop()
-    return loop.run_until_complete(arbitrage_pro_async(game))
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        # No running event loop - create new one
+        return asyncio.run(arbitrage_pro_async(game))
+    else:
+        # There's a running loop - use run_coroutine_threadsafe or raise
+        import concurrent.futures
+
+        future = asyncio.run_coroutine_threadsafe(arbitrage_pro_async(game), loop)
+        return future.result(timeout=60)
 
 
 async def find_arbitrage_opportunities_async(
@@ -437,14 +464,30 @@ def find_arbitrage_opportunities(
     game: str = "csgo",
 ) -> list[dict[str, Any]]:
     """Синхронная версия find_arbitrage_opportunities_async для совместимости."""
-    loop = asyncio.get_event_loop()
-    return loop.run_until_complete(
-        find_arbitrage_opportunities_async(
-            min_profit_percentage,
-            max_results,
-            game,
-        ),
-    )
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        # No running event loop - create new one
+        return asyncio.run(
+            find_arbitrage_opportunities_async(
+                min_profit_percentage,
+                max_results,
+                game,
+            ),
+        )
+    else:
+        # There's a running loop - use run_coroutine_threadsafe
+        import concurrent.futures
+
+        future = asyncio.run_coroutine_threadsafe(
+            find_arbitrage_opportunities_async(
+                min_profit_percentage,
+                max_results,
+                game,
+            ),
+            loop,
+        )
+        return future.result(timeout=60)
 
 
 # =============================================================================

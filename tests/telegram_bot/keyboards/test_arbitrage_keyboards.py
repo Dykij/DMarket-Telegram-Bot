@@ -115,8 +115,8 @@ class TestGetModernArbitrageKeyboard:
         """Test that keyboard has correct number of rows."""
         result = get_modern_arbitrage_keyboard()
 
-        # 7 rows total (including Waxpeer P2P button)
-        assert len(result.inline_keyboard) == 7
+        # 9 rows total (including Waxpeer P2P button and new rows)
+        assert len(result.inline_keyboard) == 9
 
     def test_has_simple_menu_button(self):
         """Test that simple menu button exists."""
@@ -130,7 +130,8 @@ class TestGetModernArbitrageKeyboard:
         """Test that quick scan button exists."""
         result = get_modern_arbitrage_keyboard()
 
-        quick_button = result.inline_keyboard[1][0]
+        # Row 2 (index 2) has quick and deep scan
+        quick_button = result.inline_keyboard[2][0]
         assert "Быстрый" in quick_button.text
         assert quick_button.callback_data == "arb_quick"
 
@@ -138,7 +139,7 @@ class TestGetModernArbitrageKeyboard:
         """Test that deep scan button exists."""
         result = get_modern_arbitrage_keyboard()
 
-        deep_button = result.inline_keyboard[1][1]
+        deep_button = result.inline_keyboard[2][1]
         assert "Глубокий" in deep_button.text
         assert deep_button.callback_data == "arb_deep"
 
@@ -146,7 +147,8 @@ class TestGetModernArbitrageKeyboard:
         """Test that market analysis button exists."""
         result = get_modern_arbitrage_keyboard()
 
-        analysis_button = result.inline_keyboard[2][0]
+        # Row 3 (index 3) has analysis and multilevel scan
+        analysis_button = result.inline_keyboard[3][0]
         assert "Анализ" in analysis_button.text
         assert analysis_button.callback_data == "arb_market_analysis"
 
@@ -154,7 +156,7 @@ class TestGetModernArbitrageKeyboard:
         """Test that multilevel scan button exists."""
         result = get_modern_arbitrage_keyboard()
 
-        scanner_button = result.inline_keyboard[2][1]
+        scanner_button = result.inline_keyboard[3][1]
         assert "Многоуровневый" in scanner_button.text
         assert scanner_button.callback_data == "scanner"
 
@@ -162,7 +164,8 @@ class TestGetModernArbitrageKeyboard:
         """Test that enhanced scanner button exists."""
         result = get_modern_arbitrage_keyboard()
 
-        enhanced_button = result.inline_keyboard[3][0]
+        # Row 5 (index 5) has enhanced scanner and stats
+        enhanced_button = result.inline_keyboard[5][0]
         assert "Enhanced" in enhanced_button.text
         assert enhanced_button.callback_data == "enhanced_scanner_menu"
 
@@ -170,7 +173,7 @@ class TestGetModernArbitrageKeyboard:
         """Test that stats button exists."""
         result = get_modern_arbitrage_keyboard()
 
-        stats_button = result.inline_keyboard[3][1]
+        stats_button = result.inline_keyboard[5][1]
         assert "Статистика" in stats_button.text
         assert stats_button.callback_data == "arb_stats"
 
@@ -178,7 +181,8 @@ class TestGetModernArbitrageKeyboard:
         """Test that create target button exists."""
         result = get_modern_arbitrage_keyboard()
 
-        target_button = result.inline_keyboard[4][0]
+        # Row 6 (index 6) has target and compare
+        target_button = result.inline_keyboard[6][0]
         assert "таргет" in target_button.text.lower()
         assert target_button.callback_data == "arb_target"
 
@@ -186,7 +190,7 @@ class TestGetModernArbitrageKeyboard:
         """Test that compare marketplaces button exists."""
         result = get_modern_arbitrage_keyboard()
 
-        compare_button = result.inline_keyboard[4][1]
+        compare_button = result.inline_keyboard[6][1]
         assert "Сравнить" in compare_button.text
         assert compare_button.callback_data == "arb_compare"
 
@@ -194,8 +198,8 @@ class TestGetModernArbitrageKeyboard:
         """Test that main menu button exists."""
         result = get_modern_arbitrage_keyboard()
 
-        # Main menu is now at index 6 (after Waxpeer row)
-        main_button = result.inline_keyboard[6][0]
+        # Main menu is now at index 8 (last row)
+        main_button = result.inline_keyboard[8][0]
         assert "Главное" in main_button.text
         assert main_button.callback_data == "main_menu"
 
