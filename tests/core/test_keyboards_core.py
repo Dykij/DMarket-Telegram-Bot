@@ -44,7 +44,7 @@ class TestMainKeyboard:
         keyboard = get_main_keyboard()
 
         assert isinstance(keyboard, InlineKeyboardMarkup)
-        assert len(keyboard.inline_keyboard) == 6
+        assert len(keyboard.inline_keyboard) == 7
 
     def test_main_keyboard_with_balance(self):
         """Тест клавиатуры с балансом."""

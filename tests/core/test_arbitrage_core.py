@@ -211,6 +211,8 @@ class TestArbitrageScannerCaching:
 
     def test_cache_saves_results(self):
         """Тест сохранения результатов в кэш."""
+        import time
+
         ArbitrageScanner()
 
         cache_key = "test_cache_key"
@@ -220,7 +222,7 @@ class TestArbitrageScannerCaching:
         cache = {}
         cache[cache_key] = {
             "data": test_data,
-            "timestamp": asyncio.get_event_loop().time(),
+            "timestamp": time.time(),
         }
 
         assert cache_key in cache
@@ -228,6 +230,8 @@ class TestArbitrageScannerCaching:
 
     def test_cache_retrieves_results(self):
         """Тест получения результатов из кэша."""
+        import time
+
         ArbitrageScanner()
 
         cache_key = "test_cache_key"
@@ -237,7 +241,7 @@ class TestArbitrageScannerCaching:
         cache = {
             cache_key: {
                 "data": test_data,
-                "timestamp": asyncio.get_event_loop().time(),
+                "timestamp": time.time(),
             }
         }
 
