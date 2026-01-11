@@ -348,7 +348,7 @@ class TestPriceCache:
         storage = AlertStorage()
         storage._current_prices_cache = {}
 
-        storage.set_cached_price("csgo:item1", 15.50)
+        storage.set_cached_price("csgo:item1", 15.50, time.time())
 
         assert "csgo:item1" in storage._current_prices_cache
         assert storage._current_prices_cache["csgo:item1"]["price"] == 15.50
@@ -364,7 +364,7 @@ class TestPriceCache:
             }
         }
 
-        storage.set_cached_price("csgo:item1", 12.0)
+        storage.set_cached_price("csgo:item1", 12.0, time.time())
 
         assert storage._current_prices_cache["csgo:item1"]["price"] == 12.0
 
@@ -542,8 +542,8 @@ class TestStorageIntegration:
         storage.save_user_alerts()
 
         # Set up cache
-        storage.set_cached_price("csgo:item1", 10.0)
-        storage.set_cached_price("csgo:item2", 20.0)
+        storage.set_cached_price("csgo:item1", 10.0, time.time())
+        storage.set_cached_price("csgo:item2", 20.0, time.time())
 
         # Both should work independently
         assert len(storage.get_user_data(12345)["alerts"]) >= 1

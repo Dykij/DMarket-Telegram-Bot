@@ -391,21 +391,6 @@ class TestListAlertsCommand:
         if list_alerts_command is None:
             pytest.skip("Handler not available")
 
-        mock_get.return_value = [
-            {
-                "id": "alert_1",
-                "title": "Test Item 1",
-                "type": "price_drop",
-                "threshold": 100.0,
-            },
-            {
-                "id": "alert_2",
-                "title": "Test Item 2",
-                "type": "price_rise",
-                "threshold": 200.0,
-            },
-        ]
-
         # Test skipped due to complex module patching requirements
         pytest.skip("Complex module patching required")
 
