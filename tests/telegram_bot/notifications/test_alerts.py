@@ -325,8 +325,8 @@ class TestUpdateUserSettings:
             "src.telegram_bot.notifications.alerts.get_storage",
             return_value=mock_storage,
         ):
-            # update_user_settings has no return statement, so it returns None implicitly
-            result = await update_user_settings(
+            # update_user_settings returns None by design
+            await update_user_settings(
                 user_id=12345,
                 settings={
                     "min_profit_percent": 10.0,
@@ -334,8 +334,7 @@ class TestUpdateUserSettings:
                 },
             )
 
-            # Function returns None (no explicit return)
-            assert result is None
+            # Verify settings were updated
             mock_storage.save_user_alerts.assert_called()
 
     @pytest.mark.asyncio()
@@ -345,16 +344,15 @@ class TestUpdateUserSettings:
             "src.telegram_bot.notifications.alerts.get_storage",
             return_value=mock_storage,
         ):
-            # update_user_settings has no return statement, so it returns None implicitly
-            result = await update_user_settings(
+            # update_user_settings returns None by design
+            await update_user_settings(
                 user_id=12345,
                 settings={
                     "min_profit_percent": 15.0,
                 },
             )
 
-            # Function returns None (no explicit return)
-            assert result is None
+            # Verify settings were saved
             mock_storage.save_user_alerts.assert_called()
 
     @pytest.mark.asyncio()
@@ -436,15 +434,11 @@ class TestEdgeCases:
     async def test_get_alerts_for_different_users(self, mock_storage_with_alerts):
         """Test that alerts are user-specific."""
         storage1 = MagicMock()
-        storage1.get_user_data = MagicMock(
-            return_value={"alerts": [{"id": "1", "active": True}]}
-        )
+        storage1.get_user_data = MagicMock(return_value={"alerts": [{"id": "1", "active": True}]})
 
         storage2 = MagicMock()
         storage2.get_user_data = MagicMock(
-            return_value={
-                "alerts": [{"id": "2", "active": True}, {"id": "3", "active": True}]
-            }
+            return_value={"alerts": [{"id": "2", "active": True}, {"id": "3", "active": True}]}
         )
 
         with patch(

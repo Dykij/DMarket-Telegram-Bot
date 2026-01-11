@@ -133,26 +133,26 @@ class TestProfiles:
 
 
 class TestSalesAnalysisCallbacks:
-    """Tests for sales_analysis_callbacks module."""
+    """Tests for sales_analysis_handlers module."""
 
     def test_import_module(self):
         """Test module can be imported (may have missing dependency)."""
         try:
-            from src.telegram_bot import sales_analysis_callbacks
+            from src.telegram_bot.handlers import sales_analysis_handlers
 
-            assert sales_analysis_callbacks is not None
-        except (ModuleNotFoundError, ImportError):
-            # Module has missing dependency or is not exported - acceptable
-            pytest.skip("Module has missing dependency or is not exported")
+            assert sales_analysis_handlers is not None
+        except ModuleNotFoundError:
+            # Module has missing dependency - acceptable
+            pytest.skip("Module has missing dependency")
 
     def test_module_has_handlers(self):
         """Test module has handler functions or classes."""
         try:
-            from src.telegram_bot import sales_analysis_callbacks
+            from src.telegram_bot.handlers import sales_analysis_handlers
 
-            assert hasattr(sales_analysis_callbacks, "__name__")
-        except (ModuleNotFoundError, ImportError):
-            pytest.skip("Module has missing dependency or is not exported")
+            assert hasattr(sales_analysis_handlers, "__name__")
+        except ModuleNotFoundError:
+            pytest.skip("Module has missing dependency")
 
 
 class TestInitialization:

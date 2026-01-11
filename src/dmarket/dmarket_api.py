@@ -1104,8 +1104,7 @@ class DMarketAPI:  # noqa: PLR0904
 
     async def clear_cache(self) -> None:
         """Очищает весь кэш API."""
-        global api_cache
-        api_cache = {}
+        api_cache.clear()
         logger.info("API cache cleared")
 
     async def clear_cache_for_endpoint(self, endpoint_path: str) -> None:
@@ -1115,7 +1114,6 @@ class DMarketAPI:  # noqa: PLR0904
             endpoint_path: Путь эндпоинта
 
         """
-        global api_cache
         keys_to_remove = []
 
         for key in api_cache:

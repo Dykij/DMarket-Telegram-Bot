@@ -378,6 +378,8 @@ class AdaptivePollingEngine:
                 # Check for new listing
                 if item_id not in self._known_item_ids:
                     self._known_item_ids.add(item_id)
+                    # Cache the initial price for new items
+                    self._cache_initial_price(item)
                     if self.on_new_listing:
                         try:
                             await self.on_new_listing(item)
@@ -394,6 +396,42 @@ class AdaptivePollingEngine:
             logger.exception("poll_game_error", game=game, error=str(e))
 
         return changes
+
+    def _cache_initial_price(self, item: dict[str, Any]) -> None:
+        """Cache initial price for a new item.
+
+        This ensures price changes can be detected on subsequent polls.
+        """
+        item_id = item.get("itemId") or item.get("extra", {}).get("itemId", "")
+        if not item_id:
+            return
+
+        title = item.get("title", "Unknown")
+
+        # Get current price (convert from cents to dollars)
+        price_data = item.get("price", {})
+        price_str = price_data.get("USD", "0")
+        current_price = float(price_str) / 100
+
+        if current_price <= 0:
+            return
+
+        # Determine priority
+        priority = (
+            PollPriority.HIGH
+            if title.lower() in self.whitelist_items
+            else PollPriority.NORMAL
+        )
+
+        # Add to cache
+        self._price_cache[item_id] = CachedPrice(
+            item_id=item_id,
+            item_name=title,
+            price=current_price,
+            quantity=1,
+            last_updated=datetime.now(UTC),
+            priority=priority,
+        )
 
     def _check_price_change(self, item: dict[str, Any]) -> PriceChange | None:
         """Check if item price has changed."""

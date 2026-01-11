@@ -236,8 +236,19 @@ class TestHandleAlertCallback:
         if handle_alert_callback is None:
             pytest.skip("Handler not available")
 
-        # Test skipped due to complex module patching requirements
-        pytest.skip("Complex module patching required")
+        mock_callback_update.callback_query.data = "disable_alert:alert_123"
+
+        with patch(
+            "src.telegram_bot.notifications.handlers.remove_price_alert",
+            new_callable=AsyncMock,
+            return_value=False,
+        ):
+            await handle_alert_callback(mock_callback_update, mock_context)
+
+            mock_callback_update.callback_query.answer.assert_called_once()
+            mock_callback_update.callback_query.edit_message_text.assert_called_once()
+            call_args = mock_callback_update.callback_query.edit_message_text.call_args[0][0]
+            assert "не удалось" in call_args.lower() or "уже удалено" in call_args.lower()
 
 
 # Tests for create_alert_command
@@ -332,8 +343,37 @@ class TestCreateAlertCommand:
         if create_alert_command is None:
             pytest.skip("Handler not available")
 
-        # Test skipped due to complex module patching requirements
-        pytest.skip("Complex module patching required")
+        mock_context.args = ["item_123", "price_drop", "100"]
+        mock_api._request.return_value = {
+            "title": "Test Item",
+            "gameId": "csgo",
+            "price": {"USD": "1000"},
+        }
+
+        mock_alert = {
+            "id": "alert_123",
+            "item_id": "item_123",
+            "title": "Test Item",
+            "game": "csgo",
+            "type": "price_drop",
+            "threshold": 100.0,
+            "active": True,
+        }
+
+        with patch(
+            "src.telegram_bot.notifications.handlers.add_price_alert",
+            new_callable=AsyncMock,
+            return_value=mock_alert,
+        ):
+            with patch(
+                "src.telegram_bot.notifications.handlers.format_alert_message",
+                return_value="Alert message",
+            ):
+                await create_alert_command(mock_update, mock_context, mock_api)
+
+                mock_update.message.reply_text.assert_called_once()
+                call_args = mock_update.message.reply_text.call_args
+                assert "оповещение создано" in call_args[0][0].lower()
 
     @pytest.mark.asyncio()
     async def test_item_not_found_shows_error(
@@ -378,8 +418,16 @@ class TestListAlertsCommand:
         if list_alerts_command is None:
             pytest.skip("Handler not available")
 
-        # Test skipped due to complex module patching requirements
-        pytest.skip("Complex module patching required")
+        with patch(
+            "src.telegram_bot.notifications.handlers.get_user_alerts",
+            new_callable=AsyncMock,
+            return_value=[],
+        ):
+            await list_alerts_command(mock_update, mock_context)
+
+            mock_update.message.reply_text.assert_called_once()
+            call_args = mock_update.message.reply_text.call_args[0][0]
+            assert "нет" in call_args.lower()
 
     @pytest.mark.asyncio()
     async def test_lists_existing_alerts(
@@ -391,8 +439,32 @@ class TestListAlertsCommand:
         if list_alerts_command is None:
             pytest.skip("Handler not available")
 
-        # Test skipped due to complex module patching requirements
-        pytest.skip("Complex module patching required")
+        mock_alerts = [
+            {
+                "id": "alert_1",
+                "title": "Test Item 1",
+                "type": "price_drop",
+                "threshold": 100.0,
+            },
+            {
+                "id": "alert_2",
+                "title": "Test Item 2",
+                "type": "price_rise",
+                "threshold": 200.0,
+            },
+        ]
+
+        with patch(
+            "src.telegram_bot.notifications.handlers.get_user_alerts",
+            new_callable=AsyncMock,
+            return_value=mock_alerts,
+        ):
+            await list_alerts_command(mock_update, mock_context)
+
+            mock_update.message.reply_text.assert_called_once()
+            call_args = mock_update.message.reply_text.call_args[0][0]
+            assert "Test Item 1" in call_args
+            assert "Test Item 2" in call_args
 
 
 # Tests for remove_alert_command
@@ -444,8 +516,18 @@ class TestRemoveAlertCommand:
         if remove_alert_command is None:
             pytest.skip("Handler not available")
 
-        # Test skipped due to complex module patching requirements
-        pytest.skip("Complex module patching required")
+        mock_context.args = ["1"]
+
+        with patch(
+            "src.telegram_bot.notifications.handlers.get_user_alerts",
+            new_callable=AsyncMock,
+            return_value=[],
+        ):
+            await remove_alert_command(mock_update, mock_context)
+
+            mock_update.message.reply_text.assert_called_once()
+            call_args = mock_update.message.reply_text.call_args[0][0]
+            assert "нет" in call_args.lower()
 
     @pytest.mark.asyncio()
     async def test_invalid_index_shows_error(
@@ -457,8 +539,22 @@ class TestRemoveAlertCommand:
         if remove_alert_command is None:
             pytest.skip("Handler not available")
 
-        # Test skipped due to complex module patching requirements
-        pytest.skip("Complex module patching required")
+        mock_context.args = ["5"]  # Index out of range
+
+        mock_alerts = [
+            {"id": "alert_1", "title": "Test Item"},
+        ]
+
+        with patch(
+            "src.telegram_bot.notifications.handlers.get_user_alerts",
+            new_callable=AsyncMock,
+            return_value=mock_alerts,
+        ):
+            await remove_alert_command(mock_update, mock_context)
+
+            mock_update.message.reply_text.assert_called_once()
+            call_args = mock_update.message.reply_text.call_args[0][0]
+            assert "неверный номер" in call_args.lower() or "доступны" in call_args.lower()
 
     @pytest.mark.asyncio()
     async def test_removes_alert_successfully(
@@ -470,8 +566,27 @@ class TestRemoveAlertCommand:
         if remove_alert_command is None:
             pytest.skip("Handler not available")
 
-        # Test skipped due to complex module patching requirements
-        pytest.skip("Complex module patching required")
+        mock_context.args = ["1"]
+
+        mock_alerts = [
+            {"id": "alert_1", "title": "Test Item"},
+        ]
+
+        with patch(
+            "src.telegram_bot.notifications.handlers.get_user_alerts",
+            new_callable=AsyncMock,
+            return_value=mock_alerts,
+        ):
+            with patch(
+                "src.telegram_bot.notifications.handlers.remove_price_alert",
+                new_callable=AsyncMock,
+                return_value=True,
+            ):
+                await remove_alert_command(mock_update, mock_context)
+
+                mock_update.message.reply_text.assert_called_once()
+                call_args = mock_update.message.reply_text.call_args[0][0]
+                assert "удалено" in call_args.lower()
 
 
 # Tests for settings_command
@@ -499,8 +614,31 @@ class TestSettingsCommand:
         if settings_command is None:
             pytest.skip("Handler not available")
 
-        # Test skipped due to complex module patching requirements
-        pytest.skip("Complex module patching required")
+        mock_context.args = []
+
+        mock_storage = MagicMock()
+        mock_storage._alerts = {
+            "123456": {
+                "alerts": [],
+                "settings": {
+                    "enabled": True,
+                    "language": "ru",
+                    "min_interval": 3600,
+                    "quiet_hours": {"start": 23, "end": 8},
+                    "max_alerts_per_day": 10,
+                },
+            }
+        }
+
+        with patch(
+            "src.telegram_bot.notifications.handlers.get_storage",
+            return_value=mock_storage,
+        ):
+            await settings_command(mock_update, mock_context)
+
+            mock_update.message.reply_text.assert_called_once()
+            call_args = mock_update.message.reply_text.call_args[0][0]
+            assert "настройки" in call_args.lower()
 
     @pytest.mark.asyncio()
     async def test_updates_settings(
@@ -512,8 +650,34 @@ class TestSettingsCommand:
         if settings_command is None:
             pytest.skip("Handler not available")
 
-        # Test skipped due to complex module patching requirements
-        pytest.skip("Complex module patching required")
+        mock_context.args = ["enabled=false", "min_interval=1800"]
+
+        mock_storage = MagicMock()
+        mock_storage._alerts = {
+            "123456": {
+                "alerts": [],
+                "settings": {
+                    "enabled": True,
+                    "language": "ru",
+                    "min_interval": 3600,
+                    "quiet_hours": {"start": 23, "end": 8},
+                    "max_alerts_per_day": 10,
+                },
+            }
+        }
+
+        with patch(
+            "src.telegram_bot.notifications.handlers.get_storage",
+            return_value=mock_storage,
+        ):
+            with patch(
+                "src.telegram_bot.notifications.handlers.update_user_settings",
+                new_callable=AsyncMock,
+            ):
+                await settings_command(mock_update, mock_context)
+
+                # Should call reply_text at least once (for update and for showing settings)
+                assert mock_update.message.reply_text.call_count >= 1
 
 
 # Tests for register_notification_handlers
@@ -525,21 +689,56 @@ class TestRegisterNotificationHandlers:
         if register_notification_handlers is None:
             pytest.skip("Handler not available")
 
-        # Test skipped due to complex module patching requirements
-        pytest.skip("Complex module patching required")
+        mock_app = MagicMock()
+        mock_app.bot_data = {}
+        mock_app.add_handler = MagicMock()
+        mock_app.dmarket_api = None
+
+        with patch(
+            "src.telegram_bot.notifications.handlers.load_user_alerts",
+        ):
+            register_notification_handlers(mock_app)
+
+            # Should have registered 6 handlers (4 commands + 2 callbacks)
+            assert mock_app.add_handler.call_count == 6
 
     def test_starts_alerts_checker_with_api(self) -> None:
         """Test that alerts checker is started when API is available."""
         if register_notification_handlers is None:
             pytest.skip("Handler not available")
 
-        # Test skipped due to complex module patching requirements
-        pytest.skip("Complex module patching required")
+        mock_app = MagicMock()
+        mock_app.bot_data = {}
+        mock_app.add_handler = MagicMock()
+        mock_app.dmarket_api = MagicMock()
+
+        with patch(
+            "src.telegram_bot.notifications.handlers.load_user_alerts",
+        ):
+            register_notification_handlers(mock_app)
+
+            # Should have saved alerts_checker_config in bot_data
+            assert "alerts_checker_config" in mock_app.bot_data
+            assert mock_app.bot_data["alerts_checker_config"]["api"] is mock_app.dmarket_api
 
     def test_warns_when_api_not_available(self) -> None:
         """Test that warning is logged when API is not available."""
         if register_notification_handlers is None:
             pytest.skip("Handler not available")
 
-        # Test skipped due to complex module patching requirements
-        pytest.skip("Complex module patching required")
+        mock_app = MagicMock()
+        mock_app.bot_data = {}
+        mock_app.add_handler = MagicMock()
+        mock_app.dmarket_api = None  # API not available
+
+        with patch(
+            "src.telegram_bot.notifications.handlers.load_user_alerts",
+        ):
+            with patch(
+                "src.telegram_bot.notifications.handlers.logger.warning"
+            ) as mock_warning:
+                register_notification_handlers(mock_app)
+
+                # Should have logged a warning about missing API
+                mock_warning.assert_called_once()
+                assert "не найден" in mock_warning.call_args[0][0].lower() or "api" in mock_warning.call_args[0][0].lower()
