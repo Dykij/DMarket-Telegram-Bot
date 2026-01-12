@@ -130,7 +130,7 @@ class PricePredictor:
             Status message describing the result
 
         CSV Format:
-            item_name,price_usd,float_value,is_stat_trak
+            item_name,price,float_value,is_stat_trak
             "AK-47 | Redline (Field-Tested)",12.50,0.25,0
         """
         try:
