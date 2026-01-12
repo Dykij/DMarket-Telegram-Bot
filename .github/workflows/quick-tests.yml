@@ -15,12 +15,28 @@ on:
       - 'tests/**/*.py'
       - 'requirements.txt'
       - 'pyproject.toml'
-  workflow_dispatch:  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      test_filter:
+        description: 'Filter tests by name pattern'
+        required: false
+        type: string
+        default: ''
+
+env:
+  PYTHONUNBUFFERED: "1"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  TESTING: "true"
+
+concurrency:
+  group: quick-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   quick-test:
     name: Run Quick Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
