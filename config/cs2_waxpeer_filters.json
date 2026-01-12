@@ -2,7 +2,8 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "CS2 Rare Filters for Waxpeer Arbitrage",
   "description": "Полная конфигурация для поиска редких CS2 скинов на DMarket и перепродажи на Waxpeer",
-  "version": "1.0.0",
+  "version": "1.1.0",
+  "last_updated": "January 2026",
   "float_value": {
     "description": "Пороги Float Value для определения редкости износа",
     "factory_new": {

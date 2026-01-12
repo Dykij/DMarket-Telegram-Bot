@@ -2,7 +2,8 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Rare Attributes Configuration",
   "description": "Конфигурация редких атрибутов для всех поддерживаемых игр",
-  "version": "1.0.0",
+  "version": "1.1.0",
+  "last_updated": "January 2026",
   "cs2": {
     "float_thresholds": {
       "description": "Пороги float value для определения редкости",
@@ -13,6 +14,16 @@
         "double_zero": 0.15,
         "triple_zero": 0.30,
         "quad_zero": 0.50
+      }
+    },
+    "battle_scarred": {
+      "description": "Battle-Scarred items with high float (Blackiimov style)",
+      "note": "Battle-scarred NOT in blacklist - allows high profit on 0.95+ floats",
+      "blackiimov_threshold": 0.95,
+      "ultra_black_threshold": 0.99,
+      "bonus_multipliers": {
+        "blackiimov": 0.25,
+        "ultra_black": 0.40
       }
     },
     "stickers": {
@@ -414,6 +425,12 @@
     "max_overpay_percent": 5.0,
     "manual_review_threshold": 1.50,
     "profitable_rare_threshold": 1.10,
-    "enable_jackpot_notifications": true
+    "enable_jackpot_notifications": true,
+    "ai_training_integration": {
+      "description": "Settings for AI/ML training on rare items",
+      "include_in_liquid_training": true,
+      "bonus_liquidity_score": 25,
+      "require_manual_review_for_jackpot": true
+    }
   }
 }

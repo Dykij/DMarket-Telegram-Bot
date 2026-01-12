@@ -1,5 +1,6 @@
 # Advanced arbitrage filters configuration
 # Used by src/dmarket/advanced_filters.py
+# Last updated: January 2026
 
 arbitrage_filters:
   # Price thresholds
@@ -23,6 +24,21 @@ arbitrage_filters:
   ENABLE_OUTLIER_FILTER: true
   ENABLE_LIQUIDITY_FILTER: true
   ENABLE_SALES_HISTORY_FILTER: true
+
+# AI/ML Training integration (January 2026)
+ai_integration:
+  # Blacklist items are NEVER included in ML training
+  blacklist_mandatory: true
+  
+  # Whitelist items get +25 liquidity bonus
+  whitelist_bonus: 25
+  
+  # Whitelist items have lower threshold (40 vs 50)
+  whitelist_threshold: 40
+  normal_threshold: 50
+  
+  # Max profit protection (prevent AI hallucinations)
+  max_profit_percent: 40
 
 # Items to exclude from arbitrage
 # These categories have low profit margins or high risk
