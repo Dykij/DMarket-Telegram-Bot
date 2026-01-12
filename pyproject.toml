@@ -706,18 +706,17 @@ python_functions = ["test_*"]
 addopts = [
     "--strict-markers",
     "--strict-config",
-    "-v",
-    "--cov=src",
-    "--cov-report=html",
-    "--cov-report=term-missing:skip-covered",
-    "--cov-report=xml",
-    "--cov-branch",
-    # НЕ fail на coverage при одиночных тестах - только при полном запуске
-    # "--cov-fail-under=85",
+    # Убран -v для ускорения (используйте pytest -v для verbose)
+    # "--cov=src",  # Coverage отключен по умолчанию для скорости
+    # "--cov-report=html",
+    # "--cov-report=term-missing:skip-covered",
+    # "--cov-report=xml",
+    # "--cov-branch",
     "--tb=short",
-    # "--maxfail=3",  # Отключено для полного прогона всех тестов
     "-ra",
     "--durations=10",  # Показывать 10 самых медленных тестов
+    "--timeout=30",    # Глобальный таймаут 30 сек на тест (для предотвращения зависаний)
+    "-x",              # Остановка при первой ошибке для быстрого feedback
 ]
 markers = [
     "unit: Quick unit tests (no DB/API)",
@@ -737,6 +736,8 @@ markers = [
 ]
 asyncio_mode = "auto"  # Auto-detect async tests
 asyncio_default_fixture_loop_scope = "function"
+# Таймаут по умолчанию для каждого теста (секунды)
+timeout = 30
 
 # Логирование в тестах
 # По умолчанию отключаем вывод логов в консоль для чистоты вывода

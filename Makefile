@@ -228,10 +228,10 @@ test-cov: $(VENV)
 coverage: test-cov
 	@echo Открыть HTML отчет: htmlcov/index.html
 
-# Быстрые тесты (без покрытия)
+# Быстрые тесты (без покрытия, с таймаутом 10 сек)
 test-fast: $(VENV)
-	@echo Быстрые тесты...
-	@poetry run pytest -x --ff
+	@echo Быстрые тесты (без coverage, timeout=10s)...
+	@poetry run pytest -c pytest-fast.ini tests/ -q --timeout=10 --no-cov -x
 
 # E2E тесты
 test-e2e: $(VENV)

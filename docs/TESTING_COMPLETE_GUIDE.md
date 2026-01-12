@@ -455,6 +455,50 @@ pytest tests/unit/ -s
 
 # Practical Testing Guide
 
+## ⚡ Быстрые тесты (для GitHub Copilot и IDE)
+
+Если тесты зависают при работе с GitHub Copilot или в IDE, используйте оптимизированную конфигурацию:
+
+### Быстрый запуск (рекомендуется)
+
+```bash
+# Используйте быструю конфигурацию с таймаутом 10 сек
+pytest -c pytest-fast.ini tests/
+
+# Или через Makefile
+make test-fast
+```
+
+### Опции для скорости
+
+```bash
+# Без coverage (в 3-4 раза быстрее)
+pytest --no-cov tests/
+
+# С коротким таймаутом (10 сек)
+pytest --timeout=10 tests/
+
+# Остановка при первой ошибке
+pytest -x tests/
+
+# Только unit тесты (самые быстрые)
+pytest tests/unit/ --timeout=10 --no-cov -q
+
+# Комбинация для максимальной скорости
+pytest -c pytest-fast.ini tests/unit/ -q
+```
+
+### Конфигурация `pytest-fast.ini`
+
+Файл `pytest-fast.ini` содержит оптимизированные настройки:
+- Таймаут 10 секунд на тест
+- Без coverage
+- Без verbose output
+- Остановка при первой ошибке
+- Пропуск slow и e2e тестов
+
+---
+
 # Руководство по запуску тестов
 
 **Версия**: 1.0.0
