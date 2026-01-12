@@ -12,6 +12,8 @@ on DMarket at any given time.
 Usage modes:
     1. PRIORITY_MODE (default): Whitelist items get profit boost, but all items scanned
     2. STRICT_MODE: Only whitelist items are considered (not recommended)
+
+Updated: January 2026
 """
 
 import json
@@ -40,67 +42,292 @@ class WhitelistMode:
 # Белый список РЕКОМЕНДУЕМЫХ высоколиквидных предметов по играм
 # ВАЖНО: Это рекомендации, а не жёсткие требования!
 # App ID маппинг: CS2=730, Rust=252490, Dota2=570, TF2=440
+# Updated: January 2026
 WHITELIST_ITEMS = {
     "730": [  # CS:GO/CS2 - Кейсы и популярные скины
-        # Новые кейсы 2025-2026 (высокая ликвидность)
+        # ===== КЕЙСЫ 2025-2026 (ВЫСОКАЯ ЛИКВИДНОСТЬ) =====
         "Gallery Case",
         "Kilowatt Case",
         "Revolution Case",
         "Recoil Case",
         "Dreams & Nightmares Case",
         "Fracture Case",
-        # Классические кейсы (стабильная ликвидность)
-        "Clutch Case",
         "Snakebite Case",
+        "Operation Riptide Case",
+        "Armory Case",  # Новый 2026
+        "Elemental Case",  # Новый 2026
+
+        # ===== КЛАССИЧЕСКИЕ КЕЙСЫ (СТАБИЛЬНАЯ ЛИКВИДНОСТЬ) =====
+        "Clutch Case",
+        "Spectrum 2 Case",
         "Chroma 3 Case",
         "Prisma 2 Case",
+        "Prisma Case",
+        "Danger Zone Case",
+        "Horizon Case",
         "Operation Bravo Case",
-        # Ликвидные скины (быстро продаются)
+        "CS:GO Weapon Case",
+        "CS:GO Weapon Case 2",
+        "CS:GO Weapon Case 3",
+        "Glove Case",
+        "Shadow Case",
+        "Falchion Case",
+        "Chroma Case",
+        "Chroma 2 Case",
+        "Phoenix Case",
+        "Huntsman Weapon Case",
+        "Breakout Case",
+        "Revolver Case",
+
+        # ===== ЛИКВИДНЫЕ СКИНЫ (БЫСТРАЯ ПРОДАЖА) =====
+        # AK-47
         "AK-47 | Slate",
         "AK-47 | Redline",
+        "AK-47 | Asiimov",
+        "AK-47 | Vulcan",
+        "AK-47 | Fuel Injector",
+        "AK-47 | Bloodsport",
+        "AK-47 | Neon Rider",
+        "AK-47 | Phantom Disruptor",
+        "AK-47 | Ice Coaled",
+        "AK-47 | Nightwish",
+        "AK-47 | Inheritance",  # Новый 2026
+
+        # AWP
         "AWP | Asiimov",
         "AWP | Lightning Strike",
-        "Desert Eagle | Mecha Industries",
-        "Glock-18 | Candy Apple",
-        "USP-S | Cyrex",
-        "M4A4 | Desolate Space",
+        "AWP | Hyper Beast",
+        "AWP | Dragon Lore",
+        "AWP | Fade",
+        "AWP | Wildfire",
+        "AWP | Neo-Noir",
+        "AWP | Chromatic Aberration",
         "AWP | Phobos",
+        "AWP | Electric Hive",
+        "AWP | PAW",
+
+        # M4A4 / M4A1-S
+        "M4A4 | Desolate Space",
+        "M4A4 | Asiimov",
+        "M4A4 | Neo-Noir",
+        "M4A4 | The Emperor",
+        "M4A4 | Howl",
+        "M4A4 | Royal Paladin",
+        "M4A1-S | Hyper Beast",
+        "M4A1-S | Printstream",
+        "M4A1-S | Chantico's Fire",
+        "M4A1-S | Golden Coil",
+        "M4A1-S | Blue Phosphor",
+        "M4A1-S | Nightmare",  # Новый 2026
+
+        # Desert Eagle
+        "Desert Eagle | Blaze",
+        "Desert Eagle | Code Red",
+        "Desert Eagle | Mecha Industries",
+        "Desert Eagle | Printstream",
+        "Desert Eagle | Light Rail",
+        "Desert Eagle | Fennec Fox",
+        "Desert Eagle | Kumicho Dragon",
+
+        # Пистолеты
+        "Glock-18 | Fade",
+        "Glock-18 | Candy Apple",
+        "Glock-18 | Gamma Doppler",
+        "Glock-18 | Wasteland Rebel",
+        "Glock-18 | Neo-Noir",
+        "USP-S | Cyrex",
+        "USP-S | Kill Confirmed",
+        "USP-S | Neo-Noir",
+        "USP-S | Printstream",
+        "USP-S | The Traitor",
+
+        # Ножи (общие категории - высокая ликвидность)
+        "★ Karambit",
+        "★ Butterfly Knife",
+        "★ M9 Bayonet",
+        "★ Bayonet",
+        "★ Flip Knife",
+        "★ Gut Knife",
+        "★ Falchion Knife",
+        "★ Shadow Daggers",
+        "★ Bowie Knife",
+        "★ Huntsman Knife",
+        "★ Navaja Knife",
+        "★ Stiletto Knife",
+        "★ Talon Knife",
+        "★ Ursus Knife",
+        "★ Classic Knife",
+        "★ Paracord Knife",
+        "★ Survival Knife",
+        "★ Nomad Knife",
+        "★ Skeleton Knife",
+        "★ Kukri Knife",  # Новый 2026
+
+        # Перчатки (общие категории - высокая ликвидность)
+        "★ Specialist Gloves",
+        "★ Sport Gloves",
+        "★ Driver Gloves",
+        "★ Hand Wraps",
+        "★ Moto Gloves",
+        "★ Hydra Gloves",
+        "★ Bloodhound Gloves",
+        "★ Broken Fang Gloves",
     ],
     "252490": [  # Rust - Популярные предметы
+        # ===== ДВЕРИ И СТРОИТЕЛЬСТВО (СТАБИЛЬНЫЙ СПРОС) =====
         "Wood Storage Box",
         "Large Wood Box",
         "Sheet Metal Door",
         "Armored Door",
+        "Garage Door",
+        "Double Door",
+        "Metal Door",
+        "High External Stone Wall",
+        "High External Wood Wall",
+
+        # ===== ИНСТРУМЕНТЫ И РЕСУРСЫ =====
         "Furnace",
+        "Large Furnace",
         "Sleeping Bag",
+        "Research Table",
+        "Repair Bench",
+        "Work Bench Level 1",
+        "Work Bench Level 2",
+        "Work Bench Level 3",
+        "Small Oil Refinery",
+        "Tool Cupboard",
+
+        # ===== БРОНЯ (ПОПУЛЯРНАЯ) =====
         "Metal Chest Plate",
+        "Metal Facemask",
         "Road Sign Kilt",
+        "Road Sign Jacket",
         "Coffee Can Helmet",
-        # Декоративные предметы (турнирная тематика)
+        "Roadsign Gloves",
+        "Hoodie",
+        "Pants",
+
+        # ===== ОРУЖИЕ (ВЫСОКАЯ ЛИКВИДНОСТЬ) =====
+        "AK47",
         "Tempered AK47",
         "Glory AK47",
+        "LR-300 Assault Rifle",
+        "M249",
+        "MP5A4",
+        "Custom SMG",
+        "Thompson",
+        "Bolt Action Rifle",
+        "L96 Rifle",
+        "Semi-Automatic Rifle",
+        "Assault Rifle",
+        "M39 Rifle",
+        "Rocket Launcher",
+
+        # ===== ДЕКОРАТИВНЫЕ (ТУРНИРНЫЕ И РЕДКИЕ) =====
+        "Twitch Rivals",
+        "Dragon",
+        "Alien Red",
+        "Tempered",
+        "Glory",
+        "Playrust.com",
     ],
     "570": [  # Dota 2 - Immortals и Arcanas
+        # ===== ARCANA (ВЫСШАЯ ЛИКВИДНОСТЬ) =====
+        "Manifold Paradox",  # Phantom Assassin Arcana
+        "Demon Eater",  # Shadow Fiend Arcana
+        "Fractal Horns of Inner Abysm",  # Terrorblade Arcana
+        "Bladeform Legacy",  # Juggernaut Arcana
+        "Feast of Abscession",  # Pudge Arcana
+        "Fiery Soul of the Slayer",  # Lina Arcana
+        "Swine of the Sunken Galley",  # Techies Arcana
+        "Great Sage's Reckoning",  # Monkey King Arcana
+        "Benevolent Companion",  # Io Arcana
+        "Planetfall",  # Earthshaker Arcana
+        "Compass of the Rising Gale",  # Windranger Arcana
+        "Eminence of Ristul",  # Queen of Pain Arcana
+        "Disciple's Path",  # Anti-Mage Persona Arcana
+        "Dread Retribution",  # Spectre Arcana
+        "Condemned Souls",  # Phantom Assassin Arcana 2024
+        "Mercurial Vanguard",  # Razor Arcana 2025
+        "Eternal Harvest",  # Faceless Void Arcana 2026
+
+        # ===== IMMORTAL (ВЫСОКАЯ ЛИКВИДНОСТЬ) =====
         "Immortal Treasure",
+        "Immortal Treasure I",
+        "Immortal Treasure II",
+        "Immortal Treasure III",
         "Inscribed Murder of Crows",
-        "Manifold Paradox",
-        "Feast of Abscession",
-        "Fractal Horns of Inner Abysm",
         "Genuine Monarch Bow",
         "Dragonclaw Hook",
-        # TI2026 предметы (ожидаемая высокая ликвидность)
+        "Golden Immortal",
+        "Ultra Rare Immortal",
+
+        # ===== TI ПРЕДМЕТЫ (СЕЗОННАЯ ВЫСОКАЯ ЛИКВИДНОСТЬ) =====
         "Collector's Cache",
+        "Collector's Cache II",
         "Battle Pass",
+        "The International",
+        "Aghanim's Labyrinth",
+        "Nemestice",
+        "Cavern Crawl",
+        "Diretide",
+
+        # ===== SETS (ПОПУЛЯРНЫЕ) =====
+        "Genuine",
+        "Exalted",
+        "Inscribed",
+        "Unusual",
+        "Corrupted",
+        "Infused",
     ],
     "440": [  # TF2 - Ключи и металл (стабильная валюта)
-        "Mann Co. Supply Crate Key",  # Ключи — лучшая валюта
+        # ===== КЛЮЧИ (ЛУЧШАЯ ВАЛЮТА TF2) =====
+        "Mann Co. Supply Crate Key",
+        "Mann Co. Supply Munition Key",
+        "Secret Saxton Key",
         "Tour of Duty Ticket",
+        "Uncrating Key",
+        "Cosmetic Key",
+
+        # ===== МЕТАЛЛ (БАЗОВАЯ ВАЛЮТА) =====
         "Refined Metal",
-        "Scrap Metal",
         "Reclaimed Metal",
+        "Scrap Metal",
+        "Earbuds",
+
+        # ===== TAUNTS (ВЫСОКАЯ ЛИКВИДНОСТЬ) =====
         "Taunt: The Schadenfreude",
         "Taunt: The Conga",
+        "Taunt: High Five!",
+        "Taunt: The Kazotsky Kick",
+        "Taunt: Mannrobics",
+        "Taunt: Rock, Paper, Scissors",
+        "Taunt: Square Dance",
+        "Taunt: The Boston Breakdance",
+        "Taunt: Yeti Punch",
+        "Taunt: Victory Lap",
+
+        # ===== СТРАННЫЕ ЧАСТИ (СТАБИЛЬНЫЙ СПРОС) =====
+        "Strange Part: Kills",
+        "Strange Part: Headshot Kills",
+        "Strange Part: Critical Kills",
+        "Strange Part: Domination Kills",
+        "Strange Part: Revenge Kills",
+        "Strange Part: Kills While Explosive-Jumping",
+        "Strange Part: Airborne Enemy Kills",
         "Strange Part",
+
+        # ===== UNUSUAL ЭФФЕКТЫ (ВЫСОКАЯ СТОИМОСТЬ) =====
+        "Unusual",
+        "Unusual Haunted Metal Scrap",
+
+        # ===== ПОПУЛЯРНЫЕ ПРЕДМЕТЫ =====
+        "Bill's Hat",
+        "Max's Severed Head",
+        "Team Captain",
+        "Tyrant's Helm",
+        "The Essential Accessories",
+        "Stout Shako",
     ],
 }
 

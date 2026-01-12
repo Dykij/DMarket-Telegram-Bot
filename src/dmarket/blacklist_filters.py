@@ -13,6 +13,8 @@
 2. PATTERN_KEYWORDS - редкие паттерны, сложные для оценки (Katowice 2014 и т.д.)
 3. Фильтр износа (Battle-Scarred с низким профитом)
 4. Фильтр переплаты за наклейки
+
+Updated: January 2026
 """
 
 import logging
@@ -23,37 +25,152 @@ logger = logging.getLogger(__name__)
 
 # ОБЯЗАТЕЛЬНЫЙ список запрещенных категорий и ключевых слов
 # Предметы с этими словами НИКОГДА не покупаются
+# Updated: January 2026
 BLACKLIST_KEYWORDS = [
-    # Souvenir предметы - низкая ликвидность, сложная оценка
+    # ===== SOUVENIR ПРЕДМЕТЫ (НИЗКАЯ ЛИКВИДНОСТЬ) =====
     "souvenir",
     "souvenir package",
-    # Наклейки и граффити - низкий профит, высокая конкуренция
+    "souvenir case",
+
+    # ===== НАКЛЕЙКИ И ГРАФФИТИ (НИЗКИЙ ПРОФИТ) =====
     "sticker |",
     "patch |",
     "graffiti |",
     "sealed graffiti",
-    # Коллекционные предметы - нестабильные цены
+    "charm |",  # Новые чармы 2025+
+    "pin |",
+
+    # ===== КОЛЛЕКЦИОННЫЕ ПРЕДМЕТЫ (НЕСТАБИЛЬНЫЕ ЦЕНЫ) =====
     "collectible pin",
     "music kit",
+    "music kit |",
     "autograph capsule",
-    # StatTrak Music Kit - очень узкая ниша
     "stattrak™ music kit",
+    "stattrak music kit",
+    "tournament sticker",
+    "autograph sticker",
+
+    # ===== КОНТЕЙНЕРЫ И КАПСУЛЫ (СЛОЖНАЯ ОЦЕНКА) =====
+    "sticker capsule",
+    "patch pack",
+    "graffiti box",
+    "gift package",
+    "weapon case",  # Старые кейсы - низкая ликвидность
+
+    # ===== RUST - НЕЛИКВИДНЫЕ КАТЕГОРИИ =====
+    "blueprint",
+    "note",
+    "photograph",
+    "cassette",
+
+    # ===== DOTA 2 - НЕЛИКВИДНЫЕ КАТЕГОРИИ =====
+    "gem",
+    "inscribed gem",
+    "prismatic gem",
+    "ethereal gem",
+    "kinetic gem",
+    "spectator gem",
+    "autograph",
+    "loading screen",
+    "hud skin",
+    "announcer",
+    "weather",
+    "terrain",
+    "effigy",
+    "emoticon",
+    "player card",
+    "fantasy item",
+    "compendium",
+
+    # ===== TF2 - НЕЛИКВИДНЫЕ КАТЕГОРИИ =====
+    "crate",  # Старые крейты
+    "salvaged crate",
+    "festive crate",
+    "robo crate",
+    "strange bacon grease",
+    "paint can",
+    "name tag",
+    "description tag",
+    "decal tool",
+    "gift wrap",
+    "backpack expander",
+    "dueling mini-game",
+    "noise maker",
+    "secret saxton",
+
+    # ===== ОБЩИЕ НЕЛИКВИДНЫЕ ПАТТЕРНЫ =====
+    "well-worn",  # Сложно продать быстро
+    "battle-scarred",  # Исключение если профит > 20%
+    "vanilla",  # Ванильные ножи - особый рынок
 ]
 
 # ОБЯЗАТЕЛЬНЫЙ список редких паттернов, которые сложно оценить
 # Цены на эти предметы могут быть искусственно завышены
+# Updated: January 2026
 PATTERN_KEYWORDS = [
-    # Katowice 2014 наклейки - экстремальные цены, высокий риск
+    # ===== KATOWICE 2014 (ЭКСТРЕМАЛЬНЫЕ ЦЕНЫ) =====
     "katowice 2014",
     "kato 14",
     "kato14",
-    # Редкие команды - манипуляции с ценами
+    "katowice14",
+
+    # ===== РЕДКИЕ КОМАНДЫ (МАНИПУЛЯЦИИ С ЦЕНАМИ) =====
     "ibuypower",
+    "ibp holo",
     "titan holo",
     "reason gaming",
     "vox eminor",
     "lgb esports",
     "hellraisers holo",
+    "dignitas holo",
+    "natus vincere holo",
+    "complexity holo",
+    "mouseports holo",
+    "fnatic holo",
+    "ldlc holo",
+    "ninjas in pyjamas holo",
+    "clan-mystik holo",
+    "3dmax holo",
+
+    # ===== РЕДКИЕ ПАТТЕРНЫ (СЛОЖНАЯ ОЦЕНКА) =====
+    "blue gem",
+    "case hardened",  # Только синие паттерны рискованны
+    "fade 100%",
+    "max fade",
+    "fire & ice",
+    "fire and ice",
+    "black pearl",
+    "ruby",
+    "sapphire",
+    "emerald",
+    "phase",  # Doppler phases требуют особой оценки
+
+    # ===== CROWN FOIL И ДРУГИЕ ДОРОГИЕ НАКЛЕЙКИ =====
+    "crown foil",
+    "crown (foil)",
+    "flammable foil",
+    "headhunter foil",
+    "swag foil",
+    "howling dawn",
+    "nelu the bear",
+    "phoenix foil",
+
+    # ===== DOTA 2 РЕДКОСТИ =====
+    "golden",  # Golden versions могут быть переоценены
+    "platinum",
+    "crimson",
+    "legacy",  # Legacy courier gems
+]
+
+# Новый 2026: Список предметов с историей scam/манипуляций
+SCAM_RISK_KEYWORDS = [
+    "contraband",  # Редкие запрещенные скины
+    "discontinued",  # Снятые с производства
+    "exclusive",  # Эксклюзивные промо
+    "limited",  # Лимитированные издания
+    "one of a kind",  # Уникальные предметы
+    "1/1",  # Единственные в своем роде
+    "factory new★",  # Подозрительная маркировка
 ]
 
 
@@ -66,6 +183,7 @@ class ItemBlacklistFilter:
         enable_float_filter: bool = True,
         enable_sticker_boost_filter: bool = True,
         enable_pattern_filter: bool = False,
+        enable_scam_risk_filter: bool = True,
     ):
         """Инициализирует фильтр черного списка.
 
@@ -74,11 +192,13 @@ class ItemBlacklistFilter:
             enable_float_filter: Включить фильтр по износу (float)
             enable_sticker_boost_filter: Включить фильтр "переплаты за наклейки"
             enable_pattern_filter: Включить фильтр редких паттернов
+            enable_scam_risk_filter: Включить фильтр scam-рисков (2026)
         """
         self.enable_keyword_filter = enable_keyword_filter
         self.enable_float_filter = enable_float_filter
         self.enable_sticker_boost_filter = enable_sticker_boost_filter
         self.enable_pattern_filter = enable_pattern_filter
+        self.enable_scam_risk_filter = enable_scam_risk_filter
 
     def is_blacklisted(self, item: dict[str, Any]) -> bool:
         """Проверяет, находится ли предмет в черном списке.
@@ -120,7 +240,52 @@ class ItemBlacklistFilter:
                 logger.debug(f"⏭ Blacklist (rare pattern): {title}")
                 return True
 
+        # 5. Проверка на scam-риски (2026)
+        # Предметы с историей манипуляций или мошенничества
+        if self.enable_scam_risk_filter:
+            if any(risk in title for risk in SCAM_RISK_KEYWORDS):
+                logger.debug(f"⏭ Blacklist (scam risk): {title}")
+                return True
+
         return False
+
+    def get_blacklist_reason(self, item: dict[str, Any]) -> str | None:
+        """Получает причину блокировки предмета.
+
+        Args:
+            item: Словарь с данными предмета
+
+        Returns:
+            Причина блокировки или None если предмет не заблокирован
+        """
+        title = item.get("title", "").lower()
+
+        if self.enable_keyword_filter:
+            for word in BLACKLIST_KEYWORDS:
+                if word in title:
+                    return f"Keyword: {word}"
+
+        if self.enable_float_filter:
+            profit_percent = item.get("profit_percent", 0)
+            if "battle-scarred" in title and profit_percent < 20:
+                return "Battle-Scarred with low profit"
+
+        if self.enable_sticker_boost_filter:
+            extra = item.get("extra", {})
+            if extra.get("stickers") and item.get("price_is_boosted"):
+                return "Sticker price boost detected"
+
+        if self.enable_pattern_filter:
+            for pattern in PATTERN_KEYWORDS:
+                if pattern in title:
+                    return f"Rare pattern: {pattern}"
+
+        if self.enable_scam_risk_filter:
+            for risk in SCAM_RISK_KEYWORDS:
+                if risk in title:
+                    return f"Scam risk: {risk}"
+
+        return None
 
 
 class ItemLiquidityFilter:

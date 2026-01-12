@@ -620,15 +620,18 @@ async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_
 
     This command:
     1. Collects data from DMarket, Waxpeer, and Steam APIs
-    2. Filters only liquid items (available on multiple platforms)
-    3. Trains the model on liquid items only
+    2. Filters using Whitelist (priority boost) and Blacklist (exclusion)
+    3. Filters only liquid items (available on multiple platforms)
+    4. Trains the model on liquid items only
 
     Usage: /ai_train_liquid [samples]
         samples - Target number of liquid samples to collect (default: 300)
 
     Liquidity criteria:
+    - NOT in Blacklist (mandatory filter)
     - Item is available on DMarket AND Waxpeer
     - At least 5 active offers on each platform
+    - Whitelist items get priority boost (+25 points)
     - Positive sales history
     """
     if not update.message:
@@ -651,6 +654,9 @@ async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_
         f"• DMarket API\n"
         f"• Waxpeer API\n"
         f"• Steam Market\n\n"
+        f"🔒 Фильтры:\n"
+        f"• Whitelist (приоритет)\n"
+        f"• Blacklist (исключение)\n\n"
         f"⏳ Это может занять несколько минут...",
         parse_mode="HTML",
     )
@@ -662,6 +668,28 @@ async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_
         from pathlib import Path
 
         from src.dmarket.dmarket_api import DMarketAPI
+
+        # Import Whitelist and Blacklist filters
+        from src.dmarket.whitelist_config import (
+            WhitelistChecker,
+            get_whitelist_for_game,
+            WHITELIST_ITEMS,
+        )
+        from src.dmarket.blacklist_filters import (
+            ItemBlacklistFilter,
+            BLACKLIST_KEYWORDS,
+            PATTERN_KEYWORDS,
+        )
+
+        # Initialize filters
+        whitelist_checker = WhitelistChecker(enable_priority_boost=True, profit_boost_percent=2.0)
+        blacklist_filter = ItemBlacklistFilter(
+            enable_keyword_filter=True,
+            enable_float_filter=True,
+            enable_sticker_boost_filter=True,
+            enable_pattern_filter=True,
+            enable_scam_risk_filter=True,
+        )
 
         # Try to import Waxpeer API (optional)
         waxpeer_api = None
@@ -688,11 +716,14 @@ async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_
 
         # Collect liquid items
         liquid_items: list[dict[str, Any]] = []
-        games_checked = ["a8db"]  # Start with CS:GO/CS2
+        blacklisted_count = 0
+        whitelisted_count = 0
         total_scanned = 0
 
         await update.message.reply_text(
-            "🔍 Шаг 1/3: Получение списка предметов с DMarket...",
+            f"🔍 Шаг 1/4: Получение списка предметов с DMarket...\n\n"
+            f"📋 Whitelist: {sum(len(items) for items in WHITELIST_ITEMS.values())} предметов\n"
+            f"🚫 Blacklist: {len(BLACKLIST_KEYWORDS) + len(PATTERN_KEYWORDS)} фильтров",
             parse_mode="HTML",
         )
 
@@ -709,7 +740,7 @@ async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_
 
         await update.message.reply_text(
             f"📋 Найдено {total_scanned} предметов на DMarket\n\n"
-            f"🔍 Шаг 2/3: Проверка ликвидности...",
+            f"🔍 Шаг 2/4: Применение Blacklist фильтра...",
             parse_mode="HTML",
         )
 
@@ -726,21 +757,33 @@ async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_
             if dmarket_price < 1.0:  # Skip items under $1
                 continue
 
-            # Check item on multiple criteria
-            is_liquid = True
-            liquidity_score = 0
+            # STEP 1: Check Blacklist (MANDATORY - never buy blacklisted items)
+            if blacklist_filter.is_blacklisted(item):
+                blacklisted_count += 1
+                logger.debug(f"Blacklisted: {item_title}")
+                continue
 
-            # 1. Check DMarket offers count
+            # Check item on multiple criteria
+            liquidity_score = 0
+            is_whitelisted = False
+
+            # STEP 2: Check Whitelist (PRIORITY BOOST)
+            if whitelist_checker.is_whitelisted(item, "csgo"):
+                liquidity_score += 25  # Whitelist bonus
+                is_whitelisted = True
+                whitelisted_count += 1
+
+            # 3. Check DMarket offers count
             dmarket_offers = item.get("extra", {}).get("offers_count", 0)
             if dmarket_offers >= 3:
                 liquidity_score += 25
 
-            # 2. Check suggested price exists (indicates trading history)
+            # 4. Check suggested price exists (indicates trading history)
             suggested_price = item.get("suggestedPrice", {}).get("USD")
             if suggested_price:
                 liquidity_score += 25
 
-            # 3. Check on Waxpeer if available
+            # 5. Check on Waxpeer if available
             waxpeer_price = None
             waxpeer_count = 0
             if waxpeer_api:
@@ -754,21 +797,23 @@ async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_
                 except Exception as e:
                     logger.debug("waxpeer_check_failed", item=item_title, error=str(e))
 
-            # 4. Popular items have category
+            # 6. Popular items have category
             category = item.get("extra", {}).get("category", "")
             if category and category != "Other":
-                liquidity_score += 25
+                liquidity_score += 15
 
-            # Item is liquid if score >= 50
-            if liquidity_score >= 50:
+            # Item is liquid if score >= 50 (or >= 40 for whitelist items)
+            min_score = 40 if is_whitelisted else 50
+            if liquidity_score >= min_score:
                 liquid_items.append({
                     "item_name": item_title,
                     "price": dmarket_price,
                     "float_value": item.get("extra", {}).get("float", 0),
-                    "is_stat_trak": "StatTrak" in item_title or "Souvenir" in item_title,
+                    "is_stat_trak": "StatTrak" in item_title,
                     "game_id": "a8db",
                     "timestamp": datetime.now().isoformat(),
                     "liquidity_score": liquidity_score,
+                    "is_whitelisted": is_whitelisted,
                     "dmarket_offers": dmarket_offers,
                     "waxpeer_price": waxpeer_price,
                     "waxpeer_count": waxpeer_count,
@@ -778,10 +823,18 @@ async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_
             # Progress update every 50 items
             if (i + 1) % 50 == 0:
                 await update.message.reply_text(
-                    f"📊 Прогресс: {i + 1}/{len(items_list)} проверено, "
-                    f"{liquid_count} ликвидных найдено",
+                    f"📊 Прогресс: {i + 1}/{len(items_list)} проверено\n"
+                    f"✅ Ликвидных: {liquid_count} | 🚫 Blacklisted: {blacklisted_count} | 📋 Whitelist: {whitelisted_count}",
                     parse_mode="HTML",
                 )
+
+        await update.message.reply_text(
+            f"🔍 Шаг 3/4: Фильтрация завершена\n\n"
+            f"• ✅ Ликвидных: {len(liquid_items)}\n"
+            f"• 🚫 Blacklisted: {blacklisted_count}\n"
+            f"• 📋 Из Whitelist: {whitelisted_count}",
+            parse_mode="HTML",
+        )
 
         # Save liquid items to CSV
         if liquid_items:
@@ -791,8 +844,7 @@ async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_
                 writer.writerows(liquid_items)
 
         await update.message.reply_text(
-            f"✅ Найдено {len(liquid_items)} ликвидных предметов\n\n"
-            f"🧠 Шаг 3/3: Обучение модели...",
+            f"🧠 Шаг 4/4: Обучение модели на {len(liquid_items)} предметах...",
             parse_mode="HTML",
         )
 
@@ -839,6 +891,8 @@ async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_
             f"📊 <b>Статистика:</b>\n"
             f"• Проверено предметов: {total_scanned}\n"
             f"• Ликвидных найдено: {len(liquid_items)}\n"
+            f"• 🚫 Отфильтровано (blacklist): {blacklisted_count}\n"
+            f"• 📋 Из whitelist: {whitelisted_count}\n"
             f"• Процент ликвидных: {len(liquid_items) / max(total_scanned, 1) * 100:.1f}%\n\n"
             f"💾 Данные сохранены: {output_path}\n\n"
             f"<b>Результат обучения:</b>\n{result}"
@@ -851,6 +905,8 @@ async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_
             user_id=user_id,
             total_scanned=total_scanned,
             liquid_count=len(liquid_items),
+            blacklisted_count=blacklisted_count,
+            whitelisted_count=whitelisted_count,
         )
 
     except Exception as e:
