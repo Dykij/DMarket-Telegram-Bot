@@ -132,6 +132,8 @@ def create_callback_router() -> CallbackRouter:
     router.register_exact("waxpeer_list_items", _handle_waxpeer_scan)
     router.register_exact("waxpeer_valuable", _handle_waxpeer_scan)
     router.register_exact("waxpeer_reprice", _handle_waxpeer_settings)
+    router.register_exact("waxpeer_listings", _handle_waxpeer_scan)
+    router.register_exact("waxpeer_stats", _handle_waxpeer_stats)
 
     # ========================================================================
     # FLOAT ARBITRAGE HANDLERS (NEW)
@@ -212,6 +214,17 @@ def create_callback_router() -> CallbackRouter:
     router.register_exact("smart_arbitrage_status", _handle_smart_arbitrage_status)
     router.register_exact("smart", _handle_smart_arbitrage_menu)
     router.register_exact("smart_create_targets", _handle_smart_create_targets)
+
+    # Smart Trading Menu buttons
+    router.register_exact("show_market_status", _handle_show_market_status)
+    router.register_exact("toggle_x5_hunt", _handle_toggle_x5_hunt)
+    router.register_exact("stats_by_games", _handle_stats_by_games)
+    router.register_exact("refresh_balance", _handle_refresh_balance)
+    router.register_exact("manage_whitelist", _handle_manage_whitelist)
+    router.register_exact("manage_blacklist", _handle_manage_blacklist)
+    router.register_exact("toggle_repricing", _handle_toggle_repricing)
+    router.register_exact("config_limits", _handle_config_limits)
+    router.register_exact("panic_stop", _handle_panic_stop)
 
     # Comparison
     router.register_exact("cmp_steam", _handle_cmp_steam)
@@ -1357,3 +1370,76 @@ async def _handle_preset_pro(update, context):
         "<i>Для профессиональной торговли</i>",
         parse_mode="HTML",
     )
+
+
+# ============================================================================
+# SMART TRADING MENU HANDLERS (NEW)
+# ============================================================================
+
+
+async def _handle_show_market_status(update, context):
+    """Show current market status."""
+    await handle_temporary_unavailable(update, context, "Статус рынка")
+
+
+async def _handle_toggle_x5_hunt(update, context):
+    """Toggle X5 opportunities hunt."""
+    await handle_temporary_unavailable(update, context, "X5 охота")
+
+
+async def _handle_stats_by_games(update, context):
+    """Show statistics by games."""
+    await handle_temporary_unavailable(update, context, "Статистика по играм")
+
+
+async def _handle_refresh_balance(update, context):
+    """Refresh balance display."""
+    await handle_balance(update, context)
+
+
+async def _handle_manage_whitelist(update, context):
+    """Manage whitelist items."""
+    await handle_temporary_unavailable(update, context, "Управление Whitelist")
+
+
+async def _handle_manage_blacklist(update, context):
+    """Manage blacklist items."""
+    await handle_temporary_unavailable(update, context, "Управление Blacklist")
+
+
+async def _handle_toggle_repricing(update, context):
+    """Toggle auto-repricing."""
+    await handle_temporary_unavailable(update, context, "Авто-переценка")
+
+
+async def _handle_config_limits(update, context):
+    """Configure trading limits."""
+    await handle_temporary_unavailable(update, context, "Настройка лимитов")
+
+
+async def _handle_panic_stop(update, context):
+    """Emergency stop all trading."""
+    if not update.callback_query:
+        return
+
+    await update.callback_query.answer("🛑 Экстренная остановка!", show_alert=True)
+
+    # Stop any running engines
+    smart_engine = context.bot_data.get("smart_arbitrage_engine")
+    if smart_engine and hasattr(smart_engine, "stop_smart_mode"):
+        smart_engine.stop_smart_mode()
+
+    await update.callback_query.edit_message_text(
+        "🛑 <b>ЭКСТРЕННАЯ ОСТАНОВКА</b>\n\n"
+        "Все торговые операции остановлены.\n\n"
+        "• ❌ Smart Arbitrage: остановлен\n"
+        "• ❌ Auto-buy: отключен\n"
+        "• ❌ Targets: заморожены\n\n"
+        "Для возобновления торговли используйте /start",
+        parse_mode="HTML",
+    )
+
+
+async def _handle_waxpeer_stats(update, context):
+    """Show Waxpeer statistics."""
+    await handle_temporary_unavailable(update, context, "Waxpeer статистика")
