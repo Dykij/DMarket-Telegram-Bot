@@ -796,5 +796,5 @@ stateful_step_count = 50
 
 [tool.poetry.group.dev.dependencies]
 circuitbreaker = "^2.1.3"
-hypothesis = "^6.149.0"
+hypothesis = "^6.150.1"
 
