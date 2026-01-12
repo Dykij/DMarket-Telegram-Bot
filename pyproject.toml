@@ -733,6 +733,9 @@ markers = [
     "log_level(level): Set logging level for this test (DEBUG, INFO, WARNING, ERROR)",
     "quiet_logs: Suppress all logs during this test",
     "verbose_logs: Show all DEBUG logs during this test",
+    "timeout(seconds): Set custom timeout for this test",
+    "performance: Performance and load tests (auto-marked as slow)",
+    "comprehensive: Comprehensive tests (auto-marked as slow)",
 ]
 asyncio_mode = "auto"  # Auto-detect async tests
 asyncio_default_fixture_loop_scope = "function"
