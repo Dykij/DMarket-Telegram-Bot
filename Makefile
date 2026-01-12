@@ -63,7 +63,7 @@ NC := \033[0m  # No Color
 .PHONY: help install dev clean lint format test test-cov coverage docs run \
         check-types qa docker-build docker-run docker-stop pre-commit setup \
         all fix check check-format test-fast docker-logs pre-push update-deps \
-        security-check bandit safety
+        security-check bandit safety debug-fast lint-fast types-fast test-core debug-full
 
 # ============================================================================
 # ОСНОВНЫЕ КОМАНДЫ
@@ -112,6 +112,13 @@ help:
 	@cmd /c echo.
 	@echo Комбинированные:
 	@echo   all            - Полная проверка + сборка
+	@cmd /c echo.
+	@echo Оптимизированные (для GitHub Copilot / IDE):
+	@echo   debug-fast     - Быстрая отладка (lint + types + tests) - НЕ ЗАВИСАЕТ
+	@echo   lint-fast      - Только линтинг (самая быстрая проверка)
+	@echo   types-fast     - Только типы с агрессивным кэшем
+	@echo   test-core      - Только core тесты (5 сек таймаут)
+	@echo   debug-full     - Полная отладка с лимитами вывода
 	@cmd /c echo.
 	@echo ============================================================================
 
@@ -352,6 +359,57 @@ fast-check: $(VENV)
 	@$(VENV_PYTHON) -m mypy src/ --cache-dir .mypy_cache --no-error-summary
 	@echo.
 	@echo ✅ Быстрая проверка завершена!
+
+# ============================================================================
+# ОПТИМИЗИРОВАННЫЕ КОМАНДЫ ДЛЯ GITHUB COPILOT / IDE
+# ============================================================================
+
+# Быстрая полная отладка для GitHub Copilot (не зависает)
+debug-fast: $(VENV)
+	@echo === ⚡ Быстрая отладка (GitHub Copilot / IDE) ===
+	@echo [1/3] Ruff lint (быстрый)...
+	@$(VENV_PYTHON) -m ruff check src/ --output-format=concise --exit-zero 2>&1 | head -50 || true
+	@echo.
+	@echo [2/3] MyPy (минимальный, с кэшем)...
+	@$(VENV_PYTHON) -m mypy src/ --config-file=mypy-fast.ini --cache-dir=.mypy_cache 2>&1 | head -30 || true
+	@echo.
+	@echo [3/3] Тесты (быстрые, 10 сек таймаут)...
+	@poetry run pytest tests/core/ tests/unit/ -c pytest-fast.ini -q --timeout=5 --no-cov -x 2>&1 | head -50 || true
+	@echo.
+	@echo ✅ Быстрая отладка завершена!
+
+# Только линтинг (самая быстрая проверка)
+lint-fast: $(VENV)
+	@echo === Быстрый линтинг ===
+	@$(VENV_PYTHON) -m ruff check src/ --output-format=concise --exit-zero 2>&1 | head -100
+
+# Только типы с агрессивным кэшированием
+types-fast: $(VENV)
+	@echo === Быстрая проверка типов ===
+	@$(VENV_PYTHON) -m mypy src/ --config-file=mypy-fast.ini --cache-dir=.mypy_cache 2>&1 | head -50
+
+# Только core тесты (быстрее всего)
+test-core: $(VENV)
+	@echo === Core тесты (быстрые) ===
+	@poetry run pytest tests/core/ -c pytest-fast.ini -q --timeout=5 --no-cov
+
+# Полная отладка с ограничениями вывода (для IDE)
+debug-full: $(VENV)
+	@echo === 🔍 Полная отладка с лимитами вывода ===
+	@echo.
+	@echo [1/4] Форматирование...
+	@$(VENV_PYTHON) -m ruff format --check src/ 2>&1 | head -20 || true
+	@echo.
+	@echo [2/4] Линтинг...
+	@$(VENV_PYTHON) -m ruff check src/ --output-format=concise 2>&1 | head -50 || true
+	@echo.
+	@echo [3/4] Типы...
+	@$(VENV_PYTHON) -m mypy src/ --config-file=mypy-fast.ini 2>&1 | head -50 || true
+	@echo.
+	@echo [4/4] Тесты (unit + core)...
+	@poetry run pytest tests/core/ tests/unit/ -c pytest-fast.ini -q --timeout=10 --no-cov 2>&1 | tail -30 || true
+	@echo.
+	@echo ✅ Полная отладка завершена!
 
 # Incremental MyPy с кэшем (для CI)
 typecheck-ci: $(VENV)
