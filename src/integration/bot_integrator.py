@@ -42,6 +42,7 @@ from src.integration.event_bus import Event, EventBus, EventTypes
 from src.integration.health_aggregator import HealthAggregator
 from src.integration.service_registry import ServiceRegistry
 
+
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
     from src.utils.config import Config
@@ -216,7 +217,7 @@ class BotIntegrator:
 
             except Exception as e:
                 results[name] = False
-                logger.error(f"  ❌ {name} failed: {e}")
+                logger.error(f"  ❌ {name} failed: {e}", exc_info=True)
 
         # Setup event handlers
         self._setup_event_handlers()

@@ -20,6 +20,7 @@ from src.core.app_signals import SignalHandler
 from src.utils.config import Config
 from src.utils.logging_utils import BotLogger
 
+
 logger = logging.getLogger(__name__)
 bot_logger = BotLogger(__name__)
 

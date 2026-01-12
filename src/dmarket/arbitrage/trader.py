@@ -35,6 +35,7 @@ from src.dmarket.arbitrage.constants import (
     GAMES,
 )
 
+
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
 

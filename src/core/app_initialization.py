@@ -7,6 +7,7 @@ import logging
 import os
 from typing import TYPE_CHECKING, Any
 
+
 if TYPE_CHECKING:
     from src.core.application import Application
 

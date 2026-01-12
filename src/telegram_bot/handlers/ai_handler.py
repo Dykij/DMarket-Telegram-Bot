@@ -663,22 +663,21 @@ async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_
 
     try:
         import csv
-        import os
         from datetime import datetime
+        import os
         from pathlib import Path
 
+        from src.dmarket.blacklist_filters import (
+            BLACKLIST_KEYWORDS,
+            PATTERN_KEYWORDS,
+            ItemBlacklistFilter,
+        )
         from src.dmarket.dmarket_api import DMarketAPI
 
         # Import Whitelist and Blacklist filters
         from src.dmarket.whitelist_config import (
-            WhitelistChecker,
-            get_whitelist_for_game,
             WHITELIST_ITEMS,
-        )
-        from src.dmarket.blacklist_filters import (
-            ItemBlacklistFilter,
-            BLACKLIST_KEYWORDS,
-            PATTERN_KEYWORDS,
+            WhitelistChecker,
         )
 
         # Initialize filters

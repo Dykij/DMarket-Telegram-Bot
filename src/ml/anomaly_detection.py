@@ -11,16 +11,16 @@ Uses statistical methods and isolation forests for detection.
 Usage:
     ```python
     from src.ml.anomaly_detection import AnomalyDetector
-    
+
     detector = AnomalyDetector()
-    
+
     # Check transaction
     is_anomaly, score, reason = detector.check_transaction(
         item_price=100.0,
         market_avg=95.0,
         historical_prices=[90, 92, 94, 95, 96]
     )
-    
+
     # Detect price manipulation
     result = detector.detect_price_manipulation(prices, volumes)
     ```
@@ -30,10 +30,10 @@ Created: January 10, 2026
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
+import logging
 from typing import Any
 
 import numpy as np
@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 
 class AnomalyType(StrEnum):
     """Types of anomalies."""
-    
+
     PRICE_SPIKE = "price_spike"
     PRICE_DROP = "price_drop"
     VOLUME_ANOMALY = "volume_anomaly"
@@ -57,7 +57,7 @@ class AnomalyType(StrEnum):
 
 class AnomalySeverity(StrEnum):
     """Anomaly severity levels."""
-    
+
     CRITICAL = "critical"  # Requires immediate action
     HIGH = "high"  # Should be investigated
     MEDIUM = "medium"  # Worth noting
@@ -68,7 +68,7 @@ class AnomalySeverity(StrEnum):
 @dataclass
 class AnomalyResult:
     """Result of anomaly detection."""
-    
+
     is_anomaly: bool
     anomaly_type: AnomalyType | None = None
     severity: AnomalySeverity = AnomalySeverity.INFO
@@ -76,7 +76,7 @@ class AnomalyResult:
     reason: str = ""
     details: dict[str, Any] = field(default_factory=dict)
     detected_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -93,7 +93,7 @@ class AnomalyResult:
 @dataclass
 class PriceAnomaly:
     """Price-specific anomaly details."""
-    
+
     item_name: str
     current_price: float
     expected_price: float
@@ -105,7 +105,7 @@ class PriceAnomaly:
 @dataclass
 class TransactionAnomaly:
     """Transaction anomaly details."""
-    
+
     transaction_id: str | None
     price: float
     quantity: int
@@ -116,14 +116,14 @@ class TransactionAnomaly:
 
 class AnomalyDetector:
     """Anomaly detection engine for market data.
-    
+
     Uses multiple detection methods:
     - Statistical methods (z-score, IQR)
     - Isolation Forest (if sklearn available)
     - Rule-based detection
     - Pattern matching
     """
-    
+
     def __init__(
         self,
         z_score_threshold: float = 3.0,
@@ -132,7 +132,7 @@ class AnomalyDetector:
         min_history_length: int = 10,
     ) -> None:
         """Initialize anomaly detector.
-        
+
         Args:
             z_score_threshold: Z-score threshold for anomaly detection
             iqr_multiplier: IQR multiplier for outlier detection
@@ -143,22 +143,22 @@ class AnomalyDetector:
         self.iqr_multiplier = iqr_multiplier
         self.price_change_threshold = price_change_threshold
         self.min_history_length = min_history_length
-        
+
         # Isolation forest model (lazy initialization)
         self._isolation_forest = None
-        
+
         # Historical anomalies for pattern learning
         self._anomaly_history: list[AnomalyResult] = []
         self._max_history = 1000
-        
+
     def _init_isolation_forest(self) -> bool:
         """Initialize Isolation Forest model."""
         if self._isolation_forest is not None:
             return True
-            
+
         try:
             from sklearn.ensemble import IsolationForest
-            
+
             self._isolation_forest = IsolationForest(
                 n_estimators=100,
                 contamination=0.1,
@@ -170,7 +170,7 @@ class AnomalyDetector:
         except ImportError:
             logger.warning("sklearn not available, using statistical methods only")
             return False
-    
+
     def check_price_anomaly(
         self,
         current_price: float,
@@ -178,12 +178,12 @@ class AnomalyDetector:
         item_name: str = "",
     ) -> AnomalyResult:
         """Check if price is anomalous.
-        
+
         Args:
             current_price: Current price to check
             historical_prices: List of historical prices
             item_name: Item name for context
-            
+
         Returns:
             AnomalyResult
         """
@@ -193,53 +193,53 @@ class AnomalyDetector:
                 reason="Insufficient historical data",
                 score=0.0,
             )
-        
+
         prices = np.array(historical_prices)
-        
+
         # Calculate statistics
         mean_price = np.mean(prices)
         std_price = np.std(prices)
-        
+
         # Z-score
         if std_price > 0:
             z_score = abs(current_price - mean_price) / std_price
         else:
             z_score = 0.0
-        
+
         # IQR method
         q1, q3 = np.percentile(prices, [25, 75])
         iqr = q3 - q1
         lower_bound = q1 - self.iqr_multiplier * iqr
         upper_bound = q3 + self.iqr_multiplier * iqr
-        
+
         # Price change from last
         if len(historical_prices) > 0:
             last_price = historical_prices[-1]
             price_change = abs(current_price - last_price) / last_price if last_price > 0 else 0
         else:
             price_change = 0
-        
+
         # Determine anomaly
         is_anomaly = False
         anomaly_type = None
         severity = AnomalySeverity.INFO
         reasons = []
-        
+
         # Check z-score
         if z_score > self.z_score_threshold:
             is_anomaly = True
             reasons.append(f"Z-score {z_score:.2f} exceeds threshold {self.z_score_threshold}")
-        
+
         # Check IQR bounds
         if current_price < lower_bound or current_price > upper_bound:
             is_anomaly = True
             reasons.append(f"Price ${current_price:.2f} outside IQR bounds [${lower_bound:.2f}, ${upper_bound:.2f}]")
-        
+
         # Check sudden change
         if price_change > self.price_change_threshold:
             is_anomaly = True
             reasons.append(f"Price change {price_change:.1%} exceeds threshold {self.price_change_threshold:.1%}")
-        
+
         # Determine type and severity
         if is_anomaly:
             if current_price > upper_bound:
@@ -251,10 +251,10 @@ class AnomalyDetector:
             else:
                 anomaly_type = AnomalyType.UNUSUAL_PATTERN
                 severity = AnomalySeverity.LOW
-        
+
         # Calculate anomaly score (0-1)
         score = min(1.0, z_score / (self.z_score_threshold * 2))
-        
+
         result = AnomalyResult(
             is_anomaly=is_anomaly,
             anomaly_type=anomaly_type,
@@ -271,12 +271,12 @@ class AnomalyDetector:
                 "price_change": round(price_change, 4),
             },
         )
-        
+
         if is_anomaly:
             self._record_anomaly(result)
-        
+
         return result
-    
+
     def check_transaction(
         self,
         item_price: float,
@@ -286,14 +286,14 @@ class AnomalyDetector:
         transaction_id: str | None = None,
     ) -> TransactionAnomaly:
         """Check if a transaction is anomalous.
-        
+
         Args:
             item_price: Transaction price
             market_avg: Current market average price
             historical_prices: Optional historical prices
             quantity: Transaction quantity
             transaction_id: Optional transaction ID
-            
+
         Returns:
             TransactionAnomaly
         """
@@ -301,13 +301,13 @@ class AnomalyDetector:
         reasons = []
         is_anomaly = False
         severity = AnomalySeverity.INFO
-        
+
         total_value = item_price * quantity
-        
+
         # Check price deviation from market average
         if market_avg > 0:
             deviation = (item_price - market_avg) / market_avg
-            
+
             if deviation > 0.2:  # 20% above market
                 is_anomaly = True
                 severity = AnomalySeverity.HIGH if deviation > 0.5 else AnomalySeverity.MEDIUM
@@ -318,7 +318,7 @@ class AnomalyDetector:
                 severity = AnomalySeverity.MEDIUM
                 reasons.append(f"Price {abs(deviation):.1%} below market average")
                 recommendations.append("Verify item condition - price is suspiciously low")
-        
+
         # Check against historical prices
         if historical_prices and len(historical_prices) >= self.min_history_length:
             hist_result = self.check_price_anomaly(item_price, historical_prices)
@@ -326,19 +326,19 @@ class AnomalyDetector:
                 is_anomaly = True
                 severity = max(severity, hist_result.severity, key=lambda x: list(AnomalySeverity).index(x))
                 reasons.append(f"Historical anomaly: {hist_result.reason}")
-        
+
         # Check for manipulation patterns
-        if is_anomaly and severity in [AnomalySeverity.HIGH, AnomalySeverity.CRITICAL]:
+        if is_anomaly and severity in {AnomalySeverity.HIGH, AnomalySeverity.CRITICAL}:
             recommendations.append("Review transaction carefully - potential manipulation")
-        
+
         # High value transaction check
         if total_value > 100:  # $100+
             recommendations.append("High value transaction - double-check before confirming")
-        
+
         score = 0.0
         if market_avg > 0:
             score = min(1.0, abs(item_price - market_avg) / market_avg)
-        
+
         anomaly_result = AnomalyResult(
             is_anomaly=is_anomaly,
             anomaly_type=AnomalyType.SUSPICIOUS_TRANSACTION if is_anomaly else None,
@@ -353,7 +353,7 @@ class AnomalyDetector:
                 "total_value": total_value,
             },
         )
-        
+
         return TransactionAnomaly(
             transaction_id=transaction_id,
             price=item_price,
@@ -362,7 +362,7 @@ class AnomalyDetector:
             anomaly_result=anomaly_result,
             recommendations=recommendations,
         )
-    
+
     def detect_price_manipulation(
         self,
         prices: list[float],
@@ -370,17 +370,17 @@ class AnomalyDetector:
         timestamps: list[datetime] | None = None,
     ) -> AnomalyResult:
         """Detect potential price manipulation.
-        
+
         Looks for patterns like:
         - Sudden price spikes followed by drops (pump and dump)
         - Coordinated buying/selling
         - Unusual volume patterns
-        
+
         Args:
             prices: Price history
             volumes: Optional volume history
             timestamps: Optional timestamps
-            
+
         Returns:
             AnomalyResult
         """
@@ -389,17 +389,17 @@ class AnomalyDetector:
                 is_anomaly=False,
                 reason="Insufficient data for manipulation detection",
             )
-        
+
         prices_arr = np.array(prices)
-        
+
         # Calculate returns
         returns = np.diff(prices_arr) / prices_arr[:-1]
-        
+
         # Check for pump and dump pattern
         # Pattern: large positive returns followed by large negative returns
         pump_dump_detected = False
         pump_dump_details = []
-        
+
         for i in range(len(returns) - 1):
             if returns[i] > 0.15 and returns[i + 1] < -0.10:  # 15% up, then 10%+ down
                 pump_dump_detected = True
@@ -408,34 +408,34 @@ class AnomalyDetector:
                     "pump": round(returns[i], 4),
                     "dump": round(returns[i + 1], 4),
                 })
-        
+
         # Check volume anomalies if available
         volume_anomaly = False
         if volumes and len(volumes) == len(prices):
             volumes_arr = np.array(volumes)
             mean_vol = np.mean(volumes_arr)
             std_vol = np.std(volumes_arr)
-            
+
             if std_vol > 0:
                 vol_z_scores = np.abs(volumes_arr - mean_vol) / std_vol
                 volume_anomaly = np.any(vol_z_scores > 3)
-        
+
         # Check for coordinated activity (unusual regularity)
         price_changes = np.abs(np.diff(prices_arr))
         regularity_score = np.std(price_changes) / np.mean(price_changes) if np.mean(price_changes) > 0 else 1
         coordinated_suspected = regularity_score < 0.3  # Too regular = suspicious
-        
+
         # Determine overall result
         is_anomaly = pump_dump_detected or coordinated_suspected
         reasons = []
-        
+
         if pump_dump_detected:
             reasons.append(f"Pump and dump pattern detected ({len(pump_dump_details)} instances)")
         if volume_anomaly:
             reasons.append("Unusual volume spikes detected")
         if coordinated_suspected:
             reasons.append("Suspiciously regular price changes (possible coordination)")
-        
+
         severity = AnomalySeverity.INFO
         if pump_dump_detected:
             severity = AnomalySeverity.CRITICAL
@@ -443,7 +443,7 @@ class AnomalyDetector:
             severity = AnomalySeverity.HIGH
         elif volume_anomaly:
             severity = AnomalySeverity.MEDIUM
-        
+
         score = 0.0
         if pump_dump_detected:
             score = 0.9
@@ -451,7 +451,7 @@ class AnomalyDetector:
             score = 0.6
         elif volume_anomaly:
             score = 0.4
-        
+
         return AnomalyResult(
             is_anomaly=is_anomaly,
             anomaly_type=AnomalyType.MANIPULATION_SUSPECTED if is_anomaly else None,
@@ -465,7 +465,7 @@ class AnomalyDetector:
                 "coordinated_suspected": coordinated_suspected,
             },
         )
-    
+
     def detect_api_anomaly(
         self,
         response_code: int,
@@ -475,21 +475,21 @@ class AnomalyDetector:
         historical_response_times: list[float] | None = None,
     ) -> AnomalyResult:
         """Detect API response anomalies.
-        
+
         Args:
             response_code: HTTP response code
             response_time_ms: Response time in milliseconds
             expected_fields: Expected fields in response
             actual_fields: Actual fields received
             historical_response_times: Historical response times
-            
+
         Returns:
             AnomalyResult
         """
         reasons = []
         is_anomaly = False
         severity = AnomalySeverity.INFO
-        
+
         # Check response code
         if response_code >= 400:
             is_anomaly = True
@@ -499,12 +499,12 @@ class AnomalyDetector:
             else:
                 severity = AnomalySeverity.HIGH
                 reasons.append(f"Client error: HTTP {response_code}")
-        
+
         # Check response time
         if historical_response_times and len(historical_response_times) >= 10:
             mean_time = np.mean(historical_response_times)
             std_time = np.std(historical_response_times)
-            
+
             if std_time > 0:
                 z_score = (response_time_ms - mean_time) / std_time
                 if z_score > 3:
@@ -515,7 +515,7 @@ class AnomalyDetector:
             is_anomaly = True
             severity = max(severity, AnomalySeverity.MEDIUM)
             reasons.append(f"Response time {response_time_ms}ms exceeds 5s threshold")
-        
+
         # Check missing fields
         if expected_fields and actual_fields:
             missing = set(expected_fields) - set(actual_fields)
@@ -523,7 +523,7 @@ class AnomalyDetector:
                 is_anomaly = True
                 severity = max(severity, AnomalySeverity.HIGH)
                 reasons.append(f"Missing expected fields: {missing}")
-        
+
         score = 0.0
         if response_code >= 500:
             score = 1.0
@@ -531,7 +531,7 @@ class AnomalyDetector:
             score = 0.8
         elif is_anomaly:
             score = 0.5
-        
+
         return AnomalyResult(
             is_anomaly=is_anomaly,
             anomaly_type=AnomalyType.API_ERROR if is_anomaly else None,
@@ -544,54 +544,54 @@ class AnomalyDetector:
                 "missing_fields": list(set(expected_fields or []) - set(actual_fields or [])),
             },
         )
-    
+
     def batch_detect(
         self,
         items: list[dict[str, Any]],
     ) -> list[AnomalyResult]:
         """Batch anomaly detection for multiple items.
-        
+
         Args:
             items: List of items with price data
-            
+
         Returns:
             List of AnomalyResult
         """
         results = []
-        
+
         for item in items:
             current_price = item.get("price", 0)
             historical_prices = item.get("historical_prices", [])
             item_name = item.get("name", "unknown")
-            
+
             result = self.check_price_anomaly(
                 current_price=current_price,
                 historical_prices=historical_prices,
                 item_name=item_name,
             )
             results.append(result)
-        
+
         return results
-    
+
     def train_isolation_forest(
         self,
         training_data: list[list[float]],
     ) -> bool:
         """Train Isolation Forest on historical data.
-        
+
         Args:
             training_data: List of feature vectors
-            
+
         Returns:
             True if training successful
         """
         if not self._init_isolation_forest():
             return False
-        
+
         if len(training_data) < 50:
             logger.warning("Insufficient training data (minimum 50 samples)")
             return False
-        
+
         try:
             X = np.array(training_data)
             self._isolation_forest.fit(X)
@@ -600,44 +600,44 @@ class AnomalyDetector:
         except Exception as e:
             logger.exception(f"Failed to train Isolation Forest: {e}")
             return False
-    
+
     def predict_with_isolation_forest(
         self,
         features: list[float],
     ) -> tuple[bool, float]:
         """Predict anomaly using Isolation Forest.
-        
+
         Args:
             features: Feature vector
-            
+
         Returns:
             (is_anomaly, anomaly_score) tuple
         """
         if self._isolation_forest is None:
             return False, 0.0
-        
+
         try:
             X = np.array(features).reshape(1, -1)
             prediction = self._isolation_forest.predict(X)[0]
             score = -self._isolation_forest.score_samples(X)[0]
-            
+
             is_anomaly = prediction == -1
             return is_anomaly, min(1.0, max(0.0, score))
         except Exception as e:
             logger.exception(f"Isolation Forest prediction failed: {e}")
             return False, 0.0
-    
+
     def _record_anomaly(self, result: AnomalyResult) -> None:
         """Record anomaly for pattern learning."""
         self._anomaly_history.append(result)
-        
+
         # Trim history if too large
         if len(self._anomaly_history) > self._max_history:
             self._anomaly_history = self._anomaly_history[-self._max_history:]
-    
+
     def get_anomaly_statistics(self) -> dict[str, Any]:
         """Get statistics about detected anomalies.
-        
+
         Returns:
             Dictionary with anomaly statistics
         """
@@ -648,17 +648,17 @@ class AnomalyDetector:
                 "by_severity": {},
                 "avg_score": 0.0,
             }
-        
+
         by_type: dict[str, int] = {}
         by_severity: dict[str, int] = {}
         scores = []
-        
+
         for anomaly in self._anomaly_history:
             if anomaly.anomaly_type:
                 by_type[anomaly.anomaly_type.value] = by_type.get(anomaly.anomaly_type.value, 0) + 1
             by_severity[anomaly.severity.value] = by_severity.get(anomaly.severity.value, 0) + 1
             scores.append(anomaly.score)
-        
+
         return {
             "total_anomalies": len(self._anomaly_history),
             "by_type": by_type,
@@ -677,11 +677,11 @@ def create_anomaly_detector(
     price_change_threshold: float = 0.3,
 ) -> AnomalyDetector:
     """Create anomaly detector instance.
-    
+
     Args:
         z_score_threshold: Z-score threshold
         price_change_threshold: Price change threshold
-        
+
     Returns:
         AnomalyDetector instance
     """

@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 
+
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
     from src.waxpeer.waxpeer_api import WaxpeerAPI

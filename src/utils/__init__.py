@@ -21,6 +21,7 @@ from src.utils.exceptions import (
     RateLimitExceeded,
 )
 
+
 # Optional imports - these may fail if dependencies are not installed
 try:
     from src.utils.env_validator import validate_on_startup, validate_required_env_vars
@@ -84,38 +85,38 @@ except ImportError:
 
 
 __all__ = [
-    # Config
-    "Config",
     # Exceptions
     "APIError",
     "BaseAppException",
-    "NetworkError",
-    "RateLimitExceeded",
-    # Environment validation
-    "validate_on_startup",
-    "validate_required_env_vars",
-    # Shutdown handling
-    "ShutdownHandler",
-    "shutdown_handler",
-    # Health monitoring
-    "HealthCheckResult",
-    "HealthMonitor",
-    "ServiceStatus",
+    # Config
+    "Config",
+    # Discord notifications
+    "DiscordNotifier",
     # Feature flags
     "Feature",
     "FeatureFlagsManager",
+    # Health monitoring
+    "HealthCheckResult",
+    "HealthMonitor",
+    "NetworkError",
+    "NotificationLevel",
+    "RateLimitExceeded",
+    "ServiceStatus",
+    # Shutdown handling
+    "ShutdownHandler",
+    # Watchdog
+    "Watchdog",
+    "WatchdogConfig",
+    "create_discord_notifier_from_env",
     "get_feature_flags",
     "init_feature_flags",
-    # Discord notifications
-    "DiscordNotifier",
-    "NotificationLevel",
-    "create_discord_notifier_from_env",
     # Rate limiting
     "rate_limit",
     # Retry decorators
     "retry_api_call",
     "retry_on_failure",
-    # Watchdog
-    "Watchdog",
-    "WatchdogConfig",
+    "shutdown_handler",
+    # Environment validation
+    "validate_on_startup",
+    "validate_required_env_vars",
 ]
