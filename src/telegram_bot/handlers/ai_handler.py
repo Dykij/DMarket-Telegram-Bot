@@ -414,6 +414,207 @@ async def ai_analyze_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
         logger.exception("ai_analyze_failed", error=str(e))
 
 
+async def ai_collect_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /ai_collect command - Collect real market data for AI training.
+
+    Fetches real price data from DMarket API and saves it to CSV for training.
+    This ensures the AI model is trained on real market prices, not demo data.
+
+    Usage: /ai_collect [count]
+        count - Number of items to collect (default: 500, max: 2000)
+    """
+    if not update.message:
+        return
+
+    user_id = update.effective_user.id if update.effective_user else 0
+    logger.info("ai_collect_command", user_id=user_id)
+
+    # Parse arguments
+    args = context.args or []
+    try:
+        item_count = min(int(args[0]), 2000) if args else 500
+    except (ValueError, IndexError):
+        item_count = 500
+
+    await update.message.reply_text(
+        f"📥 <b>Сбор реальных данных с DMarket...</b>\n\n"
+        f"🎯 Цель: {item_count} предметов\n"
+        f"⏳ Это может занять несколько минут.",
+        parse_mode="HTML",
+    )
+
+    try:
+        import os
+
+        from src.dmarket.dmarket_api import DMarketAPI
+        from src.dmarket.market_data_logger import MarketDataLogger, MarketDataLoggerConfig
+
+        # Get or create API client
+        api = getattr(context.application, "dmarket_api", None)
+        if not api:
+            api = DMarketAPI(
+                public_key=os.getenv("DMARKET_PUBLIC_KEY", ""),
+                secret_key=os.getenv("DMARKET_SECRET_KEY", ""),
+            )
+
+        # Configure logger for real data collection
+        config = MarketDataLoggerConfig(
+            output_path="data/market_history.csv",
+            max_items_per_scan=min(item_count, 100),  # API limit per request
+            games=["a8db", "tf2", "dota2", "rust"],  # All supported games
+            min_price_cents=50,  # $0.50 minimum
+            max_price_cents=100000,  # $1000 maximum
+        )
+
+        data_logger = MarketDataLogger(api, config)
+
+        # Collect data in batches
+        total_collected = 0
+        batches_needed = (item_count + 99) // 100  # Round up
+
+        for batch in range(batches_needed):
+            collected = await data_logger.log_market_data()
+            total_collected += collected
+
+            if batch % 5 == 0 and batch > 0:
+                await update.message.reply_text(
+                    f"📊 Прогресс: {total_collected}/{item_count} предметов",
+                    parse_mode="HTML",
+                )
+
+        # Get final data status
+        data_status = data_logger.get_data_status()
+
+        result_msg = (
+            f"✅ <b>Сбор данных завершен!</b>\n\n"
+            f"📈 Собрано записей: {total_collected}\n"
+            f"📄 Всего в базе: {data_status['rows']}\n\n"
+        )
+
+        if data_status["ready_for_training"]:
+            result_msg += (
+                "✅ <b>Данных достаточно для обучения!</b>\n\n"
+                "Выполните /ai_train чтобы обучить модель на реальных ценах."
+            )
+        else:
+            remaining = 100 - data_status["rows"]
+            result_msg += (
+                f"⏳ Нужно еще {remaining} записей.\n"
+                f"Выполните /ai_collect еще раз."
+            )
+
+        await update.message.reply_text(result_msg, parse_mode="HTML")
+
+        logger.info(
+            "ai_collect_completed",
+            user_id=user_id,
+            collected=total_collected,
+            total_rows=data_status["rows"],
+        )
+
+    except Exception as e:
+        await update.message.reply_text(
+            f"❌ <b>Ошибка сбора данных:</b>\n\n{e}",
+            parse_mode="HTML",
+        )
+        logger.exception("ai_collect_failed", error=str(e))
+
+
+async def ai_train_real_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /ai_train_real command - Train AI on real market prices.
+
+    This command:
+    1. Collects fresh data from DMarket API
+    2. Trains the model on real prices
+    3. Saves the trained model
+
+    Usage: /ai_train_real [samples]
+        samples - Number of samples to collect before training (default: 500)
+    """
+    if not update.message:
+        return
+
+    user_id = update.effective_user.id if update.effective_user else 0
+    logger.info("ai_train_real_command", user_id=user_id)
+
+    # Parse arguments
+    args = context.args or []
+    try:
+        sample_count = min(int(args[0]), 2000) if args else 500
+    except (ValueError, IndexError):
+        sample_count = 500
+
+    await update.message.reply_text(
+        f"🤖 <b>Обучение AI на реальных ценах</b>\n\n"
+        f"📥 Шаг 1/2: Сбор {sample_count} реальных цен...",
+        parse_mode="HTML",
+    )
+
+    try:
+        import os
+
+        from src.ai.price_predictor import PricePredictor
+        from src.dmarket.dmarket_api import DMarketAPI
+        from src.dmarket.market_data_logger import MarketDataLogger, MarketDataLoggerConfig
+
+        # Get or create API client
+        api = getattr(context.application, "dmarket_api", None)
+        if not api:
+            api = DMarketAPI(
+                public_key=os.getenv("DMARKET_PUBLIC_KEY", ""),
+                secret_key=os.getenv("DMARKET_SECRET_KEY", ""),
+            )
+
+        # Step 1: Collect real data
+        config = MarketDataLoggerConfig(
+            output_path="data/market_history.csv",
+            max_items_per_scan=100,
+            games=["a8db", "tf2", "dota2", "rust"],
+            min_price_cents=50,
+            max_price_cents=100000,
+        )
+
+        data_logger = MarketDataLogger(api, config)
+
+        total_collected = 0
+        batches_needed = (sample_count + 99) // 100
+
+        for batch in range(batches_needed):
+            collected = await data_logger.log_market_data()
+            total_collected += collected
+
+        data_status = data_logger.get_data_status()
+
+        await update.message.reply_text(
+            f"📊 Собрано {total_collected} записей (всего: {data_status['rows']})\n\n"
+            f"🧠 Шаг 2/2: Обучение модели...",
+            parse_mode="HTML",
+        )
+
+        # Step 2: Train model
+        predictor = PricePredictor()
+        result = predictor.train_model(force_retrain=True)
+
+        await update.message.reply_text(
+            f"🤖 <b>Обучение на реальных ценах завершено!</b>\n\n{result}",
+            parse_mode="HTML",
+        )
+
+        logger.info(
+            "ai_train_real_completed",
+            user_id=user_id,
+            collected=total_collected,
+            result=result,
+        )
+
+    except Exception as e:
+        await update.message.reply_text(
+            f"❌ <b>Ошибка:</b>\n\n{e}",
+            parse_mode="HTML",
+        )
+        logger.exception("ai_train_real_failed", error=str(e))
+
+
 def register_ai_handlers(application: "Application") -> None:
     """Register AI-related command handlers.
 
@@ -424,5 +625,7 @@ def register_ai_handlers(application: "Application") -> None:
     application.add_handler(CommandHandler("ai_status", ai_status_command))
     application.add_handler(CommandHandler("ai_scan", ai_scan_command))
     application.add_handler(CommandHandler("ai_analyze", ai_analyze_command))
+    application.add_handler(CommandHandler("ai_collect", ai_collect_command))
+    application.add_handler(CommandHandler("ai_train_real", ai_train_real_command))
 
     logger.info("AI handlers registered")
