@@ -37,10 +37,9 @@ def mock_context():
 def mock_balance():
     """Фикстура мока баланса."""
     return {
-        "usd": "10050",  # $100.50
-        "usdAvailableToWithdraw": "9025",  # $90.25
-        "dmc": "5000",
-        "dmcAvailableToWithdraw": "4500",
+        "balance": 100.50,  # $100.50 in dollars
+        "available_balance": 90.25,  # $90.25 in dollars
+        "error": False,
     }
 
 
