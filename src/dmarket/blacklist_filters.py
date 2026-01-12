@@ -100,7 +100,7 @@ BLACKLIST_KEYWORDS = [
 
     # ===== ОБЩИЕ НЕЛИКВИДНЫЕ ПАТТЕРНЫ =====
     "well-worn",  # Сложно продать быстро
-    "battle-scarred",  # Исключение если профит > 20%
+    # Note: "battle-scarred" handled separately by float_filter (allows high profit)
     "vanilla",  # Ванильные ножи - особый рынок
 ]
 
