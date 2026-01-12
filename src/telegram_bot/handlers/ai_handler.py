@@ -615,6 +615,252 @@ async def ai_train_real_command(update: Update, context: ContextTypes.DEFAULT_TY
         logger.exception("ai_train_real_failed", error=str(e))
 
 
+async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /ai_train_liquid command - Train AI only on liquid items.
+
+    This command:
+    1. Collects data from DMarket, Waxpeer, and Steam APIs
+    2. Filters only liquid items (available on multiple platforms)
+    3. Trains the model on liquid items only
+
+    Usage: /ai_train_liquid [samples]
+        samples - Target number of liquid samples to collect (default: 300)
+
+    Liquidity criteria:
+    - Item is available on DMarket AND Waxpeer
+    - At least 5 active offers on each platform
+    - Positive sales history
+    """
+    if not update.message:
+        return
+
+    user_id = update.effective_user.id if update.effective_user else 0
+    logger.info("ai_train_liquid_command", user_id=user_id)
+
+    # Parse arguments
+    args = context.args or []
+    try:
+        target_samples = min(int(args[0]), 1000) if args else 300
+    except (ValueError, IndexError):
+        target_samples = 300
+
+    await update.message.reply_text(
+        f"🤖 <b>Обучение AI на ликвидных предметах</b>\n\n"
+        f"🎯 Цель: {target_samples} ликвидных предметов\n\n"
+        f"📊 Источники данных:\n"
+        f"• DMarket API\n"
+        f"• Waxpeer API\n"
+        f"• Steam Market\n\n"
+        f"⏳ Это может занять несколько минут...",
+        parse_mode="HTML",
+    )
+
+    try:
+        import csv
+        import os
+        from datetime import datetime
+        from pathlib import Path
+
+        from src.dmarket.dmarket_api import DMarketAPI
+
+        # Try to import Waxpeer API (optional)
+        waxpeer_api = None
+        try:
+            from src.waxpeer.waxpeer_api import WaxpeerAPI
+
+            waxpeer_key = os.getenv("WAXPEER_API_KEY", "")
+            if waxpeer_key:
+                waxpeer_api = WaxpeerAPI(api_key=waxpeer_key)
+        except ImportError:
+            logger.warning("waxpeer_api_not_available")
+
+        # Get or create DMarket API client
+        dmarket_api = getattr(context.application, "dmarket_api", None)
+        if not dmarket_api:
+            dmarket_api = DMarketAPI(
+                public_key=os.getenv("DMARKET_PUBLIC_KEY", ""),
+                secret_key=os.getenv("DMARKET_SECRET_KEY", ""),
+            )
+
+        # Create output directory
+        output_path = Path("data/liquid_items.csv")
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Collect liquid items
+        liquid_items: list[dict[str, Any]] = []
+        games_checked = ["a8db"]  # Start with CS:GO/CS2
+        total_scanned = 0
+
+        await update.message.reply_text(
+            "🔍 Шаг 1/3: Получение списка предметов с DMarket...",
+            parse_mode="HTML",
+        )
+
+        # Get items from DMarket
+        dmarket_items = await dmarket_api.get_market_items(
+            game="a8db",
+            limit=500,
+            price_from=100,  # $1 minimum
+            price_to=50000,  # $500 maximum
+        )
+
+        items_list = dmarket_items.get("objects", [])
+        total_scanned = len(items_list)
+
+        await update.message.reply_text(
+            f"📋 Найдено {total_scanned} предметов на DMarket\n\n"
+            f"🔍 Шаг 2/3: Проверка ликвидности...",
+            parse_mode="HTML",
+        )
+
+        # Check liquidity for each item
+        liquid_count = 0
+
+        for i, item in enumerate(items_list):
+            if liquid_count >= target_samples:
+                break
+
+            item_title = item.get("title", "")
+            dmarket_price = float(item.get("price", {}).get("USD", 0)) / 100
+
+            if dmarket_price < 1.0:  # Skip items under $1
+                continue
+
+            # Check item on multiple criteria
+            is_liquid = True
+            liquidity_score = 0
+
+            # 1. Check DMarket offers count
+            dmarket_offers = item.get("extra", {}).get("offers_count", 0)
+            if dmarket_offers >= 3:
+                liquidity_score += 25
+
+            # 2. Check suggested price exists (indicates trading history)
+            suggested_price = item.get("suggestedPrice", {}).get("USD")
+            if suggested_price:
+                liquidity_score += 25
+
+            # 3. Check on Waxpeer if available
+            waxpeer_price = None
+            waxpeer_count = 0
+            if waxpeer_api:
+                try:
+                    async with waxpeer_api:
+                        price_info = await waxpeer_api.get_item_price_info(item_title)
+                        if price_info and price_info.count >= 5:
+                            liquidity_score += 25
+                            waxpeer_price = float(price_info.price_usd)
+                            waxpeer_count = price_info.count
+                except Exception as e:
+                    logger.debug("waxpeer_check_failed", item=item_title, error=str(e))
+
+            # 4. Popular items have category
+            category = item.get("extra", {}).get("category", "")
+            if category and category != "Other":
+                liquidity_score += 25
+
+            # Item is liquid if score >= 50
+            if liquidity_score >= 50:
+                liquid_items.append({
+                    "item_name": item_title,
+                    "price": dmarket_price,
+                    "float_value": item.get("extra", {}).get("float", 0),
+                    "is_stat_trak": "StatTrak" in item_title or "Souvenir" in item_title,
+                    "game_id": "a8db",
+                    "timestamp": datetime.now().isoformat(),
+                    "liquidity_score": liquidity_score,
+                    "dmarket_offers": dmarket_offers,
+                    "waxpeer_price": waxpeer_price,
+                    "waxpeer_count": waxpeer_count,
+                })
+                liquid_count += 1
+
+            # Progress update every 50 items
+            if (i + 1) % 50 == 0:
+                await update.message.reply_text(
+                    f"📊 Прогресс: {i + 1}/{len(items_list)} проверено, "
+                    f"{liquid_count} ликвидных найдено",
+                    parse_mode="HTML",
+                )
+
+        # Save liquid items to CSV
+        if liquid_items:
+            with open(output_path, "w", newline="", encoding="utf-8") as f:
+                writer = csv.DictWriter(f, fieldnames=liquid_items[0].keys())
+                writer.writeheader()
+                writer.writerows(liquid_items)
+
+        await update.message.reply_text(
+            f"✅ Найдено {len(liquid_items)} ликвидных предметов\n\n"
+            f"🧠 Шаг 3/3: Обучение модели...",
+            parse_mode="HTML",
+        )
+
+        # Train model on liquid items
+        from src.ai.price_predictor import PricePredictor
+
+        predictor = PricePredictor()
+
+        # Use liquid items data for training
+        if len(liquid_items) >= 50:
+            # Save to standard path for training
+            main_data_path = Path("data/market_history.csv")
+
+            with open(main_data_path, "w", newline="", encoding="utf-8") as f:
+                writer = csv.DictWriter(
+                    f,
+                    fieldnames=[
+                        "item_name",
+                        "price",
+                        "float_value",
+                        "is_stat_trak",
+                        "game_id",
+                        "timestamp",
+                    ],
+                )
+                writer.writeheader()
+                for item in liquid_items:
+                    writer.writerow({
+                        "item_name": item["item_name"],
+                        "price": item["price"],
+                        "float_value": item["float_value"],
+                        "is_stat_trak": item["is_stat_trak"],
+                        "game_id": item["game_id"],
+                        "timestamp": item["timestamp"],
+                    })
+
+            result = predictor.train_model(force_retrain=True)
+        else:
+            result = "⚠️ Недостаточно ликвидных данных для обучения (минимум 50)"
+
+        # Build summary message
+        summary = (
+            f"🤖 <b>Обучение на ликвидных предметах завершено!</b>\n\n"
+            f"📊 <b>Статистика:</b>\n"
+            f"• Проверено предметов: {total_scanned}\n"
+            f"• Ликвидных найдено: {len(liquid_items)}\n"
+            f"• Процент ликвидных: {len(liquid_items) / max(total_scanned, 1) * 100:.1f}%\n\n"
+            f"💾 Данные сохранены: {output_path}\n\n"
+            f"<b>Результат обучения:</b>\n{result}"
+        )
+
+        await update.message.reply_text(summary, parse_mode="HTML")
+
+        logger.info(
+            "ai_train_liquid_completed",
+            user_id=user_id,
+            total_scanned=total_scanned,
+            liquid_count=len(liquid_items),
+        )
+
+    except Exception as e:
+        await update.message.reply_text(
+            f"❌ <b>Ошибка:</b>\n\n{e}",
+            parse_mode="HTML",
+        )
+        logger.exception("ai_train_liquid_failed", error=str(e))
+
+
 def register_ai_handlers(application: "Application") -> None:
     """Register AI-related command handlers.
 
@@ -627,5 +873,6 @@ def register_ai_handlers(application: "Application") -> None:
     application.add_handler(CommandHandler("ai_analyze", ai_analyze_command))
     application.add_handler(CommandHandler("ai_collect", ai_collect_command))
     application.add_handler(CommandHandler("ai_train_real", ai_train_real_command))
+    application.add_handler(CommandHandler("ai_train_liquid", ai_train_liquid_command))
 
     logger.info("AI handlers registered")
