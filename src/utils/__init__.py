@@ -12,6 +12,7 @@ This module provides various utility functions and classes for the DMarket Bot:
 - Retry decorators
 - Watchdog for bot supervision
 """
+# ruff: noqa: RUF067 - optional imports pattern is intentional
 
 from src.utils.config import Config
 from src.utils.exceptions import (

@@ -593,10 +593,7 @@ class SecurityManager:
             return True
 
         # Amount threshold
-        if amount and amount >= self.AMOUNT_THRESHOLD_2FA:
-            return True
-
-        return False
+        return bool(amount and amount >= self.AMOUNT_THRESHOLD_2FA)
 
     def create_2fa_session(self, user_id: int, expires_minutes: int = 15) -> str:
         """Create temporary 2FA session after verification.

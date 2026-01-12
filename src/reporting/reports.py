@@ -217,11 +217,13 @@ class TradingReport:
         if self.platform_breakdown:
             lines.extend(["## Platform Breakdown", ""])
             for platform, data in self.platform_breakdown.items():
-                lines.append(f"### {platform.title()}")
-                lines.append(f"- Volume: ${data.get('volume', 0):.2f}")
-                lines.append(f"- Profit: ${data.get('profit', 0):.2f}")
-                lines.append(f"- Trades: {data.get('trades', 0)}")
-                lines.append("")
+                lines.extend([
+                    f"### {platform.title()}",
+                    f"- Volume: ${data.get('volume', 0):.2f}",
+                    f"- Profit: ${data.get('profit', 0):.2f}",
+                    f"- Trades: {data.get('trades', 0)}",
+                    "",
+                ])
 
         return "\n".join(lines)
 
@@ -520,7 +522,7 @@ class ReportGenerator:
                 return datetime.fromisoformat(value)
             except ValueError:
                 try:
-                    return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+                    return datetime.strptime(value, "%Y-%m-%d %H:%M:%S").replace(tzinfo=UTC)
                 except ValueError:
                     return None
 

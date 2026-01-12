@@ -507,7 +507,7 @@ async def improvements_callback(
         await reports_command(update, context)
     elif data == "imp_security":
         await security_command(update, context)
-    elif data == "imp_refresh" or data == "imp_back":
+    elif data in {"imp_refresh", "imp_back"}:
         await improvements_command(update, context)
 
 

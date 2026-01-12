@@ -1473,15 +1473,16 @@ async def ml_ai_create_demo_callback(update: Update, context: ContextTypes.DEFAU
 
         data = []
         base_date = datetime.now() - timedelta(days=30)
+        rng = np.random.default_rng()  # Modern numpy Generator
 
         for i in range(n_samples):
-            item = np.random.choice(items)
-            base_price = 10 + np.random.rand() * 90  # $10-100
-            suggested = base_price * (1.05 + np.random.rand() * 0.15)
+            item = rng.choice(items)
+            base_price = 10 + rng.random() * 90  # $10-100
+            suggested = base_price * (1.05 + rng.random() * 0.15)
             profit = suggested * 0.93 - base_price
             # Generate realistic float values for CS:GO skins
-            float_value = round(np.random.uniform(0.0, 1.0), 4)
-            is_stat_trak = int(np.random.rand() < 0.15)  # 15% chance of StatTrak
+            float_value = round(rng.uniform(0.0, 1.0), 4)
+            is_stat_trak = int(rng.random() < 0.15)  # 15% chance of StatTrak
 
             data.append({
                 "date": (base_date + timedelta(hours=i)).isoformat(),

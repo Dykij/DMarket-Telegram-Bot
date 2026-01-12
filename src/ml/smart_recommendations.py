@@ -264,8 +264,8 @@ class SmartRecommendations:
         # Limit to max recommendations
         recommendations = recommendations[:max_recommendations]
 
-        # Calculate summary
-        batch = RecommendationBatch(
+        # Calculate summary and return
+        return RecommendationBatch(
             recommendations=recommendations,
             total_potential_profit=sum(r.expected_profit or 0 for r in recommendations),
             avg_confidence=sum(r.confidence for r in recommendations) / len(recommendations) if recommendations else 0,
@@ -273,8 +273,6 @@ class SmartRecommendations:
             sell_count=sum(1 for r in recommendations if r.recommendation_type == RecommendationType.SELL),
             arbitrage_count=sum(1 for r in recommendations if r.recommendation_type == RecommendationType.ARBITRAGE),
         )
-
-        return batch
 
     async def _analyze_buy_opportunity(
         self,

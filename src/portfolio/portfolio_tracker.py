@@ -634,7 +634,7 @@ class PortfolioTracker:
             profit_factor=profit_factor,
         )
 
-    def export_trades(self, format: str = "dict") -> list[dict[str, Any]]:
+    def export_trades(self, output_format: str = "dict") -> list[dict[str, Any]]:
         """Export trade history.
 
         Args:
