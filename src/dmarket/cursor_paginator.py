@@ -320,7 +320,7 @@ class CursorPaginator:
         """Создать ключ для кэша cursor."""
         filter_str = str(sorted(filters.items())) if filters else ""
         raw = f"{game}:{filter_str}"
-        return hashlib.md5(raw.encode()).hexdigest()[:16]
+        return hashlib.md5(raw.encode(), usedforsecurity=False).hexdigest()[:16]  # noqa: S324
 
     async def get_all_items(
         self,

@@ -63,7 +63,8 @@ NC := \033[0m  # No Color
 .PHONY: help install dev clean lint format test test-cov coverage docs run \
         check-types qa docker-build docker-run docker-stop pre-commit setup \
         all fix check check-format test-fast docker-logs pre-push update-deps \
-        security-check bandit safety debug-fast lint-fast types-fast test-core debug-full
+        security-check bandit safety debug-fast lint-fast types-fast test-core debug-full \
+        test-property test-contracts vulture interrogate test-all-tools
 
 # ============================================================================
 # ОСНОВНЫЕ КОМАНДЫ
@@ -431,3 +432,63 @@ ci-check: $(VENV)
 	@echo ✅ CI проверка завершена!
 
 
+
+# ============================================================================
+# ДОПОЛНИТЕЛЬНЫЕ ИНСТРУМЕНТЫ ТЕСТИРОВАНИЯ
+# ============================================================================
+
+# Property-based тесты (Hypothesis)
+test-property: $(VENV)
+@echo === 🎲 Property-based тесты (Hypothesis) ===
+@$(VENV_PYTHON) -m pytest tests/property_based/ -v --timeout=30 --no-cov
+
+# Контрактные тесты (Pact)
+test-contracts: $(VENV)
+@echo === 📜 Контрактные тесты (Pact) ===
+@$(VENV_PYTHON) -m pytest tests/contracts/ -v --timeout=30 --no-cov
+
+# Поиск мёртвого кода (Vulture)
+vulture: $(VENV)
+@echo === 🦅 Поиск мёртвого кода (Vulture) ===
+@$(VENV_PYTHON) -m vulture src/ --min-confidence 90 2>&1 | head -50 || true
+@echo.
+@echo Примечание: Некоторые ложные срабатывания для параметров функций нормальны
+
+# Проверка docstrings (Interrogate)
+interrogate: $(VENV)
+@echo === 📚 Проверка docstrings (Interrogate) ===
+@$(VENV_PYTHON) -m interrogate src/ --quiet --fail-under=0 || true
+
+# Проверка безопасности (Bandit)
+bandit-check: $(VENV)
+@echo === 🔒 Проверка безопасности (Bandit) ===
+@$(VENV_PYTHON) -m bandit -r src/ -c pyproject.toml -f txt 2>&1 | head -80 || true
+
+# Запуск ВСЕХ дополнительных инструментов тестирования
+test-all-tools: $(VENV)
+@echo.
+@echo ============================================================================
+@echo "   🧰 ЗАПУСК ВСЕХ ИНСТРУМЕНТОВ ТЕСТИРОВАНИЯ"
+@echo ============================================================================
+@echo.
+@echo [1/6] Линтинг (Ruff)...
+@$(VENV_PYTHON) -m ruff check src/ --output-format=concise --exit-zero 2>&1 | head -20
+@echo.
+@echo [2/6] Проверка типов (MyPy)...
+@$(VENV_PYTHON) -m mypy src/ --config-file=mypy-fast.ini 2>&1 | head -20 || true
+@echo.
+@echo [3/6] Property-based тесты (Hypothesis)...
+@$(VENV_PYTHON) -m pytest tests/property_based/ -q --timeout=30 --no-cov 2>&1 | tail -10
+@echo.
+@echo [4/6] Поиск мёртвого кода (Vulture)...
+@$(VENV_PYTHON) -m vulture src/ --min-confidence 95 2>&1 | head -10 || true
+@echo.
+@echo [5/6] Проверка docstrings (Interrogate)...
+@$(VENV_PYTHON) -m interrogate src/ --quiet --fail-under=0 2>&1 | tail -5 || true
+@echo.
+@echo [6/6] Проверка безопасности (Bandit)...
+@$(VENV_PYTHON) -m bandit -r src/ -c pyproject.toml -q 2>&1 | tail -10 || true
+@echo.
+@echo ============================================================================
+@echo "   ✅ ВСЕ ИНСТРУМЕНТЫ ЗАВЕРШЕНЫ"
+@echo ============================================================================
