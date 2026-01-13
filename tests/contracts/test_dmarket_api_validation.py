@@ -369,6 +369,7 @@ class TestAPIBaselineComparison:
     def test_balance_structure_unchanged(self):
         """Test that balance endpoint structure hasn't changed."""
         current_response = {
+            "balance": 100.00,
             "usd": "10000",
             "dmc": "5000",
         }
