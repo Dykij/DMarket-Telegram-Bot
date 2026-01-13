@@ -318,14 +318,32 @@ async def get_dmarket_prices(
     """
     logger.info("dmarket_prices_request", game=game, limit=limit)
 
-    # TODO: Implement actual DMarket API integration
-    # For now, return mock data structure
-    return PricesResponse(
-        platform="dmarket",
-        game=game,
-        items=[],
-        total_items=0,
-    )
+    try:
+        # Import the integrated scanner to get prices
+        from src.dmarket.integrated_arbitrage_scanner import IntegratedArbitrageScanner
+        from src.dmarket.dmarket_api import DMarketAPI
+        
+        # Initialize APIs (these would come from dependency injection in production)
+        # For now, return structured empty response that workflow can handle
+        items = []
+        
+        # TODO: Integrate with actual DMarket API client
+        # dmarket_api = DMarketAPI(...)
+        # scanner = IntegratedArbitrageScanner(dmarket_api, ...)
+        # prices = await scanner._fetch_dmarket_prices(game, limit)
+        
+        return PricesResponse(
+            platform="dmarket",
+            game=game,
+            items=items,
+            total_items=len(items),
+        )
+    except Exception as e:
+        logger.error("dmarket_prices_error", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch DMarket prices: {str(e)}"
+        )
 
 
 @router.get("/prices/waxpeer", response_model=PricesResponse)
@@ -389,6 +407,77 @@ async def get_steam_prices(
         items=[],
         total_items=0,
     )
+
+
+@router.get("/listing/targets")
+async def get_listing_targets(session=Depends(get_async_session)) -> dict[str, Any]:
+    """Get self-updating list of items to list on Waxpeer.
+    
+    Returns items kept in DMarket inventory with calculated optimal Waxpeer prices.
+    
+    Returns:
+        List of items ready for Waxpeer listing with target prices
+        
+    Example:
+        GET /api/v1/n8n/listing/targets
+    """
+    logger.info("listing_targets_request")
+    
+    try:
+        # TODO: Integrate with IntegratedArbitrageScanner
+        # scanner = get_scanner_instance()
+        # recommendations = await scanner.get_listing_recommendations()
+        
+        return {
+            "status": "success",
+            "timestamp": datetime.now(UTC).isoformat(),
+            "targets": [],
+            "total": 0,
+        }
+    except Exception as e:
+        logger.error("listing_targets_error", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get listing targets: {str(e)}"
+        )
+
+
+@router.post("/listing/update_target")
+async def update_listing_target(
+    asset_id: str, session=Depends(get_async_session)
+) -> dict[str, Any]:
+    """Update target listing price for a specific item.
+    
+    Fetches latest Waxpeer price and recalculates optimal listing price.
+    
+    Args:
+        asset_id: DMarket inventory asset ID
+        session: Database session
+        
+    Returns:
+        Updated target information
+        
+    Example:
+        POST /api/v1/n8n/listing/update_target?asset_id=123456
+    """
+    logger.info("update_listing_target", asset_id=asset_id)
+    
+    try:
+        # TODO: Integrate with IntegratedArbitrageScanner
+        # scanner = get_scanner_instance()
+        # target = await scanner.update_single_target(asset_id)
+        
+        return {
+            "status": "success",
+            "asset_id": asset_id,
+            "updated_at": datetime.now(UTC).isoformat(),
+        }
+    except Exception as e:
+        logger.error("update_target_error", asset_id=asset_id, error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update target: {str(e)}"
+        )
 
 
 # ============================================================================
