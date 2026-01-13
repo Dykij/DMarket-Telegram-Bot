@@ -163,11 +163,13 @@ class IntegratedArbitrageScanner:
     Integrated arbitrage scanner that finds opportunities and manages Waxpeer listings.
     
     Features:
+    - DMarket-only arbitrage (intramarket price anomalies)
     - Multi-platform price comparison (DMarket, Waxpeer, Steam)
     - Liquidity assessment (2-3 platform availability)
     - Automatic profit calculation with commissions
     - Keep items in DMarket inventory for Waxpeer resale
     - Self-updating price list for optimal Waxpeer listings
+    - Dual strategy: immediate DMarket profit + hold for Waxpeer
     """
 
     def __init__(
@@ -177,6 +179,8 @@ class IntegratedArbitrageScanner:
         steam_api: SteamAPI | None = None,
         min_profit_percent: Decimal = MIN_PROFIT_PERCENT,
         min_liquidity_score: int = MIN_LIQUIDITY_SCORE,
+        enable_dmarket_arbitrage: bool = True,
+        enable_cross_platform: bool = True,
     ):
         """Initialize integrated arbitrage scanner.
         
@@ -186,21 +190,27 @@ class IntegratedArbitrageScanner:
             steam_api: Steam API client (optional)
             min_profit_percent: Minimum profit percentage to consider
             min_liquidity_score: Minimum liquidity score (1-3)
+            enable_dmarket_arbitrage: Enable DMarket-only arbitrage
+            enable_cross_platform: Enable cross-platform arbitrage
         """
         self.dmarket = dmarket_api
         self.waxpeer = waxpeer_api
         self.steam = steam_api
         self.min_profit_percent = min_profit_percent
         self.min_liquidity_score = min_liquidity_score
+        self.enable_dmarket_arbitrage = enable_dmarket_arbitrage
+        self.enable_cross_platform = enable_cross_platform
         
         # Storage for discovered opportunities and listing targets
         self.opportunities: list[ArbitrageOpportunity] = []
+        self.dmarket_only_opportunities: list[dict[str, Any]] = []  # DMarket-only arbitrage
         self.listing_targets: dict[str, WaxpeerListingTarget] = {}  # asset_id -> target
         
         # Tracking
         self.last_scan: datetime | None = None
         self.total_scans: int = 0
         self.total_opportunities: int = 0
+        self.total_dmarket_opportunities: int = 0
 
     async def scan_multi_platform(
         self, game: str = "csgo", limit: int = 50
@@ -266,6 +276,115 @@ class IntegratedArbitrageScanner:
         )
         
         return filtered
+
+    async def scan_dmarket_only(
+        self, game: str = "csgo", limit: int = 100, price_diff_percent: float = 10.0
+    ) -> list[dict[str, Any]]:
+        """Scan DMarket for intramarket arbitrage opportunities.
+        
+        Finds items on DMarket that are underpriced compared to similar items,
+        allowing for immediate profit on the same platform.
+        
+        Args:
+            game: Game code (csgo, dota2, tf2, rust)
+            limit: Maximum items to check
+            price_diff_percent: Minimum price difference percentage
+            
+        Returns:
+            List of DMarket-only arbitrage opportunities
+        """
+        logger.info("starting_dmarket_only_scan", game=game, limit=limit)
+        
+        try:
+            # Import intramarket arbitrage module
+            from src.dmarket.intramarket_arbitrage import find_intramarket_opportunities_async
+            
+            # Scan for price anomalies on DMarket
+            opportunities = await find_intramarket_opportunities_async(
+                api=self.dmarket,
+                game=game,
+                limit=limit,
+                price_diff_percent=price_diff_percent,
+            )
+            
+            # Filter by minimum profit
+            filtered = [
+                opp for opp in opportunities
+                if opp.get("profit_percent", 0) >= float(self.min_profit_percent)
+            ]
+            
+            # Sort by profit percentage
+            filtered.sort(key=lambda x: x.get("profit_percent", 0), reverse=True)
+            
+            # Update tracking
+            self.dmarket_only_opportunities = filtered
+            self.total_dmarket_opportunities += len(filtered)
+            
+            logger.info(
+                "dmarket_only_scan_complete",
+                total_opportunities=len(filtered),
+                avg_profit=sum(o.get("profit_percent", 0) for o in filtered) / len(filtered) if filtered else 0,
+            )
+            
+            return filtered
+            
+        except Exception as e:
+            logger.error("dmarket_only_scan_failed", error=str(e), exc_info=True)
+            return []
+
+    async def scan_all_strategies(
+        self, game: str = "csgo", limit: int = 50
+    ) -> dict[str, Any]:
+        """Scan using all available strategies: DMarket-only + cross-platform.
+        
+        Args:
+            game: Game code (csgo, dota2, tf2, rust)
+            limit: Maximum items to check per strategy
+            
+        Returns:
+            Dictionary with both strategies' results
+        """
+        logger.info("starting_all_strategies_scan", game=game, limit=limit)
+        
+        results = {
+            "dmarket_only": [],
+            "cross_platform": [],
+            "timestamp": datetime.now(UTC).isoformat(),
+        }
+        
+        # Run both strategies in parallel
+        tasks = []
+        
+        if self.enable_dmarket_arbitrage:
+            tasks.append(self.scan_dmarket_only(game, limit * 2))  # More items for intramarket
+        
+        if self.enable_cross_platform:
+            tasks.append(self.scan_multi_platform(game, limit))
+        
+        if not tasks:
+            logger.warning("no_strategies_enabled")
+            return results
+        
+        scan_results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Process results
+        result_index = 0
+        if self.enable_dmarket_arbitrage:
+            if not isinstance(scan_results[result_index], Exception):
+                results["dmarket_only"] = scan_results[result_index]
+            result_index += 1
+        
+        if self.enable_cross_platform:
+            if not isinstance(scan_results[result_index], Exception):
+                results["cross_platform"] = scan_results[result_index]
+        
+        logger.info(
+            "all_strategies_scan_complete",
+            dmarket_only_count=len(results["dmarket_only"]),
+            cross_platform_count=len(results["cross_platform"]),
+        )
+        
+        return results
 
     async def _fetch_dmarket_prices(self, game: str, limit: int) -> dict[str, PlatformPrice]:
         """Fetch prices from DMarket."""
@@ -493,14 +612,130 @@ class IntegratedArbitrageScanner:
         
         return recommendations
 
+    async def decide_sell_strategy(
+        self, item_name: str, buy_price: Decimal, game: str = "csgo"
+    ) -> dict[str, Any]:
+        """Intelligently decide whether to sell on DMarket immediately or hold for Waxpeer.
+        
+        Analyzes both DMarket and Waxpeer prices to determine optimal strategy.
+        
+        Args:
+            item_name: Item name
+            buy_price: Price paid on DMarket
+            game: Game code
+            
+        Returns:
+            Dictionary with recommended strategy and expected profits
+        """
+        logger.info("deciding_sell_strategy", item=item_name, buy_price=float(buy_price))
+        
+        # Fetch current prices
+        try:
+            # Get DMarket suggested price (immediate sell)
+            dmarket_suggested = await self._get_dmarket_suggested_price(item_name, game)
+            
+            # Get Waxpeer market price (hold strategy)
+            waxpeer_price = await self._get_current_waxpeer_price(item_name)
+            
+            if not dmarket_suggested and not waxpeer_price:
+                logger.warning("no_prices_available", item=item_name)
+                return {
+                    "strategy": "unknown",
+                    "reason": "No price data available",
+                }
+            
+            # Calculate DMarket immediate profit
+            dmarket_profit = Decimal("0")
+            dmarket_roi = Decimal("0")
+            if dmarket_suggested:
+                net_dmarket = dmarket_suggested * (Decimal("1") - DMARKET_COMMISSION)
+                dmarket_profit = net_dmarket - buy_price
+                dmarket_roi = (dmarket_profit / buy_price) * Decimal("100")
+            
+            # Calculate Waxpeer hold profit
+            waxpeer_profit = Decimal("0")
+            waxpeer_roi = Decimal("0")
+            if waxpeer_price:
+                # Calculate with 10% markup
+                target_net = waxpeer_price * Decimal("1.10")
+                target_list = target_net / (Decimal("1") - WAXPEER_COMMISSION)
+                net_waxpeer = target_list * (Decimal("1") - WAXPEER_COMMISSION)
+                waxpeer_profit = net_waxpeer - buy_price
+                waxpeer_roi = (waxpeer_profit / buy_price) * Decimal("100")
+            
+            # Decision logic
+            if waxpeer_roi > dmarket_roi * Decimal("2"):  # Waxpeer 2x better
+                strategy = "hold_for_waxpeer"
+                reason = f"Waxpeer ROI ({waxpeer_roi:.1f}%) is significantly better than DMarket ({dmarket_roi:.1f}%)"
+            elif dmarket_roi >= OPTIMAL_PROFIT_PERCENT:  # DMarket profit is already great
+                strategy = "sell_dmarket_immediately"
+                reason = f"DMarket profit is excellent ({dmarket_roi:.1f}%)"
+            elif waxpeer_roi > dmarket_roi and waxpeer_roi >= self.min_profit_percent:
+                strategy = "hold_for_waxpeer"
+                reason = f"Waxpeer offers better profit ({waxpeer_roi:.1f}% vs {dmarket_roi:.1f}%)"
+            elif dmarket_roi >= self.min_profit_percent:
+                strategy = "sell_dmarket_immediately"
+                reason = f"DMarket profit meets minimum threshold ({dmarket_roi:.1f}%)"
+            else:
+                strategy = "hold_and_wait"
+                reason = "Neither option currently profitable, hold and monitor"
+            
+            logger.info(
+                "strategy_decided",
+                item=item_name,
+                strategy=strategy,
+                dmarket_roi=float(dmarket_roi),
+                waxpeer_roi=float(waxpeer_roi),
+            )
+            
+            return {
+                "strategy": strategy,
+                "reason": reason,
+                "dmarket": {
+                    "suggested_price": float(dmarket_suggested) if dmarket_suggested else None,
+                    "profit": float(dmarket_profit),
+                    "roi": float(dmarket_roi),
+                },
+                "waxpeer": {
+                    "market_price": float(waxpeer_price) if waxpeer_price else None,
+                    "target_list_price": float(target_list) if waxpeer_price else None,
+                    "profit": float(waxpeer_profit),
+                    "roi": float(waxpeer_roi),
+                },
+            }
+            
+        except Exception as e:
+            logger.error("strategy_decision_failed", item=item_name, error=str(e), exc_info=True)
+            return {
+                "strategy": "error",
+                "reason": f"Failed to analyze: {str(e)}",
+            }
+
+    async def _get_dmarket_suggested_price(self, item_name: str, game: str) -> Decimal | None:
+        """Get DMarket suggested price for an item."""
+        try:
+            # TODO: Implement actual DMarket API call
+            # result = await self.dmarket.get_item_suggested_price(item_name, game)
+            # return Decimal(str(result['suggested_price'])) / 100  # Convert cents to USD
+            return None
+        except Exception as e:
+            logger.error("dmarket_suggested_price_fetch_failed", item=item_name, error=str(e))
+            return None
+
     def get_statistics(self) -> dict[str, Any]:
         """Get scanner statistics."""
         return {
             "total_scans": self.total_scans,
             "total_opportunities_found": self.total_opportunities,
-            "current_opportunities": len(self.opportunities),
+            "total_dmarket_only_opportunities": self.total_dmarket_opportunities,
+            "current_cross_platform_opportunities": len(self.opportunities),
+            "current_dmarket_only_opportunities": len(self.dmarket_only_opportunities),
             "listing_targets": len(self.listing_targets),
             "unlisted_targets": sum(1 for t in self.listing_targets.values() if not t.is_listed),
             "last_scan": self.last_scan.isoformat() if self.last_scan else None,
             "avg_opportunities_per_scan": self.total_opportunities / self.total_scans if self.total_scans > 0 else 0,
+            "strategies_enabled": {
+                "dmarket_only": self.enable_dmarket_arbitrage,
+                "cross_platform": self.enable_cross_platform,
+            },
         }
