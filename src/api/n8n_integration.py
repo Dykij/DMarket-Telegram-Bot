@@ -105,6 +105,28 @@ class WebhookResponse(BaseModel):
     timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
+class PriceItem(BaseModel):
+    """Item price information."""
+
+    name: str = Field(..., description="Item name")
+    price: float = Field(..., description="Price in USD")
+    platform: str = Field(..., description="Platform (dmarket, waxpeer, steam)")
+    game: str = Field(..., description="Game code")
+    item_id: str | None = Field(None, description="Platform-specific item ID")
+    volume: int | None = Field(None, description="Trading volume (if available)")
+    liquidity: str | None = Field(None, description="Liquidity level (high, medium, low)")
+
+
+class PricesResponse(BaseModel):
+    """Response with item prices from a platform."""
+
+    platform: str = Field(..., description="Platform name")
+    game: str = Field(..., description="Game code")
+    items: list[PriceItem] = Field(..., description="List of items with prices")
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    total_items: int = Field(..., description="Total items returned")
+
+
 # ============================================================================
 # API Endpoints
 # ============================================================================
@@ -273,6 +295,100 @@ async def health_check() -> dict[str, Any]:
         "timestamp": datetime.now(UTC).isoformat(),
         "version": "1.0.0",
     }
+
+
+@router.get("/prices/dmarket", response_model=PricesResponse)
+async def get_dmarket_prices(
+    game: str = "csgo", limit: int = 50, session=Depends(get_async_session)
+) -> PricesResponse:
+    """Get current prices from DMarket for arbitrage comparison.
+
+    Used by Multi-Platform Arbitrage Monitor workflow to fetch DMarket prices.
+
+    Args:
+        game: Game code (csgo, dota2, tf2, rust)
+        limit: Maximum number of items to return (default: 50)
+        session: Database session
+
+    Returns:
+        PricesResponse with DMarket item prices
+
+    Example:
+        GET /api/v1/n8n/prices/dmarket?game=csgo&limit=50
+    """
+    logger.info("dmarket_prices_request", game=game, limit=limit)
+
+    # TODO: Implement actual DMarket API integration
+    # For now, return mock data structure
+    return PricesResponse(
+        platform="dmarket",
+        game=game,
+        items=[],
+        total_items=0,
+    )
+
+
+@router.get("/prices/waxpeer", response_model=PricesResponse)
+async def get_waxpeer_prices(
+    game: str = "csgo", limit: int = 50, session=Depends(get_async_session)
+) -> PricesResponse:
+    """Get current prices from Waxpeer P2P for arbitrage comparison.
+
+    Used by Multi-Platform Arbitrage Monitor workflow to fetch Waxpeer prices.
+    Note: Waxpeer prices are in mils (1000 mils = 1 USD).
+
+    Args:
+        game: Game code (only csgo supported on Waxpeer)
+        limit: Maximum number of items to return (default: 50)
+        session: Database session
+
+    Returns:
+        PricesResponse with Waxpeer item prices (in mils)
+
+    Example:
+        GET /api/v1/n8n/prices/waxpeer?game=csgo&limit=50
+    """
+    logger.info("waxpeer_prices_request", game=game, limit=limit)
+
+    # TODO: Implement actual Waxpeer API integration
+    # For now, return mock data structure
+    return PricesResponse(
+        platform="waxpeer",
+        game=game,
+        items=[],
+        total_items=0,
+    )
+
+
+@router.get("/prices/steam", response_model=PricesResponse)
+async def get_steam_prices(
+    game: str = "csgo", limit: int = 50, session=Depends(get_async_session)
+) -> PricesResponse:
+    """Get current prices from Steam Community Market for comparison.
+
+    Used by Multi-Platform Arbitrage Monitor workflow to fetch Steam Market prices.
+
+    Args:
+        game: Game code (csgo, dota2, tf2, rust)
+        limit: Maximum number of items to return (default: 50)
+        session: Database session
+
+    Returns:
+        PricesResponse with Steam Market item prices
+
+    Example:
+        GET /api/v1/n8n/prices/steam?game=csgo&limit=50
+    """
+    logger.info("steam_prices_request", game=game, limit=limit)
+
+    # TODO: Implement actual Steam Market API integration
+    # For now, return mock data structure
+    return PricesResponse(
+        platform="steam",
+        game=game,
+        items=[],
+        total_items=0,
+    )
 
 
 # ============================================================================
