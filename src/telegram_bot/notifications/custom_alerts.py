@@ -31,7 +31,6 @@ Created: January 10, 2026
 
 from __future__ import annotations
 
-import asyncio
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
@@ -153,11 +152,11 @@ class Alert:
         """
         if self.condition == AlertCondition.ABOVE:
             return current_value > self.target_value
-        elif self.condition == AlertCondition.BELOW:
+        if self.condition == AlertCondition.BELOW:
             return current_value < self.target_value
-        elif self.condition == AlertCondition.EQUALS:
+        if self.condition == AlertCondition.EQUALS:
             return abs(current_value - self.target_value) < Decimal("0.01")
-        elif self.condition == AlertCondition.CHANGE_PERCENT:
+        if self.condition == AlertCondition.CHANGE_PERCENT:
             if self.reference_price and self.reference_price > 0:
                 change_percent = abs((current_value - self.reference_price) / self.reference_price * 100)
                 return change_percent >= self.target_value
@@ -232,7 +231,7 @@ class AlertManager:
         # Rate limiting
         self._user_triggers: dict[int, list[datetime]] = {}
 
-    def create_alert(
+    def create_alert(  # noqa: PLR0917
         self,
         item_name: str,
         alert_type: AlertType,
@@ -667,12 +666,11 @@ class AlertManager:
 
         if alert.condition == AlertCondition.BELOW:
             return f"{emoji} {alert.item_name}: Цена упала до ${current_value} (цель: ${alert.target_value})"
-        elif alert.condition == AlertCondition.ABOVE:
+        if alert.condition == AlertCondition.ABOVE:
             return f"{emoji} {alert.item_name}: Цена выросла до ${current_value} (цель: ${alert.target_value})"
-        elif alert.condition == AlertCondition.CHANGE_PERCENT:
+        if alert.condition == AlertCondition.CHANGE_PERCENT:
             return f"{emoji} {alert.item_name}: Изменение цены {alert.target_value}% - сейчас ${current_value}"
-        else:
-            return f"{emoji} Алерт: {alert.item_name} - ${current_value}"
+        return f"{emoji} Алерт: {alert.item_name} - ${current_value}"
 
     def get_trigger_history(
         self,

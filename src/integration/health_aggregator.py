@@ -6,11 +6,11 @@ enabling a single source of truth for system health.
 Usage:
     ```python
     from src.integration.health_aggregator import HealthAggregator
-    
+
     aggregator = HealthAggregator()
     aggregator.register_component("dmarket_api", api_instance)
     aggregator.register_component("scanner", scanner_instance)
-    
+
     # Get overall health
     health = await aggregator.check_health()
     print(f"Status: {health.status}")
@@ -22,13 +22,16 @@ Created: January 10, 2026
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 logger = structlog.get_logger(__name__)
@@ -58,7 +61,7 @@ class ComponentHealth:
 
     def is_healthy(self) -> bool:
         """Check if component is healthy."""
-        return self.status in (HealthStatus.HEALTHY, HealthStatus.DEGRADED)
+        return self.status in {HealthStatus.HEALTHY, HealthStatus.DEGRADED}
 
 
 @dataclass
@@ -101,7 +104,7 @@ class SystemHealth:
                 ),
                 "unhealthy": sum(
                     1 for c in self.components.values()
-                    if c.status in (HealthStatus.UNHEALTHY, HealthStatus.CRITICAL)
+                    if c.status in {HealthStatus.UNHEALTHY, HealthStatus.CRITICAL}
                 ),
             },
         }
@@ -109,7 +112,7 @@ class SystemHealth:
 
 class HealthAggregator:
     """Aggregated health monitoring for all bot components.
-    
+
     Features:
     - Component registration
     - Periodic health checks
@@ -125,7 +128,7 @@ class HealthAggregator:
         degraded_threshold_ms: float = 1000.0,
     ) -> None:
         """Initialize health aggregator.
-        
+
         Args:
             check_interval_seconds: Interval between health checks
             failure_threshold: Failures before marking unhealthy
@@ -157,7 +160,7 @@ class HealthAggregator:
         custom_check: Callable[[], bool | dict] | None = None,
     ) -> None:
         """Register a component for health monitoring.
-        
+
         Args:
             name: Component name
             component: Component instance
@@ -173,7 +176,7 @@ class HealthAggregator:
 
     def unregister_component(self, name: str) -> None:
         """Unregister a component.
-        
+
         Args:
             name: Component name
         """
@@ -185,10 +188,10 @@ class HealthAggregator:
 
     async def check_component_health(self, name: str) -> ComponentHealth:
         """Check health of a single component.
-        
+
         Args:
             name: Component name
-            
+
         Returns:
             ComponentHealth object
         """
@@ -260,7 +263,7 @@ class HealthAggregator:
             health = ComponentHealth(
                 name=name,
                 status=status,
-                message="OK" if status in (HealthStatus.HEALTHY, HealthStatus.DEGRADED) else "Check failed",
+                message="OK" if status in {HealthStatus.HEALTHY, HealthStatus.DEGRADED} else "Check failed",
                 last_check=datetime.now(UTC),
                 response_time_ms=response_time,
                 details=details,
@@ -300,7 +303,7 @@ class HealthAggregator:
 
     async def check_health(self) -> SystemHealth:
         """Check health of all registered components.
-        
+
         Returns:
             SystemHealth object
         """
@@ -365,16 +368,16 @@ class HealthAggregator:
             try:
                 await self.check_health()
             except Exception as e:
-                logger.error("health_check_loop_error", error=str(e))
+                logger.exception("health_check_loop_error", error=str(e))
 
             await asyncio.sleep(self._check_interval)
 
     def get_component_health(self, name: str) -> ComponentHealth | None:
         """Get cached health for a component.
-        
+
         Args:
             name: Component name
-            
+
         Returns:
             ComponentHealth or None
         """
@@ -382,18 +385,18 @@ class HealthAggregator:
 
     def get_unhealthy_components(self) -> list[str]:
         """Get list of unhealthy components.
-        
+
         Returns:
             List of component names
         """
         return [
             name for name, health in self._health_cache.items()
-            if health.status in (HealthStatus.UNHEALTHY, HealthStatus.CRITICAL)
+            if health.status in {HealthStatus.UNHEALTHY, HealthStatus.CRITICAL}
         ]
 
     def get_stats(self) -> dict[str, Any]:
         """Get aggregator statistics.
-        
+
         Returns:
             Dictionary with stats
         """

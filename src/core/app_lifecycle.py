@@ -5,7 +5,8 @@ This module handles application startup and shutdown sequences.
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from src.core.application import Application

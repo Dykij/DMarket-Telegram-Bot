@@ -5,15 +5,14 @@ AI Integration Handler для Telegram бота.
 Поддержка нескольких моделей: Llama 3.1, Qwen 2.5, Mistral, Gemma 2.
 """
 
-import asyncio
+from enum import StrEnum
 import json
-from datetime import datetime
-from enum import Enum
 from typing import Any
 
 import structlog
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
+
 
 try:
     import httpx
@@ -26,7 +25,7 @@ except ImportError:
 logger = structlog.get_logger(__name__)
 
 
-class AIModel(str, Enum):
+class AIModel(StrEnum):
     """Поддерживаемые AI модели."""
 
     LLAMA_31_8B = "llama3.1:8b"
@@ -67,7 +66,7 @@ MODEL_RECOMMENDATIONS = {
 }
 
 # Системный промпт для DMarket бота
-DMARKET_SYSTEM_PROMPT = """Ты - AI-помощник для DMarket Trading Bot. 
+DMARKET_SYSTEM_PROMPT = """Ты - AI-помощник для DMarket Trading Bot.
 Ты помогаешь пользователям:
 1. Анализировать рынок CS:GO, Dota 2, Rust, TF2
 2. Находить арбитражные возможности
@@ -77,7 +76,7 @@ DMARKET_SYSTEM_PROMPT = """Ты - AI-помощник для DMarket Trading Bot
 
 Комиссии площадок:
 - DMarket: 7%
-- Waxpeer: 6% 
+- Waxpeer: 6%
 - Steam Market: 15%
 
 Уровни арбитража:
@@ -211,14 +210,13 @@ class AIIntegrationHandler:
                     })
 
                     return ai_response
-                else:
-                    return f"❌ Ошибка Ollama: HTTP {response.status_code}"
+                return f"❌ Ошибка Ollama: HTTP {response.status_code}"
 
         except httpx.TimeoutException:
             return "❌ Таймаут запроса к Ollama. Попробуйте позже."
         except Exception as e:
             logger.error("ai_chat_error", error=str(e), exc_info=True)
-            return f"❌ Ошибка: {str(e)}"
+            return f"❌ Ошибка: {e!s}"
 
     def clear_history(self, user_id: int) -> None:
         """Очистить историю разговора."""

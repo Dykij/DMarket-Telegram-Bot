@@ -29,7 +29,6 @@ Created: January 10, 2026
 
 from __future__ import annotations
 
-import asyncio
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
@@ -37,6 +36,7 @@ from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 
 import structlog
+
 
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
@@ -113,7 +113,7 @@ class InventoryItem:
     def unrealized_pnl_percent(self) -> Decimal:
         """Calculate unrealized P/L percentage."""
         if self.purchase_price == 0:
-            return Decimal("0")
+            return Decimal(0)
         return (self.unrealized_pnl / (self.purchase_price * self.quantity)) * 100
 
     def to_dict(self) -> dict[str, Any]:
@@ -315,13 +315,13 @@ class PortfolioTracker:
         self._trade_counter += 1
         trade_id = f"T{self._trade_counter:06d}"
 
-        commission_rate = self.COMMISSIONS.get(marketplace, Decimal("0"))
+        commission_rate = self.COMMISSIONS.get(marketplace, Decimal(0))
 
         if trade_type == TradeType.SELL:
             commission = price * commission_rate
             net_amount = price - commission
         else:
-            commission = Decimal("0")
+            commission = Decimal(0)
             net_amount = price
 
         trade = Trade(
@@ -454,7 +454,7 @@ class PortfolioTracker:
             Realized P/L
         """
         buys: dict[str, list[Trade]] = {}
-        pnl = Decimal("0")
+        pnl = Decimal(0)
 
         for trade in sorted(self._trades, key=lambda t: t.timestamp):
             if trade.trade_type == TradeType.BUY:
@@ -462,7 +462,7 @@ class PortfolioTracker:
                     buys[trade.item_name] = []
                 buys[trade.item_name].append(trade)
             elif trade.trade_type == TradeType.SELL:
-                if trade.item_name in buys and buys[trade.item_name]:
+                if buys.get(trade.item_name):
                     buy_trade = buys[trade.item_name].pop(0)  # FIFO
                     pnl += trade.net_amount - buy_trade.price
 
@@ -491,12 +491,12 @@ class PortfolioTracker:
         unrealized_pnl = self.calculate_unrealized_pnl()
         total_pnl = realized_pnl + unrealized_pnl
 
-        total_pnl_percent = (total_pnl / total_cost * 100) if total_cost > 0 else Decimal("0")
+        total_pnl_percent = (total_pnl / total_cost * 100) if total_cost > 0 else Decimal(0)
 
         # Calculate win rate
         sells = [t for t in self._trades if t.trade_type == TradeType.SELL]
         winning_trades = 0
-        total_trade_pnl = Decimal("0")
+        total_trade_pnl = Decimal(0)
 
         for sell in sells:
             # Find corresponding buy
@@ -514,8 +514,8 @@ class PortfolioTracker:
                 if trade_pnl > 0:
                     winning_trades += 1
 
-        win_rate = (Decimal(str(winning_trades)) / Decimal(str(len(sells))) * 100) if sells else Decimal("0")
-        avg_trade_pnl = total_trade_pnl / len(sells) if sells else Decimal("0")
+        win_rate = (Decimal(str(winning_trades)) / Decimal(str(len(sells))) * 100) if sells else Decimal(0)
+        avg_trade_pnl = total_trade_pnl / len(sells) if sells else Decimal(0)
 
         # Find best/worst trades
         best_trade = None
@@ -567,18 +567,18 @@ class PortfolioTracker:
                 total_trades=0,
                 winning_trades=0,
                 losing_trades=0,
-                total_volume=Decimal("0"),
-                total_pnl=Decimal("0"),
-                best_day_pnl=Decimal("0"),
-                worst_day_pnl=Decimal("0"),
+                total_volume=Decimal(0),
+                total_pnl=Decimal(0),
+                best_day_pnl=Decimal(0),
+                worst_day_pnl=Decimal(0),
                 avg_hold_time=timedelta(0),
-                profit_factor=Decimal("0"),
+                profit_factor=Decimal(0),
             )
 
         # Calculate metrics
         total_volume = sum(t.price for t in period_trades)
-        gross_profit = Decimal("0")
-        gross_loss = Decimal("0")
+        gross_profit = Decimal(0)
+        gross_loss = Decimal(0)
         winning = 0
         losing = 0
 
@@ -600,7 +600,7 @@ class PortfolioTracker:
                 hold_times.append(sell.timestamp - buy.timestamp)
 
                 date_key = sell.timestamp.date().isoformat()
-                daily_pnl[date_key] = daily_pnl.get(date_key, Decimal("0")) + pnl
+                daily_pnl[date_key] = daily_pnl.get(date_key, Decimal(0)) + pnl
 
                 if pnl > 0:
                     gross_profit += pnl
@@ -617,8 +617,8 @@ class PortfolioTracker:
             else timedelta(0)
         )
 
-        best_day = max(daily_pnl.values()) if daily_pnl else Decimal("0")
-        worst_day = min(daily_pnl.values()) if daily_pnl else Decimal("0")
+        best_day = max(daily_pnl.values()) if daily_pnl else Decimal(0)
+        worst_day = min(daily_pnl.values()) if daily_pnl else Decimal(0)
 
         return PerformanceMetrics(
             period_start=period_start,
@@ -634,11 +634,11 @@ class PortfolioTracker:
             profit_factor=profit_factor,
         )
 
-    def export_trades(self, format: str = "dict") -> list[dict[str, Any]]:
+    def export_trades(self, output_format: str = "dict") -> list[dict[str, Any]]:
         """Export trade history.
 
         Args:
-            format: Export format (dict, csv)
+            output_format: Export format (dict, csv)
 
         Returns:
             Trade data

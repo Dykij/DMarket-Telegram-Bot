@@ -6,11 +6,11 @@ enabling loose coupling and easier testing.
 Usage:
     ```python
     from src.integration.service_registry import ServiceRegistry
-    
+
     registry = ServiceRegistry()
     registry.register("dmarket_api", dmarket_api)
     registry.register("analytics", analytics)
-    
+
     # Get service
     api = registry.get("dmarket_api")
     ```
@@ -21,13 +21,16 @@ Created: January 10, 2026
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import structlog
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 logger = structlog.get_logger(__name__)
@@ -63,7 +66,7 @@ class ServiceInfo:
 
 class ServiceRegistry:
     """Centralized service registry with dependency management.
-    
+
     Features:
     - Service registration and discovery
     - Dependency tracking
@@ -87,7 +90,7 @@ class ServiceRegistry:
         depends_on: list[str] | None = None,
     ) -> None:
         """Register a service.
-        
+
         Args:
             name: Service identifier
             service: Service instance
@@ -115,7 +118,7 @@ class ServiceRegistry:
         depends_on: list[str] | None = None,
     ) -> None:
         """Register a service factory for lazy initialization.
-        
+
         Args:
             name: Service identifier
             factory: Callable that creates the service
@@ -135,13 +138,13 @@ class ServiceRegistry:
 
     def get(self, name: str) -> Any:
         """Get a service by name.
-        
+
         Args:
             name: Service identifier
-            
+
         Returns:
             Service instance
-            
+
         Raises:
             KeyError: If service not found
         """
@@ -160,10 +163,10 @@ class ServiceRegistry:
 
     def get_optional(self, name: str) -> Any | None:
         """Get a service by name, returning None if not found.
-        
+
         Args:
             name: Service identifier
-            
+
         Returns:
             Service instance or None
         """
@@ -174,10 +177,10 @@ class ServiceRegistry:
 
     def has(self, name: str) -> bool:
         """Check if a service is registered.
-        
+
         Args:
             name: Service identifier
-            
+
         Returns:
             True if service is registered
         """
@@ -185,7 +188,7 @@ class ServiceRegistry:
 
     def unregister(self, name: str) -> None:
         """Unregister a service.
-        
+
         Args:
             name: Service identifier
         """
@@ -198,7 +201,7 @@ class ServiceRegistry:
 
     def get_all(self) -> dict[str, Any]:
         """Get all registered services.
-        
+
         Returns:
             Dictionary of service name to instance
         """
@@ -210,10 +213,10 @@ class ServiceRegistry:
 
     def get_status(self, name: str) -> ServiceStatus:
         """Get service status.
-        
+
         Args:
             name: Service identifier
-            
+
         Returns:
             Service status
         """
@@ -223,10 +226,10 @@ class ServiceRegistry:
 
     def _get_start_order(self) -> list[str]:
         """Calculate service start order based on dependencies.
-        
+
         Returns:
             Ordered list of service names
-            
+
         Raises:
             ValueError: If circular dependency detected
         """
@@ -260,7 +263,7 @@ class ServiceRegistry:
 
     async def start_all(self) -> dict[str, bool]:
         """Start all services in dependency order.
-        
+
         Returns:
             Dictionary of service name to success status
         """
@@ -270,7 +273,7 @@ class ServiceRegistry:
             try:
                 start_order = self._get_start_order()
             except ValueError as e:
-                logger.error("dependency_error", error=str(e))
+                logger.exception("dependency_error", error=str(e))
                 return {"__error__": str(e)}
 
             for name in start_order:
@@ -300,7 +303,7 @@ class ServiceRegistry:
                     service_info.error = e
                     results[name] = False
 
-                    logger.error(
+                    logger.exception(
                         "service_start_failed",
                         name=name,
                         error=str(e),
@@ -311,7 +314,7 @@ class ServiceRegistry:
 
     async def stop_all(self) -> dict[str, bool]:
         """Stop all services in reverse dependency order.
-        
+
         Returns:
             Dictionary of service name to success status
         """
@@ -349,7 +352,7 @@ class ServiceRegistry:
                     service_info.error = e
                     results[name] = False
 
-                    logger.error(
+                    logger.exception(
                         "service_stop_failed",
                         name=name,
                         error=str(e),
@@ -360,7 +363,7 @@ class ServiceRegistry:
 
     def get_health_summary(self) -> dict[str, Any]:
         """Get health summary of all services.
-        
+
         Returns:
             Dictionary with service health information
         """

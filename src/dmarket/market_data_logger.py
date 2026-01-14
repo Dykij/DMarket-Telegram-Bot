@@ -21,13 +21,14 @@ CSV Output Format:
 
 import asyncio
 import csv
-import logging
-import os
-import time
 from dataclasses import dataclass
 from datetime import datetime
+import logging
+import os
 from pathlib import Path
+import time
 from typing import TYPE_CHECKING, Any
+
 
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI

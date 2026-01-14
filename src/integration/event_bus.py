@@ -6,15 +6,15 @@ bot components, enabling loose coupling and reactive architecture.
 Usage:
     ```python
     from src.integration.event_bus import EventBus, Event
-    
+
     bus = EventBus()
-    
+
     # Subscribe to events
     async def on_price_change(event: Event):
         print(f"Price changed: {event.data}")
-    
+
     bus.subscribe("price_change", on_price_change)
-    
+
     # Publish events
     await bus.publish(Event("price_change", {"item": "AWP", "price": 100}))
     ```
@@ -87,7 +87,7 @@ class Subscription:
 
 class EventBus:
     """Event bus for inter-module communication.
-    
+
     Features:
     - Async event handling
     - Event prioritization
@@ -103,7 +103,7 @@ class EventBus:
         enable_history: bool = True,
     ) -> None:
         """Initialize event bus.
-        
+
         Args:
             max_history: Maximum events to keep in history
             enable_history: Whether to track event history
@@ -135,14 +135,14 @@ class EventBus:
         once: bool = False,
     ) -> str:
         """Subscribe to an event type.
-        
+
         Args:
             event_type: Type of event to subscribe to
             handler: Handler function (async or sync)
             priority: Handler priority (higher runs first)
             filter_fn: Optional filter function
             once: If True, unsubscribe after first event
-            
+
         Returns:
             Subscription ID
         """
@@ -182,10 +182,10 @@ class EventBus:
 
     def unsubscribe(self, subscription_id: str) -> bool:
         """Unsubscribe from events.
-        
+
         Args:
             subscription_id: ID of subscription to remove
-            
+
         Returns:
             True if subscription was found and removed
         """
@@ -204,10 +204,10 @@ class EventBus:
 
     def unsubscribe_all(self, event_type: str) -> int:
         """Unsubscribe all handlers for an event type.
-        
+
         Args:
             event_type: Type of event
-            
+
         Returns:
             Number of subscriptions removed
         """
@@ -222,11 +222,11 @@ class EventBus:
         wait: bool = True,
     ) -> int:
         """Publish an event.
-        
+
         Args:
             event: Event to publish
             wait: If True, wait for all handlers to complete
-            
+
         Returns:
             Number of handlers that processed the event
         """
@@ -277,7 +277,7 @@ class EventBus:
 
             except Exception as e:
                 self._handler_errors += 1
-                logger.error(
+                logger.exception(
                     "event_handler_error",
                     event_type=event.type,
                     subscription_id=sub.id,
@@ -304,11 +304,11 @@ class EventBus:
         wait: bool = True,
     ) -> int:
         """Publish multiple events.
-        
+
         Args:
             events: Events to publish
             wait: If True, wait for all handlers to complete
-            
+
         Returns:
             Total number of handlers run
         """
@@ -323,11 +323,11 @@ class EventBus:
         limit: int = 100,
     ) -> list[Event]:
         """Get event history.
-        
+
         Args:
             event_type: Filter by event type (optional)
             limit: Maximum events to return
-            
+
         Returns:
             List of events
         """
@@ -340,7 +340,7 @@ class EventBus:
 
     def get_stats(self) -> dict[str, Any]:
         """Get event bus statistics.
-        
+
         Returns:
             Dictionary with stats
         """
@@ -368,7 +368,7 @@ class EventBus:
 
     def clear_history(self) -> int:
         """Clear event history.
-        
+
         Returns:
             Number of events cleared
         """

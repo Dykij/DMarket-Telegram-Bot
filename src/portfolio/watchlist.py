@@ -532,8 +532,7 @@ class WatchlistManager:
         """
         names = set()
         for watchlist in self.get_user_watchlists(user_id):
-            for item in watchlist.items.values():
-                names.add(item.item_name)
+            names.update(item.item_name for item in watchlist.items.values())
         return names
 
     def get_items_at_target(self, user_id: int | None = None) -> list[WatchlistItem]:
