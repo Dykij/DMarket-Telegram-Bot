@@ -12,7 +12,7 @@ from pathlib import Path
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 
 logger = logging.getLogger(__name__)
@@ -35,8 +35,8 @@ class SecretsManager:
 
     def _create_cipher(self, password: str) -> Fernet:
         """Create encryption cipher from password."""
-        # Derive key from password using PBKDF2
-        kdf = PBKDF2(
+        # Derive key from password using PBKDF2HMAC
+        kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=b"dmarket-bot-salt",  # In production, use random salt stored separately

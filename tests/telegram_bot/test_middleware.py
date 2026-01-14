@@ -5,31 +5,46 @@ This module tests the Telegram bot middleware components.
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+import time
 
-from telegram import Update, User
+from telegram import Update, User, Chat, Message, CallbackQuery
 
-from src.telegram_bot.middleware import (
-    UserAuthMiddleware,
-    RateLimitMiddleware,
-    LoggingMiddleware,
-)
+from src.telegram_bot.middleware import BotMiddleware, middleware
 
 
-class TestUserAuthMiddleware:
-    """Tests for UserAuthMiddleware."""
+class TestBotMiddleware:
+    """Tests for BotMiddleware class."""
 
     @pytest.fixture
-    def middleware(self):
-        """Create UserAuthMiddleware instance."""
-        return UserAuthMiddleware()
+    def bot_middleware(self):
+        """Create BotMiddleware instance."""
+        return BotMiddleware()
 
     @pytest.fixture
-    def mock_update(self):
-        """Create mock Update."""
+    def mock_update_message(self):
+        """Create mock Update with message."""
         update = MagicMock(spec=Update)
         update.effective_user = MagicMock(spec=User)
         update.effective_user.id = 123456
         update.effective_user.username = "testuser"
+        update.effective_chat = MagicMock(spec=Chat)
+        update.effective_chat.id = 789
+        update.message = MagicMock(spec=Message)
+        update.message.text = "/start hello"
+        update.callback_query = None
+        return update
+
+    @pytest.fixture
+    def mock_update_callback(self):
+        """Create mock Update with callback."""
+        update = MagicMock(spec=Update)
+        update.effective_user = MagicMock(spec=User)
+        update.effective_user.id = 123456
+        update.effective_chat = MagicMock(spec=Chat)
+        update.effective_chat.id = 789
+        update.message = None
+        update.callback_query = MagicMock(spec=CallbackQuery)
+        update.callback_query.data = "button_click"
         return update
 
     @pytest.fixture
@@ -39,152 +54,147 @@ class TestUserAuthMiddleware:
         context.user_data = {}
         return context
 
-    @pytest.mark.asyncio
-    async def test_init(self, middleware):
+    def test_init(self, bot_middleware):
         """Test middleware initialization."""
-        assert middleware is not None
+        assert bot_middleware.request_count == 0
+        assert bot_middleware.error_count == 0
+        assert bot_middleware.command_stats == {}
 
     @pytest.mark.asyncio
-    async def test_process_update(self, middleware, mock_update, mock_context):
-        """Test processing update."""
-        next_handler = AsyncMock()
+    async def test_logging_middleware_with_message(self, bot_middleware, mock_update_message, mock_context):
+        """Test logging middleware with message."""
+        handler = AsyncMock(return_value="result")
+        wrapped = bot_middleware.logging_middleware(handler)
 
-        await middleware.process_update(mock_update, mock_context, next_handler)
+        result = await wrapped(mock_update_message, mock_context)
 
-        # Next handler should be called
-        next_handler.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_authorize_user(self, middleware, mock_update):
-        """Test user authorization."""
-        is_authorized = await middleware.authorize_user(mock_update)
-        assert isinstance(is_authorized, bool)
+        assert result == "result"
+        assert bot_middleware.request_count == 1
+        assert "/start" in bot_middleware.command_stats
+        handler.assert_called_once_with(mock_update_message, mock_context)
 
     @pytest.mark.asyncio
-    async def test_get_user_permissions(self, middleware, mock_update):
-        """Test getting user permissions."""
-        permissions = await middleware.get_user_permissions(mock_update.effective_user.id)
-        assert isinstance(permissions, (dict, list, set))
+    async def test_logging_middleware_with_callback(self, bot_middleware, mock_update_callback, mock_context):
+        """Test logging middleware with callback query."""
+        handler = AsyncMock(return_value="callback_result")
+        wrapped = bot_middleware.logging_middleware(handler)
 
+        result = await wrapped(mock_update_callback, mock_context)
 
-class TestRateLimitMiddleware:
-    """Tests for RateLimitMiddleware."""
+        assert result == "callback_result"
+        assert bot_middleware.request_count == 1
+        handler.assert_called_once()
 
-    @pytest.fixture
-    def middleware(self):
-        """Create RateLimitMiddleware instance."""
-        return RateLimitMiddleware(max_requests=10, time_window=60)
+    @pytest.mark.asyncio
+    async def test_logging_middleware_error(self, bot_middleware, mock_update_message, mock_context):
+        """Test logging middleware error handling."""
+        handler = AsyncMock(side_effect=Exception("Test error"))
+        wrapped = bot_middleware.logging_middleware(handler)
 
-    @pytest.fixture
-    def mock_update(self):
-        """Create mock Update."""
+        with pytest.raises(Exception, match="Test error"):
+            await wrapped(mock_update_message, mock_context)
+
+        assert bot_middleware.request_count == 1
+        assert bot_middleware.error_count == 1
+
+    @pytest.mark.asyncio
+    async def test_rate_limit_middleware_allows_requests(self, bot_middleware, mock_update_message, mock_context):
+        """Test rate limit allows initial requests."""
+        handler = AsyncMock(return_value="ok")
+        decorator = bot_middleware.rate_limit_middleware(max_requests=5, window_seconds=60)
+        wrapped = decorator(handler)
+
+        # First 5 requests should pass
+        for i in range(5):
+            result = await wrapped(mock_update_message, mock_context)
+            assert result == "ok"
+
+        assert handler.call_count == 5
+
+    @pytest.mark.asyncio
+    async def test_rate_limit_middleware_blocks_excess(self, bot_middleware, mock_update_message, mock_context):
+        """Test rate limit blocks excess requests."""
+        handler = AsyncMock(return_value="ok")
+        decorator = bot_middleware.rate_limit_middleware(max_requests=3, window_seconds=60)
+        wrapped = decorator(handler)
+
+        # First 3 requests pass
+        for _ in range(3):
+            await wrapped(mock_update_message, mock_context)
+
+        # 4th request should be blocked
+        result = await wrapped(mock_update_message, mock_context)
+        assert result is None
+        assert handler.call_count == 3
+
+    @pytest.mark.asyncio
+    async def test_rate_limit_middleware_no_user(self, bot_middleware, mock_context):
+        """Test rate limit passes when no effective user."""
         update = MagicMock(spec=Update)
-        update.effective_user = MagicMock(spec=User)
-        update.effective_user.id = 123456
-        return update
+        update.effective_user = None
 
-    @pytest.fixture
-    def mock_context(self):
-        """Create mock Context."""
-        return MagicMock()
+        handler = AsyncMock(return_value="ok")
+        decorator = bot_middleware.rate_limit_middleware(max_requests=1, window_seconds=60)
+        wrapped = decorator(handler)
 
-    @pytest.mark.asyncio
-    async def test_init(self, middleware):
-        """Test middleware initialization."""
-        assert middleware.max_requests == 10
-        assert middleware.time_window == 60
+        # Multiple requests should pass (no user to rate limit)
+        for _ in range(5):
+            result = await wrapped(update, mock_context)
+            assert result == "ok"
+
+        assert handler.call_count == 5
 
     @pytest.mark.asyncio
-    async def test_check_rate_limit(self, middleware, mock_update):
-        """Test rate limit checking."""
-        is_allowed = await middleware.check_rate_limit(mock_update.effective_user.id)
-        assert is_allowed is True  # First request should be allowed
+    async def test_rate_limit_with_callback_query(self, bot_middleware, mock_update_callback, mock_context):
+        """Test rate limit with callback query response."""
+        handler = AsyncMock(return_value="ok")
+        decorator = bot_middleware.rate_limit_middleware(max_requests=1, window_seconds=60)
+        wrapped = decorator(handler)
 
-    @pytest.mark.asyncio
-    async def test_rate_limit_exceeded(self, middleware, mock_update):
-        """Test rate limit exceeded."""
-        user_id = mock_update.effective_user.id
+        # First request passes
+        await wrapped(mock_update_callback, mock_context)
 
-        # Make many requests
-        for _ in range(15):
-            await middleware.check_rate_limit(user_id)
+        # Second request blocked
+        result = await wrapped(mock_update_callback, mock_context)
+        assert result is None
+        mock_update_callback.callback_query.answer.assert_called()
 
-        # After exceeding limit, should be blocked
-        is_allowed = await middleware.check_rate_limit(user_id)
-        assert is_allowed is False
+    def test_get_stats(self, bot_middleware):
+        """Test getting statistics."""
+        bot_middleware.request_count = 100
+        bot_middleware.error_count = 5
+        bot_middleware.command_stats = {"/start": 50, "/help": 30}
 
-    @pytest.mark.asyncio
-    async def test_process_update_allowed(self, middleware, mock_update, mock_context):
-        """Test processing allowed update."""
-        next_handler = AsyncMock()
+        stats = bot_middleware.get_stats()
 
-        await middleware.process_update(mock_update, mock_context, next_handler)
+        assert stats["total_requests"] == 100
+        assert stats["total_errors"] == 5
+        assert stats["error_rate"] == 0.05
+        assert stats["command_stats"] == {"/start": 50, "/help": 30}
 
-        next_handler.assert_called_once()
+    def test_get_stats_zero_requests(self, bot_middleware):
+        """Test getting statistics with zero requests."""
+        stats = bot_middleware.get_stats()
 
-    @pytest.mark.asyncio
-    async def test_reset_rate_limit(self, middleware, mock_update):
-        """Test resetting rate limit."""
-        user_id = mock_update.effective_user.id
-
-        await middleware.reset_rate_limit(user_id)
-
-        # Should be allowed after reset
-        is_allowed = await middleware.check_rate_limit(user_id)
-        assert is_allowed is True
+        assert stats["total_requests"] == 0
+        assert stats["total_errors"] == 0
+        assert stats["error_rate"] == 0
+        assert stats["command_stats"] == {}
 
 
-class TestLoggingMiddleware:
-    """Tests for LoggingMiddleware."""
+class TestGlobalMiddleware:
+    """Tests for global middleware instance."""
 
-    @pytest.fixture
-    def middleware(self):
-        """Create LoggingMiddleware instance."""
-        return LoggingMiddleware()
-
-    @pytest.fixture
-    def mock_update(self):
-        """Create mock Update."""
-        update = MagicMock(spec=Update)
-        update.effective_user = MagicMock(spec=User)
-        update.effective_user.id = 123456
-        update.effective_user.username = "testuser"
-        update.update_id = 12345
-        return update
-
-    @pytest.fixture
-    def mock_context(self):
-        """Create mock Context."""
-        return MagicMock()
-
-    @pytest.mark.asyncio
-    async def test_init(self, middleware):
-        """Test middleware initialization."""
+    def test_global_middleware_exists(self):
+        """Test global middleware instance exists."""
         assert middleware is not None
+        assert isinstance(middleware, BotMiddleware)
 
-    @pytest.mark.asyncio
-    async def test_log_request(self, middleware, mock_update):
-        """Test logging request."""
-        with patch("src.telegram_bot.middleware.logger") as mock_logger:
-            await middleware.log_request(mock_update)
-            # Logger should be called
-            assert mock_logger.info.called or mock_logger.debug.called
-
-    @pytest.mark.asyncio
-    async def test_process_update(self, middleware, mock_update, mock_context):
-        """Test processing update with logging."""
-        next_handler = AsyncMock()
-
-        with patch("src.telegram_bot.middleware.logger"):
-            await middleware.process_update(mock_update, mock_context, next_handler)
-
-        next_handler.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_log_error(self, middleware):
-        """Test logging errors."""
-        error = Exception("Test error")
-
-        with patch("src.telegram_bot.middleware.logger") as mock_logger:
-            await middleware.log_error(error)
-            mock_logger.error.assert_called()
+    def test_global_middleware_has_methods(self):
+        """Test global middleware has required methods."""
+        assert hasattr(middleware, "logging_middleware")
+        assert hasattr(middleware, "rate_limit_middleware")
+        assert hasattr(middleware, "get_stats")
+        assert callable(middleware.logging_middleware)
+        assert callable(middleware.rate_limit_middleware)
+        assert callable(middleware.get_stats)

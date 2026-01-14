@@ -1,181 +1,324 @@
 """Tests for reactive_websocket module.
 
-This module tests the ReactiveWebSocket class for real-time
-market data streaming.
+This module tests the ReactiveDMarketWebSocket class and Observable
+for real-time market data streaming.
 """
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 import asyncio
 
-from src.utils.reactive_websocket import ReactiveWebSocket
+from src.utils.reactive_websocket import (
+    ReactiveDMarketWebSocket,
+    Observable,
+    Subscription,
+    EventType,
+    SubscriptionState,
+)
 
 
-class TestReactiveWebSocket:
-    """Tests for ReactiveWebSocket class."""
+class TestObservable:
+    """Tests for Observable class."""
 
     @pytest.fixture
-    def websocket(self):
-        """Create ReactiveWebSocket instance."""
-        return ReactiveWebSocket(url="wss://test.example.com/ws")
+    def observable(self):
+        """Create Observable instance."""
+        return Observable[dict]()
+
+    @pytest.mark.asyncio
+    async def test_emit_sync_observer(self, observable):
+        """Test emitting events to sync observer."""
+        received = []
+
+        def handler(data):
+            received.append(data)
+
+        observable.subscribe(handler)
+        await observable.emit({"test": "data"})
+
+        assert len(received) == 1
+        assert received[0] == {"test": "data"}
+
+    @pytest.mark.asyncio
+    async def test_emit_async_observer(self, observable):
+        """Test emitting events to async observer."""
+        received = []
+
+        async def handler(data):
+            received.append(data)
+
+        observable.subscribe_async(handler)
+        await observable.emit({"test": "data"})
+
+        assert len(received) == 1
+        assert received[0] == {"test": "data"}
+
+    @pytest.mark.asyncio
+    async def test_subscribe_multiple_sync(self, observable):
+        """Test multiple sync subscribers."""
+        received1 = []
+        received2 = []
+
+        def handler1(data):
+            received1.append(data)
+
+        def handler2(data):
+            received2.append(data)
+
+        observable.subscribe(handler1)
+        observable.subscribe(handler2)
+        await observable.emit({"event": "test"})
+
+        assert len(received1) == 1
+        assert len(received2) == 1
+
+    @pytest.mark.asyncio
+    async def test_unsubscribe(self, observable):
+        """Test unsubscribing."""
+        received = []
+
+        def handler(data):
+            received.append(data)
+
+        observable.subscribe(handler)
+        await observable.emit({"first": True})
+
+        observable.unsubscribe(handler)
+        await observable.emit({"second": True})
+
+        assert len(received) == 1
+        assert received[0] == {"first": True}
+
+    def test_clear_observers(self, observable):
+        """Test clearing all observers."""
+        def sync_handler(data):
+            pass
+
+        async def async_handler(data):
+            pass
+
+        observable.subscribe(sync_handler)
+        observable.subscribe_async(async_handler)
+
+        observable.clear()
+
+        assert len(observable._observers) == 0
+        assert len(observable._async_observers) == 0
+
+
+class TestSubscription:
+    """Tests for Subscription class."""
+
+    def test_init(self):
+        """Test initialization."""
+        subscription = Subscription(
+            topic="balance",
+            params={"userId": "123"},
+        )
+
+        assert subscription.topic == "balance"
+        assert subscription.params == {"userId": "123"}
+        assert subscription.state == SubscriptionState.IDLE
+        assert subscription.event_count == 0
+        assert subscription.error_count == 0
+
+    def test_init_without_params(self):
+        """Test initialization without params."""
+        subscription = Subscription(topic="test")
+
+        assert subscription.topic == "test"
+        assert subscription.params == {}
+
+    def test_update_state(self):
+        """Test state change."""
+        subscription = Subscription(topic="test")
+
+        subscription.update_state(SubscriptionState.ACTIVE)
+        assert subscription.state == SubscriptionState.ACTIVE
+
+        subscription.update_state(SubscriptionState.ERROR)
+        assert subscription.state == SubscriptionState.ERROR
+
+    def test_record_event(self):
+        """Test recording events."""
+        subscription = Subscription(topic="test")
+
+        assert subscription.event_count == 0
+        assert subscription.last_event_at is None
+
+        subscription.record_event()
+
+        assert subscription.event_count == 1
+        assert subscription.last_event_at is not None
+
+    def test_record_error(self):
+        """Test recording errors."""
+        subscription = Subscription(topic="test")
+
+        assert subscription.error_count == 0
+
+        subscription.record_error()
+        subscription.record_error()
+
+        assert subscription.error_count == 2
+
+
+class TestEventType:
+    """Tests for EventType enum."""
+
+    def test_event_types_exist(self):
+        """Test that required event types exist."""
+        assert EventType.BALANCE_UPDATE is not None
+        assert EventType.ORDER_CREATED is not None
+        assert EventType.ORDER_UPDATED is not None
+        assert EventType.MARKET_PRICE_CHANGE is not None
+        assert EventType.TARGET_MATCHED is not None
+
+    def test_event_type_values(self):
+        """Test event type values are strings."""
+        assert EventType.BALANCE_UPDATE == "balance:update"
+        assert EventType.ORDER_CREATED == "order:created"
+        assert EventType.MARKET_PRICE_CHANGE == "market:price"
+
+
+class TestSubscriptionState:
+    """Tests for SubscriptionState enum."""
+
+    def test_states_exist(self):
+        """Test that required states exist."""
+        assert SubscriptionState.IDLE is not None
+        assert SubscriptionState.ACTIVE is not None
+        assert SubscriptionState.ERROR is not None
+        assert SubscriptionState.SUBSCRIBING is not None
+
+    def test_state_values(self):
+        """Test state values are strings."""
+        assert SubscriptionState.IDLE == "idle"
+        assert SubscriptionState.ACTIVE == "active"
+        assert SubscriptionState.ERROR == "error"
+
+
+class TestReactiveDMarketWebSocket:
+    """Tests for ReactiveDMarketWebSocket class."""
+
+    @pytest.fixture
+    def mock_api_client(self):
+        """Create mock API client."""
+        client = MagicMock()
+        client.public_key = "test_public_key"
+        client.secret_key = "test_secret_key"
+        return client
+
+    @pytest.fixture
+    def websocket(self, mock_api_client):
+        """Create ReactiveDMarketWebSocket instance."""
+        return ReactiveDMarketWebSocket(
+            api_client=mock_api_client,
+            auto_reconnect=True,
+            max_reconnect_attempts=5,
+        )
 
     def test_init(self, websocket):
         """Test initialization."""
-        assert websocket.url == "wss://test.example.com/ws"
         assert websocket.is_connected is False
+        assert websocket.auto_reconnect is True
+        assert websocket.max_reconnect_attempts == 5
+        assert websocket.reconnect_attempts == 0
 
-    def test_init_with_options(self):
-        """Test initialization with options."""
-        ws = ReactiveWebSocket(
-            url="wss://test.example.com/ws",
-            reconnect_interval=5.0,
-            max_reconnects=10,
-        )
+    def test_init_observables(self, websocket):
+        """Test observables are initialized."""
+        assert EventType.BALANCE_UPDATE in websocket.observables
+        assert EventType.ORDER_CREATED in websocket.observables
+        assert EventType.MARKET_PRICE_CHANGE in websocket.observables
+        assert websocket.all_events is not None
+        assert websocket.connection_state is not None
 
-        assert ws.reconnect_interval == 5.0
-        assert ws.max_reconnects == 10
+    def test_subscriptions_dict_empty(self, websocket):
+        """Test subscriptions dict is initially empty."""
+        assert websocket.subscriptions == {}
+
+    def test_ws_endpoint(self, websocket):
+        """Test WebSocket endpoint."""
+        assert "dmarket.com" in websocket.WS_ENDPOINT
+        assert websocket.WS_ENDPOINT.startswith("wss://")
 
     @pytest.mark.asyncio
-    async def test_connect(self, websocket):
-        """Test connecting to WebSocket."""
-        with patch("src.utils.reactive_websocket.websockets") as mock_ws:
-            mock_connection = MagicMock()
-            mock_ws.connect = AsyncMock(return_value=mock_connection)
+    async def test_connect_when_already_connected(self, websocket):
+        """Test connect returns True when already connected."""
+        websocket.is_connected = True
 
-            await websocket.connect()
+        result = await websocket.connect()
 
-            assert websocket.is_connected is True
+        assert result is True
 
     @pytest.mark.asyncio
     async def test_disconnect(self, websocket):
-        """Test disconnecting from WebSocket."""
+        """Test disconnection."""
+        # Set up connected state
         websocket.is_connected = True
-        websocket.connection = MagicMock()
-        websocket.connection.close = AsyncMock()
+        websocket.ws_connection = MagicMock()
+        websocket.ws_connection.close = AsyncMock()
+        websocket.session = MagicMock()
+        websocket.session.close = AsyncMock()
 
         await websocket.disconnect()
 
         assert websocket.is_connected is False
 
     @pytest.mark.asyncio
-    async def test_subscribe(self, websocket):
-        """Test subscribing to channel."""
-        websocket.is_connected = True
-        websocket.connection = MagicMock()
-        websocket.connection.send = AsyncMock()
+    async def test_connection_state_observable_emit(self, websocket):
+        """Test connection state observable can emit."""
+        states_received = []
 
-        await websocket.subscribe("price_updates")
+        def state_handler(is_connected):
+            states_received.append(is_connected)
 
-        websocket.connection.send.assert_called_once()
+        websocket.connection_state.subscribe(state_handler)
 
-    @pytest.mark.asyncio
-    async def test_unsubscribe(self, websocket):
-        """Test unsubscribing from channel."""
-        websocket.is_connected = True
-        websocket.connection = MagicMock()
-        websocket.connection.send = AsyncMock()
+        # Emit events
+        await websocket.connection_state.emit(True)
+        assert states_received == [True]
 
-        await websocket.unsubscribe("price_updates")
-
-        websocket.connection.send.assert_called_once()
+        await websocket.connection_state.emit(False)
+        assert states_received == [True, False]
 
     @pytest.mark.asyncio
-    async def test_send_message(self, websocket):
-        """Test sending message."""
-        websocket.is_connected = True
-        websocket.connection = MagicMock()
-        websocket.connection.send = AsyncMock()
+    async def test_all_events_observable_emit(self, websocket):
+        """Test all events observable can emit."""
+        events_received = []
 
-        await websocket.send({"type": "ping"})
+        def event_handler(event):
+            events_received.append(event)
 
-        websocket.connection.send.assert_called_once()
+        websocket.all_events.subscribe(event_handler)
 
-    @pytest.mark.asyncio
-    async def test_receive_message(self, websocket):
-        """Test receiving message."""
-        websocket.is_connected = True
-        websocket.connection = MagicMock()
-        websocket.connection.recv = AsyncMock(return_value='{"type": "price_update", "price": 10.0}')
+        test_event = {"type": "test", "data": {"value": 123}}
+        await websocket.all_events.emit(test_event)
 
-        message = await websocket.receive()
-
-        assert message["type"] == "price_update"
-        assert message["price"] == 10.0
+        assert len(events_received) == 1
+        assert events_received[0] == test_event
 
     @pytest.mark.asyncio
-    async def test_reconnect(self, websocket):
-        """Test reconnection logic."""
-        websocket.reconnect_count = 0
+    async def test_specific_event_observable(self, websocket):
+        """Test subscribing to specific event types."""
+        balance_events = []
 
-        with patch.object(websocket, "connect", new_callable=AsyncMock):
-            await websocket.reconnect()
+        def balance_handler(event):
+            balance_events.append(event)
 
-            websocket.connect.assert_called_once()
+        websocket.observables[EventType.BALANCE_UPDATE].subscribe(balance_handler)
 
-    @pytest.mark.asyncio
-    async def test_max_reconnects_exceeded(self, websocket):
-        """Test max reconnects exceeded."""
-        websocket.reconnect_count = websocket.max_reconnects + 1
+        await websocket.observables[EventType.BALANCE_UPDATE].emit({"balance": 100.0})
 
-        with pytest.raises(ConnectionError):
-            await websocket.reconnect()
+        assert len(balance_events) == 1
+        assert balance_events[0] == {"balance": 100.0}
 
-    def test_add_handler(self, websocket):
-        """Test adding message handler."""
-        handler = AsyncMock()
+    def test_default_auto_reconnect(self, mock_api_client):
+        """Test default auto_reconnect is True."""
+        ws = ReactiveDMarketWebSocket(api_client=mock_api_client)
+        assert ws.auto_reconnect is True
 
-        websocket.add_handler("price_update", handler)
-
-        assert "price_update" in websocket.handlers
-
-    def test_remove_handler(self, websocket):
-        """Test removing message handler."""
-        handler = AsyncMock()
-        websocket.handlers["price_update"] = handler
-
-        websocket.remove_handler("price_update")
-
-        assert "price_update" not in websocket.handlers
-
-    @pytest.mark.asyncio
-    async def test_handle_message(self, websocket):
-        """Test handling incoming message."""
-        handler = AsyncMock()
-        websocket.handlers["price_update"] = handler
-
-        message = {"type": "price_update", "price": 10.0}
-        await websocket._handle_message(message)
-
-        handler.assert_called_once_with(message)
-
-    @pytest.mark.asyncio
-    async def test_heartbeat(self, websocket):
-        """Test heartbeat mechanism."""
-        websocket.is_connected = True
-        websocket.connection = MagicMock()
-        websocket.connection.ping = AsyncMock()
-
-        await websocket._send_heartbeat()
-
-        websocket.connection.ping.assert_called_once()
-
-    def test_get_status(self, websocket):
-        """Test getting status."""
-        status = websocket.get_status()
-
-        assert isinstance(status, dict)
-        assert "is_connected" in status
-        assert "url" in status
-
-    @pytest.mark.asyncio
-    async def test_context_manager(self):
-        """Test async context manager."""
-        with patch("src.utils.reactive_websocket.websockets") as mock_ws:
-            mock_connection = MagicMock()
-            mock_connection.close = AsyncMock()
-            mock_ws.connect = AsyncMock(return_value=mock_connection)
-
-            async with ReactiveWebSocket("wss://test.example.com/ws") as ws:
-                assert ws.is_connected is True
-
-            assert ws.is_connected is False
+    def test_default_max_reconnect_attempts(self, mock_api_client):
+        """Test default max_reconnect_attempts is 10."""
+        ws = ReactiveDMarketWebSocket(api_client=mock_api_client)
+        assert ws.max_reconnect_attempts == 10
