@@ -134,7 +134,41 @@ GET /account/v1/user
 GET /account/v1/balance
 ```
 
-**Ответ** (в центах для USD, в dimoshi для DMC):
+**Ответ (новый формат - январь 2026)**:
+
+> ⚠️ **Важно**: API теперь возвращает баланс в **долларах** в поле `balance`, а не в центах в поле `usd`.
+
+```json
+{
+  "balance": 12.34,
+  "available_balance": 10.00,
+  "total_balance": 12.34,
+  "error": false,
+  "has_funds": true,
+  "usd": {"amount": 1234}
+}
+```
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `balance` | float | Баланс в долларах (основное поле) |
+| `available_balance` | float | Доступный баланс в долларах |
+| `total_balance` | float | Общий баланс включая заблокированные средства |
+| `has_funds` | boolean | Достаточно ли средств (balance >= $1.00) |
+| `usd.amount` | integer | Legacy: баланс в центах для обратной совместимости |
+
+**Пример использования**:
+```python
+# Новый формат (рекомендуется)
+balance_data = await api.get_balance()
+balance_usd = balance_data["balance"]  # Уже в долларах
+
+# Legacy формат (deprecated)
+balance_cents = balance_data["usd"]["amount"]
+balance_usd = balance_cents / 100
+```
+
+**Legacy ответ** (deprecated, для обратной совместимости):
 ```json
 {
   "usd": "1234",
