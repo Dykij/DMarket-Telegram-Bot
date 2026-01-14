@@ -638,7 +638,7 @@ class SmartRecommendations:
             value = float(holding.get("currentPrice", holding.get("price", 0))) / 100
             if total_value > 0 and value / total_value > 0.4:  # >40% in one item
                 recommendations.append(
-                    f"High concentration risk: {holding.get('name', 'item')} is {value/total_value:.1%} of portfolio"
+                    f"High concentration risk: {holding.get('name', 'item')} is {value / total_value:.1%} of portfolio"
                 )
         
         # Check balance utilization

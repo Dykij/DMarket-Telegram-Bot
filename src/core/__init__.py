@@ -11,6 +11,7 @@ Modules:
     - app_recovery: Pending trades recovery logic
 """
 
+
 # Lazy imports to avoid circular dependencies and missing modules
 def __getattr__(name: str):
     """Lazy import to avoid import errors when telegram is not installed."""

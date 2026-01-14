@@ -457,7 +457,7 @@ async def security_command(
         f"\n<b>2FA:</b> {'✅ Enabled' if status.get('2fa_enabled') else '❌ Disabled'}",
         f"<b>IP Whitelist:</b> {'✅ Active' if status.get('ip_whitelist') else '❌ Inactive'}",
         f"<b>API Key Encrypted:</b> {'✅' if status.get('api_encrypted') else '❌'}",
-        f"\n<b>Recent Activity:</b>",
+        "\n<b>Recent Activity:</b>",
         f"• Last Login: {status.get('last_login', 'N/A')}",
         f"• Last Action: {status.get('last_action', 'N/A')}",
     ]

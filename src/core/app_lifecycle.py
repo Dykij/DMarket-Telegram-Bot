@@ -258,7 +258,7 @@ class ApplicationLifecycle:
             )
             logger.info("✅ All tasks completed")
         except TimeoutError:
-            logger.warning(f"⚠️ Timeout waiting for tasks, cancelling...")
+            logger.warning("⚠️ Timeout waiting for tasks, cancelling...")
             for task in active_tasks:
                 if not task.done():
                     task.cancel()

@@ -41,7 +41,7 @@ logger = structlog.get_logger(__name__)
 
 class EventPriority(StrEnum):
     """Event priority levels."""
-    
+
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
@@ -51,14 +51,14 @@ class EventPriority(StrEnum):
 @dataclass
 class Event:
     """Event data container."""
-    
+
     type: str
     data: dict[str, Any] = field(default_factory=dict)
     priority: EventPriority = EventPriority.NORMAL
     id: str = field(default_factory=lambda: str(uuid4()))
     timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     source: str = ""
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert event to dictionary."""
         return {
@@ -74,7 +74,7 @@ class Event:
 @dataclass
 class Subscription:
     """Event subscription information."""
-    
+
     id: str
     event_type: str
     handler: Callable[[Event], Coroutine[Any, Any, None]] | Callable[[Event], None]
@@ -96,7 +96,7 @@ class EventBus:
     - Event history
     - Error handling
     """
-    
+
     def __init__(
         self,
         max_history: int = 1000,
@@ -114,18 +114,18 @@ class EventBus:
         self._enable_history = enable_history
         self._lock = asyncio.Lock()
         self._running = True
-        
+
         # Stats
         self._events_published = 0
         self._events_handled = 0
         self._handler_errors = 0
-        
+
         logger.info(
             "EventBus initialized",
             max_history=max_history,
             enable_history=enable_history,
         )
-    
+
     def subscribe(
         self,
         event_type: str,
@@ -147,7 +147,7 @@ class EventBus:
             Subscription ID
         """
         is_async = asyncio.iscoroutinefunction(handler)
-        
+
         subscription = Subscription(
             id=str(uuid4()),
             event_type=event_type,
@@ -157,9 +157,9 @@ class EventBus:
             is_async=is_async,
             once=once,
         )
-        
+
         self._subscriptions[event_type].append(subscription)
-        
+
         # Sort by priority (higher first)
         priority_order = {
             EventPriority.CRITICAL: 0,
@@ -170,16 +170,16 @@ class EventBus:
         self._subscriptions[event_type].sort(
             key=lambda s: priority_order.get(s.priority, 2)
         )
-        
+
         logger.debug(
             "event_subscription_added",
             event_type=event_type,
             subscription_id=subscription.id,
             priority=priority.value,
         )
-        
+
         return subscription.id
-    
+
     def unsubscribe(self, subscription_id: str) -> bool:
         """Unsubscribe from events.
         
@@ -199,9 +199,9 @@ class EventBus:
                         subscription_id=subscription_id,
                     )
                     return True
-        
+
         return False
-    
+
     def unsubscribe_all(self, event_type: str) -> int:
         """Unsubscribe all handlers for an event type.
         
@@ -215,7 +215,7 @@ class EventBus:
         if event_type in self._subscriptions:
             del self._subscriptions[event_type]
         return count
-    
+
     async def publish(
         self,
         event: Event,
@@ -233,9 +233,9 @@ class EventBus:
         if not self._running:
             logger.warning("event_bus_not_running", event_type=event.type)
             return 0
-        
+
         self._events_published += 1
-        
+
         # Add to history
         if self._enable_history:
             async with self._lock:
@@ -243,22 +243,22 @@ class EventBus:
                 # Trim history if too large
                 if len(self._history) > self._max_history:
                     self._history = self._history[-self._max_history:]
-        
+
         # Get subscribers
         subscribers = self._subscriptions.get(event.type, [])
         if not subscribers:
             logger.debug("no_subscribers", event_type=event.type)
             return 0
-        
+
         # Process handlers
         handlers_run = 0
         to_remove = []
-        
+
         for sub in subscribers:
             # Apply filter
             if sub.filter_fn and not sub.filter_fn(event):
                 continue
-            
+
             try:
                 if sub.is_async:
                     if wait:
@@ -267,14 +267,14 @@ class EventBus:
                         asyncio.create_task(sub.handler(event))
                 else:
                     sub.handler(event)
-                
+
                 handlers_run += 1
                 self._events_handled += 1
-                
+
                 # Mark for removal if one-time
                 if sub.once:
                     to_remove.append(sub)
-                    
+
             except Exception as e:
                 self._handler_errors += 1
                 logger.error(
@@ -283,21 +283,21 @@ class EventBus:
                     subscription_id=sub.id,
                     error=str(e),
                 )
-        
+
         # Remove one-time subscriptions
         for sub in to_remove:
             if sub in self._subscriptions[event.type]:
                 self._subscriptions[event.type].remove(sub)
-        
+
         logger.debug(
             "event_published",
             event_type=event.type,
             event_id=event.id,
             handlers_run=handlers_run,
         )
-        
+
         return handlers_run
-    
+
     async def publish_many(
         self,
         events: list[Event],
@@ -316,7 +316,7 @@ class EventBus:
         for event in events:
             total += await self.publish(event, wait=wait)
         return total
-    
+
     def get_history(
         self,
         event_type: str | None = None,
@@ -332,12 +332,12 @@ class EventBus:
             List of events
         """
         events = self._history
-        
+
         if event_type:
             events = [e for e in events if e.type == event_type]
-        
+
         return events[-limit:]
-    
+
     def get_stats(self) -> dict[str, Any]:
         """Get event bus statistics.
         
@@ -355,17 +355,17 @@ class EventBus:
             "event_types": list(self._subscriptions.keys()),
             "history_size": len(self._history),
         }
-    
+
     def stop(self) -> None:
         """Stop the event bus."""
         self._running = False
         logger.info("EventBus stopped")
-    
+
     def start(self) -> None:
         """Start the event bus."""
         self._running = True
         logger.info("EventBus started")
-    
+
     def clear_history(self) -> int:
         """Clear event history.
         
@@ -380,35 +380,35 @@ class EventBus:
 # Predefined event types for type safety
 class EventTypes:
     """Standard event type constants."""
-    
+
     # Price events
     PRICE_UPDATE = "price_update"
     PRICE_CHANGE = "price_change"
     PRICE_ALERT = "price_alert"
-    
+
     # Trading events
     TRADE_EXECUTED = "trade_executed"
     TRADE_FAILED = "trade_failed"
     ORDER_CREATED = "order_created"
     ORDER_CANCELLED = "order_cancelled"
-    
+
     # Inventory events
     ITEM_LISTED = "item_listed"
     ITEM_SOLD = "item_sold"
     ITEM_DELISTED = "item_delisted"
     INVENTORY_UPDATED = "inventory_updated"
-    
+
     # Analytics events
     ANALYTICS_SIGNAL = "analytics_signal"
     TREND_DETECTED = "trend_detected"
     ANOMALY_DETECTED = "anomaly_detected"
-    
+
     # System events
     SERVICE_STARTED = "service_started"
     SERVICE_STOPPED = "service_stopped"
     SERVICE_ERROR = "service_error"
     HEALTH_CHECK = "health_check"
-    
+
     # User events
     USER_ACTION = "user_action"
     ALERT_TRIGGERED = "alert_triggered"

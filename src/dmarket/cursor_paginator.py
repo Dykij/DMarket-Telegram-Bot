@@ -165,7 +165,7 @@ class CursorPaginator:
                     game=game,
                     filters=filters,
                 )
-            except Exception as e:
+            except Exception:
                 if self.config.auto_retry:
                     items, next_cursor, total = await self._retry_fetch(
                         game=game,
