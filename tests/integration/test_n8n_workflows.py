@@ -97,11 +97,15 @@ class TestArbitrageScannerIntegration:
             from src.dmarket import integrated_arbitrage_scanner
             
             # Mock scanner initialization
-            mock_api = AsyncMock()
-            mock_api.get_market_items = AsyncMock(return_value={"objects": []})
+            mock_dmarket = AsyncMock()
+            mock_waxpeer = AsyncMock()
+            mock_steam = AsyncMock()
+            mock_dmarket.get_market_items = AsyncMock(return_value={"objects": []})
             
             scanner = integrated_arbitrage_scanner.IntegratedArbitrageScanner(
-                dmarket_api=mock_api,
+                dmarket_api=mock_dmarket,
+                waxpeer_api=mock_waxpeer,
+                steam_api=mock_steam,
                 enable_dmarket_arbitrage=True,
                 enable_cross_platform=True
             )
@@ -118,9 +122,13 @@ class TestArbitrageScannerIntegration:
         try:
             from src.dmarket import integrated_arbitrage_scanner
             
-            mock_api = AsyncMock()
+            mock_dmarket = AsyncMock()
+            mock_waxpeer = AsyncMock()
+            mock_steam = AsyncMock()
             scanner = integrated_arbitrage_scanner.IntegratedArbitrageScanner(
-                dmarket_api=mock_api,
+                dmarket_api=mock_dmarket,
+                waxpeer_api=mock_waxpeer,
+                steam_api=mock_steam,
                 enable_dmarket_arbitrage=True,
                 enable_cross_platform=True
             )
@@ -146,9 +154,11 @@ class TestArbitrageScannerIntegration:
         try:
             from src.dmarket import integrated_arbitrage_scanner
             
-            mock_api = AsyncMock()
+            mock_dmarket = AsyncMock()
+            mock_waxpeer = AsyncMock()
             scanner = integrated_arbitrage_scanner.IntegratedArbitrageScanner(
-                dmarket_api=mock_api
+                dmarket_api=mock_dmarket,
+                waxpeer_api=mock_waxpeer
             )
             
             # Mock create_waxpeer_listing_target
