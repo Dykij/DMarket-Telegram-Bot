@@ -182,7 +182,7 @@ async def retry_async(
     on: tuple[type[Exception], ...] | type[Exception] = DEFAULT_API_EXCEPTIONS,
     attempts: int = 3,
     timeout: float | None = 45.0,
-) -> AsyncIterator[stamina.Attempt]:
+) -> AsyncIterator[Any]:
     """Async context manager for retry with exponential backoff.
 
     This is a convenience wrapper around stamina.retry_context for
@@ -237,7 +237,7 @@ def retry_sync(
     on: tuple[type[Exception], ...] | type[Exception] = DEFAULT_API_EXCEPTIONS,
     attempts: int = 3,
     timeout: float | None = 45.0,
-) -> Iterator[stamina.Attempt]:
+) -> Iterator[Any]:
     """Sync context manager for retry with exponential backoff.
 
     Args:

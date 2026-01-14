@@ -4,7 +4,21 @@
 
 ---
 
-## 🆕 **НОВОЕ: Waxpeer Integration (Январь 2026)**
+## 🆕 **НОВОЕ: Enhanced API Integration (Январь 2026)**
+
+| Документ | Описание |
+|----------|----------|
+| **[📘 NEW_LIBRARIES_GUIDE.md](NEW_LIBRARIES_GUIDE.md)** | Stamina retry + Hishel HTTP caching |
+
+**Что добавляет:**
+- ✅ Production-grade retry с exponential backoff (stamina)
+- ✅ RFC 9111-compliant HTTP кэширование (hishel)
+- ✅ Enhanced API decorators для DMarket и Waxpeer
+- ✅ Graceful degradation при отсутствии библиотек
+
+---
+
+## 🆕 **Waxpeer Integration (Январь 2026)**
 
 | Документ | Описание |
 |----------|----------|
@@ -59,6 +73,7 @@
 | Документ | Описание |
 |----------|----------|
 | **[PERFORMANCE_COMPLETE_GUIDE.md](PERFORMANCE_COMPLETE_GUIDE.md)** | **Объединённое руководство** ✨ |
+| **[NEW_LIBRARIES_GUIDE.md](NEW_LIBRARIES_GUIDE.md)** | Stamina retry + Hishel caching 🆕 |
 | [CACHING_GUIDE.md](CACHING_GUIDE.md) | Стратегии кэширования |
 | [WEBSOCKET_FALLBACK.md](WEBSOCKET_FALLBACK.md) | WebSocket vs Polling режим |
 
@@ -89,4 +104,4 @@
 
 ---
 
-**Версия**: 3.1 | **Дата**: 4 января 2026
+**Версия**: 3.2 | **Дата**: 14 января 2026

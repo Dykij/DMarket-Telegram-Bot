@@ -117,6 +117,25 @@ except ImportError:
     Watchdog = None
     WatchdogConfig = None
 
+try:
+    from src.utils.enhanced_api import (
+        EnhancedAPIConfig,
+        EnhancedHTTPClientMixin,
+        create_enhanced_http_client,
+        create_retry_decorator,
+        enhance_dmarket_method,
+        enhance_waxpeer_method,
+        get_api_enhancement_status,
+    )
+except ImportError:
+    EnhancedAPIConfig = None
+    EnhancedHTTPClientMixin = None
+    create_enhanced_http_client = None
+    create_retry_decorator = None
+    enhance_dmarket_method = None
+    enhance_waxpeer_method = None
+    get_api_enhancement_status = None
+
 
 __all__ = [
     # Config
@@ -164,6 +183,14 @@ __all__ = [
     "close_cached_client",
     "create_cached_client",
     "get_cached_client",
+    # Enhanced API integration
+    "EnhancedAPIConfig",
+    "EnhancedHTTPClientMixin",
+    "create_enhanced_http_client",
+    "create_retry_decorator",
+    "enhance_dmarket_method",
+    "enhance_waxpeer_method",
+    "get_api_enhancement_status",
     # Watchdog
     "Watchdog",
     "WatchdogConfig",

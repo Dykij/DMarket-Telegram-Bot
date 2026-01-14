@@ -310,6 +310,59 @@ if client.stats.hit_rate < 50:
     logger.warning("Low cache hit rate, consider increasing TTL")
 ```
 
+## Enhanced API Integration
+
+For seamless integration, use the `enhanced_api` module:
+
+```python
+from src.utils.enhanced_api import (
+    EnhancedAPIConfig,
+    create_enhanced_http_client,
+    enhance_dmarket_method,
+    enhance_waxpeer_method,
+    get_api_enhancement_status,
+)
+
+# Check enhancement status
+status = get_api_enhancement_status()
+print(f"Stamina: {status['stamina']['available']}")
+print(f"Hishel: {status['hishel']['available']}")
+
+# Use decorators for API methods
+@enhance_dmarket_method
+async def get_market_items():
+    # Automatic retry with exponential backoff
+    ...
+
+@enhance_waxpeer_method
+async def get_waxpeer_prices():
+    # Same retry behavior for Waxpeer
+    ...
+
+# Create enhanced HTTP client
+client = await create_enhanced_http_client(
+    enable_caching=True,
+    cache_ttl=300,
+)
+```
+
+### Configuration
+
+```python
+from src.utils.enhanced_api import EnhancedAPIConfig
+
+config = EnhancedAPIConfig(
+    enable_caching=True,
+    cache_ttl=300,
+    enable_stamina_retry=True,
+    retry_attempts=3,
+    retry_timeout=45.0,
+)
+
+# Convert to dict for logging/debugging
+print(config.to_dict())
+```
+
 ## References
 
 - [Stamina Documentation](https://stamina.hynek.me/)
