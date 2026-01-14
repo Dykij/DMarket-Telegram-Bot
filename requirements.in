@@ -11,6 +11,9 @@ tenacity>=9.0.0                    # Latest retry library
 circuitbreaker>=2.1.0              # Latest circuit breaker
 stamina>=25.2.0                    # Production-grade retries with safe defaults, instrumentation
 hishel[httpx]>=1.1.8               # RFC 9111-compliant HTTP caching for httpx
+aiometer>=1.0.0                    # Concurrent task throttling and rate limiting
+asyncer>=0.0.12                    # Type-safe parallel task execution by Tiangolo
+anyio>=4.0.0                       # Async backend abstraction (required by asyncer)
 
 # Database & Caching
 sqlalchemy>=2.0.40                 # Latest SQLAlchemy 2.0

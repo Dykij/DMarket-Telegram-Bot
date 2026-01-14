@@ -4,15 +4,17 @@
 
 ---
 
-## 🆕 **НОВОЕ: Enhanced API Integration (Январь 2026)**
+## 🆕 **НОВОЕ: Concurrent & Parallel Execution (Январь 2026)**
 
 | Документ | Описание |
 |----------|----------|
-| **[📘 NEW_LIBRARIES_GUIDE.md](NEW_LIBRARIES_GUIDE.md)** | Stamina retry + Hishel HTTP caching |
+| **[📘 NEW_LIBRARIES_GUIDE.md](NEW_LIBRARIES_GUIDE.md)** | Все новые библиотеки: stamina, hishel, aiometer, asyncer |
 
 **Что добавляет:**
-- ✅ Production-grade retry с exponential backoff (stamina)
-- ✅ RFC 9111-compliant HTTP кэширование (hishel)
+- ✅ **stamina** - Production-grade retry с exponential backoff
+- ✅ **hishel** - RFC 9111-compliant HTTP кэширование
+- ✅ **aiometer** - Concurrent task throttling и rate limiting
+- ✅ **asyncer** - Type-safe parallel task execution (by Tiangolo)
 - ✅ Enhanced API decorators для DMarket и Waxpeer
 - ✅ Graceful degradation при отсутствии библиотек
 
@@ -104,4 +106,4 @@
 
 ---
 
-**Версия**: 3.2 | **Дата**: 14 января 2026
+**Версия**: 3.3 | **Дата**: 14 января 2026

@@ -136,6 +136,50 @@ except ImportError:
     enhance_waxpeer_method = None
     get_api_enhancement_status = None
 
+try:
+    from src.utils.aiometer_utils import (
+        AIOMETER_AVAILABLE,
+        ConcurrencyConfig,
+        ConcurrentResult,
+        amap,
+        get_aiometer_status,
+        run_batches,
+        run_concurrent,
+        run_with_rate_limit,
+    )
+except ImportError:
+    AIOMETER_AVAILABLE = False
+    ConcurrencyConfig = None
+    ConcurrentResult = None
+    amap = None
+    get_aiometer_status = None
+    run_batches = None
+    run_concurrent = None
+    run_with_rate_limit = None
+
+try:
+    from src.utils.asyncer_utils import (
+        ASYNCER_AVAILABLE,
+        ParallelResult,
+        create_task_group,
+        get_asyncer_status,
+        run_all_settled,
+        run_first_completed,
+        run_parallel,
+        run_sync_in_thread,
+        run_with_timeout,
+    )
+except ImportError:
+    ASYNCER_AVAILABLE = False
+    ParallelResult = None
+    create_task_group = None
+    get_asyncer_status = None
+    run_all_settled = None
+    run_first_completed = None
+    run_parallel = None
+    run_sync_in_thread = None
+    run_with_timeout = None
+
 
 __all__ = [
     # Config
@@ -191,6 +235,25 @@ __all__ = [
     "enhance_dmarket_method",
     "enhance_waxpeer_method",
     "get_api_enhancement_status",
+    # Concurrent execution (aiometer)
+    "AIOMETER_AVAILABLE",
+    "ConcurrencyConfig",
+    "ConcurrentResult",
+    "amap",
+    "get_aiometer_status",
+    "run_batches",
+    "run_concurrent",
+    "run_with_rate_limit",
+    # Parallel execution (asyncer)
+    "ASYNCER_AVAILABLE",
+    "ParallelResult",
+    "create_task_group",
+    "get_asyncer_status",
+    "run_all_settled",
+    "run_first_completed",
+    "run_parallel",
+    "run_sync_in_thread",
+    "run_with_timeout",
     # Watchdog
     "Watchdog",
     "WatchdogConfig",
