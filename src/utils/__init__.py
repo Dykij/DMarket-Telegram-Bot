@@ -9,7 +9,8 @@ This module provides various utility functions and classes for the DMarket Bot:
 - Discord notifications
 - Prometheus metrics
 - Rate limiting
-- Retry decorators
+- Retry decorators (tenacity + stamina)
+- HTTP caching (hishel)
 - Watchdog for bot supervision
 """
 
@@ -77,6 +78,40 @@ except ImportError:
     retry_on_failure = None
 
 try:
+    from src.utils.stamina_retry import (
+        STAMINA_AVAILABLE,
+        api_retry,
+        async_disabled_retries,
+        disabled_retries,
+        retry_async,
+        retry_sync,
+    )
+except ImportError:
+    STAMINA_AVAILABLE = False
+    api_retry = None
+    async_disabled_retries = None
+    disabled_retries = None
+    retry_async = None
+    retry_sync = None
+
+try:
+    from src.utils.http_cache import (
+        HISHEL_AVAILABLE,
+        CachedHTTPClient,
+        CacheConfig,
+        close_cached_client,
+        create_cached_client,
+        get_cached_client,
+    )
+except ImportError:
+    HISHEL_AVAILABLE = False
+    CachedHTTPClient = None
+    CacheConfig = None
+    close_cached_client = None
+    create_cached_client = None
+    get_cached_client = None
+
+try:
     from src.utils.watchdog import Watchdog, WatchdogConfig
 except ImportError:
     Watchdog = None
@@ -112,9 +147,23 @@ __all__ = [
     "create_discord_notifier_from_env",
     # Rate limiting
     "rate_limit",
-    # Retry decorators
+    # Retry decorators (tenacity)
     "retry_api_call",
     "retry_on_failure",
+    # Retry decorators (stamina - production-grade)
+    "STAMINA_AVAILABLE",
+    "api_retry",
+    "async_disabled_retries",
+    "disabled_retries",
+    "retry_async",
+    "retry_sync",
+    # HTTP caching (hishel)
+    "HISHEL_AVAILABLE",
+    "CachedHTTPClient",
+    "CacheConfig",
+    "close_cached_client",
+    "create_cached_client",
+    "get_cached_client",
     # Watchdog
     "Watchdog",
     "WatchdogConfig",
