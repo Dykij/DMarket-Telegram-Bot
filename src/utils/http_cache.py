@@ -186,26 +186,30 @@ class CachedHTTPClient:
 
         return client
 
+    def _create_sqlite_storage(self) -> Any:
+        """Create SQLite storage backend.
+
+        Returns:
+            AsyncSqliteStorage instance or None if hishel not available
+        """
+        if not HISHEL_AVAILABLE:
+            return None
+
+        self.config.cache_dir.mkdir(parents=True, exist_ok=True)
+        db_path = self.config.cache_dir / "cache.db"
+        return AsyncSqliteStorage(
+            database_path=str(db_path),
+            default_ttl=self.config.ttl,
+        )
+
     def _create_storage(self) -> Any:
         """Create storage backend based on configuration."""
         if not HISHEL_AVAILABLE:
             return None
 
-        if self.config.storage_type == CacheStorageType.SQLITE:
-            self.config.cache_dir.mkdir(parents=True, exist_ok=True)
-            db_path = self.config.cache_dir / "cache.db"
-            return AsyncSqliteStorage(
-                database_path=str(db_path),
-                default_ttl=self.config.ttl,
-            )
-        else:
-            # Default to SQLite for async (memory not available in async mode)
-            self.config.cache_dir.mkdir(parents=True, exist_ok=True)
-            db_path = self.config.cache_dir / "cache.db"
-            return AsyncSqliteStorage(
-                database_path=str(db_path),
-                default_ttl=self.config.ttl,
-            )
+        # Currently only SQLite storage is supported for async operations
+        # All storage types map to SQLite for consistency
+        return self._create_sqlite_storage()
 
     async def __aenter__(self) -> "CachedHTTPClient":
         """Enter async context."""

@@ -220,9 +220,10 @@ async def retry_async(
             ) -> bool:
                 return False
 
-        for i in range(attempts):
-            yield FakeAttempt(num=i + 1)  # type: ignore[misc]
-            return
+        # In fallback mode without stamina, yield once to allow code execution
+        # The caller's code runs once without retry capability
+        yield FakeAttempt(num=1)  # type: ignore[misc]
+        return  # Exit generator after single attempt (no retry in fallback)
 
     async for attempt in stamina.retry_context(
         on=on,
@@ -271,9 +272,10 @@ def retry_sync(
             ) -> bool:
                 return False
 
-        for i in range(attempts):
-            yield FakeAttempt(num=i + 1)  # type: ignore[misc]
-            return
+        # In fallback mode without stamina, yield once to allow code execution
+        # The caller's code runs once without retry capability
+        yield FakeAttempt(num=1)  # type: ignore[misc]
+        return  # Exit generator after single attempt (no retry in fallback)
 
     for attempt in stamina.retry_context(
         on=on,
