@@ -634,7 +634,8 @@ class FallbackCache:
             >>> # "query_a1b2c3d4"
         """
         data = str(args) + str(sorted(kwargs.items()))
-        hash_value = hashlib.md5(data.encode()).hexdigest()[:8]  # noqa: S324
+        # Using SHA256 for secure hashing (truncated for short keys)
+        hash_value = hashlib.sha256(data.encode()).hexdigest()[:8]
         prefix = str(args[0])[:10] if args else "cache"
         return f"{prefix}_{hash_value}"
 
