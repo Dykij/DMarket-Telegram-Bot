@@ -650,6 +650,30 @@ cache_stale_usage_total = Counter(
     ["cache", "category"],
 )
 
+# =============================================================================
+# Alert Throttler Metrics (Stability Improvement: NEW)
+# =============================================================================
+
+# Alert operations
+ALERT_OPERATIONS = Counter(
+    "alert_operations_total",
+    "Total number of alert operations",
+    ["action", "category", "priority"],  # action: sent/suppressed
+)
+
+# Pending alerts gauge
+alert_pending_count = Gauge(
+    "alert_pending_count",
+    "Number of pending alerts for digest",
+    ["category"],
+)
+
+# Alert suppression rate
+alert_suppression_rate = Gauge(
+    "alert_suppression_rate_percent",
+    "Alert suppression rate in percent",
+)
+
 
 # =============================================================================
 # Utility Functions for New Metrics
