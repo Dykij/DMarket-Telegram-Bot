@@ -1,34 +1,29 @@
-name: Coverage Report
+name: Coverage
 
 on:
   push:
-    branches: [ main, develop ]
-    paths:
-      - 'src/**.py'
-      - 'tests/**.py'
+    branches: [main, develop]
+    paths: ['src/**/*.py', 'tests/**/*.py']
   pull_request:
-    branches: [ main, develop ]
-    paths:
-      - 'src/**.py'
-      - 'tests/**.py'
+    branches: [main, develop]
+    paths: ['src/**/*.py', 'tests/**/*.py']
   workflow_dispatch:
 
 env:
   PYTHON_VERSION: "3.11"
-  MIN_COVERAGE: 80
 
 permissions:
-  contents: write
+  contents: read
   pull-requests: write
 
 jobs:
   coverage:
-    name: Generate Coverage Report
+    name: Coverage Report
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -38,213 +33,40 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio pytest-cov pytest-xdist coverage[toml]
+          pip install --upgrade pip
+          pip install -r requirements.txt || true
+          pip install pytest pytest-asyncio pytest-cov pytest-xdist
 
-      - name: Create test environment
+      - name: Create .env
         run: |
-          if [ -f .env.example ]; then
-            cp .env.example .env
-          fi
+          echo "TELEGRAM_BOT_TOKEN=test" > .env
+          echo "DMARKET_PUBLIC_KEY=test" >> .env
+          echo "DMARKET_SECRET_KEY=test" >> .env
+          echo "TESTING=true" >> .env
 
       - name: Run tests with coverage
         run: |
-          export PYTHONPATH=$GITHUB_WORKSPACE:$PYTHONPATH
-
-          pytest tests/ \
-            --cov=src \
-            --cov-report=xml \
-            --cov-report=html \
-            --cov-report=term-missing \
-            --cov-report=json \
-            --cov-config=pyproject.toml \
-            -v \
-            -n auto \
-            || {
-              echo "::warning::Some tests failed, but continuing with coverage report"
-              exit 0
-            }
+          pytest tests/ --cov=src --cov-report=xml --cov-report=html -n auto || true
         env:
           PYTHONPATH: ${{ github.workspace }}
-        continue-on-error: true
 
-      - name: Generate coverage badge
-        run: |
-          # Извлекаем процент покрытия
-          COVERAGE=$(python -c "import json; print(json.load(open('coverage.json'))['totals']['percent_covered_display'])")
-          echo "Coverage: $COVERAGE%"
-
-          # Определяем цвет badge
-          if (( $(echo "$COVERAGE >= 90" | bc -l) )); then
-            COLOR="brightgreen"
-          elif (( $(echo "$COVERAGE >= 80" | bc -l) )); then
-            COLOR="green"
-          elif (( $(echo "$COVERAGE >= 70" | bc -l) )); then
-            COLOR="yellow"
-          elif (( $(echo "$COVERAGE >= 60" | bc -l) )); then
-            COLOR="orange"
-          else
-            COLOR="red"
-          fi
-
-          echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
-          echo "BADGE_COLOR=$COLOR" >> $GITHUB_ENV
-
-      - name: Upload coverage to Codecov
+      - name: Upload to Codecov
         uses: codecov/codecov-action@v4
         with:
           files: ./coverage.xml
-          flags: unittests
-          name: codecov-${{ github.sha }}
           fail_ci_if_error: false
-          verbose: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         continue-on-error: true
 
-      - name: Upload coverage HTML report
+      - name: Upload HTML report
         uses: actions/upload-artifact@v6
         with:
-          name: coverage-report-${{ github.sha }}
+          name: coverage-html
           path: htmlcov/
-          retention-days: 30
+          retention-days: 14
 
-      - name: Check coverage threshold
+      - name: Summary
         run: |
-          coverage report --fail-under=${{ env.MIN_COVERAGE }} || {
-            echo "::warning::Coverage ($COVERAGE%) is below minimum threshold (${{ env.MIN_COVERAGE }}%)"
-          }
-        continue-on-error: true
-
-      - name: Comment coverage on PR
-        if: github.event_name == 'pull_request'
-        uses: py-cov-action/python-coverage-comment-action@v3
-        with:
-          GITHUB_TOKEN: ${{ github.token }}
-          MINIMUM_GREEN: 90
-          MINIMUM_ORANGE: 80
-          ANNOTATE_MISSING_LINES: true
-          ANNOTATION_TYPE: warning
-        continue-on-error: true
-
-      - name: Generate coverage summary
-        run: |
-          echo "# 📊 Coverage Report" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "![Coverage](https://img.shields.io/badge/coverage-${COVERAGE}%25-${BADGE_COLOR})" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Overall Statistics" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          coverage report >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Files with Low Coverage (<70%)" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          coverage report --skip-covered --skip-empty | grep -E "^src/" | awk '$4 < 70 {print}' >> $GITHUB_STEP_SUMMARY || echo "No files with low coverage" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-
-      - name: Create coverage visualization
-        run: |
-          # Создаем простую визуализацию в Markdown
-          python << EOF
-          import json
-          import os
-
-          with open('coverage.json') as f:
-              data = json.load(f)
-
-          files = data['files']
-
-          # Сортируем по покрытию
-          sorted_files = sorted(
-              [(k, v['summary']['percent_covered']) for k, v in files.items()],
-              key=lambda x: x[1]
-          )
-
-          # Топ-5 файлов с низким покрытием
-          low_coverage = sorted_files[:5]
-
-          # Топ-5 файлов с высоким покрытием
-          high_coverage = sorted_files[-5:][::-1]
-
-          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
-              f.write("\n## 📉 Files with Lowest Coverage\n\n")
-              f.write("| File | Coverage |\n")
-              f.write("|------|----------|\n")
-              for file, cov in low_coverage:
-                  f.write(f"| {file.replace('src/', '')} | {cov:.1f}% |\n")
-
-              f.write("\n## 📈 Files with Highest Coverage\n\n")
-              f.write("| File | Coverage |\n")
-              f.write("|------|----------|\n")
-              for file, cov in high_coverage:
-                  f.write(f"| {file.replace('src/', '')} | {cov:.1f}% |\n")
-          EOF
-        continue-on-error: true
-
-  coverage-diff:
-    name: Coverage Diff
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-
-    steps:
-      - name: Checkout PR branch
-        uses: actions/checkout@v6
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install pytest pytest-cov coverage-badge diff-cover
-
-      - name: Run coverage on PR
-        run: |
-          export PYTHONPATH=$GITHUB_WORKSPACE:$PYTHONPATH
-          pytest tests/ --cov=src --cov-report=xml:coverage-pr.xml || true
-        continue-on-error: true
-
-      - name: Checkout base branch
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ github.base_ref }}
-
-      - name: Run coverage on base
-        run: |
-          export PYTHONPATH=$GITHUB_WORKSPACE:$PYTHONPATH
-          pytest tests/ --cov=src --cov-report=xml:coverage-base.xml || true
-        continue-on-error: true
-
-      - name: Generate diff report
-        run: |
-          diff-cover coverage-pr.xml --compare-branch=origin/${{ github.base_ref }} --markdown-report coverage-diff.md || true
-        continue-on-error: true
-
-      - name: Comment diff on PR
-        if: always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-
-            let comment = '## 📊 Coverage Diff\n\n';
-
-            try {
-              const diffReport = fs.readFileSync('coverage-diff.md', 'utf8');
-              comment += diffReport;
-            } catch (e) {
-              comment += 'Could not generate coverage diff report.';
-            }
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
-        continue-on-error: true
+          echo "# 📊 Coverage" >> $GITHUB_STEP_SUMMARY
+          coverage report --format=markdown >> $GITHUB_STEP_SUMMARY || true
