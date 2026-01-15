@@ -1,5 +1,5 @@
 name: Copilot Coding Agent Setup
-on:
+"on":
   workflow_call:
 
 jobs:

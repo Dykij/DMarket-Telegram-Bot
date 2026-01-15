@@ -1,7 +1,7 @@
 name: CI
 
 # Unified CI workflow for DMarket Telegram Bot
-on:
+"on":
   push:
     branches: [main, master, develop]
   pull_request:

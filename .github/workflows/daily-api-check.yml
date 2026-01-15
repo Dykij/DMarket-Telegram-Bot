@@ -3,7 +3,7 @@ name: Daily DMarket API Validation
 # Roadmap Task #9: Automated daily API compatibility checks
 # Runs every day at 6:00 UTC to detect breaking changes early
 
-on:
+"on":
   schedule:
     # Run every day at 6:00 UTC
     - cron: "0 6 * * *"

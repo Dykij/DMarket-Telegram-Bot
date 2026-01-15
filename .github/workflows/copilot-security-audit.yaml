@@ -1,5 +1,5 @@
 name: Copilot Security Audit
-on:
+"on":
   schedule:
     # Ежедневно в 03:00 UTC
     - cron: '0 3 * * *'

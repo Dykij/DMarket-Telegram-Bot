@@ -1,6 +1,6 @@
 name: Coverage
 
-on:
+"on":
   push:
     branches: [main, develop]
     paths: ['src/**/*.py', 'tests/**/*.py']

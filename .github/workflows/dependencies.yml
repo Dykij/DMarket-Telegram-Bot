@@ -1,6 +1,6 @@
 name: Dependencies
 
-on:
+"on":
   schedule:
     - cron: '0 9 * * 1'  # Weekly Monday 9AM UTC
   workflow_dispatch:

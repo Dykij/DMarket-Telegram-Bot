@@ -1,6 +1,6 @@
 name: E2E Tests
 
-on:
+"on":
   push:
     branches: [main, develop]
     paths: ['src/**', 'tests/e2e/**']

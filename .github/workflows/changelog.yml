@@ -1,6 +1,6 @@
 name: Auto Update CHANGELOG
 
-on:
+"on":
   push:
     branches:
       - main
