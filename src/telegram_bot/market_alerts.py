@@ -78,9 +78,11 @@ class MarketAlertsManager:
         }
 
         # Словарь с последними отправленными уведомлениями для предотвращения дублирования
-        self.sent_alerts: dict[str, dict[int, set[str]]] = {
+        self.sent_alerts: dict[str, dict[int, dict[str, float]]] = {
             alert_type: {} for alert_type in self.subscribers
         }
+        self.sent_alerts_cleanup_interval_seconds = 86400
+        self.last_cleanup_time = 0.0
 
         # Флаг для управления фоновой задачей
         self.running = False
@@ -127,6 +129,14 @@ class MarketAlertsManager:
                     continue
 
                 current_time = time.time()
+
+                # Очищаем старые уведомления раз в сутки
+                if (
+                    current_time - self.last_cleanup_time
+                    >= self.sent_alerts_cleanup_interval_seconds
+                ):
+                    self.clear_old_alerts()
+                    self.last_cleanup_time = current_time
 
                 # Проверяем изменения цен при необходимости
                 if (
@@ -203,7 +213,7 @@ class MarketAlertsManager:
             for user_id in self.subscribers["price_changes"]:
                 # Проверяем, какие изменения еще не были отправлены этому пользователю
                 if user_id not in self.sent_alerts["price_changes"]:
-                    self.sent_alerts["price_changes"][user_id] = set()
+                    self.sent_alerts["price_changes"][user_id] = {}
 
                 alert_count = 0
 
@@ -243,7 +253,7 @@ class MarketAlertsManager:
                         )
 
                         # Запоминаем, что отправили это уведомление
-                        self.sent_alerts["price_changes"][user_id].add(item_id)
+                        self.sent_alerts["price_changes"][user_id][item_id] = time.time()
                         alert_count += 1
 
                         # Небольшая пауза между сообщениями
@@ -297,7 +307,7 @@ class MarketAlertsManager:
             for user_id in self.subscribers["trending"]:
                 # Проверяем, какие тренды еще не были отправлены этому пользователю
                 if user_id not in self.sent_alerts["trending"]:
-                    self.sent_alerts["trending"][user_id] = set()
+                    self.sent_alerts["trending"][user_id] = {}
 
                 alert_count = 0
 
@@ -333,7 +343,7 @@ class MarketAlertsManager:
                         )
 
                         # Запоминаем, что отправили это уведомление
-                        self.sent_alerts["trending"][user_id].add(item_id)
+                        self.sent_alerts["trending"][user_id][item_id] = time.time()
                         alert_count += 1
 
                         # Небольшая пауза между сообщениями
@@ -465,7 +475,7 @@ class MarketAlertsManager:
             for user_id in self.subscribers["arbitrage"]:
                 # Проверяем, какие возможности еще не были отправлены этому пользователю
                 if user_id not in self.sent_alerts["arbitrage"]:
-                    self.sent_alerts["arbitrage"][user_id] = set()
+                    self.sent_alerts["arbitrage"][user_id] = {}
 
                 alert_count = 0
 
@@ -511,7 +521,7 @@ class MarketAlertsManager:
                         )
 
                         # Запоминаем, что отправили это уведомление
-                        self.sent_alerts["arbitrage"][user_id].add(item_id)
+                        self.sent_alerts["arbitrage"][user_id][item_id] = time.time()
                         alert_count += 1
 
                         # Небольшая пауза между сообщениями
@@ -741,17 +751,21 @@ class MarketAlertsManager:
             Количество удаленных уведомлений
 
         """
-        _ = max_age_days  # TODO: Implement timestamp-based cleanup
-        # Эта функция не имеет реальной реализации, так как мы не храним даты отправки
-        # В реальном приложении здесь была бы логика удаления старых уведомлений
-        # На данный момент просто очищаем все
+        cutoff_time = time.time() - (max_age_days * 86400)
         total_cleared = 0
 
         for alert_type in self.sent_alerts:
-            for user_id in list(self.sent_alerts[alert_type].keys()):
-                count = len(self.sent_alerts[alert_type][user_id])
-                self.sent_alerts[alert_type][user_id].clear()
-                total_cleared += count
+            for user_id, alerts in list(self.sent_alerts[alert_type].items()):
+                expired_alerts = [
+                    alert_id for alert_id, sent_at in alerts.items() if sent_at < cutoff_time
+                ]
+
+                for alert_id in expired_alerts:
+                    del alerts[alert_id]
+                total_cleared += len(expired_alerts)
+
+                if not alerts:
+                    del self.sent_alerts[alert_type][user_id]
 
         logger.info(f"Очищено {total_cleared} старых уведомлений")
         return total_cleared

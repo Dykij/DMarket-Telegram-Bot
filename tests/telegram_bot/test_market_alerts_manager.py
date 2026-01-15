@@ -13,6 +13,7 @@ Target: 50+ tests to achieve 70%+ coverage
 """
 
 import asyncio
+import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -346,8 +347,11 @@ class TestMarketAlertsManagerClearSentAlerts:
     def test_clear_sent_alerts_clears_all(self, manager):
         """Test clear_sent_alerts clears all sent alerts."""
         # Add some sent alerts
-        manager.sent_alerts["price_changes"][123] = {"alert1", "alert2"}
-        manager.sent_alerts["trending"][456] = {"alert3"}
+        manager.sent_alerts["price_changes"][123] = {
+            "alert1": time.time(),
+            "alert2": time.time(),
+        }
+        manager.sent_alerts["trending"][456] = {"alert3": time.time()}
 
         manager.clear_sent_alerts()
 
@@ -356,8 +360,8 @@ class TestMarketAlertsManagerClearSentAlerts:
 
     def test_clear_sent_alerts_specific_type(self, manager):
         """Test clear_sent_alerts for specific alert type."""
-        manager.sent_alerts["price_changes"][123] = {"alert1"}
-        manager.sent_alerts["trending"][123] = {"alert2"}
+        manager.sent_alerts["price_changes"][123] = {"alert1": time.time()}
+        manager.sent_alerts["trending"][123] = {"alert2": time.time()}
 
         manager.clear_sent_alerts(alert_type="price_changes")
 
@@ -366,22 +370,22 @@ class TestMarketAlertsManagerClearSentAlerts:
 
     def test_clear_sent_alerts_specific_user(self, manager):
         """Test clear_sent_alerts for specific user."""
-        manager.sent_alerts["price_changes"][123] = {"alert1"}
-        manager.sent_alerts["price_changes"][456] = {"alert2"}
+        manager.sent_alerts["price_changes"][123] = {"alert1": time.time()}
+        manager.sent_alerts["price_changes"][456] = {"alert2": time.time()}
 
         manager.clear_sent_alerts(user_id=123)
 
-        assert manager.sent_alerts["price_changes"].get(123, set()) == set()
+        assert manager.sent_alerts["price_changes"].get(123, {}) == {}
         assert "alert2" in manager.sent_alerts["price_changes"][456]
 
     def test_clear_sent_alerts_specific_type_and_user(self, manager):
         """Test clear_sent_alerts for specific type and user."""
-        manager.sent_alerts["price_changes"][123] = {"alert1"}
-        manager.sent_alerts["trending"][123] = {"alert2"}
+        manager.sent_alerts["price_changes"][123] = {"alert1": time.time()}
+        manager.sent_alerts["trending"][123] = {"alert2": time.time()}
 
         manager.clear_sent_alerts(alert_type="price_changes", user_id=123)
 
-        assert manager.sent_alerts["price_changes"].get(123, set()) == set()
+        assert manager.sent_alerts["price_changes"].get(123, {}) == {}
         assert "alert2" in manager.sent_alerts["trending"][123]
 
 
@@ -390,8 +394,12 @@ class TestMarketAlertsManagerClearOldAlerts:
 
     def test_clear_old_alerts_returns_count(self, manager):
         """Test that clear_old_alerts returns cleared count."""
-        manager.sent_alerts["price_changes"][123] = {"alert1", "alert2"}
-        manager.sent_alerts["trending"][456] = {"alert3"}
+        old_time = time.time() - (8 * 86400)
+        manager.sent_alerts["price_changes"][123] = {
+            "alert1": old_time,
+            "alert2": old_time,
+        }
+        manager.sent_alerts["trending"][456] = {"alert3": old_time}
 
         result = manager.clear_old_alerts()
 
@@ -399,11 +407,12 @@ class TestMarketAlertsManagerClearOldAlerts:
 
     def test_clear_old_alerts_clears_all_alerts(self, manager):
         """Test that clear_old_alerts clears all alerts."""
-        manager.sent_alerts["price_changes"][123] = {"alert1"}
+        old_time = time.time() - (8 * 86400)
+        manager.sent_alerts["price_changes"][123] = {"alert1": old_time}
 
         manager.clear_old_alerts()
 
-        assert len(manager.sent_alerts["price_changes"].get(123, set())) == 0
+        assert len(manager.sent_alerts["price_changes"].get(123, {})) == 0
 
 
 class TestMarketAlertsManagerStartStopMonitoring:

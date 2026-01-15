@@ -7,6 +7,7 @@ Tests for MarketAlertsManager including:
 - Monitoring control
 """
 
+import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -216,8 +217,7 @@ class TestMarketAlertsManagerAlerts:
         alert_key = "item_1_price_drop"
 
         # Initialize user's sent alerts
-        manager.sent_alerts["price_changes"][user_id] = set()
-        manager.sent_alerts["price_changes"][user_id].add(alert_key)
+        manager.sent_alerts["price_changes"][user_id] = {alert_key: time.time()}
 
         assert alert_key in manager.sent_alerts["price_changes"][user_id]
 

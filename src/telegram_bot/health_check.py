@@ -19,6 +19,8 @@ from typing import Any
 
 from aiohttp import web
 
+from src.utils.health_monitor import HealthMonitor, ServiceStatus
+
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +43,7 @@ class HealthCheckServer:
         db_manager: Any = None,
         redis_client: Any = None,
         dmarket_api: Any = None,
+        health_monitor: HealthMonitor | None = None,
     ):
         """Initialize health check server.
 
@@ -58,6 +61,7 @@ class HealthCheckServer:
         self.db_manager = db_manager
         self.redis_client = redis_client
         self.dmarket_api = dmarket_api
+        self.health_monitor = health_monitor
 
         # Status tracking
         self.start_time = time.time()
@@ -125,6 +129,19 @@ class HealthCheckServer:
         Returns:
             JSON response with status and check results
         """
+        if self.health_monitor:
+            checks, details, overall_status = await self._get_health_monitor_results()
+            status_code = 200 if overall_status != "unhealthy" else 503
+            response_data = {
+                "status": overall_status,
+                "checks": checks,
+                "details": details,
+                "uptime_seconds": int(time.time() - self.start_time),
+                "version": self.version,
+                "timestamp": datetime.now(UTC).isoformat() + "Z",
+            }
+            return web.json_response(response_data, status=status_code)
+
         checks = {}
         all_healthy = True
 
@@ -162,6 +179,34 @@ class HealthCheckServer:
         status_code = 200 if all_healthy else 503
 
         return web.json_response(response_data, status=status_code)
+
+    async def _get_health_monitor_results(
+        self,
+    ) -> tuple[dict[str, bool], dict[str, dict[str, Any]], str]:
+        """Build health response from HealthMonitor results."""
+        results = await self.health_monitor.run_all_checks()
+        overall_status = "healthy"
+        checks: dict[str, bool] = {}
+        details: dict[str, dict[str, Any]] = {}
+
+        for name, result in results.items():
+            checks[name] = result.status in {
+                ServiceStatus.HEALTHY,
+                ServiceStatus.DEGRADED,
+            }
+            details[name] = {
+                "status": result.status.value,
+                "message": result.message,
+                "response_time_ms": result.response_time_ms,
+                "details": result.details,
+            }
+
+            if result.status == ServiceStatus.UNHEALTHY:
+                overall_status = "unhealthy"
+            elif result.status == ServiceStatus.DEGRADED and overall_status == "healthy":
+                overall_status = "degraded"
+
+        return checks, details, overall_status
 
     async def handle_ready(self, request: web.Request) -> web.Response:
         """Handle /ready endpoint - Kubernetes readiness probe.
