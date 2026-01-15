@@ -788,7 +788,7 @@ class MarketAlertsManager:
         """Запускает очистку истории уведомлений в фоне."""
         async with self._cleanup_lock:
             try:
-                await asyncio.to_thread(self.clear_old_alerts)
+                self.clear_old_alerts()
             except Exception as exc:
                 logger.exception(f"Ошибка очистки истории уведомлений: {exc}")
 

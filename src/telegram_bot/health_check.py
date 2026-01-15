@@ -160,7 +160,7 @@ class HealthCheckServer:
             "version": self.version,
             "timestamp": datetime.now(UTC).isoformat() + "Z",
         }
-        if details:
+        if details and any(details.values()):
             response_data["details"] = details
 
         status_code = 200 if overall_status != "unhealthy" else 503
