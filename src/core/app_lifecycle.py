@@ -5,7 +5,8 @@ This module handles application startup and shutdown sequences.
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from src.core.application import Application
@@ -258,7 +259,7 @@ class ApplicationLifecycle:
             )
             logger.info("✅ All tasks completed")
         except TimeoutError:
-            logger.warning(f"⚠️ Timeout waiting for tasks, cancelling...")
+            logger.warning("⚠️ Timeout waiting for tasks, cancelling...")
             for task in active_tasks:
                 if not task.done():
                     task.cancel()

@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import io
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
@@ -69,7 +69,7 @@ async def charts_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         ],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.message.reply_text(
         "📊 **Chart Generator**\n\n"
         "Select the type of chart to generate:\n\n"
@@ -86,15 +86,15 @@ async def charts_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     """Handle chart selection callbacks."""
     query = update.callback_query
     await query.answer()
-    
+
     if query.data == "chart_cancel":
         await query.edit_message_text("Chart generation cancelled.")
         return ConversationHandler.END
-    
+
     # Try to import chart generator
     try:
         from src.utils.profit_charts import MATPLOTLIB_AVAILABLE, ProfitChartGenerator
-        
+
         if not MATPLOTLIB_AVAILABLE:
             await query.edit_message_text(
                 "⚠️ Chart generation requires matplotlib.\n"
@@ -102,22 +102,22 @@ async def charts_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 parse_mode="Markdown",
             )
             return ConversationHandler.END
-        
+
         generator = ProfitChartGenerator()
-        
+
     except ImportError as e:
         await query.edit_message_text(f"⚠️ Chart module not available: {e}")
         return ConversationHandler.END
-    
+
     await query.edit_message_text("⏳ Generating chart...")
-    
+
     # Get purchase data from database (mock for now)
     from datetime import datetime, timedelta
     import random
-    
+
     # Generate sample data
     base_time = datetime.now()
-    
+
     if query.data == "chart_cumulative":
         # Sample purchases with profit
         purchases = [
@@ -127,12 +127,12 @@ async def charts_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             }
             for i in range(24, 0, -1)
         ]
-        
+
         chart_bytes = await generator.generate_cumulative_profit_chart(
             purchases=purchases,
             title="Cumulative Profit (24h)",
         )
-        
+
     elif query.data == "chart_roi":
         # Sample daily stats
         daily_stats = [
@@ -143,17 +143,17 @@ async def charts_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             }
             for i in range(7, 0, -1)
         ]
-        
+
         chart_bytes = await generator.generate_roi_chart(
             daily_stats=daily_stats,
             title="Daily ROI (7 days)",
         )
-        
+
     elif query.data == "chart_winrate":
         # Sample trade results
         successful = random.randint(50, 100)
         failed = random.randint(5, 30)
-        
+
         chart_bytes = await generator.generate_win_rate_pie_chart(
             successful_trades=successful,
             failed_trades=failed,
@@ -162,14 +162,14 @@ async def charts_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     else:
         await query.edit_message_text("Unknown chart type.")
         return ConversationHandler.END
-    
+
     # Send chart as photo
     await context.bot.send_photo(
         chat_id=update.effective_chat.id,
         photo=io.BytesIO(chart_bytes),
         caption=f"📊 {query.data.replace('chart_', '').replace('_', ' ').title()} Chart",
     )
-    
+
     await query.delete_message()
     return ConversationHandler.END
 
@@ -185,7 +185,7 @@ async def visualize_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         item_name = " ".join(context.args)
         await _generate_visualization(update, context, item_name)
         return ConversationHandler.END
-    
+
     await update.message.reply_text(
         "📈 **Market Visualizer**\n\n"
         "Send me the item name to visualize its price history.\n\n"
@@ -210,19 +210,19 @@ async def _generate_visualization(
 ) -> None:
     """Generate and send price visualization."""
     await update.message.reply_text(f"⏳ Generating visualization for: {item_name}...")
-    
+
     try:
         from src.utils.market_visualizer import MarketVisualizer
-        
+
         visualizer = MarketVisualizer(theme="dark")
-        
+
         # Get price history (mock for now - would fetch from API)
         from datetime import datetime, timedelta
         import random
-        
+
         base_price = random.uniform(5, 50)
         base_time = datetime.now()
-        
+
         price_history = [
             {
                 "timestamp": (base_time - timedelta(days=i)).timestamp(),
@@ -231,7 +231,7 @@ async def _generate_visualization(
             }
             for i in range(30, 0, -1)
         ]
-        
+
         # Generate chart
         buf = await visualizer.create_price_chart(
             price_history=price_history,
@@ -239,13 +239,13 @@ async def _generate_visualization(
             game="csgo",
             include_volume=True,
         )
-        
+
         await context.bot.send_photo(
             chat_id=update.effective_chat.id,
             photo=buf,
             caption=f"📈 Price history for: {item_name}",
         )
-        
+
     except ImportError as e:
         await update.message.reply_text(f"⚠️ Visualization module not available: {e}")
     except Exception as e:
@@ -271,7 +271,7 @@ async def smart_find_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
         [InlineKeyboardButton("❌ Cancel", callback_data="sf_cancel")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.message.reply_text(
         "🔍 **Smart Market Finder**\n\n"
         "Find the best opportunities on the market:\n"
@@ -289,22 +289,22 @@ async def smart_find_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
     """Handle smart find game selection."""
     query = update.callback_query
     await query.answer()
-    
+
     if query.data == "sf_cancel":
         await query.edit_message_text("Search cancelled.")
         return ConversationHandler.END
-    
+
     game = query.data.replace("sf_", "")
     await query.edit_message_text(f"⏳ Searching for opportunities in {game}...")
-    
+
     try:
         from src.dmarket.smart_market_finder import SmartMarketFinder
-        
+
         # Create API client
         api_client = create_dmarket_api_client(context)
-        
+
         finder = SmartMarketFinder(api_client)
-        
+
         # Find opportunities
         opportunities = await finder.find_best_opportunities(
             game=game,
@@ -313,17 +313,17 @@ async def smart_find_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
             limit=10,
             min_confidence=60.0,
         )
-        
+
         if not opportunities:
             await query.edit_message_text(
                 f"🔍 No opportunities found for {game}.\n\n"
                 "Try different price range or game.",
             )
             return ConversationHandler.END
-        
+
         # Format results
         message = f"🔍 **Best Opportunities for {game.upper()}**\n\n"
-        
+
         for i, opp in enumerate(opportunities[:5], 1):
             emoji = "🟢" if opp.risk_level == "low" else "🟡" if opp.risk_level == "medium" else "🔴"
             message += (
@@ -332,15 +332,15 @@ async def smart_find_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
                 f"   📈 Profit: ${opp.profit_potential:.2f} ({opp.profit_percent:.1f}%)\n"
                 f"   {emoji} Risk: {opp.risk_level} | Confidence: {opp.confidence_score:.0f}%\n\n"
             )
-        
+
         await query.edit_message_text(message, parse_mode="Markdown")
-        
+
     except ImportError as e:
         await query.edit_message_text(f"⚠️ Smart finder module not available: {e}")
     except Exception as e:
         logger.exception(f"Smart find error: {e}")
         await query.edit_message_text(f"❌ Error: {e}")
-    
+
     return ConversationHandler.END
 
 
@@ -362,7 +362,7 @@ async def trends_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         [InlineKeyboardButton("❌ Cancel", callback_data="tr_cancel")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.message.reply_text(
         "📈 **Trending Items Finder**\n\n"
         "Find items with upward price trends:\n"
@@ -380,40 +380,40 @@ async def trends_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     """Handle trends game selection."""
     query = update.callback_query
     await query.answer()
-    
+
     if query.data == "tr_cancel":
         await query.edit_message_text("Search cancelled.")
         return ConversationHandler.END
-    
+
     game = query.data.replace("tr_", "")
     await query.edit_message_text(f"⏳ Searching for trending items in {game}...")
-    
+
     try:
         from src.dmarket.trending_items_finder import TrendingItemsFinder
-        
+
         # Create API client
         api_client = create_dmarket_api_client(context)
-        
+
         finder = TrendingItemsFinder(
             game=game,
             min_price=5.0,
             max_price=200.0,
             max_results=10,
         )
-        
+
         # Find trending items
         trending = await finder.find(api_client)
-        
+
         if not trending:
             await query.edit_message_text(
                 f"📈 No trending items found for {game}.\n\n"
                 "The market may be stable or there's not enough data.",
             )
             return ConversationHandler.END
-        
+
         # Format results
         message = f"📈 **Trending Items for {game.upper()}**\n\n"
-        
+
         for i, item in enumerate(trending[:5], 1):
             trend_emoji = "🚀" if item["trend"] == "upward" else "📈"
             message += (
@@ -423,15 +423,15 @@ async def trends_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 f"   📊 Change: {item['price_change_percent']:+.1f}%\n"
                 f"   💵 Potential: ${item['potential_profit']:.2f} ({item['potential_profit_percent']:.1f}%)\n\n"
             )
-        
+
         await query.edit_message_text(message, parse_mode="Markdown")
-        
+
     except ImportError as e:
         await query.edit_message_text(f"⚠️ Trending finder module not available: {e}")
     except Exception as e:
         logger.exception(f"Trends error: {e}")
         await query.edit_message_text(f"❌ Error: {e}")
-    
+
     return ConversationHandler.END
 
 
@@ -452,7 +452,7 @@ async def sniper_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         ],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.message.reply_text(
         "🎯 **Sniper Cycle**\n\n"
         "Automated quick-buy for profitable items:\n"
@@ -471,11 +471,11 @@ async def sniper_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     """Handle sniper callbacks."""
     query = update.callback_query
     await query.answer()
-    
+
     if query.data == "sniper_cancel":
         await query.edit_message_text("Sniper cancelled.")
         return
-    
+
     if query.data == "sniper_start":
         await query.edit_message_text(
             "⚠️ **Sniper cycle is in DRY RUN mode**\n\n"
@@ -523,7 +523,7 @@ async def shadow_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         ],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.message.reply_text(
         "👤 **Shadow Listing Manager**\n\n"
         "Smart competitive pricing:\n"
@@ -541,11 +541,11 @@ async def shadow_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     """Handle shadow listing callbacks."""
     query = update.callback_query
     await query.answer()
-    
+
     if query.data == "shadow_cancel":
         await query.edit_message_text("Shadow listing cancelled.")
         return
-    
+
     await query.edit_message_text(
         "👤 **Shadow Listing**\n\n"
         f"Feature: {query.data.replace('shadow_', '')}\n\n"
@@ -571,7 +571,7 @@ async def bid_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         ],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.message.reply_text(
         "💵 **Smart Bidder**\n\n"
         "Competitive bidding on targets:\n"
@@ -589,11 +589,11 @@ async def bid_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     """Handle smart bidder callbacks."""
     query = update.callback_query
     await query.answer()
-    
+
     if query.data == "bid_cancel":
         await query.edit_message_text("Bidding cancelled.")
         return
-    
+
     if query.data == "bid_new":
         await query.edit_message_text(
             "🎯 **Create New Bid**\n\n"
@@ -654,13 +654,13 @@ async def advanced_status_command(update: Update, context: ContextTypes.DEFAULT_
         "Sniper Cycle": _check_module("src.dmarket.sniper_cycle"),
         "Smart Bidder": _check_module("src.dmarket.smart_bidder"),
     }
-    
+
     message = "🔧 **Advanced Features Status**\n\n"
-    
+
     for module, available in modules_status.items():
         status = "✅" if available else "❌"
         message += f"{status} {module}\n"
-    
+
     message += "\n**Commands:**\n"
     message += "• `/charts` - Generate profit charts\n"
     message += "• `/visualize` - Visualize item prices\n"
@@ -670,7 +670,7 @@ async def advanced_status_command(update: Update, context: ContextTypes.DEFAULT_
     message += "• `/shadow` - Shadow listing\n"
     message += "• `/bid` - Smart bidding\n"
     message += "• `/aggregate` - Batch price check\n"
-    
+
     await update.message.reply_text(message, parse_mode="Markdown")
 
 
@@ -699,7 +699,7 @@ async def cancel_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 def get_advanced_features_handlers() -> list:
     """Get all advanced features handlers."""
-    
+
     # Charts conversation handler
     charts_handler = ConversationHandler(
         entry_points=[CommandHandler("charts", charts_command)],
@@ -710,7 +710,7 @@ def get_advanced_features_handlers() -> list:
         },
         fallbacks=[CommandHandler("cancel", cancel_handler)],
     )
-    
+
     # Visualize conversation handler
     visualize_handler = ConversationHandler(
         entry_points=[CommandHandler("visualize", visualize_command)],
@@ -721,7 +721,7 @@ def get_advanced_features_handlers() -> list:
         },
         fallbacks=[CommandHandler("cancel", cancel_handler)],
     )
-    
+
     # Smart find conversation handler
     smart_find_handler = ConversationHandler(
         entry_points=[CommandHandler("smart_find", smart_find_command)],
@@ -732,7 +732,7 @@ def get_advanced_features_handlers() -> list:
         },
         fallbacks=[CommandHandler("cancel", cancel_handler)],
     )
-    
+
     # Trends conversation handler
     trends_handler = ConversationHandler(
         entry_points=[CommandHandler("trends", trends_command)],
@@ -743,7 +743,7 @@ def get_advanced_features_handlers() -> list:
         },
         fallbacks=[CommandHandler("cancel", cancel_handler)],
     )
-    
+
     return [
         charts_handler,
         visualize_handler,
@@ -764,5 +764,5 @@ def register_advanced_features_handlers(application: Application) -> None:
     """Register all advanced features handlers."""
     for handler in get_advanced_features_handlers():
         application.add_handler(handler)
-    
+
     logger.info("Advanced features handlers registered")

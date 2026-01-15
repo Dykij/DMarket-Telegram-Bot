@@ -24,6 +24,13 @@
 Документация: docs/ML_AI_GUIDE.md
 """
 
+from src.ml.anomaly_detection import (
+    AnomalyDetector,
+    AnomalyResult,
+    AnomalySeverity,
+    AnomalyType,
+    create_anomaly_detector,
+)
 from src.ml.balance_adapter import (
     BalanceAdaptiveStrategy,
     StrategyRecommendation,
@@ -54,69 +61,62 @@ from src.ml.price_predictor import (
     PredictionConfidence,
     PricePrediction,
 )
-from src.ml.trade_classifier import (
-    AdaptiveTradeClassifier,
-    RiskLevel,
-    TradeSignal,
-)
-from src.ml.anomaly_detection import (
-    AnomalyDetector,
-    AnomalyResult,
-    AnomalyType,
-    AnomalySeverity,
-    create_anomaly_detector,
-)
 from src.ml.smart_recommendations import (
-    SmartRecommendations,
     ItemRecommendation,
     RecommendationBatch,
     RecommendationType,
     RiskLevel as RecommendationRiskLevel,
+    SmartRecommendations,
     create_smart_recommendations,
+)
+from src.ml.trade_classifier import (
+    AdaptiveTradeClassifier,
+    RiskLevel,
+    TradeSignal,
 )
 
 
 __all__ = [
     # Price Predictor (базовый)
     "AdaptivePricePredictor",
-    "PricePrediction",
-    "PredictionConfidence",
-    # Enhanced Price Predictor (улучшенный)
-    "EnhancedPricePredictor",
-    "EnhancedFeatureExtractor",
-    "EnhancedFeatures",
-    "GameType",
-    "ItemRarity",
-    "ItemCondition",
-    "MLPipeline",
-    # Model Tuner (автонастройка)
-    "ModelTuner",
-    "AutoMLSelector",
-    "CVStrategy",
-    "ScoringMetric",
-    "TuningResult",
-    "EvaluationResult",
     # Trade Classifier
     "AdaptiveTradeClassifier",
-    "TradeSignal",
-    "RiskLevel",
-    # Balance Adapter
-    "BalanceAdaptiveStrategy",
-    "StrategyRecommendation",
-    # Feature Extractor
-    "MarketFeatureExtractor",
-    "PriceFeatures",
     # Anomaly Detection
     "AnomalyDetector",
     "AnomalyResult",
-    "AnomalyType",
     "AnomalySeverity",
-    "create_anomaly_detector",
+    "AnomalyType",
+    "AutoMLSelector",
+    # Balance Adapter
+    "BalanceAdaptiveStrategy",
+    "CVStrategy",
+    "EnhancedFeatureExtractor",
+    "EnhancedFeatures",
+    # Enhanced Price Predictor (улучшенный)
+    "EnhancedPricePredictor",
+    "EvaluationResult",
+    "GameType",
+    "ItemCondition",
+    "ItemRarity",
+    "ItemRecommendation",
+    "MLPipeline",
+    # Feature Extractor
+    "MarketFeatureExtractor",
+    # Model Tuner (автонастройка)
+    "ModelTuner",
+    "PredictionConfidence",
+    "PriceFeatures",
+    "PricePrediction",
+    "RecommendationBatch",
+    "RecommendationRiskLevel",
+    "RecommendationType",
+    "RiskLevel",
+    "ScoringMetric",
     # Smart Recommendations
     "SmartRecommendations",
-    "ItemRecommendation",
-    "RecommendationBatch",
-    "RecommendationType",
-    "RecommendationRiskLevel",
+    "StrategyRecommendation",
+    "TradeSignal",
+    "TuningResult",
+    "create_anomaly_detector",
     "create_smart_recommendations",
 ]
