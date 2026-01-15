@@ -24,6 +24,8 @@ from src.dmarket.market_analysis import (
 # Настройка логирования
 logger = logging.getLogger(__name__)
 
+SECONDS_PER_DAY = 86400
+
 
 class MarketAlertsManager:
     """Менеджер уведомлений о событиях на рынке."""
@@ -81,8 +83,9 @@ class MarketAlertsManager:
         self.sent_alerts: dict[str, dict[int, dict[str, float]]] = {
             alert_type: {} for alert_type in self.subscribers
         }
-        self.sent_alerts_cleanup_interval_seconds = 86400
+        self.sent_alerts_cleanup_interval_seconds = SECONDS_PER_DAY
         self.last_cleanup_time = 0.0
+        self._cleanup_task: asyncio.Task[None] | None = None
 
         # Флаг для управления фоновой задачей
         self.running = False
@@ -113,6 +116,10 @@ class MarketAlertsManager:
             self.background_task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await self.background_task
+        if self._cleanup_task:
+            self._cleanup_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await self._cleanup_task
 
         logger.info("Мониторинг рынка остановлен")
 
@@ -135,7 +142,10 @@ class MarketAlertsManager:
                     current_time - self.last_cleanup_time
                     >= self.sent_alerts_cleanup_interval_seconds
                 ):
-                    self.clear_old_alerts()
+                    if not self._cleanup_task or self._cleanup_task.done():
+                        self._cleanup_task = asyncio.create_task(
+                            self._cleanup_sent_alerts()
+                        )
                     self.last_cleanup_time = current_time
 
                 # Проверяем изменения цен при необходимости
@@ -751,7 +761,7 @@ class MarketAlertsManager:
             Количество удаленных уведомлений
 
         """
-        cutoff_time = time.time() - (max_age_days * 86400)
+        cutoff_time = time.time() - (max_age_days * SECONDS_PER_DAY)
         total_cleared = 0
 
         for alert_type in self.sent_alerts:
@@ -769,6 +779,10 @@ class MarketAlertsManager:
 
         logger.info(f"Очищено {total_cleared} старых уведомлений")
         return total_cleared
+
+    async def _cleanup_sent_alerts(self) -> None:
+        """Запускает очистку истории уведомлений в фоне."""
+        await asyncio.to_thread(self.clear_old_alerts)
 
 
 # Функция для создания глобального экземпляра менеджера уведомлений

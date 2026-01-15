@@ -129,61 +129,52 @@ class HealthCheckServer:
         Returns:
             JSON response with status and check results
         """
+        checks: dict[str, bool] = {}
+        details: dict[str, dict[str, Any]] = {}
+        overall_status: str | None = None
+
         if self.health_monitor:
             checks, details, overall_status = await self._get_health_monitor_results()
-            status_code = 200 if overall_status != "unhealthy" else 503
-            response_data = {
-                "status": overall_status,
-                "checks": checks,
-                "details": details,
-                "uptime_seconds": int(time.time() - self.start_time),
-                "version": self.version,
-                "timestamp": datetime.now(UTC).isoformat() + "Z",
-            }
-            return web.json_response(response_data, status=status_code)
 
-        checks = {}
-        all_healthy = True
+        missing_checks = {
+            "database",
+            "redis",
+            "dmarket_api",
+            "telegram_api",
+        } - set(checks.keys())
+        if missing_checks:
+            legacy_checks = await self._run_legacy_checks(missing_checks)
+            checks.update(legacy_checks)
+            if overall_status is None:
+                overall_status = "healthy" if all(legacy_checks.values()) else "unhealthy"
+            elif any(not value for value in legacy_checks.values()):
+                overall_status = "unhealthy"
 
-        # Check database
-        checks["database"] = await self._check_database()
-        if not checks["database"]:
-            all_healthy = False
-
-        # Check Redis
-        checks["redis"] = await self._check_redis()
-        if not checks["redis"]:
-            all_healthy = False
-
-        # Check DMarket API
-        checks["dmarket_api"] = await self._check_dmarket_api()
-        if not checks["dmarket_api"]:
-            all_healthy = False
-
-        # Check Telegram API
-        checks["telegram_api"] = await self._check_telegram_api()
-        if not checks["telegram_api"]:
-            all_healthy = False
-
-        # Calculate uptime
-        uptime_seconds = int(time.time() - self.start_time)
+        if overall_status is None:
+            overall_status = "healthy" if all(checks.values()) else "unhealthy"
 
         response_data = {
-            "status": "healthy" if all_healthy else "unhealthy",
+            "status": overall_status,
             "checks": checks,
-            "uptime_seconds": uptime_seconds,
+            "uptime_seconds": int(time.time() - self.start_time),
             "version": self.version,
             "timestamp": datetime.now(UTC).isoformat() + "Z",
         }
+        if details:
+            response_data["details"] = details
 
-        status_code = 200 if all_healthy else 503
+        status_code = 200 if overall_status != "unhealthy" else 503
 
         return web.json_response(response_data, status=status_code)
 
     async def _get_health_monitor_results(
         self,
     ) -> tuple[dict[str, bool], dict[str, dict[str, Any]], str]:
-        """Build health response from HealthMonitor results."""
+        """Build health response from HealthMonitor results.
+
+        Returns:
+            Tuple of (checks, details, overall_status).
+        """
         results = await self.health_monitor.run_all_checks()
         overall_status = "healthy"
         checks: dict[str, bool] = {}
@@ -207,6 +198,19 @@ class HealthCheckServer:
                 overall_status = "degraded"
 
         return checks, details, overall_status
+
+    async def _run_legacy_checks(self, check_names: set[str]) -> dict[str, bool]:
+        """Run legacy dependency checks for missing services."""
+        results: dict[str, bool] = {}
+        if "database" in check_names:
+            results["database"] = await self._check_database()
+        if "redis" in check_names:
+            results["redis"] = await self._check_redis()
+        if "dmarket_api" in check_names:
+            results["dmarket_api"] = await self._check_dmarket_api()
+        if "telegram_api" in check_names:
+            results["telegram_api"] = await self._check_telegram_api()
+        return results
 
     async def handle_ready(self, request: web.Request) -> web.Response:
         """Handle /ready endpoint - Kubernetes readiness probe.
