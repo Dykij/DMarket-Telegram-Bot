@@ -86,6 +86,7 @@ class MarketAlertsManager:
         self.sent_alerts_cleanup_interval_seconds = SECONDS_PER_DAY
         self.last_cleanup_time = 0.0
         self._cleanup_task: asyncio.Task[None] | None = None
+        self._cleanup_lock = asyncio.Lock()
 
         # Флаг для управления фоновой задачей
         self.running = False
@@ -142,7 +143,10 @@ class MarketAlertsManager:
                     current_time - self.last_cleanup_time
                     >= self.sent_alerts_cleanup_interval_seconds
                 ):
-                    if not self._cleanup_task or self._cleanup_task.done():
+                    if (
+                        (not self._cleanup_task or self._cleanup_task.done())
+                        and not self._cleanup_lock.locked()
+                    ):
                         self._cleanup_task = asyncio.create_task(
                             self._cleanup_sent_alerts()
                         )
@@ -782,7 +786,11 @@ class MarketAlertsManager:
 
     async def _cleanup_sent_alerts(self) -> None:
         """Запускает очистку истории уведомлений в фоне."""
-        await asyncio.to_thread(self.clear_old_alerts)
+        async with self._cleanup_lock:
+            try:
+                await asyncio.to_thread(self.clear_old_alerts)
+            except Exception as exc:
+                logger.exception(f"Ошибка очистки истории уведомлений: {exc}")
 
 
 # Функция для создания глобального экземпляра менеджера уведомлений

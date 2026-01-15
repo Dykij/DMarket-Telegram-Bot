@@ -189,7 +189,6 @@ class HealthCheckServer:
                 "status": result.status.value,
                 "message": result.message,
                 "response_time_ms": result.response_time_ms,
-                "details": result.details,
             }
 
             if result.status == ServiceStatus.UNHEALTHY:
