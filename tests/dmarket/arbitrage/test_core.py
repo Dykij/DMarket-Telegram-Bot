@@ -172,6 +172,44 @@ class TestFindArbitrageAsync:
         assert isinstance(results, list)
 
     @pytest.mark.asyncio()
+    async def test_find_arbitrage_popularity_sets_fee_and_markup(self):
+        """Test popularity influences fee and markup when suggested price is missing."""
+        from src.dmarket.arbitrage.constants import LOW_FEE
+        from src.dmarket.arbitrage.core import _find_arbitrage_async
+
+        mock_items = [
+            {
+                "title": "Popular Item",
+                "price": {"USD": 1000},
+                "extra": {"popularity": 0.8},
+                "itemId": "popular_1",
+            }
+        ]
+
+        with (
+            patch(
+                "src.dmarket.arbitrage.core.fetch_market_items",
+                AsyncMock(return_value=mock_items),
+            ),
+            patch(
+                "src.dmarket.arbitrage.core.get_cached_results",
+                return_value=None,
+            ),
+            patch("src.dmarket.arbitrage.core.save_to_cache"),
+        ):
+            results = await _find_arbitrage_async(
+                min_profit=0.1,
+                max_profit=5.0,
+                game="csgo",
+            )
+
+        assert results
+        result = results[0]
+        assert result["sell"] == "$11.00"
+        assert result["fee"] == f"{int(LOW_FEE * 100)}%"
+        assert result["liquidity"] == "high"
+
+    @pytest.mark.asyncio()
     async def test_find_arbitrage_uses_cache(self):
         """Test _find_arbitrage_async uses cached results."""
         from src.dmarket.arbitrage.core import _find_arbitrage_async
