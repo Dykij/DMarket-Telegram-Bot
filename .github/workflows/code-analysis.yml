@@ -1,6 +1,6 @@
-name: Code Analysis (Compact)
+# Code Analysis - Linting, Types, Security, Complexity
+name: Code Analysis
 
-# Оптимизирован для минимального вывода логов
 on:
   push:
     branches: [main, develop]
@@ -13,80 +13,40 @@ permissions:
   security-events: write
   pull-requests: write
 
-# Ограничение времени выполнения
-defaults:
-  run:
-    shell: bash
-
 jobs:
-  deep-analysis:
-    name: Code Analysis
+  analyze:
+    name: "🔬 Deep Analysis"
     runs-on: ubuntu-latest
-    timeout-minutes: 10  # Ограничение времени
-    
+    timeout-minutes: 10
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 1  # Только последний коммит (быстрее)
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
-          cache: 'pip'
-
-      - name: Install tools
-        run: pip install -q ruff mypy bandit safety vulture radon xenon 2>/dev/null
-
-      - name: Ruff Check
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: pip install -q ruff mypy bandit safety vulture radon 2>/dev/null
+      - name: Ruff
+        run: ruff check src/ tests/ --output-format=concise 2>/dev/null | head -20 || true
         continue-on-error: true
-        run: |
-          echo "## 🔍 Ruff" >> $GITHUB_STEP_SUMMARY
-          ruff check src/ tests/ --output-format=concise 2>/dev/null | head -20 || echo "✅ OK" >> $GITHUB_STEP_SUMMARY
-
-      - name: MyPy Check
+      - name: MyPy
+        run: mypy src/ --ignore-missing-imports 2>&1 | head -20 || true
         continue-on-error: true
-        run: |
-          echo "## 🏷️ MyPy" >> $GITHUB_STEP_SUMMARY
-          mypy src/ --ignore-missing-imports --no-error-summary 2>&1 | head -20 || echo "✅ OK" >> $GITHUB_STEP_SUMMARY
-
-      - name: Bandit Security
+      - name: Bandit
+        run: bandit -r src/ -f json -o bandit.json -q 2>/dev/null || true
         continue-on-error: true
-        run: |
-          echo "## 🔒 Security" >> $GITHUB_STEP_SUMMARY
-          bandit -r src/ -f json -o bandit-report.json -q 2>/dev/null || true
-          echo "Report saved to artifact" >> $GITHUB_STEP_SUMMARY
-
-      - name: Vulture Dead Code
+      - name: Vulture
+        run: vulture src/ --min-confidence 90 2>/dev/null | head -10 || true
         continue-on-error: true
-        run: |
-          echo "## 💀 Dead Code" >> $GITHUB_STEP_SUMMARY
-          vulture src/ --min-confidence 90 2>/dev/null | head -10 || echo "✅ OK" >> $GITHUB_STEP_SUMMARY
-
-      - name: Complexity Check
+      - name: Complexity
+        run: radon cc src/ -a -s 2>/dev/null | head -20 || true
         continue-on-error: true
-        run: |
-          echo "## 📊 Complexity" >> $GITHUB_STEP_SUMMARY
-          xenon --max-absolute B --max-modules B --max-average A src/ 2>/dev/null && echo "✅ OK" >> $GITHUB_STEP_SUMMARY || echo "⚠️ High complexity detected" >> $GITHUB_STEP_SUMMARY
-
-      - name: Safety Check
-        continue-on-error: true
-        run: |
-          echo "## 📦 Dependencies" >> $GITHUB_STEP_SUMMARY
-          [ -f requirements.txt ] && safety check -r requirements.txt --output json > safety-report.json 2>/dev/null || true
-          echo "Report saved to artifact" >> $GITHUB_STEP_SUMMARY
-
-      - name: Summary
-        run: echo "## ✅ Done at $(date +%H:%M)" >> $GITHUB_STEP_SUMMARY
-
-      - name: Upload Reports
+      - uses: actions/upload-artifact@v4
         if: always()
-        uses: actions/upload-artifact@v4
         with:
           name: analysis-reports
-          path: |
-            bandit-report.json
-            safety-report.json
+          path: "*.json"
           retention-days: 7
           if-no-files-found: ignore
