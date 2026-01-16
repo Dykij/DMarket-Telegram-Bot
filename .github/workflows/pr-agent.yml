@@ -1,8 +1,8 @@
-name: PR-Agent AI Code Review
+name: PR-Agent (Compact)
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize]
   issue_comment:
     types: [created]
 
@@ -13,76 +13,50 @@ permissions:
 
 jobs:
   pr-agent:
-    if: github.event_name == 'pull_request' || (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/review'))
+    # Запускается только для PR или команд /review, /improve, /ask
+    if: |
+      github.event_name == 'pull_request' || 
+      (github.event_name == 'issue_comment' && 
+       github.event.issue.pull_request && 
+       (contains(github.event.comment.body, '/review') || 
+        contains(github.event.comment.body, '/improve') || 
+        contains(github.event.comment.body, '/ask')))
     runs-on: ubuntu-latest
-    name: PR-Agent Code Review
+    timeout-minutes: 5
+    name: PR-Agent
     
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
-      - name: Run PR-Agent
+      - name: PR-Agent Review
+        if: github.event_name == 'pull_request' || contains(github.event.comment.body, '/review')
         uses: Codium-ai/pr-agent@main
         env:
           OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # Автоматический review при создании PR
-          args: >
-            --pr_url=${{ github.event.pull_request.html_url || github.event.issue.pull_request.html_url }}
-            --command=review
+          args: --pr_url=${{ github.event.pull_request.html_url || github.event.issue.pull_request.html_url }} --command=review
+        continue-on-error: true
 
-      - name: PR-Agent Describe
-        if: github.event_name == 'pull_request' && github.event.action == 'opened'
+      - name: PR-Agent Improve
+        if: contains(github.event.comment.body, '/improve')
         uses: Codium-ai/pr-agent@main
         env:
           OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: >
-            --pr_url=${{ github.event.pull_request.html_url }}
-            --command=describe
+          args: --pr_url=${{ github.event.issue.pull_request.html_url }} --command=improve
+        continue-on-error: true
 
-  pr-agent-improve:
-    if: github.event_name == 'issue_comment' && contains(github.event.comment.body, '/improve')
-    runs-on: ubuntu-latest
-    name: PR-Agent Suggestions
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Run PR-Agent Improve
+      - name: PR-Agent Ask
+        if: contains(github.event.comment.body, '/ask')
         uses: Codium-ai/pr-agent@main
         env:
           OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: >
-            --pr_url=${{ github.event.issue.pull_request.html_url }}
-            --command=improve
-
-  pr-agent-ask:
-    if: github.event_name == 'issue_comment' && contains(github.event.comment.body, '/ask')
-    runs-on: ubuntu-latest
-    name: PR-Agent Q&A
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Run PR-Agent Ask
-        uses: Codium-ai/pr-agent@main
-        env:
-          OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: >
-            --pr_url=${{ github.event.issue.pull_request.html_url }}
-            --command=ask "${{ github.event.comment.body }}"
+          args: --pr_url=${{ github.event.issue.pull_request.html_url }} --command=ask "${{ github.event.comment.body }}"
+        continue-on-error: true

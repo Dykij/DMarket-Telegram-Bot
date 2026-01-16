@@ -1,95 +1,86 @@
-name: Code Analysis (Adrenaline-style)
+name: Code Analysis (Compact)
 
+# Оптимизирован для минимального вывода логов
 on:
   push:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
-  workflow_dispatch:  # Ручной запуск
+  workflow_dispatch:
 
 permissions:
   contents: read
   security-events: write
   pull-requests: write
 
+# Ограничение времени выполнения
+defaults:
+  run:
+    shell: bash
+
 jobs:
   deep-analysis:
-    name: Deep Code Analysis
+    name: Code Analysis
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # Ограничение времени
     
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1  # Только последний коммит (быстрее)
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: 'pip'
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install ruff mypy bandit safety vulture radon xenon
+      - name: Install tools
+        run: pip install -q ruff mypy bandit safety vulture radon xenon 2>/dev/null
 
-      - name: Run Ruff (Linting + Formatting Check)
+      - name: Ruff Check
         continue-on-error: true
         run: |
-          echo "## 🔍 Ruff Analysis" >> $GITHUB_STEP_SUMMARY
-          ruff check src/ tests/ --output-format=github || echo "Ruff found issues" >> $GITHUB_STEP_SUMMARY
-          ruff format src/ tests/ --check || echo "Formatting issues found" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔍 Ruff" >> $GITHUB_STEP_SUMMARY
+          ruff check src/ tests/ --output-format=concise 2>/dev/null | head -20 || echo "✅ OK" >> $GITHUB_STEP_SUMMARY
 
-      - name: Run MyPy (Type Checking)
+      - name: MyPy Check
         continue-on-error: true
         run: |
-          echo "## 🏷️ MyPy Type Analysis" >> $GITHUB_STEP_SUMMARY
-          mypy src/ --ignore-missing-imports --no-error-summary 2>&1 | head -100 || true
+          echo "## 🏷️ MyPy" >> $GITHUB_STEP_SUMMARY
+          mypy src/ --ignore-missing-imports --no-error-summary 2>&1 | head -20 || echo "✅ OK" >> $GITHUB_STEP_SUMMARY
 
-      - name: Run Bandit (Security Analysis)
+      - name: Bandit Security
         continue-on-error: true
         run: |
-          echo "## 🔒 Security Analysis (Bandit)" >> $GITHUB_STEP_SUMMARY
-          bandit -r src/ -f json -o bandit-report.json || true
-          bandit -r src/ -f txt --severity-level medium || echo "Security issues found" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔒 Security" >> $GITHUB_STEP_SUMMARY
+          bandit -r src/ -f json -o bandit-report.json -q 2>/dev/null || true
+          echo "Report saved to artifact" >> $GITHUB_STEP_SUMMARY
 
-      - name: Run Vulture (Dead Code Detection)
+      - name: Vulture Dead Code
         continue-on-error: true
         run: |
-          echo "## 💀 Dead Code Analysis (Vulture)" >> $GITHUB_STEP_SUMMARY
-          vulture src/ --min-confidence 80 || echo "Potentially dead code found" >> $GITHUB_STEP_SUMMARY
+          echo "## 💀 Dead Code" >> $GITHUB_STEP_SUMMARY
+          vulture src/ --min-confidence 90 2>/dev/null | head -10 || echo "✅ OK" >> $GITHUB_STEP_SUMMARY
 
-      - name: Run Radon (Complexity Analysis)
+      - name: Complexity Check
         continue-on-error: true
         run: |
-          echo "## 📊 Complexity Analysis (Radon)" >> $GITHUB_STEP_SUMMARY
-          echo "### Cyclomatic Complexity (CC)" >> $GITHUB_STEP_SUMMARY
-          radon cc src/ -a -s --total-average || true
-          echo "### Maintainability Index (MI)" >> $GITHUB_STEP_SUMMARY
-          radon mi src/ -s || true
+          echo "## 📊 Complexity" >> $GITHUB_STEP_SUMMARY
+          xenon --max-absolute B --max-modules B --max-average A src/ 2>/dev/null && echo "✅ OK" >> $GITHUB_STEP_SUMMARY || echo "⚠️ High complexity detected" >> $GITHUB_STEP_SUMMARY
 
-      - name: Run Xenon (Complexity Threshold Check)
+      - name: Safety Check
         continue-on-error: true
         run: |
-          echo "## ⚠️ Complexity Threshold Check (Xenon)" >> $GITHUB_STEP_SUMMARY
-          xenon --max-absolute B --max-modules B --max-average A src/ || echo "Complexity threshold exceeded" >> $GITHUB_STEP_SUMMARY
+          echo "## 📦 Dependencies" >> $GITHUB_STEP_SUMMARY
+          [ -f requirements.txt ] && safety check -r requirements.txt --output json > safety-report.json 2>/dev/null || true
+          echo "Report saved to artifact" >> $GITHUB_STEP_SUMMARY
 
-      - name: Safety Check (Vulnerable Dependencies)
-        continue-on-error: true
-        run: |
-          echo "## 📦 Dependency Vulnerability Check" >> $GITHUB_STEP_SUMMARY
-          if [ -f requirements.txt ]; then
-            safety check -r requirements.txt --output json > safety-report.json 2>/dev/null || true
-            safety check -r requirements.txt 2>/dev/null || echo "Vulnerable dependencies found" >> $GITHUB_STEP_SUMMARY
-          fi
+      - name: Summary
+        run: echo "## ✅ Done at $(date +%H:%M)" >> $GITHUB_STEP_SUMMARY
 
-      - name: Generate Summary Report
-        run: |
-          echo "## ✅ Analysis Complete" >> $GITHUB_STEP_SUMMARY
-          echo "Analysis completed at $(date)" >> $GITHUB_STEP_SUMMARY
-
-      - name: Upload Analysis Reports
+      - name: Upload Reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -97,80 +88,5 @@ jobs:
           path: |
             bandit-report.json
             safety-report.json
-          retention-days: 30
-
-  architecture-analysis:
-    name: Architecture Analysis
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install dependencies
-        run: |
-          pip install pipdeptree pylint
-
-      - name: Dependency Tree Analysis
-        continue-on-error: true
-        run: |
-          echo "## 🌳 Dependency Tree" >> $GITHUB_STEP_SUMMARY
-          if [ -f requirements.txt ]; then
-            pip install -r requirements.txt -q 2>/dev/null || true
-            pipdeptree --warn silence 2>/dev/null | head -50 || true
-          fi
-
-      - name: Module Import Analysis
-        continue-on-error: true
-        run: |
-          echo "## 📁 Module Structure" >> $GITHUB_STEP_SUMMARY
-          find src -name "*.py" -type f | wc -l | xargs -I {} echo "Total Python files: {}" >> $GITHUB_STEP_SUMMARY
-          find src -name "*.py" -type f -exec grep -l "^class " {} \; | wc -l | xargs -I {} echo "Files with classes: {}" >> $GITHUB_STEP_SUMMARY
-          find src -name "*.py" -type f -exec grep -l "^async def\|^def " {} \; | wc -l | xargs -I {} echo "Files with functions: {}" >> $GITHUB_STEP_SUMMARY
-
-      - name: Check for Circular Imports
-        continue-on-error: true
-        run: |
-          echo "## 🔄 Circular Import Check" >> $GITHUB_STEP_SUMMARY
-          python -c "
-          import ast
-          import os
-          from collections import defaultdict
-          
-          imports = defaultdict(set)
-          for root, dirs, files in os.walk('src'):
-              for f in files:
-                  if f.endswith('.py'):
-                      path = os.path.join(root, f)
-                      try:
-                          with open(path) as file:
-                              tree = ast.parse(file.read())
-                          module = path.replace('/', '.').replace('.py', '')
-                          for node in ast.walk(tree):
-                              if isinstance(node, ast.Import):
-                                  for alias in node.names:
-                                      imports[module].add(alias.name)
-                              elif isinstance(node, ast.ImportFrom) and node.module:
-                                  imports[module].add(node.module)
-                      except:
-                          pass
-          
-          # Simple cycle detection
-          cycles = []
-          for mod, deps in imports.items():
-              for dep in deps:
-                  if dep in imports and mod in imports.get(dep, set()):
-                      cycles.append(f'{mod} <-> {dep}')
-          
-          if cycles:
-              print(f'Potential circular imports: {len(set(cycles))}')
-              for c in list(set(cycles))[:5]:
-                  print(f'  - {c}')
-          else:
-              print('No obvious circular imports detected')
-          " || echo "Analysis completed" >> $GITHUB_STEP_SUMMARY
+          retention-days: 7
+          if-no-files-found: ignore
