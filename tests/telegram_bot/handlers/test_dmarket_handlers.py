@@ -35,12 +35,15 @@ def mock_context():
 
 @pytest.fixture()
 def mock_balance():
-    """Фикстура мока баланса."""
+    """Фикстура мока баланса - в новом формате API."""
     return {
-        "usd": "10050",  # $100.50
-        "usdAvailableToWithdraw": "9025",  # $90.25
-        "dmc": "5000",
-        "dmcAvailableToWithdraw": "4500",
+        "balance": 100.50,  # $100.50 in dollars
+        "available_balance": 90.25,  # $90.25 in dollars
+        "total_balance": 100.50,  # $100.50 in dollars
+        "error": False,
+        # Legacy fields for backward compatibility
+        "usd": {"amount": 10050},  # 10050 cents
+        "has_funds": True,
     }
 
 

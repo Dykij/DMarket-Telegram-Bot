@@ -526,9 +526,9 @@ class TestArbitrageTraderMethods:
             mock_api_instance = AsyncMock()
             mock_api_instance.__aenter__ = AsyncMock(return_value=mock_api_instance)
             mock_api_instance.__aexit__ = AsyncMock(return_value=None)
-            # trader.py использует get_balance() и ожидает {"usd": value_in_cents}
+            # trader.py uses get_balance() and expects {"balance": value_in_dollars}
             mock_api_instance.get_balance = AsyncMock(
-                return_value={"usd": 100000}  # 100000 центов = $1000
+                return_value={"balance": 1000.0}  # $1000 in dollars
             )
             mock_api_class.return_value = mock_api_instance
 
@@ -541,7 +541,7 @@ class TestArbitrageTraderMethods:
             has_funds, balance = await trader.check_balance()
 
             assert has_funds is True
-            assert balance == 1000.0  # Проверяем конвертацию из центов
+            assert balance == 1000.0
 
     @pytest.mark.asyncio()
     async def test_trader_check_balance_insufficient_funds(self):
@@ -551,9 +551,9 @@ class TestArbitrageTraderMethods:
             mock_api_instance = AsyncMock()
             mock_api_instance.__aenter__ = AsyncMock(return_value=mock_api_instance)
             mock_api_instance.__aexit__ = AsyncMock(return_value=None)
-            # trader.py использует get_balance() и ожидает {"usd": value_in_cents}
+            # trader.py uses get_balance() and expects {"balance": value_in_dollars}
             mock_api_instance.get_balance = AsyncMock(
-                return_value={"usd": 50}  # 50 центов = $0.50
+                return_value={"balance": 0.50}  # $0.50 in dollars
             )
             mock_api_class.return_value = mock_api_instance
 

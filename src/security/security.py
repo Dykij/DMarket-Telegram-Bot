@@ -858,16 +858,16 @@ class SecurityManager:
         logs = self._audit_logs
 
         if user_id is not None:
-            logs = [l for l in logs if l.user_id == user_id]
+            logs = [log for log in logs if log.user_id == user_id]
 
         if category is not None:
-            logs = [l for l in logs if l.category == category]
+            logs = [log for log in logs if log.category == category]
 
         if start_date is not None:
-            logs = [l for l in logs if l.timestamp >= start_date]
+            logs = [log for log in logs if log.timestamp >= start_date]
 
         if end_date is not None:
-            logs = [l for l in logs if l.timestamp <= end_date]
+            logs = [log for log in logs if log.timestamp <= end_date]
 
         # Sort by timestamp descending
         logs = sorted(logs, key=lambda x: x.timestamp, reverse=True)
@@ -899,7 +899,7 @@ class SecurityManager:
             category=ActionCategory.AUTH,
             limit=50,
         )
-        failed_attempts = sum(1 for l in auth_logs if not l.success)
+        failed_attempts = sum(1 for log in auth_logs if not log.success)
 
         return {
             "2fa_enabled": two_fa_config.is_enabled if two_fa_config else False,
@@ -936,7 +936,7 @@ class SecurityManager:
             category=ActionCategory.AUTH,
             limit=20,
         )
-        failed = sum(1 for l in auth_logs if not l.success)
+        failed = sum(1 for log in auth_logs if not log.success)
         if failed == 0:
             score += 10
         elif failed > 5:

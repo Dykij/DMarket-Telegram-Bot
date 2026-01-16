@@ -32,6 +32,9 @@ seaborn>=0.13.2                    # Latest statistical visualization
 plotly>=6.0.0                      # Latest interactive plots
 numpy>=2.3.0                       # Latest NumPy 2.x
 
+# Machine Learning (AI Module)
+scikit-learn>=1.6.0                # ML library for price predictions
+
 # Security & Authentication
 cryptography>=46.0.0               # Latest stable
 pyjwt>=2.10.0                      # Latest JWT

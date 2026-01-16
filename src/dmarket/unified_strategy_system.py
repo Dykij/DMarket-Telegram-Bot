@@ -408,7 +408,7 @@ class CrossPlatformArbitrageStrategy(IFindingStrategy):
         except ImportError:
             logger.warning("CrossPlatformScanner not available")
             return []
-        except Exception as e:
+        except Exception:
             logger.exception("cross_platform_scan_error")
             return []
 
@@ -544,7 +544,7 @@ class FloatValueArbitrageStrategy(IFindingStrategy):
         except ImportError:
             logger.warning("FloatValueArbitrage not available")
             return []
-        except Exception as e:
+        except Exception:
             logger.exception("float_scan_error")
             return []
 
@@ -651,7 +651,7 @@ class IntramarketArbitrageStrategy(IFindingStrategy):
                 if opp:
                     opportunities.append(opp)
 
-        except Exception as e:
+        except Exception:
             logger.exception("intramarket_scan_error")
 
         try:
@@ -669,7 +669,7 @@ class IntramarketArbitrageStrategy(IFindingStrategy):
                 if opp:
                     opportunities.append(opp)
 
-        except Exception as e:
+        except Exception:
             logger.exception("trending_scan_error")
 
         return opportunities
@@ -819,7 +819,7 @@ class SmartMarketFinderStrategy(IFindingStrategy):
 
             return opportunities
 
-        except Exception as e:
+        except Exception:
             logger.exception("smart_finder_error")
             return []
 

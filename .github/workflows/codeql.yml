@@ -1,7 +1,7 @@
 # CodeQL Analysis
 name: CodeQL
 
-on:
+"on":
   push:
     branches: [main, develop]
   pull_request:

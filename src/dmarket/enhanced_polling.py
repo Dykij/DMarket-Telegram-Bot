@@ -373,7 +373,7 @@ class EnhancedPollingEngine:
 
     async def _polling_loop(self) -> None:
         """Main polling loop with adaptive intervals."""
-        while self._running:
+        while self._running:  # noqa: PLR1702
             try:
                 # Check if paused
                 if self._paused:

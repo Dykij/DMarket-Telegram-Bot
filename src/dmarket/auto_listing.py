@@ -183,7 +183,7 @@ class AutoListingEngine:
     @property
     def active_listings(self) -> list[ListingCandidate]:
         """Get active listings."""
-        return [l for l in self._listings.values() if l.status == ListingStatus.LISTED]
+        return [listing for listing in self._listings.values() if listing.status == ListingStatus.LISTED]
 
     async def start(self) -> None:
         """Start auto-listing engine."""

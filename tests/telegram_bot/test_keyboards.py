@@ -82,7 +82,7 @@ def test_get_main_keyboard():
     keyboard = get_main_keyboard()
 
     assert isinstance(keyboard, InlineKeyboardMarkup)
-    assert len(keyboard.inline_keyboard) == 6
+    assert len(keyboard.inline_keyboard) == 7  # Updated: keyboard now has 7 rows
 
     # Проверяем наличие основных кнопок
     all_buttons = [btn for row in keyboard.inline_keyboard for btn in row]

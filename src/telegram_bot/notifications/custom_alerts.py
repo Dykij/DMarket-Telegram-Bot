@@ -231,7 +231,7 @@ class AlertManager:
         # Rate limiting
         self._user_triggers: dict[int, list[datetime]] = {}
 
-    def create_alert(
+    def create_alert(  # noqa: PLR0917
         self,
         item_name: str,
         alert_type: AlertType,

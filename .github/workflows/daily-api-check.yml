@@ -1,7 +1,7 @@
 # Daily DMarket API Validation
 name: API Check
 
-on:
+"on":
   schedule:
     - cron: "0 6 * * *"
   workflow_dispatch:

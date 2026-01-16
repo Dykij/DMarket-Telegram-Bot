@@ -1,49 +1,72 @@
-# Coverage Report
 name: Coverage
 
-on:
+"on":
   push:
     branches: [main, develop]
-    paths: ["src/**/*.py", "tests/**/*.py"]
+    paths: ['src/**/*.py', 'tests/**/*.py']
   pull_request:
     branches: [main, develop]
-    paths: ["src/**/*.py", "tests/**/*.py"]
+    paths: ['src/**/*.py', 'tests/**/*.py']
   workflow_dispatch:
 
+env:
+  PYTHON_VERSION: "3.11"
+
 permissions:
-  contents: write
+  contents: read
   pull-requests: write
 
 jobs:
   coverage:
-    name: "📊 Coverage"
+    name: Coverage Report
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-          cache: pip
-      - name: Install
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
         run: |
-          pip install -q -r requirements.txt 2>/dev/null || true
-          pip install -q pytest pytest-asyncio pytest-cov pytest-xdist coverage[toml] 2>/dev/null
-      - name: Test with Coverage
+          pip install --upgrade pip
+          pip install -r requirements.txt || true
+          pip install pytest pytest-asyncio pytest-cov pytest-xdist
+
+      - name: Create .env
         run: |
-          export PYTHONPATH=$GITHUB_WORKSPACE
-          pytest tests/ --cov=src --cov-report=xml --cov-report=html -v -n auto 2>&1 | tail -50 || true
-        continue-on-error: true
+          echo "TELEGRAM_BOT_TOKEN=test" > .env
+          echo "DMARKET_PUBLIC_KEY=test" >> .env
+          echo "DMARKET_SECRET_KEY=test" >> .env
+          echo "TESTING=true" >> .env
+
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ --cov=src --cov-report=xml --cov-report=html -n auto || true
         env:
-          TESTING: "true"
-      - uses: codecov/codecov-action@v4
+          PYTHONPATH: ${{ github.workspace }}
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
         with:
           files: ./coverage.xml
           fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         continue-on-error: true
-      - uses: actions/upload-artifact@v4
-        if: always()
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v6
         with:
-          name: coverage-report
+          name: coverage-html
           path: htmlcov/
           retention-days: 14
+
+      - name: Summary
+        run: |
+          echo "# 📊 Coverage" >> $GITHUB_STEP_SUMMARY
+          coverage report --format=markdown >> $GITHUB_STEP_SUMMARY || true

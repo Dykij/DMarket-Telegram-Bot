@@ -516,7 +516,8 @@ class ReportGenerator:
                 return datetime.fromisoformat(value)
             except ValueError:
                 try:
-                    return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+                    naive_dt = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")  # noqa: DTZ007
+                    return naive_dt.replace(tzinfo=UTC)
                 except ValueError:
                     return None
 

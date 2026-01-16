@@ -11,19 +11,27 @@ Modules:
     - app_recovery: Pending trades recovery logic
 """
 
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from src.core.app_lifecycle import ApplicationLifecycle
+    from src.core.app_signals import SignalHandler
+    from src.core.application import Application
+
 
 # Lazy imports to avoid circular dependencies and missing modules
 def __getattr__(name: str):
     """Lazy import to avoid import errors when telegram is not installed."""
     if name == "Application":
-        from src.core.application import Application
-        return Application
+        from src.core.application import Application as AppClass
+        return AppClass
     if name == "ApplicationLifecycle":
-        from src.core.app_lifecycle import ApplicationLifecycle
-        return ApplicationLifecycle
+        from src.core.app_lifecycle import ApplicationLifecycle as LifecycleClass
+        return LifecycleClass
     if name == "SignalHandler":
-        from src.core.app_signals import SignalHandler
-        return SignalHandler
+        from src.core.app_signals import SignalHandler as SignalClass
+        return SignalClass
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
