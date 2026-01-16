@@ -264,7 +264,7 @@ class SmartRecommendations:
         # Limit to max recommendations
         recommendations = recommendations[:max_recommendations]
 
-        # Calculate summary
+        # Calculate summary and return
         return RecommendationBatch(
             recommendations=recommendations,
             total_potential_profit=sum(r.expected_profit or 0 for r in recommendations),

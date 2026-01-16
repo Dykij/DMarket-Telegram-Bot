@@ -130,7 +130,7 @@ class PricePredictor:
             Status message describing the result
 
         CSV Format:
-            item_name,price_usd,float_value,is_stat_trak
+            item_name,price,float_value,is_stat_trak
             "AK-47 | Redline (Field-Tested)",12.50,0.25,0
         """
         try:
@@ -207,11 +207,16 @@ class PricePredictor:
 
             if "is_stat_trak" not in df.columns:
                 df["is_stat_trak"] = 0  # Default: not StatTrak
+            else:
+                # Convert boolean strings to int (True -> 1, False -> 0)
+                df["is_stat_trak"] = df["is_stat_trak"].apply(
+                    lambda x: 1 if str(x).lower() in {"true", "1", "yes"} else 0
+                )
 
             # Prepare features and target
             feature_columns = ["item_id", "float_value", "is_stat_trak"]
-            X = df[feature_columns]
-            y = df["price"]
+            X = df[feature_columns].astype(float)
+            y = df["price"].astype(float)
 
             # Train RandomForest with overfitting protection
             # min_samples_leaf=5 prevents the model from memorizing single outliers

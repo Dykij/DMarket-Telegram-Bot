@@ -48,6 +48,28 @@ features:
     whitelist: []
     blacklist: []
 
+  # AI/ML Training features (January 2026)
+  ai_real_price_training:
+    enabled: true
+    rollout_percent: 100
+    whitelist: []
+    blacklist: []
+    description: "Train AI on real market prices from DMarket API"
+
+  ai_liquid_training:
+    enabled: true
+    rollout_percent: 100
+    whitelist: []
+    blacklist: []
+    description: "Train AI only on liquid items using DMarket, Waxpeer, Steam APIs"
+
+  ai_hallucination_protection:
+    enabled: true
+    rollout_percent: 100
+    whitelist: []
+    blacklist: []
+    description: "Protect AI from predicting unrealistic profits (max 40%)"
+
   # Analytics features
   market_analytics:
     enabled: true
@@ -56,8 +78,8 @@ features:
     blacklist: []
 
   price_prediction:
-    enabled: false  # В разработке
-    rollout_percent: 5
+    enabled: true  # Now stable (January 2026)
+    rollout_percent: 100
     whitelist: []
     blacklist: []
 
@@ -81,6 +103,26 @@ features:
     blacklist: []
 
   daily_reports:
+    enabled: true
+    rollout_percent: 100
+    whitelist: []
+    blacklist: []
+
+  # Waxpeer integration features (January 2026)
+  waxpeer_integration:
+    enabled: true
+    rollout_percent: 100
+    whitelist: []
+    blacklist: []
+    description: "Cross-platform arbitrage with Waxpeer"
+
+  waxpeer_auto_listing:
+    enabled: true
+    rollout_percent: 100
+    whitelist: []
+    blacklist: []
+
+  waxpeer_shadow_listing:
     enabled: true
     rollout_percent: 100
     whitelist: []

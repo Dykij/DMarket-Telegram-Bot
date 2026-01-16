@@ -414,6 +414,508 @@ async def ai_analyze_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
         logger.exception("ai_analyze_failed", error=str(e))
 
 
+async def ai_collect_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /ai_collect command - Collect real market data for AI training.
+
+    Fetches real price data from DMarket API and saves it to CSV for training.
+    This ensures the AI model is trained on real market prices, not demo data.
+
+    Usage: /ai_collect [count]
+        count - Number of items to collect (default: 500, max: 2000)
+    """
+    if not update.message:
+        return
+
+    user_id = update.effective_user.id if update.effective_user else 0
+    logger.info("ai_collect_command", user_id=user_id)
+
+    # Parse arguments
+    args = context.args or []
+    try:
+        item_count = min(int(args[0]), 2000) if args else 500
+    except (ValueError, IndexError):
+        item_count = 500
+
+    await update.message.reply_text(
+        f"📥 <b>Сбор реальных данных с DMarket...</b>\n\n"
+        f"🎯 Цель: {item_count} предметов\n"
+        f"⏳ Это может занять несколько минут.",
+        parse_mode="HTML",
+    )
+
+    try:
+        import os
+
+        from src.dmarket.dmarket_api import DMarketAPI
+        from src.dmarket.market_data_logger import MarketDataLogger, MarketDataLoggerConfig
+
+        # Get or create API client
+        api = getattr(context.application, "dmarket_api", None)
+        if not api:
+            api = DMarketAPI(
+                public_key=os.getenv("DMARKET_PUBLIC_KEY", ""),
+                secret_key=os.getenv("DMARKET_SECRET_KEY", ""),
+            )
+
+        # Configure logger for real data collection
+        config = MarketDataLoggerConfig(
+            output_path="data/market_history.csv",
+            max_items_per_scan=min(item_count, 100),  # API limit per request
+            games=["a8db", "tf2", "dota2", "rust"],  # All supported games
+            min_price_cents=50,  # $0.50 minimum
+            max_price_cents=100000,  # $1000 maximum
+        )
+
+        data_logger = MarketDataLogger(api, config)
+
+        # Collect data in batches
+        total_collected = 0
+        batches_needed = (item_count + 99) // 100  # Round up
+
+        for batch in range(batches_needed):
+            collected = await data_logger.log_market_data()
+            total_collected += collected
+
+            if batch % 5 == 0 and batch > 0:
+                await update.message.reply_text(
+                    f"📊 Прогресс: {total_collected}/{item_count} предметов",
+                    parse_mode="HTML",
+                )
+
+        # Get final data status
+        data_status = data_logger.get_data_status()
+
+        result_msg = (
+            f"✅ <b>Сбор данных завершен!</b>\n\n"
+            f"📈 Собрано записей: {total_collected}\n"
+            f"📄 Всего в базе: {data_status['rows']}\n\n"
+        )
+
+        if data_status["ready_for_training"]:
+            result_msg += (
+                "✅ <b>Данных достаточно для обучения!</b>\n\n"
+                "Выполните /ai_train чтобы обучить модель на реальных ценах."
+            )
+        else:
+            remaining = 100 - data_status["rows"]
+            result_msg += (
+                f"⏳ Нужно еще {remaining} записей.\n"
+                f"Выполните /ai_collect еще раз."
+            )
+
+        await update.message.reply_text(result_msg, parse_mode="HTML")
+
+        logger.info(
+            "ai_collect_completed",
+            user_id=user_id,
+            collected=total_collected,
+            total_rows=data_status["rows"],
+        )
+
+    except Exception as e:
+        await update.message.reply_text(
+            f"❌ <b>Ошибка сбора данных:</b>\n\n{e}",
+            parse_mode="HTML",
+        )
+        logger.exception("ai_collect_failed", error=str(e))
+
+
+async def ai_train_real_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /ai_train_real command - Train AI on real market prices.
+
+    This command:
+    1. Collects fresh data from DMarket API
+    2. Trains the model on real prices
+    3. Saves the trained model
+
+    Usage: /ai_train_real [samples]
+        samples - Number of samples to collect before training (default: 500)
+    """
+    if not update.message:
+        return
+
+    user_id = update.effective_user.id if update.effective_user else 0
+    logger.info("ai_train_real_command", user_id=user_id)
+
+    # Parse arguments
+    args = context.args or []
+    try:
+        sample_count = min(int(args[0]), 2000) if args else 500
+    except (ValueError, IndexError):
+        sample_count = 500
+
+    await update.message.reply_text(
+        f"🤖 <b>Обучение AI на реальных ценах</b>\n\n"
+        f"📥 Шаг 1/2: Сбор {sample_count} реальных цен...",
+        parse_mode="HTML",
+    )
+
+    try:
+        import os
+
+        from src.ai.price_predictor import PricePredictor
+        from src.dmarket.dmarket_api import DMarketAPI
+        from src.dmarket.market_data_logger import MarketDataLogger, MarketDataLoggerConfig
+
+        # Get or create API client
+        api = getattr(context.application, "dmarket_api", None)
+        if not api:
+            api = DMarketAPI(
+                public_key=os.getenv("DMARKET_PUBLIC_KEY", ""),
+                secret_key=os.getenv("DMARKET_SECRET_KEY", ""),
+            )
+
+        # Step 1: Collect real data
+        config = MarketDataLoggerConfig(
+            output_path="data/market_history.csv",
+            max_items_per_scan=100,
+            games=["a8db", "tf2", "dota2", "rust"],
+            min_price_cents=50,
+            max_price_cents=100000,
+        )
+
+        data_logger = MarketDataLogger(api, config)
+
+        total_collected = 0
+        batches_needed = (sample_count + 99) // 100
+
+        for batch in range(batches_needed):
+            collected = await data_logger.log_market_data()
+            total_collected += collected
+
+        data_status = data_logger.get_data_status()
+
+        await update.message.reply_text(
+            f"📊 Собрано {total_collected} записей (всего: {data_status['rows']})\n\n"
+            f"🧠 Шаг 2/2: Обучение модели...",
+            parse_mode="HTML",
+        )
+
+        # Step 2: Train model
+        predictor = PricePredictor()
+        result = predictor.train_model(force_retrain=True)
+
+        await update.message.reply_text(
+            f"🤖 <b>Обучение на реальных ценах завершено!</b>\n\n{result}",
+            parse_mode="HTML",
+        )
+
+        logger.info(
+            "ai_train_real_completed",
+            user_id=user_id,
+            collected=total_collected,
+            result=result,
+        )
+
+    except Exception as e:
+        await update.message.reply_text(
+            f"❌ <b>Ошибка:</b>\n\n{e}",
+            parse_mode="HTML",
+        )
+        logger.exception("ai_train_real_failed", error=str(e))
+
+
+async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /ai_train_liquid command - Train AI only on liquid items.
+
+    This command:
+    1. Collects data from DMarket, Waxpeer, and Steam APIs
+    2. Filters using Whitelist (priority boost) and Blacklist (exclusion)
+    3. Filters only liquid items (available on multiple platforms)
+    4. Trains the model on liquid items only
+
+    Usage: /ai_train_liquid [samples]
+        samples - Target number of liquid samples to collect (default: 300)
+
+    Liquidity criteria:
+    - NOT in Blacklist (mandatory filter)
+    - Item is available on DMarket AND Waxpeer
+    - At least 5 active offers on each platform
+    - Whitelist items get priority boost (+25 points)
+    - Positive sales history
+    """
+    if not update.message:
+        return
+
+    user_id = update.effective_user.id if update.effective_user else 0
+    logger.info("ai_train_liquid_command", user_id=user_id)
+
+    # Parse arguments
+    args = context.args or []
+    try:
+        target_samples = min(int(args[0]), 1000) if args else 300
+    except (ValueError, IndexError):
+        target_samples = 300
+
+    await update.message.reply_text(
+        f"🤖 <b>Обучение AI на ликвидных предметах</b>\n\n"
+        f"🎯 Цель: {target_samples} ликвидных предметов\n\n"
+        f"📊 Источники данных:\n"
+        f"• DMarket API\n"
+        f"• Waxpeer API\n"
+        f"• Steam Market\n\n"
+        f"🔒 Фильтры:\n"
+        f"• Whitelist (приоритет)\n"
+        f"• Blacklist (исключение)\n\n"
+        f"⏳ Это может занять несколько минут...",
+        parse_mode="HTML",
+    )
+
+    try:
+        import csv
+        from datetime import datetime
+        import os
+        from pathlib import Path
+
+        from src.dmarket.blacklist_filters import (
+            BLACKLIST_KEYWORDS,
+            PATTERN_KEYWORDS,
+            ItemBlacklistFilter,
+        )
+        from src.dmarket.dmarket_api import DMarketAPI
+
+        # Import Whitelist and Blacklist filters
+        from src.dmarket.whitelist_config import (
+            WHITELIST_ITEMS,
+            WhitelistChecker,
+        )
+
+        # Initialize filters
+        whitelist_checker = WhitelistChecker(enable_priority_boost=True, profit_boost_percent=2.0)
+        blacklist_filter = ItemBlacklistFilter(
+            enable_keyword_filter=True,
+            enable_float_filter=True,
+            enable_sticker_boost_filter=True,
+            enable_pattern_filter=True,
+            enable_scam_risk_filter=True,
+        )
+
+        # Try to import Waxpeer API (optional)
+        waxpeer_api = None
+        try:
+            from src.waxpeer.waxpeer_api import WaxpeerAPI
+
+            waxpeer_key = os.getenv("WAXPEER_API_KEY", "")
+            if waxpeer_key:
+                waxpeer_api = WaxpeerAPI(api_key=waxpeer_key)
+        except ImportError:
+            logger.warning("waxpeer_api_not_available")
+
+        # Get or create DMarket API client
+        dmarket_api = getattr(context.application, "dmarket_api", None)
+        if not dmarket_api:
+            dmarket_api = DMarketAPI(
+                public_key=os.getenv("DMARKET_PUBLIC_KEY", ""),
+                secret_key=os.getenv("DMARKET_SECRET_KEY", ""),
+            )
+
+        # Create output directory
+        output_path = Path("data/liquid_items.csv")
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Collect liquid items
+        liquid_items: list[dict[str, Any]] = []
+        blacklisted_count = 0
+        whitelisted_count = 0
+        total_scanned = 0
+
+        await update.message.reply_text(
+            f"🔍 Шаг 1/4: Получение списка предметов с DMarket...\n\n"
+            f"📋 Whitelist: {sum(len(items) for items in WHITELIST_ITEMS.values())} предметов\n"
+            f"🚫 Blacklist: {len(BLACKLIST_KEYWORDS) + len(PATTERN_KEYWORDS)} фильтров",
+            parse_mode="HTML",
+        )
+
+        # Get items from DMarket
+        dmarket_items = await dmarket_api.get_market_items(
+            game="a8db",
+            limit=500,
+            price_from=100,  # $1 minimum
+            price_to=50000,  # $500 maximum
+        )
+
+        items_list = dmarket_items.get("objects", [])
+        total_scanned = len(items_list)
+
+        await update.message.reply_text(
+            f"📋 Найдено {total_scanned} предметов на DMarket\n\n"
+            f"🔍 Шаг 2/4: Применение Blacklist фильтра...",
+            parse_mode="HTML",
+        )
+
+        # Check liquidity for each item
+        liquid_count = 0
+
+        for i, item in enumerate(items_list):
+            if liquid_count >= target_samples:
+                break
+
+            item_title = item.get("title", "")
+            dmarket_price = float(item.get("price", {}).get("USD", 0)) / 100
+
+            if dmarket_price < 1.0:  # Skip items under $1
+                continue
+
+            # STEP 1: Check Blacklist (MANDATORY - never buy blacklisted items)
+            if blacklist_filter.is_blacklisted(item):
+                blacklisted_count += 1
+                logger.debug(f"Blacklisted: {item_title}")
+                continue
+
+            # Check item on multiple criteria
+            liquidity_score = 0
+            is_whitelisted = False
+
+            # STEP 2: Check Whitelist (PRIORITY BOOST)
+            if whitelist_checker.is_whitelisted(item, "csgo"):
+                liquidity_score += 25  # Whitelist bonus
+                is_whitelisted = True
+                whitelisted_count += 1
+
+            # 3. Check DMarket offers count
+            dmarket_offers = item.get("extra", {}).get("offers_count", 0)
+            if dmarket_offers >= 3:
+                liquidity_score += 25
+
+            # 4. Check suggested price exists (indicates trading history)
+            suggested_price = item.get("suggestedPrice", {}).get("USD")
+            if suggested_price:
+                liquidity_score += 25
+
+            # 5. Check on Waxpeer if available
+            waxpeer_price = None
+            waxpeer_count = 0
+            if waxpeer_api:
+                try:
+                    async with waxpeer_api:
+                        price_info = await waxpeer_api.get_item_price_info(item_title)
+                        if price_info and price_info.count >= 5:
+                            liquidity_score += 25
+                            waxpeer_price = float(price_info.price_usd)
+                            waxpeer_count = price_info.count
+                except Exception as e:
+                    logger.debug("waxpeer_check_failed", item=item_title, error=str(e))
+
+            # 6. Popular items have category
+            category = item.get("extra", {}).get("category", "")
+            if category and category != "Other":
+                liquidity_score += 15
+
+            # Item is liquid if score >= 50 (or >= 40 for whitelist items)
+            min_score = 40 if is_whitelisted else 50
+            if liquidity_score >= min_score:
+                liquid_items.append({
+                    "item_name": item_title,
+                    "price": dmarket_price,
+                    "float_value": item.get("extra", {}).get("float", 0),
+                    "is_stat_trak": "StatTrak" in item_title,
+                    "game_id": "a8db",
+                    "timestamp": datetime.now().isoformat(),
+                    "liquidity_score": liquidity_score,
+                    "is_whitelisted": is_whitelisted,
+                    "dmarket_offers": dmarket_offers,
+                    "waxpeer_price": waxpeer_price,
+                    "waxpeer_count": waxpeer_count,
+                })
+                liquid_count += 1
+
+            # Progress update every 50 items
+            if (i + 1) % 50 == 0:
+                await update.message.reply_text(
+                    f"📊 Прогресс: {i + 1}/{len(items_list)} проверено\n"
+                    f"✅ Ликвидных: {liquid_count} | 🚫 Blacklisted: {blacklisted_count} | 📋 Whitelist: {whitelisted_count}",
+                    parse_mode="HTML",
+                )
+
+        await update.message.reply_text(
+            f"🔍 Шаг 3/4: Фильтрация завершена\n\n"
+            f"• ✅ Ликвидных: {len(liquid_items)}\n"
+            f"• 🚫 Blacklisted: {blacklisted_count}\n"
+            f"• 📋 Из Whitelist: {whitelisted_count}",
+            parse_mode="HTML",
+        )
+
+        # Save liquid items to CSV
+        if liquid_items:
+            with open(output_path, "w", newline="", encoding="utf-8") as f:
+                writer = csv.DictWriter(f, fieldnames=liquid_items[0].keys())
+                writer.writeheader()
+                writer.writerows(liquid_items)
+
+        await update.message.reply_text(
+            f"🧠 Шаг 4/4: Обучение модели на {len(liquid_items)} предметах...",
+            parse_mode="HTML",
+        )
+
+        # Train model on liquid items
+        from src.ai.price_predictor import PricePredictor
+
+        predictor = PricePredictor()
+
+        # Use liquid items data for training
+        if len(liquid_items) >= 50:
+            # Save to standard path for training
+            main_data_path = Path("data/market_history.csv")
+
+            with open(main_data_path, "w", newline="", encoding="utf-8") as f:
+                writer = csv.DictWriter(
+                    f,
+                    fieldnames=[
+                        "item_name",
+                        "price",
+                        "float_value",
+                        "is_stat_trak",
+                        "game_id",
+                        "timestamp",
+                    ],
+                )
+                writer.writeheader()
+                for item in liquid_items:
+                    writer.writerow({
+                        "item_name": item["item_name"],
+                        "price": item["price"],
+                        "float_value": item["float_value"],
+                        "is_stat_trak": item["is_stat_trak"],
+                        "game_id": item["game_id"],
+                        "timestamp": item["timestamp"],
+                    })
+
+            result = predictor.train_model(force_retrain=True)
+        else:
+            result = "⚠️ Недостаточно ликвидных данных для обучения (минимум 50)"
+
+        # Build summary message
+        summary = (
+            f"🤖 <b>Обучение на ликвидных предметах завершено!</b>\n\n"
+            f"📊 <b>Статистика:</b>\n"
+            f"• Проверено предметов: {total_scanned}\n"
+            f"• Ликвидных найдено: {len(liquid_items)}\n"
+            f"• 🚫 Отфильтровано (blacklist): {blacklisted_count}\n"
+            f"• 📋 Из whitelist: {whitelisted_count}\n"
+            f"• Процент ликвидных: {len(liquid_items) / max(total_scanned, 1) * 100:.1f}%\n\n"
+            f"💾 Данные сохранены: {output_path}\n\n"
+            f"<b>Результат обучения:</b>\n{result}"
+        )
+
+        await update.message.reply_text(summary, parse_mode="HTML")
+
+        logger.info(
+            "ai_train_liquid_completed",
+            user_id=user_id,
+            total_scanned=total_scanned,
+            liquid_count=len(liquid_items),
+            blacklisted_count=blacklisted_count,
+            whitelisted_count=whitelisted_count,
+        )
+
+    except Exception as e:
+        await update.message.reply_text(
+            f"❌ <b>Ошибка:</b>\n\n{e}",
+            parse_mode="HTML",
+        )
+        logger.exception("ai_train_liquid_failed", error=str(e))
+
+
 def register_ai_handlers(application: "Application") -> None:
     """Register AI-related command handlers.
 
@@ -424,5 +926,8 @@ def register_ai_handlers(application: "Application") -> None:
     application.add_handler(CommandHandler("ai_status", ai_status_command))
     application.add_handler(CommandHandler("ai_scan", ai_scan_command))
     application.add_handler(CommandHandler("ai_analyze", ai_analyze_command))
+    application.add_handler(CommandHandler("ai_collect", ai_collect_command))
+    application.add_handler(CommandHandler("ai_train_real", ai_train_real_command))
+    application.add_handler(CommandHandler("ai_train_liquid", ai_train_liquid_command))
 
     logger.info("AI handlers registered")

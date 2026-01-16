@@ -332,17 +332,14 @@ class TestAdaptiveRateLimiter:
         assert stats["consecutive_429s"] == 1
         assert stats["total_429_errors"] == 1
 
-    def test_disabled_limiter(self):
+    @pytest.mark.asyncio()
+    async def test_disabled_limiter(self):
         """При отключенном limiter wait не вызывается."""
         config = ProfessionalBotConfig(enable_adaptive_limiter=False)
         limiter = AdaptiveRateLimiter(config)
 
-        # wait_before_request должен просто вернуться
-        async def test_wait():
-            await limiter.wait_before_request()
-
-        # Не должно блокироваться
-        asyncio.get_event_loop().run_until_complete(test_wait())
+        # wait_before_request должен просто вернуться без блокировки
+        await limiter.wait_before_request()
 
 
 # =============================================================================

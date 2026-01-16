@@ -64,7 +64,7 @@ class TestCheckpointData:
         """Test that timestamp is set automatically."""
         # Arrange
         scan_id = uuid4()
-        # Use timezone-aware datetime since CheckpointData uses datetime.now(UTC)
+        # Use aware datetime since CheckpointData uses datetime.now(UTC)
         before = datetime.now(UTC)
 
         # Act

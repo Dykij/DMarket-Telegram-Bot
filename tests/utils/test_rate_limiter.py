@@ -270,6 +270,7 @@ class TestHandle429:
         # Должно быть BASE_RETRY_DELAY * 2^1 = 2.0 сек (+ jitter)
         assert 1.8 <= wait2 <= 2.2
 
+    @pytest.mark.slow
     @pytest.mark.asyncio()
     async def test_handle_429_max_wait_time(self):
         """Тест максимального времени ожидания (60 сек)."""

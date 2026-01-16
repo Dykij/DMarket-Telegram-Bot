@@ -89,7 +89,7 @@ class TestPricePredictor:
             encoder_path = os.path.join(tmpdir, "encoder.pkl")
             history_path = os.path.join(tmpdir, "history.csv")
 
-            # Create CSV with 150 rows - using "price" column as required by PricePredictor
+            # Create CSV with 150 rows (using 'price' column, not 'price_usd')
             with open(history_path, "w") as f:
                 f.write("item_name,price,float_value,is_stat_trak\n")
                 for i in range(150):

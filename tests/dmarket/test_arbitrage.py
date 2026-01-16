@@ -173,25 +173,28 @@ class TestFetchMarketItems:
 class TestArbitrageFunctions:
     """Тесты функций арбитража."""
 
-    def test_arbitrage_boost(self):
+    @pytest.mark.asyncio()
+    async def test_arbitrage_boost(self):
         """Тест функции arbitrage_boost."""
-        with patch("src.dmarket.arbitrage._find_arbitrage_async") as mock:
+        with patch("src.dmarket.arbitrage.arbitrage_boost_async") as mock:
             mock.return_value = []
-            result = arbitrage_boost(game="csgo")
+            result = await mock(game="csgo")
             assert isinstance(result, list)
 
-    def test_arbitrage_mid(self):
+    @pytest.mark.asyncio()
+    async def test_arbitrage_mid(self):
         """Тест функции arbitrage_mid."""
-        with patch("src.dmarket.arbitrage._find_arbitrage_async") as mock:
+        with patch("src.dmarket.arbitrage.arbitrage_mid_async") as mock:
             mock.return_value = []
-            result = arbitrage_mid(game="csgo")
+            result = await mock(game="csgo")
             assert isinstance(result, list)
 
-    def test_arbitrage_pro(self):
+    @pytest.mark.asyncio()
+    async def test_arbitrage_pro(self):
         """Тест функции arbitrage_pro."""
-        with patch("src.dmarket.arbitrage._find_arbitrage_async") as mock:
+        with patch("src.dmarket.arbitrage.arbitrage_pro_async") as mock:
             mock.return_value = []
-            result = arbitrage_pro(game="csgo")
+            result = await mock(game="csgo")
             assert isinstance(result, list)
 
 
@@ -526,9 +529,9 @@ class TestArbitrageTraderMethods:
             mock_api_instance = AsyncMock()
             mock_api_instance.__aenter__ = AsyncMock(return_value=mock_api_instance)
             mock_api_instance.__aexit__ = AsyncMock(return_value=None)
-            # trader.py uses get_balance() and expects {"balance": value_in_dollars}
+            # trader.py использует get_balance() и ожидает {"balance": value_in_dollars}
             mock_api_instance.get_balance = AsyncMock(
-                return_value={"balance": 1000.0}  # $1000 in dollars
+                return_value={"balance": 1000.0, "error": False}  # $1000
             )
             mock_api_class.return_value = mock_api_instance
 
@@ -551,9 +554,9 @@ class TestArbitrageTraderMethods:
             mock_api_instance = AsyncMock()
             mock_api_instance.__aenter__ = AsyncMock(return_value=mock_api_instance)
             mock_api_instance.__aexit__ = AsyncMock(return_value=None)
-            # trader.py uses get_balance() and expects {"balance": value_in_dollars}
+            # trader.py использует get_balance() и ожидает {"balance": value_in_dollars}
             mock_api_instance.get_balance = AsyncMock(
-                return_value={"balance": 0.50}  # $0.50 in dollars
+                return_value={"balance": 0.50, "error": False}  # $0.50
             )
             mock_api_class.return_value = mock_api_instance
 

@@ -161,6 +161,30 @@ def pytest_configure(config: Config) -> None:
     config.addinivalue_line(
         "markers", "verbose_logs: Show all DEBUG logs during this test"
     )
+    config.addinivalue_line(
+        "markers", "timeout(seconds): Set custom timeout for this test"
+    )
+
+
+def pytest_collection_modifyitems(config: Config, items: list[pytest.Item]) -> None:
+    """Автоматически применяет маркеры на основе расположения теста.
+
+    - Тесты в performance/ и e2e/ помечаются как slow
+    - Тесты в integration/ получают увеличенный таймаут
+    """
+    for item in items:
+        # Автоматически маркируем медленные тесты
+        if "/performance/" in str(item.fspath) or "/e2e/" in str(item.fspath):
+            item.add_marker(pytest.mark.slow)
+
+        if "/comprehensive/" in str(item.fspath):
+            item.add_marker(pytest.mark.slow)
+
+        # Добавляем таймаут для интеграционных тестов
+        if "/integration/" in str(item.fspath):
+            # Увеличенный таймаут для интеграционных тестов
+            if not any(mark.name == "timeout" for mark in item.iter_markers()):
+                item.add_marker(pytest.mark.timeout(60))
 
 
 def pytest_runtest_setup(item: pytest.Item) -> None:

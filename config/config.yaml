@@ -282,6 +282,40 @@ intelligent_hold:
     - "capsules"
     - "cases"
 
+# AI/ML Training Configuration (January 2026)
+ai_training:
+  enabled: ${AI_TRAINING_ENABLED:true}
+  
+  # Real price training (/ai_train_real)
+  real_prices:
+    default_samples: ${AI_DEFAULT_SAMPLES:500}
+    games: ["csgo", "tf2", "dota2", "rust"]
+    min_price_usd: ${AI_MIN_PRICE:0.50}
+    max_price_usd: ${AI_MAX_PRICE:1000.0}
+  
+  # Liquid item training (/ai_train_liquid)
+  liquid_training:
+    enabled: ${AI_LIQUID_ENABLED:true}
+    liquidity_threshold: ${AI_LIQUIDITY_THRESHOLD:50}
+    min_offers_dmarket: ${AI_MIN_OFFERS_DMARKET:3}
+    min_offers_waxpeer: ${AI_MIN_OFFERS_WAXPEER:5}
+    whitelist_bonus: ${AI_WHITELIST_BONUS:25}
+    whitelist_threshold: ${AI_WHITELIST_THRESHOLD:40}
+    use_waxpeer: ${AI_USE_WAXPEER:true}
+    use_steam: ${AI_USE_STEAM:true}
+  
+  # Model protection
+  hallucination_protection:
+    enabled: ${AI_HALLUCINATION_PROTECTION:true}
+    max_profit_percent: ${AI_MAX_PROFIT:40}
+    outlier_zscore_threshold: ${AI_OUTLIER_ZSCORE:3.0}
+  
+  # Data files
+  data_paths:
+    market_history: ${AI_MARKET_HISTORY:data/market_history.csv}
+    liquid_items: ${AI_LIQUID_ITEMS:data/liquid_items.csv}
+    model_path: ${AI_MODEL_PATH:data/price_model.pkl}
+
 # Universal Money Management (scales with any balance)
 money_management:
   enabled: ${MONEY_MANAGEMENT_ENABLED:true}

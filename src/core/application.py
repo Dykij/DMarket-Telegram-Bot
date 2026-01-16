@@ -8,7 +8,7 @@ import asyncio
 import logging
 import sys
 import traceback as tb
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from telegram.ext import Application as TelegramApplication
 
@@ -17,11 +17,8 @@ from src.core.app_lifecycle import ApplicationLifecycle
 from src.core.app_notifications import NotificationManager
 from src.core.app_recovery import TradeRecovery
 from src.core.app_signals import SignalHandler
+from src.utils.config import Config
 from src.utils.logging_utils import BotLogger
-
-
-if TYPE_CHECKING:
-    from src.utils.config import Config
 
 
 logger = logging.getLogger(__name__)

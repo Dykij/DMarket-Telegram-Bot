@@ -1,5 +1,5 @@
 # Auto-Sell Configuration for DMarket Bot
-# Last updated: December 2025
+# Last updated: January 2026
 
 # ============================================================================
 # GENERAL SETTINGS
@@ -59,6 +59,26 @@ stop_loss_percent: 5.0
 # DMarket marketplace fee percentage
 dmarket_fee_percent: 7.0
 
+# Waxpeer marketplace fee percentage (January 2026)
+waxpeer_fee_percent: 6.0
+
+# ============================================================================
+# AI/ML INTEGRATION (January 2026)
+# ============================================================================
+
+ai_pricing:
+  # Use AI predictions for pricing
+  enabled: true
+  
+  # Max deviation from AI suggested price (%)
+  max_deviation_percent: 10.0
+  
+  # Minimum confidence for AI prediction to be used
+  min_confidence: 0.7
+  
+  # Fallback to manual pricing if AI unavailable
+  fallback_to_manual: true
+
 # ============================================================================
 # NOTIFICATIONS
 # ============================================================================
@@ -102,6 +122,32 @@ game_settings:
     stop_loss_hours: 36
 
 # ============================================================================
+# WAXPEER CROSS-PLATFORM SETTINGS (January 2026)
+# ============================================================================
+
+waxpeer:
+  # Enable Waxpeer auto-listing
+  enabled: true
+  
+  # Default markup for Waxpeer listings (%)
+  default_markup_percent: 10
+  
+  # Rare item markup (%)
+  rare_markup_percent: 25
+  
+  # Ultra rare (Katowice 2014 Holo, Ruby, Sapphire) markup (%)
+  ultra_rare_markup_percent: 40
+  
+  # Minimum profit for Waxpeer listing (%)
+  min_profit_percent: 5
+  
+  # Auto-repricing interval (minutes)
+  repricing_interval_minutes: 30
+  
+  # Shadow listing (wait for cheaper items to sell first)
+  shadow_listing_enabled: true
+
+# ============================================================================
 # ADVANCED SETTINGS
 # ============================================================================
 
@@ -122,3 +168,7 @@ advanced:
 
   # Maximum item value for auto-sell (USD, 0 = no limit)
   max_item_value: 0
+  
+  # Use liquidity filter before listing
+  liquidity_filter_enabled: true
+  min_liquidity_score: 50

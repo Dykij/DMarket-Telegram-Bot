@@ -11,6 +11,7 @@
 """
 
 import os
+import pathlib
 from pathlib import Path
 from typing import Any
 
@@ -1330,10 +1331,10 @@ async def ml_ai_train_callback(update: Update, context: ContextTypes.DEFAULT_TYP
         # Проверяем наличие файла истории рынка (абсолютный путь)
         from pathlib import Path
 
-        project_root = Path(__file__).resolve().parents[3]  # project root  # noqa: ASYNC240
+        project_root = Path(__file__).resolve().parents[3]  # project root
         history_path = project_root / "data" / "market_history.csv"
 
-        if history_path.exists():  # noqa: ASYNC240
+        if history_path.exists():
             # Обучаем модель на реальных данных
             result = predictor.train_model(str(history_path), force_retrain=True)
 
@@ -1392,14 +1393,14 @@ async def ml_ai_status_callback(update: Update, context: ContextTypes.DEFAULT_TY
     # Абсолютные пути к файлам
     from pathlib import Path
 
-    project_root = Path(__file__).resolve().parents[3]  # noqa: ASYNC240
+    project_root = Path(__file__).resolve().parents[3]
     model_path = project_root / "data" / "price_model.pkl"
     history_path = project_root / "data" / "market_history.csv"
-    model_exists = model_path.exists()  # noqa: ASYNC240
-    history_exists = history_path.exists()  # noqa: ASYNC240
+    model_exists = model_path.exists()
+    history_exists = history_path.exists()
 
     if model_exists:
-        file_size = model_path.stat().st_size  # noqa: ASYNC240
+        file_size = pathlib.Path(model_path).stat().st_size
         file_size_kb = file_size / 1024
 
         # Проверим историю
@@ -1456,9 +1457,9 @@ async def ml_ai_create_demo_callback(update: Update, context: ContextTypes.DEFAU
         import pandas as pd
 
         # Абсолютный путь к директории data
-        project_root = Path(__file__).resolve().parents[3]  # noqa: ASYNC240
+        project_root = Path(__file__).resolve().parents[3]
         data_dir = project_root / "data"
-        data_dir.mkdir(exist_ok=True)  # noqa: ASYNC240
+        data_dir.mkdir(exist_ok=True)
 
         # Генерируем реалистичные демо данные
         n_samples = 500
@@ -1472,7 +1473,7 @@ async def ml_ai_create_demo_callback(update: Update, context: ContextTypes.DEFAU
 
         data = []
         base_date = datetime.now() - timedelta(days=30)
-        rng = np.random.default_rng()  # Modern NumPy random generator
+        rng = np.random.default_rng()  # Modern numpy Generator
 
         for i in range(n_samples):
             item = rng.choice(items)
@@ -1559,8 +1560,8 @@ async def ml_ai_collect_data_callback(update: Update, context: ContextTypes.DEFA
         items_logged = await data_logger.log_market_data()
 
         # Проверяем файл данных
-        data_path = Path("data/market_history.csv")  # noqa: ASYNC240
-        file_size = data_path.stat().st_size if data_path.exists() else 0  # noqa: ASYNC240
+        data_path = Path("data/market_history.csv")
+        file_size = data_path.stat().st_size if data_path.exists() else 0
         file_size_kb = file_size / 1024
 
         # Показываем результат

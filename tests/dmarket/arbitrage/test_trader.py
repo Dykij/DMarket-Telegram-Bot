@@ -117,8 +117,8 @@ class TestCheckBalance:
     @pytest.mark.asyncio()
     async def test_check_balance_sufficient(self, trader):
         """Test check_balance with sufficient funds."""
-        # API returns balance in dollars in "balance" field
-        trader.api.get_balance = AsyncMock(return_value={"balance": 100.0})
+        # API returns {"balance": value_in_dollars}
+        trader.api.get_balance = AsyncMock(return_value={"balance": 100.0, "error": False})
 
         has_funds, balance = await trader.check_balance()
 
@@ -128,8 +128,8 @@ class TestCheckBalance:
     @pytest.mark.asyncio()
     async def test_check_balance_insufficient(self, trader):
         """Test check_balance with insufficient funds."""
-        # API returns balance in dollars in "balance" field
-        trader.api.get_balance = AsyncMock(return_value={"balance": 0.5})
+        # API returns {"balance": value_in_dollars}
+        trader.api.get_balance = AsyncMock(return_value={"balance": 0.5, "error": False})
 
         has_funds, balance = await trader.check_balance()
 
@@ -366,8 +366,7 @@ class TestAutoTrading:
     @pytest.mark.asyncio()
     async def test_start_auto_trading_success(self, trader):
         """Test starting auto-trading."""
-        # API returns balance in dollars in "balance" field
-        trader.api.get_balance = AsyncMock(return_value={"balance": 100.0})
+        trader.api.get_balance = AsyncMock(return_value={"balance": 100.0, "error": False})
 
         success, message = await trader.start_auto_trading(
             game="csgo",
@@ -391,8 +390,7 @@ class TestAutoTrading:
     @pytest.mark.asyncio()
     async def test_start_auto_trading_insufficient_funds(self, trader):
         """Test starting with insufficient funds."""
-        # API returns balance in dollars in "balance" field
-        trader.api.get_balance = AsyncMock(return_value={"balance": 0.5})
+        trader.api.get_balance = AsyncMock(return_value={"balance": 0.5, "error": False})
 
         success, message = await trader.start_auto_trading()
 
@@ -643,8 +641,8 @@ class TestExecuteArbitrageTrade:
     @pytest.mark.asyncio()
     async def test_execute_trade_success(self, trader):
         """Test successful trade execution."""
-        # Mock balance check - API returns balance in dollars
-        trader.api.get_balance = AsyncMock(return_value={"balance": 100.0})
+        # Mock balance check
+        trader.api.get_balance = AsyncMock(return_value={"balance": 100.0, "error": False})
 
         # Mock purchase
         trader.purchase_item = AsyncMock(
@@ -673,8 +671,7 @@ class TestExecuteArbitrageTrade:
     @pytest.mark.asyncio()
     async def test_execute_trade_insufficient_balance(self, trader):
         """Test trade with insufficient balance."""
-        # API returns balance in dollars
-        trader.api.get_balance = AsyncMock(return_value={"balance": 1.0})
+        trader.api.get_balance = AsyncMock(return_value={"balance": 1.0, "error": False})  # $1
 
         item = {
             "name": "Expensive Item",
@@ -692,8 +689,7 @@ class TestExecuteArbitrageTrade:
     @pytest.mark.asyncio()
     async def test_execute_trade_purchase_fails(self, trader):
         """Test trade when purchase fails."""
-        # API returns balance in dollars
-        trader.api.get_balance = AsyncMock(return_value={"balance": 100.0})
+        trader.api.get_balance = AsyncMock(return_value={"balance": 100.0, "error": False})
         trader.purchase_item = AsyncMock(
             return_value={"success": False, "error": "Item sold"}
         )

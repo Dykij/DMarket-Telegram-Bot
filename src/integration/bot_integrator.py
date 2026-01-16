@@ -217,7 +217,7 @@ class BotIntegrator:
 
             except Exception as e:
                 results[name] = False
-                logger.exception(f"  ❌ {name} failed: {e}")
+                logger.error(f"  ❌ {name} failed: {e}", exc_info=True)
 
         # Setup event handlers
         self._setup_event_handlers()

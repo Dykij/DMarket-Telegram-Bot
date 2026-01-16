@@ -281,9 +281,9 @@ class TestProfitCalculations:
         buy_price = Decimal("10.00")
         break_even = buy_price / WAXPEER_MULTIPLIER
 
-        # Compare with tolerance for Decimal precision differences
+        # Allow for floating point precision differences
         expected = Decimal("10.638297872340425531914893617")
-        assert abs(break_even - expected) < Decimal("0.00000000000000000000001")
+        assert abs(break_even - expected) < Decimal("0.000000000000000000000001")
 
 
 class TestCommissionCalculations:

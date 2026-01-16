@@ -302,8 +302,8 @@ class LocalDeltaTracker:
         data_str = "|".join(key_fields)
 
         if self.config.delta_hash_algorithm == "md5":
-            return hashlib.md5(data_str.encode()).hexdigest()[:16]  # noqa: S324
-        return hashlib.sha256(data_str.encode()).hexdigest()[:16]
+            return hashlib.md5(data_str.encode(), usedforsecurity=False).hexdigest()[:16]  # noqa: S324
+        return hashlib.sha256(data_str.encode(), usedforsecurity=False).hexdigest()[:16]
 
     def is_changed(self, item_id: str, item_data: dict[str, Any]) -> bool:
         """Проверяет, изменился ли предмет с последнего раза.
