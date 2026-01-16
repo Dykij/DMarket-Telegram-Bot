@@ -1,9 +1,9 @@
-name: Auto Update CHANGELOG
+# Auto-update CHANGELOG
+name: Changelog
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
     types: [opened, synchronize]
 
@@ -12,65 +12,30 @@ permissions:
   pull-requests: write
 
 jobs:
-  update-changelog:
+  changelog:
+    name: "📝 Update Changelog"
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: github.event_name == 'push' || github.event.pull_request.draft == false
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for changelog
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-
-      - name: Generate CHANGELOG
+          python-version: "3.11"
+      - name: Generate
         run: |
-          python scripts/generate_changelog.py --since $(git describe --tags --abbrev=0 2>/dev/null || echo "")
-
-      - name: Check for changes
-        id: check_changes
+          [ -f scripts/generate_changelog.py ] && python scripts/generate_changelog.py || echo "No changelog script"
+        continue-on-error: true
+      - name: Commit
+        if: github.event_name == 'push'
         run: |
-          if git diff --quiet CHANGELOG.md; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-          else
-            echo "changed=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Commit and push CHANGELOG (main branch)
-        if: github.event_name == 'push' && steps.check_changes.outputs.changed == 'true'
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add CHANGELOG.md
-          git commit -m "chore(changelog): auto-update CHANGELOG [skip ci]"
-          git push
-
-      - name: Commit CHANGELOG to PR
-        if: github.event_name == 'pull_request' && steps.check_changes.outputs.changed == 'true'
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add CHANGELOG.md
-          git commit -m "chore(changelog): update CHANGELOG for PR"
-          git push origin HEAD:${{ github.head_ref }}
-
-      - name: Comment on PR with changelog
-        if: github.event_name == 'pull_request' && steps.check_changes.outputs.changed == 'true'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const changelog = fs.readFileSync('CHANGELOG.md', 'utf8');
-            const unreleasedSection = changelog.split('## [Unreleased]')[1]?.split('## [')[0] || 'No changes';
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `## 📋 CHANGELOG Preview\n\n${unreleasedSection}`
-            });
+          git diff --quiet CHANGELOG.md || {
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git config user.name "github-actions[bot]"
+            git add CHANGELOG.md
+            git commit -m "chore: update changelog [skip ci]"
+            git push
+          }
+        continue-on-error: true

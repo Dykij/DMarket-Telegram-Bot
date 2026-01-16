@@ -7,25 +7,26 @@ This module provides:
 """
 
 from src.trading.trading_automation import (
-    TradingAutomation,
     AutoOrder,
     DCAConfig,
+    ExecutionResult,
+    OrderStatus,
+    OrderType,
     RebalanceConfig,
     ScheduledTask,
-    ExecutionResult,
-    OrderType,
-    OrderStatus,
+    TradingAutomation,
     create_trading_automation,
 )
 
+
 __all__ = [
-    "TradingAutomation",
     "AutoOrder",
     "DCAConfig",
+    "ExecutionResult",
+    "OrderStatus",
+    "OrderType",
     "RebalanceConfig",
     "ScheduledTask",
-    "ExecutionResult",
-    "OrderType",
-    "OrderStatus",
+    "TradingAutomation",
     "create_trading_automation",
 ]

@@ -624,17 +624,17 @@ class PriceAnalytics:
         # Count days in current direction
         direction_days = 1
         for i in range(len(prices) - 2, -1, -1):
-            if (trend in [Trend.UP, Trend.STRONG_UP] and prices[i] < prices[i + 1]) or (
-                trend in [Trend.DOWN, Trend.STRONG_DOWN] and prices[i] > prices[i + 1]
+            if (trend in {Trend.UP, Trend.STRONG_UP} and prices[i] < prices[i + 1]) or (
+                trend in {Trend.DOWN, Trend.STRONG_DOWN} and prices[i] > prices[i + 1]
             ):
                 direction_days += 1
             else:
                 break
 
         # Predict direction
-        if trend in [Trend.STRONG_UP, Trend.UP]:
+        if trend in {Trend.STRONG_UP, Trend.UP}:
             predicted = "up"
-        elif trend in [Trend.STRONG_DOWN, Trend.DOWN]:
+        elif trend in {Trend.STRONG_DOWN, Trend.DOWN}:
             predicted = "down"
         else:
             predicted = "sideways"
@@ -741,9 +741,9 @@ class PriceAnalytics:
         # Trend signal
         if analysis.trend:
             weight = 0.25
-            if analysis.trend.trend in [Trend.STRONG_UP, Trend.UP]:
+            if analysis.trend.trend in {Trend.STRONG_UP, Trend.UP}:
                 signals.append((Signal.BUY, weight * analysis.trend.strength / 100))
-            elif analysis.trend.trend in [Trend.STRONG_DOWN, Trend.DOWN]:
+            elif analysis.trend.trend in {Trend.STRONG_DOWN, Trend.DOWN}:
                 signals.append((Signal.SELL, weight * analysis.trend.strength / 100))
             else:
                 signals.append((Signal.HOLD, weight))

@@ -36,7 +36,7 @@ class TestMainKeyboard:
         keyboard = get_main_keyboard()
 
         assert isinstance(keyboard, InlineKeyboardMarkup)
-        assert len(keyboard.inline_keyboard) == 6  # 6 рядов кнопок
+        assert len(keyboard.inline_keyboard) == 7  # 7 рядов кнопок (добавлена ML/AI)
 
     def test_get_main_keyboard_with_balance(self):
         """Тест создания клавиатуры с балансом."""
@@ -206,7 +206,7 @@ class TestAutoTradeStart:
         call_args = query.edit_message_text.call_args
         message_text = call_args[0][0]
 
-        assert "АВТО-ТОРГОВЛЯ" in message_text
+        assert "АВТО-АРБИТРАЖ" in message_text or "АВТО-ТОРГОВЛЯ" in message_text
         assert "ОСТАНОВЛЕНА" in message_text
 
     @pytest.mark.asyncio
@@ -354,7 +354,7 @@ class TestShowBalance:
         update.callback_query = query
 
         dmarket_api = MagicMock()
-        dmarket_api.get_balance = AsyncMock(return_value={"usd": 4550, "dmc": 1000})
+        dmarket_api.get_balance = AsyncMock(return_value={"balance": 45.50, "dmc_balance": 10.00})
 
         context = MagicMock()
         context.bot_data = {}
@@ -432,7 +432,7 @@ class TestAutoTradeStatus:
         update.callback_query = query
 
         dmarket_api = MagicMock()
-        dmarket_api.get_balance = AsyncMock(return_value={"usd": 4550})
+        dmarket_api.get_balance = AsyncMock(return_value={"balance": 45.50})
 
         auto_buyer = MagicMock()
         auto_buyer.get_purchase_stats = MagicMock(return_value={

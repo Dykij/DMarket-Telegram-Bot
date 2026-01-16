@@ -38,6 +38,7 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 
+
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
     from src.waxpeer.waxpeer_api import WaxpeerAPI
@@ -457,17 +458,16 @@ class AutoListingEngine:
                     item_name=candidate.item_name,
                     listed_price=candidate.recommended_price,
                 )
-            else:
-                error_msg = result.get("msg", "Unknown error")
-                candidate.status = ListingStatus.ERROR
-                candidate.error_message = error_msg
+            error_msg = result.get("msg", "Unknown error")
+            candidate.status = ListingStatus.ERROR
+            candidate.error_message = error_msg
 
-                return ListingResult(
-                    success=False,
-                    item_id=candidate.item_id,
-                    item_name=candidate.item_name,
-                    error=error_msg,
-                )
+            return ListingResult(
+                success=False,
+                item_id=candidate.item_id,
+                item_name=candidate.item_name,
+                error=error_msg,
+            )
 
         except Exception as e:
             logger.exception("auto_listing_error", item=candidate.item_name, error=str(e))
@@ -551,7 +551,7 @@ class AutoListingEngine:
             Statistics dictionary
         """
         total_profit = sum(
-            r.listed_price - self._listings.get(r.item_id, ListingCandidate("", "", Decimal("0"))).dmarket_price
+            r.listed_price - self._listings.get(r.item_id, ListingCandidate("", "", Decimal(0))).dmarket_price
             for r in self._listing_history
             if r.success and r.listed_price
         )

@@ -577,6 +577,183 @@ def create_metrics_app():
 
 
 # =============================================================================
+# Dead Letter Queue Metrics (Stability Improvement: NEW)
+# =============================================================================
+
+# DLQ operations
+DLQ_OPERATIONS = Counter(
+    "dlq_operations_total",
+    "Total number of Dead Letter Queue operations",
+    ["action", "operation_type", "priority"],  # action: add/processed
+)
+
+# DLQ queue size
+DLQ_QUEUE_SIZE = Gauge(
+    "dlq_queue_size",
+    "Current size of Dead Letter Queue",
+)
+
+# DLQ expired operations
+dlq_expired_total = Counter(
+    "dlq_expired_total",
+    "Total number of expired operations in DLQ",
+    ["operation_type"],
+)
+
+# =============================================================================
+# Bulkhead Metrics (Stability Improvement: NEW)
+# =============================================================================
+
+# Bulkhead operations
+BULKHEAD_OPERATIONS = Counter(
+    "bulkhead_operations_total",
+    "Total number of Bulkhead operations",
+    ["bulkhead", "action"],  # action: acquired/released/rejected/timeout
+)
+
+# Bulkhead active slots
+BULKHEAD_ACTIVE = Gauge(
+    "bulkhead_active_slots",
+    "Current number of active slots in Bulkhead",
+    ["bulkhead"],
+)
+
+# Bulkhead rejection rate
+bulkhead_rejection_rate = Gauge(
+    "bulkhead_rejection_rate",
+    "Bulkhead rejection rate (0.0-1.0)",
+    ["bulkhead"],
+)
+
+# =============================================================================
+# Fallback Cache Metrics (Stability Improvement: NEW)
+# =============================================================================
+
+# Cache operations (extended)
+CACHE_OPERATIONS = Counter(
+    "fallback_cache_operations_total",
+    "Total number of Fallback Cache operations",
+    ["cache", "action", "category"],  # action: hit/miss/stale/error
+)
+
+# Cache size
+CACHE_SIZE = Gauge(
+    "fallback_cache_size",
+    "Current size of Fallback Cache",
+    ["cache"],
+)
+
+# Stale data usage
+cache_stale_usage_total = Counter(
+    "cache_stale_usage_total",
+    "Total number of stale data usage (fallback)",
+    ["cache", "category"],
+)
+
+# =============================================================================
+# Alert Throttler Metrics (Stability Improvement: NEW)
+# =============================================================================
+
+# Alert operations
+ALERT_OPERATIONS = Counter(
+    "alert_operations_total",
+    "Total number of alert operations",
+    ["action", "category", "priority"],  # action: sent/suppressed
+)
+
+# Pending alerts gauge
+alert_pending_count = Gauge(
+    "alert_pending_count",
+    "Number of pending alerts for digest",
+    ["category"],
+)
+
+# Alert suppression rate
+alert_suppression_rate = Gauge(
+    "alert_suppression_rate_percent",
+    "Alert suppression rate in percent",
+)
+
+
+# =============================================================================
+# Utility Functions for New Metrics
+# =============================================================================
+
+
+def track_dlq_operation(
+    action: str,
+    operation_type: str,
+    priority: str = "medium",
+) -> None:
+    """Track Dead Letter Queue operation.
+
+    Args:
+        action: Operation action (add, processed)
+        operation_type: Type of failed operation
+        priority: Operation priority
+    """
+    DLQ_OPERATIONS.labels(
+        action=action,
+        operation_type=operation_type,
+        priority=priority,
+    ).inc()
+
+
+def set_dlq_size(size: int) -> None:
+    """Set DLQ queue size.
+
+    Args:
+        size: Current queue size
+    """
+    DLQ_QUEUE_SIZE.set(size)
+
+
+def track_bulkhead_operation(bulkhead: str, action: str) -> None:
+    """Track Bulkhead operation.
+
+    Args:
+        bulkhead: Bulkhead name
+        action: Operation action (acquired, released, rejected, timeout)
+    """
+    BULKHEAD_OPERATIONS.labels(bulkhead=bulkhead, action=action).inc()
+
+
+def set_bulkhead_active(bulkhead: str, active_count: int) -> None:
+    """Set Bulkhead active slots count.
+
+    Args:
+        bulkhead: Bulkhead name
+        active_count: Number of active slots
+    """
+    BULKHEAD_ACTIVE.labels(bulkhead=bulkhead).set(active_count)
+
+
+def track_fallback_cache_operation(
+    cache: str,
+    action: str,
+    category: str = "default",
+) -> None:
+    """Track Fallback Cache operation.
+
+    Args:
+        cache: Cache name
+        action: Operation action (hit, miss, stale, error)
+        category: Data category
+    """
+    CACHE_OPERATIONS.labels(cache=cache, action=action, category=category).inc()
+
+
+def set_fallback_cache_size(cache: str, size: int) -> None:
+    """Set Fallback Cache size.
+
+    Args:
+        cache: Cache name
+        size: Current cache size
+    """
+    CACHE_SIZE.labels(cache=cache).set(size)
+
+
+# =============================================================================
 # Context Managers
 # =============================================================================
 

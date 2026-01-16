@@ -4,7 +4,8 @@ This module handles crash and critical shutdown notifications.
 """
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from src.core.application import Application

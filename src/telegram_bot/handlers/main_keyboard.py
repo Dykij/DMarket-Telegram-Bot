@@ -23,6 +23,7 @@ from src.ai.price_predictor import PricePredictor
 from src.dmarket.market_data_logger import MarketDataLogger
 from src.utils.logging_utils import get_logger
 
+
 logger = get_logger(__name__)
 
 
@@ -1372,7 +1373,7 @@ async def ml_ai_train_callback(update: Update, context: ContextTypes.DEFAULT_TYP
             )
 
     except Exception as e:
-        logger.error(f"ML training error: {e}")
+        logger.exception(f"ML training error: {e}")
         keyboard = [
             [InlineKeyboardButton("🔄 Попробовать снова", callback_data="ml_ai_train")],
             [InlineKeyboardButton("◀️ Назад", callback_data="ml_ai_menu")],
@@ -1579,7 +1580,7 @@ async def ml_ai_collect_data_callback(update: Update, context: ContextTypes.DEFA
         )
 
     except Exception as e:
-        logger.error(f"Ошибка сбора данных: {e}")
+        logger.exception(f"Ошибка сбора данных: {e}")
         await query.edit_message_text(
             f"❌ <b>Ошибка сбора данных:</b>\n\n<code>{str(e)[:300]}</code>",
             parse_mode=ParseMode.HTML,
