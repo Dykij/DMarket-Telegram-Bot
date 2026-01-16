@@ -4,7 +4,23 @@
 
 ---
 
-## 🆕 **НОВОЕ: Waxpeer Integration (Январь 2026)**
+## 🆕 **НОВОЕ: Concurrent & Parallel Execution (Январь 2026)**
+
+| Документ | Описание |
+|----------|----------|
+| **[📘 NEW_LIBRARIES_GUIDE.md](NEW_LIBRARIES_GUIDE.md)** | Все новые библиотеки: stamina, hishel, aiometer, asyncer |
+
+**Что добавляет:**
+- ✅ **stamina** - Production-grade retry с exponential backoff
+- ✅ **hishel** - RFC 9111-compliant HTTP кэширование
+- ✅ **aiometer** - Concurrent task throttling и rate limiting
+- ✅ **asyncer** - Type-safe parallel task execution (by Tiangolo)
+- ✅ Enhanced API decorators для DMarket и Waxpeer
+- ✅ Graceful degradation при отсутствии библиотек
+
+---
+
+## 🆕 **Waxpeer Integration (Январь 2026)**
 
 | Документ | Описание |
 |----------|----------|
@@ -59,6 +75,7 @@
 | Документ | Описание |
 |----------|----------|
 | **[PERFORMANCE_COMPLETE_GUIDE.md](PERFORMANCE_COMPLETE_GUIDE.md)** | **Объединённое руководство** ✨ |
+| **[NEW_LIBRARIES_GUIDE.md](NEW_LIBRARIES_GUIDE.md)** | Stamina retry + Hishel caching 🆕 |
 | [CACHING_GUIDE.md](CACHING_GUIDE.md) | Стратегии кэширования |
 | [WEBSOCKET_FALLBACK.md](WEBSOCKET_FALLBACK.md) | WebSocket vs Polling режим |
 
@@ -89,4 +106,4 @@
 
 ---
 
-**Версия**: 3.1 | **Дата**: 4 января 2026
+**Версия**: 3.3 | **Дата**: 14 января 2026
