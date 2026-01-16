@@ -33,12 +33,12 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-      - run: pip install -q ruff mypy 2>/dev/null
+      - run: pip install -q ruff mypy
       - name: Ruff
-        run: ruff check src/ tests/ --output-format=concise 2>/dev/null | head -30 || true
+        run: ruff check src/ tests/ --output-format=concise | head -30 || true
         continue-on-error: true
       - name: MyPy
-        run: mypy src/ --ignore-missing-imports 2>&1 | head -30 || true
+        run: mypy src/ --ignore-missing-imports --no-error-summary | head -30 || true
         continue-on-error: true
 
   # Main test suite
@@ -59,12 +59,12 @@ jobs:
           cache: pip
       - name: Install
         run: |
-          pip install -q pytest pytest-asyncio pytest-cov pytest-xdist 2>/dev/null
-          pip install -q -r requirements.txt 2>/dev/null || true
+          pip install -q pytest pytest-asyncio pytest-cov pytest-xdist
+          pip install -q -r requirements.txt || true
       - name: Test
         run: |
           export PYTHONPATH=$GITHUB_WORKSPACE
-          pytest tests/ -v --tb=line -x --maxfail=5 -n auto 2>&1 | tail -50
+          pytest tests/ -v --tb=line --maxfail=5 -n auto 2>&1 | tail -50
         continue-on-error: true
         env:
           TESTING: "true"
@@ -83,12 +83,12 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-      - run: pip install -q bandit safety 2>/dev/null
+      - run: pip install -q bandit safety
       - name: Bandit
-        run: bandit -r src/ -f json -o bandit.json -q 2>/dev/null || true
+        run: bandit -r src/ -f json -o bandit.json -q || true
         continue-on-error: true
       - name: Safety
-        run: safety check -r requirements.txt --output json > safety.json 2>/dev/null || true
+        run: safety check -r requirements.txt --output json > safety.json || true
         continue-on-error: true
       - uses: actions/upload-artifact@v4
         if: always()
