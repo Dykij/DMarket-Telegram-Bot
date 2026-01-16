@@ -27,21 +27,21 @@ jobs:
           python-version: "3.12"
           cache: pip
       - name: Install
-        run: pip install -q ruff mypy bandit safety vulture radon 2>/dev/null
+        run: pip install -q ruff mypy bandit safety vulture radon
       - name: Ruff
-        run: ruff check src/ tests/ --output-format=concise 2>/dev/null | head -20 || true
+        run: ruff check src/ tests/ --output-format=concise | head -20 || true
         continue-on-error: true
       - name: MyPy
-        run: mypy src/ --ignore-missing-imports 2>&1 | head -20 || true
+        run: mypy src/ --ignore-missing-imports --no-error-summary | head -20 || true
         continue-on-error: true
       - name: Bandit
-        run: bandit -r src/ -f json -o bandit.json -q 2>/dev/null || true
+        run: bandit -r src/ -f json -o bandit.json -q || true
         continue-on-error: true
       - name: Vulture
-        run: vulture src/ --min-confidence 90 2>/dev/null | head -10 || true
+        run: vulture src/ --min-confidence 90 | head -10 || true
         continue-on-error: true
       - name: Complexity
-        run: radon cc src/ -a -s 2>/dev/null | head -20 || true
+        run: radon cc src/ -a -s | head -20 || true
         continue-on-error: true
       - uses: actions/upload-artifact@v4
         if: always()

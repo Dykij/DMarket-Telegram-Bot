@@ -12,6 +12,9 @@ on:
   schedule:
     - cron: "0 3 * * *"
 
+permissions:
+  contents: read
+
 jobs:
   e2e:
     name: "🔄 E2E (Py${{ matrix.python }})"
@@ -29,8 +32,8 @@ jobs:
           cache: pip
       - name: Install
         run: |
-          pip install -q -r requirements.txt 2>/dev/null || true
-          pip install -q pytest pytest-asyncio pytest-cov 2>/dev/null
+          pip install -q -r requirements.txt || true
+          pip install -q pytest pytest-asyncio pytest-cov
       - name: E2E Tests
         run: |
           export PYTHONPATH=$GITHUB_WORKSPACE

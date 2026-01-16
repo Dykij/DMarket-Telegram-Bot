@@ -10,6 +10,9 @@ on:
         description: "Module to test (e.g., src/dmarket/api/)"
         required: false
 
+permissions:
+  contents: read
+
 jobs:
   mutation:
     name: "🧬 Mutation Testing"
