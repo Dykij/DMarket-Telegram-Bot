@@ -112,3 +112,9 @@ CREATE OR REPLACE TRIGGER update_user_settings_updated_at
     BEFORE UPDATE ON bot.user_settings
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
+
+-- Create n8n database and user
+-- n8n requires its own database for workflow and execution data
+CREATE DATABASE n8n OWNER postgres;
+CREATE USER n8n_user WITH ENCRYPTED PASSWORD 'n8n_password';
+GRANT ALL PRIVILEGES ON DATABASE n8n TO n8n_user;
