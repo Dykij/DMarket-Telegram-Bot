@@ -31,10 +31,8 @@ from src.ml.anomaly_detection import (
     AnomalyType,
     create_anomaly_detector,
 )
-from src.ml.balance_adapter import (
-    BalanceAdaptiveStrategy,
-    StrategyRecommendation,
-)
+from src.ml.balance_adapter import BalanceAdaptiveStrategy, StrategyRecommendation
+from src.ml.data_scheduler import MLDataScheduler, SchedulerConfig, SchedulerState, TaskType
 from src.ml.enhanced_predictor import (
     EnhancedFeatureExtractor,
     EnhancedFeatures,
@@ -44,10 +42,7 @@ from src.ml.enhanced_predictor import (
     ItemRarity,
     MLPipeline,
 )
-from src.ml.feature_extractor import (
-    MarketFeatureExtractor,
-    PriceFeatures,
-)
+from src.ml.feature_extractor import MarketFeatureExtractor, PriceFeatures
 from src.ml.model_tuner import (
     AutoMLSelector,
     CVStrategy,
@@ -56,25 +51,18 @@ from src.ml.model_tuner import (
     ScoringMetric,
     TuningResult,
 )
-from src.ml.price_predictor import (
-    AdaptivePricePredictor,
-    PredictionConfidence,
-    PricePrediction,
-)
-from src.ml.smart_recommendations import (
-    ItemRecommendation,
-    RecommendationBatch,
-    RecommendationType,
-    RiskLevel as RecommendationRiskLevel,
-    SmartRecommendations,
-    create_smart_recommendations,
-)
-from src.ml.trade_classifier import (
-    AdaptiveTradeClassifier,
-    RiskLevel,
-    TradeSignal,
-)
 
+# Real Data Training Modules (новые модули для обучения на реальных данных API)
+from src.ml.price_normalizer import NormalizedPrice, PriceNormalizer, PriceSource
+from src.ml.price_predictor import AdaptivePricePredictor, PredictionConfidence, PricePrediction
+from src.ml.real_price_collector import CollectedPrice, CollectionResult, CollectionStatus
+from src.ml.real_price_collector import GameType as CollectorGameType
+from src.ml.real_price_collector import RealPriceCollector
+from src.ml.smart_recommendations import ItemRecommendation, RecommendationBatch, RecommendationType
+from src.ml.smart_recommendations import RiskLevel as RecommendationRiskLevel
+from src.ml.smart_recommendations import SmartRecommendations, create_smart_recommendations
+from src.ml.trade_classifier import AdaptiveTradeClassifier, RiskLevel, TradeSignal
+from src.ml.training_data_manager import DatasetMetadata, TrainingDataManager, TrainingDataset
 
 __all__ = [
     # Price Predictor (базовый)
@@ -90,6 +78,11 @@ __all__ = [
     # Balance Adapter
     "BalanceAdaptiveStrategy",
     "CVStrategy",
+    "CollectedPrice",
+    "CollectionResult",
+    "CollectionStatus",
+    "CollectorGameType",
+    "DatasetMetadata",
     "EnhancedFeatureExtractor",
     "EnhancedFeatures",
     # Enhanced Price Predictor (улучшенный)
@@ -99,23 +92,40 @@ __all__ = [
     "ItemCondition",
     "ItemRarity",
     "ItemRecommendation",
+    # Data Scheduler - автоматический сбор и переобучение
+    "MLDataScheduler",
     "MLPipeline",
     # Feature Extractor
     "MarketFeatureExtractor",
     # Model Tuner (автонастройка)
     "ModelTuner",
+    "NormalizedPrice",
     "PredictionConfidence",
     "PriceFeatures",
+    # ═══════════════════════════════════════════════════════════════════
+    # Real Data Training (обучение на реальных данных с API)
+    # ═══════════════════════════════════════════════════════════════════
+    # Price Normalizer - нормализация цен с разных платформ
+    "PriceNormalizer",
     "PricePrediction",
+    "PriceSource",
+    # Real Price Collector - сбор реальных цен с DMarket, Waxpeer, Steam
+    "RealPriceCollector",
     "RecommendationBatch",
     "RecommendationRiskLevel",
     "RecommendationType",
     "RiskLevel",
+    "SchedulerConfig",
+    "SchedulerState",
     "ScoringMetric",
     # Smart Recommendations
     "SmartRecommendations",
     "StrategyRecommendation",
+    "TaskType",
     "TradeSignal",
+    # Training Data Manager - управление обучающими данными
+    "TrainingDataManager",
+    "TrainingDataset",
     "TuningResult",
     "create_anomaly_detector",
     "create_smart_recommendations",

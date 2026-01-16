@@ -9,15 +9,14 @@ Steam Market API интеграция для получения цен и арб
 """
 
 import asyncio
-from datetime import datetime, timedelta
-from functools import wraps
 import logging
 import os
+from datetime import datetime, timedelta
+from functools import wraps
 from typing import Any, Awaitable, Callable
 
-from dotenv import load_dotenv
 import httpx
-
+from dotenv import load_dotenv
 
 # Загружаем переменные окружения
 load_dotenv()
@@ -144,8 +143,7 @@ async def get_steam_price(
                 # Парсинг цен
                 try:
                     lowest_price = float(
-                        data
-                        .get("lowest_price", "$0")
+                        data.get("lowest_price", "$0")
                         .replace("$", "")
                         .replace(",", "")
                         .replace("pуб.", "")
@@ -157,8 +155,7 @@ async def get_steam_price(
                     volume = int(data.get("volume", "0").replace(",", "").strip() or "0")
 
                     median_price = float(
-                        data
-                        .get("median_price", "$0")
+                        data.get("median_price", "$0")
                         .replace("$", "")
                         .replace(",", "")
                         .replace("pуб.", "")
@@ -365,3 +362,102 @@ def get_backoff_status() -> dict:
         "remaining_seconds": 0,
         "duration": backoff_duration,
     }
+
+
+class SteamMarketAPI:
+    """
+    Wrapper class for Steam Market API functions.
+
+    Provides an object-oriented interface to Steam Market API
+    for use in collectors and other modules.
+
+    Example:
+        >>> api = SteamMarketAPI()
+        >>> price = await api.get_item_price(730, "AK-47 | Redline (Field-Tested)")
+        >>> print(price)  # {"lowest_price": "$12.34", "volume": "1,234", ...}
+    """
+
+    def __init__(self, app_id: int = 730) -> None:
+        """
+        Initialize Steam Market API wrapper.
+
+        Args:
+            app_id: Default Steam app ID (730 for CS2/CSGO)
+        """
+        self.default_app_id = app_id
+
+    async def get_item_price(
+        self,
+        app_id: int | None = None,
+        market_hash_name: str = "",
+    ) -> dict | None:
+        """
+        Get price information for a single item.
+
+        Args:
+            app_id: Steam app ID (defaults to self.default_app_id)
+            market_hash_name: Market hash name of the item
+
+        Returns:
+            Dict with price info: {
+                "lowest_price": "$12.34",
+                "median_price": "$11.50",
+                "volume": "1,234",
+                "success": True,
+                "price": 12.34,  # Parsed float price
+            }
+            Returns None if item not found or error occurred.
+        """
+        if not market_hash_name:
+            return None
+
+        actual_app_id = app_id if app_id is not None else self.default_app_id
+
+        try:
+            result = await get_steam_price(
+                market_hash_name=market_hash_name,
+                app_id=actual_app_id,
+            )
+
+            if result:
+                # Transform result to expected format
+                return {
+                    "lowest_price": f"${result.get('price', 0):.2f}",
+                    "median_price": f"${result.get('median_price', 0):.2f}"
+                    if result.get("median_price")
+                    else None,
+                    "volume": str(result.get("volume", 0)),
+                    "success": True,
+                    "price": result.get("price", 0),
+                }
+            return None
+
+        except ItemNotFoundError:
+            logger.debug(f"Item not found on Steam: {market_hash_name}")
+            return None
+        except RateLimitError as e:
+            logger.warning(f"Steam rate limit: {e}")
+            return None
+        except SteamAPIError as e:
+            logger.error(f"Steam API error: {e}")  # noqa: TRY400
+            return None
+
+    async def get_prices_batch(
+        self,
+        items: list[str],
+        app_id: int | None = None,
+        delay: float = STEAM_REQUEST_DELAY,
+    ) -> dict[str, dict | None]:
+        """
+        Get prices for multiple items with rate limiting.
+
+        Args:
+            items: List of market hash names
+            app_id: Steam app ID
+            delay: Delay between requests
+
+        Returns:
+            Dict mapping item names to price info
+        """
+        actual_app_id = app_id if app_id is not None else self.default_app_id
+        return await get_prices_batch(items, app_id=actual_app_id, delay=delay)

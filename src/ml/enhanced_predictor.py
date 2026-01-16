@@ -20,6 +20,9 @@ from typing import Any
 import numpy as np
 
 
+# Imports for real data training integration
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -158,50 +161,53 @@ class EnhancedFeatures:
 
     def to_array(self) -> np.ndarray:
         """Преобразовать признаки в numpy массив для ML модели."""
-        return np.array([
-            # Базовые
-            self.current_price,
-            self.price_mean_7d,
-            self.price_std_7d,
-            self.price_change_1h,
-            self.price_change_24h,
-            self.price_change_7d,
-            self.rsi,
-            self.volatility,
-            self.momentum,
-            self.sales_count_24h,
-            self.avg_sales_per_day,
-            self.hour_of_day,
-            self.day_of_week,
-            1.0 if self.is_weekend else 0.0,
-            1.0 if self.is_peak_hours else 0.0,
-            self.market_depth,
-            self.competition_level,
-            # Новые
-            self.relative_strength,
-            self.market_index_change,
-            self.time_since_last_sale,
-            self.avg_time_between_sales,
-            self.float_value,
-            self.float_percentile,
-            self.pattern_score,
-            self.sticker_value,
-            self.sticker_count,
-            self._game_to_numeric(),
-            self._rarity_to_numeric(),
-            self._condition_to_numeric(),
-            self.gem_count,
-            1.0 if self.is_unusual else 0.0,
-            self.effect_value,
-            # DMarket Bonus/Discount (из API документации)
-            self.dmarket_discount,
-            self.dmarket_bonus,
-            1.0 if self.has_dmarket_discount else 0.0,
-            # Lock Status
-            float(self.lock_status),
-            float(self.lock_days_remaining),
-            self.lock_discount,
-        ], dtype=np.float64)
+        return np.array(
+            [
+                # Базовые
+                self.current_price,
+                self.price_mean_7d,
+                self.price_std_7d,
+                self.price_change_1h,
+                self.price_change_24h,
+                self.price_change_7d,
+                self.rsi,
+                self.volatility,
+                self.momentum,
+                self.sales_count_24h,
+                self.avg_sales_per_day,
+                self.hour_of_day,
+                self.day_of_week,
+                1.0 if self.is_weekend else 0.0,
+                1.0 if self.is_peak_hours else 0.0,
+                self.market_depth,
+                self.competition_level,
+                # Новые
+                self.relative_strength,
+                self.market_index_change,
+                self.time_since_last_sale,
+                self.avg_time_between_sales,
+                self.float_value,
+                self.float_percentile,
+                self.pattern_score,
+                self.sticker_value,
+                self.sticker_count,
+                self._game_to_numeric(),
+                self._rarity_to_numeric(),
+                self._condition_to_numeric(),
+                self.gem_count,
+                1.0 if self.is_unusual else 0.0,
+                self.effect_value,
+                # DMarket Bonus/Discount (из API документации)
+                self.dmarket_discount,
+                self.dmarket_bonus,
+                1.0 if self.has_dmarket_discount else 0.0,
+                # Lock Status
+                float(self.lock_status),
+                float(self.lock_days_remaining),
+                self.lock_discount,
+            ],
+            dtype=np.float64,
+        )
 
     def _game_to_numeric(self) -> float:
         """Преобразовать игру в число."""
@@ -357,9 +363,7 @@ class EnhancedFeatureExtractor:
         features.hour_of_day = now.hour
         features.day_of_week = now.weekday()
         features.is_weekend = features.day_of_week >= 5
-        features.is_peak_hours = (
-            self.PEAK_HOURS_START <= features.hour_of_day < self.PEAK_HOURS_END
-        )
+        features.is_peak_hours = self.PEAK_HOURS_START <= features.hour_of_day < self.PEAK_HOURS_END
 
         # Базовые ценовые признаки
         if price_history and len(price_history) > 0:
@@ -384,9 +388,7 @@ class EnhancedFeatureExtractor:
 
         # Game-specific признаки
         if item_data:
-            features = self._extract_game_specific_features(
-                features, game, item_data, item_name
-            )
+            features = self._extract_game_specific_features(features, game, item_data, item_name)
 
         return features
 
@@ -1062,22 +1064,43 @@ class EnhancedPricePredictor:
             "predicted_price_1h": round(predicted_1h, 2),
             "predicted_price_24h": round(predicted_24h, 2),
             "predicted_price_7d": round(predicted_7d, 2),
-            "price_range_1h": (round(max(0, predicted_1h - std_1h), 2), round(predicted_1h + std_1h, 2)),
-            "price_range_24h": (round(max(0, predicted_24h - std_24h), 2), round(predicted_24h + std_24h, 2)),
-            "price_range_7d": (round(max(0, predicted_7d - std_7d), 2), round(predicted_7d + std_7d, 2)),
+            "price_range_1h": (
+                round(max(0, predicted_1h - std_1h), 2),
+                round(predicted_1h + std_1h, 2),
+            ),
+            "price_range_24h": (
+                round(max(0, predicted_24h - std_24h), 2),
+                round(predicted_24h + std_24h, 2),
+            ),
+            "price_range_7d": (
+                round(max(0, predicted_7d - std_7d), 2),
+                round(predicted_7d + std_7d, 2),
+            ),
             "confidence_score": round(confidence_score, 2),
             "confidence_level": self._score_to_level(confidence_score),
             "recommendation": recommendation,
             "reasoning": reasoning,
-            "expected_profit_24h_percent": round(((predicted_24h - current_price) / current_price) * 100, 2) if current_price > 0 else 0,
+            "expected_profit_24h_percent": round(
+                ((predicted_24h - current_price) / current_price) * 100, 2
+            )
+            if current_price > 0
+            else 0,
             "model_version": self.MODEL_VERSION,
             "timestamp": datetime.now(UTC).isoformat(),
             # Game-specific info
-            "float_value": features.float_value if features.game_type in {GameType.CS2, GameType.CSGO} else None,
-            "pattern_score": features.pattern_score if features.game_type in {GameType.CS2, GameType.CSGO} else None,
-            "sticker_value": features.sticker_value if features.game_type in {GameType.CS2, GameType.CSGO} else None,
+            "float_value": features.float_value
+            if features.game_type in {GameType.CS2, GameType.CSGO}
+            else None,
+            "pattern_score": features.pattern_score
+            if features.game_type in {GameType.CS2, GameType.CSGO}
+            else None,
+            "sticker_value": features.sticker_value
+            if features.game_type in {GameType.CS2, GameType.CSGO}
+            else None,
             "relative_strength": round(features.relative_strength, 3),
-            "time_since_last_sale_hours": round(features.time_since_last_sale / 3600, 1) if features.time_since_last_sale > 0 else None,
+            "time_since_last_sale_hours": round(features.time_since_last_sale / 3600, 1)
+            if features.time_since_last_sale > 0
+            else None,
         }
 
     def _has_trained_models(self) -> bool:
@@ -1138,8 +1161,8 @@ class EnhancedPricePredictor:
             return features.current_price, features.current_price * 0.1
 
         # Нормализуем веса
-        total_weight = sum(weights[:len(predictions)])
-        weights = [w / total_weight for w in weights[:len(predictions)]]
+        total_weight = sum(weights[: len(predictions)])
+        weights = [w / total_weight for w in weights[: len(predictions)]]
 
         # Взвешенное среднее
         prediction = sum(p * w for p, w in zip(predictions, weights, strict=False))
@@ -1428,3 +1451,322 @@ class EnhancedPricePredictor:
             logger.info(f"Model loaded from {self.model_path}")
         except Exception as e:
             logger.exception(f"Failed to load model: {e}")
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # REAL API TRAINING - Обучение на реальных данных API
+    # ═══════════════════════════════════════════════════════════════════════
+
+    async def train_from_real_data(
+        self,
+        game_types: list[str] | None = None,
+        items_per_game: int = 100,
+        min_samples: int = 50,
+        include_dmarket: bool = True,
+        include_waxpeer: bool = True,
+        include_steam: bool = True,
+        use_cached: bool = True,
+        cache_max_age_hours: int = 24,
+        dmarket_api: Any | None = None,
+        waxpeer_api: Any | None = None,
+    ) -> dict[str, Any]:
+        """Обучить модель на реальных ценах с DMarket, Waxpeer и Steam API.
+
+        Этот метод:
+        1. Собирает реальные цены с указанных API
+        2. Нормализует цены к единому формату USD
+        3. Извлекает признаки для ML
+        4. Обучает ensemble модели
+
+        Args:
+            game_types: Список игр для сбора ['csgo', 'dota2', 'tf2', 'rust'].
+                       По умолчанию ['csgo'].
+            items_per_game: Количество предметов на игру (default: 100).
+            min_samples: Минимум примеров для обучения (default: 50).
+            include_dmarket: Включить DMarket API (default: True).
+            include_waxpeer: Включить Waxpeer API (default: True).
+            include_steam: Включить Steam API (default: True).
+            use_cached: Использовать кэшированные данные (default: True).
+            cache_max_age_hours: Макс. возраст кэша в часах (default: 24).
+            dmarket_api: Опциональный DMarket API клиент.
+            waxpeer_api: Опциональный Waxpeer API клиент.
+
+        Returns:
+            dict: Результаты обучения:
+                - success: bool - Успешность
+                - samples_collected: int - Собрано примеров
+                - samples_used: int - Использовано для обучения
+                - sources: dict - Статистика по источникам
+                - training_metrics: dict - Метрики обучения
+                - errors: list - Список ошибок
+
+        Example:
+            >>> predictor = EnhancedPricePredictor()
+            >>> result = await predictor.train_from_real_data(
+            ...     game_types=["csgo", "dota2"],
+            ...     items_per_game=200,
+            ...     include_steam=False,  # Steam медленнее
+            ... )
+            >>> print(f"Trained on {result['samples_used']} samples")
+        """
+        # Импорты в runtime для избежания циклических зависимостей
+        from src.ml.real_price_collector import GameType, RealPriceCollector
+        from src.ml.training_data_manager import TrainingDataManager
+
+        result = {
+            "success": False,
+            "samples_collected": 0,
+            "samples_used": 0,
+            "sources": {"dmarket": 0, "waxpeer": 0, "steam": 0},
+            "training_metrics": {},
+            "errors": [],
+        }
+
+        # Маппинг строк к GameType enum
+        game_type_map = {
+            "csgo": GameType.CSGO,
+            "cs2": GameType.CSGO,
+            "dota2": GameType.DOTA2,
+            "dota": GameType.DOTA2,
+            "tf2": GameType.TF2,
+            "rust": GameType.RUST,
+        }
+
+        # Парсинг game_types
+        if game_types is None:
+            game_types_enum = [GameType.CSGO]
+        else:
+            game_types_enum = []
+            for gt in game_types:
+                gt_lower = gt.lower()
+                if gt_lower in game_type_map:
+                    game_types_enum.append(game_type_map[gt_lower])
+                else:
+                    result["errors"].append(f"Unknown game type: {gt}")
+                    logger.warning(f"Unknown game type: {gt}")
+
+        if not game_types_enum:
+            result["errors"].append("No valid game types specified")
+            return result
+
+        logger.info(
+            f"Starting real data training: games={[g.value for g in game_types_enum]}, "
+            f"items_per_game={items_per_game}"
+        )
+
+        try:
+            # 1. Инициализация коллектора
+            collector = RealPriceCollector(
+                dmarket_api=dmarket_api,
+                waxpeer_api=waxpeer_api,
+            )
+
+            # 2. Сбор данных
+            logger.info("Collecting prices from APIs...")
+            collected_prices = await collector.collect_all_prices(
+                game_types=game_types_enum,
+                items_per_game=items_per_game,
+                include_dmarket=include_dmarket,
+                include_waxpeer=include_waxpeer,
+                include_steam=include_steam,
+            )
+
+            result["samples_collected"] = len(collected_prices)
+
+            if not collected_prices:
+                result["errors"].append("No prices collected from any API")
+                logger.error("No prices collected")
+                return result
+
+            # Подсчет по источникам
+            for price in collected_prices:
+                source = price.source.value
+                result["sources"][source] = result["sources"].get(source, 0) + 1
+
+            logger.info(
+                f"Collected {len(collected_prices)} prices: "
+                f"DMarket={result['sources'].get('dmarket', 0)}, "
+                f"Waxpeer={result['sources'].get('waxpeer', 0)}, "
+                f"Steam={result['sources'].get('steam', 0)}"
+            )
+
+            # 3. Инициализация менеджера данных
+            data_manager = TrainingDataManager()
+
+            # 4. Добавление данных в менеджер
+            logger.info("Processing collected prices...")
+            processed = 0
+            for price in collected_prices:
+                try:
+                    # Создаем метаданные для TrainingDataManager
+                    metadata = {
+                        "game_id": price.game_id,
+                        "source": price.source.value,
+                        "commission_rate": price.commission_rate,
+                        "liquidity": price.liquidity,
+                        "sales_volume_24h": price.sales_volume_24h,
+                    }
+
+                    data_manager.add_price_data(
+                        item_id=price.item_id,
+                        title=price.title,
+                        price_usd=price.normalized_price,
+                        suggested_price_usd=price.original_price,
+                        metadata=metadata,
+                    )
+                    processed += 1
+                except Exception as e:
+                    logger.debug(f"Failed to process price {price.item_id}: {e}")
+
+            logger.info(f"Processed {processed}/{len(collected_prices)} prices")
+
+            # 5. Подготовка данных для обучения
+            logger.info("Preparing training data...")
+            X, y = data_manager.prepare_training_data()
+
+            if len(X) < min_samples:
+                result["errors"].append(f"Not enough samples: {len(X)} < {min_samples}")
+                logger.error(f"Insufficient samples: {len(X)} < {min_samples}")
+                return result
+
+            result["samples_used"] = len(X)
+            logger.info(f"Prepared {len(X)} training samples")
+
+            # 6. Добавление в обучающие данные предиктора
+            self._training_data_X.clear()
+            self._training_data_y.clear()
+
+            for features, target in zip(X, y, strict=False):
+                self._training_data_X.append(features)
+                self._training_data_y.append(target)
+
+            # 7. Обучение моделей
+            logger.info("Training ensemble models...")
+            self.train()
+
+            # 8. Сохранение модели
+            self._save_model()
+
+            # 9. Сбор метрик
+            result["training_metrics"] = {
+                "total_samples": len(X),
+                "feature_count": len(X[0]) if X else 0,
+                "models_trained": [
+                    "random_forest",
+                    "gradient_boost",
+                    "ridge",
+                    "xgboost",
+                ],
+                "model_weights": {
+                    "random_forest": 0.35,
+                    "xgboost": 0.35,
+                    "gradient_boost": 0.20,
+                    "ridge": 0.10,
+                },
+            }
+
+            result["success"] = True
+            logger.info(
+                f"Training completed successfully: "
+                f"{result['samples_used']} samples, "
+                f"{len(result['training_metrics']['models_trained'])} models"
+            )
+
+        except ImportError as e:
+            error_msg = f"Missing dependency: {e}"
+            result["errors"].append(error_msg)
+            logger.exception(error_msg)
+        except Exception as e:
+            error_msg = f"Training failed: {e}"
+            result["errors"].append(error_msg)
+            logger.exception(error_msg)
+
+        return result
+
+    async def collect_and_add_training_sample(
+        self,
+        item_id: str,
+        title: str,
+        game_type: str = "csgo",
+        dmarket_api: Any | None = None,
+        waxpeer_api: Any | None = None,
+    ) -> bool:
+        """Собрать цену для одного предмета и добавить в обучающую выборку.
+
+        Удобный метод для инкрементального обучения - добавляет один
+        предмет в обучающие данные без полного переобучения.
+
+        Args:
+            item_id: ID предмета.
+            title: Название предмета (market_hash_name).
+            game_type: Тип игры ('csgo', 'dota2', 'tf2', 'rust').
+            dmarket_api: Опциональный DMarket API клиент.
+            waxpeer_api: Опциональный Waxpeer API клиент.
+
+        Returns:
+            bool: True если успешно добавлено.
+
+        Example:
+            >>> success = await predictor.collect_and_add_training_sample(
+            ...     item_id="abc123", title="AK-47 | Redline (Field-Tested)", game_type="csgo"
+            ... )
+        """
+        from src.ml.real_price_collector import GameType, RealPriceCollector
+
+        game_type_map = {
+            "csgo": GameType.CSGO,
+            "cs2": GameType.CSGO,
+            "dota2": GameType.DOTA2,
+            "tf2": GameType.TF2,
+            "rust": GameType.RUST,
+        }
+
+        game_enum = game_type_map.get(game_type.lower())
+        if not game_enum:
+            logger.warning(f"Unknown game type: {game_type}")
+            return False
+
+        try:
+            collector = RealPriceCollector(
+                dmarket_api=dmarket_api,
+                waxpeer_api=waxpeer_api,
+            )
+
+            # Сбор цены для одного предмета
+            price = await collector.collect_single_item_price(
+                item_id=item_id,
+                title=title,
+                game_type=game_enum,
+            )
+
+            if not price:
+                logger.debug(f"No price found for {title}")
+                return False
+
+            # Создание признаков
+            features = EnhancedFeatures(
+                current_price=price.normalized_price,
+                suggested_price=price.original_price,
+                avg_price_7d=price.normalized_price,
+                avg_price_30d=price.normalized_price,
+                price_std_7d=0.0,
+                price_trend_7d=0.0,
+                sales_velocity=price.sales_volume_24h or 0.0,
+                time_on_market=0.0,
+                seller_rating=0.0,
+                market_saturation=0.0,
+                day_of_week=datetime.now().weekday(),
+                hour_of_day=datetime.now().hour,
+                price_percentile=50.0,
+                competition_level=0.5,
+            )
+
+            # Добавление в обучающие данные
+            target_price = price.normalized_price
+            self.add_training_example(features, target_price)
+
+            logger.debug(f"Added training sample: {title} @ ${price.normalized_price:.2f}")
+            return True
+
+        except Exception as e:
+            logger.debug(f"Failed to add training sample for {title}: {e}")
+            return False
