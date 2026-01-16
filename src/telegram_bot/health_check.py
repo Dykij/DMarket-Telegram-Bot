@@ -19,6 +19,8 @@ from typing import Any
 
 from aiohttp import web
 
+from src.utils.health_monitor import HealthMonitor, ServiceStatus
+
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +43,7 @@ class HealthCheckServer:
         db_manager: Any = None,
         redis_client: Any = None,
         dmarket_api: Any = None,
+        health_monitor: HealthMonitor | None = None,
     ):
         """Initialize health check server.
 
@@ -58,6 +61,7 @@ class HealthCheckServer:
         self.db_manager = db_manager
         self.redis_client = redis_client
         self.dmarket_api = dmarket_api
+        self.health_monitor = health_monitor
 
         # Status tracking
         self.start_time = time.time()
@@ -125,43 +129,87 @@ class HealthCheckServer:
         Returns:
             JSON response with status and check results
         """
-        checks = {}
-        all_healthy = True
+        checks: dict[str, bool] = {}
+        details: dict[str, dict[str, Any]] = {}
+        overall_status: str | None = None
 
-        # Check database
-        checks["database"] = await self._check_database()
-        if not checks["database"]:
-            all_healthy = False
+        if self.health_monitor:
+            checks, details, overall_status = await self._get_health_monitor_results()
 
-        # Check Redis
-        checks["redis"] = await self._check_redis()
-        if not checks["redis"]:
-            all_healthy = False
+        missing_checks = {
+            "database",
+            "redis",
+            "dmarket_api",
+            "telegram_api",
+        } - set(checks.keys())
+        if missing_checks:
+            legacy_checks = await self._run_legacy_checks(missing_checks)
+            checks.update(legacy_checks)
+            if overall_status is None:
+                overall_status = "healthy" if all(legacy_checks.values()) else "unhealthy"
+            elif any(not value for value in legacy_checks.values()):
+                overall_status = "unhealthy"
 
-        # Check DMarket API
-        checks["dmarket_api"] = await self._check_dmarket_api()
-        if not checks["dmarket_api"]:
-            all_healthy = False
-
-        # Check Telegram API
-        checks["telegram_api"] = await self._check_telegram_api()
-        if not checks["telegram_api"]:
-            all_healthy = False
-
-        # Calculate uptime
-        uptime_seconds = int(time.time() - self.start_time)
+        if overall_status is None:
+            overall_status = "healthy" if all(checks.values()) else "unhealthy"
 
         response_data = {
-            "status": "healthy" if all_healthy else "unhealthy",
+            "status": overall_status,
             "checks": checks,
-            "uptime_seconds": uptime_seconds,
+            "uptime_seconds": int(time.time() - self.start_time),
             "version": self.version,
             "timestamp": datetime.now(UTC).isoformat() + "Z",
         }
+        if details and any(details.values()):
+            response_data["details"] = details
 
-        status_code = 200 if all_healthy else 503
+        status_code = 200 if overall_status != "unhealthy" else 503
 
         return web.json_response(response_data, status=status_code)
+
+    async def _get_health_monitor_results(
+        self,
+    ) -> tuple[dict[str, bool], dict[str, dict[str, Any]], str]:
+        """Build health response from HealthMonitor results.
+
+        Returns:
+            Tuple of (checks, details, overall_status).
+        """
+        results = await self.health_monitor.run_all_checks()
+        overall_status = "healthy"
+        checks: dict[str, bool] = {}
+        details: dict[str, dict[str, Any]] = {}
+
+        for name, result in results.items():
+            checks[name] = result.status in {
+                ServiceStatus.HEALTHY,
+                ServiceStatus.DEGRADED,
+            }
+            details[name] = {
+                "status": result.status.value,
+                "message": result.message,
+                "response_time_ms": result.response_time_ms,
+            }
+
+            if result.status == ServiceStatus.UNHEALTHY:
+                overall_status = "unhealthy"
+            elif result.status == ServiceStatus.DEGRADED and overall_status == "healthy":
+                overall_status = "degraded"
+
+        return checks, details, overall_status
+
+    async def _run_legacy_checks(self, check_names: set[str]) -> dict[str, bool]:
+        """Run legacy dependency checks for missing services."""
+        results: dict[str, bool] = {}
+        if "database" in check_names:
+            results["database"] = await self._check_database()
+        if "redis" in check_names:
+            results["redis"] = await self._check_redis()
+        if "dmarket_api" in check_names:
+            results["dmarket_api"] = await self._check_dmarket_api()
+        if "telegram_api" in check_names:
+            results["telegram_api"] = await self._check_telegram_api()
+        return results
 
     async def handle_ready(self, request: web.Request) -> web.Response:
         """Handle /ready endpoint - Kubernetes readiness probe.

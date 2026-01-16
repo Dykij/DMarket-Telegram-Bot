@@ -997,6 +997,28 @@ class TestDMarketClientCache:
         # Should not make HTTP request due to cache hit
         mock_httpx_client.get.assert_not_called()
 
+    @pytest.mark.asyncio()
+    async def test_get_request_skips_cache_key_when_not_cacheable(
+        self, client, mock_httpx_client, mock_response
+    ):
+        """Test that non-cacheable GET requests skip cache key generation."""
+        # Arrange
+        client._client = mock_httpx_client
+        client.enable_cache = True
+        mock_httpx_client.get = AsyncMock(return_value=mock_response)
+
+        with (
+            patch("src.dmarket.api.client.is_cacheable", return_value=(False, "short")),
+            patch("src.dmarket.api.client.get_cache_key") as mock_cache_key,
+        ):
+            # Act
+            result = await client._request("GET", "/test/non-cacheable")
+
+        # Assert
+        assert result is not None
+        mock_cache_key.assert_not_called()
+        mock_httpx_client.get.assert_called_once()
+
 
 # TestDMarketClientContextManager
 

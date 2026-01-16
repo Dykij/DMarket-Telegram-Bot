@@ -147,6 +147,7 @@ async def _find_arbitrage_async(
 
             # Получаем предполагаемую цену продажи
             # Если есть цена suggestedPrice, используем ее, иначе делаем наценку
+            popularity = item.get("extra", {}).get("popularity")
             if "suggestedPrice" in item:
                 suggested_data = item.get("suggestedPrice", {})
                 if isinstance(suggested_data, dict):
@@ -158,8 +159,7 @@ async def _find_arbitrage_async(
             else:
                 # Наценка от 10% до 15% в зависимости от ликвидности
                 markup = 1.1
-                if "extra" in item and "popularity" in item["extra"]:
-                    popularity = item["extra"]["popularity"]
+                if popularity is not None:
                     # Более популярные предметы могут иметь меньшую наценку
                     if popularity > 0.7:  # Высокая популярность
                         markup = 1.1  # 10%
@@ -171,8 +171,7 @@ async def _find_arbitrage_async(
 
             # Определяем комиссию на основе ликвидности предмета
             liquidity = "medium"  # По умолчанию средняя ликвидность
-            if "extra" in item and "popularity" in item["extra"]:
-                popularity = item["extra"]["popularity"]
+            if popularity is not None:
                 if popularity > 0.7:
                     liquidity = "high"
                 elif popularity < 0.4:

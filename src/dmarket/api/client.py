@@ -229,14 +229,12 @@ class DMarketAPIClient:
 
         # Check cache for GET requests
         body_json = ""
-        if method.upper() == "GET" and self.enable_cache and not force_refresh:
+        if method.upper() == "GET" and self.enable_cache and not force_refresh and cacheable:
             cache_key = get_cache_key(method, path, params, data)
-
-            if cacheable:
-                cached_data = get_from_cache(cache_key)
-                if cached_data is not None:
-                    logger.debug(f"Using cached data for {path}")
-                    return cached_data
+            cached_data = get_from_cache(cache_key)
+            if cached_data is not None:
+                logger.debug(f"Using cached data for {path}")
+                return cached_data
 
         # Build request body for POST/PUT/PATCH
         if data and method.upper() in {"POST", "PUT", "PATCH"}:
