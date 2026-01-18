@@ -7,7 +7,7 @@ and scoring arbitrage opportunities.
 import pytest
 from unittest.mock import MagicMock
 
-from src.dmarket.opportunity_scorer import OpportunityScorer
+from src.dmarket.opportunity_scorer import OpportunityScorer, TradeOpportunity
 
 
 class TestOpportunityScorer:
@@ -18,148 +18,98 @@ class TestOpportunityScorer:
         """Create OpportunityScorer instance."""
         return OpportunityScorer()
 
+    @pytest.fixture
+    def sample_opportunity(self):
+        """Create sample TradeOpportunity."""
+        return TradeOpportunity(
+            item_name="AK-47 | Redline (Field-Tested)",
+            buy_price=10.0,
+            sell_price=15.0,
+            platform_buy="dmarket",
+            platform_sell="waxpeer",
+            item_id="item123",
+            daily_volume=100,
+            average_sell_time_hours=2.0,
+            competition_count=5,
+        )
+
     def test_init(self, scorer):
         """Test OpportunityScorer initialization."""
         assert scorer is not None
+        assert scorer.min_roi_percent >= 0
 
-    def test_score_by_profit(self, scorer):
-        """Test scoring by profit percentage."""
-        opportunity = {
-            "profit_percent": 15.0,
-            "buy_price": 10.0,
-            "liquidity": "high",
-        }
+    @pytest.mark.asyncio
+    async def test_score_opportunity(self, scorer, sample_opportunity):
+        """Test scoring an opportunity."""
+        score_result = await scorer.score_opportunity(sample_opportunity)
 
-        score = scorer.score_opportunity(opportunity)
-        assert score > 0
-        assert score <= 100
+        assert score_result is not None
+        assert score_result.total_score >= 0
+        assert score_result.total_score <= 100
 
-    def test_score_high_profit(self, scorer):
-        """Test high profit gets higher score."""
-        high_profit = {
-            "profit_percent": 25.0,
-            "buy_price": 10.0,
-            "liquidity": "high",
-        }
-        low_profit = {
-            "profit_percent": 8.0,
-            "buy_price": 10.0,
-            "liquidity": "high",
-        }
-
-        high_score = scorer.score_opportunity(high_profit)
-        low_score = scorer.score_opportunity(low_profit)
-
-        assert high_score > low_score
-
-    def test_score_by_liquidity(self, scorer):
-        """Test scoring considers liquidity."""
-        high_liquidity = {
-            "profit_percent": 15.0,
-            "buy_price": 10.0,
-            "liquidity": "high",
-        }
-        low_liquidity = {
-            "profit_percent": 15.0,
-            "buy_price": 10.0,
-            "liquidity": "low",
-        }
-
-        high_score = scorer.score_opportunity(high_liquidity)
-        low_score = scorer.score_opportunity(low_liquidity)
-
-        assert high_score >= low_score  # High liquidity should score same or higher
-
-    def test_score_by_price(self, scorer):
-        """Test scoring considers price range."""
-        reasonable_price = {
-            "profit_percent": 15.0,
-            "buy_price": 25.0,  # Reasonable price
-            "liquidity": "medium",
-        }
-        expensive = {
-            "profit_percent": 15.0,
-            "buy_price": 500.0,  # Expensive
-            "liquidity": "medium",
-        }
-
-        # Both should get scores
-        score1 = scorer.score_opportunity(reasonable_price)
-        score2 = scorer.score_opportunity(expensive)
-
-        assert score1 > 0
-        assert score2 > 0
-
-    def test_rank_opportunities(self, scorer):
+    @pytest.mark.asyncio
+    async def test_rank_opportunities(self, scorer):
         """Test ranking multiple opportunities."""
         opportunities = [
-            {"profit_percent": 10.0, "buy_price": 10.0, "liquidity": "medium"},
-            {"profit_percent": 25.0, "buy_price": 10.0, "liquidity": "high"},
-            {"profit_percent": 15.0, "buy_price": 10.0, "liquidity": "low"},
+            TradeOpportunity(
+                item_name="Item 1",
+                buy_price=10.0,
+                sell_price=12.0,
+                platform_buy="dmarket",
+                platform_sell="waxpeer",
+            ),
+            TradeOpportunity(
+                item_name="Item 2",
+                buy_price=10.0,
+                sell_price=18.0,  # Higher profit
+                platform_buy="dmarket",
+                platform_sell="waxpeer",
+            ),
         ]
 
-        ranked = scorer.rank_opportunities(opportunities)
+        ranked = await scorer.rank_opportunities(opportunities)
 
-        assert len(ranked) == 3
-        # First should have highest score
-        assert ranked[0]["profit_percent"] == 25.0
+        assert len(ranked) == 2
+        # Higher profit should rank first
+        assert ranked[0].opportunity.item_name == "Item 2"
 
-    def test_rank_empty_list(self, scorer):
-        """Test ranking empty list."""
-        ranked = scorer.rank_opportunities([])
-        assert ranked == []
+    def test_score_profit(self, scorer, sample_opportunity):
+        """Test profit scoring."""
+        score = scorer._score_profit(sample_opportunity)
+        assert score >= 0
+        assert score <= 100
 
-    def test_filter_by_minimum_score(self, scorer):
-        """Test filtering by minimum score."""
-        opportunities = [
-            {"profit_percent": 5.0, "buy_price": 10.0, "liquidity": "low"},
-            {"profit_percent": 25.0, "buy_price": 10.0, "liquidity": "high"},
-            {"profit_percent": 15.0, "buy_price": 10.0, "liquidity": "medium"},
-        ]
+    def test_score_liquidity(self, scorer, sample_opportunity):
+        """Test liquidity scoring."""
+        score = scorer._score_liquidity(sample_opportunity)
+        assert score >= 0
+        assert score <= 100
 
-        filtered = scorer.filter_by_score(opportunities, min_score=50.0)
+    def test_score_speed(self, scorer, sample_opportunity):
+        """Test speed scoring."""
+        score = scorer._score_speed(sample_opportunity)
+        assert score >= 0
+        assert score <= 100
 
-        # Only high-scoring items should pass
-        assert len(filtered) <= 2
+    def test_score_competition(self, scorer, sample_opportunity):
+        """Test competition scoring."""
+        score = scorer._score_competition(sample_opportunity)
+        assert score >= 0
+        assert score <= 100
 
-    def test_get_top_opportunities(self, scorer):
-        """Test getting top N opportunities."""
-        opportunities = [
-            {"profit_percent": 10.0, "buy_price": 10.0, "liquidity": "medium"},
-            {"profit_percent": 25.0, "buy_price": 10.0, "liquidity": "high"},
-            {"profit_percent": 15.0, "buy_price": 10.0, "liquidity": "high"},
-            {"profit_percent": 20.0, "buy_price": 10.0, "liquidity": "medium"},
-        ]
+    def test_trade_opportunity_gross_profit(self, sample_opportunity):
+        """Test gross profit calculation."""
+        profit = sample_opportunity.gross_profit
+        assert profit == 5.0  # 15 - 10
 
-        top = scorer.get_top_opportunities(opportunities, limit=2)
+    def test_trade_opportunity_net_profit(self, sample_opportunity):
+        """Test net profit calculation (with fees)."""
+        profit = sample_opportunity.net_profit
+        # sell_price * (1 - sell_fee) - buy_price * (1 + buy_fee)
+        # 15 * 0.94 - 10 * 1.0 = 14.1 - 10 = 4.1
+        assert profit > 0
 
-        assert len(top) == 2
-        # Should be sorted by score
-        assert top[0]["profit_percent"] >= top[1]["profit_percent"]
-
-    def test_calculate_weighted_score(self, scorer):
-        """Test weighted score calculation."""
-        opportunity = {
-            "profit_percent": 15.0,
-            "buy_price": 10.0,
-            "liquidity": "high",
-            "volume_24h": 100,
-            "price_stability": 0.95,
-        }
-
-        score = scorer._calculate_weighted_score(opportunity)
-        assert 0 <= score <= 100
-
-    def test_score_components(self, scorer):
-        """Test individual score components."""
-        opportunity = {
-            "profit_percent": 15.0,
-            "buy_price": 10.0,
-            "liquidity": "high",
-        }
-
-        components = scorer.get_score_breakdown(opportunity)
-
-        assert "profit_score" in components
-        assert "liquidity_score" in components
-        assert "total_score" in components
+    def test_trade_opportunity_roi(self, sample_opportunity):
+        """Test ROI calculation."""
+        roi = sample_opportunity.roi_percent
+        assert roi > 0
