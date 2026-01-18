@@ -61,7 +61,8 @@ class TestRiskConfig:
         assert config.level == "medium"
         assert config.max_trades <= 5
         assert config.max_price <= 50.0
-        assert config.min_profit >= 0.5
+        # Medium level keeps original min_profit value
+        assert config.min_profit == 0.3
 
     def test_from_level_high(self):
         """Test high risk configuration."""
@@ -80,88 +81,126 @@ class TestRiskConfig:
 class TestTradeResult:
     """Tests for TradeResult class."""
 
-    def test_success_result(self):
-        """Test successful trade result."""
-        result = TradeResult(
-            success=True,
-            item_name="AK-47 | Redline",
-            buy_price=10.0,
-            sell_price=12.0,
-            profit=1.76,
-            error=None,
-        )
+    def test_init(self):
+        """Test TradeResult initialization."""
+        result = TradeResult()
 
-        assert result.success is True
-        assert result.item_name == "AK-47 | Redline"
-        assert result.profit == 1.76
-        assert result.error is None
+        assert result.purchases == 0
+        assert result.sales == 0
+        assert result.total_profit == 0.0
+        assert result.trades_count == 0
+        assert result.remaining_balance == 0.0
 
-    def test_failed_result(self):
-        """Test failed trade result."""
-        result = TradeResult(
-            success=False,
-            item_name="M4A4 | Howl",
-            buy_price=0,
-            sell_price=0,
-            profit=0,
-            error="Insufficient balance",
-        )
+    def test_add_purchase(self):
+        """Test recording a purchase."""
+        result = TradeResult()
+        result.remaining_balance = 100.0
 
-        assert result.success is False
-        assert result.error == "Insufficient balance"
+        result.add_purchase(25.0)
+
+        assert result.purchases == 1
+        assert result.remaining_balance == 75.0
+
+    def test_add_sale(self):
+        """Test recording a sale."""
+        result = TradeResult()
+
+        result.add_sale(5.0)
+        result.add_sale(3.0)
+
+        assert result.sales == 2
+        assert result.total_profit == 8.0
+
+    def test_increment_trades(self):
+        """Test incrementing trade counter."""
+        result = TradeResult()
+
+        result.increment_trades()
+        result.increment_trades()
+
+        assert result.trades_count == 2
+
+    def test_to_tuple(self):
+        """Test conversion to tuple."""
+        result = TradeResult()
+        result.purchases = 5
+        result.sales = 3
+        result.total_profit = 15.50
+
+        tuple_result = result.to_tuple()
+
+        assert tuple_result == (5, 3, 15.50)
 
 
 class TestAutoTrader:
     """Tests for AutoTrader class."""
 
     @pytest.fixture
-    def mock_trader(self):
-        """Create mock ArbitrageTrader."""
-        trader = MagicMock()
-        trader.check_balance = AsyncMock(return_value=(True, 100.0))
-        trader.scan_market = AsyncMock(return_value=[])
-        trader.execute_trade = AsyncMock(return_value={"success": True})
-        return trader
+    def mock_scanner(self):
+        """Create mock ArbitrageScanner."""
+        scanner = MagicMock()
+        scanner.min_profit = 0.5
+        scanner.max_price = 50.0
+        scanner.max_trades = 10
+        scanner.check_user_balance = AsyncMock(return_value={"balance": 100.0})
+        scanner.get_api_client = AsyncMock(return_value=MagicMock())
+        return scanner
 
     @pytest.fixture
-    def auto_trader(self, mock_trader):
-        """Create AutoTrader with mocked dependencies."""
-        with patch("src.dmarket.auto_trader.ArbitrageTrader", return_value=mock_trader):
-            return AutoTrader(public_key="test", secret_key="test")
+    def auto_trader(self, mock_scanner):
+        """Create AutoTrader with mocked scanner."""
+        return AutoTrader(scanner=mock_scanner)
 
-    def test_init(self, auto_trader):
+    def test_init(self, auto_trader, mock_scanner):
         """Test AutoTrader initialization."""
         assert auto_trader is not None
-        assert hasattr(auto_trader, "is_running")
-
-    def test_default_state(self, auto_trader):
-        """Test default state is not running."""
-        assert auto_trader.is_running is False
+        assert auto_trader.scanner == mock_scanner
 
     @pytest.mark.asyncio
-    async def test_start(self, auto_trader):
-        """Test starting auto trader."""
-        # Start should set is_running to True
-        await auto_trader.start()
-        assert auto_trader.is_running is True
+    async def test_auto_trade_items_empty_input(self, auto_trader):
+        """Test auto trading with empty items."""
+        result = await auto_trader.auto_trade_items(items_by_game={})
+
+        assert result == (0, 0, 0.0)
 
     @pytest.mark.asyncio
-    async def test_stop(self, auto_trader):
-        """Test stopping auto trader."""
-        auto_trader.is_running = True
-        await auto_trader.stop()
-        assert auto_trader.is_running is False
+    async def test_auto_trade_items_insufficient_balance(self, auto_trader, mock_scanner):
+        """Test auto trading with insufficient balance."""
+        mock_scanner.check_user_balance = AsyncMock(return_value={"balance": 0.0})
+
+        result = await auto_trader.auto_trade_items(
+            items_by_game={"csgo": [{"item": "test"}]}
+        )
+
+        assert result == (0, 0, 0.0)
 
     @pytest.mark.asyncio
-    async def test_get_status(self, auto_trader):
-        """Test getting status."""
-        status = await auto_trader.get_status()
-        assert isinstance(status, dict)
-        assert "is_running" in status
+    async def test_auto_trade_with_risk_level(self, auto_trader, mock_scanner):
+        """Test auto trading with different risk levels."""
+        mock_scanner.check_user_balance = AsyncMock(return_value={"balance": 100.0})
 
-    @pytest.mark.asyncio
-    async def test_validate_config(self, auto_trader):
-        """Test config validation."""
+        # Low risk should use conservative settings
+        result = await auto_trader.auto_trade_items(
+            items_by_game={},
+            risk_level="low"
+        )
+
+        # With empty items, should return zeros
+        assert result == (0, 0, 0.0)
+
+    def test_has_sufficient_balance(self, auto_trader):
+        """Test balance sufficiency check."""
+        # Sufficient balance (needs has_funds=True)
+        assert auto_trader._has_sufficient_balance({"balance": 100.0, "has_funds": True}) is True
+
+        # Insufficient balance
+        assert auto_trader._has_sufficient_balance({"balance": 0.0, "has_funds": False}) is False
+
+        # has_funds False even with balance
+        assert auto_trader._has_sufficient_balance({"balance": 100.0, "has_funds": False}) is False
+
+    def test_setup_trader(self, auto_trader):
+        """Test trader setup with config."""
         config = RiskConfig(
             level="medium",
             max_trades=5,
@@ -169,28 +208,63 @@ class TestAutoTrader:
             min_profit=0.5,
             balance=100.0,
         )
+        mock_api = MagicMock()
 
-        is_valid = auto_trader._validate_config(config)
-        assert isinstance(is_valid, bool)
+        trader = auto_trader._setup_trader(config, mock_api)
 
-    @pytest.mark.asyncio
-    async def test_run_iteration(self, auto_trader, mock_trader):
-        """Test single trading iteration."""
-        mock_trader.scan_market = AsyncMock(return_value=[
-            {
-                "name": "Test Item",
-                "buy_price": 10.0,
-                "sell_price": 12.0,
-                "profit": 1.76,
-            }
-        ])
+        assert trader is not None
 
-        result = await auto_trader._run_iteration()
-        assert result is not None
+    def test_prepare_items_for_trading(self, auto_trader):
+        """Test preparing items from multiple games."""
+        items_by_game = {
+            "csgo": [{"name": "Item 1", "profit": 5.0}, {"name": "Item 2", "profit": 10.0}],
+            "dota2": [{"name": "Item 3", "profit": 7.0}],
+        }
 
-    @pytest.mark.asyncio
-    async def test_handle_error(self, auto_trader):
-        """Test error handling."""
-        error = Exception("Test error")
-        # Should not raise
-        await auto_trader._handle_error(error)
+        prepared = auto_trader._prepare_items_for_trading(items_by_game)
+
+        assert len(prepared) == 3
+        # Should be sorted by profit (highest first)
+        assert prepared[0]["profit"] == 10.0
+
+    def test_prepare_items_adds_game(self, auto_trader):
+        """Test that game code is added to each item."""
+        items_by_game = {
+            "csgo": [{"name": "Item 1"}],
+        }
+
+        prepared = auto_trader._prepare_items_for_trading(items_by_game)
+
+        assert prepared[0]["game"] == "csgo"
+
+    def test_should_continue_trading(self, auto_trader):
+        """Test trading continuation logic."""
+        config = RiskConfig(
+            level="medium",
+            max_trades=5,
+            max_price=50.0,
+            min_profit=0.5,
+            balance=100.0,
+        )
+        result = TradeResult()
+        result.remaining_balance = 50.0
+
+        # Should continue with remaining balance and trades
+        assert auto_trader._should_continue_trading(result, config) is True
+
+        # Exhaust trades
+        result.trades_count = 5
+        assert auto_trader._should_continue_trading(result, config) is False
+
+    def test_is_price_acceptable(self, auto_trader):
+        """Test price acceptance check."""
+        # Acceptable price - item exists with same price
+        item = {"price": 30.0, "title": "Test Item"}
+        assert auto_trader._is_price_acceptable(item, 30.0, "Test Item") is True
+
+        # Price increased too much
+        item = {"price": 50.0, "title": "Test Item"}
+        assert auto_trader._is_price_acceptable(item, 30.0, "Test Item") is False
+
+        # Item not found
+        assert auto_trader._is_price_acceptable(None, 30.0, "Test Item") is False

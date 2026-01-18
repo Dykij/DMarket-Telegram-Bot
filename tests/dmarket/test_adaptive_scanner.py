@@ -1,10 +1,11 @@
 """Tests for adaptive_scanner module.
 
 This module tests the AdaptiveScanner class for intelligent
-market scanning with automatic parameter adjustment.
+market scanning with dynamic intervals based on market volatility.
 """
 
 import pytest
+from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
@@ -12,135 +13,138 @@ class TestAdaptiveScanner:
     """Tests for AdaptiveScanner class."""
 
     @pytest.fixture
-    def mock_api(self):
-        """Create mock API client."""
-        api = MagicMock()
-        api.get_market_items = AsyncMock(return_value={"objects": []})
-        api.get_balance = AsyncMock(return_value={"balance": 100.0})
-        return api
-
-    @pytest.fixture
-    def scanner(self, mock_api):
+    def scanner(self):
         """Create AdaptiveScanner instance."""
         from src.dmarket.adaptive_scanner import AdaptiveScanner
-        return AdaptiveScanner(api_client=mock_api)
+        return AdaptiveScanner(min_interval=30, max_interval=300, volatility_window=10)
 
-    def test_init(self, scanner, mock_api):
+    def test_init(self, scanner):
         """Test initialization."""
-        assert scanner.api == mock_api
+        assert scanner.min_interval == 30
+        assert scanner.max_interval == 300
+        assert scanner.volatility_window == 10
+        assert scanner.current_interval == 300  # Starts conservative
 
-    @pytest.mark.asyncio
-    async def test_scan_with_default_params(self, scanner, mock_api):
-        """Test scanning with default parameters."""
-        mock_api.get_market_items.return_value = {"objects": []}
+    def test_add_snapshot_with_items(self, scanner):
+        """Test adding market snapshot with items."""
+        items = [
+            {"price": {"USD": 1000}},  # $10.00
+            {"price": {"USD": 2000}},  # $20.00
+            {"price": {"USD": 1500}},  # $15.00
+        ]
+        
+        scanner.add_snapshot(items)
+        
+        assert len(scanner.snapshots) == 1
+        snapshot = scanner.snapshots[0]
+        assert snapshot.avg_price == 15.0
+        assert snapshot.items_count == 3
+        assert snapshot.price_spread == 10.0
 
-        results = await scanner.scan()
+    def test_add_snapshot_empty_items(self, scanner):
+        """Test adding empty snapshot resets interval."""
+        scanner.current_interval = 300
+        
+        scanner.add_snapshot([])
+        
+        # Should reset to 60 seconds for empty snapshots
+        assert scanner.current_interval == 60
+        assert len(scanner.snapshots) == 0
 
-        assert results == []
-        mock_api.get_market_items.assert_called()
+    def test_calculate_volatility_insufficient_data(self, scanner):
+        """Test volatility calculation with insufficient data."""
+        # Less than 3 snapshots returns default
+        volatility = scanner.calculate_volatility()
+        assert volatility == 0.5
 
-    @pytest.mark.asyncio
-    async def test_adapt_to_balance(self, scanner, mock_api):
-        """Test adapting parameters to balance."""
-        mock_api.get_balance.return_value = {"balance": 50.0}
-
-        await scanner.adapt_to_balance()
-
-        # Should adjust max_price based on balance
-        assert scanner.max_price <= 50.0
-
-    @pytest.mark.asyncio
-    async def test_adapt_to_market_conditions(self, scanner, mock_api):
-        """Test adapting to market conditions."""
-        # Simulate many opportunities found
-        scanner.opportunities_found = 100
-        scanner.adapt_to_market()
-
-        # Should increase min_profit when many opportunities
-        assert scanner.min_profit >= 5.0
-
-    @pytest.mark.asyncio
-    async def test_learn_from_success(self, scanner):
-        """Test learning from successful trades."""
-        trade = {
-            "item_type": "rifle",
-            "profit_percent": 15.0,
-            "game": "csgo",
-        }
-
-        scanner.record_success(trade)
-
-        # Should prefer similar items in future
-        preferences = scanner.get_preferences()
-        assert "rifle" in preferences.get("preferred_types", [])
-
-    @pytest.mark.asyncio
-    async def test_learn_from_failure(self, scanner):
-        """Test learning from failed trades."""
-        trade = {
-            "item_type": "sticker",
-            "reason": "low_liquidity",
-            "game": "csgo",
-        }
-
-        scanner.record_failure(trade)
-
-        # Should avoid similar items
-        avoided = scanner.get_avoided_types()
-        assert "sticker" in avoided or scanner.failure_count.get("sticker", 0) > 0
-
-    @pytest.mark.asyncio
-    async def test_auto_adjust_filters(self, scanner):
-        """Test automatic filter adjustment."""
-        # After multiple scans with low results
-        scanner.scan_results_history = [0, 1, 0, 2, 0]
-
-        scanner.auto_adjust_filters()
-
-        # Should relax filters when low results
-
-    def test_get_optimal_parameters(self, scanner):
-        """Test getting optimal scan parameters."""
-        scanner.balance = 100.0
-        scanner.market_activity = "high"
-
-        params = scanner.get_optimal_parameters()
-
-        assert "min_price" in params
-        assert "max_price" in params
-        assert "min_profit" in params
-
-    @pytest.mark.asyncio
-    async def test_scan_with_learning(self, scanner, mock_api):
-        """Test scanning with learning enabled."""
-        mock_api.get_market_items.return_value = {
-            "objects": [
-                {"itemId": "item1", "profit_percent": 20.0},
+    def test_calculate_volatility_with_data(self, scanner):
+        """Test volatility calculation with sufficient data."""
+        # Add stable snapshots (same prices)
+        for i in range(5):
+            items = [
+                {"price": {"USD": 1000}},
+                {"price": {"USD": 1100}},
+                {"price": {"USD": 1050}},
             ]
-        }
+            scanner.add_snapshot(items)
+        
+        volatility = scanner.calculate_volatility()
+        # Stable prices should have low volatility
+        assert 0 <= volatility <= 1
 
-        results = await scanner.scan(learning_enabled=True)
+    def test_get_next_interval(self, scanner):
+        """Test getting next scan interval."""
+        # Add some snapshots for volatility calculation
+        for i in range(5):
+            items = [
+                {"price": {"USD": 1000 + i * 100}},
+                {"price": {"USD": 1500 + i * 50}},
+            ]
+            scanner.add_snapshot(items)
+        
+        interval = scanner.get_next_interval()
+        
+        # Should be between min and max
+        assert scanner.min_interval <= interval <= scanner.max_interval
 
-        # Should track results for learning
-
-    def test_get_stats(self, scanner):
-        """Test getting scanner statistics."""
-        scanner.total_scans = 100
-        scanner.successful_purchases = 15
-        scanner.total_profit = 250.0
-
-        stats = scanner.get_stats()
-
-        assert stats["total_scans"] == 100
-        assert stats["success_rate"] == 0.15
+    def test_should_scan_now(self, scanner):
+        """Test checking if should scan now."""
+        scanner.current_interval = 60
+        
+        # Just scanned - should not scan
+        recent_scan = datetime.now() - timedelta(seconds=30)
+        assert not scanner.should_scan_now(recent_scan)
+        
+        # Old scan - should scan
+        old_scan = datetime.now() - timedelta(seconds=120)
+        assert scanner.should_scan_now(old_scan)
 
     @pytest.mark.asyncio
-    async def test_reset_learning(self, scanner):
-        """Test resetting learning data."""
-        scanner.preferences = {"types": ["rifle"]}
-        scanner.failure_count = {"sticker": 5}
+    async def test_wait_next_scan(self, scanner):
+        """Test waiting for next scan."""
+        # Set short interval for fast test
+        scanner.min_interval = 0
+        scanner.max_interval = 0
+        
+        # Should complete quickly
+        await scanner.wait_next_scan()
 
-        scanner.reset_learning()
+    def test_volatility_window(self, scanner):
+        """Test volatility window limits snapshots."""
+        # Add more than volatility_window snapshots
+        for i in range(15):
+            items = [{"price": {"USD": 1000 + i * 10}}]
+            scanner.add_snapshot(items)
+        
+        # Should only keep volatility_window snapshots
+        assert len(scanner.snapshots) == scanner.volatility_window
 
-        assert scanner.preferences == {}
-        assert scanner.failure_count == {}
+    def test_high_volatility_shorter_interval(self, scanner):
+        """Test high volatility results in shorter interval."""
+        # Add volatile snapshots (varying prices)
+        for i in range(5):
+            items = [
+                {"price": {"USD": 500 + i * 500}},  # Large price changes
+                {"price": {"USD": 2000 - i * 300}},
+            ]
+            scanner.add_snapshot(items)
+        
+        interval = scanner.get_next_interval()
+        
+        # High volatility should push toward min_interval
+        assert interval <= scanner.max_interval
+
+    def test_snapshot_with_zero_prices(self, scanner):
+        """Test snapshot ignores zero prices."""
+        items = [
+            {"price": {"USD": 1000}},
+            {"price": {"USD": 0}},  # Should be ignored
+            {"price": {"USD": 2000}},
+        ]
+        
+        scanner.add_snapshot(items)
+        
+        snapshot = scanner.snapshots[0]
+        assert snapshot.items_count == 3  # All items counted
+        # But avg should be based on valid prices only
+        assert snapshot.avg_price == 15.0  # (10 + 20) / 2

@@ -368,9 +368,12 @@ class TestRollbackStrategies:
         manager = AutoRollbackManager(error_threshold=0.1)
         manager.deploy("v2.0.0")
 
-        # Simulate high error rate
-        for _ in range(100):
-            manager.record_request(is_error=random.random() < 0.20)  # 20% errors
+        # Simulate deterministic high error rate (20 errors out of 100 = 20%)
+        # Use deterministic approach instead of random
+        for i in range(100):
+            # 20 errors guaranteed (every 5th request is an error)
+            is_error = (i % 5 == 0)
+            manager.record_request(is_error=is_error)
 
         assert manager.rolled_back
         assert manager.current_version == "v1.0.0"

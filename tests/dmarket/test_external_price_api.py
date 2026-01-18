@@ -6,6 +6,7 @@ prices from external sources like Steam Market.
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+import httpx
 
 
 class TestExternalPriceAPI:
@@ -20,136 +21,145 @@ class TestExternalPriceAPI:
     def test_init(self, api):
         """Test initialization."""
         assert api is not None
+        assert api._cache == {}
+        assert api._cache_ttl == 300
 
     @pytest.mark.asyncio
-    async def test_get_steam_price(self, api):
-        """Test getting Steam Market price."""
-        with patch.object(api, "_fetch_steam_price") as mock_fetch:
-            mock_fetch.return_value = {"success": True, "price": 25.50}
-
+    async def test_get_steam_price_success(self, api):
+        """Test getting Steam Market price successfully."""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "success": True,
+            "lowest_price": "$25.50"
+        }
+        
+        with patch.object(api, "_ensure_session", new_callable=AsyncMock):
+            api.session = MagicMock()
+            api.session.get = AsyncMock(return_value=mock_response)
+            
             price = await api.get_steam_price("AK-47 | Redline (Field-Tested)")
-
-            assert price is not None
+            
+            assert price == 25.50
 
     @pytest.mark.asyncio
     async def test_get_steam_price_not_found(self, api):
         """Test Steam price for non-existent item."""
-        with patch.object(api, "_fetch_steam_price") as mock_fetch:
-            mock_fetch.return_value = {"success": False}
-
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"success": False}
+        
+        with patch.object(api, "_ensure_session", new_callable=AsyncMock):
+            api.session = MagicMock()
+            api.session.get = AsyncMock(return_value=mock_response)
+            
             price = await api.get_steam_price("Non-Existent Item XYZ")
-
+            
             assert price is None
 
     @pytest.mark.asyncio
-    async def test_get_buff_price(self, api):
-        """Test getting Buff163 price."""
-        with patch.object(api, "_fetch_buff_price") as mock_fetch:
-            mock_fetch.return_value = {"success": True, "price": 180.0}
-
-            price = await api.get_buff_price("AK-47 | Redline")
-
-            assert price is not None
-
-    @pytest.mark.asyncio
-    async def test_get_all_prices(self, api):
-        """Test getting prices from all sources."""
-        with patch.object(api, "get_steam_price") as mock_steam:
-            mock_steam.return_value = 25.0
-            with patch.object(api, "get_buff_price") as mock_buff:
-                mock_buff.return_value = 180.0
-
-                prices = await api.get_all_prices("AK-47 | Redline")
-
-                assert "steam" in prices
-                assert "buff" in prices
-
-    def test_calculate_arbitrage(self, api):
-        """Test arbitrage calculation between platforms."""
-        prices = {
-            "dmarket": 20.0,
-            "steam": 25.0,
-            "buff": 180.0,  # In CNY
+    async def test_get_steam_price_cached(self, api):
+        """Test that Steam price is cached."""
+        import time
+        
+        # Pre-populate cache
+        api._cache["steam_730_CachedItem"] = {
+            "price": 30.0,
+            "timestamp": time.time()
         }
-
-        arbitrage = api.calculate_arbitrage(prices, fees={"steam": 0.13})
-
-        assert "steam_profit" in arbitrage
-        assert arbitrage["steam_profit"] > 0  # $5 profit minus fees
-
-    @pytest.mark.asyncio
-    async def test_rate_limiting(self, api):
-        """Test rate limiting for API calls."""
-        api.rate_limit = 1  # 1 request per second
-
-        # Should not throw rate limit errors
-
-    def test_parse_steam_response(self, api):
-        """Test parsing Steam API response."""
-        response = {
-            "success": True,
-            "lowest_price": "$25.50",
-            "median_price": "$26.00",
-            "volume": "150",
-        }
-
-        parsed = api._parse_steam_response(response)
-
-        assert parsed["lowest_price"] == 25.50
-        assert parsed["median_price"] == 26.00
-        assert parsed["volume"] == 150
-
-    def test_parse_steam_response_eur(self, api):
-        """Test parsing Steam price in EUR."""
-        response = {
-            "success": True,
-            "lowest_price": "23,50€",
-        }
-
-        parsed = api._parse_steam_response(response)
-
-        assert parsed["lowest_price"] == 23.50
+        
+        price = await api.get_steam_price("CachedItem")
+        
+        assert price == 30.0
 
     @pytest.mark.asyncio
-    async def test_get_price_history(self, api):
-        """Test getting price history."""
-        with patch.object(api, "_fetch_price_history") as mock_fetch:
-            mock_fetch.return_value = [
-                {"date": "2026-01-01", "price": 25.0},
-                {"date": "2026-01-02", "price": 26.0},
-            ]
-
-            history = await api.get_price_history("AK-47 | Redline", days=7)
-
-            assert len(history) >= 2
+    async def test_get_csgofloat_price_success(self, api):
+        """Test getting CSGOFloat price."""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        # CSGOFloat returns an array directly
+        mock_response.json.return_value = [{"price": 2550}]  # Price in cents
+        
+        with patch.object(api, "_ensure_session", new_callable=AsyncMock):
+            api.session = MagicMock()
+            api.session.get = AsyncMock(return_value=mock_response)
+            
+            price = await api.get_csgofloat_price("AK-47 | Redline (Field-Tested)")
+            
+            assert price == 25.50
 
     @pytest.mark.asyncio
-    async def test_get_market_overview(self, api):
-        """Test getting market overview."""
-        with patch.object(api, "_fetch_market_data") as mock_fetch:
-            mock_fetch.return_value = {
-                "total_listings": 1000,
-                "total_volume": 5000000,
+    async def test_calculate_arbitrage_margin(self, api):
+        """Test arbitrage margin calculation."""
+        with patch.object(api, "get_steam_price", new_callable=AsyncMock) as mock_steam:
+            mock_steam.return_value = 30.0
+            with patch.object(api, "get_csgofloat_price", new_callable=AsyncMock) as mock_float:
+                mock_float.return_value = 28.0
+                
+                result = await api.calculate_arbitrage_margin(
+                    item_name="Test Item",
+                    dmarket_price=20.0,
+                    game="csgo"
+                )
+                
+                assert "has_opportunity" in result
+                assert "best_platform" in result
+                assert "profit_margin" in result
+                assert "net_profit" in result
+
+    @pytest.mark.asyncio
+    async def test_calculate_arbitrage_margin_no_opportunity(self, api):
+        """Test arbitrage margin when no opportunity exists."""
+        with patch.object(api, "get_steam_price", new_callable=AsyncMock) as mock_steam:
+            mock_steam.return_value = 15.0  # Lower than dmarket
+            with patch.object(api, "get_csgofloat_price", new_callable=AsyncMock) as mock_float:
+                mock_float.return_value = 14.0
+                
+                result = await api.calculate_arbitrage_margin(
+                    item_name="Test Item",
+                    dmarket_price=20.0,
+                    game="csgo"
+                )
+                
+                # No profit opportunity
+                assert result["has_opportunity"] is False
+
+    @pytest.mark.asyncio
+    async def test_batch_compare_prices(self, api):
+        """Test batch price comparison."""
+        items = [
+            {"title": "Item 1", "price": {"USD": "2000"}},
+            {"title": "Item 2", "price": {"USD": "3000"}},
+        ]
+        
+        with patch.object(api, "calculate_arbitrage_margin", new_callable=AsyncMock) as mock_calc:
+            mock_calc.return_value = {
+                "has_opportunity": True,
+                "best_platform": "Steam",
+                "profit_margin": 10.0,
+                "net_profit": 2.0,
             }
+            
+            results = await api.batch_compare_prices(items, game="csgo")
+            
+            assert len(results) == 2
 
-            overview = await api.get_market_overview()
+    @pytest.mark.asyncio
+    async def test_close_session(self, api):
+        """Test closing the session."""
+        mock_session = MagicMock()
+        mock_session.aclose = AsyncMock()
+        api.session = mock_session
+        
+        await api.close()
+        
+        mock_session.aclose.assert_called_once()
+        assert api.session is None
 
-            assert "total_listings" in overview
-
-    def test_cache_price(self, api):
-        """Test price caching."""
-        api.cache_price("AK-47", "steam", 25.0)
-
-        cached = api.get_cached_price("AK-47", "steam")
-
-        assert cached == 25.0
-
-    def test_cache_expiry(self, api):
-        """Test cache expiry."""
-        api.cache_ttl = 0  # Immediate expiry
-        api.cache_price("AK-47", "steam", 25.0)
-
-        # After TTL expires
-        cached = api.get_cached_price("AK-47", "steam")
-
-        # Should return None or fetch fresh
+    @pytest.mark.asyncio
+    async def test_close_no_session(self, api):
+        """Test closing when no session exists."""
+        api.session = None
+        
+        # Should not raise
+        await api.close()
