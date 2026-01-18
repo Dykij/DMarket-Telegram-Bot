@@ -9,7 +9,7 @@
 - Обнаружения аномалий и манипуляций
 - Умных рекомендаций по покупке/продаже
 - ML-based выбор оптимального порога скидки
-- Автономное управление ботом (AICoordinator)
+- Автономное управление ботом (AICoordinator, BotBrain)
 
 Используемые библиотеки (все бесплатные):
 - scikit-learn: основные ML модели (RandomForest, GradientBoosting, Ridge)
@@ -47,6 +47,15 @@ from src.ml.anomaly_detection import (
     create_anomaly_detector,
 )
 from src.ml.balance_adapter import BalanceAdaptiveStrategy, StrategyRecommendation
+from src.ml.bot_brain import (
+    Alert,
+    AlertLevel,
+    AutonomyConfig,
+    BotBrain,
+    BotState,
+    CycleResult,
+    create_bot_brain,
+)
 from src.ml.data_scheduler import MLDataScheduler, SchedulerConfig, SchedulerState, TaskType
 from src.ml.discount_threshold_predictor import (
     DiscountThresholdPredictor,
@@ -109,6 +118,16 @@ __all__ = [
     "TradeDecision",
     "get_ai_coordinator",
     "reset_ai_coordinator",
+    # ═══════════════════════════════════════════════════════════════════
+    # BotBrain - Autonomous decision-making module
+    # ═══════════════════════════════════════════════════════════════════
+    "Alert",
+    "AlertLevel",
+    "AutonomyConfig",
+    "BotBrain",
+    "BotState",
+    "CycleResult",
+    "create_bot_brain",
     # Price Predictor (базовый)
     "AdaptivePricePredictor",
     # Trade Classifier
