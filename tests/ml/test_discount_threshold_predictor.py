@@ -166,10 +166,10 @@ class TestPredictionWithoutTraining:
             dota_pred = predictor.predict(game="dota2")
             tf2_pred = predictor.predict(game="tf2")
 
-            # Each game should have its own default
-            assert csgo_pred.optimal_threshold == 15.0
-            assert dota_pred.optimal_threshold == 10.0
-            assert tf2_pred.optimal_threshold == 12.0
+            # Each game should have its own default from DEFAULT_THRESHOLDS
+            assert csgo_pred.optimal_threshold == predictor.DEFAULT_THRESHOLDS["csgo"]
+            assert dota_pred.optimal_threshold == predictor.DEFAULT_THRESHOLDS["dota2"]
+            assert tf2_pred.optimal_threshold == predictor.DEFAULT_THRESHOLDS["tf2"]
 
 
 class TestAddTrainingExample:

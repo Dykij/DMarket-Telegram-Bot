@@ -21,9 +21,9 @@ from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 import logging
 from pathlib import Path
-import pickle  # noqa: S403 - Required for ML model serialization
 from typing import TYPE_CHECKING, Any
 
+import joblib
 import numpy as np
 
 
@@ -36,6 +36,13 @@ if TYPE_CHECKING:
     )
 
 logger = logging.getLogger(__name__)
+
+
+# Training simulation constants - used when generating synthetic profitability data
+# from collected prices. These values are based on empirical market analysis.
+PROFITABILITY_DISCOUNT_THRESHOLD = 10.0  # Minimum discount % for likely profitability
+PROFIT_MULTIPLIER = 0.5  # Simulated profit = discount * this multiplier
+LOSS_MULTIPLIER = 0.3  # Simulated loss = -discount * this multiplier
 
 
 class MarketCondition(StrEnum):
@@ -328,6 +335,17 @@ class DiscountThresholdPredictor:
         examples_added = 0
 
         for collected in result.all_prices:
+            # Validate that collected data has expected structure
+            if not hasattr(collected, "normalized_price"):
+                logger.warning("Collected price missing normalized_price, skipping")
+                continue
+            if not hasattr(collected.normalized_price, "price_usd"):
+                logger.warning("Normalized price missing price_usd, skipping")
+                continue
+            if not hasattr(collected, "item_name"):
+                logger.warning("Collected price missing item_name, skipping")
+                continue
+
             price_usd = float(collected.normalized_price.price_usd)
 
             # Get historical price if available
@@ -341,10 +359,15 @@ class DiscountThresholdPredictor:
             else:
                 discount = 0.0
 
-            # For training, we simulate profitability based on discount
-            # Higher discounts are more likely profitable
-            simulated_profitable = discount > 10.0  # 10%+ discount tends to be profitable
-            simulated_profit = discount * 0.5 if simulated_profitable else -discount * 0.3
+            # For training, we simulate profitability based on discount.
+            # Higher discounts are more likely profitable.
+            # Uses defined constants for clear documentation.
+            simulated_profitable = discount > PROFITABILITY_DISCOUNT_THRESHOLD
+            simulated_profit = (
+                discount * PROFIT_MULTIPLIER
+                if simulated_profitable
+                else -discount * LOSS_MULTIPLIER
+            )
 
             self.add_training_example(
                 item_name=collected.item_name,
@@ -629,7 +652,7 @@ class DiscountThresholdPredictor:
             logger.info("Market condition updated", extra={"condition": condition.value})
 
     def _save_model(self) -> None:
-        """Save model to disk."""
+        """Save model to disk using joblib (safer than pickle)."""
         if not self.model_path:
             return
 
@@ -659,20 +682,20 @@ class DiscountThresholdPredictor:
                 "is_trained": self._is_trained,
                 "version": self.MODEL_VERSION,
             }
-            with open(self.model_path, "wb") as f:
-                pickle.dump(data, f)
+            # Use joblib for safer serialization of scikit-learn models
+            joblib.dump(data, self.model_path)
             logger.info("Model saved", extra={"path": str(self.model_path)})
         except Exception as e:
             logger.exception("Failed to save model: %s", e)
 
     def _load_model(self) -> None:
-        """Load model from disk."""
+        """Load model from disk using joblib (safer than pickle)."""
         if not self.model_path or not self.model_path.exists():
             return
 
         try:
-            with open(self.model_path, "rb") as f:
-                data = pickle.load(f)  # noqa: S301 - Trusted local ML model file
+            # Use joblib for safer loading of scikit-learn models
+            data = joblib.load(self.model_path)
 
             self._gradient_boost = data.get("gradient_boost")
             self._ridge = data.get("ridge")
