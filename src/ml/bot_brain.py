@@ -53,12 +53,10 @@ from typing import TYPE_CHECKING, Any, Callable
 from src.ml.ai_coordinator import (
     AICoordinator,
     AutonomyLevel,
-    ItemAnalysis,
     SafetyLimits,
     TradeAction,
     TradeDecision,
 )
-from src.ml.discount_threshold_predictor import MarketCondition
 
 
 if TYPE_CHECKING:

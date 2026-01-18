@@ -1,19 +1,21 @@
 """AI Brain Handler - Telegram commands for autonomous bot control.
 
-This module provides Telegram commands for:
-- /ai_brain - Show BotBrain status and controls
-- /ai_mode [mode] - Set autonomy level (manual/semi/auto)
-- /ai_start - Start autonomous mode
-- /ai_stop - Stop autonomous mode
-- /ai_pause - Pause autonomous mode
-- /ai_resume - Resume autonomous mode
-- /ai_limits - Show current safety limits
-- /ai_pending - Show pending decisions
-- /ai_confirm [id] - Confirm a pending decision
-- /ai_reject [id] - Reject a pending decision
-- /ai_cycle - Run single cycle manually
-- /ai_alerts - Show recent alerts
-- /ai_emergency - Emergency stop
+This module provides Telegram commands for managing the autonomous trading bot.
+
+Commands:
+    /ai_brain - Show BotBrain status and controls
+    /ai_mode [mode] - Set autonomy level (manual/semi/auto)
+    /ai_start - Start autonomous mode
+    /ai_stop - Stop autonomous mode
+    /ai_pause - Pause autonomous mode
+    /ai_resume - Resume autonomous mode
+    /ai_limits - Show current safety limits
+    /ai_pending - Show pending decisions
+    /ai_confirm [id] - Confirm a pending decision
+    /ai_reject [id] - Reject a pending decision
+    /ai_cycle - Run single cycle manually
+    /ai_alerts - Show recent alerts
+    /ai_emergency - Emergency stop
 
 Usage:
     Register handlers in your bot initialization:
@@ -24,6 +26,8 @@ Usage:
 
 Created: January 2026
 """
+
+from __future__ import annotations
 
 import asyncio
 import logging
@@ -37,7 +41,7 @@ if TYPE_CHECKING:
     from telegram.ext import Application
 
 from src.ml.ai_coordinator import AutonomyLevel
-from src.ml.bot_brain import BotBrain, BotState, AutonomyConfig, create_bot_brain
+from src.ml.bot_brain import BotBrain, BotState, create_bot_brain
 
 
 logger = logging.getLogger(__name__)
@@ -47,7 +51,11 @@ _bot_brain: BotBrain | None = None
 
 
 def get_bot_brain() -> BotBrain:
-    """Get or create global BotBrain instance."""
+    """Get or create global BotBrain instance.
+
+    Returns:
+        The global BotBrain instance.
+    """
     global _bot_brain
     if _bot_brain is None:
         _bot_brain = create_bot_brain(
@@ -59,7 +67,11 @@ def get_bot_brain() -> BotBrain:
 
 
 def set_bot_brain(brain: BotBrain) -> None:
-    """Set global BotBrain instance."""
+    """Set global BotBrain instance.
+
+    Args:
+        brain: The BotBrain instance to use globally.
+    """
     global _bot_brain
     _bot_brain = brain
 
@@ -352,8 +364,8 @@ async def ai_pending_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
         )
 
     text += (
-        f"Use /ai_confirm [id] to confirm\n"
-        f"Use /ai_reject [id] to reject"
+        "Use /ai_confirm [id] to confirm\n"
+        "Use /ai_reject [id] to reject"
     )
 
     await update.message.reply_text(text, parse_mode="HTML")

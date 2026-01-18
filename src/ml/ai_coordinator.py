@@ -217,9 +217,19 @@ class AICoordinator:
     - Make trading decisions
     - Control bot autonomy
     - Train models on real data
+
+    Attributes:
+        autonomy_level: Current level of autonomous operation.
+        safety_limits: Safety limits for trading.
+        user_balance: Current user balance in USD.
+
+    Example:
+        >>> ai = AICoordinator(autonomy_level=AutonomyLevel.SEMI_AUTO)
+        >>> analysis = await ai.analyze_item(item_data)
+        >>> decision = await ai.make_decision(item_data)
     """
 
-    # Model weights for ensemble decision
+    # Model weights for ensemble decision (must sum to 1.0)
     MODEL_WEIGHTS = {
         "price_prediction": 0.30,
         "signal_classification": 0.25,
@@ -233,7 +243,7 @@ class AICoordinator:
         autonomy_level: AutonomyLevel = AutonomyLevel.MANUAL,
         safety_limits: SafetyLimits | None = None,
         user_balance: float = 100.0,
-    ):
+    ) -> None:
         """Initialize AI Coordinator.
 
         Args:
