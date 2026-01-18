@@ -111,11 +111,7 @@ python -m src.main
 - **[DMarket API Спецификация](docs/DMARKET_API_FULL_SPEC.md)** - Полная спецификация DMarket API v1.1.0
 - **[Telegram Bot API](docs/TELEGRAM_BOT_API.md)** - Справочник Telegram Bot API 9.2
 - **[Фильтры игр](docs/game_filters_guide.md)** - Фильтры для CS:GO, Dota 2, TF2, Rust
-
-### 📚 Анализ сторонних технологий
-
-- **[n8n Workflow Automation](docs/N8N_INTEGRATION_ANALYSIS.md)** 🤖 - Анализ возможностей n8n интеграции
-- **[Storybook для UI компонентов](STORYBOOK_QUICK_SUMMARY_RU.md)** 📊 - Применимость для проекта (⚠️ Не рекомендуется)
+- **[n8n Workflow Automation Analysis](docs/N8N_INTEGRATION_ANALYSIS.md)** 🆕 - Анализ возможностей n8n интеграции
 
 ### Разработка и инфраструктура
 
