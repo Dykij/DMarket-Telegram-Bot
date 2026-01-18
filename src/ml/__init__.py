@@ -9,11 +9,13 @@
 - Обнаружения аномалий и манипуляций
 - Умных рекомендаций по покупке/продаже
 - ML-based выбор оптимального порога скидки
+- Автономное управление ботом (AICoordinator)
 
 Используемые библиотеки (все бесплатные):
 - scikit-learn: основные ML модели (RandomForest, GradientBoosting, Ridge)
 - XGBoost: продвинутый gradient boosting (опционально)
 - NumPy: математические операции
+- joblib: безопасная сериализация ML моделей
 - Собственные адаптивные алгоритмы
 
 Поддерживаемые игры:
@@ -22,9 +24,21 @@
 - TF2 (Team Fortress 2)
 - Rust
 
-Документация: docs/ML_AI_GUIDE.md
+Документация:
+- docs/ML_AI_GUIDE.md
+- docs/AI_BOT_CONTROL_PLAN.md
 """
 
+from src.ml.ai_coordinator import (
+    AICoordinator,
+    AutonomyLevel,
+    ItemAnalysis,
+    SafetyLimits,
+    TradeAction,
+    TradeDecision,
+    get_ai_coordinator,
+    reset_ai_coordinator,
+)
 from src.ml.anomaly_detection import (
     AnomalyDetector,
     AnomalyResult,
@@ -84,6 +98,17 @@ from src.ml.training_data_manager import DatasetMetadata, TrainingDataManager, T
 
 
 __all__ = [
+    # ═══════════════════════════════════════════════════════════════════
+    # AI Coordinator - Unified ML module coordinator
+    # ═══════════════════════════════════════════════════════════════════
+    "AICoordinator",
+    "AutonomyLevel",
+    "ItemAnalysis",
+    "SafetyLimits",
+    "TradeAction",
+    "TradeDecision",
+    "get_ai_coordinator",
+    "reset_ai_coordinator",
     # Price Predictor (базовый)
     "AdaptivePricePredictor",
     # Trade Classifier
