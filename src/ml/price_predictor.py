@@ -18,15 +18,20 @@ from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 import logging
 from pathlib import Path
-import pickle  # noqa: S403 - Required for ML model serialization
 from typing import Any
 
+import joblib
 import numpy as np
 
 from src.ml.feature_extractor import MarketFeatureExtractor, PriceFeatures
 
 
 logger = logging.getLogger(__name__)
+
+# Constants for model configuration
+MIN_TRAINING_SAMPLES = 10
+CACHE_TTL_MINUTES = 5
+RETRAIN_THRESHOLD_SAMPLES = 100
 
 
 class PredictionConfidence(StrEnum):
@@ -93,8 +98,7 @@ class AdaptivePricePredictor:
     - Автоматически переобучается при накоплении новых данных
     """
 
-    MODEL_VERSION = "1.0.0"
-    RETRAIN_THRESHOLD = 100  # Переобучение после N новых примеров
+    MODEL_VERSION = "1.1.0"  # Updated for joblib serialization
 
     def __init__(
         self,
@@ -124,7 +128,7 @@ class AdaptivePricePredictor:
 
         # Кэш прогнозов
         self._prediction_cache: dict[str, tuple[datetime, PricePrediction]] = {}
-        self._cache_ttl = timedelta(minutes=5)
+        self._cache_ttl = timedelta(minutes=CACHE_TTL_MINUTES)
 
         # Загрузка модели, если есть
         if self.model_path and self.model_path.exists():
@@ -478,7 +482,7 @@ class AdaptivePricePredictor:
         self,
         features: PriceFeatures,
         actual_future_price: float,
-    ):
+    ) -> None:
         """Добавить пример для обучения модели.
 
         Args:
@@ -493,17 +497,17 @@ class AdaptivePricePredictor:
         self._new_samples_count += 1
 
         # Автоматическое переобучение
-        if self._new_samples_count >= self.RETRAIN_THRESHOLD:
+        if self._new_samples_count >= RETRAIN_THRESHOLD_SAMPLES:
             self.train()
 
-    def train(self, force: bool = False):
+    def train(self, force: bool = False) -> None:
         """Обучить модели на накопленных данных.
 
         Args:
             force: Принудительное обучение даже при малом количестве данных
         """
-        if len(self._training_data_X) < 10 and not force:
-            logger.warning("Not enough training data (minimum 10 samples)")
+        if len(self._training_data_X) < MIN_TRAINING_SAMPLES and not force:
+            logger.warning(f"Not enough training data (minimum {MIN_TRAINING_SAMPLES} samples)")
             return
 
         self._init_models()
@@ -530,8 +534,11 @@ class AdaptivePricePredictor:
         except Exception as e:
             logger.exception(f"Training failed: {e}")
 
-    def _save_model(self):
-        """Сохранить модели на диск."""
+    def _save_model(self) -> None:
+        """Сохранить модели на диск.
+
+        Uses joblib for safer and more efficient ML model serialization.
+        """
         if not self.model_path:
             return
 
@@ -544,20 +551,21 @@ class AdaptivePricePredictor:
                 "training_data_y": self._training_data_y,
                 "version": self.MODEL_VERSION,
             }
-            with open(self.model_path, "wb") as f:
-                pickle.dump(data, f)
+            joblib.dump(data, self.model_path)
             logger.info(f"Model saved to {self.model_path}")
         except Exception as e:
             logger.exception(f"Failed to save model: {e}")
 
-    def _load_model(self):
-        """Загрузить модели с диска."""
+    def _load_model(self) -> None:
+        """Загрузить модели с диска.
+
+        Uses joblib for safer ML model deserialization.
+        """
         if not self.model_path or not self.model_path.exists():
             return
 
         try:
-            with open(self.model_path, "rb") as f:
-                data = pickle.load(f)  # noqa: S301 - Trusted local ML model file
+            data = joblib.load(self.model_path)
 
             self._gradient_boost = data.get("gradient_boost")
             self._ridge = data.get("ridge")
