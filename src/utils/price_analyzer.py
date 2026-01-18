@@ -5,6 +5,7 @@
 - Расчета статистических показателей (средние цены, волатильность)
 - Выявления недооцененных предметов
 - Анализа спроса и предложения
+- ML-based выбор оптимального порога скидки
 """
 
 from datetime import datetime
@@ -530,3 +531,296 @@ def get_investment_reason(item_data: dict[str, Any]) -> str:
         reasons.append(f"Умеренный спрос ({item_data['demand_count']} заявок)")
 
     return ". ".join(reasons)
+
+
+async def get_ml_discount_threshold(
+    game: str = "csgo",
+) -> tuple[float, str]:
+    """Get ML-predicted optimal discount threshold.
+
+    Uses the trained DiscountThresholdPredictor model to determine
+    the optimal discount threshold based on current market conditions.
+
+    Args:
+        game: Game code (csgo, dota2, tf2, rust)
+
+    Returns:
+        Tuple of (threshold_percent, reasoning)
+
+    Example:
+        >>> threshold, reason = await get_ml_discount_threshold("csgo")
+        >>> print(f"Optimal threshold: {threshold}% - {reason}")
+    """
+    try:
+        from src.ml.discount_threshold_predictor import get_discount_threshold_predictor
+
+        predictor = get_discount_threshold_predictor()
+        prediction = predictor.predict(game=game)
+
+        logger.info(
+            f"ML-predicted discount threshold for {game}: "
+            f"{prediction.optimal_threshold:.1f}% (confidence: {prediction.confidence:.0%})"
+        )
+
+        return prediction.optimal_threshold, prediction.reasoning
+
+    except ImportError:
+        logger.warning("ML predictor not available, using default threshold")
+        default_thresholds = {
+            "csgo": 15.0,
+            "dota2": 10.0,
+            "tf2": 12.0,
+            "rust": 14.0,
+        }
+        threshold = default_thresholds.get(game.lower(), 15.0)
+        return threshold, "Using default threshold (ML model not available)"
+
+
+async def find_undervalued_items_with_ml_threshold(
+    api: DMarketAPI,
+    game: str = "csgo",
+    price_from: float = 1.0,
+    price_to: float = 100.0,
+    max_results: int = 10,
+    use_ml_threshold: bool = True,
+) -> dict[str, Any]:
+    """Find undervalued items using ML-predicted discount threshold.
+
+    This is an enhanced version of find_undervalued_items that uses
+    machine learning to determine the optimal discount threshold
+    based on current market conditions.
+
+    Args:
+        api: DMarketAPI instance
+        game: Game code (csgo, dota2, etc)
+        price_from: Minimum price in USD
+        price_to: Maximum price in USD
+        max_results: Maximum number of results
+        use_ml_threshold: Whether to use ML-predicted threshold
+
+    Returns:
+        Dictionary containing:
+        - items: List of undervalued items
+        - threshold_used: The discount threshold that was used
+        - threshold_source: "ml" or "default"
+        - reasoning: Explanation of threshold selection
+        - confidence: Confidence in the threshold (0-1)
+
+    Example:
+        >>> result = await find_undervalued_items_with_ml_threshold(api, "csgo")
+        >>> print(f"Found {len(result['items'])} items with {result['threshold_used']}% threshold")
+    """
+    # Get ML-predicted threshold
+    if use_ml_threshold:
+        try:
+            from src.ml.discount_threshold_predictor import get_discount_threshold_predictor
+
+            predictor = get_discount_threshold_predictor()
+            prediction = predictor.predict(game=game)
+
+            discount_threshold = prediction.optimal_threshold
+            threshold_source = "ml"
+            reasoning = prediction.reasoning
+            confidence = prediction.confidence
+
+            logger.info(
+                f"Using ML threshold for {game}: {discount_threshold:.1f}% "
+                f"(confidence: {confidence:.0%})"
+            )
+
+        except Exception as e:
+            logger.warning(f"ML threshold prediction failed: {e}, using default")
+            discount_threshold = 15.0
+            threshold_source = "default"
+            reasoning = f"ML prediction failed: {e}"
+            confidence = 0.3
+    else:
+        # Use game-specific defaults
+        default_thresholds = {
+            "csgo": 15.0,
+            "dota2": 10.0,
+            "tf2": 12.0,
+            "rust": 14.0,
+        }
+        discount_threshold = default_thresholds.get(game.lower(), 15.0)
+        threshold_source = "default"
+        reasoning = "Using predefined default threshold"
+        confidence = 0.5
+
+    # Find undervalued items using the determined threshold
+    items = await find_undervalued_items(
+        api=api,
+        game=game,
+        price_from=price_from,
+        price_to=price_to,
+        discount_threshold=discount_threshold,
+        max_results=max_results,
+    )
+
+    return {
+        "items": items,
+        "threshold_used": discount_threshold,
+        "threshold_source": threshold_source,
+        "reasoning": reasoning,
+        "confidence": confidence,
+        "game": game,
+        "price_range": (price_from, price_to),
+    }
+
+
+async def train_threshold_model_from_api(
+    api: DMarketAPI,
+    game: str = "csgo",
+) -> dict[str, Any]:
+    """Train the ML discount threshold model using real API prices.
+
+    Collects real prices from DMarket API and uses them to train
+    the discount threshold prediction model.
+
+    Args:
+        api: DMarketAPI instance
+        game: Game to train on
+
+    Returns:
+        Dictionary with training statistics:
+        - success: Whether training was successful
+        - examples_collected: Number of training examples
+        - message: Status message
+
+    Example:
+        >>> result = await train_threshold_model_from_api(api, "csgo")
+        >>> print(f"Training: {result['message']}")
+    """
+    try:
+        from src.ml.discount_threshold_predictor import get_discount_threshold_predictor
+        from src.ml.real_price_collector import GameType, RealPriceCollector
+
+        predictor = get_discount_threshold_predictor()
+
+        # Create collector with the API
+        collector = RealPriceCollector(dmarket_api=api)
+
+        # Convert game string to GameType enum
+        game_type = GameType(game.lower())
+
+        # Collect historical prices for comparison
+        # In a real scenario, we'd have historical data from previous API calls
+        historical_prices: dict[str, float] = {}
+
+        # Get current market items to extract historical data
+        items_response = await api.get_market_items(game=game, limit=100)
+        if items_response and "objects" in items_response:
+            for item in items_response.get("objects", []):
+                title = item.get("title", "")
+                suggested = item.get("suggestedPrice", {})
+                if suggested:
+                    suggested_usd = float(suggested.get("USD", 0)) / 100
+                    if suggested_usd > 0:
+                        historical_prices[title] = suggested_usd
+
+        # Train from collector with real prices
+        examples_count = await predictor.train_from_collector(
+            collector=collector,
+            game=game_type,
+            historical_prices=historical_prices,
+        )
+
+        logger.info(
+            f"Model trained on {examples_count} examples from real API prices"
+        )
+
+        return {
+            "success": True,
+            "examples_collected": examples_count,
+            "message": f"Successfully trained on {examples_count} real price examples from {game.upper()}",
+            "game": game,
+            "is_model_trained": predictor._is_trained,
+        }
+
+    except ImportError as e:
+        logger.warning(f"Required modules not available: {e}")
+        return {
+            "success": False,
+            "examples_collected": 0,
+            "message": f"Training failed: required modules not available ({e})",
+            "game": game,
+        }
+    except Exception as e:
+        logger.exception(f"Training failed: {e}")
+        return {
+            "success": False,
+            "examples_collected": 0,
+            "message": f"Training failed: {e}",
+            "game": game,
+        }
+
+
+async def add_trade_outcome_for_training(
+    item_name: str,
+    game: str,
+    buy_price: float,
+    sell_price: float,
+    historical_avg_price: float,
+    source: str = "dmarket",
+) -> bool:
+    """Add a real trade outcome to train the ML model.
+
+    Call this function after completing a trade to improve
+    the ML model's accuracy over time.
+
+    Args:
+        item_name: Name of the traded item
+        game: Game code
+        buy_price: Price item was bought at
+        sell_price: Price item was sold at
+        historical_avg_price: Historical average price
+        source: Price source (dmarket, waxpeer, steam)
+
+    Returns:
+        True if example was added successfully
+
+    Example:
+        >>> success = await add_trade_outcome_for_training(
+        ...     item_name="AK-47 | Redline (FT)",
+        ...     game="csgo",
+        ...     buy_price=10.50,
+        ...     sell_price=12.00,
+        ...     historical_avg_price=11.00,
+        ... )
+    """
+    try:
+        from src.ml.discount_threshold_predictor import get_discount_threshold_predictor
+
+        predictor = get_discount_threshold_predictor()
+
+        # Calculate trade metrics
+        if historical_avg_price > 0:
+            actual_discount = ((historical_avg_price - buy_price) / historical_avg_price) * 100
+        else:
+            actual_discount = 0.0
+
+        was_profitable = sell_price > buy_price
+        profit_percent = ((sell_price - buy_price) / buy_price) * 100 if buy_price > 0 else 0
+
+        # Add training example
+        predictor.add_training_example(
+            item_name=item_name,
+            game=game,
+            current_price=buy_price,
+            historical_avg_price=historical_avg_price,
+            actual_discount=actual_discount,
+            was_profitable=was_profitable,
+            profit_percent=profit_percent,
+            source=source,
+        )
+
+        logger.info(
+            f"Trade outcome added for training: {item_name}, "
+            f"discount={actual_discount:.1f}%, profitable={was_profitable}"
+        )
+
+        return True
+
+    except Exception as e:
+        logger.exception(f"Failed to add trade outcome: {e}")
+        return False
