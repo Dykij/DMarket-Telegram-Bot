@@ -105,12 +105,21 @@
 | [DEPENDENCY_INJECTION.md](DEPENDENCY_INJECTION.md) | DI паттерн |
 | [DATABASE_MIGRATIONS.md](DATABASE_MIGRATIONS.md) | Alembic миграции |
 
+## 🤖 AI/ML
+
+| Документ | Описание |
+|----------|----------|
+| [ML_AI_GUIDE.md](ML_AI_GUIDE.md) | Machine Learning модули |
+| [AI_BOT_CONTROL_PLAN.md](AI_BOT_CONTROL_PLAN.md) | AI управление ботом |
+| [REFACTORING_PLAN.md](REFACTORING_PLAN.md) | План рефакторинга |
+
 ## 🔒 Безопасность
 
 | Документ | Описание |
 |----------|----------|
 | [SECURITY.md](SECURITY.md) | Безопасность и DRY_RUN режим |
 | **[ERROR_HANDLING_COMPLETE_GUIDE.md](ERROR_HANDLING_COMPLETE_GUIDE.md)** | Обработка ошибок ✨ |
+| **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** | **Все ошибки и решения** 🆕 |
 
 ## 🔧 Разработка
 
@@ -122,4 +131,4 @@
 
 ---
 
-**Версия**: 3.3 | **Дата**: 14 января 2026
+**Версия**: 4.0 | **Дата**: 19 января 2026
