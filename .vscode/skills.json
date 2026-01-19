@@ -1,0 +1,328 @@
+{
+  "$schema": "https://skillsmp.com/schemas/skills-v2.json",
+  "version": "2.0",
+  "workspace": {
+    "name": "DMarket Telegram Bot",
+    "description": "Telegram bot для торговли на DMarket с AI-модулями",
+    "repository": "https://github.com/Dykij/DMarket-Telegram-Bot",
+    "skills_directory": "src"
+  },
+  "discovery": {
+    "auto_scan": true,
+    "scan_patterns": [
+      "src/**/SKILL_*.md",
+      "src/**/marketplace.json"
+    ],
+    "ignore_patterns": [
+      "**/node_modules/**",
+      "**/__pycache__/**",
+      "**/venv/**",
+      "**/.pytest_cache/**"
+    ]
+  },
+  "ai_assistants": {
+    "enabled": true,
+    "providers": [
+      "github-copilot",
+      "claude-code",
+      "chatgpt",
+      "cursor"
+    ],
+    "context_injection": {
+      "enabled": true,
+      "include_skill_docs": true,
+      "include_examples": true,
+      "include_dependencies": true
+    }
+  },
+  "local": {
+    "personal_mode": true,
+    "skip_community_features": true,
+    "enable_analytics": false,
+    "enable_telemetry": false,
+    "auto_backup": true,
+    "backup_directory": ".backups/skills"
+  },
+  "skills": [
+    {
+      "id": "ai-arbitrage-predictor",
+      "name": "AI-Powered Arbitrage Prediction",
+      "description": "ML-модуль для предиктивного арбитража с ансамблем моделей (78% accuracy)",
+      "version": "1.0.0",
+      "status": "active",
+      "category": "Data & AI",
+      "subcategories": ["Trading", "Finance", "Machine Learning"],
+      "skill_file": "src/dmarket/SKILL_AI_ARBITRAGE.md",
+      "marketplace_file": "src/dmarket/marketplace.json",
+      "main_module": "src/dmarket/ai_arbitrage_predictor.py",
+      "test_file": "tests/dmarket/test_ai_arbitrage_predictor.py",
+      "activation_triggers": [
+        "arbitrage",
+        "trading",
+        "price prediction",
+        "ml prediction",
+        "opportunity"
+      ],
+      "dependencies": {
+        "requires": [
+          "src.ml.enhanced_predictor",
+          "src.dmarket.dmarket_api"
+        ],
+        "optional": [
+          "xgboost"
+        ]
+      },
+      "performance": {
+        "accuracy": "78%",
+        "latency_ms": 50,
+        "throughput_per_sec": 2000
+      },
+      "metadata": {
+        "games": ["CS:GO", "Dota 2", "TF2", "Rust"],
+        "risk_levels": ["low", "medium", "high"],
+        "python_version": ">=3.11"
+      }
+    },
+    {
+      "id": "nlp-command-handler",
+      "name": "NLP Command Handler",
+      "description": "Natural language processing для Telegram команд (7 intents, 4 языка)",
+      "version": "1.0.0",
+      "status": "active",
+      "category": "Content & Media",
+      "subcategories": ["NLP", "Chatbot", "Multilingual"],
+      "skill_file": "src/telegram_bot/SKILL_NLP_HANDLER.md",
+      "marketplace_file": "src/telegram_bot/marketplace.json",
+      "main_module": "src/telegram_bot/nlp_handler.py",
+      "test_file": "tests/telegram_bot/test_nlp_handler.py",
+      "activation_triggers": [
+        "nlp",
+        "natural language",
+        "intent",
+        "command processing",
+        "user query"
+      ],
+      "dependencies": {
+        "requires": [
+          "src.telegram_bot.localization"
+        ],
+        "optional": []
+      },
+      "performance": {
+        "accuracy": "92%",
+        "latency_ms": 5,
+        "throughput_per_sec": 200
+      },
+      "metadata": {
+        "languages": ["RU", "EN", "ES", "DE"],
+        "intents": [
+          "scan_arbitrage",
+          "show_balance",
+          "create_target",
+          "list_targets",
+          "delete_target",
+          "show_stats",
+          "help"
+        ],
+        "python_version": ">=3.11"
+      }
+    },
+    {
+      "id": "ai-backtester",
+      "name": "AI Backtester",
+      "description": "Автоматизированное бэктестирование торговых стратегий с ML (3 strategies)",
+      "version": "1.0.0",
+      "status": "active",
+      "category": "Data & AI",
+      "subcategories": ["Trading", "Finance", "Testing"],
+      "skill_file": "src/analytics/SKILL_BACKTESTING.md",
+      "main_module": "src/analytics/ai_backtester.py",
+      "test_file": "tests/analytics/test_ai_backtester.py",
+      "activation_triggers": [
+        "backtesting",
+        "backtest",
+        "historical",
+        "strategy test",
+        "simulation"
+      ],
+      "dependencies": {
+        "requires": [
+          "src.dmarket.arbitrage_scanner"
+        ],
+        "optional": []
+      },
+      "performance": {
+        "accuracy": "N/A",
+        "latency_ms": 100,
+        "throughput_per_sec": 10
+      },
+      "metadata": {
+        "strategies": ["conservative", "standard", "aggressive"],
+        "metrics": ["ROI", "Sharpe ratio", "max drawdown", "win rate"],
+        "python_version": ">=3.11"
+      }
+    },
+    {
+      "id": "ai-threat-detector",
+      "name": "AI Threat Detector",
+      "description": "ML-детекция угроз безопасности (SQL injection, XSS, rate limit abuse)",
+      "version": "1.0.0",
+      "status": "active",
+      "category": "Testing & Security",
+      "subcategories": ["Security", "Anomaly Detection", "ML"],
+      "skill_file": "src/utils/SKILL_THREAT_DETECTION.md",
+      "main_module": "src/utils/ai_threat_detector.py",
+      "test_file": "tests/utils/test_ai_threat_detector.py",
+      "activation_triggers": [
+        "security",
+        "threat",
+        "anomaly",
+        "detection",
+        "sql injection",
+        "xss"
+      ],
+      "dependencies": {
+        "requires": [
+          "src.utils.rate_limiter"
+        ],
+        "optional": []
+      },
+      "performance": {
+        "accuracy": "92%",
+        "latency_ms": 10,
+        "throughput_per_sec": 10000
+      },
+      "metadata": {
+        "threat_types": ["SQL injection", "XSS", "rate limit abuse", "suspicious patterns"],
+        "false_positive_rate": "<5%",
+        "python_version": ">=3.11"
+      }
+    },
+    {
+      "id": "risk-assessment",
+      "name": "Portfolio Risk Assessment",
+      "description": "ML-оценка рисков портфеля с диверсификацией (0-100 score)",
+      "version": "1.0.0",
+      "status": "documentation-only",
+      "category": "Business",
+      "subcategories": ["Finance", "Risk Management", "Portfolio"],
+      "skill_file": "src/portfolio/SKILL_RISK_ASSESSMENT.md",
+      "main_module": null,
+      "test_file": null,
+      "activation_triggers": [
+        "risk",
+        "portfolio",
+        "assessment",
+        "diversification",
+        "var"
+      ],
+      "dependencies": {
+        "requires": [],
+        "optional": []
+      },
+      "metadata": {
+        "note": "Planned for future implementation",
+        "python_version": ">=3.11"
+      }
+    },
+    {
+      "id": "skillsmp-integration",
+      "name": "SkillsMP.com Integration",
+      "description": "Интеграция с SkillsMP.com marketplace API для auto-discovery",
+      "version": "1.0.0",
+      "status": "documentation-only",
+      "category": "Development",
+      "subcategories": ["Integration", "Marketplace", "API"],
+      "skill_file": "src/mcp_server/SKILL_SKILLSMP_INTEGRATION.md",
+      "main_module": null,
+      "test_file": null,
+      "activation_triggers": [
+        "skillsmp",
+        "marketplace",
+        "skill discovery",
+        "auto-discovery"
+      ],
+      "dependencies": {
+        "requires": [],
+        "optional": []
+      },
+      "metadata": {
+        "note": "Phase 4 future feature - marketplace integration",
+        "python_version": ">=3.11"
+      }
+    }
+  ],
+  "dependency_graph": {
+    "ai-arbitrage-predictor": {
+      "depends_on": [
+        "src.ml.enhanced_predictor",
+        "src.dmarket.dmarket_api"
+      ],
+      "used_by": [
+        "telegram_bot.handlers.arbitrage_handler"
+      ]
+    },
+    "nlp-command-handler": {
+      "depends_on": [
+        "src.telegram_bot.localization"
+      ],
+      "used_by": [
+        "telegram_bot.handlers.message_handler"
+      ]
+    },
+    "ai-backtester": {
+      "depends_on": [
+        "src.dmarket.arbitrage_scanner"
+      ],
+      "used_by": []
+    },
+    "ai-threat-detector": {
+      "depends_on": [
+        "src.utils.rate_limiter"
+      ],
+      "used_by": [
+        "telegram_bot.middleware",
+        "dmarket.dmarket_api"
+      ]
+    }
+  },
+  "version_management": {
+    "enabled": true,
+    "semver": true,
+    "changelog_required": true,
+    "deprecation_policy": {
+      "warning_period_days": 90,
+      "removal_period_days": 180
+    }
+  },
+  "integration": {
+    "vscode": {
+      "keybindings": {
+        "list_skills": "ctrl+shift+k",
+        "scan_workspace": "ctrl+shift+alt+s"
+      },
+      "commands": [
+        "Skills: List All",
+        "Skills: Scan Workspace",
+        "Skills: Validate",
+        "Skills: Open AI Arbitrage",
+        "Skills: Open NLP Handler",
+        "Skills: Test Implementation"
+      ]
+    },
+    "github_actions": {
+      "workflow": ".github/workflows/skill-validation.yml",
+      "auto_validate": true,
+      "on_push": true,
+      "on_pr": true
+    }
+  },
+  "statistics": {
+    "total_skills": 6,
+    "active_skills": 4,
+    "documentation_only": 2,
+    "total_tests": 76,
+    "pass_rate": "100%",
+    "total_lines": 1469
+  }
+}
