@@ -18,12 +18,12 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
+import structlog
 
-from src.dmarket.targets.target_manager import TargetManager
 from src.utils.database import get_async_session
+
 
 logger = structlog.get_logger(__name__)
 
@@ -320,18 +320,16 @@ async def get_dmarket_prices(
 
     try:
         # Import the integrated scanner to get prices
-        from src.dmarket.integrated_arbitrage_scanner import IntegratedArbitrageScanner
-        from src.dmarket.dmarket_api import DMarketAPI
-        
+
         # Initialize APIs (these would come from dependency injection in production)
         # For now, return structured empty response that workflow can handle
         items = []
-        
+
         # TODO: Integrate with actual DMarket API client
         # dmarket_api = DMarketAPI(...)
         # scanner = IntegratedArbitrageScanner(dmarket_api, ...)
         # prices = await scanner._fetch_dmarket_prices(game, limit)
-        
+
         return PricesResponse(
             platform="dmarket",
             game=game,
@@ -342,7 +340,7 @@ async def get_dmarket_prices(
         logger.error("dmarket_prices_error", error=str(e), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch DMarket prices: {str(e)}"
+            detail=f"Failed to fetch DMarket prices: {e!s}"
         )
 
 
@@ -422,12 +420,12 @@ async def get_listing_targets(session=Depends(get_async_session)) -> dict[str, A
         GET /api/v1/n8n/listing/targets
     """
     logger.info("listing_targets_request")
-    
+
     try:
         # TODO: Integrate with IntegratedArbitrageScanner
         # scanner = get_scanner_instance()
         # recommendations = await scanner.get_listing_recommendations()
-        
+
         return {
             "status": "success",
             "timestamp": datetime.now(UTC).isoformat(),
@@ -438,7 +436,7 @@ async def get_listing_targets(session=Depends(get_async_session)) -> dict[str, A
         logger.error("listing_targets_error", error=str(e), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get listing targets: {str(e)}"
+            detail=f"Failed to get listing targets: {e!s}"
         )
 
 
@@ -461,12 +459,12 @@ async def update_listing_target(
         POST /api/v1/n8n/listing/update_target?asset_id=123456
     """
     logger.info("update_listing_target", asset_id=asset_id)
-    
+
     try:
         # TODO: Integrate with IntegratedArbitrageScanner
         # scanner = get_scanner_instance()
         # target = await scanner.update_single_target(asset_id)
-        
+
         return {
             "status": "success",
             "asset_id": asset_id,
@@ -476,7 +474,7 @@ async def update_listing_target(
         logger.error("update_target_error", asset_id=asset_id, error=str(e), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update target: {str(e)}"
+            detail=f"Failed to update target: {e!s}"
         )
 
 

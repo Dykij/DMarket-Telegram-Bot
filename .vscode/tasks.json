@@ -209,6 +209,104 @@
         "panel": "shared"
       },
       "group": "none"
+    },
+    {
+      "label": "Skills: Scan Workspace",
+      "type": "shell",
+      "command": "${config:python.defaultInterpreterPath}",
+      "args": [
+        "-c",
+        "from pathlib import Path; import json; skills = list(Path('src').rglob('SKILL_*.md')); print(f'Found {len(skills)} skills:'); [print(f'  - {s}') for s in skills]"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "showReuseMessage": false
+      },
+      "group": "none"
+    },
+    {
+      "label": "Skills: List All",
+      "type": "shell",
+      "command": "${config:python.defaultInterpreterPath}",
+      "args": [
+        "-c",
+        "import json; skills_cfg = json.load(open('.vscode/skills.json')); print(f\"\\n📊 Skills Summary:\"); print(f\"Total: {len(skills_cfg['skills'])}\"); [print(f\"  {'✅' if s['status']=='active' else '📝'} {s['name']} v{s['version']} - {s['status']}\") for s in skills_cfg['skills']]"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "showReuseMessage": false
+      },
+      "group": "none"
+    },
+    {
+      "label": "Skills: Validate",
+      "type": "shell",
+      "command": "${config:python.defaultInterpreterPath}",
+      "args": [
+        "-m",
+        "pytest",
+        ".github/workflows/",
+        "-v",
+        "--tb=short"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "group": "test"
+    },
+    {
+      "label": "Skills: Open AI Arbitrage",
+      "type": "shell",
+      "command": "code",
+      "args": [
+        "src/dmarket/SKILL_AI_ARBITRAGE.md"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      },
+      "group": "none"
+    },
+    {
+      "label": "Skills: Open NLP Handler",
+      "type": "shell",
+      "command": "code",
+      "args": [
+        "src/telegram_bot/SKILL_NLP_HANDLER.md"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      },
+      "group": "none"
+    },
+    {
+      "label": "Skills: Test Implementation",
+      "type": "shell",
+      "command": "${config:python.defaultInterpreterPath}",
+      "args": [
+        "-m",
+        "pytest",
+        "tests/dmarket/test_ai_arbitrage_predictor.py",
+        "tests/telegram_bot/test_nlp_handler.py",
+        "tests/analytics/test_ai_backtester.py",
+        "tests/utils/test_ai_threat_detector.py",
+        "-v"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "group": "test"
     }
   ]
 }

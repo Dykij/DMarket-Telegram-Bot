@@ -2078,7 +2078,7 @@ class DMarketAPI:  # noqa: PLR0904
 
     async def get_user_inventory(
         self, game_id: str = "a8db99ca-dc45-4c0e-9989-11ba71ed97a2", limit: int = 100
-    ):
+    ) -> dict[str, Any]:
         """
         Получает инвентарь пользователя через актуальный эндпоинт v1.
         """

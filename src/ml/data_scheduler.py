@@ -33,6 +33,7 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 
+
 if TYPE_CHECKING:
     from src.ml.enhanced_predictor import EnhancedPricePredictor
 
@@ -1046,7 +1047,7 @@ class MLDataScheduler:
             try:
                 from src.ml.real_price_collector import RealPriceCollector
 
-                collector = RealPriceCollector()
+                _ = RealPriceCollector()  # Just check if it can be instantiated
                 details["collector_available"] = True
                 checks_passed += 1
             except Exception:

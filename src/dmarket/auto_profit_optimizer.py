@@ -244,7 +244,8 @@ class AutoProfitOptimizer:
         )
 
         # Adjust for current positions
-        remaining_slots = max(
+        # Note: remaining_slots calculation kept for future use in position sizing
+        _ = max(
             0,
             self._profile["max_concurrent"] - current_positions,
         )

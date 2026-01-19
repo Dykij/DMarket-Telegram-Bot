@@ -42,10 +42,10 @@ Documentation: https://asyncer.tiangolo.com/
 """
 
 import asyncio
-import time
 from collections.abc import Awaitable, Callable, Sequence
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
+import time
 from typing import Any, ParamSpec, TypeVar
 
 import structlog
@@ -276,7 +276,7 @@ async def run_with_timeout(
             func(*args, **kwargs),
             timeout=timeout,
         )
-    except asyncio.TimeoutError:
+    except TimeoutError:
         logger.warning(
             "task_timeout",
             func=func.__name__,

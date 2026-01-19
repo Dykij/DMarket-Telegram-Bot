@@ -98,8 +98,8 @@ except ImportError:
 try:
     from src.utils.http_cache import (
         HISHEL_AVAILABLE,
-        CachedHTTPClient,
         CacheConfig,
+        CachedHTTPClient,
         close_cached_client,
         create_cached_client,
         get_cached_client,

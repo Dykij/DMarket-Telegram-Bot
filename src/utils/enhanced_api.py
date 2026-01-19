@@ -47,8 +47,8 @@ import structlog
 
 from src.utils.http_cache import (
     HISHEL_AVAILABLE,
-    CachedHTTPClient,
     CacheConfig,
+    CachedHTTPClient,
 )
 from src.utils.stamina_retry import (
     DEFAULT_API_EXCEPTIONS,

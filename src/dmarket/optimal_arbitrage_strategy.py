@@ -213,7 +213,7 @@ class OptimalArbitrageStrategy:
             Tuple of (gross_profit, net_profit, fees_paid)
         """
         # Получить комиссии
-        buy_fee = getattr(self.fees, buy_platform, 0.05)
+        _ = getattr(self.fees, buy_platform, 0.05)  # buy_fee for future use
         sell_fee = getattr(self.fees, sell_platform, 0.05)
 
         # Gross profit

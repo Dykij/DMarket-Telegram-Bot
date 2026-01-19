@@ -139,8 +139,8 @@ async def analytics_command(
         )
         return
 
-    # Get analytics info
-    analytics = integrator.price_analytics
+    # Get analytics info (available for future extension)
+    _ = integrator.price_analytics
 
     lines = [
         "📊 <b>Price Analytics</b>\n",

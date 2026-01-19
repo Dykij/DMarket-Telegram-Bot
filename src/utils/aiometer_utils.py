@@ -43,10 +43,9 @@ Example usage:
 Documentation: https://github.com/florimondmanca/aiometer
 """
 
-import asyncio
-import functools
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterable
 from dataclasses import dataclass, field
+import functools
 from typing import Any, TypeVar
 
 import structlog

@@ -24,6 +24,16 @@ GAMES: dict[str, str] = {
 """Маппинг кодов игр на читаемые названия."""
 
 # =============================================================================
+# Currency conversion
+# =============================================================================
+
+CENTS_TO_USD: int = 100
+"""Conversion factor from cents to USD (divide by 100)."""
+
+USD_TO_CENTS: int = 100
+"""Conversion factor from USD to cents (multiply by 100)."""
+
+# =============================================================================
 # Комиссии DMarket
 # =============================================================================
 
@@ -218,6 +228,8 @@ __all__ = [
     "CACHE_CLEANUP_COUNT",
     # Кэш
     "CACHE_TTL",
+    # Currency
+    "CENTS_TO_USD",
     "DAILY_LIMIT_RESET_SECONDS",
     # Торговля
     "DEFAULT_DAILY_LIMIT",
@@ -257,4 +269,5 @@ __all__ = [
     # Режимы
     "MIN_PROFIT_PERCENT",
     "PRICE_RANGES",
+    "USD_TO_CENTS",
 ]
