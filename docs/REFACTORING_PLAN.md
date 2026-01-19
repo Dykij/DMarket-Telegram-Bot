@@ -27,16 +27,16 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 
 | Threshold | Before | After | Change |
 |-----------|--------|-------|--------|
-| > 100 lines | 147 | 143 | -4 |
-| > 50 lines | 639 | ~630 | -9 |
+| > 100 lines | 147 | 138 | -9 |
+| > 50 lines | 639 | ~620 | -19 |
 
 ### Top 15 Priority Functions
 
 | # | Function | File | Lines | Priority | Status |
 |---|----------|------|-------|----------|--------|
 | 1 | `button_callback_handler()` | `callbacks.py` | ~40 | 🔴 Critical | ✅ Refactored (was 950) |
-| 2 | `initialize()` | `main.py` | 594 | 🔴 Critical | ⏳ Pending |
-| 3 | `register_all_handlers()` | `register_all_handlers.py` | 455 | 🔴 Critical | ⏳ Pending |
+| 2 | `initialize()` | `main.py` | 33 | 🔴 Critical | ✅ Refactored (was 594) |
+| 3 | `register_all_handlers()` | `register_all_handlers.py` | 35 | 🔴 Critical | ✅ Refactored (was 455) |
 | 4 | `check_balance_command()` | `balance_command.py` | 168 | 🔴 Critical | ✅ Refactored (was 331) |
 | 5 | `_request()` | `dmarket_api.py` | 261 | 🟠 High | ✅ Refactored (was 330) |
 | 6 | `ai_train_liquid_command()` | `ai_handler.py` | 137 | 🟠 High | ✅ Refactored (was 299) |
@@ -46,9 +46,9 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 | 10 | `scan_game()` | `arbitrage_scanner.py` | <50 | 🟠 High | ✅ Refactored (was 216) |
 | 11 | `market_analysis_callback()` | `market_analysis_handler.py` | 109 | 🟠 High | ✅ Refactored (was 252) |
 | 12 | `handle_mode_selection_callback()` | `automatic_arbitrage_handler.py` | 100 | 🟠 High | ✅ Refactored (was 240) |
-| 13 | `train_from_real_data()` | `enhanced_predictor.py` | 225 | 🟠 High | ⏳ Pending |
-| 14 | `hold_callback_handler()` | `intelligent_hold_handler.py` | 223 | 🟡 Medium | ⏳ Pending |
-| 15 | `telegram_error_boundary()` | `telegram_error_handlers.py` | 222 | 🟡 Medium | ⏳ Pending |
+| 13 | `train_from_real_data()` | `enhanced_predictor.py` | 117 | 🟠 High | ✅ Refactored (was 225) |
+| 14 | `hold_callback_handler()` | `intelligent_hold_handler.py` | 36 | 🟡 Medium | ✅ Refactored (was 223) |
+| 15 | `telegram_error_boundary()` | `telegram_error_handlers.py` | 71 | 🟡 Medium | ✅ Refactored (was 222) |
 
 ---
 
@@ -201,6 +201,90 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 - `_run_parallel_scan()` - Run parallel scan using ScannerManager
 - `_format_fallback_results()` - Format fallback scan results
 - `_format_parallel_results()` - Format parallel scan results
+
+### 11. `initialize()` in `main.py`
+
+**Before**: 594 lines  
+**After**: 33 lines  
+**Reduction**: 94%
+
+**Approach**: Extracted 24 helper methods organized into phases:
+
+**Phase Methods**:
+- `_init_config_and_logging()` - Load config, setup logging, load whitelist
+- `_init_core_services()` - Initialize Sentry, Database, StateManager
+- `_init_dmarket_api()` - Initialize DMarket API and test connection
+- `_init_telegram_bot()` - Initialize Telegram bot with persistence
+- `_init_schedulers()` - Initialize Daily Report and AI Training schedulers
+- `_init_scanner_manager()` - Initialize Scanner Manager
+- `_init_inventory_and_trading()` - Initialize Inventory, Trading, Autopilot
+- `_init_websocket_and_health()` - Initialize WebSocket and Health Check
+- `_init_bot_integrator()` - Initialize Bot Integrator
+
+### 12. `register_all_handlers()` in `register_all_handlers.py`
+
+**Before**: 455 lines  
+**After**: 35 lines  
+**Reduction**: 92%
+
+**Extracted Helper Functions**:
+- `_register_basic_commands()` - Start, help, dashboard, etc.
+- `_register_sentry_and_backtest_commands()` - Sentry testing, backtesting
+- `_register_auto_buy_commands()` - Auto-buy handlers
+- `_register_smart_and_autopilot_commands()` - Smart arbitrage, autopilot
+- `_register_panic_and_websocket_commands()` - Panic button, websocket
+- `_register_health_check_commands()` - Health check commands
+- `_register_minimal_ui_callbacks()` - Minimal UI callbacks
+- `_register_enhanced_scanner_handlers()` - Enhanced scanner
+- `_register_callback_router()` - Phase 2 callback router
+- `_register_message_handlers()` - Message handlers
+- `_register_additional_handlers()` - Scanner, alerts, analysis
+- `_register_extended_feature_handlers()` - Extended stats, sentiment, hold, AI
+
+### 13. `train_from_real_data()` in `enhanced_predictor.py`
+
+**Before**: 225 lines  
+**After**: 117 lines  
+**Reduction**: 48%
+
+**Extracted Helper Methods**:
+- `_parse_game_types()` - Parse game_types list to GameType enums
+- `_collect_prices_from_apis()` - Collect prices using RealPriceCollector
+- `_process_collected_prices()` - Process prices through TrainingDataManager
+- `_prepare_and_train_models()` - Prepare training data and train ensemble
+- `_build_training_result()` - Build the result dictionary
+
+### 14. `hold_callback_handler()` in `intelligent_hold_handler.py`
+
+**Before**: 223 lines  
+**After**: 36 lines  
+**Reduction**: 84%
+
+**Extracted Helper Functions**:
+- `_handle_analyze_inventory()` - For "hold_analyze_inventory" callback
+- `_handle_check_item()` - For "hold_check_item" callback
+- `_handle_item_selection()` - For "hold_item_*" callbacks
+- `_handle_events_csgo()` - For "hold_events_csgo" callback
+- `_handle_events_dota2()` - For "hold_events_dota2" callback
+- `_handle_settings()` - For "hold_settings" callback
+- `_handle_menu()` - For "hold_menu" callback
+
+### 15. `telegram_error_boundary()` in `telegram_error_handlers.py`
+
+**Before**: 222 lines  
+**After**: 71 lines  
+**Reduction**: 68%
+
+**Extracted Helper Functions**:
+- `_extract_update_context()` - Extract user_id, username, command, message_text
+- `_log_handler_start()` - Log handler start with context
+- `_setup_sentry_context()` - Set Sentry user context and add breadcrumb
+- `_log_handler_success()` - Log successful completion
+- `_handle_validation_error()` - Handle ValidationError
+- `_handle_authentication_error()` - Handle AuthenticationError
+- `_handle_rate_limit_error()` - Handle RateLimitError
+- `_handle_api_error()` - Handle APIError
+- `_handle_unexpected_error()` - Handle generic Exception
 
 ---
 
