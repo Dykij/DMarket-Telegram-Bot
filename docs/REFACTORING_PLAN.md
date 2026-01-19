@@ -80,6 +80,20 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 - `_calculate_retry_delay()` - Calculate retry delay
 - `_parse_http_error_response()` - Parse HTTP error response
 
+### 3. `scan_game()` in `arbitrage_scanner.py`
+
+**Before**: 216 lines  
+**After**: <50 lines  
+**Reduction**: >75%
+
+**Extracted Helper Methods**:
+- `_get_profit_ranges()` - Get profit percentage range for scanning mode
+- `_get_price_ranges()` - Get price range for scanning mode
+- `_search_with_builtin_functions()` - Search using built-in arbitrage functions
+- `_search_with_trader()` - Search using ArbitrageTrader
+- `_apply_liquidity_filter()` - Apply liquidity filter to items
+- `_enhance_with_steam()` - Enhance items with Steam price data
+
 ---
 
 ## 📋 Refactoring Guidelines

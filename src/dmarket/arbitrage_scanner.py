@@ -228,6 +228,194 @@ class ArbitrageScanner:
 
         return self.api_client
 
+    # ============================================================================
+    # scan_game helper methods (Phase 2 refactoring)
+    # ============================================================================
+
+    def _get_profit_ranges(self, mode: str) -> tuple[float, float]:
+        """Get profit percentage range for scanning mode.
+
+        Args:
+            mode: Scanning mode ("low", "medium", "high")
+
+        Returns:
+            Tuple of (min_profit, max_profit) percentages
+        """
+        if mode == "low":
+            return (1.0, 5.0)
+        if mode == "medium":
+            return (5.0, 20.0)
+        if mode == "high":
+            return (20.0, 100.0)
+        return (5.0, 20.0)  # Default to medium
+
+    def _get_price_ranges(
+        self,
+        mode: str,
+        price_from: float | None,
+        price_to: float | None,
+    ) -> tuple[float | None, float | None]:
+        """Get price range for scanning mode.
+
+        Args:
+            mode: Scanning mode
+            price_from: Explicit min price (overrides mode default)
+            price_to: Explicit max price (overrides mode default)
+
+        Returns:
+            Tuple of (price_from, price_to) in USD
+        """
+        if price_from is not None or price_to is not None:
+            return (price_from, price_to)
+
+        if mode == "low":
+            return (None, 20.0)
+        if mode == "medium":
+            return (20.0, 100.0)
+        if mode == "high":
+            return (100.0, None)
+        return (20.0, 100.0)  # Default to medium
+
+    async def _search_with_builtin_functions(
+        self,
+        game: str,
+        mode: str,
+    ) -> list[Any]:
+        """Search for arbitrage using built-in functions.
+
+        Args:
+            game: Game code
+            mode: Scanning mode
+
+        Returns:
+            List of found items
+        """
+        try:
+            if mode == "low":
+                return await arbitrage_boost_async(game)
+            if mode == "medium":
+                return await arbitrage_mid_async(game)
+            if mode == "high":
+                return await arbitrage_pro_async(game)
+            return await arbitrage_mid_async(game)  # Default
+        except Exception as e:
+            logger.warning(f"Error using builtin arbitrage functions: {e!s}")
+            return []
+
+    async def _search_with_trader(
+        self,
+        game: str,
+        min_profit: float,
+        price_from: float | None,
+        price_to: float | None,
+    ) -> list[Any]:
+        """Search for arbitrage using ArbitrageTrader.
+
+        Args:
+            game: Game code
+            min_profit: Minimum profit percentage
+            price_from: Min price in USD
+            price_to: Max price in USD
+
+        Returns:
+            List of found items
+        """
+        try:
+            trader = ArbitrageTrader(api_client=self.api_client)
+            items = await trader.find_profitable_items(
+                game=game,
+                min_profit_percentage=min_profit,
+                max_items=100,
+                min_price=price_from or 1.0,
+                max_price=price_to or 100.0,
+            )
+            return items
+        except Exception as e:
+            logger.warning(f"Error using ArbitrageTrader: {e!s}")
+            return []
+
+    async def _apply_liquidity_filter(
+        self,
+        items: list[dict[str, Any]],
+        game: str,
+        max_items: int,
+    ) -> list[dict[str, Any]]:
+        """Apply liquidity filter to items.
+
+        Args:
+            items: List of items to filter
+            game: Game code
+            max_items: Maximum items to return
+
+        Returns:
+            Filtered list of items
+        """
+        if not self.enable_liquidity_filter or not self.liquidity_analyzer:
+            return items
+
+        # Take more candidates since some will be filtered out
+        candidates = items[: max_items * 2]
+        return await self.liquidity_analyzer.filter_liquid_items(
+            candidates, game=game
+        )
+
+    async def _enhance_with_steam(
+        self,
+        results: list[dict[str, Any]],
+        game: str,
+        mode: str,
+    ) -> list[dict[str, Any]]:
+        """Enhance items with Steam price data.
+
+        Args:
+            results: List of items
+            game: Game code
+            mode: Scanning mode
+
+        Returns:
+            Enhanced list of items
+        """
+        if not self.enable_steam_check or not self.steam_enhancer:
+            return results
+
+        try:
+            logger.info(
+                f"Enhancing {len(results)} items with Steam data",
+                extra={"game": game, "mode": mode},
+            )
+            original_count = len(results)
+            results = await self.steam_enhancer.enhance_items(results)
+            filtered_count = len(results)
+
+            logger.info(
+                f"Steam enhancement complete: {original_count} -> {filtered_count}",
+                extra={
+                    "original": original_count,
+                    "filtered": filtered_count,
+                    "removed": original_count - filtered_count,
+                },
+            )
+
+            add_trading_breadcrumb(
+                action="steam_enhancement_completed",
+                game=game,
+                original_items=original_count,
+                enhanced_items=filtered_count,
+            )
+            return results
+        except Exception as e:
+            logger.exception(f"Steam enhancement failed: {e}", extra={"game": game})
+            add_trading_breadcrumb(
+                action="steam_enhancement_failed",
+                game=game,
+                error=str(e),
+            )
+            return results
+
+    # ============================================================================
+    # End of scan_game helper methods
+    # ============================================================================
+
     async def scan_game(
         self,
         game: str,
@@ -281,73 +469,27 @@ class ArbitrageScanner:
             # Соблюдаем ограничения API
             await rate_limiter.wait_if_needed("market")
 
-            # Пробуем два метода поиска арбитражных возможностей:
-            # 1. Встроенные функции для быстрого поиска
-            # 2. ArbitrageTrader для более детального поиска
-
             # Инициализируем items перед использованием
             items: list[Any] = []
 
-            # Метод 1: Используем встроенные функции
+            # Метод 1: Используем встроенные функции (Phase 2 - use helper)
             if price_from is None and price_to is None:
-                try:
-                    if mode == "low":
-                        items = await arbitrage_boost_async(game)
-                    elif mode == "medium":
-                        items = await arbitrage_mid_async(game)
-                    elif mode == "high":
-                        items = await arbitrage_pro_async(game)
-                    else:
-                        # По умолчанию используем средний режим
-                        items = await arbitrage_mid_async(game)
-
-                    # Если нашли достаточно предметов, переходим к фильтрации
-                    # Раньше здесь был ранний выход, но теперь мы хотим применить фильтр ликвидности ко всем предметам
-                except Exception as e:
-                    logger.warning(
-                        f"Ошибка при использовании встроенных функций арбитража: {e!s}",
-                    )
-                    items = []
+                items = await self._search_with_builtin_functions(game, mode)
 
             # Метод 2: Используем ArbitrageTrader для более детального поиска
-            try:
-                # Определяем диапазоны прибыли в зависимости от режима
-                min_profit = 1.0
-                max_profit = 5.0
+            # (Phase 2 - use helpers for profit and price ranges)
+            min_profit, max_profit = self._get_profit_ranges(mode)
+            current_price_from, current_price_to = self._get_price_ranges(
+                mode, price_from, price_to
+            )
 
-                if mode == "medium":
-                    min_profit = 5.0
-                    max_profit = 20.0
-                elif mode == "high":
-                    min_profit = 20.0
-                    max_profit = 100.0
+            # Search with ArbitrageTrader (Phase 2 - use helper)
+            items_from_trader = await self._search_with_trader(
+                game, min_profit, current_price_from, current_price_to
+            )
 
-                # Определяем диапазоны цен, если не указаны явно
-                current_price_from = price_from
-                current_price_to = price_to
-
-                if price_from is None and price_to is None:
-                    if mode == "low":
-                        current_price_to = 20.0  # До $20 для низкого режима
-                    elif mode == "medium":
-                        current_price_from = 20.0
-                        current_price_to = 100.0  # $20-$100 для среднего режима
-                    elif mode == "high":
-                        current_price_from = 100.0  # От $100 для высокого режима
-
-                # Создаем ArbitrageTrader для поиска предметов
-                trader = ArbitrageTrader(api_client=self.api_client)
-
-                # Получаем предметы с маркета с учетом фильтров
-                items_from_trader = await trader.find_profitable_items(
-                    game=game,
-                    min_profit_percentage=min_profit,  # Минимальный процент прибыли
-                    max_items=100,
-                    min_price=current_price_from or 1.0,
-                    max_price=current_price_to or 100.0,
-                )
-
-                # Фильтруем и стандартизируем формат данных
+            # Фильтруем и стандартизируем формат данных
+            if items_from_trader:
                 items.extend(
                     self._standardize_items(
                         items_from_trader,
@@ -356,23 +498,12 @@ class ArbitrageScanner:
                         max_profit,
                     ),
                 )
-            except Exception as e:
-                logger.warning(f"Ошибка при использовании ArbitrageTrader: {e!s}")
 
             # Сортируем все найденные предметы по прибыльности (от большей к меньшей)
             items.sort(key=lambda x: float(x.get("profit", 0)), reverse=True)
 
-            # Если включен фильтр ликвидности, проверяем топ предметов
-            if self.enable_liquidity_filter and self.liquidity_analyzer:
-                # Берем больше предметов для проверки, так как часть отсеется
-                candidates = items[: max_items * 2]
-
-                # Фильтруем через анализатор ликвидности
-                # Это добавит метрики ликвидности и удалит неликвидные предметы
-                results = await self.liquidity_analyzer.filter_liquid_items(candidates, game=game)
-            else:
-                # Если фильтр выключен, просто берем топ по прибыли
-                results = items
+            # Фильтрация по ликвидности (Phase 2 - use helper)
+            results = await self._apply_liquidity_filter(items, game, max_items)
 
             # Ограничиваем количество предметов в результате
             results = results[:max_items]
@@ -381,41 +512,8 @@ class ArbitrageScanner:
             if self.enable_notifications and results:
                 await self._send_notifications(results, game, mode)
 
-            # 🆕 Обогащаем Steam данными, если включено
-            if self.enable_steam_check and self.steam_enhancer:
-                try:
-                    logger.info(
-                        f"Enhancing {len(results)} items with Steam data",
-                        extra={"game": game, "mode": mode},
-                    )
-                    original_count = len(results)
-                    results = await self.steam_enhancer.enhance_items(results)
-                    filtered_count = len(results)
-
-                    logger.info(
-                        f"Steam enhancement complete: {original_count} -> {filtered_count} items",
-                        extra={
-                            "original": original_count,
-                            "filtered": filtered_count,
-                            "removed": original_count - filtered_count,
-                        },
-                    )
-
-                    # Добавляем breadcrumb о Steam обогащении
-                    add_trading_breadcrumb(
-                        action="steam_enhancement_completed",
-                        game=game,
-                        original_items=original_count,
-                        enhanced_items=filtered_count,
-                    )
-                except Exception as e:
-                    logger.exception(f"Steam enhancement failed: {e}", extra={"game": game})
-                    # Продолжаем без Steam данных
-                    add_trading_breadcrumb(
-                        action="steam_enhancement_failed",
-                        game=game,
-                        error=str(e),
-                    )
+            # 🆕 Обогащаем Steam данными (Phase 2 - use helper)
+            results = await self._enhance_with_steam(results, game, mode)
 
             # Добавляем breadcrumb об успешном сканировании
             add_trading_breadcrumb(
