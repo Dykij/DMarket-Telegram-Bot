@@ -771,6 +771,197 @@ class DMarketAPI:  # noqa: PLR0904
 
             logger.debug(f"Cache cleanup: removed {len(keys_to_remove)} old entries")
 
+    # ============================================================================
+    # Request helper methods (Phase 2 refactoring - extracted from _request)
+    # ============================================================================
+
+    def _prepare_sorted_params(
+        self,
+        params: dict[str, Any] | None,
+    ) -> list[tuple[str, Any]]:
+        """Prepare and sort query parameters for consistent signing.
+
+        Args:
+            params: Original query parameters
+
+        Returns:
+            Sorted list of (key, value) tuples
+        """
+        if not params:
+            return []
+
+        if isinstance(params, dict):
+            return sorted(params.items())
+        return sorted(params)
+
+    def _build_path_for_signature(
+        self,
+        method: str,
+        path: str,
+        params_items: list[tuple[str, Any]],
+    ) -> str:
+        """Build path with query string for signature generation.
+
+        Args:
+            method: HTTP method
+            path: API path
+            params_items: Sorted list of query parameters
+
+        Returns:
+            Path with query string for GET requests, original path otherwise
+        """
+        if method.upper() != "GET" or not params_items:
+            return path
+
+        from urllib.parse import urlencode
+        query_string = urlencode(params_items)
+        return f"{path}?{query_string}" if query_string else path
+
+    async def _execute_single_http_request(
+        self,
+        client: httpx.AsyncClient,
+        method: str,
+        url: str,
+        params: list[tuple[str, Any]] | None,
+        data: dict[str, Any] | None,
+        headers: dict[str, str],
+    ) -> httpx.Response:
+        """Execute a single HTTP request with circuit breaker.
+
+        Args:
+            client: HTTP client
+            method: HTTP method
+            url: Full URL
+            params: Query parameters
+            data: Request body data
+            headers: Request headers
+
+        Returns:
+            HTTP response
+
+        Raises:
+            ValueError: If HTTP method is not supported
+        """
+        method_upper = method.upper()
+
+        if method_upper == "GET":
+            return await call_with_circuit_breaker(
+                client.get, url, params=params, headers=headers
+            )
+        if method_upper == "POST":
+            return await call_with_circuit_breaker(
+                client.post, url, json=data, headers=headers
+            )
+        if method_upper == "PUT":
+            return await call_with_circuit_breaker(
+                client.put, url, json=data, headers=headers
+            )
+        if method_upper == "DELETE":
+            return await call_with_circuit_breaker(
+                client.delete, url, headers=headers
+            )
+
+        msg = f"Неподдерживаемый HTTP метод: {method}"
+        raise ValueError(msg)
+
+    def _parse_json_response(
+        self,
+        response: httpx.Response,
+        path: str,
+    ) -> dict[str, Any]:
+        """Parse JSON from HTTP response.
+
+        Args:
+            response: HTTP response
+            path: API path (for logging)
+
+        Returns:
+            Parsed JSON data or error dict
+        """
+        if response.status_code == 204:  # No Content
+            return {"status": "success", "code": 204}
+
+        try:
+            return response.json()  # type: ignore[no-any-return]
+        except (json.JSONDecodeError, TypeError, Exception):
+            logger.exception(
+                f"Ошибка парсинга JSON. Код: {response.status_code}. "
+                f"Текст: {response.text[:200]}"
+            )
+            return {
+                "error": "invalid_json",
+                "status_code": response.status_code,
+                "raw_body": response.text[:100],
+                "text": response.text,
+            }
+
+    def _calculate_retry_delay(
+        self,
+        status_code: int,
+        retries: int,
+        current_delay: float,
+        response: httpx.Response | None = None,
+    ) -> float:
+        """Calculate delay before retry based on error type.
+
+        Args:
+            status_code: HTTP status code
+            retries: Current retry count
+            current_delay: Current delay value
+            response: HTTP response (for Retry-After header)
+
+        Returns:
+            Delay in seconds before next retry
+        """
+        if status_code == 429:
+            # Rate limit - use Retry-After header or exponential backoff
+            retry_after = None
+            if response:
+                try:
+                    retry_after = int(response.headers.get("Retry-After", "0"))
+                except (ValueError, TypeError):
+                    retry_after = None
+
+            if retry_after and retry_after > 0:
+                return float(retry_after)
+            return min(current_delay * 2, 30)  # Max 30 seconds
+
+        # Other errors - fixed delay with small increment
+        return 1.0 + retries * 0.5
+
+    def _parse_http_error_response(
+        self,
+        response: httpx.Response,
+    ) -> dict[str, Any]:
+        """Parse error response body.
+
+        Args:
+            response: HTTP response with error
+
+        Returns:
+            Parsed error data
+        """
+        content_type = response.headers.get("Content-Type", "")
+
+        if "application/json" in content_type:
+            try:
+                return response.json()  # type: ignore[no-any-return]
+            except Exception:
+                return {
+                    "error": "Failed to parse JSON error",
+                    "raw": response.text[:100],
+                }
+
+        # Non-JSON response (e.g., HTML from Cloudflare)
+        return {
+            "error": "Non-JSON response",
+            "status_code": response.status_code,
+        }
+
+    # ============================================================================
+    # End of request helper methods
+    # ============================================================================
+
     async def _request(
         self,
         method: str,
@@ -828,28 +1019,14 @@ class DMarketAPI:  # noqa: PLR0904
         if data and method.upper() in {"POST", "PUT", "PATCH"}:
             body_json = json.dumps(data)
 
-        # Генерируем заголовки с подписью
-        # ВАЖНО: Если есть params, они должны быть включены в path для подписи
-        # И порядок параметров должен совпадать в подписи и в запросе
-        path_for_signature = path
+        # Подготавливаем отсортированные параметры для подписи
+        # (Phase 2 refactoring - extracted to helper method)
+        params_items = self._prepare_sorted_params(params)
+        if params_items:
+            params = params_items  # type: ignore[assignment]
 
-        # Если params есть, сортируем их и используем отсортированный список для запроса и подписи
-        if params:
-            # Преобразуем в список кортежей и сортируем по ключу
-            if isinstance(params, dict):
-                params_items = sorted(params.items())
-            else:
-                params_items = sorted(params)
-
-            # Обновляем params, чтобы httpx отправил их в том же порядке
-            params = params_items
-
-            if method.upper() == "GET":
-                from urllib.parse import urlencode
-
-                query_string = urlencode(params_items)
-                if query_string:
-                    path_for_signature = f"{path}?{query_string}"
+        # Строим path для подписи с query string
+        path_for_signature = self._build_path_for_signature(method, path, params_items)
 
         logger.debug(f"Path for signature: {path_for_signature}")
         headers = self._generate_signature(method.upper(), path_for_signature, body_json)
@@ -879,24 +1056,15 @@ class DMarketAPI:  # noqa: PLR0904
                     has_cache=cache_key and self._get_from_cache(cache_key) is not None,
                 )
 
-                # Выполняем запрос с нужным методом
-                if method.upper() == "GET":
-                    response = await call_with_circuit_breaker(
-                        client.get, url, params=params, headers=headers
-                    )
-                elif method.upper() == "POST":
-                    response = await call_with_circuit_breaker(
-                        client.post, url, json=data, headers=headers
-                    )
-                elif method.upper() == "PUT":
-                    response = await call_with_circuit_breaker(
-                        client.put, url, json=data, headers=headers
-                    )
-                elif method.upper() == "DELETE":
-                    response = await call_with_circuit_breaker(client.delete, url, headers=headers)
-                else:
-                    msg = f"Неподдерживаемый HTTP метод: {method}"
-                    raise ValueError(msg)
+                # Выполняем запрос (Phase 2 - extracted to helper method)
+                response = await self._execute_single_http_request(
+                    client=client,
+                    method=method,
+                    url=url,
+                    params=params,  # type: ignore[arg-type]
+                    data=data,
+                    headers=headers,
+                )
 
                 # Проверяем статус ответа
                 response.raise_for_status()
@@ -912,22 +1080,8 @@ class DMarketAPI:  # noqa: PLR0904
                     response_time_ms=response_time_ms,
                 )
 
-                # Парсим JSON ответа
-                try:
-                    if response.status_code == 204:  # No Content
-                        return {"status": "success", "code": 204}
-                    result = response.json()
-                except (json.JSONDecodeError, TypeError, Exception):
-                    # Если не получается распарсить JSON, возвращаем текст
-                    logger.exception(
-                        f"Ошибка парсинга JSON. Код: {response.status_code}. Текст: {response.text[:200]}"
-                    )
-                    result = {
-                        "error": "invalid_json",
-                        "status_code": response.status_code,
-                        "raw_body": response.text[:100],
-                        "text": response.text,
-                    }
+                # Парсим JSON ответа (Phase 2 - extracted to helper method)
+                result = self._parse_json_response(response, path)
 
                 # Сохраняем в кэш если нужно
                 if method.upper() == "GET" and self.enable_cache and is_cacheable:
@@ -968,73 +1122,41 @@ class DMarketAPI:  # noqa: PLR0904
                 )
 
                 # Получаем описание ошибки из словаря кодов ошибок
-                error_description = self.ERROR_CODES.get(
-                    status_code,
-                    "Неизвестная ошибка",
-                )
+                error_description = self.ERROR_CODES.get(status_code, "Неизвестная ошибка")
                 logger.warning(f"Описание ошибки: {error_description}")
 
                 # Проверяем, нужно ли повторить запрос
                 if status_code in self.retry_codes:
                     retries += 1
 
-                    # При ошибке 429 (Too Many Requests) используем экспоненциальную задержку
+                    # Record 429 error in advanced rate limiter (Roadmap Task #3)
                     if status_code == 429:
-                        # Record 429 error in advanced rate limiter (Roadmap Task #3)
                         self.advanced_rate_limiter.record_429_error(path)
 
-                        retry_after = None
-                        try:
-                            # Пробуем получить значение Retry-After из заголовков
-                            retry_after = int(
-                                e.response.headers.get("Retry-After", "0"),
-                            )
-                        except (ValueError, TypeError):
-                            retry_after = None
+                    # Calculate retry delay (Phase 2 - extracted to helper method)
+                    retry_delay = self._calculate_retry_delay(
+                        status_code=status_code,
+                        retries=retries,
+                        current_delay=retry_delay,
+                        response=e.response,
+                    )
 
-                        # Если нет Retry-After или он некорректный, используем экспоненциальную задержку
-                        if not retry_after or retry_after <= 0:
-                            retry_delay = min(
-                                retry_delay * 2,
-                                30,
-                            )  # максимальная задержка 30 секунд
-                        else:
-                            retry_delay = retry_after
-
+                    if status_code == 429:
                         logger.warning(
                             f"⚠️  Rate limit превышен для {path}. "
                             f"Повторная попытка через {retry_delay} сек.",
                         )
-                    else:
-                        # Для других ошибок используем фиксированную задержку с небольшим случайным компонентом
-                        retry_delay = 1.0 + retries * 0.5
 
                     if retries <= self.max_retries:
                         logger.info(
-                            f"Повторная попытка {retries}/{self.max_retries} через {retry_delay} сек...",
+                            f"Повторная попытка {retries}/{self.max_retries} "
+                            f"через {retry_delay} сек...",
                         )
                         await asyncio.sleep(retry_delay)
                         continue
 
-                # Если это не ретраибл ошибка или исчерпаны попытки
-                # Пытаемся безопасно прочитать тело ответа
-                content_type = e.response.headers.get("Content-Type", "")
-
-                if "application/json" in content_type:
-                    try:
-                        error_data = e.response.json()
-                    except Exception:
-                        error_data = {
-                            "error": "Failed to parse JSON error",
-                            "raw": e.response.text[:100],
-                        }
-                else:
-                    # Если пришел HTML (например, 404 или 502 ошибка Cloudflare)
-                    error_data = {
-                        "error": "Non-JSON response",
-                        "status_code": e.response.status_code,
-                    }
-
+                # Parse error response (Phase 2 - extracted to helper method)
+                error_data = self._parse_http_error_response(e.response)
                 logger.warning(f"⚠️ API Error {e.response.status_code} на {path}: {error_data}")
                 return error_data
 
