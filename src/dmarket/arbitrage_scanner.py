@@ -15,7 +15,9 @@ import time
 from typing import TYPE_CHECKING, Any
 
 from src.dmarket.arbitrage import (
+    CENTS_TO_USD,
     GAMES,
+    USD_TO_CENTS,
     ArbitrageTrader,
     arbitrage_boost_async,
     arbitrage_mid_async,
@@ -567,7 +569,7 @@ class ArbitrageScanner:
                     {
                         "title": item.get("name", item.get("title", "Unknown item")),
                         "price": {
-                            "amount": int(item.get("buy_price", 0) * 100),
+                            "amount": int(item.get("buy_price", 0) * USD_TO_CENTS),
                         },  # В центах
                         "profit": profit,
                         "profit_percent": item.get("profit_percentage", 0),
@@ -938,7 +940,7 @@ class ArbitrageScanner:
                 break
 
             # Проверяем, соответствует ли предмет критериям
-            buy_price = item.get("price", {}).get("amount", 0) / 100.0  # Цена в USD
+            buy_price = item.get("price", {}).get("amount", 0) / CENTS_TO_USD  # Цена в USD
             profit = item.get("profit", 0)
 
             if buy_price > max_price:
@@ -1076,7 +1078,7 @@ class ArbitrageScanner:
 
             # Преобразуем цену из центов в доллары
             price_data = item_data.get("price", {})
-            price = float(price_data.get("USD", 0)) / 100
+            price = float(price_data.get("USD", 0)) / CENTS_TO_USD
 
             return {
                 "itemId": item_id,
@@ -1115,7 +1117,7 @@ class ArbitrageScanner:
                         {
                             "itemId": item_id,
                             "price": {
-                                "amount": int(max_price * 100),  # Конвертируем в центы
+                                "amount": int(max_price * USD_TO_CENTS),  # Конвертируем в центы
                                 "currency": "USD",
                             },
                         },
@@ -1261,8 +1263,8 @@ class ArbitrageScanner:
         price_from, price_to = config["price_range"]
 
         # Конвертируем цены из USD в центы
-        price_from_cents = int(price_from * 100)
-        price_to_cents = int(price_to * 100)
+        price_from_cents = int(price_from * USD_TO_CENTS)
+        price_to_cents = int(price_to * USD_TO_CENTS)
 
         # Получаем оптимизированные treeFilters для игры и уровня
         from src.dmarket.scanner.tree_filters import (
@@ -1391,7 +1393,7 @@ class ArbitrageScanner:
             suggested_value = item.get("suggestedPrice", {}).get("USD", 0)
             suggested_price_cents = float(suggested_value) if suggested_value else 0.0
             if suggested_price_cents > 0:
-                suggested_price = suggested_price_cents / 100
+                suggested_price = suggested_price_cents / CENTS_TO_USD
             else:
                 suggested_price = price_usd * 1.2
 
