@@ -1456,6 +1456,200 @@ class EnhancedPricePredictor:
     # REAL API TRAINING - Обучение на реальных данных API
     # ═══════════════════════════════════════════════════════════════════════
 
+    def _parse_game_types(
+        self,
+        game_types: list[str] | None,
+        game_type_map: dict[str, Any],
+        default_game_type: Any,
+        errors: list[str],
+    ) -> list[Any]:
+        """Parse game_types list to GameType enums.
+
+        Args:
+            game_types: List of game type strings or None.
+            game_type_map: Mapping from string to GameType enum.
+            default_game_type: Default GameType if game_types is None.
+            errors: List to append error messages to.
+
+        Returns:
+            List of GameType enums.
+        """
+        if game_types is None:
+            return [default_game_type]
+
+        game_types_enum = []
+        for gt in game_types:
+            gt_lower = gt.lower()
+            if gt_lower in game_type_map:
+                game_types_enum.append(game_type_map[gt_lower])
+            else:
+                errors.append(f"Unknown game type: {gt}")
+                logger.warning(f"Unknown game type: {gt}")
+
+        return game_types_enum
+
+    async def _collect_prices_from_apis(
+        self,
+        game_types_enum: list[Any],
+        items_per_game: int,
+        include_dmarket: bool,
+        include_waxpeer: bool,
+        include_steam: bool,
+        dmarket_api: Any | None,
+        waxpeer_api: Any | None,
+    ) -> list[Any]:
+        """Collect prices using RealPriceCollector.
+
+        Args:
+            game_types_enum: List of GameType enums.
+            items_per_game: Number of items per game.
+            include_dmarket: Whether to include DMarket API.
+            include_waxpeer: Whether to include Waxpeer API.
+            include_steam: Whether to include Steam API.
+            dmarket_api: Optional DMarket API client.
+            waxpeer_api: Optional Waxpeer API client.
+
+        Returns:
+            List of collected price objects.
+        """
+        from src.ml.real_price_collector import RealPriceCollector
+
+        collector = RealPriceCollector(
+            dmarket_api=dmarket_api,
+            waxpeer_api=waxpeer_api,
+        )
+
+        logger.info("Collecting prices from APIs...")
+        return await collector.collect_all_prices(
+            game_types=game_types_enum,
+            items_per_game=items_per_game,
+            include_dmarket=include_dmarket,
+            include_waxpeer=include_waxpeer,
+            include_steam=include_steam,
+        )
+
+    def _process_collected_prices(
+        self,
+        collected_prices: list[Any],
+        result: dict[str, Any],
+    ) -> tuple[list[list[float]], list[float]]:
+        """Process prices through TrainingDataManager.
+
+        Args:
+            collected_prices: List of collected price objects.
+            result: Result dict to update with source counts.
+
+        Returns:
+            Tuple of (X, y) training data arrays.
+        """
+        from src.ml.training_data_manager import TrainingDataManager
+
+        # Count by sources
+        for price in collected_prices:
+            source = price.source.value
+            result["sources"][source] = result["sources"].get(source, 0) + 1
+
+        logger.info(
+            f"Collected {len(collected_prices)} prices: "
+            f"DMarket={result['sources'].get('dmarket', 0)}, "
+            f"Waxpeer={result['sources'].get('waxpeer', 0)}, "
+            f"Steam={result['sources'].get('steam', 0)}"
+        )
+
+        # Initialize data manager and process prices
+        data_manager = TrainingDataManager()
+        logger.info("Processing collected prices...")
+        processed = 0
+
+        for price in collected_prices:
+            try:
+                metadata = {
+                    "game_id": price.game_id,
+                    "source": price.source.value,
+                    "commission_rate": price.commission_rate,
+                    "liquidity": price.liquidity,
+                    "sales_volume_24h": price.sales_volume_24h,
+                }
+                data_manager.add_price_data(
+                    item_id=price.item_id,
+                    title=price.title,
+                    price_usd=price.normalized_price,
+                    suggested_price_usd=price.original_price,
+                    metadata=metadata,
+                )
+                processed += 1
+            except Exception as e:
+                logger.debug(f"Failed to process price {price.item_id}: {e}")
+
+        logger.info(f"Processed {processed}/{len(collected_prices)} prices")
+
+        # Prepare training data
+        logger.info("Preparing training data...")
+        return data_manager.prepare_training_data()
+
+    def _prepare_and_train_models(
+        self,
+        X: list[list[float]],
+        y: list[float],
+    ) -> None:
+        """Prepare training data and train ensemble models.
+
+        Args:
+            X: Feature matrix.
+            y: Target values.
+        """
+        # Clear and populate training data
+        self._training_data_X.clear()
+        self._training_data_y.clear()
+
+        for features, target in zip(X, y, strict=False):
+            self._training_data_X.append(features)
+            self._training_data_y.append(target)
+
+        # Train and save models
+        logger.info("Training ensemble models...")
+        self.train()
+        self._save_model()
+
+    def _build_training_result(
+        self,
+        X: list[list[float]],
+        result: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Build the result dictionary with training metrics.
+
+        Args:
+            X: Feature matrix used for training.
+            result: Result dict to update.
+
+        Returns:
+            Updated result dict with success and metrics.
+        """
+        result["training_metrics"] = {
+            "total_samples": len(X),
+            "feature_count": len(X[0]) if X else 0,
+            "models_trained": [
+                "random_forest",
+                "gradient_boost",
+                "ridge",
+                "xgboost",
+            ],
+            "model_weights": {
+                "random_forest": 0.35,
+                "xgboost": 0.35,
+                "gradient_boost": 0.20,
+                "ridge": 0.10,
+            },
+        }
+        result["success"] = True
+
+        logger.info(
+            f"Training completed successfully: "
+            f"{result['samples_used']} samples, "
+            f"{len(result['training_metrics']['models_trained'])} models"
+        )
+        return result
+
     async def train_from_real_data(
         self,
         game_types: list[str] | None = None,
@@ -1498,21 +1692,10 @@ class EnhancedPricePredictor:
                 - sources: dict - Статистика по источникам
                 - training_metrics: dict - Метрики обучения
                 - errors: list - Список ошибок
-
-        Example:
-            >>> predictor = EnhancedPricePredictor()
-            >>> result = await predictor.train_from_real_data(
-            ...     game_types=["csgo", "dota2"],
-            ...     items_per_game=200,
-            ...     include_steam=False,  # Steam медленнее
-            ... )
-            >>> print(f"Trained on {result['samples_used']} samples")
         """
-        # Импорты в runtime для избежания циклических зависимостей
-        from src.ml.real_price_collector import GameType, RealPriceCollector
-        from src.ml.training_data_manager import TrainingDataManager
+        from src.ml.real_price_collector import GameType
 
-        result = {
+        result: dict[str, Any] = {
             "success": False,
             "samples_collected": 0,
             "samples_used": 0,
@@ -1521,7 +1704,7 @@ class EnhancedPricePredictor:
             "errors": [],
         }
 
-        # Маппинг строк к GameType enum
+        # Build game type mapping
         game_type_map = {
             "csgo": GameType.CSGO,
             "cs2": GameType.CSGO,
@@ -1531,19 +1714,10 @@ class EnhancedPricePredictor:
             "rust": GameType.RUST,
         }
 
-        # Парсинг game_types
-        if game_types is None:
-            game_types_enum = [GameType.CSGO]
-        else:
-            game_types_enum = []
-            for gt in game_types:
-                gt_lower = gt.lower()
-                if gt_lower in game_type_map:
-                    game_types_enum.append(game_type_map[gt_lower])
-                else:
-                    result["errors"].append(f"Unknown game type: {gt}")
-                    logger.warning(f"Unknown game type: {gt}")
-
+        # Parse game types
+        game_types_enum = self._parse_game_types(
+            game_types, game_type_map, GameType.CSGO, result["errors"]
+        )
         if not game_types_enum:
             result["errors"].append("No valid game types specified")
             return result
@@ -1554,22 +1728,11 @@ class EnhancedPricePredictor:
         )
 
         try:
-            # 1. Инициализация коллектора
-            collector = RealPriceCollector(
-                dmarket_api=dmarket_api,
-                waxpeer_api=waxpeer_api,
+            # Collect prices from APIs
+            collected_prices = await self._collect_prices_from_apis(
+                game_types_enum, items_per_game, include_dmarket,
+                include_waxpeer, include_steam, dmarket_api, waxpeer_api,
             )
-
-            # 2. Сбор данных
-            logger.info("Collecting prices from APIs...")
-            collected_prices = await collector.collect_all_prices(
-                game_types=game_types_enum,
-                items_per_game=items_per_game,
-                include_dmarket=include_dmarket,
-                include_waxpeer=include_waxpeer,
-                include_steam=include_steam,
-            )
-
             result["samples_collected"] = len(collected_prices)
 
             if not collected_prices:
@@ -1577,51 +1740,8 @@ class EnhancedPricePredictor:
                 logger.error("No prices collected")
                 return result
 
-            # Подсчет по источникам
-            for price in collected_prices:
-                source = price.source.value
-                result["sources"][source] = result["sources"].get(source, 0) + 1
-
-            logger.info(
-                f"Collected {len(collected_prices)} prices: "
-                f"DMarket={result['sources'].get('dmarket', 0)}, "
-                f"Waxpeer={result['sources'].get('waxpeer', 0)}, "
-                f"Steam={result['sources'].get('steam', 0)}"
-            )
-
-            # 3. Инициализация менеджера данных
-            data_manager = TrainingDataManager()
-
-            # 4. Добавление данных в менеджер
-            logger.info("Processing collected prices...")
-            processed = 0
-            for price in collected_prices:
-                try:
-                    # Создаем метаданные для TrainingDataManager
-                    metadata = {
-                        "game_id": price.game_id,
-                        "source": price.source.value,
-                        "commission_rate": price.commission_rate,
-                        "liquidity": price.liquidity,
-                        "sales_volume_24h": price.sales_volume_24h,
-                    }
-
-                    data_manager.add_price_data(
-                        item_id=price.item_id,
-                        title=price.title,
-                        price_usd=price.normalized_price,
-                        suggested_price_usd=price.original_price,
-                        metadata=metadata,
-                    )
-                    processed += 1
-                except Exception as e:
-                    logger.debug(f"Failed to process price {price.item_id}: {e}")
-
-            logger.info(f"Processed {processed}/{len(collected_prices)} prices")
-
-            # 5. Подготовка данных для обучения
-            logger.info("Preparing training data...")
-            X, y = data_manager.prepare_training_data()
+            # Process collected prices
+            X, y = self._process_collected_prices(collected_prices, result)
 
             if len(X) < min_samples:
                 result["errors"].append(f"Not enough samples: {len(X)} < {min_samples}")
@@ -1631,45 +1751,11 @@ class EnhancedPricePredictor:
             result["samples_used"] = len(X)
             logger.info(f"Prepared {len(X)} training samples")
 
-            # 6. Добавление в обучающие данные предиктора
-            self._training_data_X.clear()
-            self._training_data_y.clear()
+            # Train models
+            self._prepare_and_train_models(X, y)
 
-            for features, target in zip(X, y, strict=False):
-                self._training_data_X.append(features)
-                self._training_data_y.append(target)
-
-            # 7. Обучение моделей
-            logger.info("Training ensemble models...")
-            self.train()
-
-            # 8. Сохранение модели
-            self._save_model()
-
-            # 9. Сбор метрик
-            result["training_metrics"] = {
-                "total_samples": len(X),
-                "feature_count": len(X[0]) if X else 0,
-                "models_trained": [
-                    "random_forest",
-                    "gradient_boost",
-                    "ridge",
-                    "xgboost",
-                ],
-                "model_weights": {
-                    "random_forest": 0.35,
-                    "xgboost": 0.35,
-                    "gradient_boost": 0.20,
-                    "ridge": 0.10,
-                },
-            }
-
-            result["success"] = True
-            logger.info(
-                f"Training completed successfully: "
-                f"{result['samples_used']} samples, "
-                f"{len(result['training_metrics']['models_trained'])} models"
-            )
+            # Build result
+            return self._build_training_result(X, result)
 
         except ImportError as e:
             error_msg = f"Missing dependency: {e}"
