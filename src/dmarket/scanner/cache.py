@@ -85,7 +85,8 @@ class ScannerCache:
             return None
 
         items, timestamp = entry
-        if time.time() - timestamp > self._ttl:
+        # TTL=0 means no expiration
+        if self._ttl > 0 and time.time() - timestamp > self._ttl:
             # Entry expired
             del self._cache[cache_key]
             self._misses += 1

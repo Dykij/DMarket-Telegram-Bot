@@ -147,11 +147,11 @@ class TestScannerCacheGet:
         """Test getting expired key."""
         from src.dmarket.scanner.cache import ScannerCache
 
-        cache = ScannerCache(ttl=0)  # Immediate expiration
+        cache = ScannerCache(ttl=1)  # 1 second expiration
         cache.set("test_key", [{"item": "test"}])
 
-        # Wait a tiny bit to ensure expiration
-        time.sleep(0.01)
+        # Wait for expiration
+        time.sleep(1.1)
 
         result = cache.get("test_key")
 
@@ -412,10 +412,10 @@ class TestScannerCacheDunderMethods:
         """Test contains with expired key."""
         from src.dmarket.scanner.cache import ScannerCache
 
-        cache = ScannerCache(ttl=0)
+        cache = ScannerCache(ttl=1)  # 1 second expiration
         cache.set("key1", [])
 
-        time.sleep(0.01)
+        time.sleep(1.1)
 
         assert "key1" not in cache
 
