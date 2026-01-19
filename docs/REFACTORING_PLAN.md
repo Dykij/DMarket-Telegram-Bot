@@ -37,7 +37,7 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 | 1 | `button_callback_handler()` | `callbacks.py` | 950 | 🔴 Critical | ⏳ Pending |
 | 2 | `initialize()` | `main.py` | 594 | 🔴 Critical | ⏳ Pending |
 | 3 | `register_all_handlers()` | `register_all_handlers.py` | 455 | 🔴 Critical | ⏳ Pending |
-| 4 | `check_balance_command()` | `balance_command.py` | 331 | 🔴 Critical | ⏳ Pending |
+| 4 | `check_balance_command()` | `balance_command.py` | 168 | 🔴 Critical | ✅ Refactored (was 331) |
 | 5 | `_request()` | `dmarket_api.py` | 261 | 🟠 High | ✅ Refactored (was 330) |
 | 6 | `ai_train_liquid_command()` | `ai_handler.py` | 299 | 🟠 High | ⏳ Pending |
 | 7 | `create_callback_router()` | `callback_registry.py` | 264 | 🟠 High | ⏳ Pending |
@@ -109,6 +109,19 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 - `_update_dmarket_from_env()` - Update DMarket configuration
 - `_update_trading_from_env()` - Update trading configuration
 - `_update_waxpeer_from_env()` - Update Waxpeer configuration
+
+### 5. `check_balance_command()` in `balance_command.py`
+
+**Before**: 331 lines  
+**After**: 168 lines  
+**Reduction**: 49%
+
+**Extracted Helper Methods**:
+- `_extract_user_info()` - Extract user and chat_id from message object
+- `_get_message_type()` - Determine message type flags
+- `_format_error_by_code()` - Format error message based on HTTP code
+- `_format_balance_response()` - Format successful balance response
+- `_send_message_response()` - Send response message to user
 
 ---
 
