@@ -45,7 +45,7 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 | 9 | `_update_from_env()` | `config.py` | 108 | 🟠 High | ✅ Refactored (was 252) |
 | 10 | `scan_game()` | `arbitrage_scanner.py` | <50 | 🟠 High | ✅ Refactored (was 216) |
 | 11 | `market_analysis_callback()` | `market_analysis_handler.py` | 109 | 🟠 High | ✅ Refactored (was 252) |
-| 12 | `handle_mode_selection_callback()` | `automatic_arbitrage_handler.py` | 240 | 🟠 High | ⏳ Pending |
+| 12 | `handle_mode_selection_callback()` | `automatic_arbitrage_handler.py` | 100 | 🟠 High | ✅ Refactored (was 240) |
 | 13 | `train_from_real_data()` | `enhanced_predictor.py` | 225 | 🟠 High | ⏳ Pending |
 | 14 | `hold_callback_handler()` | `intelligent_hold_handler.py` | 223 | 🟡 Medium | ⏳ Pending |
 | 15 | `telegram_error_boundary()` | `telegram_error_handlers.py` | 222 | 🟡 Medium | ⏳ Pending |
@@ -188,6 +188,19 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 - `_calculate_item_liquidity()` - Calculate liquidity score for an item
 - `_save_liquid_data_to_csv()` - Save liquid items to CSV
 - `_train_model_on_liquid_data()` - Train the price prediction model
+
+### 10. `handle_mode_selection_callback()` in `automatic_arbitrage_handler.py`
+
+**Before**: 240 lines  
+**After**: 100 lines  
+**Reduction**: 58%
+
+**Extracted Helper Functions**:
+- `_check_api_health()` - Check API health before scanning
+- `_run_fallback_scan()` - Run fallback scan using ArbitrageScanner
+- `_run_parallel_scan()` - Run parallel scan using ScannerManager
+- `_format_fallback_results()` - Format fallback scan results
+- `_format_parallel_results()` - Format parallel scan results
 
 ---
 
