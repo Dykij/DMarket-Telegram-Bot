@@ -7,8 +7,13 @@ based on upcoming market events.
 
 import logging
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from typing import TYPE_CHECKING
+
+from telegram import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
+
+if TYPE_CHECKING:
+    from src.dmarket.intelligent_hold import IntelligentHoldManager
 
 
 logger = logging.getLogger(__name__)
@@ -71,7 +76,12 @@ async def hold_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await update.message.reply_text("❌ Ошибка при получении данных. Попробуйте позже.")
 
 
-async def _handle_analyze_inventory(update: Update, context: ContextTypes.DEFAULT_TYPE, query, hold_manager) -> None:
+async def _handle_analyze_inventory(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    query: CallbackQuery,
+    hold_manager: "IntelligentHoldManager",
+) -> None:
     """Handle inventory analysis callback.
 
     Fetches user inventory from DMarket API and provides hold/sell recommendations.
@@ -140,7 +150,12 @@ def _format_inventory_analysis(analysis: dict) -> str:
     return message
 
 
-async def _handle_check_item(update: Update, context: ContextTypes.DEFAULT_TYPE, query, hold_manager) -> None:
+async def _handle_check_item(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    query: CallbackQuery,
+    hold_manager: "IntelligentHoldManager",
+) -> None:
     """Handle check item callback.
 
     Shows item selection interface for hold/sell analysis.
@@ -173,7 +188,13 @@ async def _handle_check_item(update: Update, context: ContextTypes.DEFAULT_TYPE,
     )
 
 
-async def _handle_item_selection(update: Update, context: ContextTypes.DEFAULT_TYPE, query, hold_manager, item_name: str) -> None:
+async def _handle_item_selection(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    query: CallbackQuery,
+    hold_manager: "IntelligentHoldManager",
+    item_name: str,
+) -> None:
     """Handle specific item selection callback.
 
     Gets recommendation for the selected item.
@@ -194,7 +215,12 @@ async def _handle_item_selection(update: Update, context: ContextTypes.DEFAULT_T
     )
 
 
-async def _handle_events_csgo(update: Update, context: ContextTypes.DEFAULT_TYPE, query, hold_manager) -> None:
+async def _handle_events_csgo(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    query: CallbackQuery,
+    hold_manager: "IntelligentHoldManager",
+) -> None:
     """Handle CS2/CSGO events callback.
 
     Shows upcoming CS2/CSGO market events.
@@ -208,7 +234,12 @@ async def _handle_events_csgo(update: Update, context: ContextTypes.DEFAULT_TYPE
     )
 
 
-async def _handle_events_dota2(update: Update, context: ContextTypes.DEFAULT_TYPE, query, hold_manager) -> None:
+async def _handle_events_dota2(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    query: CallbackQuery,
+    hold_manager: "IntelligentHoldManager",
+) -> None:
     """Handle Dota 2 events callback.
 
     Shows upcoming Dota 2 market events.
@@ -240,7 +271,12 @@ def _format_events_message(game_name: str, events: list) -> str:
     return message
 
 
-async def _handle_settings(update: Update, context: ContextTypes.DEFAULT_TYPE, query, hold_manager) -> None:
+async def _handle_settings(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    query: CallbackQuery,
+    hold_manager: "IntelligentHoldManager",
+) -> None:
     """Handle settings callback.
 
     Shows current Intelligent Hold settings.
@@ -260,7 +296,12 @@ async def _handle_settings(update: Update, context: ContextTypes.DEFAULT_TYPE, q
     )
 
 
-async def _handle_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, query, hold_manager) -> None:
+async def _handle_menu(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    query: CallbackQuery,
+    hold_manager: "IntelligentHoldManager",
+) -> None:
     """Handle menu callback.
 
     Returns to the main hold menu.
