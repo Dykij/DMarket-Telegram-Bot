@@ -359,8 +359,7 @@ class AIBacktester:
                 balance += trade.price - trade.commission
 
             # Update peak
-            if balance > peak_balance:
-                peak_balance = balance
+            peak_balance = max(peak_balance, balance)
 
             # Calculate drawdown
             if peak_balance > 0:

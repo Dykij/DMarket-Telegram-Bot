@@ -340,7 +340,7 @@ async def get_dmarket_prices(
         logger.error("dmarket_prices_error", error=str(e), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch DMarket prices: {str(e)}"
+            detail=f"Failed to fetch DMarket prices: {e!s}"
         )
 
 
@@ -436,7 +436,7 @@ async def get_listing_targets(session=Depends(get_async_session)) -> dict[str, A
         logger.error("listing_targets_error", error=str(e), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get listing targets: {str(e)}"
+            detail=f"Failed to get listing targets: {e!s}"
         )
 
 
@@ -474,7 +474,7 @@ async def update_listing_target(
         logger.error("update_target_error", asset_id=asset_id, error=str(e), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update target: {str(e)}"
+            detail=f"Failed to update target: {e!s}"
         )
 
 

@@ -709,7 +709,7 @@ class IntegratedArbitrageScanner:
             logger.error("strategy_decision_failed", item=item_name, error=str(e), exc_info=True)
             return {
                 "strategy": "error",
-                "reason": f"Failed to analyze: {str(e)}",
+                "reason": f"Failed to analyze: {e!s}",
             }
 
     async def _get_dmarket_suggested_price(self, item_name: str, game: str) -> Decimal | None:

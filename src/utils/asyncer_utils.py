@@ -276,7 +276,7 @@ async def run_with_timeout(
             func(*args, **kwargs),
             timeout=timeout,
         )
-    except asyncio.TimeoutError:
+    except TimeoutError:
         logger.warning(
             "task_timeout",
             func=func.__name__,

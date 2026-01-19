@@ -326,12 +326,11 @@ class AIThreatDetector:
         """
         if anomaly_score >= 0.90:
             return "critical"
-        elif anomaly_score >= 0.75:
+        if anomaly_score >= 0.75:
             return "high"
-        elif anomaly_score >= 0.50:
+        if anomaly_score >= 0.50:
             return "medium"
-        else:
-            return "low"
+        return "low"
 
     def clear_history(self, identifier: str | None = None) -> None:
         """Clear request history.
