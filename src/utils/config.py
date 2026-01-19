@@ -411,18 +411,158 @@ class Config:
                 self.rate_limit.other_limit,
             )
 
-    def _update_from_env(self) -> None:
-        """Update configuration from environment variables."""
-        # Bot configuration
+    # ============================================================================
+    # Environment variable helper methods (Phase 2 refactoring)
+    # ============================================================================
+
+    @staticmethod
+    def _get_env_int(name: str, default: int) -> int:
+        """Get integer from environment variable.
+
+        Args:
+            name: Environment variable name
+            default: Default value
+
+        Returns:
+            Integer value or default
+        """
+        value = os.getenv(name)
+        if value:
+            with contextlib.suppress(ValueError):
+                return int(value)
+        return default
+
+    @staticmethod
+    def _get_env_float(name: str, default: float) -> float:
+        """Get float from environment variable.
+
+        Args:
+            name: Environment variable name
+            default: Default value
+
+        Returns:
+            Float value or default
+        """
+        value = os.getenv(name)
+        if value:
+            with contextlib.suppress(ValueError):
+                return float(value)
+        return default
+
+    @staticmethod
+    def _get_env_bool(name: str, default: bool) -> bool:
+        """Get boolean from environment variable.
+
+        Args:
+            name: Environment variable name
+            default: Default value
+
+        Returns:
+            Boolean value
+        """
+        value = os.getenv(name)
+        if value:
+            return value.lower() == "true"
+        return default
+
+    @staticmethod
+    def _get_env_list(name: str, default: list[str] | None = None) -> list[str]:
+        """Get list from comma-separated environment variable.
+
+        Args:
+            name: Environment variable name
+            default: Default list
+
+        Returns:
+            List of strings
+        """
+        value = os.getenv(name, "")
+        if value:
+            return [item.strip() for item in value.split(",") if item.strip()]
+        return default or []
+
+    def _update_bot_from_env(self) -> None:
+        """Update bot configuration from environment."""
         self.bot.token = os.getenv("TELEGRAM_BOT_TOKEN", self.bot.token)
         self.bot.username = os.getenv("BOT_USERNAME", self.bot.username)
         self.bot.webhook_url = os.getenv("WEBHOOK_URL", self.bot.webhook_url)
         self.bot.webhook_secret = os.getenv("WEBHOOK_SECRET", self.bot.webhook_secret)
         self.bot.webhook_host = os.getenv("WEBHOOK_HOST", self.bot.webhook_host)
-        webhook_port = os.getenv("WEBHOOK_PORT")
-        if webhook_port:
-            with contextlib.suppress(ValueError):
-                self.bot.webhook_port = int(webhook_port)
+        self.bot.webhook_port = self._get_env_int("WEBHOOK_PORT", self.bot.webhook_port)
+
+    def _update_dmarket_from_env(self) -> None:
+        """Update DMarket configuration from environment."""
+        self.dmarket.api_url = os.getenv("DMARKET_API_URL", self.dmarket.api_url)
+        self.dmarket.public_key = os.getenv("DMARKET_PUBLIC_KEY", self.dmarket.public_key)
+        self.dmarket.secret_key = os.getenv("DMARKET_SECRET_KEY", self.dmarket.secret_key)
+        self.dmarket.rate_limit = self._get_env_int("API_RATE_LIMIT", self.dmarket.rate_limit)
+
+    def _update_trading_from_env(self) -> None:
+        """Update trading configuration from environment."""
+        self.trading.max_item_price = self._get_env_float(
+            "MAX_ITEM_PRICE", self.trading.max_item_price
+        )
+        self.trading.min_profit_percent = self._get_env_float(
+            "MIN_PROFIT_PERCENT", self.trading.min_profit_percent
+        )
+        self.trading.min_sales_last_month = self._get_env_int(
+            "MIN_SALES_LAST_MONTH", self.trading.min_sales_last_month
+        )
+        self.trading.max_inventory_items = self._get_env_int(
+            "MAX_INVENTORY_ITEMS", self.trading.max_inventory_items
+        )
+        self.trading.max_buy_percent = self._get_env_float(
+            "MAX_BUY_PERCENT", self.trading.max_buy_percent
+        )
+        self.trading.min_buy_percent = self._get_env_float(
+            "MIN_BUY_PERCENT", self.trading.min_buy_percent
+        )
+        self.trading.reserve_percent = self._get_env_float(
+            "RESERVE_PERCENT", self.trading.reserve_percent
+        )
+        self.trading.max_stack_percent = self._get_env_float(
+            "MAX_STACK_PERCENT", self.trading.max_stack_percent
+        )
+        self.trading.enable_smart_mode = self._get_env_bool(
+            "ENABLE_SMART_MODE", self.trading.enable_smart_mode
+        )
+
+    def _update_waxpeer_from_env(self) -> None:
+        """Update Waxpeer configuration from environment."""
+        self.waxpeer.enabled = self._get_env_bool("WAXPEER_ENABLED", self.waxpeer.enabled)
+        self.waxpeer.api_key = os.getenv("WAXPEER_API_KEY", self.waxpeer.api_key)
+        self.waxpeer.markup = self._get_env_float("WAXPEER_MARKUP", self.waxpeer.markup)
+        self.waxpeer.rare_markup = self._get_env_float(
+            "WAXPEER_RARE_MARKUP", self.waxpeer.rare_markup
+        )
+        self.waxpeer.ultra_markup = self._get_env_float(
+            "WAXPEER_ULTRA_MARKUP", self.waxpeer.ultra_markup
+        )
+        self.waxpeer.min_profit = self._get_env_float(
+            "WAXPEER_MIN_PROFIT", self.waxpeer.min_profit
+        )
+        self.waxpeer.reprice = self._get_env_bool("WAXPEER_REPRICE", self.waxpeer.reprice)
+        self.waxpeer.reprice_interval = self._get_env_int(
+            "WAXPEER_REPRICE_INTERVAL", self.waxpeer.reprice_interval
+        )
+        self.waxpeer.shadow = self._get_env_bool("WAXPEER_SHADOW", self.waxpeer.shadow)
+        self.waxpeer.scarcity_threshold = self._get_env_int(
+            "WAXPEER_SCARCITY", self.waxpeer.scarcity_threshold
+        )
+        self.waxpeer.auto_hold = self._get_env_bool("WAXPEER_AUTO_HOLD", self.waxpeer.auto_hold)
+        self.waxpeer.alert_on_rare = self._get_env_bool("WAXPEER_ALERT", self.waxpeer.alert_on_rare)
+
+    # ============================================================================
+    # End of environment variable helper methods
+    # ============================================================================
+
+    def _update_from_env(self) -> None:
+        """Update configuration from environment variables."""
+        # Update each config section using helper methods (Phase 2 refactoring)
+        self._update_bot_from_env()
+        self._update_dmarket_from_env()
+        self._update_trading_from_env()
+        self._update_waxpeer_from_env()
 
         # Environment
         self.environment = os.getenv("ENVIRONMENT", self.environment)
@@ -431,238 +571,99 @@ class Config:
         self.monitoring.prometheus_host = os.getenv(
             "PROMETHEUS_HOST", self.monitoring.prometheus_host
         )
-        prometheus_port = os.getenv("PROMETHEUS_PORT")
-        if prometheus_port:
-            with contextlib.suppress(ValueError):
-                self.monitoring.prometheus_port = int(prometheus_port)
-
-        monitoring_enabled = os.getenv("MONITORING_ENABLED")
-        if monitoring_enabled:
-            self.monitoring.enabled = monitoring_enabled.lower() == "true"
-
-        # DMarket configuration
-        self.dmarket.api_url = os.getenv("DMARKET_API_URL", self.dmarket.api_url)
-        self.dmarket.public_key = os.getenv(
-            "DMARKET_PUBLIC_KEY",
-            self.dmarket.public_key,
+        self.monitoring.prometheus_port = self._get_env_int(
+            "PROMETHEUS_PORT", self.monitoring.prometheus_port
         )
-        self.dmarket.secret_key = os.getenv(
-            "DMARKET_SECRET_KEY",
-            self.dmarket.secret_key,
-        )
-
-        rate_limit = os.getenv("API_RATE_LIMIT")
-        if rate_limit:
-            with contextlib.suppress(ValueError):
-                self.dmarket.rate_limit = int(rate_limit)
+        self.monitoring.enabled = self._get_env_bool("MONITORING_ENABLED", self.monitoring.enabled)
 
         # Database configuration
         self.database.url = os.getenv("DATABASE_URL", self.database.url)
 
         # Security configuration
-        allowed_users = os.getenv("ALLOWED_USERS", "")
-        if allowed_users:
-            self.security.allowed_users = [u.strip() for u in allowed_users.split(",")]
-
-        admin_users = os.getenv("ADMIN_USERS", "")
-        if admin_users:
-            self.security.admin_users = [u.strip() for u in admin_users.split(",")]
+        allowed = self._get_env_list("ALLOWED_USERS")
+        if allowed:
+            self.security.allowed_users = allowed
+        admin = self._get_env_list("ADMIN_USERS")
+        if admin:
+            self.security.admin_users = admin
 
         # Logging configuration
         self.logging.level = os.getenv("LOG_LEVEL", self.logging.level)
         self.logging.file = os.getenv("LOG_FILE", self.logging.file)
 
         # Debug and testing flags
-        self.debug = os.getenv("DEBUG", "false").lower() == "true"
-        self.testing = os.getenv("TESTING", "false").lower() == "true"
-
-        # Trading configuration
-        max_item_price = os.getenv("MAX_ITEM_PRICE")
-        if max_item_price:
-            with contextlib.suppress(ValueError):
-                self.trading.max_item_price = float(max_item_price)
-
-        min_profit = os.getenv("MIN_PROFIT_PERCENT")
-        if min_profit:
-            with contextlib.suppress(ValueError):
-                self.trading.min_profit_percent = float(min_profit)
-
-        min_sales = os.getenv("MIN_SALES_LAST_MONTH")
-        if min_sales:
-            with contextlib.suppress(ValueError):
-                self.trading.min_sales_last_month = int(min_sales)
-
-        max_inv = os.getenv("MAX_INVENTORY_ITEMS")
-        if max_inv:
-            with contextlib.suppress(ValueError):
-                self.trading.max_inventory_items = int(max_inv)
-
-        # Universal percentage-based settings (new!)
-        max_buy_pct = os.getenv("MAX_BUY_PERCENT")
-        if max_buy_pct:
-            with contextlib.suppress(ValueError):
-                self.trading.max_buy_percent = float(max_buy_pct)
-
-        min_buy_pct = os.getenv("MIN_BUY_PERCENT")
-        if min_buy_pct:
-            with contextlib.suppress(ValueError):
-                self.trading.min_buy_percent = float(min_buy_pct)
-
-        reserve_pct = os.getenv("RESERVE_PERCENT")
-        if reserve_pct:
-            with contextlib.suppress(ValueError):
-                self.trading.reserve_percent = float(reserve_pct)
-
-        max_stack_pct = os.getenv("MAX_STACK_PERCENT")
-        if max_stack_pct:
-            with contextlib.suppress(ValueError):
-                self.trading.max_stack_percent = float(max_stack_pct)
-
-        smart_mode = os.getenv("ENABLE_SMART_MODE", "true").lower()
-        self.trading.enable_smart_mode = smart_mode == "true"
+        self.debug = self._get_env_bool("DEBUG", self.debug)
+        self.testing = self._get_env_bool("TESTING", self.testing)
 
         # Filters configuration
-        min_liquidity = os.getenv("MIN_LIQUIDITY_SCORE")
-        if min_liquidity:
-            with contextlib.suppress(ValueError):
-                self.filters.min_liquidity = int(min_liquidity)
+        self.filters.min_liquidity = self._get_env_int(
+            "MIN_LIQUIDITY_SCORE", self.filters.min_liquidity
+        )
 
         # Inventory configuration
-        undercut = os.getenv("PRICE_STEP")  # Using PRICE_STEP as alias for undercut_price
-        if undercut:
-            with contextlib.suppress(ValueError):
-                self.inventory.undercut_price = float(undercut)
-
-        min_margin = os.getenv("MIN_MARGIN_THRESHOLD")
-        if min_margin:
-            with contextlib.suppress(ValueError):
-                self.inventory.min_margin_threshold = float(min_margin)
-
-        auto_repricing = os.getenv("AUTO_REPRICING", "true").lower()
-        self.inventory.auto_repricing = auto_repricing == "true"
-
-        repricing_hours = os.getenv("REPRICING_INTERVAL_HOURS")
-        if repricing_hours:
-            with contextlib.suppress(ValueError):
-                self.inventory.repricing_interval_hours = int(repricing_hours)
-
-        max_price_cut = os.getenv("MAX_PRICE_CUT_PERCENT")
-        if max_price_cut:
-            with contextlib.suppress(ValueError):
-                self.inventory.max_price_cut_percent = float(max_price_cut)
+        self.inventory.undercut_price = self._get_env_float(
+            "PRICE_STEP", self.inventory.undercut_price
+        )
+        self.inventory.min_margin_threshold = self._get_env_float(
+            "MIN_MARGIN_THRESHOLD", self.inventory.min_margin_threshold
+        )
+        self.inventory.auto_repricing = self._get_env_bool(
+            "AUTO_REPRICING", self.inventory.auto_repricing
+        )
+        self.inventory.repricing_interval_hours = self._get_env_int(
+            "REPRICING_INTERVAL_HOURS", self.inventory.repricing_interval_hours
+        )
+        self.inventory.max_price_cut_percent = self._get_env_float(
+            "MAX_PRICE_CUT_PERCENT", self.inventory.max_price_cut_percent
+        )
 
         # Trading safety mode - defaults to True for safety
-        dry_run_env = os.getenv("DRY_RUN", "true").lower()
-        self.dry_run = dry_run_env == "true"
+        self.dry_run = self._get_env_bool("DRY_RUN", self.dry_run)
 
         # Trading safety configuration
-        max_price_mult = os.getenv("MAX_PRICE_MULTIPLIER")
-        if max_price_mult:
-            with contextlib.suppress(ValueError):
-                self.trading_safety.max_price_multiplier = float(max_price_mult)
-
-        price_hist_days = os.getenv("PRICE_HISTORY_DAYS")
-        if price_hist_days:
-            with contextlib.suppress(ValueError):
-                self.trading_safety.price_history_days = int(price_hist_days)
-
-        min_hist_samples = os.getenv("MIN_HISTORY_SAMPLES")
-        if min_hist_samples:
-            with contextlib.suppress(ValueError):
-                self.trading_safety.min_history_samples = int(min_hist_samples)
-
-        enable_sanity = os.getenv("ENABLE_PRICE_SANITY_CHECK", "true").lower()
-        self.trading_safety.enable_price_sanity_check = enable_sanity == "true"
+        self.trading_safety.max_price_multiplier = self._get_env_float(
+            "MAX_PRICE_MULTIPLIER", self.trading_safety.max_price_multiplier
+        )
+        self.trading_safety.price_history_days = self._get_env_int(
+            "PRICE_HISTORY_DAYS", self.trading_safety.price_history_days
+        )
+        self.trading_safety.min_history_samples = self._get_env_int(
+            "MIN_HISTORY_SAMPLES", self.trading_safety.min_history_samples
+        )
+        self.trading_safety.enable_price_sanity_check = self._get_env_bool(
+            "ENABLE_PRICE_SANITY_CHECK", self.trading_safety.enable_price_sanity_check
+        )
 
         # Daily report configuration
-        daily_enabled = os.getenv("DAILY_REPORT_ENABLED", "true").lower()
-        self.daily_report.enabled = daily_enabled == "true"
-
-        report_hour = os.getenv("DAILY_REPORT_HOUR")
-        if report_hour:
-            with contextlib.suppress(ValueError):
-                self.daily_report.report_time_hour = int(report_hour)
-
-        report_minute = os.getenv("DAILY_REPORT_MINUTE")
-        if report_minute:
-            with contextlib.suppress(ValueError):
-                self.daily_report.report_time_minute = int(report_minute)
-
-        include_days = os.getenv("DAILY_REPORT_DAYS")
-        if include_days:
-            with contextlib.suppress(ValueError):
-                self.daily_report.include_days = int(include_days)
+        self.daily_report.enabled = self._get_env_bool(
+            "DAILY_REPORT_ENABLED", self.daily_report.enabled
+        )
+        self.daily_report.report_time_hour = self._get_env_int(
+            "DAILY_REPORT_HOUR", self.daily_report.report_time_hour
+        )
+        self.daily_report.report_time_minute = self._get_env_int(
+            "DAILY_REPORT_MINUTE", self.daily_report.report_time_minute
+        )
+        self.daily_report.include_days = self._get_env_int(
+            "DAILY_REPORT_DAYS", self.daily_report.include_days
+        )
 
         # Rate limit configuration
-        warning_threshold = os.getenv("RATE_LIMIT_WARNING_THRESHOLD")
-        if warning_threshold:
-            with contextlib.suppress(ValueError):
-                self.rate_limit.warning_threshold = float(warning_threshold)
-
-        enable_rl_notif = os.getenv("RATE_LIMIT_NOTIFICATIONS", "true").lower()
-        self.rate_limit.enable_notifications = enable_rl_notif == "true"
-
-        base_delay = os.getenv("RATE_LIMIT_BASE_DELAY")
-        if base_delay:
-            with contextlib.suppress(ValueError):
-                self.rate_limit.base_retry_delay = float(base_delay)
-
-        max_backoff = os.getenv("RATE_LIMIT_MAX_BACKOFF")
-        if max_backoff:
-            with contextlib.suppress(ValueError):
-                self.rate_limit.max_backoff_time = float(max_backoff)
-
-        max_attempts = os.getenv("RATE_LIMIT_MAX_ATTEMPTS")
-        if max_attempts:
-            with contextlib.suppress(ValueError):
-                self.rate_limit.max_retry_attempts = int(max_attempts)
-
-        # Waxpeer configuration
-        waxpeer_enabled = os.getenv("WAXPEER_ENABLED", "false").lower()
-        self.waxpeer.enabled = waxpeer_enabled == "true"
-        self.waxpeer.api_key = os.getenv("WAXPEER_API_KEY", self.waxpeer.api_key)
-
-        waxpeer_markup = os.getenv("WAXPEER_MARKUP")
-        if waxpeer_markup:
-            with contextlib.suppress(ValueError):
-                self.waxpeer.markup = float(waxpeer_markup)
-
-        waxpeer_rare_markup = os.getenv("WAXPEER_RARE_MARKUP")
-        if waxpeer_rare_markup:
-            with contextlib.suppress(ValueError):
-                self.waxpeer.rare_markup = float(waxpeer_rare_markup)
-
-        waxpeer_ultra_markup = os.getenv("WAXPEER_ULTRA_MARKUP")
-        if waxpeer_ultra_markup:
-            with contextlib.suppress(ValueError):
-                self.waxpeer.ultra_markup = float(waxpeer_ultra_markup)
-
-        waxpeer_min_profit = os.getenv("WAXPEER_MIN_PROFIT")
-        if waxpeer_min_profit:
-            with contextlib.suppress(ValueError):
-                self.waxpeer.min_profit = float(waxpeer_min_profit)
-
-        waxpeer_reprice = os.getenv("WAXPEER_REPRICE", "true").lower()
-        self.waxpeer.reprice = waxpeer_reprice == "true"
-
-        waxpeer_reprice_interval = os.getenv("WAXPEER_REPRICE_INTERVAL")
-        if waxpeer_reprice_interval:
-            with contextlib.suppress(ValueError):
-                self.waxpeer.reprice_interval = int(waxpeer_reprice_interval)
-
-        waxpeer_shadow = os.getenv("WAXPEER_SHADOW", "true").lower()
-        self.waxpeer.shadow = waxpeer_shadow == "true"
-
-        waxpeer_scarcity = os.getenv("WAXPEER_SCARCITY")
-        if waxpeer_scarcity:
-            with contextlib.suppress(ValueError):
-                self.waxpeer.scarcity_threshold = int(waxpeer_scarcity)
-
-        waxpeer_auto_hold = os.getenv("WAXPEER_AUTO_HOLD", "true").lower()
-        self.waxpeer.auto_hold = waxpeer_auto_hold == "true"
-
-        waxpeer_alert = os.getenv("WAXPEER_ALERT", "true").lower()
-        self.waxpeer.alert_on_rare = waxpeer_alert == "true"
+        self.rate_limit.warning_threshold = self._get_env_float(
+            "RATE_LIMIT_WARNING_THRESHOLD", self.rate_limit.warning_threshold
+        )
+        self.rate_limit.enable_notifications = self._get_env_bool(
+            "RATE_LIMIT_NOTIFICATIONS", self.rate_limit.enable_notifications
+        )
+        self.rate_limit.base_retry_delay = self._get_env_float(
+            "RATE_LIMIT_BASE_DELAY", self.rate_limit.base_retry_delay
+        )
+        self.rate_limit.max_backoff_time = self._get_env_float(
+            "RATE_LIMIT_MAX_BACKOFF", self.rate_limit.max_backoff_time
+        )
+        self.rate_limit.max_retry_attempts = self._get_env_int(
+            "RATE_LIMIT_MAX_ATTEMPTS", self.rate_limit.max_retry_attempts
+        )
 
     def validate(self) -> None:
         """Validate configuration and raise errors for required missing values."""
