@@ -34,7 +34,7 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 
 | # | Function | File | Lines | Priority | Status |
 |---|----------|------|-------|----------|--------|
-| 1 | `button_callback_handler()` | `callbacks.py` | 950 | 🔴 Critical | ⏳ Pending |
+| 1 | `button_callback_handler()` | `callbacks.py` | ~40 | 🔴 Critical | ✅ Refactored (was 950) |
 | 2 | `initialize()` | `main.py` | 594 | 🔴 Critical | ⏳ Pending |
 | 3 | `register_all_handlers()` | `register_all_handlers.py` | 455 | 🔴 Critical | ⏳ Pending |
 | 4 | `check_balance_command()` | `balance_command.py` | 168 | 🔴 Critical | ✅ Refactored (was 331) |
@@ -163,6 +163,19 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 - `_run_volatility_analysis()` - Run volatility analysis
 - `_run_undervalued_analysis()` - Run undervalued items analysis
 - `_run_recommendations_analysis()` - Run investment recommendations
+
+### 8. `button_callback_handler()` in `callbacks.py`
+
+**Before**: 950 lines  
+**After**: ~40 lines  
+**Reduction**: 96%
+
+**Approach**: Delegated to CallbackRouter (callback_registry.py) with fallback to legacy handler.
+
+**Key Changes**:
+- Replaced 83+ elif statements with CallbackRouter dispatch
+- Extracted `_handle_legacy_callbacks()` for backward compatibility
+- File reduced from 1256 to 491 lines (-61%)
 
 ---
 
