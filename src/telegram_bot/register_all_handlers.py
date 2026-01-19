@@ -2,6 +2,9 @@
 
 Этот модуль объединяет регистрацию всех обработчиков команд, callback-запросов,
 и других обработчиков для упрощения инициализации бота.
+
+Refactored: Extracted helper functions for each logical group of handlers.
+Each helper function is < 50 lines for better readability and maintainability.
 """
 
 import logging
@@ -39,17 +42,12 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def register_all_handlers(application: "Application") -> None:
-    """Регистрирует все обработчики команд и callback-запросов для бота.
+def _register_basic_commands(application: "Application") -> None:
+    """Register basic bot commands: start, help, dashboard, etc.
 
     Args:
-        application: Экземпляр приложения Telegram бота
-
+        application: Telegram bot application instance
     """
-    logger.info("Начало регистрации обработчиков бота...")
-
-    # Регистрация базовых команд
-    # New minimal UI: /start_minimal for minimalistic interface
     application.add_handler(CommandHandler("start_minimal", start_minimal_command))
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("help", help_command))
@@ -62,9 +60,6 @@ def register_all_handlers(application: "Application") -> None:
     application.add_handler(CommandHandler("logs", logs_command))
     application.add_handler(CommandHandler("dailyreport", daily_report_command))
 
-    # ═══════════════════════════════════════════════════════════════════════════
-    # ГЛАВНАЯ КЛАВИАТУРА (новая упрощённая версия)
-    # ═══════════════════════════════════════════════════════════════════════════
     try:
         from src.telegram_bot.handlers.main_keyboard import register_main_keyboard_handlers
 
@@ -73,15 +68,27 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать main_keyboard: %s", e)
 
-    # Sentry тестирование (только для отладки и администраторов)
+    logger.info("Базовые команды зарегистрированы")
+
+
+def _register_sentry_and_backtest_commands(application: "Application") -> None:
+    """Register Sentry testing and backtesting commands.
+
+    Args:
+        application: Telegram bot application instance
+    """
     application.add_handler(CommandHandler("test_sentry", test_sentry_command))
     application.add_handler(CommandHandler("sentry_info", test_sentry_info))
-
-    # Backtesting команды
     application.add_handler(CommandHandler("backtest", backtest_command))
     application.add_handler(CommandHandler("backtest_help", backtest_help))
 
-    # Auto-buy команды
+
+def _register_auto_buy_commands(application: "Application") -> None:
+    """Register auto-buy command handlers.
+
+    Args:
+        application: Telegram bot application instance
+    """
     try:
         from src.telegram_bot.handlers.auto_buy_handler import autobuy_command
 
@@ -90,7 +97,13 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать auto-buy handler: %s", e)
 
-    # Smart Arbitrage команда (NEW - for micro balance trading)
+
+def _register_smart_and_autopilot_commands(application: "Application") -> None:
+    """Register smart arbitrage and autopilot command handlers.
+
+    Args:
+        application: Telegram bot application instance
+    """
     try:
         from src.telegram_bot.handlers.smart_arbitrage_handler import smart_arbitrage_command
 
@@ -99,7 +112,6 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать smart arbitrage handler: %s", e)
 
-    # Autopilot команды
     try:
         from src.telegram_bot.handlers.autopilot_handler import (
             autopilot_command,
@@ -116,7 +128,13 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать autopilot handler: %s", e)
 
-    # Panic Button команды
+
+def _register_panic_and_websocket_commands(application: "Application") -> None:
+    """Register panic button and websocket command handlers.
+
+    Args:
+        application: Telegram bot application instance
+    """
     try:
         from src.telegram_bot.handlers.panic_handler import (
             panic_button_command,
@@ -129,7 +147,6 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать panic handler: %s", e)
 
-    # WebSocket команды
     try:
         from src.telegram_bot.handlers.websocket_handler import (
             websocket_restart_command,
@@ -144,7 +161,13 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать websocket handler: %s", e)
 
-    # Health Check команды
+
+def _register_health_check_commands(application: "Application") -> None:
+    """Register health check command handlers.
+
+    Args:
+        application: Telegram bot application instance
+    """
     try:
         from src.telegram_bot.handlers.health_handler import (
             health_ping_command,
@@ -159,14 +182,17 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать health handler: %s", e)
 
-    logger.info("Базовые команды зарегистрированы")
 
-    # Minimal UI callback handlers (registered before general callback handler)
+def _register_minimal_ui_callbacks(application: "Application") -> None:
+    """Register minimal UI callback handlers.
+
+    Args:
+        application: Telegram bot application instance
+    """
     application.add_handler(CallbackQueryHandler(handle_mode_selection_callback, pattern="^mode_"))
     application.add_handler(CallbackQueryHandler(handle_api_check_callback, pattern="^api_check"))
     application.add_handler(CallbackQueryHandler(handle_view_items_callback, pattern="^view_items"))
 
-    # Auto-buy callback handlers
     try:
         from src.telegram_bot.handlers.auto_buy_handler import buy_now_callback, skip_item_callback
 
@@ -176,7 +202,6 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать auto-buy callbacks: %s", e)
 
-    # Autopilot callback handlers
     try:
         from src.telegram_bot.handlers.autopilot_handler import autopilot_start_confirmed_callback
 
@@ -189,10 +214,14 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать autopilot callbacks: %s", e)
 
-    # Enhanced Scanner handlers (MUST be before general callback handler)
+
+def _register_enhanced_scanner_handlers(application: "Application") -> None:
+    """Register enhanced scanner callback handlers.
+
+    Args:
+        application: Telegram bot application instance
+    """
     try:
-        # Register enhanced scanner without bot_instance parameter
-        # API client will be retrieved from bot_data when needed
         from src.telegram_bot.handlers.enhanced_scanner_handler import (
             handle_enhanced_scan,
             handle_enhanced_scan_help,
@@ -201,41 +230,28 @@ def register_all_handlers(application: "Application") -> None:
         )
 
         application.add_handler(
-            CallbackQueryHandler(
-                show_enhanced_scanner_menu,
-                pattern="^enhanced_scanner_menu$",
-            )
+            CallbackQueryHandler(show_enhanced_scanner_menu, pattern="^enhanced_scanner_menu$")
         )
-
         application.add_handler(
-            CallbackQueryHandler(
-                handle_enhanced_scan,
-                pattern="^enhanced_scan_(csgo|dota2|rust|tf2)$",
-            )
+            CallbackQueryHandler(handle_enhanced_scan, pattern="^enhanced_scan_(csgo|dota2|rust|tf2)$")
         )
-
         application.add_handler(
-            CallbackQueryHandler(
-                handle_enhanced_scan_settings,
-                pattern="^enhanced_scan_settings$",
-            )
+            CallbackQueryHandler(handle_enhanced_scan_settings, pattern="^enhanced_scan_settings$")
         )
-
         application.add_handler(
-            CallbackQueryHandler(
-                handle_enhanced_scan_help,
-                pattern="^enhanced_scan_help$",
-            )
+            CallbackQueryHandler(handle_enhanced_scan_help, pattern="^enhanced_scan_help$")
         )
-
         logger.info("✅ Enhanced Scanner handlers registered")
     except Exception as e:
         logger.warning("Не удалось зарегистрировать Enhanced Scanner handlers: %s", e)
 
-    # ========================================================================
-    # PHASE 2 REFACTORING: Modern Callback Router
-    # ========================================================================
-    # Initialize callback router and store in bot_data
+
+def _register_callback_router(application: "Application") -> None:
+    """Register Phase 2 callback router with fallback to legacy handler.
+
+    Args:
+        application: Telegram bot application instance
+    """
     logger.info("Initializing Phase 2 callback router...")
     try:
         callback_router = create_callback_router()
@@ -243,19 +259,22 @@ def register_all_handlers(application: "Application") -> None:
         logger.info(
             "✅ Callback router initialized with %d handlers", len(callback_router._exact_handlers)
         )
-
-        # Register new router-based callback handler
         application.add_handler(CallbackQueryHandler(button_callback_handler_v2))
         logger.info("✅ Router-based callback handler registered")
     except Exception as e:
         logger.exception("Failed to initialize callback router, falling back to old handler: %s", e)
-        # Fallback to old handler if new one fails
         application.add_handler(CallbackQueryHandler(button_callback_handler))
         logger.warning("⚠️ Using legacy callback handler (973 lines)")
 
     logger.info("Callback-обработчики зарегистрированы")
 
-    # Minimal UI message router (higher priority for minimal menu buttons)
+
+def _register_message_handlers(application: "Application") -> None:
+    """Register message handlers for minimal UI.
+
+    Args:
+        application: Telegram bot application instance
+    """
     application.add_handler(
         MessageHandler(
             filters.Regex(
@@ -264,23 +283,16 @@ def register_all_handlers(application: "Application") -> None:
             minimal_menu_router,
         ),
     )
-
     logger.info("Minimal UI message router registered")
-
-    # ИСПРАВЛЕНО: Обработчик handle_text_buttons закомментирован
-    # чтобы не конфликтовать с main_keyboard
-    # Удален широкий фильтр filters.TEXT & ~filters.COMMAND
-    # который перехватывал все текстовые сообщения включая "🎯 Таргеты"
-    # application.add_handler(
-    #     MessageHandler(
-    #         filters.TEXT & ~filters.COMMAND,
-    #         handle_text_buttons,
-    #     ),
-    # )
-
     logger.info("Обработчики текстовых сообщений зарегистрированы")
 
-    # Регистрация дополнительных обработчиков
+
+def _register_additional_handlers(application: "Application") -> None:
+    """Register scanner, alerts, and analysis handlers.
+
+    Args:
+        application: Telegram bot application instance
+    """
     try:
         from src.telegram_bot.handlers.scanner_handler import register_scanner_handlers
 
@@ -317,47 +329,13 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать intramarket_arbitrage обработчики: %s", e)
 
-    # NOTE: Временно отключено - функции register_* не реализованы в этих модулях
-    # TODO: Добавить функции регистрации в будущих обновлениях
-    # try:
-    #     from src.telegram_bot.handlers.game_filter_handlers import (
-    #         register_game_filter_handlers,
-    #     )
-    #
-    #     register_game_filter_handlers(application)
-    #     logger.info("Game filter обработчики зарегистрированы")
-    # except ImportError as e:
-    #     logger.warning(
-    #         "Не удалось импортировать game_filter обработчики: %s",
-    #         e,
-    #     )
-    #
-    # try:
-    #     from src.telegram_bot.handlers.liquidity_settings_handler import (
-    #         register_liquidity_handlers,
-    #     )
-    #
-    #     register_liquidity_handlers(application)
-    #     logger.info("Liquidity settings обработчики зарегистрированы")
-    # except ImportError as e:
-    #     logger.warning(
-    #         "Не удалось импортировать liquidity_settings обработчики: %s",
-    #         e,
-    #     )
-    #
-    # try:
-    #     from src.telegram_bot.handlers.settings_handlers import (
-    #         register_localization_handlers,
-    #     )
-    #
-    #     register_localization_handlers(application)
-    #     logger.info("Localization обработчики зарегистрированы")
-    # except ImportError as e:
-    #     logger.warning(
-    #         "Не удалось импортировать localization обработчики: %s",
-    #         e,
-    #     )
 
+def _register_target_and_dashboard_handlers(application: "Application") -> None:
+    """Register target and dashboard handlers.
+
+    Args:
+        application: Telegram bot application instance
+    """
     try:
         from src.telegram_bot.handlers.target_handler import register_target_handlers
 
@@ -366,7 +344,6 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать target обработчики: %s", e)
 
-    # Регистрация Dashboard handlers
     try:
         from src.telegram_bot.handlers.dashboard_handler import register_dashboard_handlers
 
@@ -375,22 +352,6 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать dashboard обработчики: %s", e)
 
-    # Регистрация Notification Filters handlers
-    # NOTE: Временно отключено - функция register_* не реализована
-    # TODO: Добавить функцию регистрации в будущих обновлениях
-    # try:
-    #     from src.telegram_bot.handlers.notification_filters_handler import (
-    #         register_notification_filter_handlers,
-    #     )
-    #
-    #     register_notification_filter_handlers(application)
-    #     logger.info("Notification filter обработчики зарегистрированы")
-    # except ImportError as e:
-    #     logger.warning(
-    #         "Не удалось импортировать notification filter обработчики: %s", e
-    #     )
-
-    # Регистрация Notification Digest handlers
     try:
         from src.telegram_bot.handlers.notification_digest_handler import (
             register_notification_digest_handlers,
@@ -399,12 +360,15 @@ def register_all_handlers(application: "Application") -> None:
         register_notification_digest_handlers(application)
         logger.info("Notification digest обработчики зарегистрированы")
     except ImportError as e:
-        logger.warning(
-            "Не удалось импортировать notification digest обработчики: %s",
-            e,
-        )
+        logger.warning("Не удалось импортировать notification digest обработчики: %s", e)
 
-    # Регистрация DMarket handlers, если доступны API ключи
+
+def _register_dmarket_and_steam_handlers(application: "Application") -> None:
+    """Register DMarket and Steam arbitrage handlers.
+
+    Args:
+        application: Telegram bot application instance
+    """
     try:
         dmarket_api = application.bot_data.get("dmarket_api")
         if dmarket_api:
@@ -418,12 +382,8 @@ def register_all_handlers(application: "Application") -> None:
             )
             logger.info("DMarket обработчики зарегистрированы")
     except (ImportError, AttributeError) as e:
-        logger.warning(
-            "Не удалось зарегистрировать DMarket обработчики: %s",
-            e,
-        )
+        logger.warning("Не удалось зарегистрировать DMarket обработчики: %s", e)
 
-    # Регистрация Steam Arbitrage handlers (NEW - FIX)
     try:
         from src.telegram_bot.commands.steam_arbitrage_commands import (
             steam_arbitrage_start,
@@ -438,7 +398,13 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать Steam Arbitrage команды: %s", e)
 
-    # Extended Statistics handlers (/stats_full, /portfolio)
+
+def _register_extended_feature_handlers(application: "Application") -> None:
+    """Register extended stats, sentiment, and hold handlers.
+
+    Args:
+        application: Telegram bot application instance
+    """
     try:
         from src.telegram_bot.handlers.extended_stats_handler import get_extended_stats_handlers
 
@@ -448,7 +414,6 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать Extended Stats команды: %s", e)
 
-    # Market Sentiment handlers (/market, /smart, /x5)
     try:
         from src.telegram_bot.handlers.market_sentiment_handler import (
             register_market_sentiment_handlers,
@@ -459,7 +424,6 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать Market Sentiment команды: %s", e)
 
-    # Intelligent Hold handlers (/hold)
     try:
         from src.telegram_bot.handlers.intelligent_hold_handler import (
             register_intelligent_hold_handlers,
@@ -470,7 +434,13 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать Intelligent Hold команды: %s", e)
 
-    # AI Price Predictor handlers (/ai_train, /ai_status, /ai_scan, /ai_analyze)
+
+def _register_ai_and_improvements_handlers(application: "Application") -> None:
+    """Register AI and bot improvements handlers.
+
+    Args:
+        application: Telegram bot application instance
+    """
     try:
         from src.telegram_bot.handlers.ai_handler import register_ai_handlers
 
@@ -479,11 +449,8 @@ def register_all_handlers(application: "Application") -> None:
     except ImportError as e:
         logger.warning("Не удалось импортировать AI handler команды: %s", e)
 
-    # Bot Improvements handlers (/improvements, /analytics, /portfolio, etc.)
     try:
-        from src.telegram_bot.handlers.improvements_handler import (
-            register_improvements_handlers,
-        )
+        from src.telegram_bot.handlers.improvements_handler import register_improvements_handlers
 
         register_improvements_handlers(application)
         logger.info(
@@ -492,6 +459,41 @@ def register_all_handlers(application: "Application") -> None:
         )
     except ImportError as e:
         logger.warning("Не удалось импортировать Bot Improvements команды: %s", e)
+
+
+def register_all_handlers(application: "Application") -> None:
+    """Register all command and callback handlers for the bot.
+
+    This is the main entry point that orchestrates registration of all handlers
+    by delegating to specialized helper functions for each handler group.
+
+    Args:
+        application: Telegram bot application instance
+    """
+    logger.info("Начало регистрации обработчиков бота...")
+
+    # Register handler groups in order of priority
+    _register_basic_commands(application)
+    _register_sentry_and_backtest_commands(application)
+    _register_auto_buy_commands(application)
+    _register_smart_and_autopilot_commands(application)
+    _register_panic_and_websocket_commands(application)
+    _register_health_check_commands(application)
+
+    # Callback handlers (registered before general callback handler)
+    _register_minimal_ui_callbacks(application)
+    _register_enhanced_scanner_handlers(application)
+    _register_callback_router(application)
+
+    # Message handlers
+    _register_message_handlers(application)
+
+    # Additional feature handlers
+    _register_additional_handlers(application)
+    _register_target_and_dashboard_handlers(application)
+    _register_dmarket_and_steam_handlers(application)
+    _register_extended_feature_handlers(application)
+    _register_ai_and_improvements_handlers(application)
 
     logger.info("Все обработчики успешно зарегистрированы")
 
