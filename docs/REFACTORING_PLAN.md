@@ -39,7 +39,7 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 | 3 | `register_all_handlers()` | `register_all_handlers.py` | 455 | 🔴 Critical | ⏳ Pending |
 | 4 | `check_balance_command()` | `balance_command.py` | 168 | 🔴 Critical | ✅ Refactored (was 331) |
 | 5 | `_request()` | `dmarket_api.py` | 261 | 🟠 High | ✅ Refactored (was 330) |
-| 6 | `ai_train_liquid_command()` | `ai_handler.py` | 299 | 🟠 High | ⏳ Pending |
+| 6 | `ai_train_liquid_command()` | `ai_handler.py` | 137 | 🟠 High | ✅ Refactored (was 299) |
 | 7 | `create_callback_router()` | `callback_registry.py` | ~25 | 🟠 High | ✅ Refactored (was 264) |
 | 8 | `_request()` | `api/client.py` | 221 | 🟠 High | ✅ Refactored (was 262) |
 | 9 | `_update_from_env()` | `config.py` | 108 | 🟠 High | ✅ Refactored (was 252) |
@@ -176,6 +176,18 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 - Replaced 83+ elif statements with CallbackRouter dispatch
 - Extracted `_handle_legacy_callbacks()` for backward compatibility
 - File reduced from 1256 to 491 lines (-61%)
+
+### 9. `ai_train_liquid_command()` in `ai_handler.py`
+
+**Before**: 299 lines  
+**After**: 137 lines  
+**Reduction**: 54%
+
+**Extracted Helper Functions**:
+- `_init_liquid_training_components()` - Initialize filters and API clients
+- `_calculate_item_liquidity()` - Calculate liquidity score for an item
+- `_save_liquid_data_to_csv()` - Save liquid items to CSV
+- `_train_model_on_liquid_data()` - Train the price prediction model
 
 ---
 
