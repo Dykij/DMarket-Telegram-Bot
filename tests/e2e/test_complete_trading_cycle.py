@@ -282,10 +282,10 @@ class TestCompleteTradingCycle:
     ):
         """Test that blacklisted items are rejected."""
         from src.dmarket.arbitrage_scanner import ArbitrageScanner
-        from src.dmarket.blacklist_filters import BlacklistFilters
+        from src.dmarket.blacklist_filters import ItemBlacklistFilter
 
         # Setup blacklist with sticker items blocked
-        blacklist = BlacklistFilters()
+        blacklist = ItemBlacklistFilter()
 
         # Mock market with a blacklisted item
         mock_dmarket_api.get_market_items = AsyncMock(
@@ -314,16 +314,16 @@ class TestCompleteTradingCycle:
         scanner = ArbitrageScanner(api_client=mock_dmarket_api)
         opportunities = await scanner.scan_level(level="standard", game="csgo")
 
-        # Filter blacklisted
+        # Filter blacklisted - is_blacklisted takes item dict with 'title' key
         filtered = [
             opp for opp in opportunities
-            if not blacklist.is_blacklisted(opp["item"]["title"])
+            if not blacklist.is_blacklisted(opp.get("item", opp))
         ]
 
         # Should have filtered out the Katowice sticker item
         # (depends on exact blacklist configuration)
         assert all(
-            "katowice 2014" not in opp["item"]["title"].lower()
+            "katowice 2014" not in opp.get("item", opp).get("title", "").lower()
             for opp in filtered
         )
 

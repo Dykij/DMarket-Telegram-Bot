@@ -54,6 +54,7 @@ from .constants import (  # Автоторговля; Кэш; Комиссии; 
     BASE_COMMISSION_PERCENT,
     CACHE_CLEANUP_COUNT,
     CACHE_TTL,
+    CENTS_TO_USD,
     DAILY_LIMIT_RESET_SECONDS,
     DEFAULT_DAILY_LIMIT,
     DEFAULT_FEE,
@@ -83,6 +84,7 @@ from .constants import (  # Автоторговля; Кэш; Комиссии; 
     MIN_COMMISSION_PERCENT,
     MIN_PROFIT_PERCENT,
     PRICE_RANGES,
+    USD_TO_CENTS,
 )
 
 # =============================================================================
@@ -124,6 +126,7 @@ __all__ = [
     "BASE_COMMISSION_PERCENT",
     "CACHE_CLEANUP_COUNT",
     "CACHE_TTL",
+    "CENTS_TO_USD",
     "DAILY_LIMIT_RESET_SECONDS",
     "DEFAULT_DAILY_LIMIT",
     "DEFAULT_FEE",
@@ -153,6 +156,7 @@ __all__ = [
     "MIN_COMMISSION_PERCENT",
     "MIN_PROFIT_PERCENT",
     "PRICE_RANGES",
+    "USD_TO_CENTS",
     "ArbitrageTrader",
     "_arbitrage_cache",
     "_calculate_commission",

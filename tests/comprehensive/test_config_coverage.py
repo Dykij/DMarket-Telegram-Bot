@@ -387,6 +387,7 @@ class TestConfigLoad:
             "TELEGRAM_BOT_TOKEN",
             "DMARKET_PUBLIC_KEY",
             "DMARKET_SECRET_KEY",
+            "DMARKET_API_URL",
             "DATABASE_URL",
             "DEBUG",
             "TESTING",

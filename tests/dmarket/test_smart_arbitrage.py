@@ -5,7 +5,7 @@ arbitrage opportunity detection and execution.
 """
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 from src.dmarket.smart_arbitrage import SmartArbitrageEngine, SmartLimits, SmartOpportunity
 
@@ -30,7 +30,7 @@ class TestSmartArbitrageEngine:
 
     def test_init(self, smart_arb, mock_api):
         """Test SmartArbitrageEngine initialization."""
-        assert smart_arb.api == mock_api
+        assert smart_arb.api_client == mock_api
         assert smart_arb.is_running is False
 
     def test_check_balance_safety(self, smart_arb):
@@ -40,8 +40,8 @@ class TestSmartArbitrageEngine:
         assert isinstance(message, str)
 
     @pytest.mark.asyncio
-    async def test_scan_opportunities(self, smart_arb, mock_api):
-        """Test scanning for opportunities."""
+    async def test_find_smart_opportunities(self, smart_arb, mock_api):
+        """Test finding smart opportunities."""
         mock_api.get_market_items = AsyncMock(return_value={
             "objects": [
                 {
@@ -53,101 +53,88 @@ class TestSmartArbitrageEngine:
             ]
         })
 
-        opportunities = await smart_arb.scan_opportunities(game="csgo")
+        opportunities = await smart_arb.find_smart_opportunities(game="csgo")
         assert isinstance(opportunities, list)
 
     @pytest.mark.asyncio
-    async def test_scan_empty_market(self, smart_arb, mock_api):
-        """Test scanning empty market."""
+    async def test_find_smart_opportunities_empty_market(self, smart_arb, mock_api):
+        """Test finding opportunities in empty market."""
         mock_api.get_market_items = AsyncMock(return_value={"objects": []})
 
-        opportunities = await smart_arb.scan_opportunities(game="csgo")
+        opportunities = await smart_arb.find_smart_opportunities(game="csgo")
         assert opportunities == []
 
     @pytest.mark.asyncio
-    async def test_calculate_roi(self, smart_arb):
-        """Test ROI calculation."""
-        roi = smart_arb._calculate_roi(buy_price=10.0, sell_price=12.0)
-        # ROI = (12 * 0.93 - 10) / 10 * 100 = 11.6%
-        assert roi > 0
-        assert roi < 100
+    async def test_get_current_balance(self, smart_arb, mock_api):
+        """Test getting current balance."""
+        mock_api.get_balance = AsyncMock(return_value={"balance": 150.0})
+        balance = await smart_arb.get_current_balance()
+        # Balance may be cached or fetched
+        assert isinstance(balance, (int, float))
 
     @pytest.mark.asyncio
-    async def test_calculate_roi_zero_buy_price(self, smart_arb):
-        """Test ROI with zero buy price."""
-        roi = smart_arb._calculate_roi(buy_price=0.0, sell_price=12.0)
-        assert roi == 0  # Should handle division by zero
+    async def test_calculate_adaptive_limits(self, smart_arb, mock_api):
+        """Test calculating adaptive limits."""
+        mock_api.get_balance = AsyncMock(return_value={"balance": 100.0})
+        limits = await smart_arb.calculate_adaptive_limits()
+        assert isinstance(limits, SmartLimits)
 
     @pytest.mark.asyncio
-    async def test_filter_opportunities(self, smart_arb):
-        """Test filtering opportunities by criteria."""
-        opportunities = [
-            {"profit_percent": 15.0, "price": 10.0},
-            {"profit_percent": 5.0, "price": 5.0},
-            {"profit_percent": 20.0, "price": 100.0},
-        ]
+    async def test_get_strategy_description(self, smart_arb, mock_api):
+        """Test getting strategy description."""
+        mock_api.get_balance = AsyncMock(return_value={"balance": 100.0})
+        description = await smart_arb.get_strategy_description()
+        assert isinstance(description, str)
 
-        filtered = smart_arb._filter_opportunities(
-            opportunities,
-            min_profit=10.0,
-            max_price=50.0,
+    def test_is_running_property(self, smart_arb):
+        """Test is_running property."""
+        assert smart_arb.is_running is False
+
+    def test_stop_smart_mode(self, smart_arb):
+        """Test stopping smart mode."""
+        # Should not raise any errors when not running
+        smart_arb.stop_smart_mode()
+        assert smart_arb.is_running is False
+
+
+class TestSmartLimits:
+    """Tests for SmartLimits dataclass."""
+
+    def test_smart_limits_creation(self):
+        """Test SmartLimits creation."""
+        limits = SmartLimits(
+            max_buy_price=50.0,
+            min_roi=10.0,
+            inventory_limit=5,
+            max_same_items=2,
+            usable_balance=90.0,
+            reserve=10.0,
+            diversification_factor=0.3,
         )
+        assert limits.max_buy_price == 50.0
+        assert limits.min_roi == 10.0
+        assert limits.inventory_limit == 5
+        assert limits.reserve == 10.0
 
-        assert len(filtered) == 1
-        assert filtered[0]["profit_percent"] == 15.0
 
-    @pytest.mark.asyncio
-    async def test_start_stop(self, smart_arb):
-        """Test starting and stopping."""
-        assert smart_arb.is_running is False
+class TestSmartOpportunity:
+    """Tests for SmartOpportunity dataclass."""
 
-        await smart_arb.start()
-        assert smart_arb.is_running is True
-
-        await smart_arb.stop()
-        assert smart_arb.is_running is False
-
-    @pytest.mark.asyncio
-    async def test_get_status(self, smart_arb):
-        """Test getting status info."""
-        status = smart_arb.get_status()
-
-        assert isinstance(status, dict)
-        assert "is_running" in status
-        assert "opportunities_found" in status or "status" in status
-
-    @pytest.mark.asyncio
-    async def test_execute_opportunity(self, smart_arb, mock_api):
-        """Test executing an opportunity."""
-        opportunity = {
-            "itemId": "item123",
-            "name": "Test Item",
-            "buy_price": 10.0,
-            "sell_price": 12.0,
-            "profit": 1.76,
-        }
-
-        mock_api.purchase_item = AsyncMock(return_value={"success": True})
-
-        result = await smart_arb.execute_opportunity(opportunity)
-        assert isinstance(result, dict)
-
-    @pytest.mark.asyncio
-    async def test_validate_opportunity(self, smart_arb):
-        """Test opportunity validation."""
-        valid_opp = {
-            "itemId": "item123",
-            "buy_price": 10.0,
-            "sell_price": 12.0,
-            "profit_percent": 15.0,
-        }
-
-        invalid_opp = {
-            "itemId": "item123",
-            "buy_price": 10.0,
-            "sell_price": 10.5,
-            "profit_percent": 2.0,  # Too low profit
-        }
-
-        assert smart_arb._validate_opportunity(valid_opp, min_profit=10.0) is True
-        assert smart_arb._validate_opportunity(invalid_opp, min_profit=10.0) is False
+    def test_smart_opportunity_creation(self):
+        """Test SmartOpportunity creation."""
+        opp = SmartOpportunity(
+            item_id="item123",
+            title="Test Item",
+            buy_price=10.0,
+            sell_price=12.0,
+            profit=1.5,
+            profit_percent=15.0,
+            game="csgo",
+        )
+        assert opp.item_id == "item123"
+        assert opp.title == "Test Item"
+        assert opp.buy_price == 10.0
+        assert opp.sell_price == 12.0
+        assert opp.profit == 1.5
+        assert opp.profit_percent == 15.0
+        assert opp.game == "csgo"

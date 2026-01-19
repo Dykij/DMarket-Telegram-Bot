@@ -15,6 +15,7 @@ This file defines AI agent capabilities and restrictions for the repository foll
 **Purpose**: Technical planning and architecture for implementing features
 
 **Capabilities**:
+
 - Analyze codebase structure
 - Create detailed implementation plans
 - Estimate complexity and time
@@ -22,6 +23,7 @@ This file defines AI agent capabilities and restrictions for the repository foll
 - Suggest testing strategies
 
 **Restrictions**:
+
 - Does not directly modify code
 - Creates plans only, delegating implementation
 
@@ -32,12 +34,14 @@ This file defines AI agent capabilities and restrictions for the repository foll
 **Purpose**: General purpose coding assistant
 
 **Capabilities**:
+
 - Read and edit files
 - Run terminal commands
 - Execute tests
 - Perform code reviews
 
 **Restrictions**:
+
 - Must follow `.github/copilot-instructions.md`
 - DRY_RUN=true for trading operations
 - No secrets in code
