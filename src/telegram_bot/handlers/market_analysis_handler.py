@@ -372,7 +372,6 @@ async def market_analysis_callback(update: Update, context: ContextTypes.DEFAULT
     )
 
     # Создаем API клиент
-    api_client = None
     try:
         api_client = create_api_client_from_env()
 
@@ -424,9 +423,10 @@ async def market_analysis_callback(update: Update, context: ContextTypes.DEFAULT
         )
     finally:
         # Закрываем клиент API
-        if api_client is not None and hasattr(api_client, "_close_client"):
+        api_client_ref = locals().get("api_client")
+        if api_client_ref is not None and hasattr(api_client_ref, "_close_client"):
             try:
-                await api_client._close_client()
+                await api_client_ref._close_client()
             except Exception as e:
                 logger.warning(f"Ошибка при закрытии клиента API: {e}")
 

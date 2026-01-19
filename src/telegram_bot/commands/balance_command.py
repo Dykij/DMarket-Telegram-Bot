@@ -63,7 +63,8 @@ def _get_message_type(
     """
     is_callback = isinstance(message, CallbackQuery)
     is_message = isinstance(message, Message)
-    is_update = isinstance(message, Update) and (not is_callback and not is_message)
+    # Update is base type - only true when not callback and not message
+    is_update = not is_callback and not is_message and isinstance(message, Update)
     return is_callback, is_message, is_update
 
 
