@@ -1,3 +1,37 @@
+---
+name: "AI-Powered Arbitrage Prediction"
+description: "ML-модуль для предиктивного арбитража на DMarket с ансамблем моделей (78% accuracy)"
+version: "1.0.0"
+author: "DMarket Bot Team"
+license: "MIT"
+category: "Data & AI"
+subcategories: ["Trading", "Finance", "Machine Learning"]
+tags: ["machine-learning", "arbitrage", "price-prediction", "trading-bot", "async", "ml-ensemble"]
+status: "active"
+created: "2026-01-19"
+updated: "2026-01-19"
+python_version: ">=3.11"
+main_module: "ai_arbitrage_predictor.py"
+dependencies:
+  - "scikit-learn>=1.3"
+  - "httpx>=0.28"
+  - "structlog>=24.1"
+  - "numpy>=1.24"
+  - "pandas>=2.0"
+optional_dependencies:
+  - "xgboost>=2.0"
+  - "matplotlib>=3.7"
+allowed_tools:
+  - "github-copilot"
+  - "claude-code"
+  - "chatgpt"
+  - "cursor"
+ai_compatible: true
+skill_format_version: "2.0"
+repository: "https://github.com/Dykij/DMarket-Telegram-Bot"
+marketplace: "https://skillsmp.com/skills/ai-arbitrage-predictor"
+---
+
 # Skill: AI-Powered Arbitrage Prediction
 
 ## Описание
