@@ -40,7 +40,7 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 | 4 | `check_balance_command()` | `balance_command.py` | 168 | 🔴 Critical | ✅ Refactored (was 331) |
 | 5 | `_request()` | `dmarket_api.py` | 261 | 🟠 High | ✅ Refactored (was 330) |
 | 6 | `ai_train_liquid_command()` | `ai_handler.py` | 299 | 🟠 High | ⏳ Pending |
-| 7 | `create_callback_router()` | `callback_registry.py` | 264 | 🟠 High | ⏳ Pending |
+| 7 | `create_callback_router()` | `callback_registry.py` | ~25 | 🟠 High | ✅ Refactored (was 264) |
 | 8 | `_request()` | `api/client.py` | 221 | 🟠 High | ✅ Refactored (was 262) |
 | 9 | `_update_from_env()` | `config.py` | 108 | 🟠 High | ✅ Refactored (was 252) |
 | 10 | `scan_game()` | `arbitrage_scanner.py` | <50 | 🟠 High | ✅ Refactored (was 216) |
@@ -122,6 +122,31 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 - `_format_error_by_code()` - Format error message based on HTTP code
 - `_format_balance_response()` - Format successful balance response
 - `_send_message_response()` - Send response message to user
+
+### 6. `create_callback_router()` in `callback_registry.py`
+
+**Before**: 264 lines  
+**After**: ~25 lines  
+**Reduction**: 91%
+
+**Extracted Helper Functions**:
+- `_register_menu_handlers()` - Register main menu handlers
+- `_register_arbitrage_handlers()` - Register arbitrage handlers
+- `_register_help_and_noop_handlers()` - Register help and noop handlers
+- `_register_settings_handlers()` - Register settings handlers
+- `_register_alert_handlers()` - Register alert handlers
+- `_register_arb_submenu_handlers()` - Register arb submenu handlers
+- `_register_target_handlers()` - Register target handlers
+- `_register_waxpeer_handlers()` - Register Waxpeer handlers
+- `_register_float_arbitrage_handlers()` - Register float arb handlers
+- `_register_advanced_orders_handlers()` - Register advanced order handlers
+- `_register_doppler_and_pattern_handlers()` - Register doppler/pattern handlers
+- `_register_strategy_handlers()` - Register strategy handlers
+- `_register_other_features_handlers()` - Register other features
+- `_register_auto_arb_handlers()` - Register auto arb handlers
+- `_register_smart_arbitrage_handlers()` - Register smart arb handlers
+- `_register_analysis_handlers()` - Register analysis handlers
+- `_register_prefix_handlers()` - Register prefix handlers
 
 ---
 
