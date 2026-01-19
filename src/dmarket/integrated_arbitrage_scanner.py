@@ -16,16 +16,17 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 
 import structlog
 
+
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
-    from src.waxpeer.waxpeer_api import WaxpeerAPI
     from src.dmarket.steam_api import SteamAPI
+    from src.waxpeer.waxpeer_api import WaxpeerAPI
 
 logger = structlog.get_logger(__name__)
 
@@ -70,31 +71,31 @@ class ArbitrageOpportunity:
 
     item_name: str
     game: str
-    
+
     # Platform prices
     dmarket_price: Decimal | None = None
     waxpeer_price: Decimal | None = None
     steam_price: Decimal | None = None
-    
+
     # Best buy/sell strategy
     buy_platform: str = ""
     buy_price: Decimal = Decimal("0")
     sell_platform: str = ""
     sell_price: Decimal = Decimal("0")
     net_sell_price: Decimal = Decimal("0")  # After commission
-    
+
     # Profitability
     profit_usd: Decimal = Decimal("0")
     profit_percent: Decimal = Decimal("0")
-    
+
     # Liquidity assessment
     liquidity_score: int = 0  # 1-3 (number of platforms)
     is_liquid: bool = False  # True if liquidity_score >= 2
-    
+
     # Metadata
     item_id: str | None = None
     discovered_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-    
+
     def __post_init__(self):
         """Calculate liquidity after initialization."""
         self.liquidity_score = sum([
@@ -111,29 +112,29 @@ class WaxpeerListingTarget:
 
     item_name: str
     asset_id: str  # DMarket inventory asset ID
-    
+
     # Purchase info
     bought_from: str  # "dmarket"
     buy_price: Decimal
     bought_at: datetime
-    
+
     # Target listing info
     target_list_price: Decimal  # Calculated optimal price
     current_waxpeer_price: Decimal | None = None
-    
+
     # Profitability tracking
     expected_profit: Decimal = Decimal("0")
     expected_roi: Decimal = Decimal("0")
-    
+
     # Auto-update tracking
     last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
     update_count: int = 0
-    
+
     # Status
     is_listed: bool = False
     waxpeer_item_id: str | None = None
     listed_at: datetime | None = None
-    
+
     def calculate_target_price(self, waxpeer_price: Decimal, markup: Decimal = Decimal("0.10")) -> None:
         """Calculate target listing price with markup.
         
@@ -142,18 +143,18 @@ class WaxpeerListingTarget:
             markup: Markup percentage (default 10% = 0.10)
         """
         self.current_waxpeer_price = waxpeer_price
-        
+
         # Calculate with commission: net_price = list_price * (1 - 0.06)
         # We want: net_price = waxpeer_price * (1 + markup)
         # So: list_price = waxpeer_price * (1 + markup) / (1 - 0.06)
         target_net = waxpeer_price * (Decimal("1") + markup)
         self.target_list_price = target_net / (Decimal("1") - WAXPEER_COMMISSION)
-        
+
         # Calculate expected profit
         net_after_commission = self.target_list_price * (Decimal("1") - WAXPEER_COMMISSION)
         self.expected_profit = net_after_commission - self.buy_price
         self.expected_roi = (self.expected_profit / self.buy_price) * Decimal("100")
-        
+
         self.last_updated = datetime.now(UTC)
         self.update_count += 1
 
@@ -200,12 +201,12 @@ class IntegratedArbitrageScanner:
         self.min_liquidity_score = min_liquidity_score
         self.enable_dmarket_arbitrage = enable_dmarket_arbitrage
         self.enable_cross_platform = enable_cross_platform
-        
+
         # Storage for discovered opportunities and listing targets
         self.opportunities: list[ArbitrageOpportunity] = []
         self.dmarket_only_opportunities: list[dict[str, Any]] = []  # DMarket-only arbitrage
         self.listing_targets: dict[str, WaxpeerListingTarget] = {}  # asset_id -> target
-        
+
         # Tracking
         self.last_scan: datetime | None = None
         self.total_scans: int = 0
@@ -225,56 +226,56 @@ class IntegratedArbitrageScanner:
             List of profitable arbitrage opportunities sorted by profit
         """
         logger.info("starting_multi_platform_scan", game=game, limit=limit)
-        
+
         # Fetch prices from all platforms in parallel
         dmarket_task = self._fetch_dmarket_prices(game, limit)
         waxpeer_task = self._fetch_waxpeer_prices(game, limit)
         steam_task = self._fetch_steam_prices(game, limit) if self.steam else None
-        
+
         tasks = [dmarket_task, waxpeer_task]
         if steam_task:
             tasks.append(steam_task)
-        
+
         results = await asyncio.gather(*tasks, return_exceptions=True)
-        
+
         dmarket_prices = results[0] if not isinstance(results[0], Exception) else {}
         waxpeer_prices = results[1] if not isinstance(results[1], Exception) else {}
         steam_prices = results[2] if len(results) > 2 and not isinstance(results[2], Exception) else {}
-        
+
         logger.info(
             "fetched_platform_prices",
             dmarket_count=len(dmarket_prices),
             waxpeer_count=len(waxpeer_prices),
             steam_count=len(steam_prices),
         )
-        
+
         # Find opportunities by matching items across platforms
         opportunities = self._find_opportunities(
             dmarket_prices, waxpeer_prices, steam_prices, game
         )
-        
+
         # Filter by profitability and liquidity
         filtered = [
             opp for opp in opportunities
             if opp.profit_percent >= self.min_profit_percent
             and opp.liquidity_score >= self.min_liquidity_score
         ]
-        
+
         # Sort by profit percentage (best first)
         filtered.sort(key=lambda x: x.profit_percent, reverse=True)
-        
+
         # Update tracking
         self.opportunities = filtered
         self.last_scan = datetime.now(UTC)
         self.total_scans += 1
         self.total_opportunities += len(filtered)
-        
+
         logger.info(
             "scan_complete",
             total_opportunities=len(filtered),
             avg_profit_percent=sum(o.profit_percent for o in filtered) / len(filtered) if filtered else 0,
         )
-        
+
         return filtered
 
     async def scan_dmarket_only(
@@ -294,11 +295,11 @@ class IntegratedArbitrageScanner:
             List of DMarket-only arbitrage opportunities
         """
         logger.info("starting_dmarket_only_scan", game=game, limit=limit)
-        
+
         try:
             # Import intramarket arbitrage module
             from src.dmarket.intramarket_arbitrage import find_intramarket_opportunities_async
-            
+
             # Scan for price anomalies on DMarket
             opportunities = await find_intramarket_opportunities_async(
                 api=self.dmarket,
@@ -306,28 +307,28 @@ class IntegratedArbitrageScanner:
                 limit=limit,
                 price_diff_percent=price_diff_percent,
             )
-            
+
             # Filter by minimum profit
             filtered = [
                 opp for opp in opportunities
                 if opp.get("profit_percent", 0) >= float(self.min_profit_percent)
             ]
-            
+
             # Sort by profit percentage
             filtered.sort(key=lambda x: x.get("profit_percent", 0), reverse=True)
-            
+
             # Update tracking
             self.dmarket_only_opportunities = filtered
             self.total_dmarket_opportunities += len(filtered)
-            
+
             logger.info(
                 "dmarket_only_scan_complete",
                 total_opportunities=len(filtered),
                 avg_profit=sum(o.get("profit_percent", 0) for o in filtered) / len(filtered) if filtered else 0,
             )
-            
+
             return filtered
-            
+
         except Exception as e:
             logger.error("dmarket_only_scan_failed", error=str(e), exc_info=True)
             return []
@@ -345,45 +346,45 @@ class IntegratedArbitrageScanner:
             Dictionary with both strategies' results
         """
         logger.info("starting_all_strategies_scan", game=game, limit=limit)
-        
+
         results = {
             "dmarket_only": [],
             "cross_platform": [],
             "timestamp": datetime.now(UTC).isoformat(),
         }
-        
+
         # Run both strategies in parallel
         tasks = []
-        
+
         if self.enable_dmarket_arbitrage:
             tasks.append(self.scan_dmarket_only(game, limit * 2))  # More items for intramarket
-        
+
         if self.enable_cross_platform:
             tasks.append(self.scan_multi_platform(game, limit))
-        
+
         if not tasks:
             logger.warning("no_strategies_enabled")
             return results
-        
+
         scan_results = await asyncio.gather(*tasks, return_exceptions=True)
-        
+
         # Process results
         result_index = 0
         if self.enable_dmarket_arbitrage:
             if not isinstance(scan_results[result_index], Exception):
                 results["dmarket_only"] = scan_results[result_index]
             result_index += 1
-        
+
         if self.enable_cross_platform:
             if not isinstance(scan_results[result_index], Exception):
                 results["cross_platform"] = scan_results[result_index]
-        
+
         logger.info(
             "all_strategies_scan_complete",
             dmarket_only_count=len(results["dmarket_only"]),
             cross_platform_count=len(results["cross_platform"]),
         )
-        
+
         return results
 
     async def _fetch_dmarket_prices(self, game: str, limit: int) -> dict[str, PlatformPrice]:
@@ -428,20 +429,20 @@ class IntegratedArbitrageScanner:
     ) -> list[ArbitrageOpportunity]:
         """Find arbitrage opportunities by comparing prices."""
         opportunities = []
-        
+
         # Get all unique item names
         all_items = set(dmarket_prices.keys()) | set(waxpeer_prices.keys()) | set(steam_prices.keys())
-        
+
         for item_name in all_items:
             dmarket = dmarket_prices.get(item_name)
             waxpeer = waxpeer_prices.get(item_name)
             steam = steam_prices.get(item_name)
-            
+
             # Need at least 2 platforms
             available_count = sum([dmarket is not None, waxpeer is not None, steam is not None])
             if available_count < 2:
                 continue
-            
+
             # Find best buy and sell prices
             prices = []
             if dmarket:
@@ -450,16 +451,16 @@ class IntegratedArbitrageScanner:
                 prices.append(("waxpeer", waxpeer.price_usd))
             if steam:
                 prices.append(("steam", steam.price_usd))
-            
+
             if len(prices) < 2:
                 continue
-            
+
             # Sort by price (cheapest first)
             prices.sort(key=lambda x: x[1])
-            
+
             buy_platform, buy_price = prices[0]
             sell_platform, sell_price = prices[-1]
-            
+
             # Calculate net after commission
             if sell_platform == "dmarket":
                 net_sell = sell_price * (Decimal("1") - DMARKET_COMMISSION)
@@ -469,10 +470,10 @@ class IntegratedArbitrageScanner:
                 net_sell = sell_price * (Decimal("1") - STEAM_COMMISSION)
             else:
                 net_sell = sell_price
-            
+
             profit = net_sell - buy_price
             profit_percent = (profit / buy_price) * Decimal("100")
-            
+
             # Create opportunity
             opp = ArbitrageOpportunity(
                 item_name=item_name,
@@ -488,9 +489,9 @@ class IntegratedArbitrageScanner:
                 profit_usd=profit,
                 profit_percent=profit_percent,
             )
-            
+
             opportunities.append(opp)
-        
+
         return opportunities
 
     async def create_waxpeer_listing_target(
@@ -509,14 +510,14 @@ class IntegratedArbitrageScanner:
             WaxpeerListingTarget with calculated optimal price
         """
         logger.info("creating_waxpeer_target", item=item_name, asset_id=asset_id)
-        
+
         # Fetch current Waxpeer price
         current_waxpeer_price = await self._get_current_waxpeer_price(item_name)
-        
+
         if not current_waxpeer_price:
             logger.warning("no_waxpeer_price", item=item_name)
             current_waxpeer_price = buy_price * Decimal("1.15")  # Fallback: +15%
-        
+
         # Create target
         target = WaxpeerListingTarget(
             item_name=item_name,
@@ -525,13 +526,13 @@ class IntegratedArbitrageScanner:
             buy_price=buy_price,
             bought_at=datetime.now(UTC),
         )
-        
+
         # Calculate optimal listing price (10% above market)
         target.calculate_target_price(current_waxpeer_price, markup=Decimal("0.10"))
-        
+
         # Store in tracking dict
         self.listing_targets[asset_id] = target
-        
+
         logger.info(
             "target_created",
             item=item_name,
@@ -539,7 +540,7 @@ class IntegratedArbitrageScanner:
             target_price=float(target.target_list_price),
             expected_roi=float(target.expected_roi),
         )
-        
+
         return target
 
     async def _get_current_waxpeer_price(self, item_name: str) -> Decimal | None:
@@ -560,24 +561,24 @@ class IntegratedArbitrageScanner:
             List of updated targets
         """
         logger.info("updating_listing_targets", count=len(self.listing_targets))
-        
+
         updated = []
         for asset_id, target in self.listing_targets.items():
             # Fetch latest Waxpeer price
             current_price = await self._get_current_waxpeer_price(target.item_name)
-            
+
             if current_price:
                 # Recalculate target price
                 target.calculate_target_price(current_price, markup=Decimal("0.10"))
                 updated.append(target)
-                
+
                 logger.debug(
                     "target_updated",
                     item=target.item_name,
                     new_target=float(target.target_list_price),
                     roi=float(target.expected_roi),
                 )
-        
+
         logger.info("targets_updated", count=len(updated))
         return updated
 
@@ -588,15 +589,15 @@ class IntegratedArbitrageScanner:
             List of items ready for listing with calculated prices
         """
         recommendations = []
-        
+
         for asset_id, target in self.listing_targets.items():
             if target.is_listed:
                 continue  # Already listed
-            
+
             # Check if ROI is good enough
             if target.expected_roi < self.min_profit_percent:
                 continue
-            
+
             recommendations.append({
                 "item_name": target.item_name,
                 "asset_id": target.asset_id,
@@ -606,10 +607,10 @@ class IntegratedArbitrageScanner:
                 "expected_roi": float(target.expected_roi),
                 "days_held": (datetime.now(UTC) - target.bought_at).days,
             })
-        
+
         # Sort by ROI (best first)
         recommendations.sort(key=lambda x: x["expected_roi"], reverse=True)
-        
+
         return recommendations
 
     async def decide_sell_strategy(
@@ -628,22 +629,22 @@ class IntegratedArbitrageScanner:
             Dictionary with recommended strategy and expected profits
         """
         logger.info("deciding_sell_strategy", item=item_name, buy_price=float(buy_price))
-        
+
         # Fetch current prices
         try:
             # Get DMarket suggested price (immediate sell)
             dmarket_suggested = await self._get_dmarket_suggested_price(item_name, game)
-            
+
             # Get Waxpeer market price (hold strategy)
             waxpeer_price = await self._get_current_waxpeer_price(item_name)
-            
+
             if not dmarket_suggested and not waxpeer_price:
                 logger.warning("no_prices_available", item=item_name)
                 return {
                     "strategy": "unknown",
                     "reason": "No price data available",
                 }
-            
+
             # Calculate DMarket immediate profit
             dmarket_profit = Decimal("0")
             dmarket_roi = Decimal("0")
@@ -651,7 +652,7 @@ class IntegratedArbitrageScanner:
                 net_dmarket = dmarket_suggested * (Decimal("1") - DMARKET_COMMISSION)
                 dmarket_profit = net_dmarket - buy_price
                 dmarket_roi = (dmarket_profit / buy_price) * Decimal("100")
-            
+
             # Calculate Waxpeer hold profit
             waxpeer_profit = Decimal("0")
             waxpeer_roi = Decimal("0")
@@ -662,7 +663,7 @@ class IntegratedArbitrageScanner:
                 net_waxpeer = target_list * (Decimal("1") - WAXPEER_COMMISSION)
                 waxpeer_profit = net_waxpeer - buy_price
                 waxpeer_roi = (waxpeer_profit / buy_price) * Decimal("100")
-            
+
             # Decision logic
             if waxpeer_roi > dmarket_roi * Decimal("2"):  # Waxpeer 2x better
                 strategy = "hold_for_waxpeer"
@@ -679,7 +680,7 @@ class IntegratedArbitrageScanner:
             else:
                 strategy = "hold_and_wait"
                 reason = "Neither option currently profitable, hold and monitor"
-            
+
             logger.info(
                 "strategy_decided",
                 item=item_name,
@@ -687,7 +688,7 @@ class IntegratedArbitrageScanner:
                 dmarket_roi=float(dmarket_roi),
                 waxpeer_roi=float(waxpeer_roi),
             )
-            
+
             return {
                 "strategy": strategy,
                 "reason": reason,
@@ -703,7 +704,7 @@ class IntegratedArbitrageScanner:
                     "roi": float(waxpeer_roi),
                 },
             }
-            
+
         except Exception as e:
             logger.error("strategy_decision_failed", item=item_name, error=str(e), exc_info=True)
             return {

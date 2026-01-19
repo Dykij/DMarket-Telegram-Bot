@@ -800,7 +800,7 @@ class TradingAutomation:
         callback = self._callbacks.get("execute_sell")
         if callback:
             try:
-                result = await callback(
+                _ = await callback(  # result for future use
                     item_id=order.item_id,
                     quantity=order.quantity,
                     price=current_price,

@@ -11,16 +11,17 @@ Status: Phase 2 Implementation
 Документация: src/dmarket/SKILL_AI_ARBITRAGE.md
 """
 
-import asyncio
 from dataclasses import dataclass
 from typing import Any
+
 import structlog
 
 from src.ml import (
+    EnhancedFeatureExtractor,
     EnhancedPricePredictor,
     GameType,
-    EnhancedFeatureExtractor,
 )
+
 
 logger = structlog.get_logger(__name__)
 

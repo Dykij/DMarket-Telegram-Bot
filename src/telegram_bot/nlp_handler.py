@@ -15,10 +15,12 @@ Note: Это упрощенная версия без тяжелых ML библ
 Для production рекомендуется интеграция с transformers/spacy.
 """
 
-import re
 from dataclasses import dataclass, field
+import re
 from typing import Any
+
 import structlog
+
 
 logger = structlog.get_logger(__name__)
 

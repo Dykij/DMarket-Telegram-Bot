@@ -676,7 +676,7 @@ class AutoMLSelector:
 
         results = {}
         start_time = time.time()
-        time_per_model = self.time_budget_seconds // 4
+        _ = self.time_budget_seconds // 4  # time_per_model for future granular control
 
         # 1. RandomForest
         if time.time() - start_time < self.time_budget_seconds:

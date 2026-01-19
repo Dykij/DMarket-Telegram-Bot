@@ -9,14 +9,15 @@ Steam Market API интеграция для получения цен и арб
 """
 
 import asyncio
-import logging
-import os
 from datetime import datetime, timedelta
 from functools import wraps
+import logging
+import os
 from typing import Any, Awaitable, Callable
 
-import httpx
 from dotenv import load_dotenv
+import httpx
+
 
 # Загружаем переменные окружения
 load_dotenv()

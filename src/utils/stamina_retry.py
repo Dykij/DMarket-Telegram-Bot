@@ -43,7 +43,6 @@ Example usage:
 Documentation: https://stamina.hynek.me/
 """
 
-import asyncio
 from collections.abc import AsyncIterator, Callable, Iterator
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass, field
@@ -51,6 +50,7 @@ from typing import Any, ParamSpec, TypeVar
 
 import httpx
 import structlog
+
 
 # Conditional import - stamina is optional
 try:

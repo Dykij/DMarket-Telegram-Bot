@@ -55,14 +55,24 @@ from src.ml.model_tuner import (
 # Real Data Training Modules (новые модули для обучения на реальных данных API)
 from src.ml.price_normalizer import NormalizedPrice, PriceNormalizer, PriceSource
 from src.ml.price_predictor import AdaptivePricePredictor, PredictionConfidence, PricePrediction
-from src.ml.real_price_collector import CollectedPrice, CollectionResult, CollectionStatus
-from src.ml.real_price_collector import GameType as CollectorGameType
-from src.ml.real_price_collector import RealPriceCollector
-from src.ml.smart_recommendations import ItemRecommendation, RecommendationBatch, RecommendationType
-from src.ml.smart_recommendations import RiskLevel as RecommendationRiskLevel
-from src.ml.smart_recommendations import SmartRecommendations, create_smart_recommendations
+from src.ml.real_price_collector import (
+    CollectedPrice,
+    CollectionResult,
+    CollectionStatus,
+    GameType as CollectorGameType,
+    RealPriceCollector,
+)
+from src.ml.smart_recommendations import (
+    ItemRecommendation,
+    RecommendationBatch,
+    RecommendationType,
+    RiskLevel as RecommendationRiskLevel,
+    SmartRecommendations,
+    create_smart_recommendations,
+)
 from src.ml.trade_classifier import AdaptiveTradeClassifier, RiskLevel, TradeSignal
 from src.ml.training_data_manager import DatasetMetadata, TrainingDataManager, TrainingDataset
+
 
 __all__ = [
     # Price Predictor (базовый)
