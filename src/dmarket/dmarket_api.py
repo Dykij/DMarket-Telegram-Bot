@@ -771,6 +771,370 @@ class DMarketAPI:  # noqa: PLR0904
 
             logger.debug(f"Cache cleanup: removed {len(keys_to_remove)} old entries")
 
+    def _check_cache_early_return(
+        self,
+        method: str,
+        path: str,
+        params: dict[str, Any],
+        data: dict[str, Any],
+        force_refresh: bool,
+    ) -> tuple[dict[str, Any] | None, str, bool, str]:
+        """Check cache and return early if data is available.
+
+        Args:
+            method: HTTP method
+            path: API path
+            params: Request parameters
+            data: Request data
+            force_refresh: Force cache refresh
+
+        Returns:
+            Tuple of (cached_data, cache_key, is_cacheable, ttl_type)
+            - cached_data: None if cache miss, dict if cache hit
+            - cache_key: Cache key for later use
+            - is_cacheable: Whether this request can be cached
+            - ttl_type: Cache TTL type ('short', 'medium', 'long')
+        """
+        # Determine cacheability and TTL type
+        is_cacheable, ttl_type = self._is_cacheable(method, path)
+        cache_key = ""
+
+        # Check cache for GET requests only
+        if method.upper() != "GET" or not self.enable_cache or force_refresh:
+            return (None, cache_key, is_cacheable, ttl_type)
+
+        # Generate cache key
+        cache_key = self._get_cache_key(method, path, params, data)
+
+        # Try to get from cache
+        if not is_cacheable:
+            return (None, cache_key, is_cacheable, ttl_type)
+
+        cached_data = self._get_from_cache(cache_key)
+        if cached_data is not None:
+            logger.debug(f"Использую кэшированные данные для {path}")
+            return (cached_data, cache_key, is_cacheable, ttl_type)
+
+        return (None, cache_key, is_cacheable, ttl_type)
+
+    def _prepare_request_params(
+        self,
+        method: str,
+        path: str,
+        params: dict[str, Any],
+    ) -> tuple[Any, str]:
+        """Prepare and sort request parameters for signature.
+
+        Args:
+            method: HTTP method
+            path: API path
+            params: Request parameters
+
+        Returns:
+            Tuple of (sorted_params, path_for_signature)
+        """
+        path_for_signature = path
+
+        if not params:
+            return (params, path_for_signature)
+
+        # Convert to sorted list of tuples
+        if isinstance(params, dict):
+            params_items = sorted(params.items())
+        else:
+            params_items = sorted(params)
+
+        # Update params for httpx to send in same order
+        sorted_params = params_items
+
+        # For GET requests, include params in signature path
+        if method.upper() == "GET":
+            from urllib.parse import urlencode
+
+            query_string = urlencode(params_items)
+            if query_string:
+                path_for_signature = f"{path}?{query_string}"
+
+        return (sorted_params, path_for_signature)
+
+    def _prepare_request_body(
+        self,
+        method: str,
+        data: dict[str, Any],
+    ) -> str:
+        """Prepare request body for POST/PUT/PATCH requests.
+
+        Args:
+            method: HTTP method
+            data: Request data
+
+        Returns:
+            JSON string of request body, empty string if not applicable
+        """
+        if not data or method.upper() not in {"POST", "PUT", "PATCH"}:
+            return ""
+
+        return json.dumps(data)
+
+    async def _execute_http_request(
+        self,
+        method: str,
+        url: str,
+        params: Any,
+        data: dict[str, Any],
+        headers: dict[str, str],
+        client: httpx.AsyncClient,
+    ) -> httpx.Response:
+        """Execute HTTP request with appropriate method.
+
+        Args:
+            method: HTTP method (GET, POST, PUT, DELETE)
+            url: Full URL
+            params: Request parameters (for GET)
+            data: Request data (for POST/PUT)
+            headers: Request headers
+            client: HTTP client
+
+        Returns:
+            HTTP response
+
+        Raises:
+            ValueError: If method is not supported
+            httpx.HTTPStatusError: On HTTP error status
+        """
+        method_upper = method.upper()
+
+        if method_upper == "GET":
+            response = await call_with_circuit_breaker(
+                client.get, url, params=params, headers=headers
+            )
+        elif method_upper == "POST":
+            response = await call_with_circuit_breaker(
+                client.post, url, json=data, headers=headers
+            )
+        elif method_upper == "PUT":
+            response = await call_with_circuit_breaker(
+                client.put, url, json=data, headers=headers
+            )
+        elif method_upper == "DELETE":
+            response = await call_with_circuit_breaker(
+                client.delete, url, headers=headers
+            )
+        else:
+            msg = f"Неподдерживаемый HTTP метод: {method}"
+            raise ValueError(msg)
+
+        response.raise_for_status()
+        return response
+
+    def _parse_response_and_cache(
+        self,
+        response: httpx.Response,
+        method: str,
+        path: str,
+        cache_key: str,
+        is_cacheable: bool,
+        ttl_type: str,
+        start_time: float,
+    ) -> dict[str, Any]:
+        """Parse HTTP response and optionally cache the result.
+
+        Args:
+            response: HTTP response
+            method: HTTP method
+            path: API path
+            cache_key: Cache key
+            is_cacheable: Whether to cache the result
+            ttl_type: Cache TTL type
+            start_time: Request start time for metrics
+
+        Returns:
+            Parsed response as dictionary
+        """
+        # Calculate response time
+        response_time_ms = (time.time() - start_time) * 1000
+
+        # Add breadcrumb for successful request
+        add_api_breadcrumb(
+            endpoint=path,
+            method=method.upper(),
+            status_code=response.status_code,
+            response_time_ms=response_time_ms,
+        )
+
+        # Handle 204 No Content
+        if response.status_code == 204:
+            return {"status": "success", "code": 204}
+
+        # Parse JSON response
+        try:
+            result = response.json()
+        except (json.JSONDecodeError, TypeError, Exception):
+            logger.exception(
+                f"Ошибка парсинга JSON. Код: {response.status_code}. "
+                f"Текст: {response.text[:200]}"
+            )
+            result = {
+                "error": "invalid_json",
+                "status_code": response.status_code,
+                "raw_body": response.text[:100],
+                "text": response.text,
+            }
+
+        # Save to cache if applicable
+        if method.upper() == "GET" and self.enable_cache and is_cacheable:
+            self._save_to_cache(cache_key, result, ttl_type)
+
+        return result  # type: ignore[no-any-return]
+
+    def _calculate_retry_delay(
+        self,
+        status_code: int,
+        retry_delay: float,
+        retries: int,
+        response_headers: httpx.Headers,
+    ) -> float:
+        """Calculate delay before next retry attempt.
+
+        Args:
+            status_code: HTTP status code
+            retry_delay: Current retry delay
+            retries: Current retry count
+            response_headers: Response headers
+
+        Returns:
+            Delay in seconds before next retry
+        """
+        # Handle 429 Too Many Requests with exponential backoff
+        if status_code == 429:
+            retry_after = None
+            try:
+                retry_after = int(response_headers.get("Retry-After", "0"))
+            except (ValueError, TypeError):
+                retry_after = None
+
+            # Use Retry-After if valid, otherwise exponential backoff
+            if not retry_after or retry_after <= 0:
+                return min(retry_delay * 2, 30)  # Max 30 seconds
+            return float(retry_after)
+
+        # For other errors, use fixed delay with small increment
+        return 1.0 + retries * 0.5
+
+    def _handle_http_status_error(
+        self,
+        error: httpx.HTTPStatusError,
+        method: str,
+        path: str,
+        start_time: float,
+        retries: int,
+        retry_delay: float,
+    ) -> tuple[bool, dict[str, Any] | None, int, float]:
+        """Handle HTTP status errors and determine retry strategy.
+
+        Args:
+            error: HTTP status error
+            method: HTTP method
+            path: API path
+            start_time: Request start time
+            retries: Current retry count
+            retry_delay: Current retry delay
+
+        Returns:
+            Tuple of (should_continue, error_response, new_retries, new_delay)
+            - should_continue: Whether to continue retry loop
+            - error_response: Error response dict (if should return immediately)
+            - new_retries: Updated retry count
+            - new_delay: Updated retry delay
+        """
+        status_code = error.response.status_code
+        response_text = error.response.text
+        response_time_ms = (time.time() - start_time) * 1000
+
+        # Log error
+        logger.warning(
+            f"HTTP ошибка {status_code} при запросе {method} {path}: {response_text}"
+        )
+
+        # Add breadcrumb
+        add_api_breadcrumb(
+            endpoint=path,
+            method=method.upper(),
+            status_code=status_code,
+            response_time_ms=response_time_ms,
+            error="http_error",
+            retry_attempt=retries,
+        )
+
+        # Get error description
+        error_description = self.ERROR_CODES.get(status_code, "Неизвестная ошибка")
+        logger.warning(f"Описание ошибки: {error_description}")
+
+        # Check if retry is needed
+        if status_code not in self.retry_codes:
+            # Not retryable - parse and return error immediately
+            return self._parse_non_retryable_error(error, path)
+
+        # Increment retry count
+        retries += 1
+
+        # Calculate retry delay
+        if status_code == 429:
+            self.advanced_rate_limiter.record_429_error(path)
+            retry_delay = self._calculate_retry_delay(
+                status_code, retry_delay, retries, error.response.headers
+            )
+            logger.warning(
+                f"⚠️  Rate limit превышен для {path}. "
+                f"Повторная попытка через {retry_delay} сек."
+            )
+        else:
+            retry_delay = self._calculate_retry_delay(
+                status_code, retry_delay, retries, error.response.headers
+            )
+
+        # Check if we should retry
+        if retries > self.max_retries:
+            return self._parse_non_retryable_error(error, path)
+
+        logger.info(
+            f"Повторная попытка {retries}/{self.max_retries} через {retry_delay} сек..."
+        )
+        return (True, None, retries, retry_delay)
+
+    def _parse_non_retryable_error(
+        self,
+        error: httpx.HTTPStatusError,
+        path: str,
+    ) -> tuple[bool, dict[str, Any], int, float]:
+        """Parse error response for non-retryable errors.
+
+        Args:
+            error: HTTP status error
+            path: API path
+
+        Returns:
+            Tuple of (should_continue=False, error_response, 0, 0.0)
+        """
+        content_type = error.response.headers.get("Content-Type", "")
+
+        if "application/json" in content_type:
+            try:
+                error_data = error.response.json()
+            except Exception:
+                error_data = {
+                    "error": "Failed to parse JSON error",
+                    "raw": error.response.text[:100],
+                }
+        else:
+            error_data = {
+                "error": "Non-JSON response",
+                "status_code": error.response.status_code,
+            }
+
+        logger.warning(f"⚠️ API Error {error.response.status_code} на {path}: {error_data}")
+        return (False, error_data, 0, 0.0)
+
     async def _request(
         self,
         method: str,
@@ -795,62 +1159,24 @@ class DMarketAPI:  # noqa: PLR0904
             Exception: При ошибке запроса после всех повторных попыток
 
         """
-        # Создаем клиента, если его нет
+        # Initialize client and parameters
         client = await self._get_client()
-
-        # Параметры по умолчанию
-        if params is None:
-            params = {}
-
-        if data is None:
-            data = {}
-
-        # Полный URL запроса
+        params = params or {}
+        data = data or {}
         url = f"{self.api_url}{path}"
 
-        # Определяем возможность кэширования и тип TTL заранее
-        is_cacheable, ttl_type = self._is_cacheable(method, path)
-        cache_key = ""
+        # Check cache early - return immediately if hit
+        cached_data, cache_key, is_cacheable, ttl_type = self._check_cache_early_return(
+            method, path, params, data, force_refresh
+        )
+        if cached_data is not None:
+            return cached_data
 
-        # Проверяем кэш для GET запросов
-        body_json = ""
-        if method.upper() == "GET" and self.enable_cache and not force_refresh:
-            cache_key = self._get_cache_key(method, path, params, data)
+        # Prepare request body and parameters
+        body_json = self._prepare_request_body(method, data)
+        params, path_for_signature = self._prepare_request_params(method, path, params)
 
-            # Пробуем получить из кэша
-            if is_cacheable:
-                cached_data = self._get_from_cache(cache_key)
-                if cached_data is not None:
-                    logger.debug(f"Использую кэшированные данные для {path}")
-                    return cached_data
-
-        # Формируем тело запроса для POST/PUT/PATCH
-        if data and method.upper() in {"POST", "PUT", "PATCH"}:
-            body_json = json.dumps(data)
-
-        # Генерируем заголовки с подписью
-        # ВАЖНО: Если есть params, они должны быть включены в path для подписи
-        # И порядок параметров должен совпадать в подписи и в запросе
-        path_for_signature = path
-
-        # Если params есть, сортируем их и используем отсортированный список для запроса и подписи
-        if params:
-            # Преобразуем в список кортежей и сортируем по ключу
-            if isinstance(params, dict):
-                params_items = sorted(params.items())
-            else:
-                params_items = sorted(params)
-
-            # Обновляем params, чтобы httpx отправил их в том же порядке
-            params = params_items
-
-            if method.upper() == "GET":
-                from urllib.parse import urlencode
-
-                query_string = urlencode(params_items)
-                if query_string:
-                    path_for_signature = f"{path}?{query_string}"
-
+        # Generate signature headers
         logger.debug(f"Path for signature: {path_for_signature}")
         headers = self._generate_signature(method.upper(), path_for_signature, body_json)
 
@@ -862,16 +1188,15 @@ class DMarketAPI:  # noqa: PLR0904
             "market" if "market" in path else "account",
         )
 
-        # Переменные для повторных попыток
+        # Retry loop for request execution
         retries = 0
         last_error = None
-        retry_delay = 1.0  # начальная задержка в секундах
+        retry_delay = 1.0
 
-        # Основной цикл запросов с повторами при ошибках
         while retries <= self.max_retries:
             start_time = time.time()
             try:
-                # Добавляем breadcrumb перед API запросом
+                # Add breadcrumb before API request
                 add_api_breadcrumb(
                     endpoint=path,
                     method=method.upper(),
@@ -879,65 +1204,18 @@ class DMarketAPI:  # noqa: PLR0904
                     has_cache=cache_key and self._get_from_cache(cache_key) is not None,
                 )
 
-                # Выполняем запрос с нужным методом
-                if method.upper() == "GET":
-                    response = await call_with_circuit_breaker(
-                        client.get, url, params=params, headers=headers
-                    )
-                elif method.upper() == "POST":
-                    response = await call_with_circuit_breaker(
-                        client.post, url, json=data, headers=headers
-                    )
-                elif method.upper() == "PUT":
-                    response = await call_with_circuit_breaker(
-                        client.put, url, json=data, headers=headers
-                    )
-                elif method.upper() == "DELETE":
-                    response = await call_with_circuit_breaker(client.delete, url, headers=headers)
-                else:
-                    msg = f"Неподдерживаемый HTTP метод: {method}"
-                    raise ValueError(msg)
-
-                # Проверяем статус ответа
-                response.raise_for_status()
-
-                # Рассчитываем время ответа
-                response_time_ms = (time.time() - start_time) * 1000
-
-                # Добавляем breadcrumb об успешном запросе
-                add_api_breadcrumb(
-                    endpoint=path,
-                    method=method.upper(),
-                    status_code=response.status_code,
-                    response_time_ms=response_time_ms,
+                # Execute HTTP request
+                response = await self._execute_http_request(
+                    method, url, params, data, headers, client
                 )
 
-                # Парсим JSON ответа
-                try:
-                    if response.status_code == 204:  # No Content
-                        return {"status": "success", "code": 204}
-                    result = response.json()
-                except (json.JSONDecodeError, TypeError, Exception):
-                    # Если не получается распарсить JSON, возвращаем текст
-                    logger.exception(
-                        f"Ошибка парсинга JSON. Код: {response.status_code}. Текст: {response.text[:200]}"
-                    )
-                    result = {
-                        "error": "invalid_json",
-                        "status_code": response.status_code,
-                        "raw_body": response.text[:100],
-                        "text": response.text,
-                    }
-
-                # Сохраняем в кэш если нужно
-                if method.upper() == "GET" and self.enable_cache and is_cacheable:
-                    self._save_to_cache(cache_key, result, ttl_type)
-
-                return result  # type: ignore[no-any-return]
+                # Parse response and cache if needed
+                return self._parse_response_and_cache(
+                    response, method, path, cache_key, is_cacheable, ttl_type, start_time
+                )
 
             except CircuitBreakerError as e:
                 logger.warning(f"Circuit breaker open for {method} {path}: {e}")
-                # Добавляем breadcrumb об ошибке circuit breaker
                 add_api_breadcrumb(
                     endpoint=path,
                     method=method.upper(),
@@ -948,101 +1226,23 @@ class DMarketAPI:  # noqa: PLR0904
                 break
 
             except httpx.HTTPStatusError as e:
-                status_code = e.response.status_code
-                response_text = e.response.text
-                response_time_ms = (time.time() - start_time) * 1000
-
-                # Подробное логирование ошибки
-                logger.warning(
-                    f"HTTP ошибка {status_code} при запросе {method} {path}: {response_text}",
+                # Handle HTTP errors with helper function
+                should_continue, error_response, retries, retry_delay = (
+                    self._handle_http_status_error(
+                        e, method, path, start_time, retries, retry_delay
+                    )
                 )
 
-                # Добавляем breadcrumb об HTTP ошибке
-                add_api_breadcrumb(
-                    endpoint=path,
-                    method=method.upper(),
-                    status_code=status_code,
-                    response_time_ms=response_time_ms,
-                    error="http_error",
-                    retry_attempt=retries,
-                )
+                if not should_continue:
+                    return error_response  # type: ignore[return-value]
 
-                # Получаем описание ошибки из словаря кодов ошибок
-                error_description = self.ERROR_CODES.get(
-                    status_code,
-                    "Неизвестная ошибка",
-                )
-                logger.warning(f"Описание ошибки: {error_description}")
-
-                # Проверяем, нужно ли повторить запрос
-                if status_code in self.retry_codes:
-                    retries += 1
-
-                    # При ошибке 429 (Too Many Requests) используем экспоненциальную задержку
-                    if status_code == 429:
-                        # Record 429 error in advanced rate limiter (Roadmap Task #3)
-                        self.advanced_rate_limiter.record_429_error(path)
-
-                        retry_after = None
-                        try:
-                            # Пробуем получить значение Retry-After из заголовков
-                            retry_after = int(
-                                e.response.headers.get("Retry-After", "0"),
-                            )
-                        except (ValueError, TypeError):
-                            retry_after = None
-
-                        # Если нет Retry-After или он некорректный, используем экспоненциальную задержку
-                        if not retry_after or retry_after <= 0:
-                            retry_delay = min(
-                                retry_delay * 2,
-                                30,
-                            )  # максимальная задержка 30 секунд
-                        else:
-                            retry_delay = retry_after
-
-                        logger.warning(
-                            f"⚠️  Rate limit превышен для {path}. "
-                            f"Повторная попытка через {retry_delay} сек.",
-                        )
-                    else:
-                        # Для других ошибок используем фиксированную задержку с небольшим случайным компонентом
-                        retry_delay = 1.0 + retries * 0.5
-
-                    if retries <= self.max_retries:
-                        logger.info(
-                            f"Повторная попытка {retries}/{self.max_retries} через {retry_delay} сек...",
-                        )
-                        await asyncio.sleep(retry_delay)
-                        continue
-
-                # Если это не ретраибл ошибка или исчерпаны попытки
-                # Пытаемся безопасно прочитать тело ответа
-                content_type = e.response.headers.get("Content-Type", "")
-
-                if "application/json" in content_type:
-                    try:
-                        error_data = e.response.json()
-                    except Exception:
-                        error_data = {
-                            "error": "Failed to parse JSON error",
-                            "raw": e.response.text[:100],
-                        }
-                else:
-                    # Если пришел HTML (например, 404 или 502 ошибка Cloudflare)
-                    error_data = {
-                        "error": "Non-JSON response",
-                        "status_code": e.response.status_code,
-                    }
-
-                logger.warning(f"⚠️ API Error {e.response.status_code} на {path}: {error_data}")
-                return error_data
+                # Continue retry loop after delay
+                await asyncio.sleep(retry_delay)
+                continue
 
             except (httpx.ConnectError, httpx.ReadError, httpx.WriteError) as e:
-                # Сетевые ошибки
+                # Network errors - log and retry
                 logger.warning(f"Сетевая ошибка при запросе {method} {path}: {e!s}")
-
-                # Добавляем breadcrumb о сетевой ошибке
                 add_api_breadcrumb(
                     endpoint=path,
                     method=method.upper(),
@@ -1052,29 +1252,22 @@ class DMarketAPI:  # noqa: PLR0904
                 )
 
                 retries += 1
-                retry_delay = min(
-                    retry_delay * 1.5,
-                    10,
-                )  # максимальная задержка 10 секунд
+                retry_delay = min(retry_delay * 1.5, 10)
 
-                if retries <= self.max_retries:
-                    logger.info(
-                        f"Повторная попытка {retries}/{self.max_retries} через {retry_delay} сек...",
-                    )
-                    await asyncio.sleep(retry_delay)
-                    continue
+                if retries > self.max_retries:
+                    last_error = e
+                    break
 
-                last_error = e
-                break
+                logger.info(
+                    f"Повторная попытка {retries}/{self.max_retries} через {retry_delay} сек..."
+                )
+                await asyncio.sleep(retry_delay)
+                continue
 
             except Exception as e:
-                # Другие ошибки
-                logger.exception(
-                    f"Непредвиденная ошибка при запросе {method} {path}: {e!s}",
-                )
+                # Unexpected errors - log and break
+                logger.exception(f"Непредвиденная ошибка при запросе {method} {path}: {e!s}")
                 logger.exception(traceback.format_exc())
-
-                # Добавляем breadcrumb о непредвиденной ошибке
                 add_api_breadcrumb(
                     endpoint=path,
                     method=method.upper(),
@@ -1082,7 +1275,6 @@ class DMarketAPI:  # noqa: PLR0904
                     error_message=str(e),
                     retry_attempt=retries,
                 )
-
                 last_error = e
                 break
 
