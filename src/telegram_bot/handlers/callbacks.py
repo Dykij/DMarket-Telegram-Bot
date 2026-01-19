@@ -341,6 +341,7 @@ async def _handle_legacy_callbacks(
 ) -> None:
     """Handle legacy callbacks not yet migrated to CallbackRouter.
 
+    TODO(Phase 2): Migrate these callbacks to callback_registry.py
     This function contains callbacks that need to be migrated to callback_registry.py.
 
     Args:

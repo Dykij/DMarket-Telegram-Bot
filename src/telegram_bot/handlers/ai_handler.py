@@ -821,8 +821,9 @@ async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_
         from src.dmarket.whitelist_config import WHITELIST_ITEMS
 
         # Initialize components (Phase 2 - use helper)
-        whitelist_checker, blacklist_filter, waxpeer_api, dmarket_api = \
-            await _init_liquid_training_components(context)
+        (
+            whitelist_checker, blacklist_filter, waxpeer_api, dmarket_api
+        ) = await _init_liquid_training_components(context)
 
         output_path = Path("data/liquid_items.csv")
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -923,8 +924,14 @@ async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_
         )
 
     except Exception as e:
-        await update.message.reply_text(f"❌ <b>Ошибка:</b>\n\n{e}", parse_mode="HTML")
         logger.exception("ai_train_liquid_failed", error=str(e))
+        await update.message.reply_text(
+            "❌ <b>Ошибка:</b>\n\nПроизошла ошибка при обучении. "
+            "Пожалуйста, попробуйте позже.",
+            parse_mode="HTML",
+        )
+
+
 def register_ai_handlers(application: "Application") -> None:
     """Register AI-related command handlers.
 
