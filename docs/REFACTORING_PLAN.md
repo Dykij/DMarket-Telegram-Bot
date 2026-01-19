@@ -44,7 +44,7 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 | 8 | `_request()` | `api/client.py` | 221 | 🟠 High | ✅ Refactored (was 262) |
 | 9 | `_update_from_env()` | `config.py` | 108 | 🟠 High | ✅ Refactored (was 252) |
 | 10 | `scan_game()` | `arbitrage_scanner.py` | <50 | 🟠 High | ✅ Refactored (was 216) |
-| 11 | `market_analysis_callback()` | `market_analysis_handler.py` | 252 | 🟠 High | ⏳ Pending |
+| 11 | `market_analysis_callback()` | `market_analysis_handler.py` | 109 | 🟠 High | ✅ Refactored (was 252) |
 | 12 | `handle_mode_selection_callback()` | `automatic_arbitrage_handler.py` | 240 | 🟠 High | ⏳ Pending |
 | 13 | `train_from_real_data()` | `enhanced_predictor.py` | 225 | 🟠 High | ⏳ Pending |
 | 14 | `hold_callback_handler()` | `intelligent_hold_handler.py` | 223 | 🟡 Medium | ⏳ Pending |
@@ -147,6 +147,22 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 - `_register_smart_arbitrage_handlers()` - Register smart arb handlers
 - `_register_analysis_handlers()` - Register analysis handlers
 - `_register_prefix_handlers()` - Register prefix handlers
+
+### 7. `market_analysis_callback()` in `market_analysis_handler.py`
+
+**Before**: 252 lines  
+**After**: 109 lines  
+**Reduction**: 57%
+
+**Extracted Helper Functions**:
+- `_create_analysis_keyboard()` - Create analysis options keyboard
+- `_add_game_selection_rows()` - Add game selection rows to keyboard
+- `_handle_game_selection()` - Handle game selection action
+- `_run_price_changes_analysis()` - Run price changes analysis
+- `_run_trending_analysis()` - Run trending items analysis
+- `_run_volatility_analysis()` - Run volatility analysis
+- `_run_undervalued_analysis()` - Run undervalued items analysis
+- `_run_recommendations_analysis()` - Run investment recommendations
 
 ---
 
