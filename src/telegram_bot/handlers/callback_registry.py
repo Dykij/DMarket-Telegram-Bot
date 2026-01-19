@@ -32,20 +32,13 @@ from src.telegram_bot.keyboards import CB_BACK, CB_CANCEL, CB_GAME_PREFIX, CB_HE
 logger = logging.getLogger(__name__)
 
 
-def create_callback_router() -> CallbackRouter:
-    """Create and configure callback router with all handlers.
+# ============================================================================
+# Registration helper functions (Phase 2 refactoring)
+# ============================================================================
 
-    Returns:
-        Configured CallbackRouter instance
 
-    """
-    router = CallbackRouter()
-
-    # ========================================================================
-    # EXACT MATCH HANDLERS
-    # ========================================================================
-
-    # Menu handlers
+def _register_menu_handlers(router: CallbackRouter) -> None:
+    """Register main menu and navigation handlers."""
     router.register_exact("simple_menu", handle_simple_menu)
     router.register_exact("balance", handle_balance)
     router.register_exact("search", handle_search)
@@ -56,7 +49,9 @@ def create_callback_router() -> CallbackRouter:
     router.register_exact("main_menu", handle_main_menu)
     router.register_exact("back_to_menu", handle_back_to_main)
 
-    # Arbitrage handlers
+
+def _register_arbitrage_handlers(router: CallbackRouter) -> None:
+    """Register arbitrage-related handlers."""
     router.register_exact("arbitrage", handle_arbitrage_menu)
     router.register_exact("arbitrage_menu", handle_arbitrage_menu)
     router.register_exact("auto_arbitrage", handle_auto_arbitrage)
@@ -67,11 +62,11 @@ def create_callback_router() -> CallbackRouter:
     router.register_exact("market_comparison", handle_market_analysis)
     router.register_exact("open_webapp", handle_open_webapp)
 
-    # Help
+
+def _register_help_and_noop_handlers(router: CallbackRouter) -> None:
+    """Register help and no-op handlers."""
     router.register_exact(CB_HELP, handle_help)
     router.register_exact("help", handle_help)
-
-    # No-op handlers
     router.register_exact("noop", handle_noop)
     router.register_exact("page_info", handle_noop)
     router.register_exact("alerts_page_info", handle_noop)
@@ -80,10 +75,10 @@ def create_callback_router() -> CallbackRouter:
     router.register_exact("back", handle_noop)
     router.register_exact("cancel", handle_noop)
 
-    # Enhanced scanner menu
-    router.register_exact("enhanced_scanner_menu", _handle_enhanced_scanner_menu)
 
-    # Settings submenu
+def _register_settings_handlers(router: CallbackRouter) -> None:
+    """Register settings submenu handlers."""
+    router.register_exact("enhanced_scanner_menu", _handle_enhanced_scanner_menu)
     router.register_exact("settings_api_keys", _handle_settings_api_keys)
     router.register_exact("settings_proxy", _handle_settings_proxy)
     router.register_exact("settings_currency", _handle_settings_currency)
@@ -97,7 +92,9 @@ def create_callback_router() -> CallbackRouter:
     router.register_exact("settings_limits", _handle_settings_limits)
     router.register_exact("settings_games", _handle_settings_games)
 
-    # Alert submenu
+
+def _register_alert_handlers(router: CallbackRouter) -> None:
+    """Register alert submenu handlers."""
     router.register_exact("alert_create", _handle_alert_create)
     router.register_exact("alert_list", _handle_alert_list)
     router.register_exact("alert_settings", _handle_alert_settings)
@@ -105,7 +102,9 @@ def create_callback_router() -> CallbackRouter:
     router.register_exact("alert_history", _handle_alert_history)
     router.register_exact("back_to_alerts", _handle_back_to_alerts)
 
-    # Arbitrage submenu
+
+def _register_arb_submenu_handlers(router: CallbackRouter) -> None:
+    """Register arbitrage submenu handlers."""
     router.register_exact("arb_quick", _handle_arb_quick)
     router.register_exact("arb_deep", _handle_arb_deep)
     router.register_exact("arb_market_analysis", _handle_arb_market_analysis)
@@ -119,13 +118,17 @@ def create_callback_router() -> CallbackRouter:
     router.register_exact("arb_auto", _handle_arb_auto)
     router.register_exact("arb_analysis", _handle_arb_analysis)
 
-    # Targets
+
+def _register_target_handlers(router: CallbackRouter) -> None:
+    """Register target handlers."""
     router.register_exact("targets", _handle_targets)
     router.register_exact("target_create", _handle_target_create)
     router.register_exact("target_list", _handle_target_list)
     router.register_exact("target_stats", _handle_target_stats)
 
-    # Waxpeer P2P Integration
+
+def _register_waxpeer_handlers(router: CallbackRouter) -> None:
+    """Register Waxpeer P2P integration handlers."""
     router.register_exact("waxpeer_menu", _handle_waxpeer_menu)
     router.register_exact("waxpeer_balance", _handle_waxpeer_balance)
     router.register_exact("waxpeer_settings", _handle_waxpeer_settings)
@@ -135,9 +138,9 @@ def create_callback_router() -> CallbackRouter:
     router.register_exact("waxpeer_listings", _handle_waxpeer_scan)
     router.register_exact("waxpeer_stats", _handle_waxpeer_stats)
 
-    # ========================================================================
-    # FLOAT ARBITRAGE HANDLERS (NEW)
-    # ========================================================================
+
+def _register_float_arbitrage_handlers(router: CallbackRouter) -> None:
+    """Register float arbitrage handlers."""
     router.register_exact("float_arbitrage_menu", _handle_float_arbitrage_menu)
     router.register_exact("float_scan", _handle_float_scan)
     router.register_exact("float_quartile", _handle_float_quartile)
@@ -147,9 +150,9 @@ def create_callback_router() -> CallbackRouter:
     router.register_exact("float_my_orders", _handle_float_my_orders)
     router.register_exact("float_settings", _handle_float_settings)
 
-    # ========================================================================
-    # ADVANCED ORDERS HANDLERS (NEW)
-    # ========================================================================
+
+def _register_advanced_orders_handlers(router: CallbackRouter) -> None:
+    """Register advanced orders handlers."""
     router.register_exact("advanced_orders_menu", _handle_advanced_orders_menu)
     router.register_exact("adv_order_float", _handle_adv_order_float)
     router.register_exact("adv_order_doppler", _handle_adv_order_doppler)
@@ -160,6 +163,9 @@ def create_callback_router() -> CallbackRouter:
     router.register_exact("adv_order_my_orders", _handle_adv_order_my_orders)
     router.register_exact("adv_order_settings", _handle_adv_order_settings)
 
+
+def _register_doppler_and_pattern_handlers(router: CallbackRouter) -> None:
+    """Register doppler phases and pattern handlers."""
     # Doppler phases
     router.register_exact("doppler_ruby", _handle_doppler_phase)
     router.register_exact("doppler_sapphire", _handle_doppler_phase)
@@ -179,9 +185,9 @@ def create_callback_router() -> CallbackRouter:
     router.register_exact("pattern_blue_gem_other", _handle_pattern_selection)
     router.register_exact("pattern_custom", _handle_pattern_custom)
 
-    # ========================================================================
-    # UNIFIED STRATEGY HANDLERS (NEW)
-    # ========================================================================
+
+def _register_strategy_handlers(router: CallbackRouter) -> None:
+    """Register unified strategy handlers."""
     router.register_exact("auto_trade_scan_all", _handle_scan_all_strategies)
     router.register_exact("strategy_cross_platform", _handle_strategy_cross_platform)
     router.register_exact("strategy_intramarket", _handle_strategy_intramarket)
@@ -196,19 +202,25 @@ def create_callback_router() -> CallbackRouter:
     router.register_exact("preset_medium", _handle_preset_medium)
     router.register_exact("preset_pro", _handle_preset_pro)
 
-    # Other features
+
+def _register_other_features_handlers(router: CallbackRouter) -> None:
+    """Register other feature handlers."""
     router.register_exact("inventory", _handle_inventory)
     router.register_exact("analytics", _handle_analytics)
     router.register_exact("scanner", _handle_scanner)
 
-    # Auto arbitrage
+
+def _register_auto_arb_handlers(router: CallbackRouter) -> None:
+    """Register auto arbitrage handlers."""
     router.register_exact("auto_arb_start", _handle_auto_arb_start)
     router.register_exact("auto_arb_stop", _handle_auto_arb_stop)
     router.register_exact("auto_arb_settings", _handle_auto_arb_settings)
     router.register_exact("auto_arb_status", _handle_auto_arb_status)
     router.register_exact("auto_arb_history", _handle_auto_arb_history)
 
-    # Smart Arbitrage (NEW - for $45.50 micro balance)
+
+def _register_smart_arbitrage_handlers(router: CallbackRouter) -> None:
+    """Register smart arbitrage handlers for micro balance."""
     router.register_exact("start_smart_arbitrage", _handle_start_smart_arbitrage)
     router.register_exact("stop_smart_arbitrage", _handle_stop_smart_arbitrage)
     router.register_exact("smart_arbitrage_status", _handle_smart_arbitrage_status)
@@ -226,6 +238,9 @@ def create_callback_router() -> CallbackRouter:
     router.register_exact("config_limits", _handle_config_limits)
     router.register_exact("panic_stop", _handle_panic_stop)
 
+
+def _register_analysis_handlers(router: CallbackRouter) -> None:
+    """Register comparison and analysis handlers."""
     # Comparison
     router.register_exact("cmp_steam", _handle_cmp_steam)
     router.register_exact("cmp_buff", _handle_cmp_buff)
@@ -243,11 +258,10 @@ def create_callback_router() -> CallbackRouter:
     router.register_exact("backtest_standard", _handle_backtest_standard)
     router.register_exact("backtest_custom", _handle_backtest_custom)
 
-    # ========================================================================
-    # PREFIX HANDLERS
-    # ========================================================================
 
-    # Skip simplified menu callbacks (handled elsewhere)
+def _register_prefix_handlers(router: CallbackRouter) -> None:
+    """Register all prefix handlers."""
+    # Skip simplified menu callbacks
     router.register_prefix("simple_", _handle_skip_simple)
 
     # Game selection
@@ -262,35 +276,57 @@ def create_callback_router() -> CallbackRouter:
     router.register_prefix("scan_level_", _handle_scan_level)
     router.register_prefix("scanner_level_scan_", _handle_scan_level)
 
-    # Language
+    # Language and risk
     router.register_prefix("lang_", _handle_lang)
-
-    # Risk profile
     router.register_prefix("risk_", _handle_risk)
 
-    # Alert types
+    # Alert types and notifications
     router.register_prefix("alert_type_", _handle_alert_type)
-
-    # Notifications
     router.register_prefix("notify_", _handle_notify)
 
-    # Arbitrage settings
+    # Arbitrage settings and filters
     router.register_prefix("arb_set_", _handle_arb_set)
-
-    # Filters
     router.register_prefix("filter:", _handle_filter)
 
-    # Auto start
+    # Auto controls
     router.register_prefix("auto_start:", _handle_auto_start)
-
-    # Paginate
     router.register_prefix("paginate:", _handle_paginate)
-
-    # Auto trade
     router.register_prefix("auto_trade:", _handle_auto_trade)
-
-    # Compare
     router.register_prefix("compare:", _handle_compare)
+
+
+# ============================================================================
+# End of registration helper functions
+# ============================================================================
+
+
+def create_callback_router() -> CallbackRouter:
+    """Create and configure callback router with all handlers.
+
+    Returns:
+        Configured CallbackRouter instance
+
+    """
+    router = CallbackRouter()
+
+    # Register all handler groups (Phase 2 - use helpers)
+    _register_menu_handlers(router)
+    _register_arbitrage_handlers(router)
+    _register_help_and_noop_handlers(router)
+    _register_settings_handlers(router)
+    _register_alert_handlers(router)
+    _register_arb_submenu_handlers(router)
+    _register_target_handlers(router)
+    _register_waxpeer_handlers(router)
+    _register_float_arbitrage_handlers(router)
+    _register_advanced_orders_handlers(router)
+    _register_doppler_and_pattern_handlers(router)
+    _register_strategy_handlers(router)
+    _register_other_features_handlers(router)
+    _register_auto_arb_handlers(router)
+    _register_smart_arbitrage_handlers(router)
+    _register_analysis_handlers(router)
+    _register_prefix_handlers(router)
 
     logger.info("Callback router initialized with %d exact handlers", len(router._exact_handlers))
     logger.info("Callback router initialized with %d prefix handlers", len(router._prefix_handlers))

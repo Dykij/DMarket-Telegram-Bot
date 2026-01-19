@@ -117,17 +117,134 @@ async def handle_automatic_arbitrage(update: Update, context: ContextTypes.DEFAU
     )
 
 
+# ============================================================================
+# Helper functions for handle_mode_selection_callback (Phase 2 refactoring)
+# ============================================================================
+
+
+async def _check_api_health(api_client: "DMarketAPI") -> tuple[bool, str | None]:
+    """Check API health before scanning.
+
+    Returns:
+        Tuple of (is_healthy, error_message)
+    """
+    try:
+        balance_result = await api_client.get_balance()
+        if balance_result.get("error"):
+            return False, balance_result.get("error_message", "Unknown error")
+        return True, None
+    except Exception as e:
+        return False, str(e)
+
+
+async def _run_fallback_scan(
+    api_client: "DMarketAPI",
+    level: str,
+) -> tuple[list, str | None]:
+    """Run fallback scan using ArbitrageScanner (single game).
+
+    Returns:
+        Tuple of (results_list, error_message)
+    """
+    from src.dmarket.arbitrage_scanner import ArbitrageScanner
+
+    scanner = ArbitrageScanner(api_client=api_client)
+    try:
+        results = await scanner.scan_level(
+            level=level,
+            game="csgo",
+            max_results=10,
+        )
+        return results, None
+    except Exception as e:
+        return [], str(e)
+
+
+async def _run_parallel_scan(
+    scanner_manager,
+    level: str,
+) -> tuple[dict, str | None]:
+    """Run parallel scan using ScannerManager.
+
+    Returns:
+        Tuple of (results_dict, error_message)
+    """
+    games = ["csgo", "dota2", "rust", "tf2"]
+    try:
+        results = await scanner_manager.scan_multiple_games(
+            games=games,
+            level=level,
+            max_items_per_game=10,
+        )
+        return results, None
+    except Exception as e:
+        return {}, str(e)
+
+
+def _format_fallback_results(results: list, mode: str) -> str:
+    """Format fallback scan results for display."""
+    if not results:
+        return (
+            f"ℹ️ <b>No opportunities found</b>\n\n"
+            f"Mode: {mode.capitalize()}\n"
+            f"Game: CS:GO\n\n"
+            f"Try a different mode or check back later."
+        )
+
+    results_text = f"✅ <b>Found {len(results)} opportunities!</b>\n\n"
+    for i, opp in enumerate(results[:5], 1):
+        results_text += (
+            f"{i}. {opp.get('item_name', 'Unknown')}\n"
+            f"   💰 Price: ${opp.get('price', 0):.2f}\n"
+            f"   📈 Profit: {opp.get('profit_margin', 0):.1f}%\n\n"
+        )
+
+    if len(results) > 5:
+        results_text += f"...and {len(results) - 5} more opportunities.\n"
+
+    return results_text
+
+
+def _format_parallel_results(results: dict, mode: str) -> str:
+    """Format parallel scan results for display."""
+    total_opportunities = sum(len(v) for v in results.values())
+
+    if total_opportunities == 0:
+        return (
+            f"ℹ️ <b>No opportunities found</b>\n\n"
+            f"Mode: {mode.capitalize()}\n"
+            f"Games: All supported\n\n"
+            f"Market conditions may not be favorable right now.\n"
+            f"Try again in a few minutes or select a different mode."
+        )
+
+    results_text = (
+        f"✅ <b>Scan Complete!</b>\n\n"
+        f"Found <b>{total_opportunities}</b> opportunities across all games:\n\n"
+    )
+
+    for game, opps in results.items():
+        if opps:
+            results_text += f"🎮 <b>{game.upper()}</b>: {len(opps)} items\n"
+
+    results_text += f"\n📊 Mode: {mode.capitalize()}\n"
+    results_text += "⏱️ Scan completed successfully!\n\n"
+    results_text += "Use /arbitrage command for detailed view\nor check specific game results."
+
+    return results_text
+
+
+# ============================================================================
+# End of helper functions
+# ============================================================================
+
+
 async def handle_mode_selection_callback(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """Handle mode selection callback and start scanning.
 
-    Args:
-        update: Telegram update with callback query
-        context: Callback context
-
-    Returns:
-        None (starts arbitrage scan)
+    Phase 2 Refactoring: Logic split into helper functions.
     """
     query = update.callback_query
     if not query or not query.data:
@@ -139,221 +256,86 @@ async def handle_mode_selection_callback(
     if not user:
         return
 
-    # Extract mode from callback data (e.g., "mode_boost" -> "boost")
+    # Extract mode from callback data
     mode = query.data.replace("mode_", "")
     level = MODE_LEVEL_MAP.get(mode, "standard")
 
     logger.info("mode_selected", user_id=user.id, mode=mode, level=level)
 
-    # Update message to show selection
     if query.message:
         await query.message.edit_text(
-            f"✅ Selected mode: <b>{mode.capitalize()}</b>\n\n"
+            f"✅ Selected: <b>{mode.capitalize()}</b>\n\n"
             f"{MODE_DESCRIPTIONS[mode]}\n\n"
-            f"🔍 Performing API check...",
+            f"🔍 Checking API...",
             parse_mode="HTML",
         )
 
-    # Step 1: API Check
-    api_client: DMarketAPI | None = context.bot_data.get("dmarket_api")
+    # Step 1: API Check (Phase 2 - use helper)
+    api_client = context.bot_data.get("dmarket_api")
     if not api_client:
         if query.message:
             await query.message.edit_text(
-                "❌ <b>Error</b>\n\n"
-                "API client not initialized.\n"
-                "Please restart the bot or contact administrator.",
-                parse_mode="HTML",
+                "❌ <b>Error</b>\n\nAPI client not initialized.", parse_mode="HTML"
             )
         logger.error("mode_scan_failed", reason="no_api_client", user_id=user.id)
         return
 
-    # Quick API health check
-    try:
-        balance_result = await api_client.get_balance()
-        if balance_result.get("error"):
-            if query.message:
-                await query.message.edit_text(
-                    f"❌ <b>API Check Failed</b>\n\n"
-                    f"Error: {balance_result.get('error_message', 'Unknown error')}\n\n"
-                    f"Please check API configuration and try again.",
-                    parse_mode="HTML",
-                )
-            logger.error(
-                "mode_scan_api_check_failed",
-                error=balance_result.get("error_message"),
-                user_id=user.id,
-            )
-            return
-    except Exception as e:
+    is_healthy, error_msg = await _check_api_health(api_client)
+    if not is_healthy:
         if query.message:
             await query.message.edit_text(
-                f"❌ <b>API Check Failed</b>\n\nError: {e!s}\n\nPlease verify API connectivity.",
-                parse_mode="HTML",
+                f"❌ <b>API Check Failed</b>\n\nError: {error_msg}", parse_mode="HTML"
             )
-        logger.error(
-            "mode_scan_api_exception",
-            error=str(e),
-            user_id=user.id,
-            exc_info=True,
-        )
+        logger.error("mode_scan_api_check_failed", error=error_msg, user_id=user.id)
         return
 
     # Step 2: Start scanning
     if query.message:
         await query.message.edit_text(
-            f"✅ API Check passed!\n\n"
-            f"🔍 <b>Starting {mode.capitalize()} scan...</b>\n\n"
-            f"Scanning all supported games:\n"
-            f"• CS:GO/CS2\n"
-            f"• Dota 2\n"
-            f"• TF2\n"
-            f"• Rust\n\n"
-            f"This may take 30-60 seconds...",
+            f"✅ API OK!\n\n🔍 <b>Starting {mode.capitalize()} scan...</b>\n\n"
+            f"Scanning all games (30-60 seconds)...",
             parse_mode="HTML",
         )
 
-    # Get ScannerManager from bot_data
     scanner_manager = context.bot_data.get("scanner_manager")
 
     if not scanner_manager:
-        # Fallback: use direct API scanning if ScannerManager not available
+        # Fallback scan (Phase 2 - use helper)
         if query.message:
             await query.message.edit_text(
-                "⚠️ <b>Scanner Manager not available</b>\n\n"
-                "Using fallback scanning method...\n"
-                "Note: This may be slower than parallel scanning.",
-                parse_mode="HTML",
+                "⚠️ Using fallback scanning (may be slower)...", parse_mode="HTML"
             )
         logger.warning("scanner_manager_not_available", user_id=user.id)
 
-        # Direct scanning fallback (simplified)
-        from src.dmarket.arbitrage_scanner import ArbitrageScanner
-
-        scanner = ArbitrageScanner(api_client=api_client)
-        try:
-            results = await scanner.scan_level(
-                level=level,
-                game="csgo",  # Fallback to single game
-                max_results=10,
-            )
-
-            if results:
-                results_text = f"✅ <b>Found {len(results)} opportunities!</b>\n\n"
-                for i, opp in enumerate(results[:5], 1):
-                    results_text += (
-                        f"{i}. {opp.get('item_name', 'Unknown')}\n"
-                        f"   💰 Price: ${opp.get('price', 0):.2f}\n"
-                        f"   📈 Profit: {opp.get('profit_margin', 0):.1f}%\n\n"
-                    )
-
-                if len(results) > 5:
-                    results_text += f"...and {len(results) - 5} more opportunities.\n"
-
-                if query.message:
-                    await query.message.edit_text(results_text, parse_mode="HTML")
-            elif query.message:
-                await query.message.edit_text(
-                    f"ℹ️ <b>No opportunities found</b>\n\n"
-                    f"Mode: {mode.capitalize()}\n"
-                    f"Game: CS:GO\n\n"
-                    f"Try a different mode or check back later.",
-                    parse_mode="HTML",
-                )
-
-            logger.info(
-                "fallback_scan_completed",
-                user_id=user.id,
-                mode=mode,
-                opportunities_found=len(results),
-            )
-
-        except Exception as e:
+        results, error = await _run_fallback_scan(api_client, level)
+        if error:
             if query.message:
                 await query.message.edit_text(
-                    f"❌ <b>Scan Failed</b>\n\nError: {e!s}\n\nPlease try again later.",
-                    parse_mode="HTML",
+                    f"❌ <b>Scan Failed</b>\n\nError: {error}", parse_mode="HTML"
                 )
-            logger.error(
-                "fallback_scan_failed",
-                error=str(e),
-                user_id=user.id,
-                exc_info=True,
-            )
+            logger.error("fallback_scan_failed", error=error, user_id=user.id)
+            return
+
+        results_text = _format_fallback_results(results, mode)
+        if query.message:
+            await query.message.edit_text(results_text, parse_mode="HTML")
+        logger.info("fallback_scan_completed", user_id=user.id, opportunities=len(results))
         return
 
-    # Use ScannerManager for parallel scanning
-    try:
-        games = ["csgo", "dota2", "rust", "tf2"]
-        results = await scanner_manager.scan_multiple_games(
-            games=games,
-            level=level,
-            max_items_per_game=10,
-        )
-
-        # Aggregate results
-        total_opportunities = sum(len(v) for v in results.values())
-
-        if total_opportunities > 0:
-            results_text = (
-                f"✅ <b>Scan Complete!</b>\n\n"
-                f"Found <b>{total_opportunities}</b> opportunities across all games:\n\n"
-            )
-
-            for game, opps in results.items():
-                if opps:
-                    results_text += f"🎮 <b>{game.upper()}</b>: {len(opps)} items\n"
-
-            results_text += f"\n📊 Mode: {mode.capitalize()}\n"
-            results_text += "⏱️ Scan completed successfully!\n\n"
-            results_text += (
-                "Use /arbitrage command for detailed view\nor check specific game results."
-            )
-
-            if query.message:
-                await query.message.edit_text(results_text, parse_mode="HTML")
-
-            logger.info(
-                "parallel_scan_success",
-                user_id=user.id,
-                mode=mode,
-                total_opportunities=total_opportunities,
-                games_scanned=len(games),
-            )
-        else:
-            if query.message:
-                await query.message.edit_text(
-                    f"ℹ️ <b>No opportunities found</b>\n\n"
-                    f"Mode: {mode.capitalize()}\n"
-                    f"Games: All supported\n\n"
-                    f"Market conditions may not be favorable right now.\n"
-                    f"Try again in a few minutes or select a different mode.",
-                    parse_mode="HTML",
-                )
-
-            logger.info(
-                "parallel_scan_no_results",
-                user_id=user.id,
-                mode=mode,
-                games_scanned=len(games),
-            )
-
-    except Exception as e:
+    # Parallel scan (Phase 2 - use helper)
+    results, error = await _run_parallel_scan(scanner_manager, level)
+    if error:
         if query.message:
             await query.message.edit_text(
-                f"❌ <b>Scan Failed</b>\n\n"
-                f"Error: {e!s}\n\n"
-                f"This may be due to:\n"
-                f"• Temporary API issues\n"
-                f"• Network connectivity problems\n"
-                f"• Rate limiting\n\n"
+                f"❌ <b>Scan Failed</b>\n\nError: {error}\n\n"
                 f"Please try again in a few minutes.",
                 parse_mode="HTML",
             )
+        logger.error("parallel_scan_failed", error=error, user_id=user.id, mode=mode)
+        return
 
-        logger.error(
-            "parallel_scan_failed",
-            error=str(e),
-            user_id=user.id,
-            mode=mode,
-            exc_info=True,
-        )
+    total = sum(len(v) for v in results.values())
+    results_text = _format_parallel_results(results, mode)
+    if query.message:
+        await query.message.edit_text(results_text, parse_mode="HTML")
+    logger.info("parallel_scan_success", user_id=user.id, mode=mode, total=total)

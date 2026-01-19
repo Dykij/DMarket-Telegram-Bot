@@ -29,6 +29,218 @@ from src.utils.price_analyzer import (
 logger = logging.getLogger(__name__)
 
 
+# ============================================================================
+# Helper functions for market analysis (Phase 2 refactoring)
+# ============================================================================
+
+
+def _create_analysis_keyboard(game: str) -> list[list[InlineKeyboardButton]]:
+    """Create analysis options keyboard for a game.
+
+    Args:
+        game: Game code
+
+    Returns:
+        Keyboard button rows
+    """
+    return [
+        [
+            InlineKeyboardButton(
+                "📈 Изменения цен",
+                callback_data=f"analysis:price_changes:{game}",
+            ),
+            InlineKeyboardButton(
+                "🔥 Трендовые предметы",
+                callback_data=f"analysis:trending:{game}",
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                "📊 Волатильность",
+                callback_data=f"analysis:volatility:{game}",
+            ),
+            InlineKeyboardButton(
+                "📑 Полный отчет",
+                callback_data=f"analysis:report:{game}",
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                "💰 Недооцененные предметы",
+                callback_data=f"analysis:undervalued:{game}",
+            ),
+            InlineKeyboardButton(
+                "📊 Рекомендации",
+                callback_data=f"analysis:recommendations:{game}",
+            ),
+        ],
+    ]
+
+
+def _add_game_selection_rows(
+    keyboard: list[list[InlineKeyboardButton]],
+    current_game: str,
+) -> None:
+    """Add game selection rows to keyboard.
+
+    Args:
+        keyboard: Keyboard to modify
+        current_game: Currently selected game
+    """
+    game_row: list[InlineKeyboardButton] = []
+    for game_code, game_name in GAMES.items():
+        button_text = f"✅ {game_name}" if game_code == current_game else game_name
+        game_row.append(
+            InlineKeyboardButton(
+                button_text,
+                callback_data=f"analysis:select_game:{game_code}",
+            ),
+        )
+        if len(game_row) == 2:
+            keyboard.append(game_row)
+            game_row = []
+
+    if game_row:
+        keyboard.append(game_row)
+
+    keyboard.append(
+        [InlineKeyboardButton("⬅️ Назад к арбитражу", callback_data="arbitrage")],
+    )
+
+
+async def _handle_game_selection(
+    query: CallbackQuery,
+    context: ContextTypes.DEFAULT_TYPE,
+    game: str,
+) -> None:
+    """Handle game selection action.
+
+    Args:
+        query: Callback query
+        context: Bot context
+        game: Selected game code
+    """
+    context.user_data["market_analysis"]["current_game"] = game
+    keyboard = _create_analysis_keyboard(game)
+    _add_game_selection_rows(keyboard, game)
+    game_name = GAMES.get(game, game)
+
+    await query.edit_message_text(
+        f"🔎 *Анализ рынка DMarket*\n\n"
+        f"Выберите тип анализа и игру для исследования тенденций рынка "
+        f"и поиска выгодных возможностей.\n\n"
+        f"Текущая игра: *{game_name}*",
+        reply_markup=InlineKeyboardMarkup(keyboard),
+        parse_mode="Markdown",
+    )
+
+
+async def _run_price_changes_analysis(
+    query: CallbackQuery,
+    context: ContextTypes.DEFAULT_TYPE,
+    api_client: Any,
+    user_settings: dict,
+    current_game: str,
+    user_id: int,
+) -> None:
+    """Run price changes analysis."""
+    results = await analyze_price_changes(
+        game=current_game,
+        period=user_settings.get("period", "24h"),
+        min_price=user_settings.get("min_price", 1.0),
+        max_price=user_settings.get("max_price", 500.0),
+        dmarket_api=api_client,
+        limit=20,
+    )
+    pagination_manager.set_items(user_id, results, "price_changes")
+    await show_price_changes_results(query, context, current_game)
+
+
+async def _run_trending_analysis(
+    query: CallbackQuery,
+    context: ContextTypes.DEFAULT_TYPE,
+    api_client: Any,
+    user_settings: dict,
+    current_game: str,
+    user_id: int,
+) -> None:
+    """Run trending items analysis."""
+    results = await find_trending_items(
+        game=current_game,
+        min_price=user_settings.get("min_price", 1.0),
+        max_price=user_settings.get("max_price", 500.0),
+        dmarket_api=api_client,
+        limit=20,
+    )
+    pagination_manager.set_items(user_id, results, "trending")
+    await show_trending_items_results(query, context, current_game)
+
+
+async def _run_volatility_analysis(
+    query: CallbackQuery,
+    context: ContextTypes.DEFAULT_TYPE,
+    api_client: Any,
+    user_settings: dict,
+    current_game: str,
+    user_id: int,
+) -> None:
+    """Run volatility analysis."""
+    results = await analyze_market_volatility(
+        game=current_game,
+        min_price=user_settings.get("min_price", 1.0),
+        max_price=user_settings.get("max_price", 500.0),
+        dmarket_api=api_client,
+        limit=20,
+    )
+    pagination_manager.set_items(user_id, results, "volatility")
+    await show_volatility_results(query, context, current_game)
+
+
+async def _run_undervalued_analysis(
+    query: CallbackQuery,
+    context: ContextTypes.DEFAULT_TYPE,
+    api_client: Any,
+    user_settings: dict,
+    current_game: str,
+    user_id: int,
+) -> None:
+    """Run undervalued items analysis."""
+    results = await find_undervalued_items(
+        api_client,
+        game=current_game,
+        price_from=user_settings.get("min_price", 1.0),
+        price_to=user_settings.get("max_price", 500.0),
+        discount_threshold=15.0,
+        max_results=20,
+    )
+    pagination_manager.set_items(user_id, results, "undervalued")
+    await show_undervalued_items_results(query, context, current_game)
+
+
+async def _run_recommendations_analysis(
+    query: CallbackQuery,
+    context: ContextTypes.DEFAULT_TYPE,
+    api_client: Any,
+    user_settings: dict,
+    current_game: str,
+    user_id: int,
+) -> None:
+    """Run investment recommendations analysis."""
+    results = await get_investment_recommendations(
+        api_client,
+        game=current_game,
+        budget=user_settings.get("max_price", 100.0),
+        risk_level="medium",
+    )
+    pagination_manager.set_items(user_id, results, "recommendations")
+    await show_investment_recommendations_results(query, context, current_game)
+
+
+# ============================================================================
+# End of helper functions
+# ============================================================================
+
+
 async def market_analysis_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обрабатывает команду /market_analysis для начала анализа рынка.
 
@@ -144,84 +356,9 @@ async def market_analysis_callback(update: Update, context: ContextTypes.DEFAULT
             "max_price": 500.0,
         }
 
-    # Обновляем текущую игру
+    # Обновляем текущую игру (Phase 2 - use helper)
     if action == "select_game":
-        context.user_data["market_analysis"]["current_game"] = game
-
-        # Обновляем сообщение с новой выбранной игрой
-        keyboard = [
-            [
-                InlineKeyboardButton(
-                    "📈 Изменения цен",
-                    callback_data=f"analysis:price_changes:{game}",
-                ),
-                InlineKeyboardButton(
-                    "🔥 Трендовые предметы",
-                    callback_data=f"analysis:trending:{game}",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    "📊 Волатильность",
-                    callback_data=f"analysis:volatility:{game}",
-                ),
-                InlineKeyboardButton(
-                    "📑 Полный отчет",
-                    callback_data=f"analysis:report:{game}",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    "💰 Недооцененные предметы",
-                    callback_data=f"analysis:undervalued:{game}",
-                ),
-                InlineKeyboardButton(
-                    "📊 Рекомендации",
-                    callback_data=f"analysis:recommendations:{game}",
-                ),
-            ],
-        ]
-
-        # Добавляем выбор игры
-        game_row = []
-        for game_code, game_name in GAMES.items():
-            # Отмечаем выбранную игру
-            button_text = f"✅ {game_name}" if game_code == game else game_name
-
-            game_row.append(
-                InlineKeyboardButton(
-                    button_text,
-                    callback_data=f"analysis:select_game:{game_code}",
-                ),
-            )
-
-            # Создаем новую строку после каждой второй игры
-            if len(game_row) == 2:
-                keyboard.append(game_row)
-                game_row = []
-
-        # Добавляем оставшиеся игры, если есть
-        if game_row:
-            keyboard.append(game_row)
-
-        # Добавляем кнопку возврата
-        keyboard.append(
-            [
-                InlineKeyboardButton("⬅️ Назад к арбитражу", callback_data="arbitrage"),
-            ],
-        )
-
-        game_name = GAMES.get(game, game)
-
-        await query.edit_message_text(
-            f"🔎 *Анализ рынка DMarket*\n\n"
-            f"Выберите тип анализа и игру для исследования тенденций рынка "
-            f"и поиска выгодных возможностей.\n\n"
-            f"Текущая игра: *{game_name}*",
-            reply_markup=InlineKeyboardMarkup(keyboard),
-            parse_mode="Markdown",
-        )
-
+        await _handle_game_selection(query, context, game)
         return
 
     # Получаем текущие настройки пользователя
@@ -234,9 +371,8 @@ async def market_analysis_callback(update: Update, context: ContextTypes.DEFAULT
         parse_mode="Markdown",
     )
 
-    # Создаем API клиент с использованием улучшенного подхода
+    # Создаем API клиент
     try:
-        # Используем унифицированный метод создания API клиента
         api_client = create_api_client_from_env()
 
         if api_client is None:
@@ -247,99 +383,33 @@ async def market_analysis_callback(update: Update, context: ContextTypes.DEFAULT
             )
             return
 
-        # Выполняем запрошенный анализ
+        # Dispatch to appropriate handler (Phase 2 - use helpers)
         if action == "price_changes":
-            # Анализ изменений цен
-            results = await analyze_price_changes(
-                game=current_game,
-                period=user_settings.get("period", "24h"),
-                min_price=user_settings.get("min_price", 1.0),
-                max_price=user_settings.get("max_price", 500.0),
-                dmarket_api=api_client,
-                limit=20,
+            await _run_price_changes_analysis(
+                query, context, api_client, user_settings, current_game, user_id
             )
-
-            # Сохраняем результаты для пагинации
-            pagination_manager.set_items(user_id, results, "price_changes")
-
-            # Отображаем результаты
-            await show_price_changes_results(query, context, current_game)
-
         elif action == "trending":
-            # Поиск трендовых предметов
-            results = await find_trending_items(
-                game=current_game,
-                min_price=user_settings.get("min_price", 1.0),
-                max_price=user_settings.get("max_price", 500.0),
-                dmarket_api=api_client,
-                limit=20,
+            await _run_trending_analysis(
+                query, context, api_client, user_settings, current_game, user_id
             )
-
-            # Сохраняем результаты для пагинации
-            pagination_manager.set_items(user_id, results, "trending")
-
-            # Отображаем результаты
-            await show_trending_items_results(query, context, current_game)
-
         elif action == "volatility":
-            # Анализ волатильности
-            results = await analyze_market_volatility(
-                game=current_game,
-                min_price=user_settings.get("min_price", 1.0),
-                max_price=user_settings.get("max_price", 500.0),
-                dmarket_api=api_client,
-                limit=20,
+            await _run_volatility_analysis(
+                query, context, api_client, user_settings, current_game, user_id
             )
-
-            # Сохраняем результаты для пагинации
-            pagination_manager.set_items(user_id, results, "volatility")
-
-            # Отображаем результаты
-            await show_volatility_results(query, context, current_game)
-
         elif action == "report":
-            # Полный отчет о рынке
             report = await generate_market_report(
                 game=current_game,
                 dmarket_api=api_client,
             )
-
-            # Отображаем отчет
             await show_market_report(query, context, report)
-
         elif action == "undervalued":
-            # Поиск недооцененных предметов с помощью нового модуля
-            # price_analyzer
-            results = await find_undervalued_items(
-                api_client,
-                game=current_game,
-                price_from=user_settings.get("min_price", 1.0),
-                price_to=user_settings.get("max_price", 500.0),
-                discount_threshold=15.0,  # Минимальный процент скидки
-                max_results=20,
+            await _run_undervalued_analysis(
+                query, context, api_client, user_settings, current_game, user_id
             )
-
-            # Сохраняем результаты для пагинации
-            pagination_manager.set_items(user_id, results, "undervalued")
-
-            # Отображаем результаты
-            await show_undervalued_items_results(query, context, current_game)
-
         elif action == "recommendations":
-            # Получаем инвестиционные рекомендации с помощью нового модуля
-            # price_analyzer
-            results = await get_investment_recommendations(
-                api_client,
-                game=current_game,
-                budget=user_settings.get("max_price", 100.0),
-                risk_level="medium",  # Средний уровень риска по умолчанию
+            await _run_recommendations_analysis(
+                query, context, api_client, user_settings, current_game, user_id
             )
-
-            # Сохраняем результаты для пагинации
-            pagination_manager.set_items(user_id, results, "recommendations")
-
-            # Отображаем результаты
-            await show_investment_recommendations_results(query, context, current_game)
 
     except Exception as e:
         logger.exception(f"Ошибка при анализе рынка: {e}")
@@ -347,19 +417,18 @@ async def market_analysis_callback(update: Update, context: ContextTypes.DEFAULT
 
         logger.exception(traceback.format_exc())
 
-        # Отображаем сообщение об ошибке
         await query.edit_message_text(
             f"❌ Произошла ошибка при анализе рынка:\n\n{e!s}",
             reply_markup=get_back_to_market_analysis_keyboard(current_game),
         )
     finally:
         # Закрываем клиент API
-        try:
-            api_client_var = locals().get("api_client")
-            if api_client_var is not None and hasattr(api_client_var, "_close_client"):
-                await api_client_var._close_client()
-        except Exception as e:
-            logger.warning(f"Ошибка при закрытии клиента API: {e}")
+        api_client_ref = locals().get("api_client")
+        if api_client_ref is not None and hasattr(api_client_ref, "_close_client"):
+            try:
+                await api_client_ref._close_client()
+            except Exception as e:
+                logger.warning(f"Ошибка при закрытии клиента API: {e}")
 
 
 async def handle_pagination_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

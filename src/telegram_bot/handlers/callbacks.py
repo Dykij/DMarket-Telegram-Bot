@@ -298,6 +298,9 @@ async def button_callback_handler(
 ) -> None:
     """Общий обработчик колбэков от кнопок.
 
+    Phase 2 Refactoring: Delegated to CallbackRouter for cleaner code.
+    This legacy function is kept for backward compatibility.
+
     Args:
         update: Объект Update от Telegram
         context: Контекст взаимодействия с ботом
@@ -312,42 +315,73 @@ async def button_callback_handler(
 
     callback_data = query.data
 
+    # Skip main keyboard callbacks - they are handled by main_keyboard registered in group 0
+    if callback_data.startswith(("auto_trade_", "target")):
+        return
+
     # Показываем индикатор загрузки
     await query.answer()
 
-    try:
-        # Skip main keyboard callbacks - they are handled by main_keyboard registered in group 0
-        if callback_data.startswith(("auto_trade_", "target")):
-            # These callbacks are handled by the main_keyboard
+    # Try to use CallbackRouter first (Phase 2)
+    router = context.bot_data.get("callback_router") if context.bot_data else None
+    if router is not None:
+        handled = await router.route(update, context)
+        if handled:
             return
 
-        # Обработка для главного меню
+    # Fallback: handle callbacks not yet in router
+    await _handle_legacy_callbacks(update, context, query, callback_data)
+
+
+async def _handle_legacy_callbacks(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    query: CallbackQuery,
+    callback_data: str,
+) -> None:
+    """Handle legacy callbacks not yet migrated to CallbackRouter.
+
+    TODO(Phase 2): Migrate these callbacks to callback_registry.py
+    This function contains callbacks that need to be migrated to callback_registry.py.
+
+    Args:
+        update: Telegram update object
+        context: Bot context
+        query: Callback query
+        callback_data: Callback data string
+
+    """
+    try:
+        # Main menu callback
         if callback_data == "main_menu":
             await main_menu_callback(update, context)
             return
 
-        # Обработка для баланса
+        # Balance callback
         if callback_data == "balance":
             await dmarket_status_impl(update, context, status_message=query.message)
+            return
 
-        # Обработка для поиска
-        elif callback_data == "search":
+        # Search callback
+        if callback_data == "search":
             await query.edit_message_text(
                 "🔍 <b>Поиск предметов на DMarket</b>\n\nВыберите игру для поиска предметов:",
                 reply_markup=get_game_selection_keyboard(),
                 parse_mode=ParseMode.HTML,
             )
+            return
 
-        # Обработка для настроек
-        elif callback_data == "settings":
+        # Settings callback
+        if callback_data == "settings":
             await query.edit_message_text(
                 "⚙️ <b>Настройки бота</b>\n\nВыберите раздел для настройки:",
                 reply_markup=get_settings_keyboard(),
                 parse_mode=ParseMode.HTML,
             )
+            return
 
-        # Обработка для рыночных трендов
-        elif callback_data == "market_trends":
+        # Market trends callback
+        if callback_data == "market_trends":
             await query.edit_message_text(
                 "📈 <b>Рыночные тренды</b>\n\n"
                 "Анализ рыночных трендов и популярных предметов.\n"
@@ -355,9 +389,10 @@ async def button_callback_handler(
                 reply_markup=get_game_selection_keyboard(),
                 parse_mode=ParseMode.HTML,
             )
+            return
 
-        # Обработка для оповещений
-        elif callback_data == "alerts":
+        # Alerts callback
+        if callback_data == "alerts":
             await query.edit_message_text(
                 "🔔 <b>Управление оповещениями</b>\n\n"
                 "Настройте оповещения о изменении цен и "
@@ -365,877 +400,77 @@ async def button_callback_handler(
                 reply_markup=get_alert_keyboard(),
                 parse_mode=ParseMode.HTML,
             )
+            return
 
-        # Обработка для возврата в главное меню
-        elif callback_data == "back_to_main":
+        # Back to main menu
+        if callback_data == "back_to_main":
             await query.edit_message_text(
                 "👋 <b>Главное меню</b>\n\nВыберите действие:",
                 reply_markup=get_main_keyboard(),
                 parse_mode=ParseMode.HTML,
             )
+            return
 
-        # Обработка для арбитража - redirect to auto_trade
-        elif callback_data in {"arbitrage", "arbitrage_menu"}:
+        # Arbitrage callbacks - redirect to auto_trade
+        if callback_data in {"arbitrage", "arbitrage_menu", "auto_arbitrage", "dmarket_arbitrage"}:
             await auto_trade_start(update, context)
+            return
 
-        elif callback_data in {"auto_arbitrage", "dmarket_arbitrage"}:
-            # Redirect to auto_trade
-            await auto_trade_start(update, context)
-
-        elif callback_data == "best_opportunities":
-            # Делегируем обработку специализированному обработчику
+        # Best opportunities
+        if callback_data == "best_opportunities":
             await handle_best_opportunities_impl(update, context)
+            return
 
-        elif callback_data == "game_selection":
-            # Делегируем обработку специализированному обработчику
+        # Game selection
+        if callback_data == "game_selection":
             await handle_game_selection_impl(update, context)
+            return
 
-        elif callback_data.startswith("game_selected:"):
-            # Извлекаем код игры из callback_data
+        # Game selected
+        if callback_data.startswith("game_selected:"):
             game = callback_data.split(":", 1)[1]
-            # Делегируем обработку специализированному обработчику
             await handle_game_selected_impl(update, context, game=game)
+            return
 
-        elif callback_data.startswith(CB_GAME_PREFIX) and not callback_data.startswith(
-            "game_selected"
-        ):
-            # Обработка выбора игры с кнопок game_csgo, game_dota2 и т.д.
-            game = callback_data[len(CB_GAME_PREFIX) :]  # Убираем префикс
+        # Game prefix
+        if callback_data.startswith(CB_GAME_PREFIX) and not callback_data.startswith("game_selected"):
+            game = callback_data[len(CB_GAME_PREFIX):]
             await handle_game_selected_impl(update, context, game=game)
+            return
 
-        elif callback_data == "market_comparison":
-            # Делегируем обработку специализированному обработчику
+        # Market comparison
+        if callback_data == "market_comparison":
             await handle_market_comparison_impl(update, context)
+            return
 
-        # Обработка пагинации для арбитража
-        elif callback_data.startswith(("arb_next_page_", "arb_prev_page_")):
+        # Pagination
+        if callback_data.startswith(("arb_next_page_", "arb_prev_page_")):
             direction = "next_page" if callback_data.startswith("arb_next_page_") else "prev_page"
             await handle_arbitrage_pagination(query, context, direction)
+            return
 
-        elif callback_data == "market_analysis":
-            # Обработка для анализа рынка
-            await query.edit_message_text(
-                "📊 <b>Анализ рынка</b>\n\nВыберите игру для анализа рыночных тенденций и цен:",
-                reply_markup=get_game_selection_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "filter:" or callback_data.startswith("filter:"):
-            # Обработка фильтров
-            await query.edit_message_text(
-                "⚙️ <b>Настройка фильтров</b>\n\nВыберите игру для настройки фильтров:",
-                reply_markup=get_game_selection_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "open_webapp":
-            # Открытие WebApp с DMarket
-            await query.edit_message_text(
-                "🌐 <b>DMarket WebApp</b>\n\n"
-                "Нажмите кнопку ниже, чтобы открыть DMarket прямо в Telegram:",
-                parse_mode=ParseMode.HTML,
-                reply_markup=get_dmarket_webapp_keyboard(),
-            )
-
-        elif callback_data.startswith("auto_start:"):
-            # Извлекаем режим автоарбитража и запускаем его
-            await query.answer("⚠️ Функция авто-торговли временно недоступна.")
-
-        elif callback_data.startswith("paginate:"):
-            # Обработка пагинации для результатов автоарбитража
-            await query.answer("⚠️ Функция пагинации временно недоступна.")
-
-        elif callback_data == "auto_stats":
-            # Показываем статистику автоарбитража
-            await query.answer("⚠️ Статистика временно недоступна.")
-
-        # Backtesting callbacks
-        elif callback_data == "backtest_quick":
-            from src.telegram_bot.commands.backtesting_commands import run_quick_backtest
-
-            api = context.bot_data.get("dmarket_api")
-            if api:
-                await run_quick_backtest(update, context, api)
-            else:
-                await query.edit_message_text("❌ DMarket API недоступен")
-
-        elif callback_data == "backtest_standard":
-            from src.telegram_bot.commands.backtesting_commands import run_standard_backtest
-
-            api = context.bot_data.get("dmarket_api")
-            if api:
-                await run_standard_backtest(update, context, api)
-            else:
-                await query.edit_message_text("❌ DMarket API недоступен")
-
-        elif callback_data == "backtest_custom":
-            await query.edit_message_text(
-                "⚙️ <b>Custom Backtest Settings</b>\n\n"
-                "Custom backtesting coming soon!\n\n"
-                "You'll be able to configure:\n"
-                "• Date range\n"
-                "• Initial balance\n"
-                "• Strategy parameters\n"
-                "• Item selection",
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data.startswith("auto_trade:"):
-            # Запускаем автоматическую торговлю для выбранного режима
-            await query.answer("⚠️ Функция авто-торговли временно недоступна.")
-
-        elif callback_data.startswith("compare:"):
-            # Обработка сравнения рынков
-            parts = callback_data.split(":")
-            if len(parts) >= 3:
-                game = parts[1]  # csgo, dota2, tf2, rust
-                markets = parts[2]  # steam_dmarket, skinport_dmarket и т.д.
-
-                game_name = GAMES.get(game, "Неизвестная игра")
-                market_names = {
-                    "steam_dmarket": "Steam ↔ DMarket",
-                    "skinport_dmarket": "Skinport ↔ DMarket",
-                    "csgoempire_dmarket": "CSGOEmpire ↔ DMarket",
-                }
-                market_display = market_names.get(markets, markets)
-
-                await query.edit_message_text(
-                    f"📊 <b>Сравнение рынков</b>\n\n"
-                    f"🎮 Игра: {game_name}\n"
-                    f"🔄 Рынки: {market_display}\n\n"
-                    f"⚠️ Функция находится в разработке.\n\n"
-                    f"Скоро вы сможете сравнивать цены на разных площадках!",
-                    parse_mode=ParseMode.HTML,
-                    reply_markup=get_back_to_arbitrage_keyboard(),
-                )
-            else:
-                await query.edit_message_text(
-                    "⚠️ <b>Некорректный формат данных сравнения.</b>\n\nПопробуйте снова.",
-                    reply_markup=get_back_to_arbitrage_keyboard(),
-                    parse_mode=ParseMode.HTML,
-                )
-
-        elif callback_data == "back_to_menu":
-            # Возврат в главное меню
+        # Back to menu
+        if callback_data == "back_to_menu":
             await main_menu_callback(update, context)
-
-        # Обработчик для Enhanced Scanner Menu - redirect to auto_trade
-        elif callback_data == "enhanced_scanner_menu":
-            await auto_trade_start(update, context)
-
-        # Обработчики для настроек
-        elif callback_data == "settings_api_keys":
-            await query.edit_message_text(
-                "🔑 <b>Настройка API ключей</b>\n\n"
-                "Для работы бота необходимы API ключи от DMarket.\n\n"
-                "<b>Инструкция:</b>\n"
-                "1. Зайдите на https://dmarket.com\n"
-                "2. Перейдите в Настройки → Trading API\n"
-                "3. Активируйте Trading API (если не активирован)\n"
-                "4. Создайте новые API ключи с полными правами\n"
-                "5. Сохраните ключи в файле .env\n"
-                "6. Перезапустите бота\n\n"
-                "📖 Подробная инструкция: НАСТРОЙКА_API_КЛЮЧЕЙ.md",
-                parse_mode=ParseMode.HTML,
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("« Назад", callback_data="settings")]
-                ]),
-            )
-
-        elif callback_data == "settings_proxy":
-            await query.edit_message_text(
-                "🌐 <b>Настройка Proxy</b>\n\nФункция находится в разработке.",
-                parse_mode=ParseMode.HTML,
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("« Назад", callback_data="settings")]
-                ]),
-            )
-
-        elif callback_data == "settings_currency":
-            await query.edit_message_text(
-                "💵 <b>Настройка валюты</b>\n\n"
-                "Текущая валюта: USD\n\n"
-                "Функция смены валюты находится в разработке.",
-                parse_mode=ParseMode.HTML,
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("« Назад", callback_data="settings")]
-                ]),
-            )
-
-        elif callback_data == "settings_intervals":
-            await query.edit_message_text(
-                "⏰ <b>Настройка интервалов обновления</b>\n\nФункция находится в разработке.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("« Назад", callback_data="settings")]
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "settings_filters":
-            await query.edit_message_text(
-                "⚙️ <b>Настройка фильтров</b>\n\nВыберите игру для настройки фильтров:",
-                reply_markup=get_game_selection_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "settings_auto_refresh":
-            await query.edit_message_text(
-                "🔄 <b>Автоматическое обновление</b>\n\nФункция находится в разработке.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("« Назад", callback_data="settings")]
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        # Обработчики для оповещений
-        elif callback_data == "alert_create":
-            await query.edit_message_text(
-                "➕ <b>Создание оповещения</b>\n\n"
-                "Выберите игру для создания оповещения о цене предмета:",
-                parse_mode=ParseMode.HTML,
-                reply_markup=get_game_selection_keyboard(),
-            )
-
-        elif callback_data == "alert_list":
-            await query.edit_message_text(
-                "👁️ <b>Мои оповещения</b>\n\nУ вас пока нет активных оповещений.",
-                parse_mode=ParseMode.HTML,
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("« Назад", callback_data="alerts")]
-                ]),
-            )
-
-        elif callback_data == "alert_settings":
-            await query.edit_message_text(
-                "⚙️ <b>Настройки оповещений</b>\n\nФункция находится в разработке.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("« Назад", callback_data="alerts")]
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "back_to_alerts":
-            await query.edit_message_text(
-                "🔔 <b>Управление оповещениями</b>\n\n"
-                "Настройте оповещения о изменении цен и "
-                "других рыночных событиях:",
-                reply_markup=get_alert_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
-
-        # Обработчики для главного меню
-        elif callback_data == "main_menu":
-            await query.edit_message_text(
-                "👋 <b>Главное меню</b>\n\nВыберите действие:",
-                reply_markup=get_main_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
-
-        # Обработчики для быстрого и глубокого сканирования
-        elif callback_data == "arb_quick":
-            # Быстрый скан - быстрая проверка топ возможностей
-            await query.edit_message_text(
-                "🚀 <b>Быстрый скан арбитража</b>\n\nПоиск лучших возможностей арбитража...",
-                parse_mode=ParseMode.HTML,
-            )
-            await handle_dmarket_arbitrage_impl(update, context, mode="quick")
-
-        elif callback_data == "arb_deep":
-            # Глубокий скан - полный анализ рынка
-            await query.edit_message_text(
-                "🔬 <b>Глубокий скан арбитража</b>\n\n"
-                "Выполняется полный анализ рынка. Это может занять несколько минут...",
-                parse_mode=ParseMode.HTML,
-            )
-            await handle_dmarket_arbitrage_impl(update, context, mode="deep")
-
-        # Дополнительные функции арбитража
-        elif callback_data == "enhanced_scanner_menu":
-            # Enhanced Scanner Menu
-            from src.telegram_bot.handlers.enhanced_scanner_handler import (
-                show_enhanced_scanner_menu,
-            )
-
-            await show_enhanced_scanner_menu(update, context)
-
-        elif callback_data == "arb_market_analysis":
-            await query.edit_message_text(
-                "📊 <b>Анализ рынка</b>\n\nВыберите игру для анализа рыночных трендов:",
-                reply_markup=get_game_selection_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "arb_target":
-            await query.edit_message_text(
-                "🎯 <b>Таргеты (Buy Orders)</b>\n\n"
-                "Управление целевыми ордерами на покупку.\n\n"
-                "Выберите действие:",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("➕ Создать таргет", callback_data="target_create")],
-                    [InlineKeyboardButton("📋 Мои таргеты", callback_data="target_list")],
-                    [InlineKeyboardButton("◀️ Назад", callback_data="arbitrage")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "arb_stats":
-            await query.edit_message_text(
-                "📈 <b>Статистика арбитража</b>\n\n"
-                "⚠️ Функция находится в разработке.\n\n"
-                "Скоро здесь будет отображаться:\n"
-                "• Общая прибыль\n"
-                "• Успешные сделки\n"
-                "• Лучшие возможности\n"
-                "• История операций",
-                reply_markup=get_back_to_arbitrage_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "arb_compare":
-            await query.edit_message_text(
-                "🔄 <b>Сравнение площадок</b>\n\nСравнение цен на разных торговых площадках:",
-                reply_markup=get_marketplace_comparison_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
-
-        # ============================================================================
-        # Обработчики главного меню
-        # ============================================================================
-
-        elif callback_data == "targets":
-            await query.edit_message_text(
-                "🎯 <b>Таргеты (Buy Orders)</b>\n\n"
-                "Управление целевыми ордерами на покупку:\n\n"
-                "• Создайте таргет на нужный предмет\n"
-                "• Система автоматически выставит buy order\n"
-                "• Получайте уведомления о выполнении",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("➕ Создать таргет", callback_data="target_create")],
-                    [InlineKeyboardButton("📋 Мои таргеты", callback_data="target_list")],
-                    [InlineKeyboardButton("📊 Статистика", callback_data="target_stats")],
-                    [InlineKeyboardButton("◀️ Главное меню", callback_data="main_menu")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "target_create":
-            await query.edit_message_text(
-                "➕ <b>Создание таргета</b>\n\nВыберите игру для создания таргета:",
-                reply_markup=get_game_selection_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "target_list":
-            await query.edit_message_text(
-                "📋 <b>Мои таргеты</b>\n\n"
-                "У вас пока нет активных таргетов.\n"
-                "Создайте первый таргет для автоматической покупки предметов!",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("➕ Создать таргет", callback_data="target_create")],
-                    [InlineKeyboardButton("◀️ Назад", callback_data="targets")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "target_stats":
-            await query.edit_message_text(
-                "📊 <b>Статистика таргетов</b>\n\n⚠️ У вас пока нет выполненных таргетов.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("◀️ Назад", callback_data="targets")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "inventory":
-            await query.edit_message_text(
-                "📦 <b>Ваш инвентарь</b>\n\n"
-                "⚠️ Для просмотра инвентаря необходимо настроить API ключи DMarket.\n\n"
-                "Перейдите в Настройки → API ключи для настройки.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("🔑 Настроить API", callback_data="settings_api")],
-                    [InlineKeyboardButton("◀️ Главное меню", callback_data="main_menu")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "analytics":
-            await query.edit_message_text(
-                "📈 <b>Аналитика рынка</b>\n\nВыберите раздел аналитики:",
-                reply_markup=InlineKeyboardMarkup([
-                    [
-                        InlineKeyboardButton("📊 Тренды", callback_data="analysis_trends"),
-                        InlineKeyboardButton("💹 Волатильность", callback_data="analysis_vol"),
-                    ],
-                    [
-                        InlineKeyboardButton("🔥 Топ продаж", callback_data="analysis_top"),
-                        InlineKeyboardButton("📉 Падающие", callback_data="analysis_drop"),
-                    ],
-                    [InlineKeyboardButton("🎯 Рекомендации", callback_data="analysis_rec")],
-                    [InlineKeyboardButton("◀️ Главное меню", callback_data="main_menu")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data in {CB_HELP, "help"}:
-            await query.edit_message_text(
-                "❓ <b>Справка по боту</b>\n\n"
-                "<b>Основные команды:</b>\n"
-                "/start - Запуск бота\n"
-                "/help - Эта справка\n"
-                "/arbitrage - Меню арбитража\n"
-                "/status - Статус DMarket API\n\n"
-                "<b>Функции бота:</b>\n"
-                "• 📊 <b>Арбитраж</b> - поиск выгодных сделок\n"
-                "• 🎯 <b>Таргеты</b> - автоматические buy orders\n"
-                "• 💰 <b>Баланс</b> - проверка баланса DMarket\n"
-                "• 📦 <b>Инвентарь</b> - ваши предметы\n"
-                "• 🔔 <b>Оповещения</b> - уведомления о ценах\n\n"
-                "По вопросам обращайтесь к администратору.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("◀️ Главное меню", callback_data="main_menu")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        # ============================================================================
-        # Обработчики арбитража
-        # ============================================================================
-
-        elif callback_data == "scanner":
-            # Многоуровневый сканер - делегируем scanner_handler
-            try:
-                from src.telegram_bot.handlers.scanner_handler import start_scanner_menu
-
-                await start_scanner_menu(update, context)
-            except ImportError as e:
-                logger.warning("Scanner handler not available: %s, using fallback menu", e)
-                await query.edit_message_text(
-                    "🔍 <b>Многоуровневый сканер</b>\n\nВыберите уровень сканирования:",
-                    reply_markup=InlineKeyboardMarkup([
-                        [
-                            InlineKeyboardButton("🟢 Boost", callback_data="scan_level_boost"),
-                            InlineKeyboardButton(
-                                "🔵 Standard", callback_data="scan_level_standard"
-                            ),
-                        ],
-                        [
-                            InlineKeyboardButton("🟡 Medium", callback_data="scan_level_medium"),
-                            InlineKeyboardButton(
-                                "🟠 Advanced", callback_data="scan_level_advanced"
-                            ),
-                        ],
-                        [InlineKeyboardButton("🔴 Pro", callback_data="scan_level_pro")],
-                        [InlineKeyboardButton("◀️ Назад", callback_data="arbitrage")],
-                    ]),
-                    parse_mode=ParseMode.HTML,
-                )
-
-        elif callback_data == "arb_scan":
-            await handle_dmarket_arbitrage_impl(update, context, mode="normal")
-
-        elif callback_data == "arb_game":
-            await handle_game_selection_impl(update, context)
-
-        elif callback_data == "arb_levels":
-            await query.edit_message_text(
-                "📊 <b>Уровни арбитража</b>\n\n"
-                "🟢 <b>Boost</b> - $0.50-$3 (3-5% profit)\n"
-                "🔵 <b>Standard</b> - $3-$10 (5-8% profit)\n"
-                "🟡 <b>Medium</b> - $10-$30 (8-12% profit)\n"
-                "🟠 <b>Advanced</b> - $30-$100 (12-20% profit)\n"
-                "🔴 <b>Pro</b> - $100+ (20%+ profit)\n\n"
-                "Выберите уровень для сканирования:",
-                reply_markup=InlineKeyboardMarkup([
-                    [
-                        InlineKeyboardButton("🟢 Boost", callback_data="scan_level_boost"),
-                        InlineKeyboardButton("🔵 Standard", callback_data="scan_level_standard"),
-                    ],
-                    [
-                        InlineKeyboardButton("🟡 Medium", callback_data="scan_level_medium"),
-                        InlineKeyboardButton("🟠 Advanced", callback_data="scan_level_advanced"),
-                    ],
-                    [InlineKeyboardButton("🔴 Pro", callback_data="scan_level_pro")],
-                    [InlineKeyboardButton("◀️ Назад", callback_data="arbitrage")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data.startswith(("scan_level_", "scanner_level_scan_")):
-            # Обработка обоих форматов: scan_level_medium и scanner_level_scan_medium
-            if callback_data.startswith("scanner_level_scan_"):
-                level = callback_data.replace("scanner_level_scan_", "")
-            else:
-                level = callback_data.replace("scan_level_", "")
-
-            await query.edit_message_text(
-                f"🔍 <b>Сканирование уровня {level.upper()}</b>\n\n"
-                "Поиск арбитражных возможностей...",
-                parse_mode=ParseMode.HTML,
-            )
-            await handle_dmarket_arbitrage_impl(update, context, mode=level)
-
-        elif callback_data == "arb_settings":
-            await query.edit_message_text(
-                "⚙️ <b>Настройки арбитража</b>\n\n"
-                "Настройте параметры поиска арбитражных возможностей:",
-                reply_markup=InlineKeyboardMarkup([
-                    [
-                        InlineKeyboardButton("💰 Мин. прибыль", callback_data="arb_set_min_profit"),
-                        InlineKeyboardButton("💵 Макс. цена", callback_data="arb_set_max_price"),
-                    ],
-                    [
-                        InlineKeyboardButton("🎮 Игры", callback_data="arb_set_games"),
-                        InlineKeyboardButton("⚠️ Риск", callback_data="arb_set_risk"),
-                    ],
-                    [InlineKeyboardButton("◀️ Назад", callback_data="arbitrage")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "arb_auto":
-            # Redirect to auto_trade
-            await auto_trade_start(update, context)
-
-        elif callback_data == "arb_analysis":
-            await query.edit_message_text(
-                "📈 <b>Анализ рынка</b>\n\nВыберите игру для анализа:",
-                reply_markup=get_game_selection_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
-
-        # Auto-arbitrage handlers - redirect to auto_trade
-        elif callback_data == "auto_arb_start":
-            await auto_trade_start(update, context)
-
-        elif callback_data == "auto_arb_stop":
-            await query.answer("ℹ️ Авто-арбитраж не запущен", show_alert=True)
-
-        elif callback_data == "auto_arb_settings":
-            await query.edit_message_text(
-                "⚙️ <b>Настройки авто-арбитража</b>\n\n"
-                "• Минимальная прибыль: 5%\n"
-                "• Максимальная цена: $50\n"
-                "• Максимум сделок: 10/день\n"
-                "• Игры: CS2, Dota 2\n\n"
-                "⚠️ Редактирование настроек в разработке",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("◀️ Назад", callback_data="arb_auto")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "auto_arb_status":
-            await query.edit_message_text(
-                "📊 <b>Статус авто-арбитража</b>\n\n"
-                "🔴 Статус: Остановлен\n"
-                "📈 Сделок сегодня: 0\n"
-                "💰 Прибыль сегодня: $0.00",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("▶️ Запустить", callback_data="auto_arb_start")],
-                    [InlineKeyboardButton("◀️ Назад", callback_data="arb_auto")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "auto_arb_history":
-            await query.edit_message_text(
-                "📜 <b>История авто-арбитража</b>\n\n"
-                "У вас пока нет завершённых автоматических сделок.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("◀️ Назад", callback_data="arb_auto")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        # Marketplace comparison handlers
-        elif callback_data == "cmp_steam":
-            await query.edit_message_text(
-                "📊 <b>DMarket ↔️ Steam</b>\n\n"
-                "Сравнение цен между DMarket и Steam Маркетом.\n\n"
-                "⚠️ Функция находится в разработке.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("🔄 Обновить", callback_data="cmp_steam")],
-                    [InlineKeyboardButton("◀️ Назад", callback_data="arb_compare")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "cmp_buff":
-            await query.edit_message_text(
-                "📊 <b>DMarket ↔️ Buff</b>\n\n"
-                "Сравнение цен между DMarket и Buff163.\n\n"
-                "⚠️ Функция находится в разработке.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("🔄 Обновить", callback_data="cmp_buff")],
-                    [InlineKeyboardButton("◀️ Назад", callback_data="arb_compare")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "cmp_refresh":
-            await query.answer("🔄 Обновление данных...", show_alert=False)
-
-        # Analysis handlers
-        elif callback_data == "analysis_trends":
-            await query.edit_message_text(
-                "📊 <b>Рыночные тренды</b>\n\n"
-                "Анализ трендов цен на предметы.\n\n"
-                "⚠️ Функция находится в разработке.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("◀️ Назад", callback_data="analytics")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "analysis_vol":
-            await query.edit_message_text(
-                "💹 <b>Волатильность рынка</b>\n\n"
-                "Анализ колебаний цен.\n\n"
-                "⚠️ Функция находится в разработке.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("◀️ Назад", callback_data="analytics")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "analysis_top":
-            await query.edit_message_text(
-                "🔥 <b>Топ продаж</b>\n\n"
-                "Самые продаваемые предметы.\n\n"
-                "⚠️ Функция находится в разработке.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("◀️ Назад", callback_data="analytics")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "analysis_drop":
-            await query.edit_message_text(
-                "📉 <b>Падающие цены</b>\n\n"
-                "Предметы с падающими ценами.\n\n"
-                "⚠️ Функция находится в разработке.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("◀️ Назад", callback_data="analytics")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "analysis_rec":
-            await query.edit_message_text(
-                "🎯 <b>Рекомендации</b>\n\n"
-                "Рекомендации по покупке/продаже.\n\n"
-                "⚠️ Функция находится в разработке.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("◀️ Назад", callback_data="analytics")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        # ============================================================================
-        # Обработчики настроек
-        # ============================================================================
-
-        elif callback_data == "settings_language":
-            await query.edit_message_text(
-                "🌐 <b>Выбор языка</b>\n\nВыберите язык интерфейса:",
-                reply_markup=get_language_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data.startswith("lang_"):
-            lang = callback_data.replace("lang_", "")
-            lang_names = {"ru": "Русский", "en": "English", "es": "Español", "de": "Deutsch"}
-            await query.edit_message_text(
-                f"🌐 <b>Язык изменён</b>\n\nВыбран язык: {lang_names.get(lang, lang)}",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("◀️ Назад", callback_data="settings")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "settings_notify":
-            await query.edit_message_text(
-                "🔔 <b>Настройки уведомлений</b>\n\nВыберите тип уведомлений для настройки:",
-                reply_markup=InlineKeyboardMarkup([
-                    [
-                        InlineKeyboardButton("📊 Арбитраж", callback_data="notify_arb"),
-                        InlineKeyboardButton("🎯 Таргеты", callback_data="notify_targets"),
-                    ],
-                    [
-                        InlineKeyboardButton("💰 Цены", callback_data="notify_prices"),
-                        InlineKeyboardButton("📈 Тренды", callback_data="notify_trends"),
-                    ],
-                    [InlineKeyboardButton("◀️ Назад", callback_data="settings")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "settings_api":
-            await query.edit_message_text(
-                "🔑 <b>Настройка API ключей</b>\n\n"
-                "Для работы бота необходимы API ключи от DMarket.\n\n"
-                "<b>Инструкция:</b>\n"
-                "1. Зайдите на https://dmarket.com\n"
-                "2. Перейдите в Настройки → Trading API\n"
-                "3. Активируйте Trading API\n"
-                "4. Создайте новые API ключи\n"
-                "5. Сохраните ключи в файле .env\n"
-                "6. Перезапустите бота",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("◀️ Назад", callback_data="settings")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "settings_risk":
-            await query.edit_message_text(
-                "⚠️ <b>Профиль риска</b>\n\nВыберите ваш профиль риска для торговли:",
-                reply_markup=get_risk_profile_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data.startswith("risk_"):
-            risk = callback_data.replace("risk_", "")
-            risk_names = {
-                "low": "🟢 Низкий",
-                "medium": "🟡 Средний",
-                "high": "🔴 Высокий",
-                "aggressive": "⚫ Агрессивный",
-            }
-            await query.edit_message_text(
-                f"⚠️ <b>Профиль риска изменён</b>\n\nВыбран профиль: {risk_names.get(risk, risk)}",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("◀️ Назад", callback_data="settings")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "settings_limits":
-            await query.edit_message_text(
-                "💰 <b>Торговые лимиты</b>\n\n"
-                "Текущие лимиты:\n"
-                "• Максимальная цена сделки: $50\n"
-                "• Максимум сделок в день: 10\n"
-                "• Дневной лимит: $500\n\n"
-                "⚠️ Редактирование в разработке",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("◀️ Назад", callback_data="settings")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "settings_games":
-            await query.edit_message_text(
-                "🎮 <b>Настройка игр</b>\n\nВыберите игры для мониторинга:",
-                reply_markup=get_game_selection_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
-
-        # ============================================================================
-        # Обработчики алертов
-        # ============================================================================
-
-        elif callback_data == "alert_active":
-            await query.edit_message_text(
-                "🔔 <b>Активные оповещения</b>\n\nУ вас пока нет активных оповещений.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("➕ Создать", callback_data="alert_create")],
-                    [InlineKeyboardButton("◀️ Назад", callback_data="alerts")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data == "alert_history":
-            await query.edit_message_text(
-                "📊 <b>История оповещений</b>\n\nИстория сработавших оповещений пуста.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("◀️ Назад", callback_data="alerts")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data.startswith("alert_type_"):
-            alert_type = callback_data.replace("alert_type_", "")
-            type_names = {
-                "below": "Цена ниже",
-                "above": "Цена выше",
-                "target": "Целевая цена",
-                "percent": "Изменение %",
-                "new_item": "Новый предмет",
-            }
-            await query.edit_message_text(
-                f"🔔 <b>Создание оповещения</b>\n\n"
-                f"Тип: {type_names.get(alert_type, alert_type)}\n\n"
-                "Выберите игру для оповещения:",
-                reply_markup=get_game_selection_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
-
-        # ============================================================================
-        # Общие обработчики
-        # ============================================================================
-
-        elif callback_data in {CB_BACK, "back"}:
-            await query.edit_message_text(
-                "👋 <b>Главное меню</b>\n\nВыберите действие:",
-                reply_markup=get_main_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data in {CB_CANCEL, "cancel"}:
-            await query.edit_message_text(
-                "❌ <b>Действие отменено</b>\n\nВыберите следующее действие:",
-                reply_markup=get_main_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data in {"noop", "page_info", "alerts_page_info"}:
-            # Игнорируем кнопки без действия
-            await query.answer()
-
-        elif callback_data.startswith("notify_"):
-            # Уведомления
-            notify_type = callback_data.replace("notify_", "")
-            await query.edit_message_text(
-                f"🔔 <b>Настройка уведомлений: {notify_type}</b>\n\n"
-                "⚠️ Функция находится в разработке.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("◀️ Назад", callback_data="settings_notify")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        elif callback_data.startswith("arb_set_"):
-            # Настройки арбитража
-            setting = callback_data.replace("arb_set_", "")
-            await query.edit_message_text(
-                f"⚙️ <b>Настройка: {setting}</b>\n\n⚠️ Функция находится в разработке.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("◀️ Назад", callback_data="arb_settings")],
-                ]),
-                parse_mode=ParseMode.HTML,
-            )
-
-        else:
-            # Неизвестный callback
-            logger.warning("Неизвестный callback_data: %s", callback_data)
-            await query.edit_message_text(
-                "⚠️ <b>Неизвестная команда.</b>\n\nПожалуйста, вернитесь в главное меню:",
-                reply_markup=get_back_to_arbitrage_keyboard(),
-                parse_mode=ParseMode.HTML,
-            )
+            return
+
+        # Unknown callback - log and show error
+        logger.warning("Неизвестный callback_data: %s", callback_data)
+        await query.edit_message_text(
+            "⚠️ <b>Неизвестная команда.</b>\n\nПожалуйста, вернитесь в главное меню:",
+            reply_markup=get_back_to_arbitrage_keyboard(),
+            parse_mode=ParseMode.HTML,
+        )
 
     except Exception as e:
-        logger.exception("Ошибка при обработке callback %s: %s", callback_data, e)
+        logger.exception("Ошибка при обработке legacy callback %s: %s", callback_data, e)
         logger.exception(traceback.format_exc())
 
-        # Оповещение пользователя об ошибке
         try:
             await query.edit_message_text(
                 f"❌ <b>Произошла ошибка при обработке команды</b>\n\n"
                 f"Ошибка: {e!s}\n\n"
-                f"Пожалуйста, попробуйте позже или обратитесь к "
-                f"администратору.",
+                f"Пожалуйста, попробуйте позже.",
                 parse_mode=ParseMode.HTML,
                 reply_markup=get_back_to_arbitrage_keyboard(),
             )
@@ -1248,6 +483,7 @@ async def button_callback_handler(
 __all__ = [
     "arbitrage_callback_impl",
     "button_callback_handler",
+    "_handle_legacy_callbacks",
     "handle_best_opportunities_impl",
     "handle_dmarket_arbitrage_impl",
     "handle_game_selected_impl",

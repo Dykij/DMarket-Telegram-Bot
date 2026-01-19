@@ -193,6 +193,145 @@ class DMarketAPIClient:
         """Alias for _generate_signature for test compatibility."""
         return self._generate_signature(method, target, body)
 
+    # ============================================================================
+    # Request helper methods (Phase 2 refactoring)
+    # ============================================================================
+
+    async def _execute_single_http_request(
+        self,
+        client: httpx.AsyncClient,
+        method: str,
+        url: str,
+        params: dict[str, Any] | None,
+        data: dict[str, Any] | None,
+        headers: dict[str, str],
+    ) -> httpx.Response:
+        """Execute a single HTTP request with circuit breaker.
+
+        Args:
+            client: HTTP client
+            method: HTTP method
+            url: Full URL
+            params: Query parameters
+            data: Request body data
+            headers: Request headers
+
+        Returns:
+            HTTP response
+
+        Raises:
+            ValueError: If HTTP method is not supported
+        """
+        method_upper = method.upper()
+
+        if method_upper == "GET":
+            return await call_with_circuit_breaker(
+                client.get, url, params=params, headers=headers
+            )
+        if method_upper == "POST":
+            return await call_with_circuit_breaker(
+                client.post, url, json=data, headers=headers
+            )
+        if method_upper == "PUT":
+            return await call_with_circuit_breaker(
+                client.put, url, json=data, headers=headers
+            )
+        if method_upper == "DELETE":
+            return await call_with_circuit_breaker(
+                client.delete, url, headers=headers
+            )
+
+        msg = f"Unsupported HTTP method: {method}"
+        raise ValueError(msg)
+
+    def _parse_json_response(
+        self,
+        response: httpx.Response,
+    ) -> dict[str, Any]:
+        """Parse JSON from HTTP response.
+
+        Args:
+            response: HTTP response
+
+        Returns:
+            Parsed JSON data or fallback dict
+        """
+        try:
+            return response.json()  # type: ignore[no-any-return]
+        except (json.JSONDecodeError, TypeError, Exception):
+            return {
+                "text": response.text,
+                "status_code": response.status_code,
+            }
+
+    def _calculate_retry_delay(
+        self,
+        status_code: int,
+        retries: int,
+        current_delay: float,
+        response: httpx.Response | None = None,
+    ) -> float:
+        """Calculate delay before retry based on error type.
+
+        Args:
+            status_code: HTTP status code
+            retries: Current retry count
+            current_delay: Current delay value
+            response: HTTP response (for Retry-After header)
+
+        Returns:
+            Delay in seconds before next retry
+        """
+        if status_code == 429:
+            retry_after = None
+            if response:
+                try:
+                    retry_after = int(response.headers.get("Retry-After", "0"))
+                except (ValueError, TypeError):
+                    retry_after = None
+
+            if retry_after and retry_after > 0:
+                return float(retry_after)
+            return min(current_delay * 2, 30)
+
+        return 1.0 + retries * 0.5
+
+    def _parse_http_error_response(
+        self,
+        response: httpx.Response,
+    ) -> dict[str, Any]:
+        """Parse error response and build error dict.
+
+        Args:
+            response: HTTP response with error
+
+        Returns:
+            Error data dictionary
+        """
+        status_code = response.status_code
+        response_text = response.text
+        error_description = Endpoints.ERROR_CODES.get(status_code, "Unknown error")
+
+        try:
+            error_json = response.json()
+            error_message = error_json.get("message", response_text)
+            error_code = error_json.get("code", status_code)
+        except (json.JSONDecodeError, TypeError, AttributeError):
+            error_message = response_text
+            error_code = status_code
+
+        return {
+            "error": True,
+            "code": error_code,
+            "message": error_message,
+            "status": status_code,
+            "description": error_description,
+        }
+
+    # ============================================================================
+    # End of request helper methods
+    # ============================================================================
+
     async def _request(
         self,
         method: str,
@@ -263,24 +402,15 @@ class DMarketAPIClient:
                     has_cache=cache_key and get_from_cache(cache_key) is not None,
                 )
 
-                # Execute request
-                if method.upper() == "GET":
-                    response = await call_with_circuit_breaker(
-                        client.get, url, params=params, headers=headers
-                    )
-                elif method.upper() == "POST":
-                    response = await call_with_circuit_breaker(
-                        client.post, url, json=data, headers=headers
-                    )
-                elif method.upper() == "PUT":
-                    response = await call_with_circuit_breaker(
-                        client.put, url, json=data, headers=headers
-                    )
-                elif method.upper() == "DELETE":
-                    response = await call_with_circuit_breaker(client.delete, url, headers=headers)
-                else:
-                    msg = f"Unsupported HTTP method: {method}"
-                    raise ValueError(msg)
+                # Execute request (Phase 2 - use helper method)
+                response = await self._execute_single_http_request(
+                    client=client,
+                    method=method,
+                    url=url,
+                    params=params,
+                    data=data,
+                    headers=headers,
+                )
 
                 response.raise_for_status()
 
@@ -293,14 +423,8 @@ class DMarketAPIClient:
                     response_time_ms=response_time_ms,
                 )
 
-                # Parse JSON response
-                try:
-                    result = response.json()
-                except (json.JSONDecodeError, TypeError, Exception):
-                    result = {
-                        "text": response.text,
-                        "status_code": response.status_code,
-                    }
+                # Parse JSON response (Phase 2 - use helper method)
+                result = self._parse_json_response(response)
 
                 # Save to cache if applicable
                 if method.upper() == "GET" and self.enable_cache and cacheable:
@@ -337,35 +461,23 @@ class DMarketAPIClient:
                     retry_attempt=retries,
                 )
 
-                error_description = Endpoints.ERROR_CODES.get(
-                    status_code,
-                    "Unknown error",
-                )
+                error_description = Endpoints.ERROR_CODES.get(status_code, "Unknown error")
                 logger.warning(f"Error description: {error_description}")
 
                 # Check if should retry
                 if status_code in self.retry_codes:
                     retries += 1
 
+                    # Calculate retry delay (Phase 2 - use helper method)
+                    retry_delay = self._calculate_retry_delay(
+                        status_code=status_code,
+                        retries=retries,
+                        current_delay=retry_delay,
+                        response=e.response,
+                    )
+
                     if status_code == 429:
-                        retry_after = None
-                        try:
-                            retry_after = int(
-                                e.response.headers.get("Retry-After", "0"),
-                            )
-                        except (ValueError, TypeError):
-                            retry_after = None
-
-                        if not retry_after or retry_after <= 0:
-                            retry_delay = min(retry_delay * 2, 30)
-                        else:
-                            retry_delay = retry_after
-
-                        logger.info(
-                            f"Rate limit exceeded. Retry in {retry_delay} sec.",
-                        )
-                    else:
-                        retry_delay = 1.0 + retries * 0.5
+                        logger.info(f"Rate limit exceeded. Retry in {retry_delay} sec.")
 
                     if retries <= self.max_retries:
                         logger.info(
@@ -374,29 +486,15 @@ class DMarketAPIClient:
                         await asyncio.sleep(retry_delay)
                         continue
 
-                # Non-retryable error or retries exhausted
-                try:
-                    error_json = e.response.json()
-                    error_message = error_json.get("message", str(e))
-                    error_code = error_json.get("code", status_code)
-                except (json.JSONDecodeError, TypeError, AttributeError):
-                    error_message = response_text
-                    error_code = status_code
-
-                error_data = {
-                    "error": True,
-                    "code": error_code,
-                    "message": error_message,
-                    "status": status_code,
-                    "description": error_description,
-                }
+                # Parse error response (Phase 2 - use helper method)
+                error_data = self._parse_http_error_response(e.response)
 
                 if status_code in {400, 404}:
                     return error_data
 
                 last_error = Exception(
-                    f"DMarket API error: {error_message} "
-                    f"(code: {error_code}, description: {error_description})",
+                    f"DMarket API error: {error_data['message']} "
+                    f"(code: {error_data['code']}, description: {error_data['description']})",
                 )
                 break
 

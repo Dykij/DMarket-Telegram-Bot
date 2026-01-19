@@ -7,7 +7,7 @@ error handling for Telegram bot commands and callbacks.
 from collections.abc import Callable
 import functools
 import logging
-from typing import Any
+from typing import Any, NamedTuple
 
 from telegram import Update
 from telegram.ext import ContextTypes
@@ -26,6 +26,297 @@ from src.utils.sentry_integration import (
 
 
 logger = logging.getLogger(__name__)
+
+
+class UpdateContext(NamedTuple):
+    """Context extracted from Telegram Update."""
+
+    user_id: int | None
+    username: str | None
+    command: str | None
+    message_text: str | None
+
+
+def _extract_update_context(update: Update) -> UpdateContext:
+    """Extract user and message context from Telegram Update.
+
+    Args:
+        update: Telegram update object
+
+    Returns:
+        UpdateContext with user_id, username, command, and message_text
+    """
+    user_id = None
+    username = None
+    command = None
+    message_text = None
+
+    if update.effective_user:
+        user_id = update.effective_user.id
+        username = update.effective_user.username
+
+    if update.message:
+        message_text = update.message.text
+        if message_text and message_text.startswith("/"):
+            command = message_text.split()[0]
+    elif update.callback_query:
+        command = "callback_query"
+        if update.callback_query.data:
+            message_text = update.callback_query.data
+
+    return UpdateContext(user_id, username, command, message_text)
+
+
+def _log_handler_start(
+    handler_name: str,
+    ctx: UpdateContext,
+) -> None:
+    """Log handler start with context information.
+
+    Args:
+        handler_name: Name of the handler function
+        ctx: Extracted update context
+    """
+    logger.info(
+        f"Handler {handler_name} started",
+        extra={
+            "handler": handler_name,
+            "user_id": ctx.user_id,
+            "username": ctx.username,
+            "command": ctx.command,
+            "message_text": ctx.message_text,
+        },
+    )
+
+
+def _setup_sentry_context(
+    handler_name: str,
+    ctx: UpdateContext,
+) -> None:
+    """Set Sentry user context and add breadcrumb.
+
+    Args:
+        handler_name: Name of the handler function
+        ctx: Extracted update context
+    """
+    if ctx.user_id:
+        set_user_context(user_id=ctx.user_id, username=ctx.username)
+
+    add_breadcrumb(
+        message=f"Executing handler: {handler_name}",
+        category="handler",
+        level="info",
+        data={
+            "user_id": ctx.user_id,
+            "command": ctx.command,
+        },
+    )
+
+
+def _log_handler_success(
+    handler_name: str,
+    user_id: int | None,
+) -> None:
+    """Log successful handler completion.
+
+    Args:
+        handler_name: Name of the handler function
+        user_id: User ID if available
+    """
+    logger.info(
+        f"Handler {handler_name} completed successfully",
+        extra={
+            "handler": handler_name,
+            "user_id": user_id,
+        },
+    )
+
+
+async def _send_error_to_user(
+    update: Update,
+    error_message: str,
+) -> None:
+    """Send error message to user via appropriate channel.
+
+    Args:
+        update: Telegram update object
+        error_message: Error message to send
+    """
+    if update.message:
+        await update.message.reply_text(error_message)
+    elif update.callback_query:
+        await update.callback_query.answer(error_message, show_alert=True)
+
+
+async def _handle_validation_error(
+    error: ValidationError,
+    update: Update,
+    handler_name: str,
+    user_id: int | None,
+) -> None:
+    """Handle ValidationError from user input.
+
+    Args:
+        error: The validation error
+        update: Telegram update object
+        handler_name: Name of the handler function
+        user_id: User ID if available
+    """
+    logger.warning(
+        f"Validation error in {handler_name}",
+        extra={
+            "handler": handler_name,
+            "user_id": user_id,
+            "error": str(error),
+        },
+    )
+    error_message = f"❌ Ошибка валидации: {error}"
+    await _send_error_to_user(update, error_message)
+
+
+async def _handle_authentication_error(
+    error: AuthenticationError,
+    update: Update,
+    handler_name: str,
+    user_id: int | None,
+) -> None:
+    """Handle AuthenticationError from API key issues.
+
+    Args:
+        error: The authentication error
+        update: Telegram update object
+        handler_name: Name of the handler function
+        user_id: User ID if available
+    """
+    logger.error(
+        "Authentication error in %s",
+        handler_name,
+        extra={
+            "handler": handler_name,
+            "user_id": user_id,
+            "error": str(error),
+        },
+    )
+    error_message = "❌ Ошибка аутентификации. Проверьте API ключи в /settings"
+    await _send_error_to_user(update, error_message)
+
+    capture_exception(
+        error,
+        level="error",
+        tags={"handler": handler_name, "error_type": "authentication"},
+        extra={"user_id": user_id},
+    )
+
+
+async def _handle_rate_limit_error(
+    error: RateLimitError,
+    update: Update,
+    handler_name: str,
+    user_id: int | None,
+) -> None:
+    """Handle RateLimitError from API rate limiting.
+
+    Args:
+        error: The rate limit error
+        update: Telegram update object
+        handler_name: Name of the handler function
+        user_id: User ID if available
+    """
+    retry_after = getattr(error, "retry_after", 60)
+    logger.warning(
+        f"Rate limit error in {handler_name}",
+        extra={
+            "handler": handler_name,
+            "user_id": user_id,
+            "error": str(error),
+            "retry_after": retry_after,
+        },
+    )
+    error_message = f"⏳ Превышен лимит запросов. Попробуйте через {retry_after} секунд"
+    await _send_error_to_user(update, error_message)
+
+
+async def _handle_api_error(
+    error: APIError,
+    update: Update,
+    handler_name: str,
+    user_id: int | None,
+) -> None:
+    """Handle generic APIError from DMarket API.
+
+    Args:
+        error: The API error
+        update: Telegram update object
+        handler_name: Name of the handler function
+        user_id: User ID if available
+    """
+    status_code = getattr(error, "status_code", None)
+    logger.error(
+        "API error in %s",
+        handler_name,
+        extra={
+            "handler": handler_name,
+            "user_id": user_id,
+            "status_code": status_code,
+            "error": str(error),
+        },
+    )
+    error_message = "❌ Ошибка при обращении к API DMarket. Попробуйте позже"
+    await _send_error_to_user(update, error_message)
+
+    capture_exception(
+        error,
+        level="error",
+        tags={"handler": handler_name, "error_type": "api"},
+        extra={
+            "user_id": user_id,
+            "status_code": status_code,
+        },
+    )
+
+
+async def _handle_unexpected_error(
+    error: Exception,
+    update: Update,
+    handler_name: str,
+    ctx: UpdateContext,
+    user_friendly_message: str,
+) -> None:
+    """Handle unexpected exceptions.
+
+    Args:
+        error: The unexpected exception
+        update: Telegram update object
+        handler_name: Name of the handler function
+        ctx: Extracted update context
+        user_friendly_message: Message to show user
+    """
+    logger.error(
+        f"Unexpected error in {handler_name}",
+        extra={
+            "handler": handler_name,
+            "user_id": ctx.user_id,
+            "command": ctx.command,
+            "error": str(error),
+            "error_type": type(error).__name__,
+        },
+    )
+
+    await _send_error_to_user(update, user_friendly_message)
+
+    capture_exception(
+        error,
+        level="error",
+        tags={
+            "handler": handler_name,
+            "error_type": type(error).__name__,
+        },
+        extra={
+            "user_id": ctx.user_id,
+            "command": ctx.command,
+            "message_text": ctx.message_text,
+        },
+    )
 
 
 def telegram_error_boundary(
@@ -64,187 +355,36 @@ def telegram_error_boundary(
             *args: Any,
             **kwargs: Any,
         ) -> Any:
-            # Extract context information
-            user_id = None
-            username = None
-            command = None
-            message_text = None
+            ctx = _extract_update_context(update)
 
             try:
-                if update.effective_user:
-                    user_id = update.effective_user.id
-                    username = update.effective_user.username
-
-                if update.message:
-                    message_text = update.message.text
-                    if message_text and message_text.startswith("/"):
-                        command = message_text.split()[0]
-                elif update.callback_query:
-                    command = "callback_query"
-                    if update.callback_query.data:
-                        message_text = update.callback_query.data
-
-                # Log request start
                 if log_context:
-                    logger.info(
-                        f"Handler {func.__name__} started",
-                        extra={
-                            "handler": func.__name__,
-                            "user_id": user_id,
-                            "username": username,
-                            "command": command,
-                            "message_text": message_text,
-                        },
-                    )
+                    _log_handler_start(func.__name__, ctx)
 
-                # Set Sentry user context
-                if user_id:
-                    set_user_context(user_id=user_id, username=username)
+                _setup_sentry_context(func.__name__, ctx)
 
-                # Add Sentry breadcrumb
-                add_breadcrumb(
-                    message=f"Executing handler: {func.__name__}",
-                    category="handler",
-                    level="info",
-                    data={
-                        "user_id": user_id,
-                        "command": command,
-                    },
-                )
-
-                # Execute handler
                 result = await func(update, context, *args, **kwargs)
 
-                # Log success
                 if log_context:
-                    logger.info(
-                        f"Handler {func.__name__} completed successfully",
-                        extra={
-                            "handler": func.__name__,
-                            "user_id": user_id,
-                        },
-                    )
+                    _log_handler_success(func.__name__, ctx.user_id)
 
                 return result
 
             except ValidationError as e:
-                # User input validation error
-                logger.warning(
-                    f"Validation error in {func.__name__}",
-                    extra={
-                        "handler": func.__name__,
-                        "user_id": user_id,
-                        "error": str(e),
-                    },
-                )
-                error_message = f"❌ Ошибка валидации: {e}"
-                if update.message:
-                    await update.message.reply_text(error_message)
-                elif update.callback_query:
-                    await update.callback_query.answer(error_message, show_alert=True)
+                await _handle_validation_error(e, update, func.__name__, ctx.user_id)
 
             except AuthenticationError as e:
-                # Authentication/API key error
-                logger.exception(
-                    "Authentication error in %s",
-                    func.__name__,
-                    extra={
-                        "handler": func.__name__,
-                        "user_id": user_id,
-                    },
-                )
-                error_message = "❌ Ошибка аутентификации. Проверьте API ключи в /settings"
-                if update.message:
-                    await update.message.reply_text(error_message)
-                elif update.callback_query:
-                    await update.callback_query.answer(error_message, show_alert=True)
-
-                # Capture in Sentry
-                capture_exception(
-                    e,
-                    level="error",
-                    tags={"handler": func.__name__, "error_type": "authentication"},
-                    extra={"user_id": user_id},
-                )
+                await _handle_authentication_error(e, update, func.__name__, ctx.user_id)
 
             except RateLimitError as e:
-                # Rate limit error
-                logger.warning(
-                    f"Rate limit error in {func.__name__}",
-                    extra={
-                        "handler": func.__name__,
-                        "user_id": user_id,
-                        "error": str(e),
-                        "retry_after": getattr(e, "retry_after", None),
-                    },
-                )
-                retry_after = getattr(e, "retry_after", 60)
-                error_message = f"⏳ Превышен лимит запросов. Попробуйте через {retry_after} секунд"
-                if update.message:
-                    await update.message.reply_text(error_message)
-                elif update.callback_query:
-                    await update.callback_query.answer(error_message, show_alert=True)
+                await _handle_rate_limit_error(e, update, func.__name__, ctx.user_id)
 
             except APIError as e:
-                # Generic API error
-                logger.exception(
-                    "API error in %s",
-                    func.__name__,
-                    extra={
-                        "handler": func.__name__,
-                        "user_id": user_id,
-                        "status_code": getattr(e, "status_code", None),
-                    },
-                )
-                error_message = "❌ Ошибка при обращении к API DMarket. Попробуйте позже"
-                if update.message:
-                    await update.message.reply_text(error_message)
-                elif update.callback_query:
-                    await update.callback_query.answer(error_message, show_alert=True)
-
-                # Capture in Sentry
-                capture_exception(
-                    e,
-                    level="error",
-                    tags={"handler": func.__name__, "error_type": "api"},
-                    extra={
-                        "user_id": user_id,
-                        "status_code": getattr(e, "status_code", None),
-                    },
-                )
+                await _handle_api_error(e, update, func.__name__, ctx.user_id)
 
             except Exception as e:
-                # Unexpected error
-                logger.exception(
-                    f"Unexpected error in {func.__name__}",
-                    extra={
-                        "handler": func.__name__,
-                        "user_id": user_id,
-                        "command": command,
-                        "error": str(e),
-                        "error_type": type(e).__name__,
-                    },
-                )
-
-                # Send user-friendly message
-                if update.message:
-                    await update.message.reply_text(user_friendly_message)
-                elif update.callback_query:
-                    await update.callback_query.answer(user_friendly_message, show_alert=True)
-
-                # Capture in Sentry
-                capture_exception(
-                    e,
-                    level="error",
-                    tags={
-                        "handler": func.__name__,
-                        "error_type": type(e).__name__,
-                    },
-                    extra={
-                        "user_id": user_id,
-                        "command": command,
-                        "message_text": message_text,
-                    },
+                await _handle_unexpected_error(
+                    e, update, func.__name__, ctx, user_friendly_message
                 )
 
         return wrapper

@@ -615,24 +615,183 @@ async def ai_train_real_command(update: Update, context: ContextTypes.DEFAULT_TY
         logger.exception("ai_train_real_failed", error=str(e))
 
 
+# ============================================================================
+# Helper functions for ai_train_liquid_command (Phase 2 refactoring)
+# ============================================================================
+
+
+async def _init_liquid_training_components(context: ContextTypes.DEFAULT_TYPE) -> tuple:
+    """Initialize filters and API clients for liquid training.
+
+    Returns:
+        Tuple of (whitelist_checker, blacklist_filter, waxpeer_api, dmarket_api)
+    """
+    import os
+
+    from src.dmarket.blacklist_filters import ItemBlacklistFilter
+    from src.dmarket.dmarket_api import DMarketAPI
+    from src.dmarket.whitelist_config import WhitelistChecker
+
+    whitelist_checker = WhitelistChecker(enable_priority_boost=True, profit_boost_percent=2.0)
+    blacklist_filter = ItemBlacklistFilter(
+        enable_keyword_filter=True,
+        enable_float_filter=True,
+        enable_sticker_boost_filter=True,
+        enable_pattern_filter=True,
+        enable_scam_risk_filter=True,
+    )
+
+    # Try to import Waxpeer API (optional)
+    waxpeer_api = None
+    try:
+        from src.waxpeer.waxpeer_api import WaxpeerAPI
+
+        waxpeer_key = os.getenv("WAXPEER_API_KEY", "")
+        if waxpeer_key:
+            waxpeer_api = WaxpeerAPI(api_key=waxpeer_key)
+    except ImportError:
+        logger.warning("waxpeer_api_not_available")
+
+    # Get or create DMarket API client
+    dmarket_api = getattr(context.application, "dmarket_api", None)
+    if not dmarket_api:
+        dmarket_api = DMarketAPI(
+            public_key=os.getenv("DMARKET_PUBLIC_KEY", ""),
+            secret_key=os.getenv("DMARKET_SECRET_KEY", ""),
+        )
+
+    return whitelist_checker, blacklist_filter, waxpeer_api, dmarket_api
+
+
+async def _calculate_item_liquidity(
+    item: dict,
+    whitelist_checker: Any,
+    blacklist_filter: Any,
+    waxpeer_api: Any,
+) -> tuple[int, bool, float | None, int]:
+    """Calculate liquidity score for an item.
+
+    Returns:
+        Tuple of (liquidity_score, is_whitelisted, waxpeer_price, waxpeer_count)
+    """
+    item_title = item.get("title", "")
+    dmarket_price = float(item.get("price", {}).get("USD", 0)) / 100
+
+    # Skip items under $1
+    if dmarket_price < 1.0:
+        return -1, False, None, 0
+
+    # Check Blacklist (MANDATORY)
+    if blacklist_filter.is_blacklisted(item):
+        return -2, False, None, 0
+
+    liquidity_score = 0
+    is_whitelisted = False
+
+    # Check Whitelist (PRIORITY BOOST)
+    if whitelist_checker.is_whitelisted(item, "csgo"):
+        liquidity_score += 25
+        is_whitelisted = True
+
+    # Check DMarket offers count
+    dmarket_offers = item.get("extra", {}).get("offers_count", 0)
+    if dmarket_offers >= 3:
+        liquidity_score += 25
+
+    # Check suggested price exists
+    suggested_price = item.get("suggestedPrice", {}).get("USD")
+    if suggested_price:
+        liquidity_score += 25
+
+    # Check on Waxpeer if available
+    waxpeer_price = None
+    waxpeer_count = 0
+    if waxpeer_api:
+        try:
+            async with waxpeer_api:
+                price_info = await waxpeer_api.get_item_price_info(item_title)
+                if price_info and price_info.count >= 5:
+                    liquidity_score += 25
+                    waxpeer_price = float(price_info.price_usd)
+                    waxpeer_count = price_info.count
+        except Exception as e:
+            logger.debug("waxpeer_check_failed", item=item_title, error=str(e))
+
+    # Popular items have category
+    category = item.get("extra", {}).get("category", "")
+    if category and category != "Other":
+        liquidity_score += 15
+
+    return liquidity_score, is_whitelisted, waxpeer_price, waxpeer_count
+
+
+def _save_liquid_data_to_csv(liquid_items: list[dict], output_path: Path) -> None:
+    """Save liquid items to CSV file."""
+    import csv
+
+    if not liquid_items:
+        return
+
+    with open(output_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=liquid_items[0].keys())
+        writer.writeheader()
+        writer.writerows(liquid_items)
+
+
+def _train_model_on_liquid_data(liquid_items: list[dict]) -> str:
+    """Train the price prediction model on liquid items data.
+
+    Returns:
+        Training result message
+    """
+    import csv
+    from pathlib import Path
+
+    from src.ai.price_predictor import PricePredictor
+
+    predictor = PricePredictor()
+
+    if len(liquid_items) < 50:
+        return "⚠️ Недостаточно ликвидных данных для обучения (минимум 50)"
+
+    # Save to standard path for training
+    main_data_path = Path("data/market_history.csv")
+
+    with open(main_data_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=[
+                "item_name",
+                "price",
+                "float_value",
+                "is_stat_trak",
+                "game_id",
+                "timestamp",
+            ],
+        )
+        writer.writeheader()
+        for item in liquid_items:
+            writer.writerow({
+                "item_name": item["item_name"],
+                "price": item["price"],
+                "float_value": item["float_value"],
+                "is_stat_trak": item["is_stat_trak"],
+                "game_id": item["game_id"],
+                "timestamp": item["timestamp"],
+            })
+
+    return predictor.train_model(force_retrain=True)
+
+
+# ============================================================================
+# End of helper functions
+# ============================================================================
+
+
 async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /ai_train_liquid command - Train AI only on liquid items.
 
-    This command:
-    1. Collects data from DMarket, Waxpeer, and Steam APIs
-    2. Filters using Whitelist (priority boost) and Blacklist (exclusion)
-    3. Filters only liquid items (available on multiple platforms)
-    4. Trains the model on liquid items only
-
-    Usage: /ai_train_liquid [samples]
-        samples - Target number of liquid samples to collect (default: 300)
-
-    Liquidity criteria:
-    - NOT in Blacklist (mandatory filter)
-    - Item is available on DMarket AND Waxpeer
-    - At least 5 active offers on each platform
-    - Whitelist items get priority boost (+25 points)
-    - Positive sales history
+    Phase 2 Refactoring: Logic split into helper functions.
     """
     if not update.message:
         return
@@ -650,251 +809,109 @@ async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_
     await update.message.reply_text(
         f"🤖 <b>Обучение AI на ликвидных предметах</b>\n\n"
         f"🎯 Цель: {target_samples} ликвидных предметов\n\n"
-        f"📊 Источники данных:\n"
-        f"• DMarket API\n"
-        f"• Waxpeer API\n"
-        f"• Steam Market\n\n"
-        f"🔒 Фильтры:\n"
-        f"• Whitelist (приоритет)\n"
-        f"• Blacklist (исключение)\n\n"
         f"⏳ Это может занять несколько минут...",
         parse_mode="HTML",
     )
 
     try:
-        import csv
         from datetime import datetime
-        import os
         from pathlib import Path
 
-        from src.dmarket.blacklist_filters import (
-            BLACKLIST_KEYWORDS,
-            PATTERN_KEYWORDS,
-            ItemBlacklistFilter,
-        )
-        from src.dmarket.dmarket_api import DMarketAPI
+        from src.dmarket.blacklist_filters import BLACKLIST_KEYWORDS, PATTERN_KEYWORDS
+        from src.dmarket.whitelist_config import WHITELIST_ITEMS
 
-        # Import Whitelist and Blacklist filters
-        from src.dmarket.whitelist_config import (
-            WHITELIST_ITEMS,
-            WhitelistChecker,
-        )
+        # Initialize components (Phase 2 - use helper)
+        (
+            whitelist_checker, blacklist_filter, waxpeer_api, dmarket_api
+        ) = await _init_liquid_training_components(context)
 
-        # Initialize filters
-        whitelist_checker = WhitelistChecker(enable_priority_boost=True, profit_boost_percent=2.0)
-        blacklist_filter = ItemBlacklistFilter(
-            enable_keyword_filter=True,
-            enable_float_filter=True,
-            enable_sticker_boost_filter=True,
-            enable_pattern_filter=True,
-            enable_scam_risk_filter=True,
-        )
-
-        # Try to import Waxpeer API (optional)
-        waxpeer_api = None
-        try:
-            from src.waxpeer.waxpeer_api import WaxpeerAPI
-
-            waxpeer_key = os.getenv("WAXPEER_API_KEY", "")
-            if waxpeer_key:
-                waxpeer_api = WaxpeerAPI(api_key=waxpeer_key)
-        except ImportError:
-            logger.warning("waxpeer_api_not_available")
-
-        # Get or create DMarket API client
-        dmarket_api = getattr(context.application, "dmarket_api", None)
-        if not dmarket_api:
-            dmarket_api = DMarketAPI(
-                public_key=os.getenv("DMARKET_PUBLIC_KEY", ""),
-                secret_key=os.getenv("DMARKET_SECRET_KEY", ""),
-            )
-
-        # Create output directory
         output_path = Path("data/liquid_items.csv")
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Collect liquid items
-        liquid_items: list[dict[str, Any]] = []
-        blacklisted_count = 0
-        whitelisted_count = 0
-        total_scanned = 0
-
         await update.message.reply_text(
-            f"🔍 Шаг 1/4: Получение списка предметов с DMarket...\n\n"
-            f"📋 Whitelist: {sum(len(items) for items in WHITELIST_ITEMS.values())} предметов\n"
-            f"🚫 Blacklist: {len(BLACKLIST_KEYWORDS) + len(PATTERN_KEYWORDS)} фильтров",
+            f"🔍 Шаг 1/4: Получение предметов с DMarket...\n"
+            f"📋 Whitelist: {sum(len(items) for items in WHITELIST_ITEMS.values())} | "
+            f"🚫 Blacklist: {len(BLACKLIST_KEYWORDS) + len(PATTERN_KEYWORDS)}",
             parse_mode="HTML",
         )
 
         # Get items from DMarket
         dmarket_items = await dmarket_api.get_market_items(
-            game="a8db",
-            limit=500,
-            price_from=100,  # $1 minimum
-            price_to=50000,  # $500 maximum
+            game="a8db", limit=500, price_from=100, price_to=50000,
         )
-
         items_list = dmarket_items.get("objects", [])
         total_scanned = len(items_list)
 
         await update.message.reply_text(
-            f"📋 Найдено {total_scanned} предметов на DMarket\n\n"
-            f"🔍 Шаг 2/4: Применение Blacklist фильтра...",
+            f"📋 Найдено {total_scanned} предметов\n🔍 Шаг 2/4: Фильтрация...",
             parse_mode="HTML",
         )
 
-        # Check liquidity for each item
-        liquid_count = 0
+        # Process items (Phase 2 - use helper for scoring)
+        liquid_items: list[dict[str, Any]] = []
+        blacklisted_count = 0
+        whitelisted_count = 0
 
         for i, item in enumerate(items_list):
-            if liquid_count >= target_samples:
+            if len(liquid_items) >= target_samples:
                 break
 
-            item_title = item.get("title", "")
-            dmarket_price = float(item.get("price", {}).get("USD", 0)) / 100
+            score, is_wl, waxpeer_price, waxpeer_count = await _calculate_item_liquidity(
+                item, whitelist_checker, blacklist_filter, waxpeer_api
+            )
 
-            if dmarket_price < 1.0:  # Skip items under $1
+            if score == -1:  # Too cheap
                 continue
-
-            # STEP 1: Check Blacklist (MANDATORY - never buy blacklisted items)
-            if blacklist_filter.is_blacklisted(item):
+            if score == -2:  # Blacklisted
                 blacklisted_count += 1
-                logger.debug(f"Blacklisted: {item_title}")
                 continue
-
-            # Check item on multiple criteria
-            liquidity_score = 0
-            is_whitelisted = False
-
-            # STEP 2: Check Whitelist (PRIORITY BOOST)
-            if whitelist_checker.is_whitelisted(item, "csgo"):
-                liquidity_score += 25  # Whitelist bonus
-                is_whitelisted = True
+            if is_wl:
                 whitelisted_count += 1
 
-            # 3. Check DMarket offers count
-            dmarket_offers = item.get("extra", {}).get("offers_count", 0)
-            if dmarket_offers >= 3:
-                liquidity_score += 25
-
-            # 4. Check suggested price exists (indicates trading history)
-            suggested_price = item.get("suggestedPrice", {}).get("USD")
-            if suggested_price:
-                liquidity_score += 25
-
-            # 5. Check on Waxpeer if available
-            waxpeer_price = None
-            waxpeer_count = 0
-            if waxpeer_api:
-                try:
-                    async with waxpeer_api:
-                        price_info = await waxpeer_api.get_item_price_info(item_title)
-                        if price_info and price_info.count >= 5:
-                            liquidity_score += 25
-                            waxpeer_price = float(price_info.price_usd)
-                            waxpeer_count = price_info.count
-                except Exception as e:
-                    logger.debug("waxpeer_check_failed", item=item_title, error=str(e))
-
-            # 6. Popular items have category
-            category = item.get("extra", {}).get("category", "")
-            if category and category != "Other":
-                liquidity_score += 15
-
-            # Item is liquid if score >= 50 (or >= 40 for whitelist items)
-            min_score = 40 if is_whitelisted else 50
-            if liquidity_score >= min_score:
+            min_score = 40 if is_wl else 50
+            if score >= min_score:
                 liquid_items.append({
-                    "item_name": item_title,
-                    "price": dmarket_price,
+                    "item_name": item.get("title", ""),
+                    "price": float(item.get("price", {}).get("USD", 0)) / 100,
                     "float_value": item.get("extra", {}).get("float", 0),
-                    "is_stat_trak": "StatTrak" in item_title,
+                    "is_stat_trak": "StatTrak" in item.get("title", ""),
                     "game_id": "a8db",
                     "timestamp": datetime.now().isoformat(),
-                    "liquidity_score": liquidity_score,
-                    "is_whitelisted": is_whitelisted,
-                    "dmarket_offers": dmarket_offers,
+                    "liquidity_score": score,
+                    "is_whitelisted": is_wl,
+                    "dmarket_offers": item.get("extra", {}).get("offers_count", 0),
                     "waxpeer_price": waxpeer_price,
                     "waxpeer_count": waxpeer_count,
                 })
-                liquid_count += 1
 
-            # Progress update every 50 items
-            if (i + 1) % 50 == 0:
+            # Progress update every 100 items
+            if (i + 1) % 100 == 0:
                 await update.message.reply_text(
-                    f"📊 Прогресс: {i + 1}/{len(items_list)} проверено\n"
-                    f"✅ Ликвидных: {liquid_count} | 🚫 Blacklisted: {blacklisted_count} | 📋 Whitelist: {whitelisted_count}",
+                    f"📊 {i + 1}/{len(items_list)} | ✅ {len(liquid_items)} liquid | 🚫 {blacklisted_count}",
                     parse_mode="HTML",
                 )
 
         await update.message.reply_text(
-            f"🔍 Шаг 3/4: Фильтрация завершена\n\n"
-            f"• ✅ Ликвидных: {len(liquid_items)}\n"
-            f"• 🚫 Blacklisted: {blacklisted_count}\n"
-            f"• 📋 Из Whitelist: {whitelisted_count}",
+            f"🔍 Шаг 3/4: Сохранение {len(liquid_items)} предметов...",
             parse_mode="HTML",
         )
 
-        # Save liquid items to CSV
-        if liquid_items:
-            with open(output_path, "w", newline="", encoding="utf-8") as f:
-                writer = csv.DictWriter(f, fieldnames=liquid_items[0].keys())
-                writer.writeheader()
-                writer.writerows(liquid_items)
+        # Save to CSV (Phase 2 - use helper)
+        _save_liquid_data_to_csv(liquid_items, output_path)
 
         await update.message.reply_text(
-            f"🧠 Шаг 4/4: Обучение модели на {len(liquid_items)} предметах...",
+            f"🧠 Шаг 4/4: Обучение модели...",
             parse_mode="HTML",
         )
 
-        # Train model on liquid items
-        from src.ai.price_predictor import PricePredictor
+        # Train model (Phase 2 - use helper)
+        result = _train_model_on_liquid_data(liquid_items)
 
-        predictor = PricePredictor()
-
-        # Use liquid items data for training
-        if len(liquid_items) >= 50:
-            # Save to standard path for training
-            main_data_path = Path("data/market_history.csv")
-
-            with open(main_data_path, "w", newline="", encoding="utf-8") as f:
-                writer = csv.DictWriter(
-                    f,
-                    fieldnames=[
-                        "item_name",
-                        "price",
-                        "float_value",
-                        "is_stat_trak",
-                        "game_id",
-                        "timestamp",
-                    ],
-                )
-                writer.writeheader()
-                for item in liquid_items:
-                    writer.writerow({
-                        "item_name": item["item_name"],
-                        "price": item["price"],
-                        "float_value": item["float_value"],
-                        "is_stat_trak": item["is_stat_trak"],
-                        "game_id": item["game_id"],
-                        "timestamp": item["timestamp"],
-                    })
-
-            result = predictor.train_model(force_retrain=True)
-        else:
-            result = "⚠️ Недостаточно ликвидных данных для обучения (минимум 50)"
-
-        # Build summary message
         summary = (
-            f"🤖 <b>Обучение на ликвидных предметах завершено!</b>\n\n"
-            f"📊 <b>Статистика:</b>\n"
-            f"• Проверено предметов: {total_scanned}\n"
-            f"• Ликвидных найдено: {len(liquid_items)}\n"
-            f"• 🚫 Отфильтровано (blacklist): {blacklisted_count}\n"
-            f"• 📋 Из whitelist: {whitelisted_count}\n"
-            f"• Процент ликвидных: {len(liquid_items) / max(total_scanned, 1) * 100:.1f}%\n\n"
-            f"💾 Данные сохранены: {output_path}\n\n"
-            f"<b>Результат обучения:</b>\n{result}"
+            f"🤖 <b>Обучение завершено!</b>\n\n"
+            f"📊 Проверено: {total_scanned} | ✅ Ликвидных: {len(liquid_items)}\n"
+            f"🚫 Blacklisted: {blacklisted_count} | 📋 Whitelist: {whitelisted_count}\n\n"
+            f"<b>Результат:</b>\n{result}"
         )
 
         await update.message.reply_text(summary, parse_mode="HTML")
@@ -904,16 +921,15 @@ async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_
             user_id=user_id,
             total_scanned=total_scanned,
             liquid_count=len(liquid_items),
-            blacklisted_count=blacklisted_count,
-            whitelisted_count=whitelisted_count,
         )
 
     except Exception as e:
+        logger.exception("ai_train_liquid_failed", error=str(e))
         await update.message.reply_text(
-            f"❌ <b>Ошибка:</b>\n\n{e}",
+            "❌ <b>Ошибка:</b>\n\nПроизошла ошибка при обучении. "
+            "Пожалуйста, попробуйте позже.",
             parse_mode="HTML",
         )
-        logger.exception("ai_train_liquid_failed", error=str(e))
 
 
 def register_ai_handlers(application: "Application") -> None:
