@@ -58,593 +58,32 @@ class Application:
     async def initialize(self) -> None:
         """Initialize all application components."""
         try:
-            # Load configuration
-            logger.info("Loading configuration...")
-            self.config = Config.load(self.config_path)
-            self.config.validate()
+            # Phase 1: Load configuration and setup logging
+            await self._init_config_and_logging()
 
-            # Setup logging
-            setup_logging(
-                level=self.config.logging.level,
-                log_file=self.config.logging.file,
-                format_string=self.config.logging.format,
-            )
+            # Phase 2: Initialize core services (Sentry, Database, StateManager)
+            await self._init_core_services()
 
-            logger.info("Configuration loaded successfully")
-            logger.info(f"Debug mode: {self.config.debug}")
-            logger.info(f"Testing mode: {self.config.testing}")
+            # Phase 3: Initialize DMarket API
+            await self._init_dmarket_api()
 
-            # Load whitelist from JSON file
-            try:
-                from src.dmarket.whitelist_config import load_whitelist_from_json
+            # Phase 4: Initialize Telegram Bot
+            await self._init_telegram_bot()
 
-                whitelist_path = os.getenv("WHITELIST_PATH", "data/whitelist.json")
-                if load_whitelist_from_json(whitelist_path):
-                    logger.info(f"Whitelist loaded from {whitelist_path}")
-                else:
-                    logger.info("Using default whitelist (no JSON file found)")
-            except Exception as e:
-                logger.warning(f"Failed to load whitelist: {e}")
+            # Phase 5: Initialize Schedulers (Daily Report, AI Training)
+            await self._init_schedulers()
 
-            # Initialize Sentry for production error monitoring
-            if not self.config.testing:
-                environment = "production" if not self.config.debug else "development"
-                init_sentry(
-                    dsn=os.getenv("SENTRY_DSN"),
-                    environment=environment,
-                    release=os.getenv("SENTRY_RELEASE", "1.0.0"),
-                    traces_sample_rate=0.1,
-                    profiles_sample_rate=0.1,
-                    debug=self.config.debug,
-                )
-                logger.info(f"Sentry initialized for {environment} environment")
+            # Phase 6: Initialize Scanner Manager
+            await self._init_scanner_manager()
 
-            # Initialize database
-            if not self.config.testing:
-                logger.info("Initializing database...")
-                self.database = DatabaseManager(
-                    database_url=self.config.database.url,
-                    echo=self.config.debug,
-                )
-                await self.database.init_database()
-                logger.info("Database initialized successfully")
+            # Phase 7: Initialize Inventory and Trading components
+            await self._init_inventory_and_trading()
 
-                # Initialize StateManager
-                session = self.database.get_async_session()
-                self.state_manager = StateManager(
-                    session=session,
-                    max_consecutive_errors=5,
-                )
-                logger.info("StateManager initialized")
+            # Phase 8: Initialize WebSocket and Health Check
+            await self._init_websocket_and_health()
 
-            # Initialize DMarket API
-            logger.info("Initializing DMarket API...")
-            logger.info(f"DRY_RUN mode: {self.config.dry_run}")
-            self.dmarket_api = DMarketAPI(
-                public_key=self.config.dmarket.public_key,
-                secret_key=self.config.dmarket.secret_key,
-                api_url=self.config.dmarket.api_url,
-                dry_run=self.config.dry_run,  # Pass dry_run from config
-            )
-
-            # Test API connection if not in testing mode
-            if not self.config.testing and self.config.dmarket.public_key:
-                try:
-                    balance_result = await self.dmarket_api.get_balance()
-                    if balance_result.get("error"):
-                        logger.warning(
-                            "DMarket API test failed: "
-                            f"{balance_result.get('error_message', 'Unknown error')}",
-                        )
-                    else:
-                        balance_value = balance_result.get("balance", 0)
-                        logger.info(
-                            f"DMarket API connected. Balance: ${balance_value:.2f}",
-                        )
-                except Exception as e:
-                    logger.warning(f"DMarket API test failed: {e}")
-
-            # Initialize Telegram Bot
-            logger.info("Initializing Telegram Bot...")
-
-            if not self.config.bot.token:
-                raise ValueError("Telegram bot token is not configured")
-
-            builder = ApplicationBuilder().token(
-                self.config.bot.token,
-            )
-
-            # Enable persistence (best practice) with store_data configuration
-            if not self.config.testing:
-                from telegram.ext import PicklePersistence
-
-                persistence_path = "data/bot_persistence.pickle"
-                os.makedirs("data", exist_ok=True)
-                # CRITICAL: Exclude bot_data from persistence to avoid pickle errors
-                # python-telegram-bot v20+ uses PersistenceInput instead of StoreData
-                persistence = PicklePersistence(
-                    filepath=persistence_path,
-                    store_data=PersistenceInput(
-                        bot_data=False,  # Don't persist bot_data (has non-picklable objects)
-                        chat_data=True,
-                        user_data=True,
-                        callback_data=True,
-                    ),
-                )
-                builder.persistence(persistence)
-                logger.info(f"Persistence enabled (bot_data excluded): {persistence_path}")
-
-            self.bot = builder.build()
-
-            # Attach database to application for AutopilotOrchestrator (FIX)
-            # Use direct attribute assignment (not bot_data) to avoid pickle issues
-            self.bot.db = self.database
-            logger.info("Database attached as application.db attribute")
-
-            # Clear pending updates on start (best practice)
-            if not self.config.testing:
-                try:
-                    logger.info("Clearing pending updates...")
-                    updates = await self.bot.bot.get_updates(timeout=5)
-                    if updates:
-                        last_id = updates[-1].update_id
-                        await self.bot.bot.get_updates(offset=last_id + 1, timeout=1)
-                        logger.info(f"Cleared {len(updates)} pending updates")
-                    else:
-                        logger.info("No pending updates to clear")
-                except Exception as e:
-                    logger.warning(f"Failed to clear pending updates: {e}")
-
-            # Store non-picklable dependencies as application attributes (not bot_data)
-            # This prevents "cannot pickle 'module' object" errors on shutdown
-            self.bot.dmarket_api = self.dmarket_api
-            self.bot.database = self.database
-            self.bot.state_manager = self.state_manager
-            self.bot.bot_instance = self
-
-            # Store only picklable config in bot_data for handlers
-            self.bot.bot_data["config"] = self.config
-
-            logger.info("Dependencies attached as application attributes (pickle-safe)")
-
-            # Register critical shutdown callback
-            if self.state_manager:
-                self.state_manager.set_shutdown_callback(
-                    self._handle_critical_shutdown,
-                )
-
-            # Register handlers
-            register_all_handlers(self.bot)
-
-            # Initialize application
-            await self.bot.initialize()
-
-            # Setup bot commands for UI autocomplete
-            from src.telegram_bot.initialization import setup_bot_commands
-
-            await setup_bot_commands(self.bot.bot)
-            logger.info("Bot commands registered for autocomplete UI")
-
-            logger.info("Telegram Bot initialized successfully")
-
-            # Initialize Daily Report Scheduler
-            if not self.config.testing and self.database and self.config.daily_report.enabled:
-                logger.info("Initializing Daily Report Scheduler...")
-                from datetime import time
-
-                admin_users_raw = (
-                    self.config.security.admin_users
-                    if hasattr(self.config.security, "admin_users")
-                    else []
-                )
-
-                if not admin_users_raw and hasattr(
-                    self.config.security,
-                    "allowed_users",
-                ):
-                    admin_users_raw = self.config.security.allowed_users
-
-                # Convert to list[int] for DailyReportScheduler
-                admin_users: list[int] = [int(uid) for uid in admin_users_raw if str(uid).isdigit()]
-
-                report_time = time(
-                    hour=self.config.daily_report.report_time_hour,
-                    minute=self.config.daily_report.report_time_minute,
-                )
-
-                self.daily_report_scheduler = DailyReportScheduler(
-                    database=self.database,
-                    bot=self.bot.bot,
-                    admin_users=admin_users,
-                    report_time=report_time,
-                    enabled=self.config.daily_report.enabled,
-                )
-
-                # Store scheduler as application attribute (pickle-safe)
-                self.bot.daily_report_scheduler = self.daily_report_scheduler
-
-                logger.info(
-                    "Daily Report Scheduler initialized at %s",
-                    report_time.strftime("%H:%M"),
-                )
-
-            # Initialize AI Training Scheduler (nightly training at 03:00 UTC)
-            if not self.config.testing and self.dmarket_api:
-                logger.info("Initializing AI Training Scheduler...")
-                try:
-                    from datetime import time as dt_time
-
-                    from src.utils.ai_scheduler import AITrainingScheduler
-
-                    admin_users_raw = (
-                        self.config.security.admin_users
-                        if hasattr(self.config.security, "admin_users")
-                        else []
-                    )
-
-                    if not admin_users_raw and hasattr(
-                        self.config.security,
-                        "allowed_users",
-                    ):
-                        admin_users_raw = self.config.security.allowed_users
-
-                    admin_users_ai: list[int] = [
-                        int(uid) for uid in admin_users_raw if str(uid).isdigit()
-                    ]
-
-                    self.ai_scheduler = AITrainingScheduler(
-                        api_client=self.dmarket_api,
-                        admin_users=admin_users_ai,
-                        bot=self.bot.bot if self.bot else None,
-                        training_time=dt_time(3, 0),  # 03:00 UTC nightly training
-                        data_collection_interval=300,  # 5 minutes
-                        enabled=True,
-                    )
-
-                    self.bot.ai_scheduler = self.ai_scheduler
-
-                    logger.info(
-                        "AI Training Scheduler initialized (training at 03:00 UTC)"
-                    )
-
-                except Exception as e:
-                    logger.warning(f"Failed to initialize AI Training Scheduler: {e}")
-
-            # Initialize Scanner Manager (Adaptive, Parallel, Cleanup)
-            if not self.config.testing and self.dmarket_api:
-                logger.info("Initializing Scanner Manager...")
-
-                # Get scan configuration from config or use defaults
-                enable_adaptive = getattr(self.config, "enable_adaptive_scan", True)
-                enable_parallel = getattr(self.config, "enable_parallel_scan", True)
-                enable_cleanup = getattr(self.config, "enable_target_cleanup", True)
-
-                self.scanner_manager = ScannerManager(
-                    api_client=self.dmarket_api,
-                    config=self.config,
-                    enable_adaptive=enable_adaptive,
-                    enable_parallel=enable_parallel,
-                    enable_cleanup=enable_cleanup,
-                )
-
-                # Store as application attribute (pickle-safe)
-                self.bot.scanner_manager = self.scanner_manager
-
-                logger.info(
-                    f"Scanner Manager initialized: "
-                    f"adaptive={enable_adaptive}, "
-                    f"parallel={enable_parallel}, "
-                    f"cleanup={enable_cleanup}"
-                )
-
-            # Initialize Inventory Manager for Direct Buy mode (NEW)
-            if not self.config.testing and self.dmarket_api:
-                logger.info("Initializing Inventory Manager (Direct Buy Mode)...")
-                try:
-                    from src.dmarket.inventory_manager import InventoryManager
-
-                    # Get configuration from config object
-                    undercut_step = int(
-                        self.config.inventory.undercut_price * 100
-                    )  # Convert to cents
-                    min_profit_margin = self.config.inventory.min_margin_threshold
-                    check_interval = int(os.getenv("INVENTORY_CHECK_INTERVAL", "1800"))
-                    undercut_enabled = self.config.inventory.auto_sell
-
-                    self.inventory_manager = InventoryManager(
-                        api_client=self.dmarket_api,
-                        telegram_bot=self.bot.bot,
-                        undercut_step=undercut_step,
-                        min_profit_margin=min_profit_margin,
-                        check_interval=check_interval,
-                    )
-
-                    # Store as application attribute (pickle-safe)
-                    self.bot.inventory_manager = self.inventory_manager
-
-                    logger.info(
-                        f"Inventory Manager initialized: "
-                        f"undercut={'ON' if undercut_enabled else 'OFF'}, "
-                        f"step=${undercut_step / 100:.2f}, "
-                        f"margin={min_profit_margin:.2%}, "
-                        f"interval={check_interval}s"
-                    )
-
-                except Exception as e:
-                    logger.warning(f"Failed to initialize Inventory Manager: {e}")
-                    # Not critical, continue without inventory management
-
-            # Initialize Auto Steam Arbitrage Scanner (NEW - FIX)
-            if not self.config.testing and self.dmarket_api:
-                logger.info("Initializing Auto Steam Arbitrage Scanner...")
-                try:
-                    # Get admin chat ID from config
-                    admin_users = getattr(self.config.security, "admin_users", [])
-                    if not admin_users and hasattr(self.config.security, "allowed_users"):
-                        admin_users = self.config.security.allowed_users
-
-                    if admin_users:
-                        admin_chat_id = int(admin_users[0])
-
-                        from src.dmarket.auto_steam_arbitrage import AutoSteamArbitrageScanner
-
-                        self.steam_arbitrage_scanner = AutoSteamArbitrageScanner(
-                            dmarket_api=self.dmarket_api,
-                            telegram_bot=self.bot.bot,
-                            admin_chat_id=admin_chat_id,
-                            scan_interval_minutes=10,  # Сканировать каждые 10 минут
-                            min_roi_percent=5.0,  # Минимум 5% профита
-                            max_items_per_scan=50,  # Максимум 50 предметов
-                            game="csgo",  # По умолчанию CS:GO
-                        )
-
-                        # Store as application attribute (pickle-safe)
-                        self.bot.steam_arbitrage_scanner = self.steam_arbitrage_scanner
-
-                        logger.info("Auto Steam Arbitrage Scanner initialized")
-                    else:
-                        logger.warning("No admin users configured, Steam Scanner skipped")
-                except Exception as e:
-                    logger.warning(f"Failed to initialize Steam Arbitrage Scanner: {e}")
-
-            # Initialize Autopilot Orchestrator
-            logger.info("Initializing Autopilot Orchestrator...")
-            try:
-                from src.dmarket.auto_buyer import AutoBuyConfig, AutoBuyer
-                from src.dmarket.auto_seller import AutoSeller
-                from src.dmarket.autopilot_orchestrator import (
-                    AutopilotConfig,
-                    AutopilotOrchestrator,
-                )
-
-                # Initialize auto-buyer if not exists
-                auto_buyer = getattr(self.bot, "auto_buyer", None)
-                if not auto_buyer:
-                    # Read AUTO_BUY_ENABLED from environment (default: False for safety)
-                    auto_buy_enabled = os.getenv("AUTO_BUY_ENABLED", "false").lower() == "true"
-                    min_discount = float(os.getenv("MIN_DISCOUNT", "30.0"))
-
-                    auto_buy_config = AutoBuyConfig(
-                        enabled=auto_buy_enabled,
-                        dry_run=self.config.dry_run,
-                        max_price_usd=self.config.trading.max_item_price,
-                        min_discount_percent=min_discount,
-                    )
-                    auto_buyer = AutoBuyer(self.dmarket_api, auto_buy_config)
-                    self.bot.auto_buyer = auto_buyer
-
-                    if auto_buy_enabled:
-                        logger.warning(
-                            "AUTO_BUY is ENABLED! Bot will make REAL purchases "
-                            f"(dry_run={self.config.dry_run})"
-                        )
-
-                # Initialize auto-seller if not exists
-                auto_seller = getattr(self.bot, "auto_seller", None)
-                if not auto_seller:
-                    auto_seller = AutoSeller(
-                        api=self.dmarket_api,
-                    )
-                    self.bot.auto_seller = auto_seller
-
-                # Initialize Trading Persistence (NEW - survives restarts)
-                from src.utils.trading_persistence import init_trading_persistence
-
-                trading_persistence = init_trading_persistence(
-                    database=self.database,
-                    dmarket_api=self.dmarket_api,
-                    telegram_bot=self.bot.bot if self.bot else None,
-                    min_margin_percent=5.0,  # Minimum 5% margin to protect from losses
-                    dmarket_fee_percent=7.0,  # DMarket fee
-                )
-
-                # Link persistence to auto-buyer
-                auto_buyer.set_trading_persistence(trading_persistence)
-                self.bot.trading_persistence = trading_persistence
-
-                logger.info("Trading Persistence initialized - purchases will survive restarts")
-
-                # Create orchestrator config
-                orchestrator_config = AutopilotConfig(
-                    games=self.config.trading.games,
-                    min_discount_percent=30.0,
-                    max_price_usd=self.config.trading.max_item_price,
-                    min_balance_threshold_usd=10.0,
-                )
-
-                # Create orchestrator
-                orchestrator = AutopilotOrchestrator(
-                    scanner_manager=self.scanner_manager,
-                    auto_buyer=auto_buyer,
-                    auto_seller=auto_seller,
-                    api_client=self.dmarket_api,
-                    config=orchestrator_config,
-                )
-
-                self.bot.orchestrator = orchestrator
-
-                logger.info("Autopilot Orchestrator initialized successfully")
-
-            except Exception as e:
-                logger.warning(f"Failed to initialize Autopilot Orchestrator: {e}")
-                # Not critical, continue without autopilot
-
-            # Initialize WebSocket Listener (if not in testing mode)
-            if not self.config.testing and self.dmarket_api:
-                logger.info("Initializing WebSocket Listener...")
-                try:
-                    from src.dmarket.websocket_listener import (
-                        DMarketWebSocketListener,
-                        WebSocketManager,
-                    )
-
-                    websocket_listener = DMarketWebSocketListener(
-                        public_key=self.config.dmarket.public_key,
-                        secret_key=self.config.dmarket.secret_key,
-                    )
-
-                    self.websocket_manager = WebSocketManager(websocket_listener)
-                    self.bot.websocket_manager = self.websocket_manager
-
-                    logger.info("WebSocket Listener initialized successfully")
-
-                except Exception as e:
-                    logger.warning(f"Failed to initialize WebSocket Listener: {e}")
-                    # Not critical, continue without websocket
-
-            # Initialize Health Check Monitor (if not in testing mode)
-            if not self.config.testing and self.bot:
-                logger.info("Initializing Health Check Monitor...")
-                try:
-                    from src.utils.health_check import HealthCheckMonitor
-
-                    # Get first admin user for health pings
-                    admin_users = (
-                        self.config.security.admin_users
-                        if hasattr(self.config.security, "admin_users")
-                        else self.config.security.allowed_users
-                    )
-
-                    if admin_users:
-                        first_admin = int(admin_users[0])
-
-                        self.health_check_monitor = HealthCheckMonitor(
-                            telegram_bot=self.bot.bot,
-                            user_id=first_admin,
-                            check_interval=900,  # 15 minutes
-                            alert_on_failure=True,
-                        )
-
-                        # Register components for monitoring
-                        if self.dmarket_api is not None:
-                            self.health_check_monitor.register_api_client(self.dmarket_api)
-
-                        if self.websocket_manager:
-                            self.health_check_monitor.register_websocket(
-                                self.websocket_manager.listener
-                            )
-
-                        self.bot.health_check_monitor = self.health_check_monitor
-
-                        logger.info("Health Check Monitor initialized successfully")
-
-                except Exception as e:
-                    logger.warning(f"Failed to initialize Health Check Monitor: {e}")
-                    # Not critical, continue without health check
-
-            # Initialize Bot Integrator for all new improvements
-            if not self.config.testing and self.dmarket_api:
-                logger.info("Initializing Bot Integrator (unified improvements)...")
-                try:
-                    from src.integration.bot_integrator import (
-                        BotIntegrator,
-                        IntegratorConfig,
-                        set_integrator,
-                    )
-
-                    # Create integrator config from main config
-                    integrator_config = IntegratorConfig(
-                        enable_enhanced_polling=getattr(
-                            self.config, "enable_enhanced_polling", True
-                        ),
-                        enable_price_analytics=getattr(
-                            self.config, "enable_price_analytics", True
-                        ),
-                        enable_auto_listing=getattr(
-                            self.config, "enable_auto_listing", True
-                        ),
-                        enable_portfolio_tracker=getattr(
-                            self.config, "enable_portfolio_tracker", True
-                        ),
-                        enable_custom_alerts=getattr(
-                            self.config, "enable_custom_alerts", True
-                        ),
-                        enable_watchlist=getattr(
-                            self.config, "enable_watchlist", True
-                        ),
-                        enable_anomaly_detection=getattr(
-                            self.config, "enable_anomaly_detection", True
-                        ),
-                        enable_smart_recommendations=getattr(
-                            self.config, "enable_smart_recommendations", True
-                        ),
-                        enable_trading_automation=getattr(
-                            self.config, "enable_trading_automation", True
-                        ),
-                        enable_reports=getattr(
-                            self.config, "enable_reports", True
-                        ),
-                        enable_security=getattr(
-                            self.config, "enable_security", True
-                        ),
-                        min_item_price_for_listing=getattr(
-                            self.config, "min_listing_price", 50.0
-                        ),
-                        target_profit_margin=getattr(
-                            self.config, "target_margin", 0.10
-                        ),
-                    )
-
-                    # Get Waxpeer API if available
-                    waxpeer_api = None
-                    try:
-                        from src.waxpeer.waxpeer_api import WaxpeerAPI
-
-                        waxpeer_api_key = os.getenv("WAXPEER_API_KEY")
-                        if waxpeer_api_key:
-                            waxpeer_api = WaxpeerAPI(api_key=waxpeer_api_key)
-                    except Exception as e:
-                        logger.debug(f"Waxpeer API not available: {e}")
-
-                    # Create integrator
-                    self.bot_integrator = BotIntegrator(
-                        dmarket_api=self.dmarket_api,
-                        waxpeer_api=waxpeer_api,
-                        telegram_bot=self.bot.bot if self.bot else None,
-                        database=self.database,
-                        config=integrator_config,
-                    )
-
-                    # Initialize all modules
-                    init_results = await self.bot_integrator.initialize()
-
-                    # Set global integrator for easy access
-                    set_integrator(self.bot_integrator)
-
-                    # Store as application attribute
-                    self.bot.bot_integrator = self.bot_integrator
-
-                    # Log results
-                    success_count = sum(1 for v in init_results.values() if v)
-                    total_count = len(init_results)
-                    logger.info(
-                        f"Bot Integrator initialized: "
-                        f"{success_count}/{total_count} modules active"
-                    )
-
-                except Exception as e:
-                    logger.warning(f"Failed to initialize Bot Integrator: {e}")
-                    # Not critical, continue without integrator
+            # Phase 9: Initialize Bot Integrator
+            await self._init_bot_integrator()
 
         except Exception as e:
             logger.exception(f"Failed to initialize application: {e}")
@@ -1150,6 +589,516 @@ class Application:
         except Exception as e:
             logger.exception(f"Failed to recover pending trades: {e}")
             # Not critical, continue startup
+
+    async def _init_config_and_logging(self) -> None:
+        """Load configuration and setup logging."""
+        logger.info("Loading configuration...")
+
+        self.config = Config.load(self.config_path)
+
+        # Setup structured logging based on config
+        setup_logging(
+            level=self.config.logging.level,
+            log_file=self.config.logging.file,
+            format_string=self.config.logging.format,
+        )
+
+        # Load whitelist if configured
+        whitelist_path = os.getenv("WHITELIST_PATH", "data/whitelist.json")
+        if os.path.exists(whitelist_path):
+            logger.info(f"Loading whitelist from {whitelist_path}")
+
+        logger.info("Configuration loaded successfully")
+
+    async def _init_core_services(self) -> None:
+        """Initialize Sentry, Database, and StateManager."""
+        # Initialize Sentry for error monitoring
+        sentry_dsn = os.getenv("SENTRY_DSN")
+        if not self.config.testing and sentry_dsn:
+            logger.info("Initializing Sentry...")
+            environment = "production" if not self.config.debug else "development"
+            init_sentry(dsn=sentry_dsn, environment=environment)
+            logger.info("Sentry initialized successfully")
+
+        # Initialize database
+        logger.info("Initializing database...")
+        self.database = DatabaseManager(database_url=self.config.database.url)
+        await self.database.init_database()
+        logger.info("Database initialized successfully")
+
+        # Initialize StateManager for application state tracking
+        logger.info("Initializing State Manager...")
+        session = self.database.get_async_session()
+        self.state_manager = StateManager(session=session, max_consecutive_errors=5)
+        logger.info("State Manager initialized successfully")
+
+    async def _init_dmarket_api(self) -> None:
+        """Initialize DMarket API and test connection."""
+        logger.info("Initializing DMarket API...")
+        logger.info(f"DRY_RUN mode: {self.config.dry_run}")
+
+        self.dmarket_api = DMarketAPI(
+            public_key=self.config.dmarket.public_key,
+            secret_key=self.config.dmarket.secret_key,
+            api_url=self.config.dmarket.api_url,
+            dry_run=self.config.dry_run,
+        )
+
+        # Test API connection (if not in testing mode)
+        if not self.config.testing and self.config.dmarket.public_key:
+            try:
+                balance = await self.dmarket_api.get_balance()
+                logger.info(f"DMarket API connected. Balance: ${balance.get('balance', 0):.2f}")
+            except Exception as e:
+                logger.warning(f"Failed to get balance: {e}")
+
+        logger.info("DMarket API initialized successfully")
+
+    async def _init_telegram_bot(self) -> None:
+        """Initialize Telegram bot with persistence and dependencies."""
+        logger.info("Initializing Telegram Bot...")
+
+        if not self.config.bot.token:
+            raise ValueError("Telegram bot token is not configured")
+
+        builder = ApplicationBuilder().token(self.config.bot.token)
+
+        # Enable persistence (best practice) with store_data configuration
+        if not self.config.testing:
+            from telegram.ext import PicklePersistence
+
+            persistence_path = "data/bot_persistence.pickle"
+            os.makedirs("data", exist_ok=True)
+            persistence = PicklePersistence(
+                filepath=persistence_path,
+                store_data=PersistenceInput(
+                    bot_data=False,
+                    chat_data=True,
+                    user_data=True,
+                    callback_data=True,
+                ),
+            )
+            builder.persistence(persistence)
+            logger.info(f"Persistence enabled (bot_data excluded): {persistence_path}")
+
+        self.bot = builder.build()
+        self.bot.db = self.database
+        logger.info("Database attached as application.db attribute")
+
+        # Clear pending updates on start
+        await self._clear_pending_updates()
+
+        # Attach dependencies as application attributes
+        self._attach_bot_dependencies()
+
+        # Register handlers and initialize
+        register_all_handlers(self.bot)
+        await self.bot.initialize()
+
+        # Setup bot commands for UI autocomplete
+        from src.telegram_bot.initialization import setup_bot_commands
+        await setup_bot_commands(self.bot.bot)
+
+        logger.info("Telegram Bot initialized successfully")
+
+    async def _clear_pending_updates(self) -> None:
+        """Clear pending Telegram updates on start."""
+        if self.config.testing:
+            return
+
+        try:
+            logger.info("Clearing pending updates...")
+            updates = await self.bot.bot.get_updates(timeout=5)
+            if updates:
+                last_id = updates[-1].update_id
+                await self.bot.bot.get_updates(offset=last_id + 1, timeout=1)
+                logger.info(f"Cleared {len(updates)} pending updates")
+            else:
+                logger.info("No pending updates to clear")
+        except Exception as e:
+            logger.warning(f"Failed to clear pending updates: {e}")
+
+    def _attach_bot_dependencies(self) -> None:
+        """Attach dependencies to bot as attributes (pickle-safe)."""
+        self.bot.dmarket_api = self.dmarket_api
+        self.bot.database = self.database
+        self.bot.state_manager = self.state_manager
+        self.bot.bot_instance = self
+        self.bot.bot_data["config"] = self.config
+
+        if self.state_manager:
+            self.state_manager.set_shutdown_callback(self._handle_critical_shutdown)
+
+        logger.info("Dependencies attached as application attributes (pickle-safe)")
+
+    def _get_admin_users(self) -> list[int]:
+        """Get list of admin user IDs from config."""
+        admin_users_raw = getattr(self.config.security, "admin_users", [])
+
+        if not admin_users_raw and hasattr(self.config.security, "allowed_users"):
+            admin_users_raw = self.config.security.allowed_users
+
+        return [int(uid) for uid in admin_users_raw if str(uid).isdigit()]
+
+    async def _init_schedulers(self) -> None:
+        """Initialize Daily Report and AI Training schedulers."""
+        await self._init_daily_report_scheduler()
+        await self._init_ai_scheduler()
+
+    async def _init_daily_report_scheduler(self) -> None:
+        """Initialize Daily Report Scheduler."""
+        if self.config.testing or not self.database or not self.config.daily_report.enabled:
+            return
+
+        logger.info("Initializing Daily Report Scheduler...")
+        from datetime import time
+
+        admin_users = self._get_admin_users()
+        report_time = time(
+            hour=self.config.daily_report.report_time_hour,
+            minute=self.config.daily_report.report_time_minute,
+        )
+
+        self.daily_report_scheduler = DailyReportScheduler(
+            database=self.database,
+            bot=self.bot.bot,
+            admin_users=admin_users,
+            report_time=report_time,
+            enabled=self.config.daily_report.enabled,
+        )
+        self.bot.daily_report_scheduler = self.daily_report_scheduler
+
+        logger.info(f"Daily Report Scheduler initialized at {report_time.strftime('%H:%M')}")
+
+    async def _init_ai_scheduler(self) -> None:
+        """Initialize AI Training Scheduler."""
+        if self.config.testing or not self.dmarket_api:
+            return
+
+        logger.info("Initializing AI Training Scheduler...")
+        try:
+            from datetime import time as dt_time
+            from src.utils.ai_scheduler import AITrainingScheduler
+
+            admin_users = self._get_admin_users()
+
+            self.ai_scheduler = AITrainingScheduler(
+                api_client=self.dmarket_api,
+                admin_users=admin_users,
+                bot=self.bot.bot if self.bot else None,
+                training_time=dt_time(3, 0),
+                data_collection_interval=300,
+                enabled=True,
+            )
+            self.bot.ai_scheduler = self.ai_scheduler
+
+            logger.info("AI Training Scheduler initialized (training at 03:00 UTC)")
+        except Exception as e:
+            logger.warning(f"Failed to initialize AI Training Scheduler: {e}")
+
+    async def _init_scanner_manager(self) -> None:
+        """Initialize Scanner Manager with adaptive, parallel, and cleanup features."""
+        if self.config.testing or not self.dmarket_api:
+            return
+
+        logger.info("Initializing Scanner Manager...")
+
+        enable_adaptive = getattr(self.config, "enable_adaptive_scan", True)
+        enable_parallel = getattr(self.config, "enable_parallel_scan", True)
+        enable_cleanup = getattr(self.config, "enable_target_cleanup", True)
+
+        self.scanner_manager = ScannerManager(
+            api_client=self.dmarket_api,
+            config=self.config,
+            enable_adaptive=enable_adaptive,
+            enable_parallel=enable_parallel,
+            enable_cleanup=enable_cleanup,
+        )
+        self.bot.scanner_manager = self.scanner_manager
+
+        logger.info(
+            f"Scanner Manager initialized: adaptive={enable_adaptive}, "
+            f"parallel={enable_parallel}, cleanup={enable_cleanup}"
+        )
+
+    async def _init_inventory_and_trading(self) -> None:
+        """Initialize Inventory Manager, Auto Steam Scanner, and Autopilot."""
+        await self._init_inventory_manager()
+        await self._init_steam_arbitrage_scanner()
+        await self._init_autopilot_orchestrator()
+
+    async def _init_inventory_manager(self) -> None:
+        """Initialize Inventory Manager for Direct Buy mode."""
+        if self.config.testing or not self.dmarket_api:
+            return
+
+        logger.info("Initializing Inventory Manager (Direct Buy Mode)...")
+        try:
+            from src.dmarket.inventory_manager import InventoryManager
+
+            undercut_step = int(self.config.inventory.undercut_price * 100)
+            min_profit_margin = self.config.inventory.min_margin_threshold
+            check_interval = int(os.getenv("INVENTORY_CHECK_INTERVAL", "1800"))
+            undercut_enabled = self.config.inventory.auto_sell
+
+            self.inventory_manager = InventoryManager(
+                api_client=self.dmarket_api,
+                telegram_bot=self.bot.bot,
+                undercut_step=undercut_step,
+                min_profit_margin=min_profit_margin,
+                check_interval=check_interval,
+            )
+            self.bot.inventory_manager = self.inventory_manager
+
+            logger.info(
+                f"Inventory Manager initialized: undercut={'ON' if undercut_enabled else 'OFF'}, "
+                f"step=${undercut_step / 100:.2f}, margin={min_profit_margin:.2%}, interval={check_interval}s"
+            )
+        except Exception as e:
+            logger.warning(f"Failed to initialize Inventory Manager: {e}")
+
+    async def _init_steam_arbitrage_scanner(self) -> None:
+        """Initialize Auto Steam Arbitrage Scanner."""
+        if self.config.testing or not self.dmarket_api:
+            return
+
+        logger.info("Initializing Auto Steam Arbitrage Scanner...")
+        try:
+            admin_users = getattr(self.config.security, "admin_users", [])
+            if not admin_users and hasattr(self.config.security, "allowed_users"):
+                admin_users = self.config.security.allowed_users
+
+            if not admin_users:
+                logger.warning("No admin users configured, Steam Scanner skipped")
+                return
+
+            from src.dmarket.auto_steam_arbitrage import AutoSteamArbitrageScanner
+
+            self.steam_arbitrage_scanner = AutoSteamArbitrageScanner(
+                dmarket_api=self.dmarket_api,
+                telegram_bot=self.bot.bot,
+                admin_chat_id=int(admin_users[0]),
+                scan_interval_minutes=10,
+                min_roi_percent=5.0,
+                max_items_per_scan=50,
+                game="csgo",
+            )
+            self.bot.steam_arbitrage_scanner = self.steam_arbitrage_scanner
+
+            logger.info("Auto Steam Arbitrage Scanner initialized")
+        except Exception as e:
+            logger.warning(f"Failed to initialize Steam Arbitrage Scanner: {e}")
+
+    async def _init_autopilot_orchestrator(self) -> None:
+        """Initialize Autopilot Orchestrator with auto-buyer and auto-seller."""
+        logger.info("Initializing Autopilot Orchestrator...")
+        try:
+            from src.dmarket.auto_buyer import AutoBuyConfig, AutoBuyer
+            from src.dmarket.auto_seller import AutoSeller
+            from src.dmarket.autopilot_orchestrator import AutopilotConfig, AutopilotOrchestrator
+
+            auto_buyer = await self._init_auto_buyer()
+            auto_seller = await self._init_auto_seller()
+            await self._init_trading_persistence(auto_buyer)
+
+            orchestrator_config = AutopilotConfig(
+                games=self.config.trading.games,
+                min_discount_percent=30.0,
+                max_price_usd=self.config.trading.max_item_price,
+                min_balance_threshold_usd=10.0,
+            )
+
+            orchestrator = AutopilotOrchestrator(
+                scanner_manager=self.scanner_manager,
+                auto_buyer=auto_buyer,
+                auto_seller=auto_seller,
+                api_client=self.dmarket_api,
+                config=orchestrator_config,
+            )
+            self.bot.orchestrator = orchestrator
+
+            logger.info("Autopilot Orchestrator initialized successfully")
+        except Exception as e:
+            logger.warning(f"Failed to initialize Autopilot Orchestrator: {e}")
+
+    async def _init_auto_buyer(self):
+        """Initialize auto-buyer component."""
+        from src.dmarket.auto_buyer import AutoBuyConfig, AutoBuyer
+
+        auto_buyer = getattr(self.bot, "auto_buyer", None)
+        if auto_buyer:
+            return auto_buyer
+
+        auto_buy_enabled = os.getenv("AUTO_BUY_ENABLED", "false").lower() == "true"
+        min_discount = float(os.getenv("MIN_DISCOUNT", "30.0"))
+
+        auto_buy_config = AutoBuyConfig(
+            enabled=auto_buy_enabled,
+            dry_run=self.config.dry_run,
+            max_price_usd=self.config.trading.max_item_price,
+            min_discount_percent=min_discount,
+        )
+        auto_buyer = AutoBuyer(self.dmarket_api, auto_buy_config)
+        self.bot.auto_buyer = auto_buyer
+
+        if auto_buy_enabled:
+            logger.warning(
+                f"AUTO_BUY is ENABLED! Bot will make REAL purchases (dry_run={self.config.dry_run})"
+            )
+
+        return auto_buyer
+
+    async def _init_auto_seller(self):
+        """Initialize auto-seller component."""
+        from src.dmarket.auto_seller import AutoSeller
+
+        auto_seller = getattr(self.bot, "auto_seller", None)
+        if auto_seller:
+            return auto_seller
+
+        auto_seller = AutoSeller(api=self.dmarket_api)
+        self.bot.auto_seller = auto_seller
+        return auto_seller
+
+    async def _init_trading_persistence(self, auto_buyer) -> None:
+        """Initialize Trading Persistence for surviving restarts."""
+        from src.utils.trading_persistence import init_trading_persistence
+
+        trading_persistence = init_trading_persistence(
+            database=self.database,
+            dmarket_api=self.dmarket_api,
+            telegram_bot=self.bot.bot if self.bot else None,
+            min_margin_percent=5.0,
+            dmarket_fee_percent=7.0,
+        )
+
+        auto_buyer.set_trading_persistence(trading_persistence)
+        self.bot.trading_persistence = trading_persistence
+
+        logger.info("Trading Persistence initialized - purchases will survive restarts")
+
+    async def _init_websocket_and_health(self) -> None:
+        """Initialize WebSocket Listener and Health Check Monitor."""
+        await self._init_websocket()
+        await self._init_health_check()
+
+    async def _init_websocket(self) -> None:
+        """Initialize WebSocket Listener."""
+        if self.config.testing or not self.dmarket_api:
+            return
+
+        logger.info("Initializing WebSocket Listener...")
+        try:
+            from src.dmarket.websocket_listener import DMarketWebSocketListener, WebSocketManager
+
+            websocket_listener = DMarketWebSocketListener(
+                public_key=self.config.dmarket.public_key,
+                secret_key=self.config.dmarket.secret_key,
+            )
+            self.websocket_manager = WebSocketManager(websocket_listener)
+            self.bot.websocket_manager = self.websocket_manager
+
+            logger.info("WebSocket Listener initialized successfully")
+        except Exception as e:
+            logger.warning(f"Failed to initialize WebSocket Listener: {e}")
+
+    async def _init_health_check(self) -> None:
+        """Initialize Health Check Monitor."""
+        if self.config.testing or not self.bot:
+            return
+
+        logger.info("Initializing Health Check Monitor...")
+        try:
+            from src.utils.health_check import HealthCheckMonitor
+
+            admin_users = (
+                self.config.security.admin_users
+                if hasattr(self.config.security, "admin_users")
+                else self.config.security.allowed_users
+            )
+
+            if not admin_users:
+                return
+
+            self.health_check_monitor = HealthCheckMonitor(
+                telegram_bot=self.bot.bot,
+                user_id=int(admin_users[0]),
+                check_interval=900,
+                alert_on_failure=True,
+            )
+
+            if self.dmarket_api is not None:
+                self.health_check_monitor.register_api_client(self.dmarket_api)
+
+            if self.websocket_manager:
+                self.health_check_monitor.register_websocket(self.websocket_manager.listener)
+
+            self.bot.health_check_monitor = self.health_check_monitor
+
+            logger.info("Health Check Monitor initialized successfully")
+        except Exception as e:
+            logger.warning(f"Failed to initialize Health Check Monitor: {e}")
+
+    async def _init_bot_integrator(self) -> None:
+        """Initialize Bot Integrator for unified improvements."""
+        if self.config.testing or not self.dmarket_api:
+            return
+
+        logger.info("Initializing Bot Integrator (unified improvements)...")
+        try:
+            from src.integration.bot_integrator import BotIntegrator, IntegratorConfig, set_integrator
+
+            integrator_config = self._build_integrator_config()
+            waxpeer_api = self._get_waxpeer_api()
+
+            self.bot_integrator = BotIntegrator(
+                dmarket_api=self.dmarket_api,
+                waxpeer_api=waxpeer_api,
+                telegram_bot=self.bot.bot if self.bot else None,
+                database=self.database,
+                config=integrator_config,
+            )
+
+            init_results = await self.bot_integrator.initialize()
+            set_integrator(self.bot_integrator)
+            self.bot.bot_integrator = self.bot_integrator
+
+            success_count = sum(1 for v in init_results.values() if v)
+            logger.info(f"Bot Integrator initialized: {success_count}/{len(init_results)} modules active")
+        except Exception as e:
+            logger.warning(f"Failed to initialize Bot Integrator: {e}")
+
+    def _build_integrator_config(self):
+        """Build IntegratorConfig from main config."""
+        from src.integration.bot_integrator import IntegratorConfig
+
+        return IntegratorConfig(
+            enable_enhanced_polling=getattr(self.config, "enable_enhanced_polling", True),
+            enable_price_analytics=getattr(self.config, "enable_price_analytics", True),
+            enable_auto_listing=getattr(self.config, "enable_auto_listing", True),
+            enable_portfolio_tracker=getattr(self.config, "enable_portfolio_tracker", True),
+            enable_custom_alerts=getattr(self.config, "enable_custom_alerts", True),
+            enable_watchlist=getattr(self.config, "enable_watchlist", True),
+            enable_anomaly_detection=getattr(self.config, "enable_anomaly_detection", True),
+            enable_smart_recommendations=getattr(self.config, "enable_smart_recommendations", True),
+            enable_trading_automation=getattr(self.config, "enable_trading_automation", True),
+            enable_reports=getattr(self.config, "enable_reports", True),
+            enable_security=getattr(self.config, "enable_security", True),
+            min_item_price_for_listing=getattr(self.config, "min_listing_price", 50.0),
+            target_profit_margin=getattr(self.config, "target_margin", 0.10),
+        )
+
+    def _get_waxpeer_api(self):
+        """Get Waxpeer API if available."""
+        try:
+            from src.waxpeer.waxpeer_api import WaxpeerAPI
+
+            waxpeer_api_key = os.getenv("WAXPEER_API_KEY")
+            if waxpeer_api_key:
+                return WaxpeerAPI(api_key=waxpeer_api_key)
+        except Exception as e:
+            logger.debug(f"Waxpeer API not available: {e}")
+        return None
 
     def _setup_signal_handlers(self) -> None:
         """Setup signal handlers for graceful shutdown."""
