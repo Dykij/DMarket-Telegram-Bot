@@ -192,18 +192,30 @@ class TestCaching:
         assert cached_data is None
         # Note: Key removal happens via pop(), check implementation
 
-    def test_save_to_cache_with_different_ttl(self, dmarket_api_with_cache):
+    def test_save_to_cache_with_different_ttl(self, api_keys):
         """Тест сохранения с разными TTL."""
-        api_cache.clear()  # Ensure clean state
+        # Create completely fresh instance to avoid any state pollution
+        from src.dmarket.dmarket_api import api_cache as fresh_cache
+        fresh_cache.clear()  # Ensure clean state
+        
+        api = DMarketAPI(
+            public_key=api_keys["public_key"],
+            secret_key=api_keys["secret_key"],
+            enable_cache=True,
+        )
+        
+        # Force enable cache in case something disabled it
+        assert api.enable_cache is True, f"Cache should be enabled but is {api.enable_cache}"
+        
         for ttl_type in ["short", "medium", "long"]:
-            cache_key = f"test_{ttl_type}_key"
+            cache_key = f"test_ttl_{ttl_type}_key"
             test_data = {"type": ttl_type}
 
-            dmarket_api_with_cache._save_to_cache(cache_key, test_data, ttl_type)
+            api._save_to_cache(cache_key, test_data, ttl_type)
 
             # Проверяем что данные сохранены
-            assert cache_key in api_cache
-            data, expire_time = api_cache[cache_key]
+            assert cache_key in fresh_cache, f"Cache key {cache_key} not found in {fresh_cache}"
+            data, expire_time = fresh_cache[cache_key]
             assert data == test_data
             assert expire_time > time.time()
 
@@ -229,22 +241,31 @@ class TestCaching:
 
         assert cached_data is None
 
-    def test_cache_cleanup_on_overflow(self, dmarket_api_with_cache):
+    def test_cache_cleanup_on_overflow(self, api_keys):
         """Тест автоматической очистки при переполнении кэша."""
+        from src.dmarket.dmarket_api import api_cache as fresh_cache
+        
+        # Create fresh instance
+        api = DMarketAPI(
+            public_key=api_keys["public_key"],
+            secret_key=api_keys["secret_key"],
+            enable_cache=True,
+        )
+        
         # Заполняем кэш до предела (>500)
-        api_cache.clear()
+        fresh_cache.clear()
         for i in range(510):
             cache_key = f"key_{i}"
-            api_cache[cache_key] = ({"index": i}, time.time() + 1000)
+            fresh_cache[cache_key] = ({"index": i}, time.time() + 1000)
 
-        initial_count = len(api_cache)
+        initial_count = len(fresh_cache)
 
         # Добавляем еще один элемент - должна сработать очистка
-        dmarket_api_with_cache._save_to_cache("overflow_key", {"data": "test"}, "short")
+        api._save_to_cache("overflow_key", {"data": "test"}, "short")
 
         # Проверяем что кэш уменьшился (удалено 100 записей)
         # New size = 510 - 100 + 1 = 411
-        assert len(api_cache) <= initial_count - 99  # At least 100 entries removed
+        assert len(fresh_cache) <= initial_count - 99  # At least 100 entries removed
 
     @pytest.mark.asyncio()
     async def test_clear_cache(self, dmarket_api_with_cache):

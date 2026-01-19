@@ -14,16 +14,18 @@ from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 import logging
 from pathlib import Path
-import pickle  # noqa: S403 - Required for ML model serialization
 from typing import Any
 
+import joblib
 import numpy as np
 
 
-# Imports for real data training integration
-
-
 logger = logging.getLogger(__name__)
+
+# Constants for model configuration
+MIN_TRAINING_SAMPLES = 10
+CACHE_TTL_MINUTES = 5
+RETRAIN_THRESHOLD_SAMPLES = 100
 
 
 class GameType(StrEnum):
@@ -862,8 +864,7 @@ class EnhancedPricePredictor:
     - Pipeline для защиты от ошибок
     """
 
-    MODEL_VERSION = "2.0.0"
-    RETRAIN_THRESHOLD = 100
+    MODEL_VERSION = "2.1.0"  # Updated for joblib serialization
 
     def __init__(
         self,
@@ -902,13 +903,13 @@ class EnhancedPricePredictor:
 
         # Кэш прогнозов
         self._prediction_cache: dict[str, tuple[datetime, Any]] = {}
-        self._cache_ttl = timedelta(minutes=5)
+        self._cache_ttl = timedelta(minutes=CACHE_TTL_MINUTES)
 
         # Загрузка модели, если есть
         if self.model_path and self.model_path.exists():
             self._load_model()
 
-    def _init_models(self):
+    def _init_models(self) -> None:
         """Инициализация ML моделей."""
         if self._models_initialized:
             return
@@ -1359,8 +1360,13 @@ class EnhancedPricePredictor:
         self,
         features: EnhancedFeatures,
         actual_future_price: float,
-    ):
-        """Добавить пример для обучения."""
+    ) -> None:
+        """Добавить пример для обучения.
+
+        Args:
+            features: Расширенные признаки предмета
+            actual_future_price: Реальная цена в будущем
+        """
         X = features.to_array()
         y = actual_future_price
 
@@ -1368,13 +1374,17 @@ class EnhancedPricePredictor:
         self._training_data_y.append(y)
         self._new_samples_count += 1
 
-        if self._new_samples_count >= self.RETRAIN_THRESHOLD:
+        if self._new_samples_count >= RETRAIN_THRESHOLD_SAMPLES:
             self.train()
 
-    def train(self, force: bool = False):
-        """Обучить модели на накопленных данных."""
-        if len(self._training_data_X) < 10 and not force:
-            logger.warning("Not enough training data (minimum 10 samples)")
+    def train(self, force: bool = False) -> None:
+        """Обучить модели на накопленных данных.
+
+        Args:
+            force: Принудительное обучение даже при малом количестве данных
+        """
+        if len(self._training_data_X) < MIN_TRAINING_SAMPLES and not force:
+            logger.warning(f"Not enough training data (minimum {MIN_TRAINING_SAMPLES} samples)")
             return
 
         self._init_models()
@@ -1407,8 +1417,11 @@ class EnhancedPricePredictor:
         except Exception as e:
             logger.exception(f"Training failed: {e}")
 
-    def _save_model(self):
-        """Сохранить модели на диск."""
+    def _save_model(self) -> None:
+        """Сохранить модели на диск.
+
+        Uses joblib for safer and more efficient ML model serialization.
+        """
         if not self.model_path:
             return
 
@@ -1424,20 +1437,21 @@ class EnhancedPricePredictor:
                 "training_data_y": self._training_data_y,
                 "version": self.MODEL_VERSION,
             }
-            with open(self.model_path, "wb") as f:
-                pickle.dump(data, f)
+            joblib.dump(data, self.model_path)
             logger.info(f"Model saved to {self.model_path}")
         except Exception as e:
             logger.exception(f"Failed to save model: {e}")
 
-    def _load_model(self):
-        """Загрузить модели с диска."""
+    def _load_model(self) -> None:
+        """Загрузить модели с диска.
+
+        Uses joblib for safer ML model deserialization.
+        """
         if not self.model_path or not self.model_path.exists():
             return
 
         try:
-            with open(self.model_path, "rb") as f:
-                data = pickle.load(f)  # noqa: S301 - Trusted local ML model file
+            data = joblib.load(self.model_path)
 
             self._random_forest = data.get("random_forest")
             self._gradient_boost = data.get("gradient_boost")

@@ -64,7 +64,7 @@ class PriceFeatures:
 
     # Мета-признаки
     data_quality_score: float = 1.0  # 0-1, насколько полные данные
-    feature_timestamp: datetime = field(default_factory=datetime.utcnow)
+    feature_timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_array(self) -> np.ndarray:
         """Преобразовать признаки в numpy массив для ML модели."""
@@ -125,7 +125,13 @@ class PriceFeatures:
 
 
 class MarketFeatureExtractor:
-    """Извлекает признаки из рыночных данных для ML моделей."""
+    """Извлекает признаки из рыночных данных для ML моделей.
+
+    Attributes:
+        PEAK_HOURS_START: Начало пиковых часов торговли (UTC).
+        PEAK_HOURS_END: Конец пиковых часов торговли (UTC).
+        RSI_PERIOD: Период для расчета RSI индикатора.
+    """
 
     # Пиковые часы торговли (UTC)
     PEAK_HOURS_START = 14
@@ -134,7 +140,7 @@ class MarketFeatureExtractor:
     # RSI параметры
     RSI_PERIOD = 14
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Инициализация экстрактора признаков."""
         self._price_cache: dict[str, list[tuple[datetime, float]]] = {}
         self._sales_cache: dict[str, list[dict[str, Any]]] = {}

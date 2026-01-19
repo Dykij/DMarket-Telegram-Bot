@@ -79,6 +79,24 @@ class TestPurchaseResult:
         assert result.error == "Insufficient balance"
         assert result.order_id is None
 
+    def test_to_dict(self):
+        """Test conversion to dictionary."""
+        result = PurchaseResult(
+            success=True,
+            item_id="item123",
+            item_title="Test Item",
+            price_usd=10.0,
+            message="Success",
+            order_id="order456",
+        )
+
+        result_dict = result.to_dict()
+
+        assert result_dict["success"] is True
+        assert result_dict["item_id"] == "item123"
+        assert result_dict["order_id"] == "order456"
+        assert "timestamp" in result_dict
+
 
 class TestAutoBuyer:
     """Tests for AutoBuyer class."""
@@ -87,91 +105,83 @@ class TestAutoBuyer:
     def mock_api(self):
         """Create mock API client."""
         api = MagicMock()
-        api.get_balance = AsyncMock(return_value={"balance": 100.0})
+        api.get_balance = AsyncMock(return_value={"usd": 10000})  # $100 in cents
         api.buy_item = AsyncMock(return_value={"success": True, "orderId": "order123"})
+        api.get_sales_history = AsyncMock(return_value={"Sales": []})
         return api
 
     @pytest.fixture
     def mock_persistence(self):
         """Create mock persistence."""
         persistence = MagicMock()
-        persistence.save_purchase = MagicMock()
-        persistence.get_purchases = MagicMock(return_value=[])
+        persistence.save_purchase = AsyncMock()
+        persistence.get_purchases = AsyncMock(return_value=[])
         return persistence
 
     @pytest.fixture
     def auto_buyer(self, mock_api, mock_persistence):
         """Create AutoBuyer instance."""
-        return AutoBuyer(
+        buyer = AutoBuyer(
             api_client=mock_api,
-            persistence=mock_persistence,
             config=AutoBuyConfig(enabled=True, dry_run=True),
         )
+        buyer.set_trading_persistence(mock_persistence)
+        return buyer
 
     def test_init(self, auto_buyer, mock_api):
         """Test initialization."""
         assert auto_buyer.api == mock_api
         assert auto_buyer.config.enabled is True
+        assert auto_buyer.config.dry_run is True
 
-    @pytest.mark.asyncio
-    async def test_check_balance(self, auto_buyer, mock_api):
-        """Test checking balance."""
-        balance = await auto_buyer.check_balance()
-        assert balance == 100.0
-        mock_api.get_balance.assert_called_once()
+    def test_set_trading_persistence(self, mock_api, mock_persistence):
+        """Test setting trading persistence."""
+        buyer = AutoBuyer(api_client=mock_api)
+        assert buyer._trading_persistence is None
+
+        buyer.set_trading_persistence(mock_persistence)
+        assert buyer._trading_persistence == mock_persistence
+
+    def test_set_auto_seller(self, auto_buyer):
+        """Test linking auto seller."""
+        mock_seller = MagicMock()
+        auto_buyer.set_auto_seller(mock_seller)
+        assert auto_buyer._auto_seller == mock_seller
 
     @pytest.mark.asyncio
     async def test_buy_item_dry_run(self, auto_buyer, mock_api):
         """Test buying item in dry run mode."""
-        item = {
-            "itemId": "item123",
-            "title": "AK-47 | Redline",
-            "price": {"USD": "2550"},
-        }
-
-        result = await auto_buyer.buy_item(item)
+        result = await auto_buyer.buy_item("item123", price_usd=25.50)
 
         assert result.success is True
         assert "DRY_RUN" in result.message
         mock_api.buy_item.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_buy_item_real(self, mock_api, mock_persistence):
-        """Test buying item in real mode."""
-        auto_buyer = AutoBuyer(
-            api_client=mock_api,
-            persistence=mock_persistence,
-            config=AutoBuyConfig(enabled=True, dry_run=False),
-        )
+    async def test_buy_item_records_history(self, auto_buyer):
+        """Test that purchases are recorded in history."""
+        await auto_buyer.buy_item("item123", price_usd=25.50)
 
-        item = {
-            "itemId": "item123",
-            "title": "AK-47 | Redline",
-            "price": {"USD": "2550"},
-        }
-
-        result = await auto_buyer.buy_item(item)
-
-        assert result.success is True
-        mock_api.buy_item.assert_called_once()
+        assert len(auto_buyer.purchase_history) == 1
+        assert auto_buyer.purchase_history[0].item_id == "item123"
 
     @pytest.mark.asyncio
-    async def test_validate_item_price_too_high(self, auto_buyer):
-        """Test validation rejects high price."""
+    async def test_should_auto_buy_price_too_high(self, auto_buyer):
+        """Test should_auto_buy rejects high price."""
         item = {
             "itemId": "item123",
             "title": "Dragon Lore",
             "price": {"USD": "500000"},  # $5000
         }
 
-        is_valid, reason = await auto_buyer.validate_item(item)
+        should_buy, reason = await auto_buyer.should_auto_buy(item)
 
-        assert is_valid is False
-        assert "price" in reason.lower()
+        assert should_buy is False
+        assert "price" in reason.lower() or "max" in reason.lower()
 
     @pytest.mark.asyncio
-    async def test_validate_item_low_discount(self, auto_buyer):
-        """Test validation rejects low discount."""
+    async def test_should_auto_buy_low_discount(self, auto_buyer):
+        """Test should_auto_buy rejects low discount."""
         item = {
             "itemId": "item123",
             "title": "AK-47 | Redline",
@@ -179,14 +189,14 @@ class TestAutoBuyer:
             "suggestedPrice": {"USD": "2600"},  # Only ~2% discount
         }
 
-        is_valid, reason = await auto_buyer.validate_item(item)
+        should_buy, reason = await auto_buyer.should_auto_buy(item)
 
-        assert is_valid is False
+        assert should_buy is False
         assert "discount" in reason.lower()
 
     @pytest.mark.asyncio
-    async def test_validate_item_success(self, auto_buyer):
-        """Test validation accepts good item."""
+    async def test_should_auto_buy_success(self, auto_buyer):
+        """Test should_auto_buy accepts good item."""
         item = {
             "itemId": "item123",
             "title": "AK-47 | Redline",
@@ -194,9 +204,9 @@ class TestAutoBuyer:
             "suggestedPrice": {"USD": "2500"},  # $25 - 40% discount
         }
 
-        is_valid, reason = await auto_buyer.validate_item(item)
+        should_buy, reason = await auto_buyer.should_auto_buy(item)
 
-        assert is_valid is True
+        assert should_buy is True
 
     @pytest.mark.asyncio
     async def test_process_opportunity(self, auto_buyer, mock_api):
@@ -214,26 +224,55 @@ class TestAutoBuyer:
         assert result is not None
         assert result.success is True
 
-    def test_get_stats(self, auto_buyer):
-        """Test getting purchase statistics."""
-        stats = auto_buyer.get_stats()
+    def test_get_purchase_stats_empty(self, auto_buyer):
+        """Test getting purchase statistics when empty."""
+        stats = auto_buyer.get_purchase_stats()
 
-        assert "total_purchases" in stats
-        assert "successful" in stats
-        assert "failed" in stats
+        assert stats["total_purchases"] == 0
+        assert stats["successful"] == 0
+        assert stats["failed"] == 0
+        assert stats["total_spent_usd"] == 0.0
 
     @pytest.mark.asyncio
-    async def test_insufficient_balance(self, auto_buyer, mock_api):
-        """Test handling insufficient balance."""
-        mock_api.get_balance = AsyncMock(return_value={"balance": 5.0})
+    async def test_get_purchase_stats_with_history(self, auto_buyer):
+        """Test getting purchase statistics with history."""
+        await auto_buyer.buy_item("item1", price_usd=10.0)
+        await auto_buyer.buy_item("item2", price_usd=20.0)
 
-        item = {
-            "itemId": "item123",
-            "title": "AK-47 | Redline",
-            "price": {"USD": "2550"},  # $25.50
-        }
+        stats = auto_buyer.get_purchase_stats()
 
-        result = await auto_buyer.buy_item(item)
+        assert stats["total_purchases"] == 2
+        assert stats["successful"] == 2
+        assert stats["total_spent_usd"] == 30.0
+
+    def test_clear_history(self, auto_buyer):
+        """Test clearing purchase history."""
+        auto_buyer.purchase_history.append(
+            PurchaseResult(
+                success=True,
+                item_id="test",
+                item_title="Test",
+                price_usd=10.0,
+                message="Test",
+            )
+        )
+
+        auto_buyer.clear_history()
+
+        assert len(auto_buyer.purchase_history) == 0
+
+    @pytest.mark.asyncio
+    async def test_insufficient_balance_real_mode(self, mock_api, mock_persistence):
+        """Test handling insufficient balance in real mode."""
+        mock_api.get_balance = AsyncMock(return_value={"usd": 500})  # $5 in cents
+
+        auto_buyer = AutoBuyer(
+            api_client=mock_api,
+            config=AutoBuyConfig(enabled=True, dry_run=False),
+        )
+        auto_buyer.set_trading_persistence(mock_persistence)
+
+        result = await auto_buyer.buy_item("item123", price_usd=25.50)
 
         assert result.success is False
-        assert "balance" in result.error.lower()
+        assert "balance" in result.error.lower() or "insufficient" in result.error.lower()

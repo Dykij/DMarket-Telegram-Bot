@@ -122,14 +122,27 @@ class AnomalyDetector:
     - Isolation Forest (if sklearn available)
     - Rule-based detection
     - Pattern matching
+
+    Attributes:
+        z_score_threshold: Z-score threshold for anomaly detection.
+        iqr_multiplier: IQR multiplier for outlier detection.
+        price_change_threshold: Max allowed price change (fraction).
+        min_history_length: Minimum history length for analysis.
     """
+
+    # Default thresholds
+    DEFAULT_Z_SCORE_THRESHOLD = 3.0
+    DEFAULT_IQR_MULTIPLIER = 1.5
+    DEFAULT_PRICE_CHANGE_THRESHOLD = 0.3  # 30%
+    DEFAULT_MIN_HISTORY_LENGTH = 10
+    MAX_ANOMALY_HISTORY = 1000
 
     def __init__(
         self,
-        z_score_threshold: float = 3.0,
-        iqr_multiplier: float = 1.5,
-        price_change_threshold: float = 0.3,  # 30%
-        min_history_length: int = 10,
+        z_score_threshold: float = DEFAULT_Z_SCORE_THRESHOLD,
+        iqr_multiplier: float = DEFAULT_IQR_MULTIPLIER,
+        price_change_threshold: float = DEFAULT_PRICE_CHANGE_THRESHOLD,
+        min_history_length: int = DEFAULT_MIN_HISTORY_LENGTH,
     ) -> None:
         """Initialize anomaly detector.
 
@@ -149,10 +162,13 @@ class AnomalyDetector:
 
         # Historical anomalies for pattern learning
         self._anomaly_history: list[AnomalyResult] = []
-        self._max_history = 1000
 
     def _init_isolation_forest(self) -> bool:
-        """Initialize Isolation Forest model."""
+        """Initialize Isolation Forest model.
+
+        Returns:
+            True if initialization succeeded, False otherwise.
+        """
         if self._isolation_forest is not None:
             return True
 
@@ -628,12 +644,16 @@ class AnomalyDetector:
             return False, 0.0
 
     def _record_anomaly(self, result: AnomalyResult) -> None:
-        """Record anomaly for pattern learning."""
+        """Record anomaly for pattern learning.
+
+        Args:
+            result: Anomaly detection result to record.
+        """
         self._anomaly_history.append(result)
 
         # Trim history if too large
-        if len(self._anomaly_history) > self._max_history:
-            self._anomaly_history = self._anomaly_history[-self._max_history:]
+        if len(self._anomaly_history) > self.MAX_ANOMALY_HISTORY:
+            self._anomaly_history = self._anomaly_history[-self.MAX_ANOMALY_HISTORY:]
 
     def get_anomaly_statistics(self) -> dict[str, Any]:
         """Get statistics about detected anomalies.

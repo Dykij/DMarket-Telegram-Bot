@@ -80,23 +80,32 @@ class TradeClassification:
 class AdaptiveTradeClassifier:
     """Адаптивный классификатор торговых сигналов.
 
-    Особенности:
-    - Учитывает баланс пользователя
-    - Адаптируется к профилю риска
-    - Использует Random Forest для классификации
-    - Оценивает вероятность прибыли
+    Классифицирует торговые возможности и оценивает риски.
+
+    Attributes:
+        user_balance: Текущий баланс пользователя (USD).
+        risk_tolerance: Толерантность к риску (conservative/moderate/aggressive).
+        thresholds: Адаптивные пороги для классификации.
+
+    Example:
+        >>> classifier = AdaptiveTradeClassifier(user_balance=100.0)
+        >>> result = classifier.classify("AK-47 | Redline", 10.0, 12.0)
+        >>> print(result.signal)  # TradeSignal.BUY
     """
+
+    # Risk tolerance options
+    RISK_TOLERANCES = ("conservative", "moderate", "aggressive")
 
     def __init__(
         self,
         user_balance: float = 100.0,
-        risk_tolerance: str = "moderate",  # conservative, moderate, aggressive
-    ):
+        risk_tolerance: str = "moderate",
+    ) -> None:
         """Инициализация классификатора.
 
         Args:
             user_balance: Текущий баланс пользователя (USD)
-            risk_tolerance: Толерантность к риску
+            risk_tolerance: Толерантность к риску (conservative/moderate/aggressive)
         """
         self.user_balance = user_balance
         self.risk_tolerance = risk_tolerance
@@ -110,7 +119,7 @@ class AdaptiveTradeClassifier:
         # Пороги для классификации (адаптивные)
         self._update_thresholds()
 
-    def _update_thresholds(self):
+    def _update_thresholds(self) -> None:
         """Обновить пороги классификации на основе профиля риска."""
         # Базовые пороги для moderate
         base_thresholds = {
@@ -149,7 +158,11 @@ class AdaptiveTradeClassifier:
         self.thresholds["max_position_percent"] = 30.0 / balance_factor
 
     def _get_balance_factor(self) -> float:
-        """Получить фактор масштабирования по балансу."""
+        """Получить фактор масштабирования по балансу.
+
+        Returns:
+            Фактор для адаптации порогов к размеру баланса.
+        """
         if self.user_balance < 50:
             return 2.0  # Очень консервативно
         if self.user_balance < 100:
@@ -160,14 +173,22 @@ class AdaptiveTradeClassifier:
             return 0.8
         return 0.6
 
-    def set_user_balance(self, balance: float):
-        """Установить баланс пользователя."""
+    def set_user_balance(self, balance: float) -> None:
+        """Установить баланс пользователя.
+
+        Args:
+            balance: Новый баланс (USD)
+        """
         self.user_balance = max(0.0, balance)
         self._update_thresholds()
 
-    def set_risk_tolerance(self, tolerance: str):
-        """Установить толерантность к риску."""
-        if tolerance in {"conservative", "moderate", "aggressive"}:
+    def set_risk_tolerance(self, tolerance: str) -> None:
+        """Установить толерантность к риску.
+
+        Args:
+            tolerance: Уровень толерантности (conservative/moderate/aggressive)
+        """
+        if tolerance in self.RISK_TOLERANCES:
             self.risk_tolerance = tolerance
             self._update_thresholds()
 
