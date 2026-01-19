@@ -477,27 +477,32 @@ class ArbitrageScanner:
                 items = await self._search_with_builtin_functions(game, mode)
 
             # Метод 2: Используем ArbitrageTrader для более детального поиска
-            # (Phase 2 - use helpers for profit and price ranges)
-            min_profit, max_profit = self._get_profit_ranges(mode)
-            current_price_from, current_price_to = self._get_price_ranges(
-                mode, price_from, price_to
-            )
-
-            # Search with ArbitrageTrader (Phase 2 - use helper)
-            items_from_trader = await self._search_with_trader(
-                game, min_profit, current_price_from, current_price_to
-            )
-
-            # Фильтруем и стандартизируем формат данных
-            if items_from_trader:
-                items.extend(
-                    self._standardize_items(
-                        items_from_trader,
-                        game,
-                        min_profit,
-                        max_profit,
-                    ),
+            # Skip if we already have enough items from built-in functions
+            if len(items) < max_items * 2:
+                # (Phase 2 - use helpers for profit and price ranges)
+                min_profit, max_profit = self._get_profit_ranges(mode)
+                current_price_from, current_price_to = self._get_price_ranges(
+                    mode, price_from, price_to
                 )
+
+                # Search with ArbitrageTrader (Phase 2 - use helper)
+                items_from_trader = await self._search_with_trader(
+                    game, min_profit, current_price_from, current_price_to
+                )
+
+                # Фильтруем и стандартизируем формат данных
+                if items_from_trader:
+                    items.extend(
+                        self._standardize_items(
+                            items_from_trader,
+                            game,
+                            min_profit,
+                            max_profit,
+                        ),
+                    )
+            else:
+                # Still need profit ranges for standardization
+                min_profit, max_profit = self._get_profit_ranges(mode)
 
             # Сортируем все найденные предметы по прибыльности (от большей к меньшей)
             items.sort(key=lambda x: float(x.get("profit", 0)), reverse=True)

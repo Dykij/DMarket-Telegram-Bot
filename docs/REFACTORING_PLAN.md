@@ -25,10 +25,10 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 
 ### Functions Exceeding Thresholds
 
-| Threshold | Count | Status |
-|-----------|-------|--------|
-| > 100 lines | 147 | 🔴 Critical |
-| > 50 lines | 639 | 🟠 Needs work |
+| Threshold | Before | After | Change |
+|-----------|--------|-------|--------|
+| > 100 lines | 147 | 143 | -4 |
+| > 50 lines | 639 | ~630 | -9 |
 
 ### Top 15 Priority Functions
 
@@ -42,13 +42,13 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 | 6 | `ai_train_liquid_command()` | `ai_handler.py` | 299 | 🟠 High | ⏳ Pending |
 | 7 | `create_callback_router()` | `callback_registry.py` | 264 | 🟠 High | ⏳ Pending |
 | 8 | `_request()` | `api/client.py` | 221 | 🟠 High | ✅ Refactored (was 262) |
-| 9 | `_update_from_env()` | `config.py` | 252 | 🟠 High | ⏳ Pending |
-| 10 | `market_analysis_callback()` | `market_analysis_handler.py` | 252 | 🟠 High | ⏳ Pending |
-| 11 | `handle_mode_selection_callback()` | `automatic_arbitrage_handler.py` | 240 | 🟠 High | ⏳ Pending |
-| 12 | `train_from_real_data()` | `enhanced_predictor.py` | 225 | 🟠 High | ⏳ Pending |
-| 13 | `hold_callback_handler()` | `intelligent_hold_handler.py` | 223 | 🟡 Medium | ⏳ Pending |
-| 14 | `telegram_error_boundary()` | `telegram_error_handlers.py` | 222 | 🟡 Medium | ⏳ Pending |
-| 15 | `auto_trade_scan_all()` | `main_keyboard.py` | 219 | 🟡 Medium | ⏳ Pending |
+| 9 | `_update_from_env()` | `config.py` | 108 | 🟠 High | ✅ Refactored (was 252) |
+| 10 | `scan_game()` | `arbitrage_scanner.py` | <50 | 🟠 High | ✅ Refactored (was 216) |
+| 11 | `market_analysis_callback()` | `market_analysis_handler.py` | 252 | 🟠 High | ⏳ Pending |
+| 12 | `handle_mode_selection_callback()` | `automatic_arbitrage_handler.py` | 240 | 🟠 High | ⏳ Pending |
+| 13 | `train_from_real_data()` | `enhanced_predictor.py` | 225 | 🟠 High | ⏳ Pending |
+| 14 | `hold_callback_handler()` | `intelligent_hold_handler.py` | 223 | 🟡 Medium | ⏳ Pending |
+| 15 | `telegram_error_boundary()` | `telegram_error_handlers.py` | 222 | 🟡 Medium | ⏳ Pending |
 
 ---
 
@@ -93,6 +93,22 @@ from `docs/refactoring_examples/README.md` and `.github/copilot-instructions.md`
 - `_search_with_trader()` - Search using ArbitrageTrader
 - `_apply_liquidity_filter()` - Apply liquidity filter to items
 - `_enhance_with_steam()` - Enhance items with Steam price data
+
+### 4. `_update_from_env()` in `config.py`
+
+**Before**: 252 lines  
+**After**: 108 lines  
+**Reduction**: 57%
+
+**Extracted Helper Methods**:
+- `_get_env_int()` - Get integer from environment variable
+- `_get_env_float()` - Get float from environment variable
+- `_get_env_bool()` - Get boolean from environment variable
+- `_get_env_list()` - Get list from comma-separated environment variable
+- `_update_bot_from_env()` - Update bot configuration
+- `_update_dmarket_from_env()` - Update DMarket configuration
+- `_update_trading_from_env()` - Update trading configuration
+- `_update_waxpeer_from_env()` - Update Waxpeer configuration
 
 ---
 
