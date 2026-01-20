@@ -192,15 +192,15 @@ class TestDMarketAPIIntegration:
     @pytest.mark.integration
     async def test_api_error_handling(self, mock_dmarket_api):
         """Test API error handling."""
-        from src.utils.exceptions import APIError
+        from src.utils.exceptions import DMarketSpecificError
 
         with patch.object(
             mock_dmarket_api, "_request", new_callable=AsyncMock
         ) as mock_request:
-            # Simulate API error
-            mock_request.side_effect = APIError(
+            # Simulate DMarket API error
+            mock_request.side_effect = DMarketSpecificError(
                 message="Unauthorized",
-                status_code=401,
+                error_code=401,
             )
 
             # get_market_items catches exceptions and returns empty result
