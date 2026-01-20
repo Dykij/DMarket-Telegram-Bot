@@ -225,15 +225,17 @@ class TestDMarketAPIWithHTTPXMock:
 
         import re
 
-        # Добавляем моки для обеих страниц с использованием regex для гибкого сопоставления
+        # Более точные regex паттерны для market items endpoint
+        # Первый запрос - без cursor параметра
         httpx_mock.add_response(
-            url=re.compile(r".*exchange/v1/market/items.*"),
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items\?(?!.*cursor).*gameId=a8db.*"),
             method="GET",
             json=page1,
             status_code=200,
         )
+        # Второй запрос - с cursor параметром для пагинации
         httpx_mock.add_response(
-            url=re.compile(r".*exchange/v1/market/items.*cursor.*"),
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items\?.*cursor=.*"),
             method="GET",
             json=page2,
             status_code=200,
