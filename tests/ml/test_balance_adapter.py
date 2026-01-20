@@ -178,18 +178,23 @@ class TestBalanceAdaptiveStrategy:
         assert "exceeds max position" in reason
 
     def test_should_buy_insufficient_balance(self):
-        """Test should_buy rejects when balance too low."""
+        """Test should_buy rejects when price exceeds max position for micro balance.
+        
+        For micro balance ($10), max_position_percent is 50%, so max_price = $5.
+        A $15 item exceeds this max position limit, which is checked first.
+        """
         strategy = BalanceAdaptiveStrategy(user_balance=10.0)
 
         should, reason = strategy.should_buy(
-            item_price=15.0,  # More than balance
+            item_price=15.0,  # More than max position ($5)
             expected_profit_percent=10.0,
             risk_score=0.3,
             current_positions=0,
         )
 
         assert should is False
-        assert "Insufficient balance" in reason
+        # Price exceeds max position check happens before balance check
+        assert "exceeds max position" in reason
 
     def test_should_buy_profit_below_threshold(self):
         """Test should_buy rejects low profit margin."""

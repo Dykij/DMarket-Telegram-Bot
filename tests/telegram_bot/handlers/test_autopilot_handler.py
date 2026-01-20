@@ -1,7 +1,7 @@
 """Tests for autopilot_handler module.
 
-This module tests the AutopilotHandler class for automated
-trading management via Telegram.
+This module tests the autopilot command handlers (function-based)
+for automated trading management via Telegram.
 """
 
 import pytest
@@ -10,25 +10,21 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from telegram import Update, Message, User, Chat, CallbackQuery
 
 
-class TestAutopilotHandler:
-    """Tests for AutopilotHandler class."""
+class TestAutopilotCommands:
+    """Tests for autopilot command functions."""
 
     @pytest.fixture
-    def mock_autopilot(self):
-        """Create mock autopilot manager."""
-        autopilot = MagicMock()
-        autopilot.start = AsyncMock()
-        autopilot.stop = AsyncMock()
-        autopilot.get_status = MagicMock(return_value={"is_running": False})
-        autopilot.get_stats = AsyncMock(return_value={"trades": 0, "profit": 0.0})
-        autopilot.set_config = MagicMock()
-        return autopilot
-
-    @pytest.fixture
-    def handler(self, mock_autopilot):
-        """Create AutopilotHandler instance."""
-        from src.telegram_bot.handlers.autopilot_handler import AutopilotHandler
-        return AutopilotHandler(autopilot=mock_autopilot)
+    def mock_orchestrator(self):
+        """Create mock autopilot orchestrator."""
+        orchestrator = MagicMock()
+        orchestrator.is_active = MagicMock(return_value=False)
+        orchestrator.start = AsyncMock()
+        orchestrator.stop = AsyncMock()
+        orchestrator.get_status = MagicMock(return_value={
+            "is_active": False,
+            "mode": "standard",
+        })
+        return orchestrator
 
     @pytest.fixture
     def mock_update(self):
@@ -44,138 +40,143 @@ class TestAutopilotHandler:
         return update
 
     @pytest.fixture
-    def mock_context(self):
-        """Create mock Context."""
+    def mock_context(self, mock_orchestrator):
+        """Create mock Context with orchestrator."""
         context = MagicMock()
+        context.args = []
         context.user_data = {}
-        context.bot_data = {}
+        context.bot_data = {"orchestrator": mock_orchestrator}
+        context.bot = MagicMock()
         return context
 
     @pytest.mark.asyncio
-    async def test_autopilot_command(self, handler, mock_update, mock_context):
-        """Test /autopilot command."""
-        await handler.autopilot_command(mock_update, mock_context)
+    async def test_autopilot_command_not_initialized(self, mock_update):
+        """Test autopilot command when orchestrator not initialized."""
+        from src.telegram_bot.handlers.autopilot_handler import autopilot_command
+
+        # Create context without orchestrator
+        mock_context = MagicMock()
+        mock_context.args = []
+        mock_context.bot_data = {}
+
+        await autopilot_command(mock_update, mock_context)
+
+        mock_update.message.reply_text.assert_called_once()
+        assert "не инициализирован" in str(mock_update.message.reply_text.call_args)
+
+    @pytest.mark.asyncio
+    async def test_autopilot_command_already_running(
+        self, mock_update, mock_context, mock_orchestrator
+    ):
+        """Test autopilot command when already running."""
+        from src.telegram_bot.handlers.autopilot_handler import autopilot_command
+
+        mock_orchestrator.is_active.return_value = True
+
+        await autopilot_command(mock_update, mock_context)
+
+        mock_update.message.reply_text.assert_called_once()
+        assert "уже работает" in str(mock_update.message.reply_text.call_args)
+
+    @pytest.mark.asyncio
+    async def test_autopilot_stop_command_not_running(self, mock_update, mock_context, mock_orchestrator):
+        """Test stop command when autopilot not running."""
+        from src.telegram_bot.handlers.autopilot_handler import autopilot_stop_command
+
+        mock_orchestrator.is_active.return_value = False
+
+        await autopilot_stop_command(mock_update, mock_context)
+
+        mock_update.message.reply_text.assert_called_once()
+        assert "не запущен" in str(mock_update.message.reply_text.call_args)
+
+    @pytest.mark.asyncio
+    async def test_autopilot_status_command(self, mock_update, mock_context, mock_orchestrator):
+        """Test status command shows current status."""
+        from src.telegram_bot.handlers.autopilot_handler import autopilot_status_command
+
+        mock_orchestrator.get_status.return_value = {
+            "is_active": False,
+            "mode": "standard",
+            "trades_today": 5,
+        }
+
+        await autopilot_status_command(mock_update, mock_context)
 
         mock_update.message.reply_text.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_show_menu(self, handler, mock_update, mock_context):
-        """Test showing autopilot menu."""
-        await handler.show_menu(mock_update, mock_context)
+    async def test_autopilot_stats_command(self, mock_update, mock_context, mock_orchestrator):
+        """Test stats command shows statistics."""
+        from src.telegram_bot.handlers.autopilot_handler import autopilot_stats_command
+
+        # Mock get_stats with the full structure expected by the handler
+        mock_orchestrator.get_stats = MagicMock(return_value={
+            "uptime_minutes": 120,
+            "purchases": 10,
+            "failed_purchases": 2,
+            "total_spent_usd": 100.0,
+            "sales": 8,
+            "failed_sales": 1,
+            "total_earned_usd": 125.0,
+            "net_profit_usd": 25.0,
+            "roi_percent": 25.0,
+            "opportunities_found": 50,
+            "opportunities_skipped": 20,
+            "balance_checks": 100,
+            "low_balance_warnings": 5,
+        })
+
+        await autopilot_stats_command(mock_update, mock_context)
 
         mock_update.message.reply_text.assert_called_once()
 
-    @pytest.mark.asyncio
-    async def test_start_autopilot(self, handler, mock_update, mock_context, mock_autopilot):
-        """Test starting autopilot."""
-        mock_update.callback_query = MagicMock(spec=CallbackQuery)
-        mock_update.callback_query.data = "autopilot_start"
-        mock_update.callback_query.answer = AsyncMock()
-        mock_update.callback_query.edit_message_text = AsyncMock()
 
-        await handler.start_autopilot(mock_update, mock_context)
+class TestAutopilotCallbacks:
+    """Tests for autopilot callback handlers."""
 
-        mock_autopilot.start.assert_called_once()
+    @pytest.fixture
+    def mock_orchestrator(self):
+        """Create mock orchestrator."""
+        orchestrator = MagicMock()
+        orchestrator.is_active = MagicMock(return_value=False)
+        orchestrator.start = AsyncMock()
+        orchestrator.stop = AsyncMock()
+        return orchestrator
 
-    @pytest.mark.asyncio
-    async def test_stop_autopilot(self, handler, mock_update, mock_context, mock_autopilot):
-        """Test stopping autopilot."""
-        mock_autopilot.get_status.return_value = {"is_running": True}
+    @pytest.fixture
+    def mock_update_callback(self):
+        """Create mock Update with callback_query."""
+        update = MagicMock(spec=Update)
+        update.effective_user = MagicMock(spec=User)
+        update.effective_user.id = 123456
+        update.message = None
+        update.callback_query = MagicMock(spec=CallbackQuery)
+        update.callback_query.data = "autopilot_start_confirmed"
+        update.callback_query.answer = AsyncMock()
+        update.callback_query.edit_message_text = AsyncMock()
+        return update
 
-        mock_update.callback_query = MagicMock(spec=CallbackQuery)
-        mock_update.callback_query.data = "autopilot_stop"
-        mock_update.callback_query.answer = AsyncMock()
-        mock_update.callback_query.edit_message_text = AsyncMock()
-
-        await handler.stop_autopilot(mock_update, mock_context)
-
-        mock_autopilot.stop.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_get_status(self, handler, mock_update, mock_context, mock_autopilot):
-        """Test getting autopilot status."""
-        mock_autopilot.get_status.return_value = {
-            "is_running": True,
-            "mode": "aggressive",
-            "uptime": "2h 30m",
-        }
-
-        mock_update.callback_query = MagicMock(spec=CallbackQuery)
-        mock_update.callback_query.data = "autopilot_status"
-        mock_update.callback_query.answer = AsyncMock()
-        mock_update.callback_query.edit_message_text = AsyncMock()
-
-        await handler.get_status(mock_update, mock_context)
-
-        mock_autopilot.get_status.assert_called()
+    @pytest.fixture
+    def mock_context(self, mock_orchestrator):
+        """Create mock Context."""
+        context = MagicMock()
+        context.args = []
+        context.user_data = {}
+        context.bot_data = {"orchestrator": mock_orchestrator}
+        context.bot = MagicMock()
+        return context
 
     @pytest.mark.asyncio
-    async def test_get_stats(self, handler, mock_update, mock_context, mock_autopilot):
-        """Test getting autopilot stats."""
-        mock_autopilot.get_stats.return_value = {
-            "trades": 25,
-            "profit": 150.0,
-            "success_rate": 0.85,
-        }
+    async def test_autopilot_start_confirmed_callback(
+        self, mock_update_callback, mock_context, mock_orchestrator
+    ):
+        """Test callback when user confirms autopilot start."""
+        from src.telegram_bot.handlers.autopilot_handler import (
+            autopilot_start_confirmed_callback,
+        )
 
-        mock_update.callback_query = MagicMock(spec=CallbackQuery)
-        mock_update.callback_query.data = "autopilot_stats"
-        mock_update.callback_query.answer = AsyncMock()
-        mock_update.callback_query.edit_message_text = AsyncMock()
+        await autopilot_start_confirmed_callback(mock_update_callback, mock_context)
 
-        await handler.get_stats(mock_update, mock_context)
-
-        mock_autopilot.get_stats.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_show_settings(self, handler, mock_update, mock_context):
-        """Test showing settings."""
-        mock_update.callback_query = MagicMock(spec=CallbackQuery)
-        mock_update.callback_query.data = "autopilot_settings"
-        mock_update.callback_query.answer = AsyncMock()
-        mock_update.callback_query.edit_message_text = AsyncMock()
-
-        await handler.show_settings(mock_update, mock_context)
-
-        mock_update.callback_query.edit_message_text.assert_called()
-
-    @pytest.mark.asyncio
-    async def test_set_mode(self, handler, mock_update, mock_context, mock_autopilot):
-        """Test setting autopilot mode."""
-        mock_update.callback_query = MagicMock(spec=CallbackQuery)
-        mock_update.callback_query.data = "autopilot_mode_aggressive"
-        mock_update.callback_query.answer = AsyncMock()
-        mock_update.callback_query.edit_message_text = AsyncMock()
-
-        await handler.set_mode(mock_update, mock_context)
-
-        mock_autopilot.set_config.assert_called()
-
-    @pytest.mark.asyncio
-    async def test_set_budget(self, handler, mock_update, mock_context):
-        """Test setting budget."""
-        mock_update.message.text = "100"
-        mock_context.user_data["awaiting"] = "budget"
-
-        await handler.handle_input(mock_update, mock_context)
-
-        assert mock_context.user_data.get("budget") == 100
-
-    @pytest.mark.asyncio
-    async def test_autopilot_already_running(self, handler, mock_update, mock_context, mock_autopilot):
-        """Test starting when already running."""
-        mock_autopilot.get_status.return_value = {"is_running": True}
-
-        mock_update.callback_query = MagicMock(spec=CallbackQuery)
-        mock_update.callback_query.data = "autopilot_start"
-        mock_update.callback_query.answer = AsyncMock()
-        mock_update.callback_query.edit_message_text = AsyncMock()
-
-        await handler.start_autopilot(mock_update, mock_context)
-
-        # Should handle gracefully
-
-    def test_get_handlers(self, handler):
-        """Test getting handlers."""
-        handlers = handler.get_handlers()
-        assert len(handlers) > 0
+        mock_update_callback.callback_query.answer.assert_called_once()
+        mock_orchestrator.start.assert_called_once()

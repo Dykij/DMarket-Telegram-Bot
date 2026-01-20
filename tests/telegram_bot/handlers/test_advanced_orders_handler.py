@@ -8,6 +8,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from telegram import Update, Message, User, Chat, CallbackQuery
+from telegram.ext import ConversationHandler
 
 from src.telegram_bot.handlers.advanced_orders_handler import (
     AdvancedOrderHandler,
@@ -26,6 +27,14 @@ class TestAdvancedOrderHandler:
     def mock_order_manager(self):
         """Create mock order manager."""
         manager = MagicMock()
+        
+        # Mock create_order to return a result object with success, target_id, message
+        result_mock = MagicMock()
+        result_mock.success = True
+        result_mock.target_id = "target_123"
+        result_mock.message = ""
+        
+        manager.create_order = AsyncMock(return_value=result_mock)
         manager.create_float_order = AsyncMock(return_value={"success": True})
         manager.get_orders = AsyncMock(return_value=[])
         manager.cancel_order = AsyncMock(return_value=True)
@@ -160,14 +169,15 @@ class TestAdvancedOrderHandler:
 
         result = await handler.handle_price(mock_update, mock_context)
 
-        assert mock_context.user_data.get("price") == 25.50
+        # Implementation stores price in "max_price" key
+        assert mock_context.user_data.get("max_price") == 25.50
         assert result == CONFIRMING_ORDER
 
     @pytest.mark.asyncio
     async def test_confirm_order(self, handler, mock_update, mock_context, mock_order_manager):
         """Test confirming order creation."""
         mock_update.callback_query = MagicMock(spec=CallbackQuery)
-        mock_update.callback_query.data = "confirm_order"
+        mock_update.callback_query.data = "adv_order_confirm"
         mock_update.callback_query.answer = AsyncMock()
         mock_update.callback_query.edit_message_text = AsyncMock()
 
@@ -176,12 +186,13 @@ class TestAdvancedOrderHandler:
             "item_title": "AK-47 | Redline",
             "float_min": 0.01,
             "float_max": 0.07,
-            "price": 25.50,
+            "max_price": 25.50,  # Uses max_price, not price
         }
 
-        result = await handler.confirm_order(mock_update, mock_context)
+        result = await handler.handle_confirmation(mock_update, mock_context)
 
-        mock_order_manager.create_float_order.assert_called_once()
+        # Implementation calls create_order, not create_float_order
+        mock_order_manager.create_order.assert_called_once()
         assert result == ConversationHandler.END
 
     @pytest.mark.asyncio
@@ -194,7 +205,8 @@ class TestAdvancedOrderHandler:
 
         result = await handler.cancel(mock_update, mock_context)
 
-        mock_update.callback_query.answer.assert_called_once()
+        # cancel() calls edit_message_text, not answer()
+        mock_update.callback_query.edit_message_text.assert_called_once()
         assert result == ConversationHandler.END
 
     @pytest.mark.asyncio
@@ -205,11 +217,13 @@ class TestAdvancedOrderHandler:
             {"id": 2, "item": "M4A4", "price": 30.0, "type": "doppler"},
         ]
 
-        await handler.show_active_orders(mock_update, mock_context)
+        # Method is called show_my_orders, not show_active_orders
+        await handler.show_my_orders(mock_update, mock_context)
 
         mock_update.message.reply_text.assert_called_once()
         call_args = mock_update.message.reply_text.call_args
-        assert "AK-47" in str(call_args) or "активных" in str(call_args)
+        # The message contains "Мои активные ордера" in Russian
+        assert "активные ордера" in str(call_args)
 
     @pytest.mark.asyncio
     async def test_show_templates(self, handler, mock_update, mock_context):
@@ -220,10 +234,10 @@ class TestAdvancedOrderHandler:
 
     def test_get_handlers(self, handler):
         """Test getting conversation handlers."""
-        handlers = handler.get_handlers()
+        # Method is called get_conversation_handler, not get_handlers
+        conv_handler = handler.get_conversation_handler()
 
-        assert len(handlers) > 0
-        assert any(isinstance(h, ConversationHandler) for h in handlers)
+        assert isinstance(conv_handler, ConversationHandler)
 
 
 class TestAdvancedOrderConversationStates:
