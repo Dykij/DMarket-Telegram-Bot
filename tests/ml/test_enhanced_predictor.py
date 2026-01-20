@@ -332,7 +332,7 @@ class TestEnhancedPricePredictor:
         """Тест создания прогнозатора."""
         assert predictor.user_balance == 100.0
         assert predictor.game == GameType.CS2
-        assert predictor.MODEL_VERSION == "2.0.0"
+        assert predictor.MODEL_VERSION == "2.1.0"
 
     def test_set_user_balance(self, predictor):
         """Тест установки баланса."""

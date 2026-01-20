@@ -27,8 +27,12 @@ def mock_update():
     update = MagicMock(spec=Update)
     update.callback_query = AsyncMock(spec=CallbackQuery)
     update.callback_query.edit_message_text = AsyncMock()
+    update.callback_query.answer = AsyncMock()
     update.effective_user = MagicMock()
     update.effective_user.id = 123456789
+    # Add message mock for error handlers
+    update.message = MagicMock()
+    update.message.reply_text = AsyncMock()
     return update
 
 
@@ -37,6 +41,8 @@ def mock_context():
     """Создать мок ContextTypes.DEFAULT_TYPE."""
     context = MagicMock(spec=ContextTypes.DEFAULT_TYPE)
     context.user_data = {}
+    # Add bot_data with None router to skip routing and use fallback handlers
+    context.bot_data = {}
     return context
 
 
