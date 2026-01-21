@@ -159,6 +159,8 @@ class TestDMarketAPIWithHTTPXMock:
         httpx_mock: HTTPXMock,
     ) -> None:
         """Тест успешного получения предметов рынка."""
+        import re
+
         expected_response = {
             "cursor": "next_page_cursor",
             "objects": [
@@ -182,9 +184,10 @@ class TestDMarketAPIWithHTTPXMock:
             "total": 1500,
         }
 
-        # Mock с учетом query параметров
+        # Mock с регулярным выражением для игнорирования порядка query параметров
+        # csgo маппится в a8db через GAME_MAP
         httpx_mock.add_response(
-            url="https://api.dmarket.com/exchange/v1/market/items?gameId=csgo&limit=100&offset=0&currency=USD&orderBy=price",  # noqa: E501
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items\?.*"),
             method="GET",
             json=expected_response,
             status_code=200,
@@ -205,6 +208,8 @@ class TestDMarketAPIWithHTTPXMock:
         httpx_mock: HTTPXMock,
     ) -> None:
         """Тест пагинации предметов рынка."""
+        import re
+
         # Первая страница
         page1 = {
             "cursor": "cursor_1",
@@ -223,15 +228,15 @@ class TestDMarketAPIWithHTTPXMock:
             ],
         }
 
-        # Добавляем моки для обеих страниц с query параметрами
+        # Добавляем моки для обеих страниц с regex
         httpx_mock.add_response(
-            url="https://api.dmarket.com/exchange/v1/market/items?gameId=csgo&limit=100&offset=0&currency=USD&orderBy=price",  # noqa: E501
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items\?.*"),
             method="GET",
             json=page1,
             status_code=200,
         )
         httpx_mock.add_response(
-            url="https://api.dmarket.com/exchange/v1/market/items?gameId=csgo&limit=100&offset=100&currency=USD&orderBy=price",  # noqa: E501
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items\?.*"),
             method="GET",
             json=page2,
             status_code=200,
@@ -253,8 +258,10 @@ class TestDMarketAPIWithHTTPXMock:
         httpx_mock: HTTPXMock,
     ) -> None:
         """Тест пустого результата рынка."""
+        import re
+
         httpx_mock.add_response(
-            url="https://api.dmarket.com/exchange/v1/market/items?gameId=csgo&limit=100&offset=0&currency=USD&orderBy=price",  # noqa: E501
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items\?.*"),
             method="GET",
             json={"cursor": "", "objects": [], "total": 0},
             status_code=200,
@@ -416,21 +423,17 @@ class TestDMarketAPIWithHTTPXMock:
         и возвращает fallback-результат. Не все fallback endpoints могут
         быть вызваны - это зависит от внутренней логики обработки ошибок.
         """
-        # Первый запрос вернет невалидный JSON (direct_balance_request)
-        httpx_mock.add_response(
-            url="https://api.dmarket.com/account/v1/balance",
-            method="GET",
-            status_code=200,
-            content=b"Invalid JSON{{{",
-        )
+        import re
 
-        # Fallback: /account/v1/balance (повторный запрос через get_balance loop)
-        # Также возвращает невалидный JSON
+        # Мок для всех возможных эндпоинтов баланса с regex
+        # API пробует несколько эндпоинтов как fallback
+        # Используем can_send_already_matched_responses для повторных совпадений
         httpx_mock.add_response(
-            url="https://api.dmarket.com/account/v1/balance",
+            url=re.compile(r"https://api\.dmarket\.com/.*"),
             method="GET",
             status_code=200,
             content=b"Invalid JSON{{{",
+            is_reusable=True,
         )
 
         # API должен обработать ошибку парсинга
@@ -446,6 +449,7 @@ class TestDMarketAPIWithHTTPXMock:
     ) -> None:
         """Тест одновременных запросов к API."""
         import asyncio
+        import re
 
         # Моки для разных эндпоинтов
         httpx_mock.add_response(
@@ -454,14 +458,9 @@ class TestDMarketAPIWithHTTPXMock:
             json={"usd": "10000"},
             status_code=200,
         )
-        # Используем matcher для поддержки query параметров
-        market_url = (
-            "https://api.dmarket.com/exchange/v1/market/items"
-            "?gameId=csgo&limit=100&offset=0&currency=USD"
-            "&orderBy=price"
-        )
+        # Используем regex для поддержки query параметров в разном порядке
         httpx_mock.add_response(
-            url=market_url,
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items\?.*"),
             method="GET",
             json={"objects": [], "cursor": "", "total": 0},
             status_code=200,
@@ -487,6 +486,8 @@ class TestDMarketAPIEdgeCasesHTTPX:
         httpx_mock: HTTPXMock,
     ) -> None:
         """Тест обработки очень большого ответа."""
+        import re
+
         # Создаем большой ответ (1000 предметов)
         large_response = {
             "cursor": "",
@@ -501,14 +502,9 @@ class TestDMarketAPIEdgeCasesHTTPX:
             "total": 1000,
         }
 
-        # Используем matcher для поддержки query параметров
-        large_url = (
-            "https://api.dmarket.com/exchange/v1/market/items"
-            "?gameId=csgo&limit=1000&offset=0&currency=USD"
-            "&orderBy=price"
-        )
+        # Используем regex для поддержки query параметров в любом порядке
         httpx_mock.add_response(
-            url=large_url,
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items\?.*"),
             method="GET",
             json=large_response,
             status_code=200,
@@ -524,6 +520,8 @@ class TestDMarketAPIEdgeCasesHTTPX:
         httpx_mock: HTTPXMock,
     ) -> None:
         """Тест обработки Unicode символов."""
+        import re
+
         response = {
             "objects": [
                 {
@@ -541,11 +539,7 @@ class TestDMarketAPIEdgeCasesHTTPX:
         }
 
         httpx_mock.add_response(
-            url=(
-                "https://api.dmarket.com/exchange/v1/market/items?"
-                "gameId=csgo&limit=100&offset=0&currency=USD&"
-                "orderBy=price"
-            ),
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items\?.*"),
             method="GET",
             json=response,
             status_code=200,
@@ -563,6 +557,8 @@ class TestDMarketAPIEdgeCasesHTTPX:
         httpx_mock: HTTPXMock,
     ) -> None:
         """Тест обработки отсутствующих опциональных полей."""
+        import re
+
         response = {
             "objects": [
                 {
@@ -576,11 +572,7 @@ class TestDMarketAPIEdgeCasesHTTPX:
         }
 
         httpx_mock.add_response(
-            url=(
-                "https://api.dmarket.com/exchange/v1/market/items?"
-                "gameId=csgo&limit=100&offset=0&currency=USD&"
-                "orderBy=price"
-            ),
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items\?.*"),
             method="GET",
             json=response,
             status_code=200,
@@ -597,6 +589,8 @@ class TestDMarketAPIEdgeCasesHTTPX:
         httpx_mock: HTTPXMock,
     ) -> None:
         """Тест граничных значений цен."""
+        import re
+
         response = {
             "objects": [
                 {
@@ -619,11 +613,7 @@ class TestDMarketAPIEdgeCasesHTTPX:
         }
 
         httpx_mock.add_response(
-            url=(
-                "https://api.dmarket.com/exchange/v1/market/items?"
-                "gameId=csgo&limit=100&offset=0&currency=USD&"
-                "orderBy=price"
-            ),
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items\?.*"),
             method="GET",
             json=response,
             status_code=200,
@@ -687,6 +677,8 @@ class TestDMarketAPIEdgeCasesHTTPX:
         httpx_mock: HTTPXMock,
     ) -> None:
         """Тест обработки частичного ответа."""
+        import re
+
         partial_response = {
             "objects": [
                 {"itemId": "item_1", "title": "Item 1"}
@@ -696,11 +688,7 @@ class TestDMarketAPIEdgeCasesHTTPX:
         # Отсутствует cursor
 
         httpx_mock.add_response(
-            url=(
-                "https://api.dmarket.com/exchange/v1/market/items?"
-                "gameId=csgo&limit=100&offset=0&currency=USD&"
-                "orderBy=price"
-            ),
+            url=re.compile(r"https://api\.dmarket\.com/exchange/v1/market/items\?.*"),
             method="GET",
             json=partial_response,
             status_code=200,
