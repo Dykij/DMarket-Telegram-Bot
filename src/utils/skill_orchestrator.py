@@ -42,7 +42,6 @@ import asyncio
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
-import logging
 from typing import Any, Callable
 
 import structlog
@@ -322,7 +321,7 @@ class SkillOrchestrator:
                 execution_time_ms=elapsed_ms,
             )
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             elapsed_ms = (time.perf_counter() - start_time) * 1000
             self._update_skill_metrics(skill_name, False, elapsed_ms)
 
@@ -338,7 +337,7 @@ class SkillOrchestrator:
             elapsed_ms = (time.perf_counter() - start_time) * 1000
             self._update_skill_metrics(skill_name, False, elapsed_ms)
 
-            logger.error(
+            logger.exception(
                 "skill_execution_failed",
                 skill_name=skill_name,
                 method=method_name,
@@ -447,13 +446,12 @@ class SkillOrchestrator:
 
             if step_result.success:
                 prev_result = step_result.result
+            elif stop_on_failure:
+                result.status = PipelineStatus.FAILED
+                result.error = f"Step {i + 1} failed: {step_result.error}"
+                break
             else:
-                if stop_on_failure:
-                    result.status = PipelineStatus.FAILED
-                    result.error = f"Step {i + 1} failed: {step_result.error}"
-                    break
-                else:
-                    result.status = PipelineStatus.PARTIALLY_FAILED
+                result.status = PipelineStatus.PARTIALLY_FAILED
 
         # Finalize
         if result.status == PipelineStatus.RUNNING:
@@ -528,7 +526,14 @@ class SkillOrchestrator:
                 resolved.append(context)
             elif isinstance(arg, str) and arg.startswith("$context."):
                 key = arg[9:]  # Remove "$context."
-                resolved.append(context.get(key))
+                value = context.get(key)
+                if value is None and key not in context:
+                    logger.warning(
+                        "context_key_missing",
+                        key=key,
+                        available_keys=list(context.keys()),
+                    )
+                resolved.append(value)
             else:
                 resolved.append(arg)
         return resolved

@@ -16,10 +16,15 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
 import logging
+import operator
 from typing import Any
 
 import numpy as np
 
+
+# Minimum MAE threshold to prevent division by zero when calculating weights
+# This prevents infinite weights when a model achieves near-perfect predictions
+MIN_MAE_THRESHOLD = 0.001
 
 logger = logging.getLogger(__name__)
 
@@ -951,7 +956,8 @@ class EnsembleBuilder:
                 )
                 # Convert negative MAE to positive score
                 score = -cv_scores.mean()
-                scores.append(1.0 / max(score, 0.001))  # Inverse: lower MAE = higher weight
+                # Use MIN_MAE_THRESHOLD to prevent division by zero
+                scores.append(1.0 / max(score, MIN_MAE_THRESHOLD))
                 logger.debug(f"Model {name} MAE: {-cv_scores.mean():.4f}")
             except Exception as e:
                 logger.warning(f"CV failed for {name}: {e}")
@@ -959,9 +965,7 @@ class EnsembleBuilder:
 
         # Normalize weights
         total = sum(scores)
-        weights = [s / total for s in scores]
-
-        return weights
+        return [s / total for s in scores]
 
 
 class AdvancedFeatureSelector:
@@ -1199,8 +1203,6 @@ class AdvancedFeatureSelector:
         importance_dict = dict(zip(feature_names, importances, strict=False))
 
         # Sort by importance
-        sorted_importance = dict(
-            sorted(importance_dict.items(), key=lambda x: x[1], reverse=True)
+        return dict(
+            sorted(importance_dict.items(), key=operator.itemgetter(1), reverse=True)
         )
-
-        return sorted_importance

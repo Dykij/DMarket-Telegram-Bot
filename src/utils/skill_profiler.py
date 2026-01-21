@@ -39,7 +39,6 @@ from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from functools import wraps
-import logging
 import statistics
 import time
 from typing import Any, Callable, TypeVar
@@ -245,9 +244,10 @@ class SkillProfiler:
 
             sorted_samples = sorted(samples)
             n = len(sorted_samples)
-            metrics.latency_p50_ms = sorted_samples[int(n * 0.5)]
-            metrics.latency_p95_ms = sorted_samples[int(n * 0.95)]
-            metrics.latency_p99_ms = sorted_samples[int(n * 0.99)]
+            # Calculate percentiles properly, handling edge cases
+            metrics.latency_p50_ms = sorted_samples[min(int(n * 0.5), n - 1)]
+            metrics.latency_p95_ms = sorted_samples[min(int(n * 0.95), n - 1)]
+            metrics.latency_p99_ms = sorted_samples[min(int(n * 0.99), n - 1)]
 
         # Update throughput
         metrics.items_processed += items_count
@@ -257,8 +257,7 @@ class SkillProfiler:
             )
 
         # Update memory
-        if memory_bytes > metrics.memory_peak_bytes:
-            metrics.memory_peak_bytes = memory_bytes
+        metrics.memory_peak_bytes = max(metrics.memory_peak_bytes, memory_bytes)
 
         # Log warnings for slow operations
         if latency_ms > self.LATENCY_CRITICAL_MS:
@@ -586,14 +585,12 @@ def profile_skill(
 
             return async_wrapper  # type: ignore
 
-        else:
+        @wraps(func)
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+            profiler = get_profiler()
+            with profiler.profile(skill_name, operation):
+                return func(*args, **kwargs)
 
-            @wraps(func)
-            def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
-                profiler = get_profiler()
-                with profiler.profile(skill_name, operation):
-                    return func(*args, **kwargs)
-
-            return sync_wrapper  # type: ignore
+        return sync_wrapper  # type: ignore
 
     return decorator
