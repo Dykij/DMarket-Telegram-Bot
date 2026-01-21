@@ -22,5 +22,5 @@ class TestPanicCommands:
 
     @pytest.mark.asyncio
     async def test_panic_command_import(self, mock_update, mock_context):
-        from src.telegram_bot.handlers.panic_handler import panic_command
-        assert panic_command is not None
+        from src.telegram_bot.handlers.panic_handler import panic_button_command
+        assert panic_button_command is not None

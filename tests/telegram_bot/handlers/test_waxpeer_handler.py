@@ -141,9 +141,14 @@ class TestWaxpeerMenuHandler:
     @pytest.mark.asyncio
     async def test_menu_handler(self, mock_update, mock_context):
         """Test menu handler shows menu."""
-        with patch("src.telegram_bot.handlers.waxpeer_handler.get_waxpeer_keyboard") as mock_keyboard:
-            mock_keyboard.return_value = MagicMock()
+        with patch("src.telegram_bot.handlers.waxpeer_handler.Config") as mock_config_class:
+            mock_config = MagicMock()
+            mock_config.waxpeer.enabled = True
+            mock_config_class.load.return_value = mock_config
 
-            await waxpeer_menu_handler(mock_update, mock_context)
+            with patch("src.telegram_bot.handlers.waxpeer_handler.get_waxpeer_keyboard") as mock_keyboard:
+                mock_keyboard.return_value = MagicMock()
 
-            mock_update.message.reply_text.assert_called_once()
+                await waxpeer_menu_handler(mock_update, mock_context)
+
+                mock_update.message.reply_text.assert_called_once()
