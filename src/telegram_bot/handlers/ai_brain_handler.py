@@ -148,7 +148,6 @@ async def ai_brain_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         InlineKeyboardButton("📋 Pending", callback_data="ai_brain:pending"),
         InlineKeyboardButton("🔔 Alerts", callback_data="ai_brain:alerts"),
     ])
-
     keyboard.append([
         InlineKeyboardButton("⚙️ Settings", callback_data="ai_brain:settings"),
         InlineKeyboardButton("🔄 Refresh", callback_data="ai_brain:refresh"),
@@ -239,8 +238,7 @@ async def ai_start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     if context.args:
         try:
             interval = int(context.args[0])
-            if interval < 30:
-                interval = 30  # Minimum 30 seconds
+            interval = max(interval, 30)  # Minimum 30 seconds
         except ValueError:
             pass
 
@@ -594,7 +592,7 @@ async def ai_brain_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         await query.edit_message_text(text)
 
 
-def register_ai_brain_handlers(application: "Application") -> None:
+def register_ai_brain_handlers(application: Application) -> None:
     """Register all AI brain handlers.
 
     Args:

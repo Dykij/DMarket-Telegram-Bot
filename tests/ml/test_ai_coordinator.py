@@ -357,15 +357,91 @@ class TestModelWeights:
     """Tests for model weight configuration."""
 
     def test_model_weights_sum_to_one(self):
-        """Test that model weights sum to approximately 1.0."""
-        total = sum(AICoordinator.MODEL_WEIGHTS.values())
+        """Test that default model weights sum to approximately 1.0."""
+        total = sum(AICoordinator.DEFAULT_MODEL_WEIGHTS.values())
 
         assert abs(total - 1.0) < 0.01
 
     def test_model_weights_all_positive(self):
-        """Test that all model weights are positive."""
-        for weight in AICoordinator.MODEL_WEIGHTS.values():
+        """Test that all default model weights are positive."""
+        for weight in AICoordinator.DEFAULT_MODEL_WEIGHTS.values():
             assert weight > 0
+
+    def test_custom_model_weights(self):
+        """Test that custom model weights can be set."""
+        custom_weights = {
+            "price_prediction": 0.40,
+            "signal_classification": 0.20,
+            "discount_threshold": 0.20,
+            "anomaly_check": 0.10,
+            "balance_fit": 0.10,
+        }
+        ai = AICoordinator(model_weights=custom_weights)
+        assert ai.model_weights["price_prediction"] == 0.40
+
+    def test_model_weights_normalization(self):
+        """Test that non-normalized weights get normalized."""
+        non_normalized = {
+            "price_prediction": 0.60,  # Sum > 1.0
+            "signal_classification": 0.50,
+            "discount_threshold": 0.40,
+            "anomaly_check": 0.30,
+            "balance_fit": 0.20,
+        }
+        ai = AICoordinator(model_weights=non_normalized)
+        total = sum(ai.model_weights.values())
+        assert abs(total - 1.0) < 0.01
+
+
+class TestDriftDetection:
+    """Tests for concept drift detection."""
+
+    def test_get_drift_status_initial(self):
+        """Test initial drift status."""
+        ai = AICoordinator()
+        status = ai.get_drift_status()
+
+        assert status["drift_detected"] is False
+        assert status["recent_accuracy"] == 0.0
+        assert status["samples_tracked"] == 0
+
+    def test_drift_status_updates_with_outcomes(self):
+        """Test drift status updates with trade outcomes."""
+        ai = AICoordinator()
+
+        # Create a test decision
+        decision = TradeDecision(
+            action=TradeAction.BUY,
+            item_name="Test",
+            item_id="test123",
+            game="csgo",
+            current_price=10.0,
+            predicted_price=12.0,
+            expected_profit=2.0,
+            expected_profit_percent=20.0,
+            confidence=0.8,
+            risk_level=RiskLevel.LOW,
+            discount_threshold_used=5.0,
+            price_prediction_confidence=0.8,
+            signal_probability=0.7,
+            anomaly_score=0.1,
+        )
+
+        # Add successful outcomes
+        for _ in range(10):
+            ai.add_trade_outcome(decision, 2.0, True)
+
+        status = ai.get_drift_status()
+        assert status["samples_tracked"] == 10
+        assert status["recent_accuracy"] == 1.0
+
+    def test_model_version_in_stats(self):
+        """Test that model version is included in statistics."""
+        ai = AICoordinator()
+        stats = ai.get_statistics()
+
+        assert "model_version" in stats
+        assert stats["model_version"] == AICoordinator.MODEL_VERSION
 
 
 class TestTradeAction:

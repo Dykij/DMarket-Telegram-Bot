@@ -368,14 +368,12 @@ async def run_batches(
         num_batches=len(batches),
     )
 
-    results = await run_concurrent(
+    return await run_concurrent(
         func,
         batches,
         max_at_once=max_concurrent_batches,
         max_per_second=max_batches_per_second,
     )
-
-    return results
 
 
 def get_aiometer_status() -> dict[str, Any]:
@@ -395,16 +393,16 @@ def get_aiometer_status() -> dict[str, Any]:
 
 
 __all__ = [
-    # Main functions
-    "run_concurrent",
-    "run_with_rate_limit",
-    "amap",
-    "run_batches",
+    # Availability flag
+    "AIOMETER_AVAILABLE",
     # Configuration
     "ConcurrencyConfig",
     "ConcurrentResult",
+    "amap",
     # Status
     "get_aiometer_status",
-    # Availability flag
-    "AIOMETER_AVAILABLE",
+    "run_batches",
+    # Main functions
+    "run_concurrent",
+    "run_with_rate_limit",
 ]

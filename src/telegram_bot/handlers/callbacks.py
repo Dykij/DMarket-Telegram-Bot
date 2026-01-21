@@ -6,7 +6,7 @@
 import logging
 import traceback
 
-from telegram import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import CallbackQuery, Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
@@ -18,18 +18,12 @@ from src.telegram_bot.handlers.main_keyboard import (
     main_menu_callback,
 )
 from src.telegram_bot.keyboards import (
-    CB_BACK,
-    CB_CANCEL,
     CB_GAME_PREFIX,
-    CB_HELP,
     create_pagination_keyboard,
     get_alert_keyboard,
     get_back_to_arbitrage_keyboard,
-    get_dmarket_webapp_keyboard,
     get_game_selection_keyboard,
-    get_language_keyboard,
     get_marketplace_comparison_keyboard,
-    get_risk_profile_keyboard,
     get_settings_keyboard,
 )
 from src.telegram_bot.utils.api_client import setup_api_client
@@ -481,9 +475,9 @@ async def _handle_legacy_callbacks(
 
 # Экспортируем обработчики callbacks
 __all__ = [
+    "_handle_legacy_callbacks",
     "arbitrage_callback_impl",
     "button_callback_handler",
-    "_handle_legacy_callbacks",
     "handle_best_opportunities_impl",
     "handle_dmarket_arbitrage_impl",
     "handle_game_selected_impl",

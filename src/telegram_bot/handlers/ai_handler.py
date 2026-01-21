@@ -900,7 +900,7 @@ async def ai_train_liquid_command(update: Update, context: ContextTypes.DEFAULT_
         _save_liquid_data_to_csv(liquid_items, output_path)
 
         await update.message.reply_text(
-            f"🧠 Шаг 4/4: Обучение модели...",
+            "🧠 Шаг 4/4: Обучение модели...",
             parse_mode="HTML",
         )
 

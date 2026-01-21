@@ -103,7 +103,7 @@ class AIArbitragePredictor:
             ... )
             >>> print(f"Found {len(opportunities)} opportunities")
         """
-        if risk_level not in ["low", "medium", "high"]:
+        if risk_level not in {"low", "medium", "high"}:
             raise ValueError(f"Invalid risk_level: {risk_level}. Must be low/medium/high")
 
         logger.info(

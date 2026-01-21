@@ -410,12 +410,12 @@ async def get_steam_prices(
 @router.get("/listing/targets")
 async def get_listing_targets(session=Depends(get_async_session)) -> dict[str, Any]:
     """Get self-updating list of items to list on Waxpeer.
-    
+
     Returns items kept in DMarket inventory with calculated optimal Waxpeer prices.
-    
+
     Returns:
         List of items ready for Waxpeer listing with target prices
-        
+
     Example:
         GET /api/v1/n8n/listing/targets
     """
@@ -445,16 +445,16 @@ async def update_listing_target(
     asset_id: str, session=Depends(get_async_session)
 ) -> dict[str, Any]:
     """Update target listing price for a specific item.
-    
+
     Fetches latest Waxpeer price and recalculates optimal listing price.
-    
+
     Args:
         asset_id: DMarket inventory asset ID
         session: Database session
-        
+
     Returns:
         Updated target information
-        
+
     Example:
         POST /api/v1/n8n/listing/update_target?asset_id=123456
     """

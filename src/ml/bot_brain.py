@@ -416,11 +416,10 @@ class BotBrain:
         self, items: list[dict[str, Any]]
     ) -> list[TradeDecision]:
         """Analyze items and make decisions."""
-        decisions = await self.ai.scan_and_decide(
+        return await self.ai.scan_and_decide(
             items=items,
             max_decisions=20,
         )
-        return decisions
 
     def _filter_decisions(
         self, decisions: list[TradeDecision]

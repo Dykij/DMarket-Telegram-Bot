@@ -145,7 +145,7 @@ class TrainingDataset:
             features_count=self.metadata.features_count,
             checksum="",
             description=f"Training split of {self.metadata.version_id}",
-            tags=self.metadata.tags + ["split:train"],
+            tags=[*self.metadata.tags, "split:train"],
         )
 
         test_meta = DatasetMetadata(
@@ -158,7 +158,7 @@ class TrainingDataset:
             features_count=self.metadata.features_count,
             checksum="",
             description=f"Test split of {self.metadata.version_id}",
-            tags=self.metadata.tags + ["split:test"],
+            tags=[*self.metadata.tags, "split:test"],
         )
 
         return (

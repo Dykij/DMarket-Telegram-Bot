@@ -349,7 +349,7 @@ async def run_all_settled(
     tasks = [asyncio.create_task(func()) for func in funcs]
     results: list[tuple[bool, T | Exception]] = []
 
-    done, _ = await asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED)
+    _done, _ = await asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED)
 
     # Maintain order
     for task in tasks:
@@ -379,17 +379,17 @@ def get_asyncer_status() -> dict[str, Any]:
 
 
 __all__ = [
-    # Main functions
-    "run_parallel",
-    "create_task_group",
-    "run_sync_in_thread",
-    "run_with_timeout",
-    "run_first_completed",
-    "run_all_settled",
-    # Result types
-    "ParallelResult",
-    # Status
-    "get_asyncer_status",
     # Availability flag
     "ASYNCER_AVAILABLE",
+    # Result types
+    "ParallelResult",
+    "create_task_group",
+    # Status
+    "get_asyncer_status",
+    "run_all_settled",
+    "run_first_completed",
+    # Main functions
+    "run_parallel",
+    "run_sync_in_thread",
+    "run_with_timeout",
 ]

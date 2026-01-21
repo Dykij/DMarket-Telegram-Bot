@@ -93,7 +93,7 @@ class PromptContext:
 
 class PromptEngineer:
     """AI-powered prompt engineering for enhanced bot responses.
-    
+
     Implements techniques from Anthropic's prompt engineering tutorial:
     - XML-tagged structured prompts
     - Role-based prompting
@@ -111,7 +111,7 @@ class PromptEngineer:
         temperature: float = 0.7
     ):
         """Initialize prompt engineer.
-        
+
         Args:
             api_key: Anthropic API key (optional, can use env var)
             model: Claude model to use
@@ -157,16 +157,16 @@ class PromptEngineer:
         examples: list[dict[str, str]] | None = None
     ) -> str:
         """Build structured prompt with XML tags.
-        
+
         This technique (Chapter 4) separates context, data, and instructions
         for better Claude comprehension.
-        
+
         Args:
             context: User and role context
             data: Input data
             instructions: Task instructions
             examples: Optional few-shot examples
-            
+
         Returns:
             XML-structured prompt
         """
@@ -191,8 +191,7 @@ class PromptEngineer:
         prompt_parts.append("<data>")
         for key, value in data.items():
             prompt_parts.append(f"<{key}>{value}</{key}>")
-        prompt_parts.append("</data>")
-        prompt_parts.append("")
+        prompt_parts.extend(("</data>", ""))
 
         # Examples (Chapter 7: Few-shot prompting)
         if examples:
@@ -202,13 +201,10 @@ class PromptEngineer:
                 prompt_parts.append(f"<input>{example['input']}</input>")
                 prompt_parts.append(f"<output>{example['output']}</output>")
                 prompt_parts.append(f"</example_{i}>")
-            prompt_parts.append("</examples>")
-            prompt_parts.append("")
+            prompt_parts.extend(("</examples>", ""))
 
         # Instructions
-        prompt_parts.append("<instructions>")
-        prompt_parts.append(instructions)
-        prompt_parts.append("</instructions>")
+        prompt_parts.extend(("<instructions>", instructions, "</instructions>"))
 
         return "\n".join(prompt_parts)
 
@@ -222,13 +218,13 @@ class PromptEngineer:
         context: PromptContext
     ) -> str:
         """Analyze arbitrage with transparent chain-of-thought reasoning.
-        
+
         Uses Chapter 6 technique: Precognition (thinking step by step).
-        
+
         Args:
             opportunity: Arbitrage opportunity to analyze
             context: User context
-            
+
         Returns:
             Analysis with visible reasoning steps
         """
@@ -311,14 +307,14 @@ IMPORTANT: Only use the data provided. Do not invent prices or make up informati
         include_reasoning: bool = False
     ) -> str:
         """Explain arbitrage opportunity with consistent format.
-        
+
         Uses few-shot prompting (Chapter 7) for quality and consistency.
-        
+
         Args:
             opportunity: Arbitrage to explain
             context: User context
             include_reasoning: Include chain-of-thought analysis
-            
+
         Returns:
             User-friendly explanation
         """
@@ -379,19 +375,19 @@ IMPORTANT: Only use the provided data. Do not make up prices or information."""
         context: PromptContext
     ) -> str:
         """Generate market insights with hallucination prevention.
-        
+
         Uses Chapter 8 techniques to ensure factual accuracy.
-        
+
         Args:
             opportunities: List of opportunities
             context: User context
-            
+
         Returns:
             Market insights with source citations
         """
         # Prepare verified data
         total_opportunities = len(opportunities)
-        avg_roi = sum(o.profit_percent for o in opportunities) / total_opportunities if total_opportunities > 0 else Decimal("0")
+        avg_roi = sum(o.profit_percent for o in opportunities) / total_opportunities if total_opportunities > 0 else Decimal(0)
 
         liquid_count = sum(1 for o in opportunities if o.liquidity_score >= 2)
 
@@ -455,13 +451,13 @@ Format:
         context: PromptContext
     ) -> dict[str, Any]:
         """Generate structured JSON recommendation.
-        
+
         Uses Chapter 5 technique: pre-filling assistant output.
-        
+
         Args:
             opportunity: Opportunity to analyze
             context: User context
-            
+
         Returns:
             Structured recommendation dict
         """
@@ -546,14 +542,14 @@ This is a {rating} opportunity with {'low' if opp.liquidity_score >= 2 else 'med
 Risk Level: {risk}
 Recommended Action: {action}
 
-Reasoning: ROI of {float(opp.profit_percent):.1f}% with liquidity score {opp.liquidity_score}/3. 
+Reasoning: ROI of {float(opp.profit_percent):.1f}% with liquidity score {opp.liquidity_score}/3.
 {"Good opportunity for quick profit." if opp.profit_percent >= 15 else "Moderate opportunity - consider your capital allocation."}"""
 
     def _fallback_insights(self, opportunities: list[ArbitrageOpportunity]) -> str:
         """Rule-based insights fallback."""
         total = len(opportunities)
         liquid = sum(1 for o in opportunities if o.liquidity_score >= 2)
-        avg_roi = sum(o.profit_percent for o in opportunities) / total if total > 0 else Decimal("0")
+        avg_roi = sum(o.profit_percent for o in opportunities) / total if total > 0 else Decimal(0)
 
         return f"""📊 Market Snapshot
 
@@ -607,11 +603,11 @@ class EducationalContentGenerator:
         user_level: UserLevel
     ) -> str:
         """Generate interactive lesson on trading topic.
-        
+
         Args:
             topic: Topic to teach (e.g., "arbitrage", "liquidity", "risk")
             user_level: User's experience level
-            
+
         Returns:
             Educational content
         """

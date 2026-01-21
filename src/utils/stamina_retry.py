@@ -64,8 +64,10 @@ try:
 except ImportError:
     STAMINA_AVAILABLE = False
     stamina = None  # type: ignore[assignment]
-    stamina_is_active = lambda: False  # type: ignore[misc]
-    stamina_set_active = lambda x: None  # type: ignore[misc]
+    def stamina_is_active():
+        return False  # type: ignore[misc]
+    def stamina_set_active(x):
+        return None  # type: ignore[misc]
 
 from src.utils.exceptions import (
     APIError,
@@ -277,12 +279,11 @@ def retry_sync(
         yield FakeAttempt(num=1)  # type: ignore[misc]
         return  # Exit generator after single attempt (no retry in fallback)
 
-    for attempt in stamina.retry_context(
+    yield from stamina.retry_context(
         on=on,
         attempts=attempts,
         timeout=timeout,
-    ):
-        yield attempt
+    )
 
 
 def is_retry_active() -> bool:
@@ -358,9 +359,7 @@ def should_retry_on_status(response: httpx.Response) -> bool:
     """
     if response.status_code == 429:
         return True
-    if response.status_code >= 500 and response.status_code != 501:
-        return True
-    return False
+    return bool(response.status_code >= 500 and response.status_code != 501)
 
 
 def get_retry_after(response: httpx.Response) -> float | None:
@@ -405,26 +404,26 @@ sync_retry_context = retry_sync
 
 
 __all__ = [
+    "DEFAULT_API_EXCEPTIONS",
+    # Availability check
+    "STAMINA_AVAILABLE",
+    # Configuration
+    "RetryConfig",
     # Main decorators
     "api_retry",
+    "async_disabled_retries",
+    "async_retry_context",
+    "disabled_retries",
+    "get_retry_after",
+    "http_error_hook",
+    # Control functions
+    "is_retry_active",
     "retry",
     # Context managers
     "retry_async",
     "retry_sync",
-    "async_retry_context",
-    "sync_retry_context",
-    # Configuration
-    "RetryConfig",
-    "DEFAULT_API_EXCEPTIONS",
-    # Control functions
-    "is_retry_active",
     "set_retry_active",
-    "disabled_retries",
-    "async_disabled_retries",
     # Utilities
     "should_retry_on_status",
-    "get_retry_after",
-    "http_error_hook",
-    # Availability check
-    "STAMINA_AVAILABLE",
+    "sync_retry_context",
 ]

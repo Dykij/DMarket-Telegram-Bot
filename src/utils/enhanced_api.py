@@ -265,6 +265,9 @@ def get_api_enhancement_status() -> dict[str, Any]:
 
 
 __all__ = [
+    # Availability flags
+    "HISHEL_AVAILABLE",
+    "STAMINA_AVAILABLE",
     # Configuration
     "EnhancedAPIConfig",
     "EnhancedHTTPClientMixin",
@@ -276,7 +279,4 @@ __all__ = [
     "enhance_waxpeer_method",
     # Status
     "get_api_enhancement_status",
-    # Availability flags
-    "HISHEL_AVAILABLE",
-    "STAMINA_AVAILABLE",
 ]

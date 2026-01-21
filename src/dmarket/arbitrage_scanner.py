@@ -324,14 +324,13 @@ class ArbitrageScanner:
         """
         try:
             trader = ArbitrageTrader(api_client=self.api_client)
-            items = await trader.find_profitable_items(
+            return await trader.find_profitable_items(
                 game=game,
                 min_profit_percentage=min_profit,
                 max_items=100,
                 min_price=price_from or 1.0,
                 max_price=price_to or 100.0,
             )
-            return items
         except Exception as e:
             logger.warning(f"Error using ArbitrageTrader: {e!s}")
             return []

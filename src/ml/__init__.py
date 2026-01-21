@@ -111,40 +111,33 @@ __all__ = [
     # AI Coordinator - Unified ML module coordinator
     # ═══════════════════════════════════════════════════════════════════
     "AICoordinator",
-    "AutonomyLevel",
-    "ItemAnalysis",
-    "SafetyLimits",
-    "TradeAction",
-    "TradeDecision",
-    "get_ai_coordinator",
-    "reset_ai_coordinator",
+    # Price Predictor (базовый)
+    "AdaptivePricePredictor",
+    # Trade Classifier
+    "AdaptiveTradeClassifier",
     # ═══════════════════════════════════════════════════════════════════
     # BotBrain - Autonomous decision-making module
     # ═══════════════════════════════════════════════════════════════════
     "Alert",
     "AlertLevel",
-    "AutonomyConfig",
-    "BotBrain",
-    "BotState",
-    "CycleResult",
-    "create_bot_brain",
-    # Price Predictor (базовый)
-    "AdaptivePricePredictor",
-    # Trade Classifier
-    "AdaptiveTradeClassifier",
     # Anomaly Detection
     "AnomalyDetector",
     "AnomalyResult",
     "AnomalySeverity",
     "AnomalyType",
     "AutoMLSelector",
+    "AutonomyConfig",
+    "AutonomyLevel",
     # Balance Adapter
     "BalanceAdaptiveStrategy",
+    "BotBrain",
+    "BotState",
     "CVStrategy",
     "CollectedPrice",
     "CollectionResult",
     "CollectionStatus",
     "CollectorGameType",
+    "CycleResult",
     "DatasetMetadata",
     # ═══════════════════════════════════════════════════════════════════
     # Discount Threshold Predictor (ML-based выбор порога скидки)
@@ -156,6 +149,7 @@ __all__ = [
     "EnhancedPricePredictor",
     "EvaluationResult",
     "GameType",
+    "ItemAnalysis",
     "ItemCondition",
     "ItemRarity",
     "ItemRecommendation",
@@ -183,6 +177,7 @@ __all__ = [
     "RecommendationRiskLevel",
     "RecommendationType",
     "RiskLevel",
+    "SafetyLimits",
     "SchedulerConfig",
     "SchedulerState",
     "ScoringMetric",
@@ -191,6 +186,8 @@ __all__ = [
     "StrategyRecommendation",
     "TaskType",
     "ThresholdPrediction",
+    "TradeAction",
+    "TradeDecision",
     "TradeSignal",
     # Training Data Manager - управление обучающими данными
     "TrainingDataManager",
@@ -198,7 +195,10 @@ __all__ = [
     "TrainingExample",
     "TuningResult",
     "create_anomaly_detector",
+    "create_bot_brain",
     "create_smart_recommendations",
+    "get_ai_coordinator",
     "get_discount_threshold_predictor",
     "predict_discount_threshold",
+    "reset_ai_coordinator",
 ]
