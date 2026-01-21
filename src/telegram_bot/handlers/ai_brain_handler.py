@@ -144,7 +144,14 @@ async def ai_brain_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             InlineKeyboardButton("🔄 Run Cycle", callback_data="ai_brain:cycle"),
         ])
 
-    keyboard.extend(([InlineKeyboardButton("📋 Pending", callback_data="ai_brain:pending"), InlineKeyboardButton("🔔 Alerts", callback_data="ai_brain:alerts")], [InlineKeyboardButton("⚙️ Settings", callback_data="ai_brain:settings"), InlineKeyboardButton("🔄 Refresh", callback_data="ai_brain:refresh")]))
+    keyboard.append([
+        InlineKeyboardButton("📋 Pending", callback_data="ai_brain:pending"),
+        InlineKeyboardButton("🔔 Alerts", callback_data="ai_brain:alerts"),
+    ])
+    keyboard.append([
+        InlineKeyboardButton("⚙️ Settings", callback_data="ai_brain:settings"),
+        InlineKeyboardButton("🔄 Refresh", callback_data="ai_brain:refresh"),
+    ])
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 

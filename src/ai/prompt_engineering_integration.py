@@ -197,7 +197,10 @@ class PromptEngineer:
         if examples:
             prompt_parts.append("<examples>")
             for i, example in enumerate(examples, 1):
-                prompt_parts.extend((f"<example_{i}>", f"<input>{example['input']}</input>", f"<output>{example['output']}</output>", f"</example_{i}>"))
+                prompt_parts.append(f"<example_{i}>")
+                prompt_parts.append(f"<input>{example['input']}</input>")
+                prompt_parts.append(f"<output>{example['output']}</output>")
+                prompt_parts.append(f"</example_{i}>")
             prompt_parts.extend(("</examples>", ""))
 
         # Instructions

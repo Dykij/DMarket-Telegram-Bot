@@ -220,9 +220,6 @@ __all__ = [
     "ShutdownHandler",
     # Watchdog
     "Watchdog",
-    # Watchdog
-    "Watchdog",
-    "WatchdogConfig",
     "WatchdogConfig",
     "amap",
     "api_retry",
