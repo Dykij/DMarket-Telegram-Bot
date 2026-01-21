@@ -64,12 +64,16 @@ if [ ! -f ".env" ]; then
         warning ".env.example not found, creating minimal .env"
         cat > .env << 'EOF'
 # DMarket Telegram Bot - Development Environment
+# ⚠️  DEVELOPMENT ONLY - These credentials are for local devcontainer use only
+# ⚠️  DO NOT use these credentials in production!
 ENVIRONMENT=development
 DEBUG=true
 DRY_RUN=true
 LOG_LEVEL=DEBUG
+# Database credentials match docker-compose.yml for devcontainer
 DATABASE_URL=postgresql://dmarket_user:dmarket_password@postgres:5432/dmarket_bot
 REDIS_URL=redis://redis:6379/0
+# Replace with your actual API credentials
 TELEGRAM_BOT_TOKEN=your_token_here
 DMARKET_PUBLIC_KEY=your_public_key
 DMARKET_SECRET_KEY=your_secret_key

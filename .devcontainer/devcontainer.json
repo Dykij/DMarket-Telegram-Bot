@@ -274,7 +274,8 @@
                     "ЗАДАЧА"
                 ],
 
-                // ========== SQLTools ==========
+                // ========== SQLTools (DEV CREDENTIALS ONLY) ==========
+                // These match docker-compose.yml - for development only
                 "sqltools.connections": [
                     {
                         "name": "DMarket PostgreSQL (Dev)",

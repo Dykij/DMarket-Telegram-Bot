@@ -21,7 +21,8 @@ services:
       - pip-cache:/home/vscode/.cache/pip
       # Persist pre-commit cache
       - precommit-cache:/home/vscode/.cache/pre-commit
-      # Docker socket for Docker-in-Docker
+      # Docker socket for Docker-in-Docker (required for docker compose commands)
+      # NOTE: This grants access to host Docker daemon - for development only
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       # Python environment
@@ -60,11 +61,13 @@ services:
 
   # ==========================================================================
   # POSTGRESQL DATABASE
+  # ⚠️  DEVELOPMENT ONLY - Credentials are for local development only!
   # ==========================================================================
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
+      # DEV CREDENTIALS - safe to use in isolated devcontainer
       POSTGRES_DB: dmarket_bot
       POSTGRES_USER: dmarket_user
       POSTGRES_PASSWORD: dmarket_password
