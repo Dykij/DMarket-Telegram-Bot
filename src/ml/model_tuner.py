@@ -779,3 +779,428 @@ class AutoMLSelector:
             recommendations.append("💡 Ridge is simple but may underfit complex patterns.")
 
         return recommendations
+
+
+class EnsembleBuilder:
+    """Build ensemble models for improved predictions.
+
+    Combines multiple base models using various ensemble strategies:
+    - Voting: Average predictions from multiple models
+    - Stacking: Use meta-model to combine predictions
+    - Weighted: Weight models by their CV performance
+
+    Based on SkillsMP.com ML best practices.
+
+    Example:
+        >>> builder = EnsembleBuilder()
+        >>> ensemble = builder.create_voting_ensemble(X_train, y_train)
+        >>> predictions = ensemble.predict(X_test)
+    """
+
+    def __init__(
+        self,
+        cv_folds: int = 5,
+        random_state: int = 42,
+    ) -> None:
+        """Initialize ensemble builder.
+
+        Args:
+            cv_folds: Number of CV folds for weight calculation
+            random_state: Random seed for reproducibility
+        """
+        self.cv_folds = cv_folds
+        self.random_state = random_state
+        self._sklearn_available = self._check_sklearn()
+
+    def _check_sklearn(self) -> bool:
+        """Check sklearn availability."""
+        try:
+            import sklearn  # noqa: F401
+            return True
+        except ImportError:
+            return False
+
+    def create_voting_ensemble(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        include_xgboost: bool = True,
+        weights: list[float] | None = None,
+    ) -> Any:
+        """Create a VotingRegressor ensemble.
+
+        Combines RandomForest, GradientBoosting, Ridge, and optionally XGBoost.
+
+        Args:
+            X: Training features
+            y: Training targets
+            include_xgboost: Include XGBoost in ensemble
+            weights: Model weights (auto-calculated if None)
+
+        Returns:
+            Fitted VotingRegressor or None if sklearn not available
+        """
+        if not self._sklearn_available:
+            logger.warning("sklearn not available for ensemble building")
+            return None
+
+        from sklearn.ensemble import (
+            GradientBoostingRegressor,
+            RandomForestRegressor,
+            VotingRegressor,
+        )
+        from sklearn.linear_model import Ridge
+
+        # Base estimators
+        estimators = [
+            (
+                "rf",
+                RandomForestRegressor(
+                    n_estimators=100,
+                    max_depth=10,
+                    random_state=self.random_state,
+                    n_jobs=-1,
+                ),
+            ),
+            (
+                "gb",
+                GradientBoostingRegressor(
+                    n_estimators=100,
+                    max_depth=5,
+                    learning_rate=0.1,
+                    random_state=self.random_state,
+                ),
+            ),
+            (
+                "ridge",
+                Ridge(alpha=1.0),
+            ),
+        ]
+
+        # Add XGBoost if available
+        if include_xgboost:
+            try:
+                from xgboost import XGBRegressor
+
+                estimators.append((
+                    "xgb",
+                    XGBRegressor(
+                        n_estimators=100,
+                        max_depth=5,
+                        learning_rate=0.1,
+                        random_state=self.random_state,
+                        n_jobs=-1,
+                    ),
+                ))
+            except ImportError:
+                logger.info("XGBoost not available, skipping in ensemble")
+
+        # Calculate weights based on CV performance if not provided
+        if weights is None:
+            weights = self._calculate_weights(estimators, X, y)
+
+        # Create voting regressor
+        ensemble = VotingRegressor(
+            estimators=estimators,
+            weights=weights,
+            n_jobs=-1,
+        )
+
+        try:
+            ensemble.fit(X, y)
+            logger.info(
+                "voting_ensemble_created",
+                extra={
+                    "n_estimators": len(estimators),
+                    "weights": weights,
+                },
+            )
+            return ensemble
+        except Exception as e:
+            logger.exception(f"Failed to create ensemble: {e}")
+            return None
+
+    def _calculate_weights(
+        self,
+        estimators: list[tuple[str, Any]],
+        X: np.ndarray,
+        y: np.ndarray,
+    ) -> list[float]:
+        """Calculate model weights based on CV performance.
+
+        Args:
+            estimators: List of (name, model) tuples
+            X: Features
+            y: Targets
+
+        Returns:
+            List of weights (normalized to sum to 1)
+        """
+        from sklearn.model_selection import TimeSeriesSplit, cross_val_score
+
+        cv = TimeSeriesSplit(n_splits=self.cv_folds)
+        scores = []
+
+        for name, model in estimators:
+            try:
+                cv_scores = cross_val_score(
+                    model, X, y,
+                    cv=cv,
+                    scoring="neg_mean_absolute_error",
+                    n_jobs=-1,
+                )
+                # Convert negative MAE to positive score
+                score = -cv_scores.mean()
+                scores.append(1.0 / max(score, 0.001))  # Inverse: lower MAE = higher weight
+                logger.debug(f"Model {name} MAE: {-cv_scores.mean():.4f}")
+            except Exception as e:
+                logger.warning(f"CV failed for {name}: {e}")
+                scores.append(1.0)  # Default weight
+
+        # Normalize weights
+        total = sum(scores)
+        weights = [s / total for s in scores]
+
+        return weights
+
+
+class AdvancedFeatureSelector:
+    """Advanced feature selection using model-based methods.
+
+    Provides feature selection using:
+    - SelectFromModel: Use model feature_importances_ for selection
+    - Recursive Feature Elimination (RFE)
+    - LASSO-based selection
+
+    Based on SkillsMP.com feature engineering recommendations.
+
+    Example:
+        >>> selector = AdvancedFeatureSelector()
+        >>> X_selected, selected_features = selector.select_from_model(X, y, feature_names)
+        >>> print(f"Selected {len(selected_features)} features")
+    """
+
+    def __init__(
+        self,
+        random_state: int = 42,
+    ) -> None:
+        """Initialize feature selector.
+
+        Args:
+            random_state: Random seed
+        """
+        self.random_state = random_state
+        self._sklearn_available = self._check_sklearn()
+
+    def _check_sklearn(self) -> bool:
+        """Check sklearn availability."""
+        try:
+            import sklearn  # noqa: F401
+            return True
+        except ImportError:
+            return False
+
+    def select_from_model(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        feature_names: list[str] | None = None,
+        threshold: str | float = "median",
+        max_features: int | None = None,
+    ) -> tuple[np.ndarray, list[str]]:
+        """Select features using model-based importance.
+
+        Uses RandomForest feature_importances_ to select the most
+        important features.
+
+        Args:
+            X: Features
+            y: Targets
+            feature_names: Names of features
+            threshold: Importance threshold ("median", "mean", or float)
+            max_features: Maximum features to select
+
+        Returns:
+            Tuple of (X_selected, selected_feature_names)
+        """
+        if not self._sklearn_available:
+            return X, feature_names or []
+
+        from sklearn.ensemble import RandomForestRegressor
+        from sklearn.feature_selection import SelectFromModel
+
+        # Train model for importance calculation
+        model = RandomForestRegressor(
+            n_estimators=100,
+            max_depth=10,
+            random_state=self.random_state,
+            n_jobs=-1,
+        )
+        model.fit(X, y)
+
+        # Create selector
+        selector = SelectFromModel(
+            estimator=model,
+            threshold=threshold,
+            max_features=max_features,
+            prefit=True,
+        )
+
+        # Transform
+        X_selected = selector.transform(X)
+
+        # Get selected feature names
+        if feature_names:
+            mask = selector.get_support()
+            selected_names = [n for n, m in zip(feature_names, mask, strict=False) if m]
+        else:
+            selected_names = []
+
+        logger.info(
+            "features_selected",
+            extra={
+                "original": X.shape[1],
+                "selected": X_selected.shape[1],
+                "selected_names": selected_names[:10],
+            },
+        )
+
+        return X_selected, selected_names
+
+    def recursive_feature_elimination(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        feature_names: list[str] | None = None,
+        n_features_to_select: int | None = None,
+        step: int = 1,
+    ) -> tuple[np.ndarray, list[str], dict[str, int]]:
+        """Perform Recursive Feature Elimination (RFE).
+
+        Recursively removes least important features.
+
+        Args:
+            X: Features
+            y: Targets
+            feature_names: Names of features
+            n_features_to_select: Target number of features
+            step: Number of features to remove at each iteration
+
+        Returns:
+            Tuple of (X_selected, selected_names, feature_rankings)
+        """
+        if not self._sklearn_available:
+            return X, feature_names or [], {}
+
+        from sklearn.ensemble import RandomForestRegressor
+        from sklearn.feature_selection import RFE
+
+        # Use half of features if not specified
+        if n_features_to_select is None:
+            n_features_to_select = max(5, X.shape[1] // 2)
+
+        # Base model
+        model = RandomForestRegressor(
+            n_estimators=50,
+            max_depth=5,
+            random_state=self.random_state,
+            n_jobs=-1,
+        )
+
+        # RFE
+        rfe = RFE(
+            estimator=model,
+            n_features_to_select=n_features_to_select,
+            step=step,
+        )
+        rfe.fit(X, y)
+
+        # Transform
+        X_selected = rfe.transform(X)
+
+        # Get selected names and rankings
+        selected_names = []
+        rankings = {}
+
+        if feature_names:
+            for name, rank, selected in zip(
+                feature_names, rfe.ranking_, rfe.support_, strict=False
+            ):
+                rankings[name] = int(rank)
+                if selected:
+                    selected_names.append(name)
+
+        logger.info(
+            "rfe_completed",
+            extra={
+                "original": X.shape[1],
+                "selected": X_selected.shape[1],
+                "top_features": selected_names[:5],
+            },
+        )
+
+        return X_selected, selected_names, rankings
+
+    def get_feature_importance(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        feature_names: list[str],
+        method: str = "random_forest",
+    ) -> dict[str, float]:
+        """Get feature importance scores.
+
+        Args:
+            X: Features
+            y: Targets
+            feature_names: Names of features
+            method: Method to use ("random_forest", "permutation")
+
+        Returns:
+            Dictionary mapping feature names to importance scores
+        """
+        if not self._sklearn_available:
+            return {}
+
+        from sklearn.ensemble import RandomForestRegressor
+
+        if method == "random_forest":
+            model = RandomForestRegressor(
+                n_estimators=100,
+                max_depth=10,
+                random_state=self.random_state,
+                n_jobs=-1,
+            )
+            model.fit(X, y)
+            importances = model.feature_importances_
+
+        elif method == "permutation":
+            from sklearn.inspection import permutation_importance
+
+            model = RandomForestRegressor(
+                n_estimators=50,
+                max_depth=5,
+                random_state=self.random_state,
+                n_jobs=-1,
+            )
+            model.fit(X, y)
+            perm_importance = permutation_importance(
+                model, X, y,
+                n_repeats=10,
+                random_state=self.random_state,
+                n_jobs=-1,
+            )
+            importances = perm_importance.importances_mean
+
+        else:
+            raise ValueError(f"Unknown method: {method}")
+
+        # Create importance dict
+        importance_dict = dict(zip(feature_names, importances, strict=False))
+
+        # Sort by importance
+        sorted_importance = dict(
+            sorted(importance_dict.items(), key=lambda x: x[1], reverse=True)
+        )
+
+        return sorted_importance
