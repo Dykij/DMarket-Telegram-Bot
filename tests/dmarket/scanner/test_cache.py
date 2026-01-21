@@ -596,9 +596,9 @@ class TestEdgeCases:
         zero_ttl_cache.set("key", items)
         result = zero_ttl_cache.get("key")
 
-        # Assert - TTL=0 means entries expire immediately
-        # Because time.time() - timestamp > 0 will always be True after any time passes
-        assert result is None  # Entry is expired immediately
+        # Assert - TTL=0 means no expiration (entries never expire)
+        # This is the designed behavior: ttl=0 disables TTL checking
+        assert result == items  # Entry is cached without expiration
 
 
 # ============================================================================

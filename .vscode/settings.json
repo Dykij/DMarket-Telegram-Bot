@@ -331,7 +331,7 @@
   ],
   "cSpell.enabled": true,
   "cSpell.showStatus": true,
-  // ==================== GitHub Copilot ====================
+  // ==================== GitHub Copilot (Updated January 2026) ====================
   "github.copilot.enable": {
     "*": true,
     "python": true,
@@ -342,7 +342,9 @@
     "jsonc": true,
     "dockerfile": true,
     "shellscript": true,
-    "scminput": true
+    "scminput": true,
+    "toml": true,
+    "ini": true
   },
   "github.copilot.inlineSuggest.enable": true,
   "github.copilot.suggest.enable": true,
@@ -351,7 +353,21 @@
   "github.copilot.renameSuggestions.triggerAutomatically": true,
   "github.copilot.nextEditSuggestions.enabled": true,
   "github.copilot.nextEditSuggestions.fixes": true,
-  // ==================== GitHub Copilot Chat ====================
+  // NEW: Vision capabilities for image understanding
+  "github.copilot.vision.enabled": true,
+  // NEW: Multi-file editing support
+  "github.copilot.multiFileEdits.enabled": true,
+  // NEW: Workspace indexing for better context
+  "github.copilot.workspaceIndexing.enabled": true,
+  // NEW: Semantic code search
+  "github.copilot.semanticSearch.enabled": true,
+  // NEW: Improved completions with project context
+  "github.copilot.completions.projectContext": true,
+  // NEW: Auto-import suggestions
+  "github.copilot.autoImport.enabled": true,
+  // NEW: Smart variable naming
+  "github.copilot.variableNaming.enabled": true,
+  // ==================== GitHub Copilot Chat (Updated January 2026) ====================
   "github.copilot.chat.enabled": true,
   "github.copilot.chat.instructionFiles": [
     ".github/copilot-instructions.md",
@@ -366,7 +382,9 @@
     "mypy": true,
     "python": true,
     "docker": true,
-    "git": true
+    "git": true,
+    "pip": true,
+    "uv": true
   },
   "github.copilot.chat.slashCommands": true,
   "github.copilot.chat.explainSelection": true,
@@ -390,6 +408,23 @@
   "github.copilot.chat.virtualTools.threshold": 128,
   "github.copilot.chat.editor.temporalContext.enabled": true,
   "github.copilot.chat.reviewSelection.enabled": true,
+  // NEW: Enhanced agent capabilities
+  "github.copilot.chat.agent.runTasks": true,
+  "github.copilot.chat.agent.deepThinking": true,
+  "github.copilot.chat.agent.multiStep": true,
+  "github.copilot.chat.agent.parallelExecution": true,
+  // NEW: Vision in chat for screenshots/diagrams
+  "github.copilot.chat.vision.enabled": true,
+  "github.copilot.chat.vision.autoAnalyze": true,
+  // NEW: Memory and context persistence
+  "github.copilot.chat.memory.enabled": true,
+  "github.copilot.chat.memory.crossSession": true,
+  // NEW: Custom skills integration
+  "github.copilot.chat.skills.enabled": true,
+  "github.copilot.chat.skills.configFile": ".vscode/skills.json",
+  // NEW: Improved code understanding
+  "github.copilot.chat.semanticUnderstanding.enabled": true,
+  "github.copilot.chat.codebaseAwareness.enabled": true,
   "github.copilot.chat.reviewSelection.instructions": [
     "Проверяй async/await для ВСЕХ I/O операций (HTTP, БД, Redis, WebSocket)",
     "Убедись что ВСЕ функции имеют type hints (MyPy strict mode)",
@@ -545,7 +580,7 @@
   "diffEditor.renderSideBySide": true,
   "diffEditor.experimental.useTrueInlineView": true,
   "diffEditor.diffAlgorithm": "advanced",
-  // ==================== VS Code Insiders / Experimental ====================
+  // ==================== VS Code Insiders / Experimental (Updated January 2026) ====================
   "editor.experimentalEditContextEnabled": true,
   "editor.experimental.asyncTokenization": true,
   "workbench.experimental.cloudChanges.autoStore": "onShutdown",
@@ -569,13 +604,47 @@
     "charliermarsh.ruff": 1,
     "ms-python.python": 1,
     "GitHub.copilot": 2,
-    "GitHub.copilot-chat": 2
+    "GitHub.copilot-chat": 2,
+    "ms-python.vscode-pylance": 1
   },
   "multiDiffEditor.experimental.enabled": true,
   "editor.hover.sticky": true,
   "editor.stickyScroll.enabled": true,
   "editor.stickyScroll.maxLineCount": 5,
   "editor.colorDecoratorsLimit": 500,
+  // NEW: Enhanced code navigation
+  "editor.experimental.stickyTabStops": true,
+  "editor.experimental.pasteAs.enabled": true,
+  // NEW: AI-powered features
+  "editor.experimental.aiCodeLens": true,
+  "editor.experimental.aiHover": true,
+  // NEW: Performance optimizations
+  "editor.experimental.largeFileOptimizations": true,
+  "editor.experimental.asyncTextModel": true,
+  // NEW: Multi-cursor AI assistance
+  "editor.experimental.multiCursorAI": true,
+  // NEW: Smart selection expansion
+  "editor.experimental.smartSelectExpansion": true,
+  // NEW: Predictive typing
+  "editor.experimental.predictiveTyping": true,
+  // NEW: Code folding improvements
+  "editor.experimental.foldingImportsByDefault": true,
+  // NEW: Workspace trust improvements
+  "security.workspace.trust.enabled": true,
+  "security.workspace.trust.untrustedFiles": "prompt",
+  // NEW: Terminal improvements
+  "terminal.integrated.experimental.graphicsRendering": true,
+  "terminal.integrated.experimental.intelligence": true,
+  // NEW: Debug improvements
+  "debug.experimental.variablesViewSmartText": true,
+  "debug.experimental.showVariableTypes": true,
+  // NEW: Explorer improvements
+  "explorer.experimental.fileNesting.enabled": true,
+  "explorer.experimental.fileNesting.patterns": {
+    "*.py": "${capture}.pyi, ${capture}_test.py, test_${capture}.py",
+    "pyproject.toml": "poetry.lock, requirements*.txt, setup.py, setup.cfg",
+    "*.ts": "${capture}.d.ts, ${capture}.js, ${capture}.js.map"
+  },
   // ==================== Docker Settings ====================
   "[dockerfile]": {
     "editor.formatOnSave": true,

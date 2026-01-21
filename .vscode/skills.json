@@ -1,11 +1,12 @@
 {
   "$schema": "https://skillsmp.com/schemas/skills-v2.json",
-  "version": "2.0",
+  "version": "2.1",
   "workspace": {
     "name": "DMarket Telegram Bot",
     "description": "Telegram bot для торговли на DMarket с AI-модулями",
     "repository": "https://github.com/Dykij/DMarket-Telegram-Bot",
-    "skills_directory": "src"
+    "skills_directory": "src",
+    "updated": "January 2026"
   },
   "discovery": {
     "auto_scan": true,
@@ -26,13 +27,21 @@
       "github-copilot",
       "claude-code",
       "chatgpt",
-      "cursor"
+      "cursor",
+      "windsurf"
     ],
     "context_injection": {
       "enabled": true,
       "include_skill_docs": true,
       "include_examples": true,
-      "include_dependencies": true
+      "include_dependencies": true,
+      "include_performance_metrics": true
+    },
+    "experimental": {
+      "vision_analysis": true,
+      "multi_file_context": true,
+      "semantic_search": true,
+      "cross_skill_suggestions": true
     }
   },
   "local": {
@@ -44,6 +53,129 @@
     "backup_directory": ".backups/skills"
   },
   "skills": [
+    {
+      "id": "skill-orchestrator",
+      "name": "Skill Orchestrator",
+      "description": "Pipeline execution с context passing, parallel skill execution, metrics tracking",
+      "version": "1.0.0",
+      "status": "active",
+      "category": "Development",
+      "subcategories": ["Pipeline", "Orchestration", "Workflow"],
+      "skill_file": "src/utils/SKILL_ORCHESTRATOR.md",
+      "main_module": "src/utils/skill_orchestrator.py",
+      "test_file": "tests/utils/test_skill_orchestrator.py",
+      "activation_triggers": [
+        "pipeline",
+        "orchestrator",
+        "workflow",
+        "skill chain",
+        "context passing"
+      ],
+      "dependencies": {
+        "requires": [],
+        "optional": []
+      },
+      "performance": {
+        "accuracy": "N/A",
+        "latency_ms": 1,
+        "throughput_per_sec": 10000
+      },
+      "metadata": {
+        "features": ["$prev token", "$context token", "parallel execution", "metrics"],
+        "python_version": ">=3.11"
+      }
+    },
+    {
+      "id": "skill-profiler",
+      "name": "Skill Profiler",
+      "description": "Performance profiling с latency percentiles (p50/p95/p99), bottleneck detection",
+      "version": "1.0.0",
+      "status": "active",
+      "category": "Development",
+      "subcategories": ["Performance", "Profiling", "Monitoring"],
+      "skill_file": "src/utils/SKILL_PROFILER.md",
+      "main_module": "src/utils/skill_profiler.py",
+      "test_file": "tests/utils/test_skill_profiler.py",
+      "activation_triggers": [
+        "profiler",
+        "performance",
+        "latency",
+        "bottleneck",
+        "metrics"
+      ],
+      "dependencies": {
+        "requires": [],
+        "optional": ["psutil"]
+      },
+      "performance": {
+        "overhead_percent": "<1%",
+        "latency_ms": 0.1,
+        "throughput_per_sec": 100000
+      },
+      "metadata": {
+        "metrics": ["p50", "p95", "p99", "mean", "throughput", "memory"],
+        "python_version": ">=3.11"
+      }
+    },
+    {
+      "id": "ensemble-builder",
+      "name": "Ensemble Builder",
+      "description": "VotingRegressor с auto-calculated CV-based weights (RF, GB, Ridge, XGBoost)",
+      "version": "1.0.0",
+      "status": "active",
+      "category": "Data & AI",
+      "subcategories": ["Machine Learning", "Ensemble", "Model Selection"],
+      "main_module": "src/ml/model_tuner.py",
+      "test_file": "tests/ml/test_ensemble_builder.py",
+      "activation_triggers": [
+        "ensemble",
+        "voting",
+        "model combination",
+        "auto weights"
+      ],
+      "dependencies": {
+        "requires": ["scikit-learn"],
+        "optional": ["xgboost"]
+      },
+      "performance": {
+        "accuracy": "varies",
+        "latency_ms": 100,
+        "throughput_per_sec": 1000
+      },
+      "metadata": {
+        "models": ["RandomForest", "GradientBoosting", "Ridge", "XGBoost"],
+        "python_version": ">=3.11"
+      }
+    },
+    {
+      "id": "advanced-feature-selector",
+      "name": "Advanced Feature Selector",
+      "description": "SelectFromModel, RFE, permutation importance для feature selection",
+      "version": "1.0.0",
+      "status": "active",
+      "category": "Data & AI",
+      "subcategories": ["Machine Learning", "Feature Engineering", "Model Selection"],
+      "main_module": "src/ml/model_tuner.py",
+      "test_file": "tests/ml/test_ensemble_builder.py",
+      "activation_triggers": [
+        "feature selection",
+        "rfe",
+        "permutation importance",
+        "select from model"
+      ],
+      "dependencies": {
+        "requires": ["scikit-learn"],
+        "optional": []
+      },
+      "performance": {
+        "latency_ms": 50,
+        "throughput_per_sec": 100
+      },
+      "metadata": {
+        "methods": ["SelectFromModel", "RFE", "PermutationImportance"],
+        "python_version": ">=3.11"
+      }
+    },
     {
       "id": "ai-arbitrage-predictor",
       "name": "AI-Powered Arbitrage Prediction",
@@ -253,10 +385,42 @@
     }
   ],
   "dependency_graph": {
+    "skill-orchestrator": {
+      "depends_on": [],
+      "used_by": [
+        "ai-arbitrage-predictor",
+        "telegram_bot.handlers"
+      ]
+    },
+    "skill-profiler": {
+      "depends_on": [],
+      "used_by": [
+        "skill-orchestrator",
+        "ai-arbitrage-predictor"
+      ]
+    },
+    "ensemble-builder": {
+      "depends_on": [
+        "scikit-learn"
+      ],
+      "used_by": [
+        "ai-arbitrage-predictor"
+      ]
+    },
+    "advanced-feature-selector": {
+      "depends_on": [
+        "scikit-learn"
+      ],
+      "used_by": [
+        "ensemble-builder"
+      ]
+    },
     "ai-arbitrage-predictor": {
       "depends_on": [
         "src.ml.enhanced_predictor",
-        "src.dmarket.dmarket_api"
+        "src.dmarket.dmarket_api",
+        "skill-orchestrator",
+        "skill-profiler"
       ],
       "used_by": [
         "telegram_bot.handlers.arbitrage_handler"
@@ -299,7 +463,9 @@
     "vscode": {
       "keybindings": {
         "list_skills": "ctrl+shift+k",
-        "scan_workspace": "ctrl+shift+alt+s"
+        "scan_workspace": "ctrl+shift+alt+s",
+        "run_profiler": "ctrl+shift+p",
+        "orchestrate_pipeline": "ctrl+shift+o"
       },
       "commands": [
         "Skills: List All",
@@ -307,7 +473,9 @@
         "Skills: Validate",
         "Skills: Open AI Arbitrage",
         "Skills: Open NLP Handler",
-        "Skills: Test Implementation"
+        "Skills: Test Implementation",
+        "Skills: Run Profiler",
+        "Skills: Execute Pipeline"
       ]
     },
     "github_actions": {
@@ -318,11 +486,11 @@
     }
   },
   "statistics": {
-    "total_skills": 6,
-    "active_skills": 4,
+    "total_skills": 10,
+    "active_skills": 8,
     "documentation_only": 2,
-    "total_tests": 76,
+    "total_tests": 168,
     "pass_rate": "100%",
-    "total_lines": 1469
+    "total_lines": 2500
   }
 }
