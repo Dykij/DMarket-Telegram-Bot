@@ -150,7 +150,7 @@ class TestAdaptivePricePredictor:
         predictor = AdaptivePricePredictor(user_balance=100.0)
 
         assert predictor.user_balance == 100.0
-        assert predictor.MODEL_VERSION == "1.1.0"
+        assert predictor.MODEL_VERSION == "1.1.0"  # Updated for joblib serialization
 
     def test_set_user_balance(self):
         """Тест установки баланса."""

@@ -583,9 +583,10 @@ class TestEdgeCases:
 
     def test_zero_ttl_cache(self):
         """Test cache with zero TTL.
-        
-        Note: TTL=0 means entries never expire due to timing (0 > 0 is False).
-        This is consistent with many cache implementations where TTL=0 means "no expiration".
+
+        With TTL=0, entries expire immediately because the check
+        `time.time() - timestamp > 0` is True for any access after set().
+        This is the expected behavior - TTL=0 means immediate expiration.
         """
         # Arrange
         zero_ttl_cache = ScannerCache(ttl=0, max_size=100)
@@ -595,10 +596,9 @@ class TestEdgeCases:
         zero_ttl_cache.set("key", items)
         result = zero_ttl_cache.get("key")
 
-        # Assert - Zero TTL means entries expire immediately
-        # When TTL=0, any time.time() - timestamp > 0 makes entry expired
-        # This is correct behavior: TTL=0 means "don't cache"
-        assert result is None  # Entry expires immediately with TTL=0
+        # Assert - TTL=0 means entries expire immediately
+        # Because time.time() - timestamp > 0 will always be True after any time passes
+        assert result is None  # Entry is expired immediately
 
 
 # ============================================================================
