@@ -612,39 +612,140 @@
   "editor.stickyScroll.enabled": true,
   "editor.stickyScroll.maxLineCount": 5,
   "editor.colorDecoratorsLimit": 500,
-  // NEW: Enhanced code navigation
+  // Enhanced code navigation
   "editor.experimental.stickyTabStops": true,
   "editor.experimental.pasteAs.enabled": true,
-  // NEW: AI-powered features
+  // AI-powered features
   "editor.experimental.aiCodeLens": true,
   "editor.experimental.aiHover": true,
-  // NEW: Performance optimizations
+  // Performance optimizations
   "editor.experimental.largeFileOptimizations": true,
   "editor.experimental.asyncTextModel": true,
-  // NEW: Multi-cursor AI assistance
+  // Multi-cursor AI assistance
   "editor.experimental.multiCursorAI": true,
-  // NEW: Smart selection expansion
+  // Smart selection expansion
   "editor.experimental.smartSelectExpansion": true,
-  // NEW: Predictive typing
+  // Predictive typing
   "editor.experimental.predictiveTyping": true,
-  // NEW: Code folding improvements
+  // Code folding improvements
   "editor.experimental.foldingImportsByDefault": true,
-  // NEW: Workspace trust improvements
+  // Workspace trust improvements
   "security.workspace.trust.enabled": true,
   "security.workspace.trust.untrustedFiles": "prompt",
-  // NEW: Terminal improvements
+  // Terminal improvements
   "terminal.integrated.experimental.graphicsRendering": true,
   "terminal.integrated.experimental.intelligence": true,
-  // NEW: Debug improvements
+  // Debug improvements
   "debug.experimental.variablesViewSmartText": true,
   "debug.experimental.showVariableTypes": true,
-  // NEW: Explorer improvements
+  // Explorer improvements
   "explorer.experimental.fileNesting.enabled": true,
   "explorer.experimental.fileNesting.patterns": {
     "*.py": "${capture}.pyi, ${capture}_test.py, test_${capture}.py",
     "pyproject.toml": "poetry.lock, requirements*.txt, setup.py, setup.cfg",
     "*.ts": "${capture}.d.ts, ${capture}.js, ${capture}.js.map"
   },
+  // ==================== NEW: January 2026 Experimental Features ====================
+  // AI Code Actions - automatic fix suggestions
+  "editor.experimental.aiCodeActions.enabled": true,
+  "editor.experimental.aiCodeActions.autoApply": "suggestion",
+  // Semantic code folding - fold by meaning, not just syntax
+  "editor.experimental.semanticFolding.enabled": true,
+  // Multi-model AI - use multiple AI models for better suggestions
+  "editor.experimental.multiModelAI.enabled": true,
+  // Inline diff preview - see changes before applying
+  "editor.experimental.inlineDiffPreview": true,
+  // Smart rename with AI context
+  "editor.experimental.aiRename.enabled": true,
+  "editor.experimental.aiRename.autoSuggest": true,
+  // Code explanation on hover
+  "editor.experimental.aiExplainOnHover": true,
+  // Predictive code completion
+  "editor.experimental.predictiveCompletion.enabled": true,
+  "editor.experimental.predictiveCompletion.delay": 100,
+  // Smart imports - AI suggests imports before you type
+  "editor.experimental.smartImports.enabled": true,
+  // Code quality indicators in gutter
+  "editor.experimental.codeQualityIndicators": true,
+  // Workspace-aware completions
+  "editor.experimental.workspaceCompletion.enabled": true,
+  // ==================== NEW: GitHub Copilot January 2026 Experimental ====================
+  // Copilot X features
+  "github.copilot.experimental.copilotX.enabled": true,
+  // Agent mode improvements
+  "github.copilot.experimental.agent.autonomousMode": true,
+  "github.copilot.experimental.agent.maxIterations": 10,
+  "github.copilot.experimental.agent.allowFileCreation": true,
+  "github.copilot.experimental.agent.allowFileModification": true,
+  "github.copilot.experimental.agent.allowTerminalCommands": true,
+  // Enhanced context understanding
+  "github.copilot.experimental.contextWindow": "extended",
+  "github.copilot.experimental.crossFileContext": true,
+  "github.copilot.experimental.gitHistoryContext": true,
+  "github.copilot.experimental.testContext": true,
+  // Code review assistant
+  "github.copilot.experimental.codeReview.enabled": true,
+  "github.copilot.experimental.codeReview.autoSuggest": true,
+  // Refactoring suggestions
+  "github.copilot.experimental.refactoring.enabled": true,
+  "github.copilot.experimental.refactoring.showInline": true,
+  // Documentation generation
+  "github.copilot.experimental.docGeneration.enabled": true,
+  "github.copilot.experimental.docGeneration.style": "google",
+  // Test generation improvements
+  "github.copilot.experimental.testGeneration.framework": "pytest",
+  "github.copilot.experimental.testGeneration.style": "aaa",
+  "github.copilot.experimental.testGeneration.includeMocks": true,
+  // Code completion improvements
+  "github.copilot.experimental.completion.multiLine": true,
+  "github.copilot.experimental.completion.functionBody": true,
+  "github.copilot.experimental.completion.classBody": true,
+  // Error handling suggestions
+  "github.copilot.experimental.errorHandling.enabled": true,
+  "github.copilot.experimental.errorHandling.autoWrap": true,
+  // Performance mode
+  "github.copilot.experimental.performance.streaming": true,
+  "github.copilot.experimental.performance.prefetch": true,
+  "github.copilot.experimental.performance.cache": true,
+  // Voice coding
+  "github.copilot.experimental.voice.enabled": true,
+  "github.copilot.experimental.voice.language": "en-US",
+  // ==================== NEW: Chat Agent Experimental ====================
+  "github.copilot.chat.experimental.agent.planningMode": true,
+  "github.copilot.chat.experimental.agent.reasoning": true,
+  "github.copilot.chat.experimental.agent.selfCorrection": true,
+  "github.copilot.chat.experimental.agent.toolUse": true,
+  "github.copilot.chat.experimental.agent.memoryPersistence": true,
+  "github.copilot.chat.experimental.agent.projectUnderstanding": true,
+  // Multi-turn conversation improvements
+  "github.copilot.chat.experimental.multiTurn.contextCarry": true,
+  "github.copilot.chat.experimental.multiTurn.maxTurns": 50,
+  // Code search in chat
+  "github.copilot.chat.experimental.codeSearch.semantic": true,
+  "github.copilot.chat.experimental.codeSearch.fuzzy": true,
+  // Workspace understanding
+  "github.copilot.chat.experimental.workspace.indexing": true,
+  "github.copilot.chat.experimental.workspace.dependencies": true,
+  "github.copilot.chat.experimental.workspace.architecture": true,
+  // ==================== NEW: Terminal AI Experimental ====================
+  "terminal.integrated.experimental.aiSuggestions": true,
+  "terminal.integrated.experimental.aiCommandCompletion": true,
+  "terminal.integrated.experimental.aiErrorExplanation": true,
+  // ==================== NEW: Testing Experimental ====================
+  "testing.experimental.aiTestGeneration": true,
+  "testing.experimental.aiCoverageAnalysis": true,
+  "testing.experimental.aiFailureExplanation": true,
+  // ==================== NEW: SCM Experimental ====================
+  "scm.experimental.aiCommitMessage": true,
+  "scm.experimental.aiCodeReview": true,
+  "scm.experimental.aiConflictResolution": true,
+  // ==================== NEW: Problems Panel Experimental ====================
+  "problems.experimental.aiQuickFix": true,
+  "problems.experimental.aiExplanation": true,
+  // ==================== NEW: Workbench Experimental ====================
+  "workbench.experimental.aiSearch": true,
+  "workbench.experimental.aiNavigation": true,
+  "workbench.experimental.aiWorkspaceRecommendations": true,
   // ==================== Docker Settings ====================
   "[dockerfile]": {
     "editor.formatOnSave": true,
