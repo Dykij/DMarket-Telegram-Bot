@@ -1,0 +1,70 @@
+# Cursor AI Rules for DMarket Telegram Bot
+
+## Project Context
+
+DMarket Telegram Bot - Python 3.11+ async trading bot for DMarket and Waxpeer marketplaces.
+
+## General Principles
+
+- Use async/await for ALL I/O operations
+- Always add type annotations (Python 3.11+ syntax)
+- Follow Google-style docstrings
+- Use structlog for logging with context
+- Keep functions under 50 lines
+- Maximum 3 levels of nesting (use early returns)
+
+## Python Code Style
+
+- `list[str]` not `List[str]`
+- `str | None` not `Optional[str]`
+- `dict[str, Any]` not `Dict[str, Any]`
+- Use `httpx.AsyncClient` for HTTP requests
+- Use `asyncio.gather()` for parallel execution
+
+## Error Handling
+
+- Never use bare `except:`
+- Catch specific exception types
+- Always log errors with context
+- Re-raise or return meaningful messages
+
+## Testing Standards
+
+- Use AAA pattern: Arrange, Act, Assert
+- Test names: `test_<function>_<condition>_<expected>`
+- Use `@pytest.mark.asyncio` for async tests
+- Use `AsyncMock` for mocking async functions
+- Mock at boundaries (API clients, DB)
+
+## API Price Formats
+
+- **DMarket**: Prices in CENTS (1000 = $10.00)
+- **Waxpeer**: Prices in MILS (1000 = $1.00)
+- **Internal**: Always convert to dollars for display
+
+## Imports Order
+
+1. Standard library
+2. Third-party packages
+3. Local modules
+
+## Files to Never Modify
+
+- `.github/agents/*` - Agent configurations
+- `alembic/versions/*` - Database migrations (create new instead)
+
+## Preferred Libraries
+
+- HTTP: `httpx` (not `requests`)
+- Logging: `structlog` (not `logging`)
+- Cache: `aiocache` with Redis backend
+- Validation: `pydantic` v2
+
+## Commands
+
+```bash
+pytest tests/ -v              # Run all tests
+ruff check src/ tests/        # Lint code
+ruff format src/ tests/       # Format code
+mypy src/                     # Type check
+```

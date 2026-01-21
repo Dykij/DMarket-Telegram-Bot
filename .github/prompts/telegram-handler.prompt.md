@@ -1,7 +1,6 @@
 ---
-agent: 'agent'
 description: 'Generate Telegram bot handlers for DMarket Telegram Bot'
-model: 'gpt-4o'
+mode: 'agent'
 ---
 
 # Telegram Handler Generator

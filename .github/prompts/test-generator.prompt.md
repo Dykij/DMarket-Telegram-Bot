@@ -1,7 +1,6 @@
 ---
-agent: 'agent'
 description: 'Generate pytest tests following AAA pattern for DMarket Telegram Bot'
-model: 'gpt-4o'
+mode: 'agent'
 ---
 
 # Test Generator

@@ -15,21 +15,51 @@
 
 ---
 
-## 🤖 Copilot Prompts & Instructions (NEW)
+## 🤖 AI Tools Configuration (Multi-Tool Support)
+
+Этот проект поддерживает несколько AI-инструментов с унифицированными настройками:
+
+### Поддерживаемые инструменты
+
+| Инструмент | Конфигурация | Описание |
+|------------|--------------|----------|
+| **GitHub Copilot** | `.github/copilot-instructions.md` | Основные инструкции |
+| **Claude Code** | `CLAUDE.md` | Инструкции для Claude |
+| **Cursor AI** | `.cursorrules`, `.cursor/rules/` | Правила для Cursor |
 
 ### Доступные промпты (`.github/prompts/`)
+
 | Промпт | Описание |
 |--------|----------|
 | `python-async.prompt.md` | Генерация async Python кода с httpx, structlog |
 | `test-generator.prompt.md` | Генерация pytest тестов по AAA паттерну |
 | `telegram-handler.prompt.md` | Генерация Telegram bot handlers |
+| `refactor-early-returns.prompt.md` | Рефакторинг вложенности (early returns) |
+| `add-docstrings.prompt.md` | Добавление Google-style docstrings |
+| `pydantic-model.prompt.md` | Генерация Pydantic v2 моделей |
+| `error-handling-retry.prompt.md` | Добавление retry-логики с tenacity |
 
 ### Инструкции по типам файлов (`.github/instructions/`)
+
 | Инструкция | Применяется к |
 |------------|---------------|
 | `python-style.instructions.md` | `src/**/*.py` - стиль кода |
 | `testing.instructions.md` | `tests/**/*.py` - тестирование |
 | `workflows.instructions.md` | `.github/workflows/**` - CI/CD |
+| `api-integration.instructions.md` | `src/dmarket/**`, `src/waxpeer/**` - API |
+| `telegram-bot.instructions.md` | `src/telegram_bot/**` - Telegram handlers |
+| `database.instructions.md` | `src/models/**`, `alembic/**` - БД |
+| `documentation.instructions.md` | `docs/**/*.md`, `*.md` - документация |
+
+### Cursor AI модульные правила (`.cursor/rules/`)
+
+| Правило | Глобы |
+|---------|-------|
+| `python-source.mdc` | `src/**/*.py` |
+| `testing.mdc` | `tests/**/*.py` |
+| `workflows.mdc` | `.github/workflows/**` |
+| `api-integration.mdc` | `src/dmarket/**`, `src/waxpeer/**` |
+| `telegram-handlers.mdc` | `src/telegram_bot/**` |
 
 ---
 

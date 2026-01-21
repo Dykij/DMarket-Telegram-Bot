@@ -1,7 +1,6 @@
 ---
-agent: 'agent'
 description: 'Generate async Python code following best practices for DMarket Telegram Bot'
-model: 'gpt-4o'
+mode: 'agent'
 ---
 
 # Async Python Code Generator
