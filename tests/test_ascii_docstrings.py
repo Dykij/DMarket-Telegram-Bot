@@ -16,7 +16,7 @@ class TestASCIIDocstrings:
     @pytest.fixture
     def keyboards_dir(self):
         """Get keyboards directory path."""
-        return Path(__file__).parent.parent.parent / "src" / "telegram_bot" / "keyboards"
+        return Path(__file__).parent.parent / "src" / "telegram_bot" / "keyboards"
 
     @pytest.fixture
     def keyboard_modules(self, keyboards_dir):
