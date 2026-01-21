@@ -378,11 +378,12 @@ class SkillProfiler:
         metrics = self._get_or_create_metrics(skill_name)
         memory_before = self._get_memory_usage()
         start_time = time.perf_counter()
+        success = False  # Default to False, set True on successful completion
 
         try:
             yield
             success = True
-        except Exception:
+        except BaseException:
             success = False
             raise
         finally:
