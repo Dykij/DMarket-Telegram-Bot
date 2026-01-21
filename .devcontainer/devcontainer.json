@@ -1,0 +1,357 @@
+{
+    "name": "DMarket Telegram Bot Development",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "devcontainer",
+    "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+    // ============================================================================
+    // FEATURES - Additional tools and runtimes
+    // ============================================================================
+    "features": {
+        // Git configuration (latest version)
+        "ghcr.io/devcontainers/features/git:1": {
+            "version": "latest",
+            "ppa": true
+        },
+        // GitHub CLI for PR management
+        "ghcr.io/devcontainers/features/github-cli:1": {
+            "installDirectlyFromGitHubRelease": true,
+            "version": "latest"
+        },
+        // Docker-in-Docker for container testing
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {
+            "version": "latest",
+            "moby": true,
+            "dockerDashComposeVersion": "v2"
+        },
+        // Node.js for tooling (pre-commit, etc.)
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "22"
+        },
+        // Sentry CLI for error tracking
+        "ghcr.io/devcontainers/features/sentry-cli:1": {
+            "version": "latest"
+        },
+        // Common utilities (curl, wget, etc.)
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "installZsh": true,
+            "installOhMyZsh": true,
+            "upgradePackages": true,
+            "username": "vscode",
+            "userUid": "1000",
+            "userGid": "1000"
+        }
+    },
+
+    // ============================================================================
+    // LIFECYCLE COMMANDS
+    // ============================================================================
+
+    // Run after container is created (one-time setup)
+    "onCreateCommand": "bash .devcontainer/scripts/onCreate.sh",
+
+    // Run after container is created and features installed
+    "postCreateCommand": "bash .devcontainer/scripts/postCreate.sh",
+
+    // Run each time container starts
+    "postStartCommand": "bash .devcontainer/scripts/postStart.sh",
+
+    // Run when VS Code attaches to the container
+    "postAttachCommand": "echo '🚀 Welcome to DMarket Bot Development Environment!'",
+
+    // ============================================================================
+    // ENVIRONMENT VARIABLES
+    // ============================================================================
+    "containerEnv": {
+        "PYTHONUNBUFFERED": "1",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "/workspaces/${localWorkspaceFolderBasename}",
+        "PIP_DISABLE_PIP_VERSION_CHECK": "1",
+        "PIP_NO_CACHE_DIR": "1",
+        "ENVIRONMENT": "development",
+        "DEBUG": "true",
+        "DRY_RUN": "true",
+        "LOG_LEVEL": "DEBUG",
+        "LOG_FORMAT": "text",
+        "TESTING": "true",
+        // Database URLs for development
+        "DATABASE_URL": "postgresql://dmarket_user:dmarket_password@postgres:5432/dmarket_bot",
+        "TEST_DATABASE_URL": "sqlite:///:memory:",
+        "REDIS_URL": "redis://redis:6379/0"
+    },
+
+    // ============================================================================
+    // REMOTE USER CONFIGURATION
+    // ============================================================================
+    "remoteUser": "vscode",
+    "updateRemoteUserUID": true,
+
+    // ============================================================================
+    // MOUNTS - Additional volumes
+    // ============================================================================
+    "mounts": [
+        // Persist pip cache between rebuilds
+        "source=dmarket-bot-pip-cache,target=/home/vscode/.cache/pip,type=volume",
+        // Persist pre-commit cache
+        "source=dmarket-bot-precommit-cache,target=/home/vscode/.cache/pre-commit,type=volume",
+        // Persist mypy cache
+        "source=dmarket-bot-mypy-cache,target=/workspaces/${localWorkspaceFolderBasename}/.mypy_cache,type=volume",
+        // Persist ruff cache
+        "source=dmarket-bot-ruff-cache,target=/workspaces/${localWorkspaceFolderBasename}/.ruff_cache,type=volume",
+        // Persist pytest cache
+        "source=dmarket-bot-pytest-cache,target=/workspaces/${localWorkspaceFolderBasename}/.pytest_cache,type=volume"
+    ],
+
+    // ============================================================================
+    // VS CODE CUSTOMIZATIONS
+    // ============================================================================
+    "customizations": {
+        "vscode": {
+            // Extensions to install in the container
+            "extensions": [
+                // ========== Python Development (REQUIRED) ==========
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-python.debugpy",
+                "charliermarsh.ruff",
+                "ms-python.mypy-type-checker",
+
+                // ========== Testing (REQUIRED) ==========
+                "littlefoxteam.vscode-python-test-adapter",
+                "hbenl.vscode-test-explorer",
+
+                // ========== Docker & Containers ==========
+                "ms-azuretools.vscode-docker",
+                "ms-vscode-remote.remote-containers",
+
+                // ========== Git & GitHub (REQUIRED) ==========
+                "eamodio.gitlens",
+                "donjayamanne.githistory",
+                "github.vscode-pull-request-github",
+                "github.vscode-github-actions",
+
+                // ========== Database ==========
+                "mtxr.sqltools",
+                "mtxr.sqltools-driver-pg",
+                "mtxr.sqltools-driver-sqlite",
+
+                // ========== Markdown & Documentation ==========
+                "yzhang.markdown-all-in-one",
+                "davidanson.vscode-markdownlint",
+                "bierner.markdown-mermaid",
+
+                // ========== Code Quality (REQUIRED) ==========
+                "streetsidesoftware.code-spell-checker",
+                "streetsidesoftware.code-spell-checker-russian",
+                "usernamehw.errorlens",
+                "nhoizey.gremlins",
+
+                // ========== Productivity ==========
+                "oderwat.indent-rainbow",
+                "PKief.material-icon-theme",
+                "gruntfuggly.todo-tree",
+
+                // ========== YAML/JSON/TOML (REQUIRED) ==========
+                "redhat.vscode-yaml",
+                "tamasfe.even-better-toml",
+
+                // ========== GitHub Copilot ==========
+                "github.copilot",
+                "github.copilot-chat",
+
+                // ========== REST API Testing ==========
+                "humao.rest-client",
+
+                // ========== Testing & Coverage ==========
+                "ryanluker.vscode-coverage-gutters",
+
+                // ========== Terminal & Shell ==========
+                "tyriar.sort-lines"
+            ],
+
+            // VS Code settings for the container
+            "settings": {
+                // ========== Python Settings ==========
+                "python.defaultInterpreterPath": "/workspaces/${localWorkspaceFolderBasename}/.venv/bin/python",
+                "python.terminal.activateEnvironment": true,
+                "python.analysis.typeCheckingMode": "strict",
+                "python.analysis.autoImportCompletions": true,
+                "python.analysis.diagnosticMode": "workspace",
+                "python.analysis.inlayHints.functionReturnTypes": true,
+                "python.analysis.inlayHints.variableTypes": true,
+
+                // ========== Ruff (Linting & Formatting) ==========
+                "ruff.enable": true,
+                "ruff.lint.enable": true,
+                "ruff.format.args": ["--line-length=100"],
+                "ruff.organizeImports": true,
+                "ruff.fixAll": true,
+                "ruff.showNotifications": "onError",
+                "[python]": {
+                    "editor.formatOnSave": true,
+                    "editor.codeActionsOnSave": {
+                        "source.fixAll.ruff": "explicit",
+                        "source.organizeImports.ruff": "explicit"
+                    },
+                    "editor.defaultFormatter": "charliermarsh.ruff"
+                },
+
+                // ========== MyPy Type Checking ==========
+                "mypy-type-checker.args": [
+                    "--config-file=${workspaceFolder}/pyproject.toml"
+                ],
+                "mypy-type-checker.importStrategy": "fromEnvironment",
+
+                // ========== Testing ==========
+                "python.testing.pytestEnabled": true,
+                "python.testing.pytestArgs": [
+                    "tests",
+                    "-v",
+                    "--tb=short"
+                ],
+                "python.testing.unittestEnabled": false,
+
+                // ========== Editor Settings ==========
+                "editor.rulers": [100],
+                "editor.tabSize": 4,
+                "editor.insertSpaces": true,
+                "editor.formatOnSave": true,
+                "editor.minimap.enabled": false,
+                "editor.wordWrap": "off",
+                "editor.renderWhitespace": "trailing",
+                "editor.bracketPairColorization.enabled": true,
+                "editor.guides.bracketPairs": "active",
+
+                // ========== Files ==========
+                "files.autoSave": "afterDelay",
+                "files.autoSaveDelay": 1000,
+                "files.exclude": {
+                    "**/__pycache__": true,
+                    "**/.pytest_cache": true,
+                    "**/.mypy_cache": true,
+                    "**/.ruff_cache": true,
+                    "**/*.egg-info": true,
+                    "**/.eggs": true,
+                    "**/htmlcov": true
+                },
+                "files.trimTrailingWhitespace": true,
+                "files.insertFinalNewline": true,
+
+                // ========== Terminal ==========
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "terminal.integrated.fontFamily": "MesloLGS NF, monospace",
+                "terminal.integrated.fontSize": 14,
+
+                // ========== Git ==========
+                "git.autofetch": true,
+                "git.confirmSync": false,
+                "git.enableSmartCommit": true,
+
+                // ========== Error Lens ==========
+                "errorLens.enabledDiagnosticLevels": [
+                    "error",
+                    "warning"
+                ],
+                "errorLens.excludeBySource": ["cSpell"],
+
+                // ========== Spell Checker ==========
+                "cSpell.language": "en,ru",
+                "cSpell.enableFiletypes": [
+                    "python",
+                    "markdown",
+                    "yaml"
+                ],
+
+                // ========== Todo Tree ==========
+                "todo-tree.general.tags": [
+                    "TODO",
+                    "FIXME",
+                    "BUG",
+                    "HACK",
+                    "XXX",
+                    "NOTE",
+                    "ВАЖНО",
+                    "ЗАДАЧА"
+                ],
+
+                // ========== SQLTools ==========
+                "sqltools.connections": [
+                    {
+                        "name": "DMarket PostgreSQL (Dev)",
+                        "driver": "PostgreSQL",
+                        "server": "postgres",
+                        "port": 5432,
+                        "database": "dmarket_bot",
+                        "username": "dmarket_user",
+                        "password": "dmarket_password"
+                    }
+                ],
+
+                // ========== Devcontainer Specific ==========
+                "workbench.colorTheme": "Default Dark Modern",
+                "workbench.iconTheme": "material-icon-theme"
+            }
+        },
+
+        // Codespaces-specific settings
+        "codespaces": {
+            "openFiles": [
+                "README.md",
+                "docs/QUICK_START.md"
+            ]
+        }
+    },
+
+    // ============================================================================
+    // FORWARDED PORTS
+    // ============================================================================
+    "forwardPorts": [
+        5432,   // PostgreSQL
+        6379,   // Redis
+        8080,   // Bot health check endpoint
+        8001,   // Prometheus metrics
+        5678,   // n8n (if enabled)
+        8000    // Documentation server
+    ],
+
+    "portsAttributes": {
+        "5432": {
+            "label": "PostgreSQL",
+            "onAutoForward": "silent"
+        },
+        "6379": {
+            "label": "Redis",
+            "onAutoForward": "silent"
+        },
+        "8080": {
+            "label": "Bot Health Check",
+            "onAutoForward": "notify"
+        },
+        "8001": {
+            "label": "Prometheus Metrics",
+            "onAutoForward": "silent"
+        },
+        "5678": {
+            "label": "n8n Workflows",
+            "onAutoForward": "notify"
+        },
+        "8000": {
+            "label": "Docs Server",
+            "onAutoForward": "openBrowser"
+        }
+    },
+
+    // ============================================================================
+    // SECURITY
+    // ============================================================================
+    "hostRequirements": {
+        "cpus": 2,
+        "memory": "4gb",
+        "storage": "32gb"
+    },
+
+    // ============================================================================
+    // SHUTDOWN ACTION
+    // ============================================================================
+    "shutdownAction": "stopCompose"
+}
