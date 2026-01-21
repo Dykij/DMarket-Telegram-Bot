@@ -403,18 +403,18 @@ def get_cache_key(
 
 
 __all__ = [
-    # Main client
-    "CachedHTTPClient",
-    # Configuration
-    "CacheConfig",
-    "CacheStorageType",
-    "CacheStats",
-    # Factory functions
-    "create_cached_client",
-    "get_cached_client",
-    "close_cached_client",
-    # Utilities
-    "get_cache_key",
     # Availability check
     "HISHEL_AVAILABLE",
+    # Configuration
+    "CacheConfig",
+    "CacheStats",
+    "CacheStorageType",
+    # Main client
+    "CachedHTTPClient",
+    "close_cached_client",
+    # Factory functions
+    "create_cached_client",
+    # Utilities
+    "get_cache_key",
+    "get_cached_client",
 ]

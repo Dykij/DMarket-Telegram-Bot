@@ -778,6 +778,7 @@ class Application:
         logger.info("Initializing AI Training Scheduler...")
         try:
             from datetime import time as dt_time
+
             from src.utils.ai_scheduler import AITrainingScheduler
 
             admin_users = self._get_admin_users()
@@ -893,8 +894,6 @@ class Application:
         """Initialize Autopilot Orchestrator with auto-buyer and auto-seller."""
         logger.info("Initializing Autopilot Orchestrator...")
         try:
-            from src.dmarket.auto_buyer import AutoBuyConfig, AutoBuyer
-            from src.dmarket.auto_seller import AutoSeller
             from src.dmarket.autopilot_orchestrator import AutopilotConfig, AutopilotOrchestrator
 
             auto_buyer = await self._init_auto_buyer()
@@ -1046,7 +1045,10 @@ class Application:
 
         logger.info("Initializing Bot Integrator (unified improvements)...")
         try:
-            from src.integration.bot_integrator import BotIntegrator, IntegratorConfig, set_integrator
+            from src.integration.bot_integrator import (
+                BotIntegrator,
+                set_integrator,
+            )
 
             integrator_config = self._build_integrator_config()
             waxpeer_api = self._get_waxpeer_api()

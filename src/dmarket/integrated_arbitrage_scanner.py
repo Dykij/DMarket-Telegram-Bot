@@ -18,6 +18,7 @@ import asyncio
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from decimal import Decimal
+import operator
 from typing import TYPE_CHECKING, Any
 
 import structlog
@@ -79,14 +80,14 @@ class ArbitrageOpportunity:
 
     # Best buy/sell strategy
     buy_platform: str = ""
-    buy_price: Decimal = Decimal("0")
+    buy_price: Decimal = Decimal(0)
     sell_platform: str = ""
-    sell_price: Decimal = Decimal("0")
-    net_sell_price: Decimal = Decimal("0")  # After commission
+    sell_price: Decimal = Decimal(0)
+    net_sell_price: Decimal = Decimal(0)  # After commission
 
     # Profitability
-    profit_usd: Decimal = Decimal("0")
-    profit_percent: Decimal = Decimal("0")
+    profit_usd: Decimal = Decimal(0)
+    profit_percent: Decimal = Decimal(0)
 
     # Liquidity assessment
     liquidity_score: int = 0  # 1-3 (number of platforms)
@@ -123,8 +124,8 @@ class WaxpeerListingTarget:
     current_waxpeer_price: Decimal | None = None
 
     # Profitability tracking
-    expected_profit: Decimal = Decimal("0")
-    expected_roi: Decimal = Decimal("0")
+    expected_profit: Decimal = Decimal(0)
+    expected_roi: Decimal = Decimal(0)
 
     # Auto-update tracking
     last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
@@ -137,7 +138,7 @@ class WaxpeerListingTarget:
 
     def calculate_target_price(self, waxpeer_price: Decimal, markup: Decimal = Decimal("0.10")) -> None:
         """Calculate target listing price with markup.
-        
+
         Args:
             waxpeer_price: Current Waxpeer market price
             markup: Markup percentage (default 10% = 0.10)
@@ -147,13 +148,13 @@ class WaxpeerListingTarget:
         # Calculate with commission: net_price = list_price * (1 - 0.06)
         # We want: net_price = waxpeer_price * (1 + markup)
         # So: list_price = waxpeer_price * (1 + markup) / (1 - 0.06)
-        target_net = waxpeer_price * (Decimal("1") + markup)
-        self.target_list_price = target_net / (Decimal("1") - WAXPEER_COMMISSION)
+        target_net = waxpeer_price * (Decimal(1) + markup)
+        self.target_list_price = target_net / (Decimal(1) - WAXPEER_COMMISSION)
 
         # Calculate expected profit
-        net_after_commission = self.target_list_price * (Decimal("1") - WAXPEER_COMMISSION)
+        net_after_commission = self.target_list_price * (Decimal(1) - WAXPEER_COMMISSION)
         self.expected_profit = net_after_commission - self.buy_price
-        self.expected_roi = (self.expected_profit / self.buy_price) * Decimal("100")
+        self.expected_roi = (self.expected_profit / self.buy_price) * Decimal(100)
 
         self.last_updated = datetime.now(UTC)
         self.update_count += 1
@@ -162,7 +163,7 @@ class WaxpeerListingTarget:
 class IntegratedArbitrageScanner:
     """
     Integrated arbitrage scanner that finds opportunities and manages Waxpeer listings.
-    
+
     Features:
     - DMarket-only arbitrage (intramarket price anomalies)
     - Multi-platform price comparison (DMarket, Waxpeer, Steam)
@@ -184,7 +185,7 @@ class IntegratedArbitrageScanner:
         enable_cross_platform: bool = True,
     ):
         """Initialize integrated arbitrage scanner.
-        
+
         Args:
             dmarket_api: DMarket API client
             waxpeer_api: Waxpeer API client
@@ -217,11 +218,11 @@ class IntegratedArbitrageScanner:
         self, game: str = "csgo", limit: int = 50
     ) -> list[ArbitrageOpportunity]:
         """Scan all platforms and find arbitrage opportunities.
-        
+
         Args:
             game: Game code (csgo, dota2, tf2, rust)
             limit: Maximum items to check per platform
-            
+
         Returns:
             List of profitable arbitrage opportunities sorted by profit
         """
@@ -282,15 +283,15 @@ class IntegratedArbitrageScanner:
         self, game: str = "csgo", limit: int = 100, price_diff_percent: float = 10.0
     ) -> list[dict[str, Any]]:
         """Scan DMarket for intramarket arbitrage opportunities.
-        
+
         Finds items on DMarket that are underpriced compared to similar items,
         allowing for immediate profit on the same platform.
-        
+
         Args:
             game: Game code (csgo, dota2, tf2, rust)
             limit: Maximum items to check
             price_diff_percent: Minimum price difference percentage
-            
+
         Returns:
             List of DMarket-only arbitrage opportunities
         """
@@ -337,11 +338,11 @@ class IntegratedArbitrageScanner:
         self, game: str = "csgo", limit: int = 50
     ) -> dict[str, Any]:
         """Scan using all available strategies: DMarket-only + cross-platform.
-        
+
         Args:
             game: Game code (csgo, dota2, tf2, rust)
             limit: Maximum items to check per strategy
-            
+
         Returns:
             Dictionary with both strategies' results
         """
@@ -456,23 +457,23 @@ class IntegratedArbitrageScanner:
                 continue
 
             # Sort by price (cheapest first)
-            prices.sort(key=lambda x: x[1])
+            prices.sort(key=operator.itemgetter(1))
 
             buy_platform, buy_price = prices[0]
             sell_platform, sell_price = prices[-1]
 
             # Calculate net after commission
             if sell_platform == "dmarket":
-                net_sell = sell_price * (Decimal("1") - DMARKET_COMMISSION)
+                net_sell = sell_price * (Decimal(1) - DMARKET_COMMISSION)
             elif sell_platform == "waxpeer":
-                net_sell = sell_price * (Decimal("1") - WAXPEER_COMMISSION)
+                net_sell = sell_price * (Decimal(1) - WAXPEER_COMMISSION)
             elif sell_platform == "steam":
-                net_sell = sell_price * (Decimal("1") - STEAM_COMMISSION)
+                net_sell = sell_price * (Decimal(1) - STEAM_COMMISSION)
             else:
                 net_sell = sell_price
 
             profit = net_sell - buy_price
-            profit_percent = (profit / buy_price) * Decimal("100")
+            profit_percent = (profit / buy_price) * Decimal(100)
 
             # Create opportunity
             opp = ArbitrageOpportunity(
@@ -498,14 +499,14 @@ class IntegratedArbitrageScanner:
         self, item_name: str, asset_id: str, buy_price: Decimal
     ) -> WaxpeerListingTarget:
         """Create a listing target for Waxpeer resale.
-        
+
         This keeps the item in DMarket inventory and prepares it for Waxpeer listing.
-        
+
         Args:
             item_name: Item name
             asset_id: DMarket inventory asset ID
             buy_price: Price paid on DMarket
-            
+
         Returns:
             WaxpeerListingTarget with calculated optimal price
         """
@@ -556,14 +557,14 @@ class IntegratedArbitrageScanner:
 
     async def update_listing_targets(self) -> list[WaxpeerListingTarget]:
         """Update all listing targets with current Waxpeer prices.
-        
+
         Returns:
             List of updated targets
         """
         logger.info("updating_listing_targets", count=len(self.listing_targets))
 
         updated = []
-        for asset_id, target in self.listing_targets.items():
+        for target in self.listing_targets.values():
             # Fetch latest Waxpeer price
             current_price = await self._get_current_waxpeer_price(target.item_name)
 
@@ -584,13 +585,13 @@ class IntegratedArbitrageScanner:
 
     async def get_listing_recommendations(self) -> list[dict[str, Any]]:
         """Get recommendations for items to list on Waxpeer.
-        
+
         Returns:
             List of items ready for listing with calculated prices
         """
         recommendations = []
 
-        for asset_id, target in self.listing_targets.items():
+        for target in self.listing_targets.values():
             if target.is_listed:
                 continue  # Already listed
 
@@ -609,7 +610,7 @@ class IntegratedArbitrageScanner:
             })
 
         # Sort by ROI (best first)
-        recommendations.sort(key=lambda x: x["expected_roi"], reverse=True)
+        recommendations.sort(key=operator.itemgetter("expected_roi"), reverse=True)
 
         return recommendations
 
@@ -617,14 +618,14 @@ class IntegratedArbitrageScanner:
         self, item_name: str, buy_price: Decimal, game: str = "csgo"
     ) -> dict[str, Any]:
         """Intelligently decide whether to sell on DMarket immediately or hold for Waxpeer.
-        
+
         Analyzes both DMarket and Waxpeer prices to determine optimal strategy.
-        
+
         Args:
             item_name: Item name
             buy_price: Price paid on DMarket
             game: Game code
-            
+
         Returns:
             Dictionary with recommended strategy and expected profits
         """
@@ -646,26 +647,26 @@ class IntegratedArbitrageScanner:
                 }
 
             # Calculate DMarket immediate profit
-            dmarket_profit = Decimal("0")
-            dmarket_roi = Decimal("0")
+            dmarket_profit = Decimal(0)
+            dmarket_roi = Decimal(0)
             if dmarket_suggested:
-                net_dmarket = dmarket_suggested * (Decimal("1") - DMARKET_COMMISSION)
+                net_dmarket = dmarket_suggested * (Decimal(1) - DMARKET_COMMISSION)
                 dmarket_profit = net_dmarket - buy_price
-                dmarket_roi = (dmarket_profit / buy_price) * Decimal("100")
+                dmarket_roi = (dmarket_profit / buy_price) * Decimal(100)
 
             # Calculate Waxpeer hold profit
-            waxpeer_profit = Decimal("0")
-            waxpeer_roi = Decimal("0")
+            waxpeer_profit = Decimal(0)
+            waxpeer_roi = Decimal(0)
             if waxpeer_price:
                 # Calculate with 10% markup
                 target_net = waxpeer_price * Decimal("1.10")
-                target_list = target_net / (Decimal("1") - WAXPEER_COMMISSION)
-                net_waxpeer = target_list * (Decimal("1") - WAXPEER_COMMISSION)
+                target_list = target_net / (Decimal(1) - WAXPEER_COMMISSION)
+                net_waxpeer = target_list * (Decimal(1) - WAXPEER_COMMISSION)
                 waxpeer_profit = net_waxpeer - buy_price
-                waxpeer_roi = (waxpeer_profit / buy_price) * Decimal("100")
+                waxpeer_roi = (waxpeer_profit / buy_price) * Decimal(100)
 
             # Decision logic
-            if waxpeer_roi > dmarket_roi * Decimal("2"):  # Waxpeer 2x better
+            if waxpeer_roi > dmarket_roi * Decimal(2):  # Waxpeer 2x better
                 strategy = "hold_for_waxpeer"
                 reason = f"Waxpeer ROI ({waxpeer_roi:.1f}%) is significantly better than DMarket ({dmarket_roi:.1f}%)"
             elif dmarket_roi >= OPTIMAL_PROFIT_PERCENT:  # DMarket profit is already great

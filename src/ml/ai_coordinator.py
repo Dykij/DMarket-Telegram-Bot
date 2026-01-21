@@ -496,9 +496,9 @@ class AICoordinator:
 
         if signal_value in {"strong_buy", "buy"} and is_undervalued:
             return RecommendationType.BUY
-        elif signal_value in {"strong_sell", "sell"}:
+        if signal_value in {"strong_sell", "sell"}:
             return RecommendationType.SELL
-        elif is_undervalued:
+        if is_undervalued:
             return RecommendationType.WATCHLIST
 
         return RecommendationType.HOLD
@@ -615,7 +615,7 @@ class AICoordinator:
         if analysis.recommendation == RecommendationType.BUY:
             if confidence >= 0.6:
                 return TradeAction.BUY
-            elif confidence >= 0.4:
+            if confidence >= 0.4:
                 return TradeAction.CREATE_TARGET
         elif analysis.recommendation == RecommendationType.SELL:
             return TradeAction.SELL
@@ -663,8 +663,7 @@ class AICoordinator:
         if analysis.signal in {"strong_buy", "buy"}:
             reasoning.append(f"Signal: {analysis.signal} ({analysis.signal_probability:.1%})")
 
-        reasoning.append(f"Price prediction: ${analysis.predicted_price_24h:.2f} (24h)")
-        reasoning.append(f"Risk level: {analysis.risk_level.value}")
+        reasoning.extend((f"Price prediction: ${analysis.predicted_price_24h:.2f} (24h)", f"Risk level: {analysis.risk_level.value}"))
 
         return reasoning
 
