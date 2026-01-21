@@ -1,21 +1,44 @@
 # Инструкции для GitHub Copilot
 
-## 📊 Статус проекта (Январь 2026)
+## 📊 Статус проекта (Январь 2026 - Updated)
 
 | Метрика | Значение |
 |---------|----------|
-| **Версия** | 1.0.0 |
-| **Готовность** | 95% (48/50 задач, Фаза 2 завершена) |
-| **Тесты** | 7800+ ✅ |
+| **Версия** | 1.1.0 |
+| **Готовность** | 97% (49/50 задач, Фаза 2 завершена) |
+| **Тесты** | 7000+ ✅ |
 | **Покрытие** | 100% (цель достигнута) |
 | **Python** | 3.11+ (3.12+ рекомендуется для новых фич) |
 | **Roadmap** | См. `IMPROVEMENT_ROADMAP.md` |
 | **API** | DMarket v1.1.0, Waxpeer P2P, Telegram 9.2 |
 | **CI/CD** | 11 оптимизированных workflows |
+| **Skills** | 10 active skills (SkillsMP.com) |
 
 ---
 
-## 🤖 Copilot Prompts & Instructions (NEW)
+## 🆕 Новые экспериментальные функции (Январь 2026)
+
+### GitHub Copilot Experimental Features
+| Feature | Описание | Статус |
+|---------|----------|--------|
+| **Vision** | Анализ скриншотов и диаграмм | ✅ Enabled |
+| **Multi-file Edits** | Редактирование нескольких файлов | ✅ Enabled |
+| **Semantic Search** | Семантический поиск по коду | ✅ Enabled |
+| **Memory** | Сохранение контекста между сессиями | ✅ Enabled |
+| **Deep Thinking** | Глубокий анализ перед ответом | ✅ Enabled |
+| **Parallel Execution** | Параллельное выполнение задач | ✅ Enabled |
+
+### VS Code Insiders Experimental
+| Feature | Описание |
+|---------|----------|
+| **AI CodeLens** | AI-подсказки в редакторе |
+| **Predictive Typing** | Предиктивный ввод |
+| **Terminal Intelligence** | Умный терминал |
+| **File Nesting** | Автогруппировка файлов |
+
+---
+
+## 🤖 Copilot Prompts & Instructions
 
 ### Доступные промпты (`.github/prompts/`)
 | Промпт | Описание |
@@ -23,6 +46,7 @@
 | `python-async.prompt.md` | Генерация async Python кода с httpx, structlog |
 | `test-generator.prompt.md` | Генерация pytest тестов по AAA паттерну |
 | `telegram-handler.prompt.md` | Генерация Telegram bot handlers |
+| `ml-pipeline.prompt.md` | **NEW**: ML pipeline orchestration и profiling |
 
 ### Инструкции по типам файлов (`.github/instructions/`)
 | Инструкция | Применяется к |
@@ -30,6 +54,36 @@
 | `python-style.instructions.md` | `src/**/*.py` - стиль кода |
 | `testing.instructions.md` | `tests/**/*.py` - тестирование |
 | `workflows.instructions.md` | `.github/workflows/**` - CI/CD |
+
+---
+
+## 🎯 ML/AI Skills (SkillsMP.com Integration)
+
+### Активные Skills
+| Skill | Описание | Performance |
+|-------|----------|-------------|
+| `skill-orchestrator` | Pipeline execution с context passing | 10k/sec |
+| `skill-profiler` | Latency percentiles (p50/p95/p99) | <1% overhead |
+| `ensemble-builder` | VotingRegressor с auto-weights | 1k/sec |
+| `advanced-feature-selector` | SelectFromModel, RFE | 100/sec |
+| `ai-arbitrage-predictor` | ML арбитраж (78% accuracy) | 2k/sec |
+
+### Использование Skills
+```python
+from src.utils.skill_orchestrator import SkillOrchestrator
+from src.utils.skill_profiler import profile_skill
+
+# Pipeline с context passing
+orchestrator = SkillOrchestrator()
+result = await orchestrator.execute_pipeline([
+    {"skill": "predictor", "method": "predict", "args": ["$context.item"]},
+    {"skill": "classifier", "method": "classify", "args": ["$prev"]},
+], initial_context={"item": "AK-47"})
+
+# Profiling
+@profile_skill("my-function")
+async def my_function(): ...
+```
 
 ---
 

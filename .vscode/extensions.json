@@ -44,7 +44,18 @@
         // ========== Jupyter (OPTIONAL) ==========
         "ms-toolsai.jupyter", // Jupyter notebooks
         // ========== Security (RECOMMENDED) ==========
-        "snyk-security.vscode-vuln-cost" // Security vulnerabilities
+        "snyk-security.vscode-vuln-cost", // Security vulnerabilities
+        // ========== NEW: VS Code Insiders Experimental (January 2026) ==========
+        "github.vscode-github-actions", // GitHub Actions support
+        "ms-python.python-environment-manager", // Python environment manager
+        "ms-vscode.vscode-speech", // Voice control for Copilot
+        // ========== NEW: AI & ML Development ==========
+        "ms-toolsai.vscode-ai-remote", // AI Remote development
+        "continue.continue", // Continue AI coding assistant (optional)
+        // ========== NEW: Performance & Profiling ==========
+        "ms-python.python-profiler", // Python profiler
+        // ========== NEW: Collaboration ==========
+        "ms-vsliveshare.vsliveshare" // Live Share for collaboration
     ],
     "unwantedRecommendations": [
         // Old tools replaced by Ruff
@@ -56,6 +67,8 @@
         "github.copilot-labs", // Deprecated - features moved to main Copilot
         // Not needed for this project
         "esbenp.prettier-vscode", // Not needed for Python
-        "dbaeumer.vscode-eslint" // Not needed for Python
+        "dbaeumer.vscode-eslint", // Not needed for Python
+        // Replaced by better alternatives
+        "njpwerner.autodocstring" // Copilot generates better docstrings
     ]
 }
