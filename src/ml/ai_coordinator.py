@@ -229,8 +229,8 @@ class AICoordinator:
         >>> decision = await ai.make_decision(item_data)
     """
 
-    # Model weights for ensemble decision (must sum to 1.0)
-    MODEL_WEIGHTS = {
+    # Default model weights for ensemble decision (must sum to 1.0)
+    DEFAULT_MODEL_WEIGHTS = {
         "price_prediction": 0.30,
         "signal_classification": 0.25,
         "discount_threshold": 0.20,
@@ -238,11 +238,21 @@ class AICoordinator:
         "balance_fit": 0.10,
     }
 
+    # Model version for tracking and drift detection
+    MODEL_VERSION = "1.1.0"
+
+    # Drift detection thresholds
+    DRIFT_DETECTION_WINDOW = 100  # Number of decisions to track
+    DRIFT_ACCURACY_THRESHOLD = 0.60  # Below this triggers drift alert
+    DRIFT_MIN_SAMPLES = 50  # Minimum samples before drift detection (DRIFT_DETECTION_WINDOW // 2)
+    DRIFT_RECOVERY_OFFSET = 0.05  # Hysteresis offset to prevent oscillation
+
     def __init__(
         self,
         autonomy_level: AutonomyLevel = AutonomyLevel.MANUAL,
         safety_limits: SafetyLimits | None = None,
         user_balance: float = 100.0,
+        model_weights: dict[str, float] | None = None,
     ) -> None:
         """Initialize AI Coordinator.
 
@@ -250,10 +260,16 @@ class AICoordinator:
             autonomy_level: Level of autonomous operation
             safety_limits: Safety limits for trading
             user_balance: Current user balance in USD
+            model_weights: Custom weights for ensemble models (must sum to 1.0)
         """
         self.autonomy_level = autonomy_level
         self.safety_limits = safety_limits or SafetyLimits()
         self.user_balance = user_balance
+
+        # Configurable model weights with validation
+        self._model_weights = self._validate_weights(
+            model_weights or self.DEFAULT_MODEL_WEIGHTS.copy()
+        )
 
         # ML Modules (lazy initialization)
         self._price_predictor: EnhancedPricePredictor | None = None
@@ -265,7 +281,7 @@ class AICoordinator:
         # Market condition
         self._market_condition = MarketCondition.STABLE
 
-        # Statistics
+        # Statistics with enhanced metrics
         self._stats = {
             "decisions_made": 0,
             "trades_executed": 0,
@@ -273,18 +289,64 @@ class AICoordinator:
             "total_profit": 0.0,
             "daily_volume": 0.0,
             "last_reset": datetime.now(UTC),
+            # New: Performance tracking
+            "model_version": self.MODEL_VERSION,
+            "avg_confidence": 0.0,
+            "avg_processing_time_ms": 0.0,
         }
 
         # Trade history for learning
         self._trade_history: list[dict[str, Any]] = []
+
+        # New: Drift detection tracking
+        self._prediction_outcomes: list[bool] = []  # True = correct, False = incorrect
+        self._drift_detected = False
+
+        # New: Performance metrics
+        self._processing_times: list[float] = []
+        self._confidence_scores: list[float] = []
 
         logger.info(
             "ai_coordinator_initialized",
             extra={
                 "autonomy_level": autonomy_level.value,
                 "dry_run": self.safety_limits.dry_run,
+                "model_version": self.MODEL_VERSION,
+                "weights": self._model_weights,
             },
         )
+
+    def _validate_weights(self, weights: dict[str, float]) -> dict[str, float]:
+        """Validate that model weights sum to 1.0.
+
+        Creates a copy of weights to avoid modifying the input.
+        """
+        # Create a copy to avoid modifying input
+        result = weights.copy()
+        total = sum(result.values())
+        if abs(total - 1.0) > 0.01:
+            logger.warning(
+                "model_weights_invalid_sum",
+                extra={"sum": total, "expected": 1.0},
+            )
+            # Normalize weights
+            for key in result:
+                result[key] /= total
+        return result
+
+    @property
+    def model_weights(self) -> dict[str, float]:
+        """Get current model weights."""
+        return self._model_weights.copy()
+
+    def set_model_weights(self, weights: dict[str, float]) -> None:
+        """Update model weights for ensemble.
+
+        Args:
+            weights: New weights (will be normalized if they don't sum to 1.0)
+        """
+        self._model_weights = self._validate_weights(weights)
+        logger.info("model_weights_updated", extra={"weights": self._model_weights})
 
     def _get_price_predictor(self) -> EnhancedPricePredictor:
         """Get or initialize price predictor."""
@@ -581,7 +643,11 @@ class AICoordinator:
         return decision
 
     def _calculate_ensemble_confidence(self, analysis: ItemAnalysis) -> float:
-        """Calculate weighted confidence from all models."""
+        """Calculate weighted confidence from all models.
+
+        Uses configurable model weights for ensemble decision.
+        Also tracks confidence for drift detection.
+        """
         # Avoid division by zero
         balance_fit = 0.5  # Default neutral value
         if analysis.current_price > 0:
@@ -595,11 +661,23 @@ class AICoordinator:
             "balance_fit": balance_fit,
         }
 
+        # Use configurable weights
         confidence = sum(
-            self.MODEL_WEIGHTS[k] * scores.get(k, 0.5) for k in self.MODEL_WEIGHTS
+            self._model_weights[k] * scores.get(k, 0.5) for k in self._model_weights
         )
 
-        return float(min(1.0, max(0.0, confidence)))
+        confidence = float(min(1.0, max(0.0, confidence)))
+
+        # Track confidence for metrics
+        self._confidence_scores.append(confidence)
+        if len(self._confidence_scores) > 1000:
+            self._confidence_scores = self._confidence_scores[-1000:]
+
+        # Update average confidence in stats
+        if self._confidence_scores:
+            self._stats["avg_confidence"] = sum(self._confidence_scores) / len(self._confidence_scores)
+
+        return confidence
 
     def _determine_action(
         self,
@@ -749,6 +827,14 @@ class AICoordinator:
             self._stats["successful_trades"] += 1
         self._stats["total_profit"] += actual_profit
 
+        # Track for drift detection
+        self._prediction_outcomes.append(was_profitable)
+        if len(self._prediction_outcomes) > self.DRIFT_DETECTION_WINDOW:
+            self._prediction_outcomes = self._prediction_outcomes[-self.DRIFT_DETECTION_WINDOW:]
+
+        # Check for concept drift
+        self._check_concept_drift()
+
         # Add to discount predictor for continuous learning
         discount_pred = self._get_discount_predictor()
         discount_pred.add_training_example(
@@ -763,8 +849,58 @@ class AICoordinator:
             else 0,
         )
 
+    def _check_concept_drift(self) -> None:
+        """Check for concept drift in model predictions.
+
+        Concept drift occurs when the model's accuracy degrades over time,
+        indicating that the underlying data distribution has changed.
+        """
+        if len(self._prediction_outcomes) < self.DRIFT_MIN_SAMPLES:
+            return
+
+        # Calculate recent accuracy
+        recent_accuracy = sum(self._prediction_outcomes) / len(self._prediction_outcomes)
+
+        if recent_accuracy < self.DRIFT_ACCURACY_THRESHOLD:
+            if not self._drift_detected:
+                self._drift_detected = True
+                logger.warning(
+                    "concept_drift_detected",
+                    extra={
+                        "accuracy": round(recent_accuracy, 3),
+                        "threshold": self.DRIFT_ACCURACY_THRESHOLD,
+                        "window_size": len(self._prediction_outcomes),
+                        "recommendation": "Consider retraining models",
+                    },
+                )
+        elif self._drift_detected and recent_accuracy >= self.DRIFT_ACCURACY_THRESHOLD + self.DRIFT_RECOVERY_OFFSET:
+            # Drift recovered (with hysteresis to prevent oscillation)
+            self._drift_detected = False
+            logger.info(
+                "concept_drift_recovered",
+                extra={"accuracy": round(recent_accuracy, 3)},
+            )
+
+    def get_drift_status(self) -> dict[str, Any]:
+        """Get concept drift detection status.
+
+        Returns:
+            Dictionary with drift status and metrics
+        """
+        recent_accuracy = 0.0
+        if self._prediction_outcomes:
+            recent_accuracy = sum(self._prediction_outcomes) / len(self._prediction_outcomes)
+
+        return {
+            "drift_detected": self._drift_detected,
+            "recent_accuracy": round(recent_accuracy, 3),
+            "accuracy_threshold": self.DRIFT_ACCURACY_THRESHOLD,
+            "samples_tracked": len(self._prediction_outcomes),
+            "window_size": self.DRIFT_DETECTION_WINDOW,
+        }
+
     def get_statistics(self) -> dict[str, Any]:
-        """Get coordinator statistics."""
+        """Get coordinator statistics with enhanced metrics."""
         win_rate = 0.0
         if self._stats["trades_executed"] > 0:
             win_rate = self._stats["successful_trades"] / self._stats["trades_executed"]
@@ -775,6 +911,8 @@ class AICoordinator:
             "autonomy_level": self.autonomy_level.value,
             "market_condition": self._market_condition.value,
             "user_balance": self.user_balance,
+            "model_weights": self._model_weights,
+            "drift_status": self.get_drift_status(),
             "models_status": {
                 "price_predictor": self._price_predictor is not None,
                 "trade_classifier": self._trade_classifier is not None,

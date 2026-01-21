@@ -137,6 +137,14 @@ class AnomalyDetector:
     DEFAULT_MIN_HISTORY_LENGTH = 10
     MAX_ANOMALY_HISTORY = 1000
 
+    # Data drift detection constants
+    DRIFT_MIN_SAMPLES = 20  # Minimum samples for drift detection
+    DRIFT_WEIGHT_MEAN_SHIFT = 0.4  # Weight for mean shift in drift score
+    DRIFT_WEIGHT_VARIANCE = 0.3  # Weight for variance change in drift score
+    DRIFT_WEIGHT_QUANTILE = 0.3  # Weight for quantile shift in drift score
+    DRIFT_MEAN_SHIFT_SCALE = 2.0  # Scaling factor for normalized mean shift
+    DRIFT_QUANTILE_SCALE = 5.0  # Scaling factor for quantile difference
+
     def __init__(
         self,
         z_score_threshold: float = DEFAULT_Z_SCORE_THRESHOLD,
@@ -689,6 +697,115 @@ class AnomalyDetector:
                 if a.detected_at > datetime.now(UTC) - timedelta(hours=24)
             ),
         }
+
+    def detect_data_drift(
+        self,
+        current_data: list[float],
+        baseline_data: list[float],
+        feature_name: str = "price",
+    ) -> AnomalyResult:
+        """Detect data drift between current and baseline distributions.
+
+        Uses statistical tests to detect if the current data distribution
+        has significantly shifted from the baseline (training) distribution.
+
+        Args:
+            current_data: Recent data points
+            baseline_data: Baseline (historical/training) data points
+            feature_name: Name of the feature being compared
+
+        Returns:
+            AnomalyResult indicating if drift was detected
+        """
+        if len(current_data) < self.DRIFT_MIN_SAMPLES or len(baseline_data) < self.DRIFT_MIN_SAMPLES:
+            return AnomalyResult(
+                is_anomaly=False,
+                reason="Insufficient data for drift detection",
+                score=0.0,
+            )
+
+        current_arr = np.array(current_data)
+        baseline_arr = np.array(baseline_data)
+
+        # Calculate distribution statistics
+        current_mean = np.mean(current_arr)
+        current_std = np.std(current_arr)
+        baseline_mean = np.mean(baseline_arr)
+        baseline_std = np.std(baseline_arr)
+
+        # Calculate mean shift
+        mean_shift = abs(current_mean - baseline_mean)
+        combined_std = np.sqrt((current_std**2 + baseline_std**2) / 2)
+        normalized_shift = mean_shift / combined_std if combined_std > 0 else 0
+
+        # Calculate variance ratio
+        variance_ratio = current_std / baseline_std if baseline_std > 0 else 1.0
+
+        # Kolmogorov-Smirnov style test (simplified)
+        # Compare quantiles
+        quantiles = [0.25, 0.5, 0.75]
+        current_quantiles = np.percentile(current_arr, [q * 100 for q in quantiles])
+        baseline_quantiles = np.percentile(baseline_arr, [q * 100 for q in quantiles])
+
+        quantile_diff = np.mean(np.abs(current_quantiles - baseline_quantiles))
+        normalized_quantile_diff = quantile_diff / baseline_mean if baseline_mean > 0 else 0
+
+        # Calculate drift score (0-1) using configurable weights
+        drift_score = min(1.0, (
+            self.DRIFT_WEIGHT_MEAN_SHIFT * min(1.0, normalized_shift / self.DRIFT_MEAN_SHIFT_SCALE) +
+            self.DRIFT_WEIGHT_VARIANCE * min(1.0, abs(variance_ratio - 1)) +
+            self.DRIFT_WEIGHT_QUANTILE * min(1.0, normalized_quantile_diff * self.DRIFT_QUANTILE_SCALE)
+        ))
+
+        # Determine if drift is significant
+        is_drift = drift_score > 0.5
+        severity = AnomalySeverity.INFO
+        if drift_score > 0.8:
+            severity = AnomalySeverity.CRITICAL
+        elif drift_score > 0.6:
+            severity = AnomalySeverity.HIGH
+        elif drift_score > 0.5:
+            severity = AnomalySeverity.MEDIUM
+
+        reasons = []
+        if normalized_shift > 1.5:
+            reasons.append(f"Mean shifted by {normalized_shift:.2f} std")
+        if abs(variance_ratio - 1) > 0.3:
+            reasons.append(f"Variance ratio: {variance_ratio:.2f}")
+        if normalized_quantile_diff > 0.1:
+            reasons.append(f"Quantile shift: {normalized_quantile_diff:.1%}")
+
+        result = AnomalyResult(
+            is_anomaly=is_drift,
+            anomaly_type=AnomalyType.DATA_QUALITY_ISSUE if is_drift else None,
+            severity=severity,
+            score=drift_score,
+            reason="; ".join(reasons) if reasons else "No significant drift detected",
+            details={
+                "feature_name": feature_name,
+                "current_mean": round(current_mean, 4),
+                "baseline_mean": round(baseline_mean, 4),
+                "mean_shift": round(mean_shift, 4),
+                "normalized_shift": round(normalized_shift, 4),
+                "variance_ratio": round(variance_ratio, 4),
+                "drift_score": round(drift_score, 4),
+                "current_samples": len(current_data),
+                "baseline_samples": len(baseline_data),
+            },
+        )
+
+        if is_drift:
+            self._record_anomaly(result)
+            logger.warning(
+                "data_drift_detected",
+                extra={
+                    "feature": feature_name,
+                    "drift_score": round(drift_score, 3),
+                    "severity": severity.value,
+                },
+            )
+
+        return result
 
 
 # Factory function
