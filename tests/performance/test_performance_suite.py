@@ -590,7 +590,7 @@ async def test_distributed_cache_consistency():
 
 
 @pytest.mark.asyncio()
-@pytest.mark.skip(reason="Test may hang due to locking issues in test environment")
+@pytest.mark.skip(reason="Test takes > 120s due to cache stampede simulation - run with --timeout=0")
 async def test_cache_stampede_prevention():
     """Test cache stampede prevention."""
     cache = TTLCache(max_size=100, default_ttl=60)

@@ -5,9 +5,9 @@ monitoring and management.
 """
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock
 
-from src.utils.pool_monitor import PoolMonitor
+from src.utils.pool_monitor import PoolMonitor, PoolStats
 
 
 class TestPoolMonitor:
@@ -21,16 +21,8 @@ class TestPoolMonitor:
     def test_init(self, monitor):
         """Test initialization."""
         assert monitor is not None
-
-    def test_init_with_options(self):
-        """Test initialization with options."""
-        monitor = PoolMonitor(
-            check_interval=30,
-            max_connections=100,
-        )
-
-        assert monitor.check_interval == 30
-        assert monitor.max_connections == 100
+        assert hasattr(monitor, "_pools")
+        assert isinstance(monitor._pools, dict)
 
     def test_register_pool(self, monitor):
         """Test registering connection pool."""
@@ -39,139 +31,141 @@ class TestPoolMonitor:
 
         monitor.register_pool("database", pool)
 
-        assert "database" in monitor.pools
+        assert "database" in monitor._pools
 
-    def test_unregister_pool(self, monitor):
-        """Test unregistering connection pool."""
-        pool = MagicMock()
-        monitor.pools["database"] = pool
-
-        monitor.unregister_pool("database")
-
-        assert "database" not in monitor.pools
-
-    def test_get_pool_status(self, monitor):
-        """Test getting pool status."""
-        pool = MagicMock()
-        pool.size = 10
-        pool.checkedout = 3
-        pool.overflow = 0
-        monitor.pools["database"] = pool
-
-        status = monitor.get_pool_status("database")
-
-        assert status["size"] == 10
-        assert status["in_use"] == 3
-
-    def test_get_all_status(self, monitor):
-        """Test getting all pools status."""
+    def test_register_multiple_pools(self, monitor):
+        """Test registering multiple pools."""
         pool1 = MagicMock()
-        pool1.size = 10
         pool2 = MagicMock()
-        pool2.size = 5
 
-        monitor.pools["db1"] = pool1
-        monitor.pools["db2"] = pool2
+        monitor.register_pool("database", pool1)
+        monitor.register_pool("redis", pool2)
 
-        status = monitor.get_all_status()
+        assert "database" in monitor._pools
+        assert "redis" in monitor._pools
+        assert len(monitor._pools) == 2
 
-        assert "db1" in status
-        assert "db2" in status
+    def test_get_all_stats_empty(self, monitor):
+        """Test getting stats with no registered pools."""
+        stats = monitor.get_all_stats()
+        assert stats == {}
 
-    @pytest.mark.asyncio
-    async def test_check_health(self, monitor):
-        """Test health check."""
+    def test_get_all_stats_with_pools(self, monitor):
+        """Test getting all pools stats."""
+        # Mock database engine with pool
+        engine = MagicMock()
         pool = MagicMock()
-        pool.size = 10
-        pool.checkedout = 3
-        monitor.pools["database"] = pool
+        pool.size.return_value = 10
+        pool.checkedin.return_value = 7
+        pool.checkedout.return_value = 3
+        pool.overflow.return_value = 0
+        pool._max_overflow = 5
+        engine.pool = pool
 
-        health = await monitor.check_health()
+        monitor.register_pool("database", engine)
 
-        assert health["healthy"] is True
+        stats = monitor.get_all_stats()
 
-    @pytest.mark.asyncio
-    async def test_check_health_unhealthy(self, monitor):
-        """Test unhealthy pool detection."""
+        assert "database" in stats
+        assert isinstance(stats["database"], PoolStats)
+
+    def test_check_health_empty(self, monitor):
+        """Test health check with no pools."""
+        health = monitor.check_health()
+        assert health == {}
+
+    def test_check_health_with_healthy_pool(self, monitor):
+        """Test health check with healthy pool."""
+        # Mock database engine with healthy pool
+        engine = MagicMock()
         pool = MagicMock()
-        pool.size = 10
-        pool.checkedout = 10  # All connections in use
-        pool.overflow = 5
-        monitor.pools["database"] = pool
+        pool.size.return_value = 10
+        pool.checkedin.return_value = 7
+        pool.checkedout.return_value = 3
+        pool.overflow.return_value = 0
+        pool._max_overflow = 5
+        engine.pool = pool
 
-        health = await monitor.check_health()
+        monitor.register_pool("database", engine)
 
-        assert health["healthy"] is False or health["warnings"]
+        health = monitor.check_health()
 
-    def test_get_metrics(self, monitor):
-        """Test getting metrics."""
+        assert "database" in health
+        assert health["database"] is True
+
+    def test_check_health_with_unhealthy_pool(self, monitor):
+        """Test health check with unhealthy pool (high utilization)."""
+        # Mock database engine with overutilized pool
+        engine = MagicMock()
         pool = MagicMock()
-        pool.size = 10
-        pool.checkedout = 3
-        monitor.pools["database"] = pool
+        pool.size.return_value = 10
+        pool.checkedin.return_value = 0
+        pool.checkedout.return_value = 10  # All connections in use
+        pool.overflow.return_value = 4
+        pool._max_overflow = 5
+        engine.pool = pool
 
-        metrics = monitor.get_metrics()
+        monitor.register_pool("database", engine)
 
-        assert "total_pools" in metrics
-        assert "total_connections" in metrics
+        health = monitor.check_health()
 
-    @pytest.mark.asyncio
-    async def test_cleanup_idle_connections(self, monitor):
-        """Test cleaning up idle connections."""
+        assert "database" in health
+        # Should be unhealthy due to high utilization and overflow
+        assert health["database"] is False
+
+    def test_log_stats(self, monitor, caplog):
+        """Test logging stats."""
+        # Mock database engine
+        engine = MagicMock()
         pool = MagicMock()
-        pool.dispose = MagicMock()
-        monitor.pools["database"] = pool
+        pool.size.return_value = 10
+        pool.checkedin.return_value = 7
+        pool.checkedout.return_value = 3
+        pool.overflow.return_value = 0
+        pool._max_overflow = 5
+        engine.pool = pool
 
-        await monitor.cleanup_idle_connections()
+        monitor.register_pool("database", engine)
 
         # Should not raise
+        monitor.log_stats()
 
-    def test_set_max_connections(self, monitor):
-        """Test setting max connections."""
-        monitor.set_max_connections(50)
-        assert monitor.max_connections == 50
 
-    def test_get_connection_stats(self, monitor):
-        """Test getting connection statistics."""
-        pool = MagicMock()
-        pool.size = 10
-        pool.checkedout = 3
-        pool.checkedin = 7
-        monitor.pools["database"] = pool
+class TestPoolStats:
+    """Tests for PoolStats dataclass."""
 
-        stats = monitor.get_connection_stats("database")
+    def test_pool_stats_creation(self):
+        """Test PoolStats creation."""
+        from datetime import UTC, datetime
 
-        assert "total" in stats
-        assert "in_use" in stats
-        assert "available" in stats
+        stats = PoolStats(
+            pool_name="database",
+            size=10,
+            max_size=15,
+            in_use=3,
+            available=7,
+            overflow=0,
+            max_overflow=5,
+            utilization_percent=20.0,
+            timestamp=datetime.now(UTC),
+        )
 
-    @pytest.mark.asyncio
-    async def test_start_monitoring(self, monitor):
-        """Test starting monitoring."""
-        await monitor.start()
-        assert monitor.is_running is True
+        assert stats.pool_name == "database"
+        assert stats.size == 10
+        assert stats.max_size == 15
+        assert stats.in_use == 3
+        assert stats.available == 7
+        assert stats.overflow == 0
+        assert stats.max_overflow == 5
+        assert stats.utilization_percent == 20.0
 
-    @pytest.mark.asyncio
-    async def test_stop_monitoring(self, monitor):
-        """Test stopping monitoring."""
-        monitor.is_running = True
-        await monitor.stop()
-        assert monitor.is_running is False
 
-    def test_add_alert_handler(self, monitor):
-        """Test adding alert handler."""
-        handler = MagicMock()
+class TestGlobalPoolMonitor:
+    """Tests for global pool_monitor instance."""
 
-        monitor.add_alert_handler(handler)
+    def test_global_instance_exists(self):
+        """Test that global pool_monitor instance exists."""
+        from src.utils.pool_monitor import pool_monitor
 
-        assert handler in monitor.alert_handlers
-
-    @pytest.mark.asyncio
-    async def test_trigger_alert(self, monitor):
-        """Test triggering alert."""
-        handler = AsyncMock()
-        monitor.alert_handlers.append(handler)
-
-        await monitor._trigger_alert("Pool exhausted", "database")
-
-        handler.assert_called_once()
+        assert pool_monitor is not None
+        assert isinstance(pool_monitor, PoolMonitor)
