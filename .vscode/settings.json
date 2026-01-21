@@ -547,21 +547,56 @@
   "chat.agentSessionsViewLocation": "sideBar",
   "chat.instructionsFilesLocations": {
     ".github/instructions": true,
-    "docs": true
+    "docs": true,
+    ".cursor/rules": true
   },
   "chat.promptFilesLocations": {
     ".github/prompts": true
   },
+  // Автоматическое применение документации к запросам
+  "chat.instructionsFilesAutoAttach": {
+    ".github/instructions/master.instructions.md": "always",
+    ".github/copilot-instructions.md": "always",
+    "CLAUDE.md": "always"
+  },
+  // Рекомендации промптов по контексту
   "chat.promptFilesRecommendations": [
     {
-      "promptFile": ".github/prompts/code-review.md",
+      "promptFile": ".github/prompts/python-async.prompt.md",
       "when": "editorLangId == python"
     },
     {
-      "promptFile": ".github/prompts/test-generation.md",
+      "promptFile": ".github/prompts/test-generator.prompt.md",
       "when": "resourcePath =~ /tests/"
+    },
+    {
+      "promptFile": ".github/prompts/telegram-handler.prompt.md",
+      "when": "resourcePath =~ /telegram_bot/"
+    },
+    {
+      "promptFile": ".github/prompts/ml-pipeline.prompt.md",
+      "when": "resourcePath =~ /ml/ || resourcePath =~ /ai/"
+    },
+    {
+      "promptFile": ".github/prompts/error-handling-retry.prompt.md",
+      "when": "editorLangId == python"
+    },
+    {
+      "promptFile": ".github/prompts/pydantic-model.prompt.md",
+      "when": "resourcePath =~ /models/ || resourcePath =~ /schemas/"
     }
   ],
+  // Инструкции применяемые по glob паттернам
+  "chat.instructionsFilesGlobs": {
+    ".github/instructions/arbitrage.instructions.md": ["src/dmarket/**/*.py", "src/waxpeer/**/*.py"],
+    ".github/instructions/ml-ai.instructions.md": ["src/ml/**/*.py", "src/ai/**/*.py", "src/utils/skill_*.py"],
+    ".github/instructions/testing.instructions.md": ["tests/**/*.py"],
+    ".github/instructions/api-integration.instructions.md": ["src/dmarket/**/*.py", "src/api/**/*.py"],
+    ".github/instructions/telegram-bot.instructions.md": ["src/telegram_bot/**/*.py"],
+    ".github/instructions/database.instructions.md": ["src/models/**/*.py", "src/utils/database*.py"],
+    ".github/instructions/python-style.instructions.md": ["src/**/*.py"],
+    ".github/instructions/workflows.instructions.md": [".github/workflows/**/*.yml"]
+  },
   "chat.commandCenter.enabled": true,
   // ==================== Inline Chat Settings ====================
   "inlineChat.finishOnType": true,
