@@ -14,14 +14,74 @@ from src.utils.steam_db_handler import get_steam_db
 
 @pytest.mark.e2e()
 @pytest.mark.asyncio()
-@pytest.mark.skip(reason="Requires network access to Steam API - run locally with VPN")
 async def test_full_arbitrage_workflow_with_steam():
-    """E2E test: Complete arbitrage workflow with Steam integration.
+    """E2E test: Complete arbitrage workflow with Steam integration."""
 
-    This test is skipped in CI because it requires network access to Steam API.
-    Run locally with: pytest tests/e2e/test_steam_e2e.py -v
-    """
-    pass
+    # Simplified test that tests Steam enhancement directly
+    from src.dmarket.steam_arbitrage_enhancer import SteamArbitrageEnhancer
+
+    # Clear any cached data for this specific test
+    from src.utils.steam_db_handler import get_steam_db
+
+    db = get_steam_db()
+
+    # Clear cache for test item
+    test_item_name = "AK-47 | Redline (Field-Tested)"
+    try:
+        db.conn.execute(
+            "DELETE FROM steam_cache WHERE market_hash_name LIKE ?", (f"%{test_item_name}%",)
+        )
+        db.conn.commit()
+    except:
+        pass
+
+    # Mock input items (what scanner would provide)
+    input_items = [
+        {
+            "title": test_item_name,
+            "price": {"USD": 1000},  # $10.00 in cents
+            "itemId": "test123",
+            "extra": {"tradeLock": 0},
+            "profit": 30.44,
+        }
+    ]
+
+    # Create enhancer
+    enhancer = SteamArbitrageEnhancer()
+
+    # Mock Steam API calls
+    with patch("src.dmarket.steam_api.get_steam_price") as mock_steam:
+        mock_steam.return_value = {"price": 15.00, "volume": 150, "median_price": 15.50}
+
+        # Enhance items with Steam data
+        results = await enhancer.enhance_items(input_items)
+
+        # Verify results
+        assert len(results) > 0, (
+            f"Should return at least one item after enhancement, got {len(results)}"
+        )
+
+        item = results[0]
+
+        # Check basic data preserved
+        assert item["title"] == test_item_name
+        assert item["price"]["USD"] == 1000
+
+        # Check Steam enrichment
+        assert "steam_price" in item, "Should have Steam price"
+        assert item["steam_price"] > 0, f"Steam price should be positive, got {item['steam_price']}"
+        assert item["steam_volume"] >= 50, (
+            f"Steam volume should be >= 50, got {item['steam_volume']}"
+        )  # min_volume from settings
+
+        # Check profit calculation
+        assert "profit_pct" in item or "steam_profit_pct" in item, "Should have profit calculation"
+        profit = item.get("steam_profit_pct") or item.get("profit_pct")
+        # Just check it's positive profit
+        assert profit > 0, f"Profit should be positive, got {profit}"
+
+        # Check liquidity status
+        assert "liquidity_status" in item
 
 
 @pytest.mark.e2e()
@@ -256,13 +316,41 @@ async def test_statistics_tracking():
 
 @pytest.mark.e2e()
 @pytest.mark.asyncio()
-@pytest.mark.skip(reason="Requires network access and interacts with global rate limit state")
 async def test_rate_limit_protection():
-    """E2E test: Rate limit protection prevents API spam.
+    """E2E test: Rate limit protection prevents API spam."""
 
-    This test is skipped in CI because it requires network and modifies global state.
-    """
-    pass
+    # Import and reset backoff at module level to avoid reusing global state
+    import src.dmarket.steam_api as steam_module
+    from src.dmarket.steam_api import RateLimitError
+
+    # Force reset module state BEFORE anything else
+    steam_module.steam_backoff_until = None
+
+    # Simulate rate limit error
+    with patch("httpx.AsyncClient") as mock_client:
+        mock_response = MagicMock()
+        mock_response.status_code = 429
+
+        mock_get = AsyncMock(return_value=mock_response)
+        mock_client.return_value.__aenter__.return_value.get = mock_get
+
+        # Import fresh AFTER reset
+        from src.dmarket.steam_api import get_backoff_status
+
+        # Double-check reset took effect
+        steam_module.steam_backoff_until = None
+
+        # First call triggers rate limit and raises RateLimitError
+        with pytest.raises(RateLimitError):
+            await steam_module.get_steam_price("Test Item")
+
+        # Check backoff is active after rate limit hit
+        status = get_backoff_status()
+        assert status["active"] is True
+        assert status["remaining_seconds"] > 0
+
+    # Reset after test
+    steam_module.steam_backoff_until = None
 
 
 @pytest.mark.e2e()
@@ -299,6 +387,7 @@ def test_database_persistence():
     finally:
         # Clean up with retry
         import time
+
         for _ in range(5):
             try:
                 if os.path.exists(tmp_path):
@@ -317,6 +406,7 @@ def test_database_persistence():
         db1.update_steam_price("Persistent Item", 25.0, 150)
         db1.update_settings(min_profit=20.0)
         db1.add_to_blacklist("Bad Item", "Test")
+        db1.conn.close()  # Explicitly close connection
         del db1
 
         # Second session - read data
@@ -334,10 +424,19 @@ def test_database_persistence():
         # Verify blacklist
         assert db2.is_blacklisted("Bad Item")
 
+        db2.conn.close()  # Explicitly close connection
+
     finally:
-        # Cleanup
-        if os.path.exists(db_path):
-            os.unlink(db_path)
+        # Cleanup with retry for Windows
+        import time
+
+        for _ in range(5):
+            try:
+                if os.path.exists(db_path):
+                    os.unlink(db_path)
+                break
+            except PermissionError:
+                time.sleep(0.1)
 
 
 if __name__ == "__main__":

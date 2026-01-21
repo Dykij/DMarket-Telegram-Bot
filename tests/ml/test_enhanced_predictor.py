@@ -7,13 +7,14 @@
 - Game-specific признаки (float, stickers, patterns)
 """
 
+from datetime import UTC, datetime, timedelta
+
 import numpy as np
 import pytest
-from datetime import datetime, timedelta, timezone
 
 from src.ml.enhanced_predictor import (
-    EnhancedFeatures,
     EnhancedFeatureExtractor,
+    EnhancedFeatures,
     EnhancedPricePredictor,
     GameType,
     ItemCondition,
@@ -89,7 +90,7 @@ class TestEnhancedFeatures:
 class TestEnhancedFeatureExtractor:
     """Тесты для экстрактора признаков."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def extractor(self):
         return EnhancedFeatureExtractor()
 
@@ -108,7 +109,7 @@ class TestEnhancedFeatureExtractor:
 
     def test_extract_with_price_history(self, extractor):
         """Тест с историей цен."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         price_history = [
             (now - timedelta(days=6), 9.0),
             (now - timedelta(days=5), 9.5),
@@ -132,7 +133,7 @@ class TestEnhancedFeatureExtractor:
 
     def test_extract_with_sales_history(self, extractor):
         """Тест с историей продаж."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         sales_history = [
             {"timestamp": (now - timedelta(hours=i)).isoformat(), "price": 10.0}
             for i in range(24)
@@ -260,7 +261,7 @@ class TestEnhancedFeatureExtractor:
 
     def test_relative_strength_calculation(self, extractor):
         """Тест расчёта Relative Strength."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         price_history = [(now - timedelta(days=i), 50.0) for i in range(7)]
 
         features = extractor.extract_features(
@@ -324,7 +325,7 @@ class TestMLPipeline:
 class TestEnhancedPricePredictor:
     """Тесты для улучшенного прогнозатора."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def predictor(self):
         return EnhancedPricePredictor(user_balance=100.0)
 
@@ -332,7 +333,7 @@ class TestEnhancedPricePredictor:
         """Тест создания прогнозатора."""
         assert predictor.user_balance == 100.0
         assert predictor.game == GameType.CS2
-        assert predictor.MODEL_VERSION == "2.1.0"  # Updated for joblib serialization
+        assert predictor.MODEL_VERSION == "2.1.0"
 
     def test_set_user_balance(self, predictor):
         """Тест установки баланса."""

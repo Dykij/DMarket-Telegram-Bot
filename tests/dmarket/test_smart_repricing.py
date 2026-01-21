@@ -4,17 +4,18 @@ This module tests the SmartRepricer class for intelligent
 price adjustments based on item age and market conditions.
 """
 
-import pytest
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
-from datetime import datetime, timezone, timedelta
 
-from src.dmarket.smart_repricing import SmartRepricer, RepricingAction
+import pytest
+
+from src.dmarket.smart_repricing import RepricingAction, SmartRepricer
 
 
 class TestSmartRepricer:
     """Tests for SmartRepricer class."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_api(self):
         """Create mock API client."""
         api = MagicMock()
@@ -23,7 +24,7 @@ class TestSmartRepricer:
         api.get_market_items = AsyncMock(return_value={"objects": []})
         return api
 
-    @pytest.fixture
+    @pytest.fixture()
     def repricer(self, mock_api):
         """Create SmartRepricer instance."""
         return SmartRepricer(
@@ -42,8 +43,8 @@ class TestSmartRepricer:
 
     def test_determine_repricing_action_new(self, repricer):
         """Test repricing action for new listing."""
-        listed_at = datetime.now(timezone.utc) - timedelta(hours=1)
-        current_time = datetime.now(timezone.utc)
+        listed_at = datetime.now(UTC) - timedelta(hours=1)
+        current_time = datetime.now(UTC)
 
         action = repricer.determine_repricing_action(listed_at, current_time)
 
@@ -52,8 +53,8 @@ class TestSmartRepricer:
 
     def test_determine_repricing_action_old(self, repricer):
         """Test repricing action for old listing (24+ hours)."""
-        listed_at = datetime.now(timezone.utc) - timedelta(hours=30)
-        current_time = datetime.now(timezone.utc)
+        listed_at = datetime.now(UTC) - timedelta(hours=30)
+        current_time = datetime.now(UTC)
 
         action = repricer.determine_repricing_action(listed_at, current_time)
 
@@ -62,8 +63,8 @@ class TestSmartRepricer:
 
     def test_determine_repricing_action_stale(self, repricer):
         """Test repricing action for stale listing (48+ hours)."""
-        listed_at = datetime.now(timezone.utc) - timedelta(hours=50)
-        current_time = datetime.now(timezone.utc)
+        listed_at = datetime.now(UTC) - timedelta(hours=50)
+        current_time = datetime.now(UTC)
 
         action = repricer.determine_repricing_action(listed_at, current_time)
 
@@ -72,8 +73,8 @@ class TestSmartRepricer:
 
     def test_determine_repricing_action_liquidate(self, repricer):
         """Test repricing action for very old listing (72+ hours)."""
-        listed_at = datetime.now(timezone.utc) - timedelta(hours=80)
-        current_time = datetime.now(timezone.utc)
+        listed_at = datetime.now(UTC) - timedelta(hours=80)
+        current_time = datetime.now(UTC)
 
         action = repricer.determine_repricing_action(listed_at, current_time)
 
@@ -117,20 +118,22 @@ class TestSmartRepricer:
         )
         assert isinstance(result, int)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_check_market_panic_no_panic(self, repricer, mock_api):
         """Test panic detection with stable market."""
-        mock_api.get_market_items = AsyncMock(return_value={
-            "objects": [
-                {"price": {"USD": "1000"}},
-                {"price": {"USD": "1010"}},
-            ]
-        })
+        mock_api.get_market_items = AsyncMock(
+            return_value={
+                "objects": [
+                    {"price": {"USD": "1000"}},
+                    {"price": {"USD": "1010"}},
+                ]
+            }
+        )
 
         is_panic = await repricer.check_market_panic("AK-47", current_price=1000)
         assert isinstance(is_panic, bool)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_should_pause_selling(self, repricer, mock_api):
         """Test pause selling decision."""
         item = {"title": "AK-47", "buy_price": 800}

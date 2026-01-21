@@ -11,14 +11,10 @@ Covers:
 - Rollback strategies
 """
 
-import asyncio
 import random
-import time
-from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable
-from unittest.mock import AsyncMock, MagicMock, patch
+from typing import Callable
 
 import pytest
 
@@ -62,7 +58,7 @@ class DeploymentMetrics:
 class TestCanaryDeploymentPatterns:
     """Tests for canary deployment patterns."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def canary_config(self):
         """Canary deployment configuration."""
         return {
@@ -245,7 +241,7 @@ class TestBlueGreenDeployment:
 class TestDeploymentHealthMonitoring:
     """Tests for deployment health monitoring."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def health_monitor(self):
         """Health monitor fixture."""
 
@@ -271,7 +267,9 @@ class TestDeploymentHealthMonitoring:
                 m = self.metrics[version]
                 if m.total_requests < 100:
                     return True  # Not enough data
-                return m.error_rate <= self.error_threshold and m.avg_latency <= self.latency_threshold
+                return (
+                    m.error_rate <= self.error_threshold and m.avg_latency <= self.latency_threshold
+                )
 
             def compare_versions(self, stable: str, canary: str) -> dict:
                 stable_m = self.metrics.get(stable, DeploymentMetrics())
@@ -291,7 +289,9 @@ class TestDeploymentHealthMonitoring:
         """Test monitoring of healthy deployment."""
         # Simulate healthy traffic
         for _ in range(500):
-            health_monitor.record("v1.0.0", success=random.random() > 0.02, latency=random.uniform(100, 300))
+            health_monitor.record(
+                "v1.0.0", success=random.random() > 0.02, latency=random.uniform(100, 300)
+            )
 
         assert health_monitor.is_healthy("v1.0.0")
 
@@ -299,7 +299,9 @@ class TestDeploymentHealthMonitoring:
         """Test detection of high error rate."""
         # Simulate high error rate
         for _ in range(500):
-            health_monitor.record("v2.0.0", success=random.random() > 0.15, latency=random.uniform(100, 300))
+            health_monitor.record(
+                "v2.0.0", success=random.random() > 0.15, latency=random.uniform(100, 300)
+            )
 
         assert not health_monitor.is_healthy("v2.0.0")
 
@@ -307,7 +309,9 @@ class TestDeploymentHealthMonitoring:
         """Test detection of high latency."""
         # Simulate high latency
         for _ in range(500):
-            health_monitor.record("v2.0.0", success=True, latency=random.uniform(600, 1000))  # High latency
+            health_monitor.record(
+                "v2.0.0", success=True, latency=random.uniform(600, 1000)
+            )  # High latency
 
         assert not health_monitor.is_healthy("v2.0.0")
 
@@ -315,15 +319,20 @@ class TestDeploymentHealthMonitoring:
         """Test comparison between versions."""
         # Use fixed seed for reproducible random tests
         import random as _random
+
         _random.seed(42)
-        
+
         # Stable version with higher error rate (~5%)
         for _ in range(500):
-            health_monitor.record("stable", success=_random.random() > 0.05, latency=_random.uniform(100, 300))
+            health_monitor.record(
+                "stable", success=_random.random() > 0.05, latency=_random.uniform(100, 300)
+            )
 
         # Better canary version with lower error rate (~1%)
         for _ in range(500):
-            health_monitor.record("canary", success=_random.random() > 0.01, latency=_random.uniform(80, 250))
+            health_monitor.record(
+                "canary", success=_random.random() > 0.01, latency=_random.uniform(80, 250)
+            )
 
         comparison = health_monitor.compare_versions("stable", "canary")
         # With larger difference (5% vs 1%), canary should be better with high probability
@@ -378,7 +387,7 @@ class TestRollbackStrategies:
         # Use deterministic approach instead of random
         for i in range(100):
             # 20 errors guaranteed (every 5th request is an error)
-            is_error = (i % 5 == 0)
+            is_error = i % 5 == 0
             manager.record_request(is_error=is_error)
 
         assert manager.rolled_back
@@ -596,9 +605,11 @@ class TestDeploymentGates:
                     return True, name
                 return False, f"blocked_{name}"
 
-        deployment = GatedDeployment(
-            [("tests", lambda: True), ("security", failing_check), ("approval", lambda: True)]
-        )
+        deployment = GatedDeployment([
+            ("tests", lambda: True),
+            ("security", failing_check),
+            ("approval", lambda: True),
+        ])
 
         # First gate passes
         assert deployment.proceed() == (True, "tests")

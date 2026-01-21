@@ -5,8 +5,6 @@ Tests for AdaptiveTradeClassifier, TradeSignal, RiskLevel, and TradeClassificati
 
 from datetime import UTC, datetime, timedelta
 
-import pytest
-
 from src.ml.trade_classifier import (
     AdaptiveTradeClassifier,
     RiskLevel,
@@ -208,31 +206,15 @@ class TestAdaptiveTradeClassifier:
         assert classifier.risk_tolerance == original
 
     def test_classify_strong_buy(self):
-        """Test classify returns STRONG_BUY for high profit with sufficient data.
-        
-        Without price_history or sales_history, the classifier returns SKIP
-        due to low liquidity. We provide abundant sample data to test classification.
-        """
+        """Test classify returns STRONG_BUY for high profit with good liquidity."""
+        from datetime import datetime, timedelta
+
         classifier = AdaptiveTradeClassifier(user_balance=100.0)
-        
-        # Provide price history for proper classification
+
+        # Provide price_history and sales_history for good liquidity/risk scores
         now = datetime.now(UTC)
-        price_history = [
-            (now - timedelta(hours=i * 6), 10.0 + (i % 3) * 0.1) for i in range(30)
-        ]
-        
-        # Provide abundant sales history for high liquidity calculation
-        # 50 sales over 5 days = 10 sales per day (high liquidity)
-        sales_history = [
-            {"price": 10.0 + (i % 5) * 0.1, "amount": 2, "date": (now - timedelta(hours=i * 2)).isoformat()}
-            for i in range(50)
-        ]
-        
-        # Provide market offers for depth calculation
-        market_offers = [
-            {"price": {"USD": 1000 + i * 10}, "amount": 1}
-            for i in range(20)
-        ]
+        price_history = [(now - timedelta(hours=i), 10.0) for i in range(24)]
+        sales_history = [{"price": 10.0, "date": now - timedelta(hours=i)} for i in range(20)]
 
         classification = classifier.classify(
             item_name="Test Item",
@@ -240,31 +222,20 @@ class TestAdaptiveTradeClassifier:
             expected_price=12.0,  # +20% profit
             price_history=price_history,
             sales_history=sales_history,
-            market_offers=market_offers,
         )
 
         assert isinstance(classification, TradeClassification)
-        # With high liquidity data, should give STRONG_BUY or BUY for 20% profit
-        # SKIP may still occur if other risk factors are high
-        assert classification.signal in (TradeSignal.STRONG_BUY, TradeSignal.BUY, TradeSignal.SKIP)
+        assert classification.signal == TradeSignal.STRONG_BUY
         assert classification.expected_profit_percent > 10.0
 
     def test_classify_buy(self):
-        """Test classify returns BUY for moderate profit with data.
-        
-        Without price_history or sales_history, the classifier may return SKIP
-        due to low liquidity assessment.
-        """
+        """Test classify returns BUY for moderate profit with good data."""
+        from datetime import datetime, timedelta
+
         classifier = AdaptiveTradeClassifier(user_balance=100.0)
-        
         now = datetime.now(UTC)
-        price_history = [
-            (now - timedelta(days=i), 10.0) for i in range(10)
-        ]
-        sales_history = [
-            {"price": 10.0, "amount": 1, "date": (now - timedelta(days=i)).isoformat()}
-            for i in range(5)
-        ]
+        price_history = [(now - timedelta(hours=i), 10.0) for i in range(24)]
+        sales_history = [{"price": 10.0, "date": now - timedelta(hours=i)} for i in range(20)]
 
         classification = classifier.classify(
             item_name="Test Item",
@@ -274,22 +245,17 @@ class TestAdaptiveTradeClassifier:
             sales_history=sales_history,
         )
 
-        # Low liquidity data may still cause SKIP
-        assert classification.signal in (TradeSignal.BUY, TradeSignal.STRONG_BUY, TradeSignal.HOLD, TradeSignal.SKIP)
+        assert classification.signal in (TradeSignal.BUY, TradeSignal.STRONG_BUY)
         assert classification.expected_profit_percent > 0
 
     def test_classify_hold(self):
-        """Test classify returns HOLD for minimal change with data."""
+        """Test classify returns HOLD for minimal change with good data."""
+        from datetime import datetime, timedelta
+
         classifier = AdaptiveTradeClassifier(user_balance=100.0)
-        
         now = datetime.now(UTC)
-        price_history = [
-            (now - timedelta(days=i), 10.0) for i in range(10)
-        ]
-        sales_history = [
-            {"price": 10.0, "amount": 1, "date": (now - timedelta(days=i)).isoformat()}
-            for i in range(5)
-        ]
+        price_history = [(now - timedelta(hours=i), 10.0) for i in range(24)]
+        sales_history = [{"price": 10.0, "date": now - timedelta(hours=i)} for i in range(20)]
 
         classification = classifier.classify(
             item_name="Test Item",
@@ -299,21 +265,16 @@ class TestAdaptiveTradeClassifier:
             sales_history=sales_history,
         )
 
-        # Low liquidity data may still cause SKIP
-        assert classification.signal in (TradeSignal.HOLD, TradeSignal.BUY, TradeSignal.SKIP)
+        assert classification.signal in (TradeSignal.HOLD, TradeSignal.BUY)
 
     def test_classify_sell(self):
-        """Test classify returns SELL for moderate loss with data."""
+        """Test classify returns SELL for moderate loss with good data."""
+        from datetime import datetime, timedelta
+
         classifier = AdaptiveTradeClassifier(user_balance=100.0)
-        
         now = datetime.now(UTC)
-        price_history = [
-            (now - timedelta(days=i), 10.0) for i in range(10)
-        ]
-        sales_history = [
-            {"price": 10.0, "amount": 1, "date": (now - timedelta(days=i)).isoformat()}
-            for i in range(5)
-        ]
+        price_history = [(now - timedelta(hours=i), 10.0) for i in range(24)]
+        sales_history = [{"price": 10.0, "date": now - timedelta(hours=i)} for i in range(20)]
 
         classification = classifier.classify(
             item_name="Test Item",
@@ -323,8 +284,7 @@ class TestAdaptiveTradeClassifier:
             sales_history=sales_history,
         )
 
-        # Low liquidity data may still cause SKIP
-        assert classification.signal in (TradeSignal.SELL, TradeSignal.STRONG_SELL, TradeSignal.HOLD, TradeSignal.SKIP)
+        assert classification.signal in (TradeSignal.SELL, TradeSignal.STRONG_SELL, TradeSignal.HOLD)
 
     def test_classify_with_price_history(self):
         """Test classify with price history."""

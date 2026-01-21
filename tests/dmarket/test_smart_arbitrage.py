@@ -4,8 +4,9 @@ This module tests the SmartArbitrageEngine class for intelligent
 arbitrage opportunity detection and execution.
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 from src.dmarket.smart_arbitrage import SmartArbitrageEngine, SmartLimits, SmartOpportunity
 
@@ -13,7 +14,7 @@ from src.dmarket.smart_arbitrage import SmartArbitrageEngine, SmartLimits, Smart
 class TestSmartArbitrageEngine:
     """Tests for SmartArbitrageEngine class."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_api(self):
         """Create mock API client."""
         api = MagicMock()
@@ -23,7 +24,7 @@ class TestSmartArbitrageEngine:
         api.__aexit__ = AsyncMock(return_value=None)
         return api
 
-    @pytest.fixture
+    @pytest.fixture()
     def smart_arb(self, mock_api):
         """Create SmartArbitrageEngine instance."""
         return SmartArbitrageEngine(api_client=mock_api)
@@ -39,24 +40,26 @@ class TestSmartArbitrageEngine:
         assert isinstance(result, bool)
         assert isinstance(message, str)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_smart_opportunities(self, smart_arb, mock_api):
         """Test finding smart opportunities."""
-        mock_api.get_market_items = AsyncMock(return_value={
-            "objects": [
-                {
-                    "itemId": "item1",
-                    "title": "Test Item",
-                    "price": {"USD": "1000"},
-                    "suggestedPrice": {"USD": "1200"},
-                }
-            ]
-        })
+        mock_api.get_market_items = AsyncMock(
+            return_value={
+                "objects": [
+                    {
+                        "itemId": "item1",
+                        "title": "Test Item",
+                        "price": {"USD": "1000"},
+                        "suggestedPrice": {"USD": "1200"},
+                    }
+                ]
+            }
+        )
 
         opportunities = await smart_arb.find_smart_opportunities(game="csgo")
         assert isinstance(opportunities, list)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_smart_opportunities_empty_market(self, smart_arb, mock_api):
         """Test finding opportunities in empty market."""
         mock_api.get_market_items = AsyncMock(return_value={"objects": []})
@@ -64,7 +67,7 @@ class TestSmartArbitrageEngine:
         opportunities = await smart_arb.find_smart_opportunities(game="csgo")
         assert opportunities == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_current_balance(self, smart_arb, mock_api):
         """Test getting current balance."""
         mock_api.get_balance = AsyncMock(return_value={"balance": 150.0})
@@ -72,14 +75,14 @@ class TestSmartArbitrageEngine:
         # Balance may be cached or fetched
         assert isinstance(balance, (int, float))
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_calculate_adaptive_limits(self, smart_arb, mock_api):
         """Test calculating adaptive limits."""
         mock_api.get_balance = AsyncMock(return_value={"balance": 100.0})
         limits = await smart_arb.calculate_adaptive_limits()
         assert isinstance(limits, SmartLimits)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_strategy_description(self, smart_arb, mock_api):
         """Test getting strategy description."""
         mock_api.get_balance = AsyncMock(return_value={"balance": 100.0})

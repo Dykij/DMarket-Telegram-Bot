@@ -43,7 +43,7 @@ CASSETTES_DIR.mkdir(parents=True, exist_ok=True)
 # ============================================================================
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_dmarket_api():
     """Create mock DMarket API for tests without cassettes."""
     from src.dmarket.dmarket_api import DMarketAPI
@@ -55,7 +55,7 @@ def mock_dmarket_api():
     return api
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_market_response():
     """Sample market items response."""
     return {
@@ -87,12 +87,19 @@ def sample_market_response():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_balance_response():
-    """Sample balance response."""
+    """Sample balance response.
+
+    Note: Uses official DMarket API format (2024):
+    {"usd": "10000", "usdAvailableToWithdraw": "0", ...}
+    Not the alternative format {"usd": {"amount": "10000"}}
+    """
     return {
-        "usd": {"amount": "10000"},  # $100.00 in cents
-        "dmc": {"amount": "5000"},
+        "usd": "10000",  # $100.00 in cents (direct string value)
+        "dmc": "5000",
+        "usdAvailableToWithdraw": "0",
+        "usdTradeProtected": "0",
     }
 
 
@@ -104,13 +111,11 @@ def sample_balance_response():
 class TestDMarketAPIIntegration:
     """Integration tests for DMarket API using VCR."""
 
-    @pytest.mark.asyncio
-    @pytest.mark.integration
+    @pytest.mark.asyncio()
+    @pytest.mark.integration()
     async def test_get_market_items_with_mock(self, mock_dmarket_api, sample_market_response):
         """Test getting market items with mocked response."""
-        with patch.object(
-            mock_dmarket_api, "_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(mock_dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = sample_market_response
 
             # Call API
@@ -129,22 +134,23 @@ class TestDMarketAPIIntegration:
             assert "title" in item
             assert "price" in item
 
-    @pytest.mark.asyncio
-    @pytest.mark.integration
-    @pytest.mark.skip(reason="Complex mocking required - get_balance uses multiple fallback endpoints")
+    @pytest.mark.asyncio()
+    @pytest.mark.integration()
     async def test_get_balance_with_mock(self, mock_dmarket_api, sample_balance_response):
-        """Test getting account balance with mocked response.
+        """Test getting account balance with mocked response."""
+        with patch.object(mock_dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+            mock_request.return_value = sample_balance_response
 
-        This test is skipped because get_balance() uses complex fallback logic
-        with multiple endpoints and circuit breakers, making it difficult to mock
-        properly without httpx_mock.
+            result = await mock_dmarket_api.get_balance()
 
-        See test_api_with_httpx_mock.py for proper balance testing.
-        """
-        pass
+            # get_balance returns dict with balance info:
+            # {'balance': float, 'available_balance': float, 'total_balance': float, ...}
+            # 10000 cents = $100.00
+            assert isinstance(result, dict)
+            assert result["balance"] == 100.0
 
-    @pytest.mark.asyncio
-    @pytest.mark.integration
+    @pytest.mark.asyncio()
+    @pytest.mark.integration()
     async def test_market_items_price_filtering(self, mock_dmarket_api, sample_market_response):
         """Test that price filtering works correctly."""
         # Mock with items of different prices
@@ -172,9 +178,7 @@ class TestDMarketAPIIntegration:
             "total": {"items": 3},
         }
 
-        with patch.object(
-            mock_dmarket_api, "_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(mock_dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = response
 
             result = await mock_dmarket_api.get_market_items(
@@ -188,55 +192,54 @@ class TestDMarketAPIIntegration:
             items = result["objects"]
             assert len(items) == 3
 
-    @pytest.mark.asyncio
-    @pytest.mark.integration
+    @pytest.mark.asyncio()
+    @pytest.mark.integration()
     async def test_api_error_handling(self, mock_dmarket_api):
         """Test API error handling."""
-        from src.utils.exceptions import DMarketSpecificError
+        from src.utils.exceptions import APIError
 
-        with patch.object(
-            mock_dmarket_api, "_request", new_callable=AsyncMock
-        ) as mock_request:
-            # Simulate DMarket API error
-            mock_request.side_effect = DMarketSpecificError(
+        with patch.object(mock_dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
+            # Simulate API error
+            mock_request.side_effect = APIError(
                 message="Unauthorized",
-                error_code=401,
+                status_code=401,
             )
 
-            # get_market_items catches exceptions and returns empty result
-            # So we just verify it handles the error gracefully
-            result = await mock_dmarket_api.get_market_items(game="csgo")
+            # get_balance() catches exceptions internally and returns error response dict
+            result = await mock_dmarket_api.get_balance()
 
-            # Should return empty or None when API error occurs
-            assert result is None or result == {} or result.get("objects", []) == []
+            # Should return error response dict, not raise exception
+            assert isinstance(result, dict)
+            assert result.get("error") is True
+            assert result.get("status_code") == 401
 
-    @pytest.mark.asyncio
-    @pytest.mark.integration
+    @pytest.mark.asyncio()
+    @pytest.mark.integration()
     async def test_rate_limit_handling(self, mock_dmarket_api):
         """Test rate limit error handling."""
         from src.utils.exceptions import RateLimitExceeded
 
-        with patch.object(
-            mock_dmarket_api, "_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(mock_dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
             # Simulate rate limit error
             mock_request.side_effect = RateLimitExceeded(
                 message="Rate limit exceeded",
                 retry_after=60,
             )
 
-            # get_market_items catches exceptions and returns empty result
+            # get_market_items catches exceptions and returns error response dict
             result = await mock_dmarket_api.get_market_items(game="csgo")
 
-            # Should return empty or None when rate limit occurs
-            assert result is None or result == {} or result.get("objects", []) == []
+            # Should return empty result with error flag (method catches exceptions)
+            assert isinstance(result, dict)
+            assert "objects" in result  # Returns valid structure with empty data
+            assert result.get("objects") == []
 
 
 class TestDMarketAPIEndpoints:
     """Test specific API endpoints."""
 
-    @pytest.mark.asyncio
-    @pytest.mark.integration
+    @pytest.mark.asyncio()
+    @pytest.mark.integration()
     async def test_user_inventory_endpoint(self, mock_dmarket_api):
         """Test user inventory endpoint."""
         inventory_response = {
@@ -250,9 +253,7 @@ class TestDMarketAPIEndpoints:
             "total": {"items": 1},
         }
 
-        with patch.object(
-            mock_dmarket_api, "_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(mock_dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = inventory_response
 
             result = await mock_dmarket_api.get_user_inventory(game_id="a8db")
@@ -260,17 +261,15 @@ class TestDMarketAPIEndpoints:
             assert "objects" in result
             assert len(result["objects"]) == 1
 
-    @pytest.mark.asyncio
-    @pytest.mark.integration
+    @pytest.mark.asyncio()
+    @pytest.mark.integration()
     async def test_create_targets_endpoint(self, mock_dmarket_api):
         """Test create targets (buy orders) endpoint."""
         target_response = {
             "Result": [{"OrderID": "target_001", "Successful": True}],
         }
 
-        with patch.object(
-            mock_dmarket_api, "_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(mock_dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = target_response
 
             # Use the actual create_targets method with proper signature
@@ -289,17 +288,15 @@ class TestDMarketAPIEndpoints:
             assert "Result" in result
             assert len(result["Result"]) > 0
 
-    @pytest.mark.asyncio
-    @pytest.mark.integration
+    @pytest.mark.asyncio()
+    @pytest.mark.integration()
     async def test_delete_targets_endpoint(self, mock_dmarket_api):
         """Test delete targets endpoint."""
         delete_response = {
             "Result": [{"TargetID": "target_001", "Successful": True}],
         }
 
-        with patch.object(
-            mock_dmarket_api, "_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(mock_dmarket_api, "_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = delete_response
 
             # Use the actual delete_targets method
@@ -316,8 +313,8 @@ class TestDMarketAPIWithVCRCassettes:
     Set record_mode='all' and provide valid API keys to record cassettes.
     """
 
-    @pytest.mark.asyncio
-    @pytest.mark.integration
+    @pytest.mark.asyncio()
+    @pytest.mark.integration()
     @pytest.mark.skip(reason="Requires valid API keys and cassette recording")
     async def test_real_market_items_call(self):
         """Test real market items API call with VCR.

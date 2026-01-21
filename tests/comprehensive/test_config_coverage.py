@@ -8,7 +8,6 @@ import os
 import tempfile
 from pathlib import Path
 from typing import Generator
-from unittest.mock import patch
 
 import pytest
 import yaml
@@ -16,8 +15,8 @@ import yaml
 from src.utils.config import (
     BotConfig,
     Config,
-    DatabaseConfig,
     DailyReportConfig,
+    DatabaseConfig,
     DMarketConfig,
     FiltersConfig,
     InventoryConfig,
@@ -376,7 +375,7 @@ class TestMainConfig:
 class TestConfigLoad:
     """Tests for Config.load() method."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def clean_env(self) -> Generator[None, None, None]:
         """Fixture to clean environment variables."""
         # Store original env vars
@@ -432,9 +431,7 @@ class TestConfigLoad:
             },
         }
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             yaml.dump(yaml_content, f)
             temp_path = f.name
 
@@ -451,7 +448,7 @@ class TestConfigLoad:
 class TestConfigUpdateFromEnv:
     """Tests for Config._update_from_env() method."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def clean_env(self) -> Generator[None, None, None]:
         """Fixture to clean environment variables."""
         original_env = os.environ.copy()
@@ -594,7 +591,7 @@ class TestConfigUpdateFromEnv:
 class TestConfigValidation:
     """Tests for Config.validate() method."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def clean_env(self) -> Generator[None, None, None]:
         """Fixture to clean environment variables."""
         original_env = os.environ.copy()

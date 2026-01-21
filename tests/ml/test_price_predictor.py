@@ -1,7 +1,6 @@
 """Тесты для ML модулей прогнозирования цен."""
 
-import pytest
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import numpy as np
 
@@ -65,7 +64,7 @@ class TestMarketFeatureExtractor:
         from src.ml.feature_extractor import MarketFeatureExtractor
 
         extractor = MarketFeatureExtractor()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         price_history = [
             (now - timedelta(days=6), 9.0),
@@ -150,7 +149,7 @@ class TestAdaptivePricePredictor:
         predictor = AdaptivePricePredictor(user_balance=100.0)
 
         assert predictor.user_balance == 100.0
-        assert predictor.MODEL_VERSION == "1.1.0"  # Updated for joblib serialization
+        assert predictor.MODEL_VERSION == "1.1.0"
 
     def test_set_user_balance(self):
         """Тест установки баланса."""
@@ -183,7 +182,7 @@ class TestAdaptivePricePredictor:
         from src.ml.price_predictor import AdaptivePricePredictor
 
         predictor = AdaptivePricePredictor(user_balance=100.0)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         price_history = [
             (now - timedelta(days=7), 8.0),
@@ -473,7 +472,7 @@ class TestPortfolioAllocator:
 
     def test_allocate_empty_list(self):
         """Тест с пустым списком."""
-        from src.ml.balance_adapter import BalanceAdaptiveStrategy, AdaptivePortfolioAllocator
+        from src.ml.balance_adapter import AdaptivePortfolioAllocator, BalanceAdaptiveStrategy
 
         strategy = BalanceAdaptiveStrategy(user_balance=100.0)
         allocator = AdaptivePortfolioAllocator(strategy)
@@ -483,7 +482,7 @@ class TestPortfolioAllocator:
 
     def test_allocate_returns_allocations(self):
         """Тест что allocate возвращает распределения."""
-        from src.ml.balance_adapter import BalanceAdaptiveStrategy, AdaptivePortfolioAllocator
+        from src.ml.balance_adapter import AdaptivePortfolioAllocator, BalanceAdaptiveStrategy
 
         strategy = BalanceAdaptiveStrategy(user_balance=100.0)
         allocator = AdaptivePortfolioAllocator(strategy)
@@ -513,7 +512,7 @@ class TestPortfolioAllocator:
 
     def test_allocate_respects_max_positions(self):
         """Тест соблюдения максимума позиций."""
-        from src.ml.balance_adapter import BalanceAdaptiveStrategy, AdaptivePortfolioAllocator
+        from src.ml.balance_adapter import AdaptivePortfolioAllocator, BalanceAdaptiveStrategy
 
         strategy = BalanceAdaptiveStrategy(user_balance=100.0)
         allocator = AdaptivePortfolioAllocator(strategy)
