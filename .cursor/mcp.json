@@ -36,6 +36,14 @@
       "command": "npx",
       "args": ["-y", "@anthropic/mcp-playwright"],
       "description": "Web automation and E2E testing"
+    },
+    "skillsmp": {
+      "command": "npx",
+      "args": ["-y", "skillsmp-mcp-server"],
+      "description": "AI Skills Marketplace - search, discover, install agent skills for trading, arbitrage, notifications",
+      "env": {
+        "SKILLSMP_API_KEY": "${SKILLSMP_API_KEY}"
+      }
     }
   }
 }

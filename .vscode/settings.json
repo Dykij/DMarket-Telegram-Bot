@@ -845,6 +845,17 @@
       "playwright": {
         "command": "npx",
         "args": ["-y", "@anthropic/mcp-playwright"]
+      },
+      // SkillsMP MCP - маркетплейс AI-skills для агентов
+      // Использование: "Найди skills для арбитража", "Установи trading skill"
+      // Доступные tools: skillsmp_search, skillsmp_ai_search, skillsmp_get_skill_content,
+      //                  skillsmp_list_repo_skills, skillsmp_install_skill
+      "skillsmp": {
+        "command": "npx",
+        "args": ["-y", "skillsmp-mcp-server"],
+        "env": {
+          "SKILLSMP_API_KEY": "${env:SKILLSMP_API_KEY}"
+        }
       }
     }
   }

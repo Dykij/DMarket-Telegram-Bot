@@ -692,11 +692,123 @@ claude mcp add --header "CONTEXT7_API_KEY: YOUR_API_KEY" --transport http contex
 | MCP Server | Приоритет | Польза для проекта |
 |------------|-----------|-------------------|
 | **SQLite/PostgreSQL** | ⭐⭐⭐⭐⭐ | Отладка БД, запросы на natural language |
+| **SkillsMP** | ⭐⭐⭐⭐⭐ | Маркетплейс AI-skills для арбитража и торговли |
 | **GitHub** | ⭐⭐⭐⭐ | Работа с Issues, PRs, ветками |
 | **Fetch/Brave Search** | ⭐⭐⭐⭐ | Актуальная документация DMarket API |
 | **Context7** | ⭐⭐⭐⭐ | Актуальная документация библиотек |
 | **Sequential Thinking** | ⭐⭐⭐ | Улучшение логики для сложных алгоритмов |
 | **Playwright** | ⭐⭐⭐ | Парсинг цен, E2E тесты |
+
+---
+
+## 🎯 SkillsMP MCP - AI Skills Marketplace
+
+### Что такое SkillsMP?
+
+[SkillsMP](https://skillsmp.com) — это маркетплейс для обнаружения, обмена и установки "skills" (модульных инструментов) для AI-агентов. SkillsMP MCP сервер позволяет AI-ассистентам искать и устанавливать skills прямо из IDE.
+
+### Почему SkillsMP полезен для DMarket Bot?
+
+Для проекта торгового бота SkillsMP предоставляет готовые skills:
+
+| Категория | Примеры Skills | Польза |
+|-----------|---------------|--------|
+| **Trading** | autonomous-trading, arbitrage-finder | Алгоритмы автоматической торговли |
+| **Arbitrage** | crypto-arbitrage-opportunity-finder | Поиск арбитражных возможностей |
+| **Notifications** | telegram-notifications, discord-alerts | Интеграция уведомлений |
+| **Price Monitoring** | price-tracker, market-analyzer | Мониторинг цен |
+| **API Integration** | api-client-generator | Генерация API клиентов |
+
+### Доступные инструменты (Tools)
+
+| Tool | Описание |
+|------|----------|
+| `skillsmp_search` | Поиск skills по ключевым словам |
+| `skillsmp_ai_search` | AI-powered семантический поиск |
+| `skillsmp_get_skill_content` | Получить содержимое skill (SKILL.md) |
+| `skillsmp_list_repo_skills` | Список skills в репозитории |
+| `skillsmp_install_skill` | Установка skill в AI-агент |
+
+### Установка
+
+**Требования:**
+- Node.js 18+
+- SkillsMP API key (получить на https://skillsmp.com)
+
+**Claude Code:**
+```bash
+claude mcp add skillsmp -- npx -y skillsmp-mcp-server --env SKILLSMP_API_KEY=your_api_key
+```
+
+**Cursor (в `~/.cursor/mcp.json`):**
+```json
+{
+  "mcpServers": {
+    "skillsmp": {
+      "command": "npx",
+      "args": ["-y", "skillsmp-mcp-server"],
+      "env": {
+        "SKILLSMP_API_KEY": "your_api_key"
+      }
+    }
+  }
+}
+```
+
+**VS Code Insiders (в `.vscode/settings.json`):**
+```json
+{
+  "mcp": {
+    "servers": {
+      "skillsmp": {
+        "command": "npx",
+        "args": ["-y", "skillsmp-mcp-server"],
+        "env": {
+          "SKILLSMP_API_KEY": "${env:SKILLSMP_API_KEY}"
+        }
+      }
+    }
+  }
+}
+```
+
+### Примеры использования
+
+**Поиск skills для арбитража:**
+```
+Найди skills для поиска арбитражных возможностей в крипто
+```
+
+**Семантический поиск:**
+```
+Find skills that help with trading notifications and alerts
+```
+
+**Установка skill:**
+```
+Установи skill autonomous-trading из репозитория akhilgurrapu/kubera-claude-skills
+```
+
+**Просмотр skills в репозитории:**
+```
+Какие skills доступны в anthropics/claude-code?
+```
+
+### Полезные Skills для DMarket Bot
+
+| Skill | Автор | Описание |
+|-------|-------|----------|
+| `autonomous-trading` | akhilgurrapu | Автономная торговля с Telegram уведомлениями |
+| `arbitrage-opportunity-finder` | jeremylongshore | Поиск арбитражных возможностей |
+| `mcp-builder` | composiohq | Создание собственных MCP серверов |
+| `api-documentation` | anthropics | Работа с API документацией |
+
+### Ссылки
+
+- [SkillsMP Website](https://skillsmp.com)
+- [SkillsMP MCP Server GitHub](https://github.com/anilcancakir/skillsmp-mcp-server)
+- [SkillsMP API Documentation](https://skillsmp.com/docs/api)
+- [Browse Skills by Category](https://skillsmp.com/categories)
 
 ---
 
@@ -709,3 +821,4 @@ claude mcp add --header "CONTEXT7_API_KEY: YOUR_API_KEY" --transport http contex
 - [Context7 Documentation](https://context7.com/docs)
 - [Anthropic MCP Servers](https://github.com/anthropics/anthropic-mcp-servers)
 - [Model Context Protocol Spec](https://modelcontextprotocol.io/)
+- [SkillsMP Marketplace](https://skillsmp.com)

@@ -37,12 +37,21 @@
       "command": "npx",
       "args": ["-y", "@anthropic/mcp-playwright"],
       "description": "Web automation and E2E testing. Usage: 'Открой DMarket и найди цену AWP Dragon Lore'"
+    },
+    "skillsmp": {
+      "command": "npx",
+      "args": ["-y", "skillsmp-mcp-server"],
+      "description": "AI Skills Marketplace. Usage: 'Найди skills для арбитража', 'Установи trading skill'",
+      "env": {
+        "SKILLSMP_API_KEY": "${SKILLSMP_API_KEY}"
+      }
     }
   },
   "defaultTools": [
     "context7",
     "sqlite",
-    "fetch"
+    "fetch",
+    "skillsmp"
   ],
   "settings": {
     "autoActivateMcp": true,
