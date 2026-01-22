@@ -361,8 +361,18 @@ class IncidentManager:
             incident_type=incident_type,
         )
 
-        # Send alerts (async, don't block)
-        asyncio.create_task(self._send_alerts(incident))
+        # Send alerts (async with error handling)
+        async def _safe_send_alerts() -> None:
+            try:
+                await self._send_alerts(incident)
+            except Exception as e:
+                logger.exception(
+                    "alert_send_failed",
+                    incident_id=incident.id,
+                    error=str(e),
+                )
+
+        asyncio.create_task(_safe_send_alerts())
 
         # Attempt auto-mitigation
         if auto_mitigate and incident_type in self._mitigation_handlers:

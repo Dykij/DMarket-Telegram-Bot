@@ -613,6 +613,11 @@ class KnowledgeBase:
             knowledge: Knowledge item to persist
         """
         if not self.session:
+            logger.debug(
+                "persistence_skipped",
+                user_id=self.user_id,
+                reason="no_session",
+            )
             return
 
         try:

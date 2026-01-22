@@ -213,7 +213,10 @@ async def knowledge_callback_handler(
     logger.info("knowledge_callback", user_id=user_id, data=data)
 
     try:
-        if data == "kb_clear_confirm":
+        if data == "kb_clear_ask":
+            await _handle_clear_ask(query)
+
+        elif data == "kb_clear_confirm":
             await _handle_clear_confirm(query, user_id)
 
         elif data == "kb_clear_cancel":
@@ -236,6 +239,24 @@ async def knowledge_callback_handler(
         await query.edit_message_text(
             "❌ An error occurred. Please try again."
         )
+
+
+async def _handle_clear_ask(query) -> None:
+    """Handle clear confirmation request."""
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("✅ Yes, clear all", callback_data="kb_clear_confirm"),
+            InlineKeyboardButton("❌ Cancel", callback_data="kb_clear_cancel"),
+        ]
+    ])
+
+    await query.edit_message_text(
+        "⚠️ **Are you sure you want to clear your knowledge base?**\n\n"
+        "This will remove all accumulated trading knowledge, patterns, "
+        "and lessons learned. This action cannot be undone.",
+        parse_mode="Markdown",
+        reply_markup=keyboard,
+    )
 
 
 async def _handle_clear_confirm(query, user_id: int) -> None:
@@ -410,7 +431,7 @@ def _build_knowledge_keyboard() -> InlineKeyboardMarkup:
         ],
         [
             InlineKeyboardButton("🧹 Apply Decay", callback_data="kb_decay"),
-            InlineKeyboardButton("🗑️ Clear All", callback_data="kb_clear_confirm"),
+            InlineKeyboardButton("🗑️ Clear All", callback_data="kb_clear_ask"),
         ],
     ])
 
