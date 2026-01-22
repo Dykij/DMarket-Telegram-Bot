@@ -48,7 +48,9 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime, UTC
+from enum import StrEnum
 from typing import Any
+from uuid import uuid4
 import structlog
 from pydantic import BaseModel
 
@@ -102,7 +104,7 @@ class KnowledgeBase:
         - Pattern detected in trading history
         - Anomaly detected in market
         """
-        entry_id = f"{self.user_id}_{knowledge_type}_{datetime.now().timestamp()}"
+        entry_id = f"{self.user_id}_{knowledge_type}_{uuid4().hex[:8]}"
         
         entry = KnowledgeEntry(
             id=entry_id,
@@ -204,8 +206,10 @@ class KnowledgeBase:
         score = entry.relevance_score
         
         # Match by item name
-        if "item" in entry.content and "item" in context:
-            if entry.content["item"].lower() in context["item"].lower():
+        entry_item = entry.content.get("item")
+        context_item = context.get("item")
+        if entry_item and context_item:
+            if entry_item.lower() in context_item.lower():
                 score *= 2.0
         
         # Match by game
@@ -594,7 +598,7 @@ class N8NClient:
             raise RuntimeError("Client not initialized. Use async context manager.")
         
         response = await self._client.post(
-            f"/api/v1/workflows/{workflow_id}/activate",
+            f"/api/v1/workflows/{workflow_id}/execute",
             json=data or {},
         )
         response.raise_for_status()
@@ -707,7 +711,7 @@ class ReasoningResult:
     answer: str
     thinking_trace: str  # Internal reasoning steps
     confidence: float
-    tool_calls: list[dict[str, Any]] = None
+    tool_calls: list[dict[str, Any]] = field(default_factory=list)
     
 
 class OnDeviceReasoner:
@@ -759,18 +763,23 @@ class OnDeviceReasoner:
         Mimics LFM2.5-1.2B-Thinking's approach of
         generating reasoning before answering.
         """
+        # Thresholds for decision making
+        HIGH_PROFIT_THRESHOLD = 10
+        MODERATE_PROFIT_THRESHOLD = 5
+        GOOD_LIQUIDITY_THRESHOLD = 0.7
+        
         steps = []
         
         profit = trade_data.get("profit_percent", 0)
-        if profit > 10:
+        if profit > HIGH_PROFIT_THRESHOLD:
             steps.append(f"Profit margin is {profit}%, which is high")
-        elif profit > 5:
+        elif profit > MODERATE_PROFIT_THRESHOLD:
             steps.append(f"Profit margin is {profit}%, which is moderate")
         else:
             steps.append(f"Profit margin is {profit}%, which is low")
         
         liquidity = trade_data.get("liquidity_score", 0)
-        if liquidity > 0.7:
+        if liquidity > GOOD_LIQUIDITY_THRESHOLD:
             steps.append(f"Liquidity score {liquidity} indicates good market depth")
         else:
             steps.append(f"Liquidity score {liquidity} indicates potential issues")
@@ -785,16 +794,22 @@ class OnDeviceReasoner:
         thinking: str,
     ) -> dict[str, Any]:
         """Make final decision based on reasoning."""
+        # Decision thresholds (configurable)
+        HIGH_PROFIT_THRESHOLD = 10
+        MODERATE_PROFIT_THRESHOLD = 5
+        GOOD_LIQUIDITY_THRESHOLD = 0.7
+        ACCEPTABLE_LIQUIDITY_THRESHOLD = 0.5
+        
         # Simple rule-based for now, would be ML model
         profit = trade_data.get("profit_percent", 0)
         liquidity = trade_data.get("liquidity_score", 0)
         
-        if profit > 10 and liquidity > 0.7:
+        if profit > HIGH_PROFIT_THRESHOLD and liquidity > GOOD_LIQUIDITY_THRESHOLD:
             return {
                 "answer": "STRONG_BUY",
                 "confidence": 0.9,
             }
-        elif profit > 5 and liquidity > 0.5:
+        elif profit > MODERATE_PROFIT_THRESHOLD and liquidity > ACCEPTABLE_LIQUIDITY_THRESHOLD:
             return {
                 "answer": "BUY",
                 "confidence": 0.7,
