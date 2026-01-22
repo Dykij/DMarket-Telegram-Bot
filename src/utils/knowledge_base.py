@@ -44,6 +44,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
+from operator import itemgetter
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
@@ -331,8 +332,6 @@ class KnowledgeBase:
                 scored.append((entry, score))
 
         # Sort by score (descending)
-        from operator import itemgetter
-
         scored.sort(key=itemgetter(1), reverse=True)
 
         # Limit results
