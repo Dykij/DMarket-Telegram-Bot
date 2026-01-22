@@ -797,5 +797,55 @@
   "terminal.integrated.shellIntegration.enabled": true,
   "python-envs.defaultEnvManager": "ms-python.python:system",
   "python-envs.pythonProjects": [],
-  "markdown.validate.enabled": true
+  "markdown.validate.enabled": true,
+  // ==================== MCP (Model Context Protocol) Servers ====================
+  // Конфигурация MCP серверов для VS Code Insiders с GitHub Copilot Agent
+  // Требует: VS Code Insiders + GitHub Copilot Chat Extension
+  // Документация: docs/AI_TOOLS_CONFIG.md
+  "mcp": {
+    "servers": {
+      // Context7 - актуальная документация по библиотекам (60+ libs)
+      // Использование: "use library /encode/httpx for API and docs."
+      "context7": {
+        "command": "npx",
+        "args": ["-y", "@upstash/context7-mcp"],
+        "env": {
+          "CONTEXT7_API_KEY": "${env:CONTEXT7_API_KEY}"
+        }
+      },
+      // SQLite MCP - работа с локальной базой данных через natural language
+      // Использование: "Покажи последние 5 записей из таблицы trades"
+      "sqlite": {
+        "command": "npx",
+        "args": ["-y", "@anthropic/mcp-sqlite", "--db", "${workspaceFolder}/data/bot.db"]
+      },
+      // GitHub MCP - интеграция с Issues, PRs, ветками репозитория
+      // Использование: "Найди Issue про rate limiting"
+      "github": {
+        "command": "npx",
+        "args": ["-y", "@anthropic/mcp-github"],
+        "env": {
+          "GITHUB_TOKEN": "${env:GITHUB_TOKEN}"
+        }
+      },
+      // Fetch MCP - доступ к веб-ресурсам и документации API
+      // Использование: "Получи документацию DMarket API"
+      "fetch": {
+        "command": "npx",
+        "args": ["-y", "@anthropic/mcp-fetch"]
+      },
+      // Sequential Thinking MCP - улучшенная логика для сложных задач
+      // Использование: автоматически улучшает рассуждения для сложных алгоритмов
+      "sequential-thinking": {
+        "command": "npx",
+        "args": ["-y", "@anthropic/mcp-sequential-thinking"]
+      },
+      // Playwright MCP - веб-автоматизация и E2E тестирование
+      // Использование: "Открой страницу DMarket и найди цену AWP Dragon Lore"
+      "playwright": {
+        "command": "npx",
+        "args": ["-y", "@anthropic/mcp-playwright"]
+      }
+    }
+  }
 }

@@ -2014,3 +2014,54 @@ use library /encode/httpx for API and docs.
 ```
 
 Полный список: `docs/AI_TOOLS_CONFIG.md`
+
+## 🔧 MCP Серверы для разработки
+
+### Доступные MCP серверы
+
+Помимо Context7, для разработки доступны следующие MCP серверы:
+
+| MCP Server | Приоритет | Назначение |
+|------------|-----------|------------|
+| **SQLite/PostgreSQL** | ⭐⭐⭐⭐⭐ | Запросы к БД на natural language |
+| **GitHub** | ⭐⭐⭐⭐ | Работа с Issues, PRs |
+| **Fetch** | ⭐⭐⭐⭐ | Доступ к веб-документации |
+| **Sequential Thinking** | ⭐⭐⭐ | Улучшенная логика для сложных задач |
+| **Playwright** | ⭐⭐⭐ | Парсинг веб-страниц, E2E тесты |
+
+### Примеры использования
+
+```bash
+# SQLite: запрос к базе данных
+"Покажи последние 10 сделок пользователя с ID 123456"
+
+# GitHub: поиск по Issues
+"Найди все открытые Issues связанные с rate limiting"
+
+# Fetch: получение документации
+"Получи актуальную документацию DMarket API по эндпоинту /market-items"
+
+# Playwright: парсинг
+"Открой DMarket и найди текущую цену AWP Dragon Lore"
+```
+
+### Конфигурация в VS Code Insiders
+
+Добавьте в `.vscode/settings.json`:
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "context7": { "command": "npx", "args": ["-y", "@upstash/context7-mcp"] },
+      "sqlite": { "command": "npx", "args": ["-y", "@anthropic/mcp-sqlite", "--db", "data/bot.db"] },
+      "github": { "command": "npx", "args": ["-y", "@anthropic/mcp-github"] },
+      "fetch": { "command": "npx", "args": ["-y", "@anthropic/mcp-fetch"] },
+      "sequential-thinking": { "command": "npx", "args": ["-y", "@anthropic/mcp-sequential-thinking"] },
+      "playwright": { "command": "npx", "args": ["-y", "@anthropic/mcp-playwright"] }
+    }
+  }
+}
+```
+
+Подробная документация: `docs/AI_TOOLS_CONFIG.md`

@@ -164,6 +164,39 @@ code generation, setup or configuration steps.
 
 Full library list: `docs/AI_TOOLS_CONFIG.md`
 
+## MCP Servers for Enhanced Development
+
+Claude Code supports MCP (Model Context Protocol) servers for enhanced capabilities:
+
+### Available MCP Servers
+
+| MCP Server | Command | Use Case |
+|------------|---------|----------|
+| **context7** | `claude mcp add context7 -- npx -y @upstash/context7-mcp` | Library docs |
+| **sqlite** | `claude mcp add sqlite -- npx -y @anthropic/mcp-sqlite --db data/bot.db` | Database queries |
+| **github** | `claude mcp add github -- npx -y @anthropic/mcp-github` | Issues, PRs |
+| **fetch** | `claude mcp add fetch -- npx -y @anthropic/mcp-fetch` | Web access |
+| **sequential-thinking** | `claude mcp add seq -- npx -y @anthropic/mcp-sequential-thinking` | Complex reasoning |
+| **playwright** | `claude mcp add playwright -- npx -y @anthropic/mcp-playwright` | Web automation |
+
+### Usage Examples
+
+```bash
+# Database: Query bot's trade history
+"Покажи последние 5 сделок пользователя 123456"
+
+# GitHub: Find related issues
+"Найди открытые Issues про rate limiting"
+
+# Fetch: Get live API docs
+"Получи актуальную документацию DMarket API"
+
+# Playwright: Parse prices
+"Открой DMarket и найди текущую цену AWP Dragon Lore"
+```
+
+Configuration details: `docs/AI_TOOLS_CONFIG.md`
+
 ## Known Issues
 
 - Some legacy tests use cents format `{"usd": 10000}` - migrate to `{"balance": 100.0}`

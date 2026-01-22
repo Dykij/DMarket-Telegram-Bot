@@ -104,3 +104,52 @@ code generation, setup or configuration steps.
 ```
 
 Full library list: `docs/AI_TOOLS_CONFIG.md`
+
+## MCP Servers Configuration
+
+For enhanced development, configure these MCP servers in Cursor:
+
+### ~/.cursor/mcp.json
+
+```json
+{
+  "mcpServers": {
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "headers": { "CONTEXT7_API_KEY": "YOUR_KEY" }
+    },
+    "sqlite": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-sqlite", "--db", "data/bot.db"]
+    },
+    "github": {
+      "command": "npx", 
+      "args": ["-y", "@anthropic/mcp-github"],
+      "env": { "GITHUB_TOKEN": "ghp_xxx" }
+    },
+    "fetch": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-fetch"]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-sequential-thinking"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-playwright"]
+    }
+  }
+}
+```
+
+### MCP Server Priority
+
+| Server | Priority | Use Case |
+|--------|----------|----------|
+| SQLite | ⭐⭐⭐⭐⭐ | DB queries via natural language |
+| GitHub | ⭐⭐⭐⭐ | Issues, PRs management |
+| Fetch | ⭐⭐⭐⭐ | Live DMarket API docs |
+| Context7 | ⭐⭐⭐⭐ | Library documentation |
+| Sequential | ⭐⭐⭐ | Complex algorithm reasoning |
+| Playwright | ⭐⭐⭐ | Price parsing, E2E tests |
