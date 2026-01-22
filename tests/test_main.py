@@ -185,14 +185,12 @@ class TestApplication:
 
     @pytest.mark.asyncio()
     async def test_initialize_config_validation_error(self):
-        """Test initialization with config validation error."""
+        """Test initialization handles config load error."""
         app = Application()
 
-        mock_config = MagicMock()
-        mock_config.validate = MagicMock(side_effect=ValueError("Invalid config"))
-
+        # Mock Config.load to raise ValueError directly
         with (
-            patch("src.main.Config.load", return_value=mock_config),
+            patch("src.main.Config.load", side_effect=ValueError("Invalid config")),
             pytest.raises(ValueError, match="Invalid config"),
         ):
             await app.initialize()

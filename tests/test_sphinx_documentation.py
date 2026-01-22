@@ -11,7 +11,7 @@ from pathlib import Path
 @pytest.fixture
 def sphinx_dir():
     """Get docs-sphinx directory path."""
-    return Path(__file__).parent.parent.parent / "docs-sphinx"
+    return Path(__file__).parent.parent / "docs-sphinx"
 
 
 class TestSphinxConfiguration:

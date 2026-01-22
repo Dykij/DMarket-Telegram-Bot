@@ -49,8 +49,8 @@ async def test_full_arbitrage_workflow_with_steam():
     # Create enhancer
     enhancer = SteamArbitrageEnhancer()
 
-    # Mock Steam API calls
-    with patch("src.dmarket.steam_api.get_steam_price") as mock_steam:
+    # Mock Steam API calls in the module where it's imported
+    with patch("src.dmarket.steam_arbitrage_enhancer.get_steam_price") as mock_steam:
         mock_steam.return_value = {"price": 15.00, "volume": 150, "median_price": 15.50}
 
         # Enhance items with Steam data
