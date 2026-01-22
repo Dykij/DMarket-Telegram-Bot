@@ -134,6 +134,7 @@ python -m src.main
 ### Для разработчиков
 
 - **[🚀 GitHub Codespaces](.devcontainer/README.md)** - Разработка в облаке (рекомендуется!)
+- **[🤖 Copilot Space](.github/COPILOT_SPACE_CONFIG.md)** - Настройка GitHub Copilot Space
 - **[Руководство по разработке](CONTRIBUTING.md)** - Как помочь проекту
 - **[Тестирование](docs/testing_guide.md)** - Запуск и написание тестов
 - **[Качество кода](docs/code_quality_tools_guide.md)** - Ruff, MyPy
