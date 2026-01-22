@@ -466,6 +466,240 @@ claude mcp add --header "CONTEXT7_API_KEY: YOUR_API_KEY" --transport http contex
 
 ---
 
+## 🔧 Дополнительные MCP серверы для разработки
+
+Помимо Context7, для разработки DMarket бота полезны следующие MCP серверы:
+
+### 1. SQLite/PostgreSQL MCP (Работа с БД) ⭐⭐⭐⭐⭐
+
+**Зачем нужен:**
+Позволяет AI-ассистенту работать с базой данных бота напрямую через natural language запросы.
+
+**Польза для проекта:**
+- Быстрая отладка логики базы данных
+- Запросы типа "Покажи последние 5 сделок пользователя X"
+- Анализ структуры таблиц без SQL-менеджеров
+
+**Установка для VS Code Insiders:**
+
+```json
+// settings.json
+{
+  "mcp": {
+    "servers": {
+      "sqlite": {
+        "command": "npx",
+        "args": ["-y", "@anthropic/mcp-sqlite", "--db", "data/bot.db"]
+      }
+    }
+  }
+}
+```
+
+Для PostgreSQL:
+```json
+{
+  "mcp": {
+    "servers": {
+      "postgres": {
+        "command": "npx",
+        "args": ["-y", "@anthropic/mcp-postgres"],
+        "env": {
+          "DATABASE_URL": "postgresql://user:pass@localhost:5432/dmarket_bot"
+        }
+      }
+    }
+  }
+}
+```
+
+### 2. GitHub MCP ⭐⭐⭐⭐
+
+**Зачем нужен:**
+Глубокая интеграция с GitHub репозиторием - Issues, PRs, ветки.
+
+**Польза для проекта:**
+- Поиск по Issues и автоматическое создание кода для решения задач
+- Анализ изменений в ветках
+- Создание Pull Requests
+
+**Установка:**
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "github": {
+        "command": "npx",
+        "args": ["-y", "@anthropic/mcp-github"],
+        "env": {
+          "GITHUB_TOKEN": "ghp_your_token_here"
+        }
+      }
+    }
+  }
+}
+```
+
+### 3. Fetch / Brave Search MCP (Актуальная документация API) ⭐⭐⭐⭐
+
+**Зачем нужен:**
+Позволяет AI выходить в интернет за актуальной документацией.
+
+**Польза для проекта:**
+- Актуальная документация DMarket API (может обновляться)
+- Поиск решений ошибок на StackOverflow/GitHub Issues
+- Проверка изменений в API
+
+**Установка Fetch MCP:**
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "fetch": {
+        "command": "npx",
+        "args": ["-y", "@anthropic/mcp-fetch"]
+      }
+    }
+  }
+}
+```
+
+**Установка Brave Search MCP:**
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "brave-search": {
+        "command": "npx",
+        "args": ["-y", "@anthropic/mcp-brave-search"],
+        "env": {
+          "BRAVE_API_KEY": "your_brave_api_key"
+        }
+      }
+    }
+  }
+}
+```
+
+### 4. Sequential Thinking MCP ⭐⭐⭐
+
+**Зачем нужен:**
+Улучшает логику рассуждений модели для сложных задач.
+
+**Польза для проекта:**
+- Разбиение сложных алгоритмов на шаги (например, автоматическая закупка скинов)
+- Уменьшение галлюцинаций в бизнес-логике
+- Проверка гипотез на каждом этапе
+
+**Установка:**
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "sequential-thinking": {
+        "command": "npx",
+        "args": ["-y", "@anthropic/mcp-sequential-thinking"]
+      }
+    }
+  }
+}
+```
+
+### 5. Playwright MCP (Web Automation) ⭐⭐⭐
+
+**Зачем нужен:**
+Взаимодействие с веб-сайтами для парсинга или тестирования.
+
+**Польза для проекта:**
+- Парсинг цен с сайтов, где нет API
+- E2E тестирование веб-интерфейсов
+- Автоматизация действий на DMarket
+
+**Установка:**
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "playwright": {
+        "command": "npx",
+        "args": ["-y", "@anthropic/mcp-playwright"]
+      }
+    }
+  }
+}
+```
+
+### Полная конфигурация для VS Code Insiders
+
+```json
+// .vscode/settings.json или User settings
+{
+  "mcp": {
+    "servers": {
+      // Context7 - актуальная документация библиотек
+      "context7": {
+        "command": "npx",
+        "args": ["-y", "@upstash/context7-mcp"],
+        "env": {
+          "CONTEXT7_API_KEY": "YOUR_CONTEXT7_API_KEY"
+        }
+      },
+      
+      // SQLite - работа с локальной БД
+      "sqlite": {
+        "command": "npx",
+        "args": ["-y", "@anthropic/mcp-sqlite", "--db", "data/bot.db"]
+      },
+      
+      // GitHub - интеграция с репозиторием
+      "github": {
+        "command": "npx",
+        "args": ["-y", "@anthropic/mcp-github"],
+        "env": {
+          "GITHUB_TOKEN": "ghp_your_token_here"
+        }
+      },
+      
+      // Fetch - доступ к веб-ресурсам
+      "fetch": {
+        "command": "npx",
+        "args": ["-y", "@anthropic/mcp-fetch"]
+      },
+      
+      // Sequential Thinking - улучшенная логика
+      "sequential-thinking": {
+        "command": "npx",
+        "args": ["-y", "@anthropic/mcp-sequential-thinking"]
+      },
+      
+      // Playwright - веб-автоматизация
+      "playwright": {
+        "command": "npx",
+        "args": ["-y", "@anthropic/mcp-playwright"]
+      }
+    }
+  }
+}
+```
+
+### Матрица полезности MCP серверов
+
+| MCP Server | Приоритет | Польза для проекта |
+|------------|-----------|-------------------|
+| **SQLite/PostgreSQL** | ⭐⭐⭐⭐⭐ | Отладка БД, запросы на natural language |
+| **GitHub** | ⭐⭐⭐⭐ | Работа с Issues, PRs, ветками |
+| **Fetch/Brave Search** | ⭐⭐⭐⭐ | Актуальная документация DMarket API |
+| **Context7** | ⭐⭐⭐⭐ | Актуальная документация библиотек |
+| **Sequential Thinking** | ⭐⭐⭐ | Улучшение логики для сложных алгоритмов |
+| **Playwright** | ⭐⭐⭐ | Парсинг цен, E2E тесты |
+
+---
+
 ## 📚 Ссылки
 
 - [GitHub Copilot Custom Instructions](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions)
@@ -473,3 +707,5 @@ claude mcp add --header "CONTEXT7_API_KEY: YOUR_API_KEY" --transport http contex
 - [Cursor Rules Documentation](https://cursor.com/docs/context/rules)
 - [Context7 MCP GitHub](https://github.com/upstash/context7)
 - [Context7 Documentation](https://context7.com/docs)
+- [Anthropic MCP Servers](https://github.com/anthropics/anthropic-mcp-servers)
+- [Model Context Protocol Spec](https://modelcontextprotocol.io/)
