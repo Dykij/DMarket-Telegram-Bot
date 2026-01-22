@@ -190,8 +190,109 @@ alwaysApply: true
 
 ---
 
+## 🔌 Context7 MCP - Актуальная документация для AI-ассистентов
+
+### Что такое Context7?
+
+[Context7](https://github.com/upstash/context7) - это Model Context Protocol (MCP) сервер, который предоставляет AI-моделям актуальную документацию по библиотекам и фреймворкам. Это решает проблему устаревших знаний LLM-моделей.
+
+### Проблема без Context7
+
+❌ LLM-модели обучены на старых данных и могут:
+- Генерировать код с устаревшими методами
+- Использовать несуществующие API (галлюцинации)
+- Рекомендовать старые версии пакетов
+
+### Решение с Context7
+
+✅ Context7 MCP подтягивает актуальную документацию прямо в контекст LLM:
+- Версионно-специфичные примеры кода
+- Актуальные API и методы
+- Правильный синтаксис для современных версий
+
+### Установка
+
+#### Для Cursor AI
+
+```json
+// ~/.cursor/mcp.json
+{
+  "mcpServers": {
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+#### Для Claude Code
+
+```bash
+# Remote (рекомендуется)
+claude mcp add --header "CONTEXT7_API_KEY: YOUR_API_KEY" --transport http context7 https://mcp.context7.com/mcp
+
+# Local
+claude mcp add context7 -- npx -y @upstash/context7-mcp --api-key YOUR_API_KEY
+```
+
+### Использование
+
+Добавьте `use context7` в конец промпта:
+
+```
+Создай async HTTP клиент для DMarket API с retry логикой. use context7
+```
+
+Или укажите конкретную библиотеку:
+
+```
+Реализуй WebSocket подключение с использованием httpx. use library /encode/httpx for API and docs.
+```
+
+### Рекомендуемые библиотеки для этого проекта
+
+| Библиотека | Context7 ID | Описание |
+|------------|-------------|----------|
+| httpx | `/encode/httpx` | Async HTTP клиент |
+| python-telegram-bot | `/python-telegram-bot/python-telegram-bot` | Telegram Bot API |
+| SQLAlchemy | `/sqlalchemy/sqlalchemy` | ORM |
+| Pydantic | `/pydantic/pydantic` | Валидация данных |
+| pytest | `/pytest-dev/pytest` | Тестирование |
+| structlog | `/hynek/structlog` | Структурированное логирование |
+
+### Автоматический вызов
+
+Добавьте правило в настройки IDE чтобы Context7 вызывался автоматически:
+
+**Cursor**: `Settings > Rules`
+**Claude Code**: `CLAUDE.md`
+
+```
+Always use Context7 MCP when I need library/API documentation, 
+code generation, setup or configuration steps.
+```
+
+### Когда использовать
+
+✅ **Рекомендуется для:**
+- Генерации кода с использованием библиотек
+- Настройки и конфигурации пакетов
+- Изучения новых API
+
+❌ **НЕ нужен для:**
+- Бизнес-логики проекта
+- Рефакторинга существующего кода
+- Простых изменений
+
+---
+
 ## 📚 Ссылки
 
 - [GitHub Copilot Custom Instructions](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions)
 - [Claude CLAUDE.md Guide](https://www.builder.io/blog/claude-md-guide)
 - [Cursor Rules Documentation](https://cursor.com/docs/context/rules)
+- [Context7 MCP GitHub](https://github.com/upstash/context7)
+- [Context7 Documentation](https://context7.com/docs)
