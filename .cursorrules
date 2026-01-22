@@ -68,3 +68,39 @@ ruff check src/ tests/        # Lint code
 ruff format src/ tests/       # Format code
 mypy src/                     # Type check
 ```
+
+## Context7 MCP Integration
+
+Use Context7 MCP for up-to-date library documentation when generating code.
+
+### Auto-invoke Rule
+
+```
+Always use Context7 MCP when I need library/API documentation, 
+code generation, setup or configuration steps.
+```
+
+### Key Libraries
+
+| Library | Context7 ID | Use Case |
+|---------|-------------|----------|
+| httpx | `/encode/httpx` | Async HTTP |
+| python-telegram-bot | `/python-telegram-bot/python-telegram-bot` | Bot handlers |
+| SQLAlchemy | `/sqlalchemy/sqlalchemy` | Database ORM |
+| Pydantic | `/pydantic/pydantic` | Validation |
+| pytest | `/pytest-dev/pytest` | Testing |
+| structlog | `/hynek/structlog` | Logging |
+| redis-py | `/redis/redis-py` | Caching |
+| ruff | `/astral-sh/ruff` | Linting |
+| mypy | `/python/mypy` | Type checking |
+| scikit-learn | `/scikit-learn/scikit-learn` | ML predictions |
+| pandas | `/pandas-dev/pandas` | Data analysis |
+| cryptography | `/pyca/cryptography` | Security |
+
+### Usage
+
+```
+Создай async API клиент. use library /encode/httpx for API and docs.
+```
+
+Full library list: `docs/AI_TOOLS_CONFIG.md`

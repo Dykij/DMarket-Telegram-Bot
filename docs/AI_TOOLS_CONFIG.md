@@ -252,16 +252,131 @@ claude mcp add context7 -- npx -y @upstash/context7-mcp --api-key YOUR_API_KEY
 Реализуй WebSocket подключение с использованием httpx. use library /encode/httpx for API and docs.
 ```
 
-### Рекомендуемые библиотеки для этого проекта
+### Полный список библиотек проекта с Context7 ID
 
-| Библиотека | Context7 ID | Описание |
-|------------|-------------|----------|
-| httpx | `/encode/httpx` | Async HTTP клиент |
-| python-telegram-bot | `/python-telegram-bot/python-telegram-bot` | Telegram Bot API |
-| SQLAlchemy | `/sqlalchemy/sqlalchemy` | ORM |
-| Pydantic | `/pydantic/pydantic` | Валидация данных |
-| pytest | `/pytest-dev/pytest` | Тестирование |
-| structlog | `/hynek/structlog` | Структурированное логирование |
+#### 🌐 HTTP и сетевые библиотеки
+
+| Библиотека | Context7 ID | Версия | Описание |
+|------------|-------------|--------|----------|
+| httpx | `/encode/httpx` | 0.28+ | Async HTTP клиент |
+| aiohttp | `/aio-libs/aiohttp` | 3.13+ | Async HTTP клиент/сервер |
+| requests | `/psf/requests` | 2.32+ | HTTP клиент (sync) |
+| hishel | `/karpetrosyan/hishel` | 1.1+ | HTTP кэширование |
+
+#### 🤖 Telegram Bot
+
+| Библиотека | Context7 ID | Версия | Описание |
+|------------|-------------|--------|----------|
+| python-telegram-bot | `/python-telegram-bot/python-telegram-bot` | 22.5+ | Telegram Bot API |
+
+#### 🗄️ Базы данных и ORM
+
+| Библиотека | Context7 ID | Версия | Описание |
+|------------|-------------|--------|----------|
+| SQLAlchemy | `/sqlalchemy/sqlalchemy` | 2.0+ | ORM и SQL toolkit |
+| alembic | `/sqlalchemy/alembic` | 1.18+ | Миграции БД |
+| redis | `/redis/redis-py` | 7.1+ | Redis клиент |
+| asyncpg | `/MagicStack/asyncpg` | 0.31+ | PostgreSQL async driver |
+| aiosqlite | `/omnilib/aiosqlite` | 0.22+ | SQLite async driver |
+
+#### 📊 Валидация и сериализация
+
+| Библиотека | Context7 ID | Версия | Описание |
+|------------|-------------|--------|----------|
+| Pydantic | `/pydantic/pydantic` | 2.12+ | Валидация данных |
+| pydantic-settings | `/pydantic/pydantic-settings` | 2.12+ | Настройки из env |
+| orjson | `/ijl/orjson` | 3.11+ | Быстрый JSON парсер |
+
+#### 🧪 Тестирование
+
+| Библиотека | Context7 ID | Версия | Описание |
+|------------|-------------|--------|----------|
+| pytest | `/pytest-dev/pytest` | 9.0+ | Тестовый фреймворк |
+| pytest-asyncio | `/pytest-dev/pytest-asyncio` | 1.3+ | Async тесты |
+| pytest-cov | `/pytest-dev/pytest-cov` | 7.0+ | Покрытие кода |
+| pytest-mock | `/pytest-dev/pytest-mock` | 3.15+ | Моки для pytest |
+| hypothesis | `/HypothesisWorks/hypothesis` | 6.150+ | Property-based тестирование |
+| vcrpy | `/kevin1024/vcrpy` | 8.1+ | Запись HTTP для тестов |
+| factory-boy | `/FactoryBoy/factory_boy` | 3.3+ | Test fixtures |
+| faker | `/joke2k/faker` | 40.1+ | Генерация фейковых данных |
+| pact-python | `/pact-foundation/pact-python` | 3.2+ | Contract testing |
+
+#### 📝 Логирование и мониторинг
+
+| Библиотека | Context7 ID | Версия | Описание |
+|------------|-------------|--------|----------|
+| structlog | `/hynek/structlog` | 25.5+ | Структурированное логирование |
+| sentry-sdk | `/getsentry/sentry-python` | 2.49+ | Error tracking |
+| prometheus-client | `/prometheus/client_python` | 0.24+ | Метрики Prometheus |
+
+#### 🔐 Безопасность и криптография
+
+| Библиотека | Context7 ID | Версия | Описание |
+|------------|-------------|--------|----------|
+| cryptography | `/pyca/cryptography` | 46.0+ | Криптографические операции |
+| PyJWT | `/jpadilla/pyjwt` | 2.10+ | JWT токены |
+| bcrypt | `/pyca/bcrypt` | 5.0+ | Хеширование паролей |
+| PyNaCl | `/pyca/pynacl` | 1.6+ | Crypto библиотека |
+
+#### ⚡ Async утилиты
+
+| Библиотека | Context7 ID | Версия | Описание |
+|------------|-------------|--------|----------|
+| anyio | `/agronholm/anyio` | 4.12+ | Async compatibility |
+| asyncer | `/tiangolo/asyncer` | 0.0.12 | Async утилиты |
+| aiofiles | `/Tinche/aiofiles` | 25.1+ | Async файловые операции |
+| aiocache | `/aio-libs/aiocache` | 0.12+ | Async кэширование |
+| aiometer | `/florimondmanca/aiometer` | 1.0+ | Async rate limiting |
+
+#### 📈 Data Science и ML
+
+| Библиотека | Context7 ID | Версия | Описание |
+|------------|-------------|--------|----------|
+| pandas | `/pandas-dev/pandas` | 2.3+ | DataFrames |
+| numpy | `/numpy/numpy` | 2.4+ | Численные вычисления |
+| scikit-learn | `/scikit-learn/scikit-learn` | 1.8+ | Machine Learning |
+| matplotlib | `/matplotlib/matplotlib` | 3.10+ | Визуализация |
+| seaborn | `/mwaskom/seaborn` | 0.13+ | Statistical plots |
+| plotly | `/plotly/plotly.py` | 6.5+ | Интерактивные графики |
+
+#### 🛠️ Утилиты
+
+| Библиотека | Context7 ID | Версия | Описание |
+|------------|-------------|--------|----------|
+| tenacity | `/jd/tenacity` | 9.1+ | Retry логика |
+| circuitbreaker | `/fabfuel/circuitbreaker` | 2.1+ | Circuit breaker pattern |
+| click | `/pallets/click` | 8.3+ | CLI интерфейсы |
+| typer | `/tiangolo/typer` | 0.21+ | Modern CLI |
+| rich | `/Textualize/rich` | 14.2+ | Rich text в терминале |
+| schedule | `/dbader/schedule` | 1.2+ | Планировщик задач |
+| apscheduler | `/agronholm/apscheduler` | 3.11+ | Advanced scheduler |
+| python-dotenv | `/theskumar/python-dotenv` | 1.2+ | Загрузка .env |
+| dependency-injector | `/ets-labs/python-dependency-injector` | 4.48+ | DI контейнер |
+
+#### 🔍 Качество кода
+
+| Библиотека | Context7 ID | Версия | Описание |
+|------------|-------------|--------|----------|
+| ruff | `/astral-sh/ruff` | 0.14+ | Linter + Formatter |
+| mypy | `/python/mypy` | 1.19+ | Static type checker |
+| black | `/psf/black` | 26.1+ | Code formatter |
+| bandit | `/PyCQA/bandit` | 1.9+ | Security linter |
+| vulture | `/jendrikseipp/vulture` | 2.14 | Dead code finder |
+| interrogate | `/econchick/interrogate` | 1.7+ | Docstring coverage |
+
+#### 📚 Документация
+
+| Библиотека | Context7 ID | Версия | Описание |
+|------------|-------------|--------|----------|
+| mkdocs | `/mkdocs/mkdocs` | 1.6+ | Документация |
+| mkdocs-material | `/squidfunk/mkdocs-material` | 9.7+ | Material theme |
+| sphinx | `/sphinx-doc/sphinx` | 9.0+ | Python docs |
+
+#### 🔗 MCP (Model Context Protocol)
+
+| Библиотека | Context7 ID | Версия | Описание |
+|------------|-------------|--------|----------|
+| mcp | `/modelcontextprotocol/python-sdk` | 1.25+ | MCP SDK |
 
 ### Автоматический вызов
 
@@ -273,6 +388,68 @@ claude mcp add context7 -- npx -y @upstash/context7-mcp --api-key YOUR_API_KEY
 ```
 Always use Context7 MCP when I need library/API documentation, 
 code generation, setup or configuration steps.
+```
+
+### Пример использования с библиотеками проекта
+
+```bash
+# Для httpx (async HTTP клиент)
+"Создай async клиент для DMarket API с retry логикой. use library /encode/httpx for API and docs."
+
+# Для python-telegram-bot
+"Добавь inline keyboard с пагинацией. use library /python-telegram-bot/python-telegram-bot for API and docs."
+
+# Для SQLAlchemy 2.0
+"Создай async модель для хранения торговых данных. use library /sqlalchemy/sqlalchemy for API and docs."
+
+# Для Pydantic v2
+"Добавь валидацию для конфигурации бота. use library /pydantic/pydantic for API and docs."
+
+# Для pytest + pytest-asyncio
+"Напиши тесты для async API клиента. use library /pytest-dev/pytest for API and docs."
+
+# Для structlog
+"Добавь структурированное логирование с JSON форматом. use library /hynek/structlog for API and docs."
+```
+
+### Конфигурация MCP серверов для проекта
+
+#### Полная конфигурация для Cursor
+
+```json
+// ~/.cursor/mcp.json
+{
+  "mcpServers": {
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+#### Полная конфигурация для Claude Code
+
+```json
+// ~/.claude/claude_desktop_config.json или ~/.config/claude/config.json
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "env": {
+        "CONTEXT7_API_KEY": "YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+Или через CLI:
+```bash
+claude mcp add --header "CONTEXT7_API_KEY: YOUR_API_KEY" --transport http context7 https://mcp.context7.com/mcp
 ```
 
 ### Когда использовать

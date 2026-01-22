@@ -128,6 +128,41 @@ mypy src/
 6. **Use** early returns to reduce nesting (max 3 levels)
 7. **Keep** functions under 50 lines
 8. **Add** docstrings to public functions (Google style)
+9. **Use Context7 MCP** when generating code with library/API documentation
+
+## Context7 MCP Integration
+
+Claude Code should use Context7 MCP for up-to-date library documentation:
+
+```
+Always use Context7 MCP when I need library/API documentation, 
+code generation, setup or configuration steps.
+```
+
+### Key Libraries with Context7 IDs
+
+| Category | Library | Context7 ID |
+|----------|---------|-------------|
+| HTTP | httpx | `/encode/httpx` |
+| Telegram | python-telegram-bot | `/python-telegram-bot/python-telegram-bot` |
+| Database | SQLAlchemy | `/sqlalchemy/sqlalchemy` |
+| Validation | Pydantic | `/pydantic/pydantic` |
+| Testing | pytest | `/pytest-dev/pytest` |
+| Logging | structlog | `/hynek/structlog` |
+| Async | anyio | `/agronholm/anyio` |
+| Redis | redis-py | `/redis/redis-py` |
+| Security | cryptography | `/pyca/cryptography` |
+| ML | scikit-learn | `/scikit-learn/scikit-learn` |
+| Linting | ruff | `/astral-sh/ruff` |
+| Types | mypy | `/python/mypy` |
+
+### Usage Example
+
+```
+Создай async HTTP клиент с retry логикой. use library /encode/httpx for API and docs.
+```
+
+Full library list: `docs/AI_TOOLS_CONFIG.md`
 
 ## Known Issues
 

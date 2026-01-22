@@ -1978,3 +1978,39 @@ async def balance_command(
 | Новая функция scanner | Использовать пакетную обработку (batch) |
 | Добавление кэша | Использовать ключи с уровнем детализации |
 | Покрытие тестами | Стремиться к 90% (текущая цель) |
+
+
+---
+
+## 🔌 Context7 MCP - Актуальная документация
+
+### Что такое Context7?
+
+[Context7](https://github.com/upstash/context7) - MCP сервер, который предоставляет AI-моделям актуальную документацию по библиотекам.
+
+### Ключевые библиотеки проекта
+
+| Категория | Библиотека | Context7 ID |
+|-----------|------------|-------------|
+| HTTP | httpx | `/encode/httpx` |
+| Telegram | python-telegram-bot | `/python-telegram-bot/python-telegram-bot` |
+| Database | SQLAlchemy | `/sqlalchemy/sqlalchemy` |
+| Validation | Pydantic | `/pydantic/pydantic` |
+| Testing | pytest | `/pytest-dev/pytest` |
+| Logging | structlog | `/hynek/structlog` |
+| Async | anyio | `/agronholm/anyio` |
+| Redis | redis-py | `/redis/redis-py` |
+| Security | cryptography | `/pyca/cryptography` |
+| ML | scikit-learn | `/scikit-learn/scikit-learn` |
+| Linting | ruff | `/astral-sh/ruff` |
+| Types | mypy | `/python/mypy` |
+
+### Использование
+
+При генерации кода добавляйте:
+
+```
+use library /encode/httpx for API and docs.
+```
+
+Полный список: `docs/AI_TOOLS_CONFIG.md`
