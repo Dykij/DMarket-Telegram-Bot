@@ -461,6 +461,34 @@ def _register_ai_and_improvements_handlers(application: "Application") -> None:
         logger.warning("Не удалось импортировать Bot Improvements команды: %s", e)
 
 
+def _register_knowledge_and_incident_handlers(application: "Application") -> None:
+    """Register Knowledge Base and Incident Management handlers.
+
+    Args:
+        application: Telegram bot application instance
+    """
+    # Knowledge Base handlers
+    try:
+        from src.telegram_bot.handlers.knowledge_handler import (
+            register_handlers as register_knowledge_handlers,
+        )
+
+        register_knowledge_handlers(application)
+        logger.info("Knowledge Base команды зарегистрированы (/knowledge, /knowledge_list, /knowledge_clear)")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать Knowledge Base команды: %s", e)
+
+    # Initialize Incident Manager with alert channel
+    try:
+        from src.utils.incident_manager import get_incident_manager
+
+        incident_manager = get_incident_manager()
+        application.bot_data["incident_manager"] = incident_manager
+        logger.info("Incident Manager инициализирован с %d митигациями", len(incident_manager._mitigation_handlers))
+    except ImportError as e:
+        logger.warning("Не удалось инициализировать Incident Manager: %s", e)
+
+
 def register_all_handlers(application: "Application") -> None:
     """Register all command and callback handlers for the bot.
 
@@ -494,6 +522,9 @@ def register_all_handlers(application: "Application") -> None:
     _register_dmarket_and_steam_handlers(application)
     _register_extended_feature_handlers(application)
     _register_ai_and_improvements_handlers(application)
+
+    # Knowledge Base and Incident Management (Phase 1-2 improvements)
+    _register_knowledge_and_incident_handlers(application)
 
     logger.info("Все обработчики успешно зарегистрированы")
 
