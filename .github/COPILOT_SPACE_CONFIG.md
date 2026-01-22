@@ -1,118 +1,118 @@
 # 🚀 GitHub Copilot Space Configuration
 
-This document provides ready-to-use instructions and source recommendations for configuring your **GitHub Copilot Space** at https://github.com/copilot/spaces
+## 📋 Quick Setup
 
-## 📋 Quick Setup Guide
-
-### Step 1: Open Your Space
-Go to: https://github.com/copilot/spaces/Dykij/1
-
-### Step 2: Add Instructions
-Copy the **Instructions** section below into your Space's instructions field.
-
-### Step 3: Add Sources
-Add the recommended files and folders from the **Sources** section.
+1. Open: https://github.com/copilot/spaces/Dykij/1
+2. Copy text between `=== START ===` and `=== END ===` markers below
+3. Paste into Space Instructions field
+4. Add recommended **Sources** (see below)
 
 ---
 
-## 📝 Instructions (Copy to Space)
+## 📝 Instructions for Space (Copy Below - ~3500 chars)
 
-```
-You are an expert Python developer working on the DMarket Telegram Bot project.
+=== START COPY HERE ===
 
-## Project Overview
-A Telegram bot for trading and analytics on DMarket and Waxpeer game item marketplaces.
+You are an expert Python developer for DMarket Telegram Bot - a trading/analytics bot for DMarket and Waxpeer game item marketplaces.
 
 ## Tech Stack
-- Python 3.11+ (3.12+ recommended)
-- python-telegram-bot 22.0+ (async)
-- httpx 0.28+ for async HTTP
-- PostgreSQL + SQLAlchemy 2.0 (async)
-- Redis + aiocache for caching
-- structlog for JSON logging
-- pytest 8.4+ with pytest-asyncio
-- Ruff 0.8+ for linting, MyPy 1.14+ strict mode
+- Python 3.11+ (3.12+ recommended), async/await everywhere
+- python-telegram-bot 22.0+, httpx 0.28+ (async HTTP)
+- PostgreSQL + SQLAlchemy 2.0 (async), Redis + aiocache
+- structlog (JSON logging), pytest 8.4+ with pytest-asyncio
+- Ruff 0.8+ (linting), MyPy 1.14+ (strict types)
 
-## Code Conventions
+## Code Rules
 
-### 1. Async/Await (MANDATORY)
-- ALWAYS use `async def` for I/O operations
-- Use `asyncio.gather()` for parallel execution
-- Use `httpx.AsyncClient` for HTTP requests (NOT requests)
+### Async (MANDATORY)
+- ALWAYS use async def for I/O operations
+- Use asyncio.gather() for parallel execution
+- Use httpx.AsyncClient (NOT requests library)
 
-### 2. Type Annotations (MANDATORY)
-- Use Python 3.11+ syntax: `list[str]`, `dict[str, int]`, `str | None`
-- NOT legacy: `List[str]`, `Optional[str]`
+### Types (MANDATORY)
+- Python 3.11+ syntax: list[str], dict[str, int], str | None
+- NOT legacy syntax: List[str], Optional[str]
 
-### 3. Error Handling
-- Never use bare `except:`
-- Catch specific exceptions
-- Log errors with structlog context
+### Error Handling
+- Never use bare except: - catch specific exceptions
+- Log with structlog context: logger.error("msg", item_id=id, error=str(e))
 
-### 4. Testing
-- Follow AAA pattern: Arrange, Act, Assert
-- Use descriptive names: `test_<function>_<condition>_<result>`
+### Testing (AAA Pattern)
+- Arrange, Act, Assert
+- Names: test_<function>_<condition>_<result>
 - Use pytest-asyncio for async tests
 
-## API Specifics
+## API Reference
 
 ### DMarket API
 - Prices in CENTS: 1000 = $10.00 USD
 - Commission: 7% on sales
-- Rate limit: 30 requests/minute
-- Auth: HMAC-SHA256 signatures
+- Rate limit: 30 req/min
+- Auth: HMAC-SHA256
+- Conversion: price_usd = response["price"]["USD"] / 100
+- Profit formula: profit = suggested_price - buy_price - (suggested_price * 0.07)
 
 ### Waxpeer API
 - Prices in MILS: 1000 mils = $1.00 USD
 - Commission: 6% on sales
-- Auth: API key in X-API-KEY header
-
-### Arbitrage Formula
-```python
-# DMarket internal
-profit = suggested_price - buy_price - (suggested_price * 0.07)
-
-# DMarket → Waxpeer cross-platform
-net_profit = (waxpeer_price * 0.94) - dmarket_price
-```
+- Auth: X-API-KEY header
+- Conversion: price_usd = response["price"] / 1000
+- Cross-platform profit: net_profit = (waxpeer_price * 0.94) - dmarket_price
 
 ## Project Structure
-```
 src/
-├── dmarket/         # DMarket API client, arbitrage, targets
-├── waxpeer/         # Waxpeer P2P API client
-├── telegram_bot/    # Bot handlers, keyboards, localization
-├── utils/           # Rate limiting, caching, logging
+├── dmarket/         # API client, arbitrage, targets
+├── waxpeer/         # Waxpeer P2P client
+├── telegram_bot/    # Handlers, keyboards, i18n
+├── utils/           # Rate limit, cache, logging
 └── models/          # SQLAlchemy models
-
 tests/
 ├── unit/            # Unit tests
 ├── integration/     # Integration tests
-└── e2e/             # End-to-end tests
-```
+└── e2e/             # E2E tests
 
 ## Commands
-```bash
-# Tests
-pytest tests/ -v
-pytest --cov=src --cov-report=term-missing
+- pytest tests/ -v                           # Run tests
+- pytest --cov=src --cov-report=term-missing # Coverage
+- ruff check src/ tests/                     # Lint
+- ruff format src/ tests/                    # Format
+- mypy src/                                  # Type check
+- python -m src.main                         # Run bot
 
-# Lint & Format
-ruff check src/ tests/
-ruff format src/ tests/
-
-# Type Check
-mypy src/
-
-# Run Bot
-python -m src.main
-```
-
-## Safety
+## Safety Rules
 - DRY_RUN=true by default (no real trades)
-- Never log API keys or tokens
-- Always use HTTPS for external requests
-```
+- Never log API keys/tokens
+- Always HTTPS for external requests
+- Validate all user input
+
+## Code Style
+- Max function length: 50 lines
+- Max nesting: 3 levels (use early returns)
+- Google-style docstrings for public functions
+- Use dataclasses/Pydantic for data models
+
+## Key Files Reference
+- src/dmarket/dmarket_api.py - Main DMarket API client with HMAC auth
+- src/dmarket/arbitrage_scanner.py - 5-level arbitrage scanner (boost/standard/medium/advanced/pro)
+- src/dmarket/targets.py - Buy order management system
+- src/waxpeer/waxpeer_api.py - Waxpeer P2P integration
+- src/telegram_bot/handlers/ - All Telegram command handlers
+- src/utils/rate_limiter.py - API rate limiting with aiolimiter
+
+## Arbitrage Levels
+- boost: $0.50-$3, min 15% profit
+- standard: $3-$10, min 10% profit
+- medium: $10-$30, min 7% profit
+- advanced: $30-$100, min 5% profit
+- pro: $100+, min 3% profit
+
+## Common Patterns
+- Use @cached decorator for caching (TTL 300s default)
+- Use CircuitBreaker for API resilience
+- Use tenacity for retry logic with exponential backoff
+- Use structlog.get_logger(__name__) for logging
+
+=== END COPY HERE ===
 
 ---
 
