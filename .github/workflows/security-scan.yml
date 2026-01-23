@@ -83,24 +83,26 @@ jobs:
 
       - name: Run Safety Check
         run: |
-          safety check --full-report > safety-report.txt 2>&1 || true
-          cat safety-report.txt
+          # Use pip-audit as alternative (safety scan requires authentication)
+          pip install pip-audit
+          pip-audit --output pip-audit-report.txt --format=columns || true
+          cat pip-audit-report.txt
 
       - name: Upload Safety Report
         uses: actions/upload-artifact@v4
         with:
-          name: safety-report
-          path: safety-report.txt
+          name: pip-audit-report
+          path: pip-audit-report.txt
 
       - name: Safety Summary
         run: |
           echo "## 📦 Dependency Security Check" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          if grep -q "No known security vulnerabilities" safety-report.txt 2>/dev/null; then
+          if [ ! -s pip-audit-report.txt ] || grep -q "No known vulnerabilities" pip-audit-report.txt 2>/dev/null; then
             echo "✅ No known vulnerabilities found" >> $GITHUB_STEP_SUMMARY
           else
             echo "⚠️ Vulnerabilities detected - see report" >> $GITHUB_STEP_SUMMARY
-            head -50 safety-report.txt >> $GITHUB_STEP_SUMMARY || true
+            cat pip-audit-report.txt >> $GITHUB_STEP_SUMMARY || true
           fi
 
   secrets-scan:

@@ -55,6 +55,7 @@ dev = [
     "pre-commit>=4.0",             # Latest pre-commit
     "bandit>=1.9.0",               # Latest security linter
     "safety>=3.7",                 # Latest dependency checker
+    "pip-audit>=2.8",              # Dependency vulnerability scanner
     "coverage[toml]>=7.12",        # Coverage с TOML support
     "aiosqlite>=0.21.0",           # In-memory DB для тестов
     "mutmut>=3.2",                 # Mutation testing
@@ -137,6 +138,26 @@ exclude_dirs = [
 
 # Assert checking
 # assert_used = true
+
+# ============================================================================
+# MUTMUT - MUTATION TESTING
+# ============================================================================
+
+[tool.mutmut]
+# Paths to mutate
+paths_to_mutate = "src/"
+
+# Test command to run
+runner = "python -m pytest tests/ -x --tb=no -q"
+
+# Tests directory
+tests_dir = "tests/"
+
+# Files to exclude from mutation
+dict_synonyms = ["Enum", "IntEnum", "StrEnum"]
+
+# Disable colored output in CI
+# no_progress = true
 
 # NOTE: [tool.black] section removed - Ruff-format fully replaces Black
 # Ruff-format is faster, integrated with the linter, and compatible with Black style

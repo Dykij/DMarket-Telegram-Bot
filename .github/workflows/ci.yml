@@ -3,25 +3,25 @@ name: CI (Simplified)
 # Упрощенный и надежный CI workflow с оптимизацией для GitHub Actions
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
   workflow_dispatch:
     inputs:
       run_slow_tests:
-        description: 'Run slow/integration tests'
+        description: "Run slow/integration tests"
         required: false
         type: boolean
         default: false
       python_version:
-        description: 'Python version to use'
+        description: "Python version to use"
         required: false
         type: choice
         options:
-          - '3.11'
-          - '3.12'
-          - '3.13'
-        default: '3.11'
+          - "3.11"
+          - "3.12"
+          - "3.13"
+        default: "3.11"
 
 env:
   PYTHON_VERSION: "3.11"
@@ -67,7 +67,7 @@ jobs:
             echo "should_run_tests=true" >> $GITHUB_OUTPUT
             exit 0
           fi
-          
+
           # Check if any Python files changed
           CHANGED_FILES=$(git diff --name-only ${{ github.event.before || 'HEAD~1' }} ${{ github.sha }} 2>/dev/null || echo "")
           if echo "$CHANGED_FILES" | grep -qE '\.(py|yml|yaml|toml|txt)$'; then
@@ -92,7 +92,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
+          cache: "pip"
           cache-dependency-path: |
             requirements.txt
             pyproject.toml
@@ -127,7 +127,7 @@ jobs:
           else
             echo "::warning::Нет директорий для проверки"
           fi
-        continue-on-error: false  # Фейлим при обнаружении проблем
+        continue-on-error: false # Фейлим при обнаружении проблем
 
       - name: Run Ruff format check
         run: |
@@ -141,12 +141,12 @@ jobs:
             echo "Checking format for directories: $DIRS"
             ruff format --check $DIRS
           fi
-        continue-on-error: false  # Фейлим если требуется форматирование
+        continue-on-error: false # Фейлим если требуется форматирование
 
       - name: Run MyPy type checking
         run: |
           mypy src --install-types --non-interactive --ignore-missing-imports
-        continue-on-error: true  # Оставляем true т.к. mypy может иметь ложные срабатывания
+        continue-on-error: true # Оставляем true т.к. mypy может иметь ложные срабатывания
 
   test:
     name: Run Tests
@@ -158,7 +158,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.11", "3.12", "3.13"]
         include:
           - os: ubuntu-latest
             python-version: "3.11"
@@ -172,7 +172,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
+          cache: "pip"
           cache-dependency-path: |
             requirements.txt
             pyproject.toml
@@ -306,7 +306,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
+          cache: "pip"
 
       - name: Cache security tools
         uses: actions/cache@v5
@@ -363,7 +363,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
+          cache: "pip"
 
       - name: Install AI dependencies
         run: |
@@ -429,13 +429,13 @@ jobs:
         run: |
           echo "# 🤖 CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Check if tests were skipped
           if [ "${{ needs.quick-check.outputs.should_run_tests }}" == "false" ]; then
             echo "⏭️ **Tests skipped** - No relevant file changes detected" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Quick Check | ${{ needs.quick-check.result == 'success' && '✅ Passed' || '⚠️ Check logs' }} |" >> $GITHUB_STEP_SUMMARY
