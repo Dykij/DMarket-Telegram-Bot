@@ -323,7 +323,12 @@ class TestTradeClassifier:
             expected_price=15.0,  # +50%
         )
         # Без данных о ликвидности может быть любой сигнал
-        assert result.signal in (TradeSignal.STRONG_BUY, TradeSignal.BUY, TradeSignal.HOLD, TradeSignal.SKIP)
+        assert result.signal in (
+            TradeSignal.STRONG_BUY,
+            TradeSignal.BUY,
+            TradeSignal.HOLD,
+            TradeSignal.SKIP,
+        )
 
         # Ожидаемое падение - сигнал продажи
         result = classifier.classify(
@@ -332,7 +337,12 @@ class TestTradeClassifier:
             expected_price=7.0,  # -30%
         )
         # При падении должен быть SELL, STRONG_SELL, HOLD или SKIP
-        assert result.signal in (TradeSignal.STRONG_SELL, TradeSignal.SELL, TradeSignal.HOLD, TradeSignal.SKIP)
+        assert result.signal in (
+            TradeSignal.STRONG_SELL,
+            TradeSignal.SELL,
+            TradeSignal.HOLD,
+            TradeSignal.SKIP,
+        )
 
     def test_risk_tolerance_affects_thresholds(self):
         """Тест влияния толерантности к риску на пороги."""

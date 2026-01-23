@@ -17,7 +17,6 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-
 # ============================================================================
 # TEST CONFIGURATION
 # ============================================================================
@@ -213,8 +212,7 @@ class TestCompleteTradingCycle:
 
         # Step 3: Filter by blacklist
         filtered_opportunities = [
-            opp for opp in opportunities
-            if not mock_blacklist.is_blacklisted(opp["item"]["title"])
+            opp for opp in opportunities if not mock_blacklist.is_blacklisted(opp["item"]["title"])
         ]
         assert len(filtered_opportunities) > 0, "Should have non-blacklisted items"
 
@@ -316,15 +314,13 @@ class TestCompleteTradingCycle:
 
         # Filter blacklisted - is_blacklisted takes item dict with 'title' key
         filtered = [
-            opp for opp in opportunities
-            if not blacklist.is_blacklisted(opp.get("item", opp))
+            opp for opp in opportunities if not blacklist.is_blacklisted(opp.get("item", opp))
         ]
 
         # Should have filtered out the Katowice sticker item
         # (depends on exact blacklist configuration)
         assert all(
-            "katowice 2014" not in opp.get("item", opp).get("title", "").lower()
-            for opp in filtered
+            "katowice 2014" not in opp.get("item", opp).get("title", "").lower() for opp in filtered
         )
 
     @pytest.mark.asyncio()
@@ -454,9 +450,7 @@ class TestWhitelistPriority:
 
         # Check whitelisted item passes lower threshold
         is_whitelisted = whitelist.is_whitelisted(item_at_4_percent, game="csgo")
-        effective_threshold = (
-            whitelisted_threshold if is_whitelisted else regular_threshold
-        )
+        effective_threshold = whitelisted_threshold if is_whitelisted else regular_threshold
 
         # Whitelisted item should pass
         passes = item_at_4_percent["profit_percent"] >= effective_threshold

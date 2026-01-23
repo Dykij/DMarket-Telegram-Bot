@@ -55,7 +55,7 @@ jobs:
       should_run_tests: ${{ steps.changes.outputs.should_run_tests }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -357,7 +357,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -400,7 +400,7 @@ jobs:
 
       - name: Upload AI coverage report
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: ai-coverage-report
           path: ai-coverage.xml

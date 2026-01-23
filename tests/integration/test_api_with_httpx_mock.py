@@ -14,7 +14,6 @@ import pytest
 import pytest_asyncio
 from pytest_httpx import HTTPXMock
 
-
 if TYPE_CHECKING:
     from src.dmarket.dmarket_api import DMarketAPI
 

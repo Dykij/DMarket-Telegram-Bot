@@ -597,7 +597,7 @@
     ".github/instructions/python-style.instructions.md": ["src/**/*.py"],
     ".github/instructions/workflows.instructions.md": [".github/workflows/**/*.yml"]
   },
-  "chat.commandCenter.enabled": true,
+  "chat.commandCenter.enabled": false,
   // ==================== Inline Chat Settings ====================
   "inlineChat.finishOnType": true,
   "inlineChat.holdToSpeech": true,

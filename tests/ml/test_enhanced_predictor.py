@@ -22,8 +22,8 @@ from src.ml.enhanced_predictor import (
     MLPipeline,
 )
 
-
 # ============ EnhancedFeatures Tests ============
+
 
 class TestEnhancedFeatures:
     """Тесты для расширенных признаков."""
@@ -87,6 +87,7 @@ class TestEnhancedFeatures:
 
 # ============ EnhancedFeatureExtractor Tests ============
 
+
 class TestEnhancedFeatureExtractor:
     """Тесты для экстрактора признаков."""
 
@@ -135,8 +136,7 @@ class TestEnhancedFeatureExtractor:
         """Тест с историей продаж."""
         now = datetime.now(UTC)
         sales_history = [
-            {"timestamp": (now - timedelta(hours=i)).isoformat(), "price": 10.0}
-            for i in range(24)
+            {"timestamp": (now - timedelta(hours=i)).isoformat(), "price": 10.0} for i in range(24)
         ]
 
         features = extractor.extract_features(
@@ -158,9 +158,7 @@ class TestEnhancedFeatureExtractor:
             item_data={
                 "float": 0.01,
                 "pattern": 661,
-                "stickers": [
-                    {"name": "Katowice 2014 iBUYPOWER Holo"}
-                ],
+                "stickers": [{"name": "Katowice 2014 iBUYPOWER Holo"}],
             },
         )
 
@@ -276,6 +274,7 @@ class TestEnhancedFeatureExtractor:
 
 # ============ MLPipeline Tests ============
 
+
 class TestMLPipeline:
     """Тесты для ML Pipeline."""
 
@@ -321,6 +320,7 @@ class TestMLPipeline:
 
 
 # ============ EnhancedPricePredictor Tests ============
+
 
 class TestEnhancedPricePredictor:
     """Тесты для улучшенного прогнозатора."""
@@ -486,9 +486,7 @@ class TestEnhancedPricePredictor:
 
     def test_recommendation_values(self, predictor):
         """Тест допустимых значений рекомендаций."""
-        valid_recommendations = {
-            "strong_buy", "buy", "hold", "sell", "strong_sell"
-        }
+        valid_recommendations = {"strong_buy", "buy", "hold", "sell", "strong_sell"}
 
         prediction = predictor.predict(
             item_name="Test Item",
@@ -499,9 +497,7 @@ class TestEnhancedPricePredictor:
 
     def test_confidence_level_values(self, predictor):
         """Тест допустимых уровней уверенности."""
-        valid_levels = {
-            "very_high", "high", "medium", "low", "very_low"
-        }
+        valid_levels = {"very_high", "high", "medium", "low", "very_low"}
 
         prediction = predictor.predict(
             item_name="Test Item",
@@ -582,6 +578,7 @@ class TestEnhancedPricePredictor:
 
 # ============ Integration Tests ============
 
+
 class TestPredictorIntegration:
     """Интеграционные тесты."""
 
@@ -655,5 +652,9 @@ class TestPredictorIntegration:
             assert prediction["game"] == game.value
             assert prediction["current_price"] == price
             assert prediction["recommendation"] in {
-                "strong_buy", "buy", "hold", "sell", "strong_sell"
+                "strong_buy",
+                "buy",
+                "hold",
+                "sell",
+                "strong_sell",
             }

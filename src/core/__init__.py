@@ -17,12 +17,15 @@ def __getattr__(name: str):
     """Lazy import to avoid import errors when telegram is not installed."""
     if name == "Application":
         from src.core.application import Application
+
         return Application
     if name == "ApplicationLifecycle":
         from src.core.app_lifecycle import ApplicationLifecycle
+
         return ApplicationLifecycle
     if name == "SignalHandler":
         from src.core.app_signals import SignalHandler
+
         return SignalHandler
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 

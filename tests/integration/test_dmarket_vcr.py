@@ -17,7 +17,6 @@ from unittest.mock import AsyncMock, patch
 import pytest
 import vcr
 
-
 # VCR configuration for DMarket
 dmarket_vcr = vcr.VCR(
     cassette_library_dir=str(Path(__file__).parent / "cassettes" / "dmarket"),
