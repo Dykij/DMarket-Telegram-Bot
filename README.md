@@ -22,6 +22,10 @@
 [![DMarket](https://img.shields.io/badge/DMarket-API_v1.1-orange?logo=steam&logoColor=white)](https://docs.dmarket.com/)
 [![Async](https://img.shields.io/badge/async-httpx_0.28%2B-purple?logo=fastapi&logoColor=white)](https://www.python-httpx.org/)
 
+<!-- Badges: Development Environment -->
+[![Open in GitHub Codespaces](https://img.shields.io/badge/Open%20in-Codespaces-blue?logo=github)](https://codespaces.new/Dykij/DMarket-Telegram-Bot)
+[![Dev Container](https://img.shields.io/badge/Dev%20Container-Ready-brightgreen?logo=docker)](https://containers.dev/)
+
 ---
 
 > 🤖 **Автоматизированная система для торговли игровыми предметами** на платформе DMarket с поддержкой многоуровневого арбитража, системы таргетов и real-time мониторинга.
@@ -129,6 +133,8 @@ python -m src.main
 
 ### Для разработчиков
 
+- **[🚀 GitHub Codespaces](.devcontainer/README.md)** - Разработка в облаке (рекомендуется!)
+- **[🤖 Copilot Space](.github/COPILOT_SPACE_CONFIG.md)** - Настройка GitHub Copilot Space
 - **[Руководство по разработке](CONTRIBUTING.md)** - Как помочь проекту
 - **[Тестирование](docs/testing_guide.md)** - Запуск и написание тестов
 - **[Качество кода](docs/code_quality_tools_guide.md)** - Ruff, MyPy

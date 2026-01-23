@@ -194,8 +194,7 @@ grafana_data/
 *.tfstate
 *.tfstate.backup
 
-# Local development tools
-.devcontainer/
+# Local development tools (NOTE: .devcontainer IS tracked for GitHub Codespaces support)
 Vagrantfile
 .vagrant/
 
