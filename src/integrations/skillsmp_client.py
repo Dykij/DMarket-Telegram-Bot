@@ -30,12 +30,13 @@ Created: January 2026
 
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass, field
+import os
 from typing import Any
 
 import httpx
 import structlog
+
 
 logger = structlog.get_logger(__name__)
 
@@ -99,7 +100,7 @@ class SkillsMPClient:
         ```
     """
 
-    BASE_URL = "https://api.skillsmp.com/v1"
+    BASE_URL = "https://skillsmp.com/api/v1"
 
     def __init__(
         self,

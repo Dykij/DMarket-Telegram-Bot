@@ -17,11 +17,11 @@ from __future__ import annotations
 # =============================================================================
 # Cache functions
 # =============================================================================
-from .cache import _arbitrage_cache  # Backward compatibility for tests
-from .cache import _get_cached_results  # Backward compatibility for tests
-from .cache import _save_arbitrage_cache  # Backward compatibility for tests
-from .cache import _save_to_cache  # Backward compatibility for tests
 from .cache import (
+    _arbitrage_cache,  # Backward compatibility for tests
+    _get_cached_results,  # Backward compatibility for tests
+    _save_arbitrage_cache,  # Backward compatibility for tests
+    _save_to_cache,  # Backward compatibility for tests
     clear_cache,
     get_arbitrage_cache,
     get_cache_statistics,
@@ -34,8 +34,8 @@ from .cache import (
 # =============================================================================
 # Calculation functions
 # =============================================================================
-from .calculations import _calculate_commission  # Backward compatibility alias
 from .calculations import (
+    _calculate_commission,  # Backward compatibility alias
     calculate_commission,
     calculate_net_profit,
     calculate_profit,
@@ -106,13 +106,17 @@ from .core import (
 # =============================================================================
 # Search functions
 # =============================================================================
-from .search import _group_items_by_name  # Backward compatibility for tests
-from .search import find_arbitrage_items, find_arbitrage_opportunities_advanced
+from .search import (
+    _group_items_by_name,  # Backward compatibility for tests
+    find_arbitrage_items,
+    find_arbitrage_opportunities_advanced,
+)
 
 # =============================================================================
 # Trader class
 # =============================================================================
 from .trader import ArbitrageTrader
+
 
 # =============================================================================
 # Public API

@@ -20,12 +20,13 @@ Created: January 2026
 
 from __future__ import annotations
 
-import fnmatch
 from dataclasses import dataclass, field
+import fnmatch
 from pathlib import Path
 from typing import Any
 
 import structlog
+
 
 logger = structlog.get_logger(__name__)
 

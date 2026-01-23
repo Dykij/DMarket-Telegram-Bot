@@ -65,8 +65,9 @@ def get_modern_arbitrage_keyboard() -> InlineKeyboardMarkup:
         │ [📈 Анализ рынка] [🔍 Многоуровневый]│
         │ [🎯 Float арбитраж] [📝 Расширенные]│
         │ [⚡ Enhanced Scanner] [📊 Статистика]│
+        │ [📊 Режим рынка] [🔬 Backtest]      │
         │ [🎯 Создать таргет] [🔄 Сравнить]  │
-        │ [💎 Waxpeer P2P]                    │
+        │ [💎 Waxpeer P2P] [📡 Мониторинг]   │
         │ [◀️ Главное меню]                   │
         └─────────────────────────────────────┘
     """
@@ -92,18 +93,31 @@ def get_modern_arbitrage_keyboard() -> InlineKeyboardMarkup:
         # Новые стратегии
         [
             InlineKeyboardButton(text="🎯 Float арбитраж", callback_data="float_arbitrage_menu"),
-            InlineKeyboardButton(text="📝 Расширенные ордера", callback_data="advanced_orders_menu"),
+            InlineKeyboardButton(
+                text="📝 Расширенные ордера", callback_data="advanced_orders_menu"
+            ),
         ],
         [
             InlineKeyboardButton(text="⚡ Enhanced Scanner", callback_data="enhanced_scanner_menu"),
             InlineKeyboardButton(text="📊 Статистика", callback_data="arb_stats"),
         ],
+        # NEW: AI Arbitrage (main feature)
+        [
+            InlineKeyboardButton(text="🤖 AI АРБИТРАЖ", callback_data="ai_arb:menu"),
+        ],
+        # NEW: Regime & Backtest
+        [
+            InlineKeyboardButton(text="📊 Режим рынка", callback_data="regime:current:csgo"),
+            InlineKeyboardButton(text="🔬 Backtest", callback_data="backtest:back"),
+        ],
         [
             InlineKeyboardButton(text="🎯 Создать таргет", callback_data="arb_target"),
             InlineKeyboardButton(text="🔄 Сравнить площадки", callback_data="arb_compare"),
         ],
+        # NEW: Waxpeer + Monitor
         [
             InlineKeyboardButton(text="💎 Waxpeer P2P", callback_data="waxpeer_menu"),
+            InlineKeyboardButton(text="📡 Мониторинг", callback_data="monitor:status"),
         ],
         [
             InlineKeyboardButton(text="◀️ Главное меню", callback_data="main_menu"),
@@ -654,7 +668,9 @@ def get_pattern_selection_keyboard() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="💎 #387 (4th)", callback_data="pattern_387"),
         ],
         [
-            InlineKeyboardButton(text="🔷 Другие Blue Gems", callback_data="pattern_blue_gem_other"),
+            InlineKeyboardButton(
+                text="🔷 Другие Blue Gems", callback_data="pattern_blue_gem_other"
+            ),
         ],
         [
             InlineKeyboardButton(text="⚙️ Свой паттерн ID", callback_data="pattern_custom"),

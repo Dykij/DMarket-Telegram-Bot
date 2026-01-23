@@ -233,7 +233,9 @@ def _register_enhanced_scanner_handlers(application: "Application") -> None:
             CallbackQueryHandler(show_enhanced_scanner_menu, pattern="^enhanced_scanner_menu$")
         )
         application.add_handler(
-            CallbackQueryHandler(handle_enhanced_scan, pattern="^enhanced_scan_(csgo|dota2|rust|tf2)$")
+            CallbackQueryHandler(
+                handle_enhanced_scan, pattern="^enhanced_scan_(csgo|dota2|rust|tf2)$"
+            )
         )
         application.add_handler(
             CallbackQueryHandler(handle_enhanced_scan_settings, pattern="^enhanced_scan_settings$")
@@ -474,7 +476,9 @@ def _register_knowledge_and_incident_handlers(application: "Application") -> Non
         )
 
         register_knowledge_handlers(application)
-        logger.info("Knowledge Base команды зарегистрированы (/knowledge, /knowledge_list, /knowledge_clear)")
+        logger.info(
+            "Knowledge Base команды зарегистрированы (/knowledge, /knowledge_list, /knowledge_clear)"
+        )
     except ImportError as e:
         logger.warning("Не удалось импортировать Knowledge Base команды: %s", e)
 
@@ -484,9 +488,63 @@ def _register_knowledge_and_incident_handlers(application: "Application") -> Non
 
         incident_manager = get_incident_manager()
         application.bot_data["incident_manager"] = incident_manager
-        logger.info("Incident Manager инициализирован с %d митигациями", len(incident_manager._mitigation_handlers))
+        logger.info(
+            "Incident Manager инициализирован с %d митигациями",
+            len(incident_manager._mitigation_handlers),
+        )
     except ImportError as e:
         logger.warning("Не удалось инициализировать Incident Manager: %s", e)
+
+
+def _register_trading_analysis_handlers(application: "Application") -> None:
+    """Register Market Regime, Monitor, and Auth handlers.
+
+    Args:
+        application: Telegram bot application instance
+    """
+    # Market Regime handler
+    try:
+        from src.telegram_bot.handlers.market_regime_handler import MarketRegimeHandler
+
+        regime_handler = MarketRegimeHandler()
+        for handler in regime_handler.get_handlers():
+            application.add_handler(handler)
+        logger.info("Market Regime команды зарегистрированы (/regime)")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать Market Regime команды: %s", e)
+
+    # Telethon Monitor handler
+    try:
+        from src.telegram_bot.handlers.monitor_handler import MonitorHandler
+
+        monitor_handler = MonitorHandler()
+        for handler in monitor_handler.get_handlers():
+            application.add_handler(handler)
+        logger.info("Monitor команды зарегистрированы (/monitor)")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать Monitor команды: %s", e)
+
+    # Auth handler
+    try:
+        from src.telegram_bot.handlers.auth_handler import AuthHandler
+
+        auth_handler = AuthHandler()
+        for handler in auth_handler.get_handlers():
+            application.add_handler(handler)
+        logger.info("Auth команды зарегистрированы (/auth, /2fa, /security)")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать Auth команды: %s", e)
+
+    # AI Unified Arbitrage handler
+    try:
+        from src.telegram_bot.handlers.ai_arbitrage_handler import AIArbitrageHandler
+
+        ai_arb_handler = AIArbitrageHandler()
+        for handler in ai_arb_handler.get_handlers():
+            application.add_handler(handler)
+        logger.info("AI Arbitrage команды зарегистрированы (/ai_arb)")
+    except ImportError as e:
+        logger.warning("Не удалось импортировать AI Arbitrage команды: %s", e)
 
 
 def register_all_handlers(application: "Application") -> None:
@@ -525,6 +583,9 @@ def register_all_handlers(application: "Application") -> None:
 
     # Knowledge Base and Incident Management (Phase 1-2 improvements)
     _register_knowledge_and_incident_handlers(application)
+
+    # Trading Analysis: Market Regime, Monitor, Auth (Phase 3 improvements)
+    _register_trading_analysis_handlers(application)
 
     logger.info("Все обработчики успешно зарегистрированы")
 

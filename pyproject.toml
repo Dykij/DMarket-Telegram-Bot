@@ -35,9 +35,14 @@ dependencies = [
     "pynacl (>=1.6.1,<2.0.0)",
     "dependency-injector (>=4.48.3,<5.0.0)",
     "aiolimiter (>=1.2.1,<2.0.0) ; python_version >= \"3.11\" and python_version < \"4.0\"",
+    "structlog>=25.0.0",            # Structured logging
+    "cryptography>=45.0.0",         # For JWT/encryption
 ]
 
 [project.optional-dependencies]
+monitoring = [
+    "telethon>=1.40.0",             # Telegram client for monitoring
+]
 dev = [
     "ruff>=0.14.0",                # Ruff: linting + formatting (replaces flake8, isort, black)
     "mypy>=1.19.0",                # Latest MyPy strict type checking

@@ -15,6 +15,7 @@ from src.copilot_sdk.instruction_matcher import InstructionMatcher
 from src.copilot_sdk.prompt_engine import PromptEngine
 from src.copilot_sdk.skill_registry import SkillRegistry
 
+
 __all__ = [
     "InstructionMatcher",
     "PromptEngine",
