@@ -8,6 +8,7 @@
 
 | Document | Size | Language | Purpose | Audience |
 |----------|------|----------|---------|----------|
+| [**COPILOT_SDK_IMPLEMENTATION_GUIDE.md**](COPILOT_SDK_IMPLEMENTATION_GUIDE.md) | 29KB | 🇷🇺 Russian | **Практическое руководство** | **Для внедрения** ⭐ |
 | [**COPILOT_SDK_INTEGRATION_ANALYSIS.md**](COPILOT_SDK_INTEGRATION_ANALYSIS.md) | 33KB | 🇷🇺 Russian | Comprehensive analysis | Technical deep dive |
 | [**COPILOT_SDK_ANALYSIS_EN.md**](COPILOT_SDK_ANALYSIS_EN.md) | 11KB | 🇬🇧 English | Executive summary | Quick overview |
 | [**COPILOT_SDK_QUICKREF.md**](COPILOT_SDK_QUICKREF.md) | 6KB | 🇬🇧 English | Quick reference | Busy developers |
@@ -32,6 +33,11 @@
 ---
 
 ## 🚀 Quick Start
+
+### For Implementation (15 minutes) ⭐ **START HERE**
+1. Read [COPILOT_SDK_IMPLEMENTATION_GUIDE.md](COPILOT_SDK_IMPLEMENTATION_GUIDE.md)
+2. Follow the 15-minute quick start guide
+3. Copy templates and adapt to your project
 
 ### For the Impatient (5 minutes)
 1. Read [COPILOT_SDK_QUICKREF.md](COPILOT_SDK_QUICKREF.md)
