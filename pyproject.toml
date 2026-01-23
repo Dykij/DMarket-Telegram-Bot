@@ -57,6 +57,9 @@ dev = [
     "safety>=3.7",                 # Latest dependency checker
     "coverage[toml]>=7.12",        # Coverage с TOML support
     "aiosqlite>=0.21.0",           # In-memory DB для тестов
+    "mutmut>=3.2",                 # Mutation testing
+    "hypothesis>=6.150",           # Property-based testing
+    "locust>=2.37",                # Load testing
 ]
 
 [project.urls]
