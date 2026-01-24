@@ -1,5 +1,9 @@
 # Cursor AI Rules for DMarket Telegram Bot
 
+> **⚠️ ПЕРВЫЙ ШАГ**: Перед началом любой задачи **ОБЯЗАТЕЛЬНО** изучите файл [`ВАЖНЕЙШИЕ.md`](./ВАЖНЕЙШИЕ.md) в корне проекта. Он содержит приоритетные улучшения и текущий roadmap.
+
+---
+
 ## Project Context
 
 DMarket Telegram Bot - Python 3.11+ async trading bot for DMarket and Waxpeer marketplaces.

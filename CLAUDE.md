@@ -1,5 +1,9 @@
 # DMarket Telegram Bot - Claude Code Instructions
 
+> **⚠️ ПЕРВЫЙ ШАГ**: Перед началом любой задачи **ОБЯЗАТЕЛЬНО** изучите файл [`ВАЖНЕЙШИЕ.md`](./ВАЖНЕЙШИЕ.md) в корне проекта. Он содержит приоритетные улучшения и текущий roadmap.
+
+---
+
 ## Project Overview
 
 Telegram bot for trading and analytics on DMarket and Waxpeer marketplaces. Written in Python 3.11+ with async/await patterns.
