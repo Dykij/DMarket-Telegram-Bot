@@ -42,6 +42,64 @@
       "multi_file_context": true,
       "semantic_search": true,
       "cross_skill_suggestions": true
+    },
+    "advanced_triggers": {
+      "enabled": true,
+      "file_patterns": {
+        "enabled": true,
+        "patterns": [
+          {
+            "pattern": "**/arbitrage*.py",
+            "skills": ["ai-arbitrage-predictor"]
+          },
+          {
+            "pattern": "**/ml/**/*.py",
+            "skills": ["ensemble-builder", "advanced-feature-selector"]
+          },
+          {
+            "pattern": "**/telegram_bot/handlers/**/*.py",
+            "skills": ["nlp-command-handler"]
+          }
+        ]
+      },
+      "code_patterns": {
+        "enabled": true,
+        "patterns": [
+          {
+            "regex": "def\\s+(scan|predict)_\\w+\\(.*level.*\\)",
+            "skills": ["ai-arbitrage-predictor"],
+            "description": "Functions with level parameter suggest arbitrage scanning"
+          },
+          {
+            "regex": "async\\s+def\\s+\\w+arbitrage\\w+",
+            "skills": ["ai-arbitrage-predictor"],
+            "description": "Async arbitrage functions"
+          },
+          {
+            "regex": "sklearn|xgboost|RandomForest|GradientBoosting",
+            "skills": ["ensemble-builder", "advanced-feature-selector"],
+            "description": "ML model references"
+          }
+        ]
+      },
+      "comment_patterns": {
+        "enabled": true,
+        "patterns": [
+          {
+            "regex": "TODO.*arbitrage|FIXME.*prediction",
+            "skills": ["ai-arbitrage-predictor"]
+          },
+          {
+            "regex": "TODO.*ml|TODO.*model",
+            "skills": ["ensemble-builder"]
+          }
+        ]
+      },
+      "context_aware": {
+        "enabled": true,
+        "in_function_like": ["scan_", "predict_", "analyze_", "process_"],
+        "in_class_like": ["Predictor", "Scanner", "Analyzer", "Manager"]
+      }
     }
   },
   "local": {

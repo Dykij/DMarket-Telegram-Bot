@@ -1,0 +1,61 @@
+{
+  "mcpServers": {
+    "dmarket-api": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"],
+      "env": {
+        "DMARKET_PUBLIC_KEY": "${DMARKET_PUBLIC_KEY}",
+        "DMARKET_SECRET_KEY": "${DMARKET_SECRET_KEY}",
+        "DMARKET_API_URL": "https://api.dmarket.com"
+      },
+      "description": "DMarket API integration for market data and trading"
+    },
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@anthropic/mcp-server-postgres",
+        "postgresql://localhost/dmarket_bot"
+      ],
+      "description": "PostgreSQL database for user data, trades, and analytics"
+    },
+    "redis": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@anthropic/mcp-server-redis",
+        "redis://localhost:6379"
+      ],
+      "description": "Redis cache for market data and session management"
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@anthropic/mcp-server-filesystem",
+        "/home/runner/work/DMarket-Telegram-Bot/DMarket-Telegram-Bot"
+      ],
+      "description": "File system access for logs, configs, and skills"
+    },
+    "github": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@anthropic/mcp-server-github",
+        "--token",
+        "${GITHUB_TOKEN}"
+      ],
+      "description": "GitHub integration for issues, PRs, and workflows"
+    },
+    "sentry": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@anthropic/mcp-server-sentry",
+        "--dsn",
+        "${SENTRY_DSN}"
+      ],
+      "description": "Sentry error monitoring and alerting"
+    }
+  }
+}
