@@ -1,3 +1,31 @@
+---
+name: "AI-Powered Automated Backtesting"
+description: "Бэктестирование торговых стратегий с ML на исторических данных DMarket"
+version: "1.0.0"
+author: "DMarket Bot Team"
+license: "MIT"
+category: "Business"
+subcategories: ["Research", "Data & AI", "Finance", "Testing"]
+tags: ["backtesting", "simulation", "trading-strategies", "ml", "analytics"]
+status: "active"
+python_version: ">=3.11"
+main_module: "ai_backtester.py"
+dependencies:
+  - "pandas>=2.0"
+  - "numpy>=1.24"
+  - "matplotlib>=3.7"
+optional_dependencies:
+  - "plotly"
+performance:
+  latency_ms: 100
+  throughput_per_sec: 10
+ai_compatible: true
+allowed_tools:
+  - "github-copilot"
+  - "claude-code"
+  - "chatgpt"
+---
+
 # Skill: AI-Powered Automated Backtesting
 
 ## Описание

@@ -1,3 +1,31 @@
+---
+name: "AI-Powered Security Threat Detection"
+description: "ML-детекция угроз безопасности: SQL injection, XSS, rate limit abuse (92% accuracy)"
+version: "1.0.0"
+author: "DMarket Bot Team"
+license: "MIT"
+category: "Security"
+subcategories: ["Testing & Security", "Data & AI"]
+tags: ["security", "threat-detection", "anomaly-detection", "ml", "protection"]
+status: "active"
+python_version: ">=3.11"
+main_module: "ai_threat_detector.py"
+dependencies:
+  - "scikit-learn>=1.3"
+optional_dependencies:
+  - "tensorflow"
+performance:
+  accuracy: "92%"
+  latency_ms: 10
+  throughput_per_sec: 10000
+  false_positive_rate: "<5%"
+ai_compatible: true
+allowed_tools:
+  - "github-copilot"
+  - "claude-code"
+  - "chatgpt"
+---
+
 # Skill: AI-Powered Security Threat Detection
 
 ## Описание

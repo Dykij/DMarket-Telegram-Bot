@@ -1,3 +1,32 @@
+---
+name: "Natural Language Processing for Bot Commands"
+description: "NLP для Telegram бота с распознаванием намерений на 4 языках (92% accuracy)"
+version: "1.0.0"
+author: "DMarket Bot Team"
+license: "MIT"
+category: "Data & AI"
+subcategories: ["NLP", "Chatbot", "Multilingual"]
+tags: ["nlp", "natural-language", "multilingual", "chatbot", "intent-recognition"]
+status: "active"
+python_version: ">=3.11"
+main_module: "nlp_handler.py"
+dependencies:
+  - "transformers>=4.0"
+  - "torch>=2.0"
+optional_dependencies:
+  - "fasttext"
+  - "langdetect"
+performance:
+  accuracy: "92%"
+  latency_ms: 5
+  throughput_per_sec: 200
+ai_compatible: true
+allowed_tools:
+  - "github-copilot"
+  - "claude-code"
+  - "chatgpt"
+---
+
 # Skill: Natural Language Processing for Bot Commands
 
 ## Описание

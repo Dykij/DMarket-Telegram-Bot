@@ -1,3 +1,27 @@
+---
+name: "SkillsMP.com Integration"
+description: "Интеграция с SkillsMP.com marketplace для auto-discovery и управления AI-навыками"
+version: "1.0.0"
+author: "DMarket Bot Team"
+license: "MIT"
+category: "DevOps"
+subcategories: ["Development", "Tools", "Integration"]
+tags: ["skills-marketplace", "integration", "mcp-server", "ai-tools", "automation"]
+status: "documentation-only"
+python_version: ">=3.11"
+main_module: null
+dependencies:
+  - "httpx>=0.28"
+  - "pydantic>=2.5"
+optional_dependencies:
+  - "aiofiles"
+ai_compatible: true
+allowed_tools:
+  - "github-copilot"
+  - "claude-code"
+  - "chatgpt"
+---
+
 # Skill: SkillsMP.com Integration
 
 ## Описание

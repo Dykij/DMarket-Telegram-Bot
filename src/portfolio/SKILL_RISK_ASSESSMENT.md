@@ -1,3 +1,28 @@
+---
+name: "AI-Powered Portfolio Risk Assessment"
+description: "ML-оценка рисков портфеля с анализом диверсификации и VaR прогнозами"
+version: "1.0.0"
+author: "DMarket Bot Team"
+license: "MIT"
+category: "Business"
+subcategories: ["Finance", "Risk Management", "Data & AI"]
+tags: ["portfolio-management", "risk-assessment", "diversification", "ml", "finance"]
+status: "documentation-only"
+python_version: ">=3.11"
+main_module: null
+dependencies:
+  - "pandas>=2.0"
+  - "numpy>=1.24"
+optional_dependencies:
+  - "scipy"
+  - "cvxpy"
+ai_compatible: true
+allowed_tools:
+  - "github-copilot"
+  - "claude-code"
+  - "chatgpt"
+---
+
 # Skill: AI-Powered Portfolio Risk Assessment
 
 ## Описание
