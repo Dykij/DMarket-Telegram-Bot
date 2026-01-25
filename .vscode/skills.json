@@ -41,7 +41,10 @@
       "vision_analysis": true,
       "multi_file_context": true,
       "semantic_search": true,
-      "cross_skill_suggestions": true
+      "cross_skill_suggestions": true,
+      "parallel_agent_execution": true,
+      "session_transcript_generation": true,
+      "fine_grained_tool_access": true
     },
     "advanced_triggers": {
       "enabled": true,
@@ -59,6 +62,22 @@
           {
             "pattern": "**/telegram_bot/handlers/**/*.py",
             "skills": ["nlp-command-handler"]
+          },
+          {
+            "pattern": "**/Dockerfile*",
+            "skills": ["docker-optimization"]
+          },
+          {
+            "pattern": "**/.github/workflows/**/*.yml",
+            "skills": ["github-actions-templates"]
+          },
+          {
+            "pattern": "**/.devcontainer/**/*",
+            "skills": ["container-development"]
+          },
+          {
+            "pattern": "**/mcp_server/**/*.py",
+            "skills": ["mcp-integration"]
           }
         ]
       },
@@ -79,6 +98,16 @@
             "regex": "sklearn|xgboost|RandomForest|GradientBoosting",
             "skills": ["ensemble-builder", "advanced-feature-selector"],
             "description": "ML model references"
+          },
+          {
+            "regex": "redis\\.Redis|aioredis|redis-py",
+            "skills": ["redis-caching"],
+            "description": "Redis caching references"
+          },
+          {
+            "regex": "structlog\\.get_logger|structlog\\.configure",
+            "skills": ["structured-logging"],
+            "description": "Structlog logging references"
           }
         ]
       },
@@ -440,6 +469,86 @@
         "note": "Phase 4 future feature - marketplace integration",
         "python_version": ">=3.11"
       }
+    },
+    {
+      "id": "docker-optimization",
+      "name": "Docker Optimization",
+      "description": "Docker best practices: multi-stage builds, BuildKit, security hardening",
+      "version": "1.0.0",
+      "status": "external",
+      "category": "DevOps",
+      "subcategories": ["Containers", "Docker", "CI/CD"],
+      "source": "https://skillsmp.com/skills/applied-artificial-intelligence-claude-code-toolkit-skills-general-dev-docker-optimization-skill-md",
+      "activation_triggers": [
+        "docker",
+        "dockerfile",
+        "container",
+        "image build",
+        "multi-stage"
+      ],
+      "metadata": {
+        "note": "External SkillsMP skill for Docker optimization"
+      }
+    },
+    {
+      "id": "github-actions-templates",
+      "name": "GitHub Actions Templates",
+      "description": "Production-ready CI/CD workflow templates for GitHub Actions",
+      "version": "1.0.0",
+      "status": "external",
+      "category": "DevOps",
+      "subcategories": ["CI/CD", "Automation", "GitHub"],
+      "source": "https://skillsmp.com/skills/wshobson-agents-plugins-cicd-automation-skills-github-actions-templates-skill-md",
+      "activation_triggers": [
+        "github actions",
+        "workflow",
+        "ci/cd",
+        "pipeline",
+        "automation"
+      ],
+      "metadata": {
+        "note": "External SkillsMP skill for GitHub Actions"
+      }
+    },
+    {
+      "id": "redis-caching",
+      "name": "Redis Caching",
+      "description": "Redis caching patterns, distributed locking, session management",
+      "version": "1.0.0",
+      "status": "external",
+      "category": "Data & AI",
+      "subcategories": ["Caching", "Redis", "Performance"],
+      "source": "https://skillsmp.com/skills/lobbi-docs-claude-claude-skills-redis-skill-md",
+      "activation_triggers": [
+        "redis",
+        "cache",
+        "caching",
+        "session",
+        "distributed lock"
+      ],
+      "metadata": {
+        "note": "External SkillsMP skill for Redis"
+      }
+    },
+    {
+      "id": "mcp-integration",
+      "name": "MCP Integration",
+      "description": "Model Context Protocol server integration for AI agents",
+      "version": "1.0.0",
+      "status": "external",
+      "category": "Development",
+      "subcategories": ["AI", "Integration", "MCP"],
+      "source": "https://skillsmp.com/skills/anthropics-claude-code-plugins-plugin-dev-skills-mcp-integration-skill-md",
+      "activation_triggers": [
+        "mcp",
+        "model context protocol",
+        "claude",
+        "ai integration",
+        "agent"
+      ],
+      "metadata": {
+        "note": "External SkillsMP skill for MCP"
+      }
     }
   ],
   "dependency_graph": {
@@ -544,11 +653,13 @@
     }
   },
   "statistics": {
-    "total_skills": 10,
-    "active_skills": 8,
+    "total_skills": 14,
+    "active_skills": 10,
+    "external_skills": 4,
     "documentation_only": 2,
     "total_tests": 168,
     "pass_rate": "100%",
-    "total_lines": 2500
+    "total_lines": 2500,
+    "last_updated": "2026-01-25"
   }
 }

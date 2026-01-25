@@ -1,7 +1,9 @@
+# syntax=docker/dockerfile:1.4
 # ============================================================================
 # Multi-stage Production-grade Dockerfile for DMarket Telegram Bot
 # Size reduction: ~70% vs single-stage | Security: non-root user | Health checks included
-# Last updated: December 2025
+# Last updated: January 2026
+# BuildKit optimizations: cache mounts, inline cache
 # ============================================================================
 
 # ============================================================================
@@ -21,17 +23,26 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy only requirements first for better layer caching
 COPY requirements.txt .
 
-# Create wheels for all dependencies (for faster install in runtime stage)
-RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
+# Create wheels for all dependencies with BuildKit cache mount
+# This caches pip downloads between builds, significantly speeding up rebuilds
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip wheel --wheel-dir /wheels -r requirements.txt
 
 # ============================================================================
 # STAGE 2: Runtime - Minimal production image
 # ============================================================================
 FROM python:3.12-slim AS runtime
 
+# OCI Image Spec labels (https://github.com/opencontainers/image-spec/blob/main/annotations.md)
+LABEL org.opencontainers.image.title="DMarket Telegram Bot"
+LABEL org.opencontainers.image.description="Production-ready Telegram bot for DMarket trading and arbitrage"
+LABEL org.opencontainers.image.version="1.1.0"
+LABEL org.opencontainers.image.authors="DMarket Bot Team <example@example.com>"
+LABEL org.opencontainers.image.source="https://github.com/Dykij/DMarket-Telegram-Bot"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.base.name="python:3.12-slim"
+# Legacy labels for compatibility
 LABEL maintainer="DMarket Bot Team <example@example.com>"
-LABEL description="Production-ready DMarket Telegram Bot"
-LABEL version="1.0.0"
 LABEL python.version="3.12"
 
 # Set environment variables

@@ -2,7 +2,7 @@
 
 Добро пожаловать в документацию DMarket Telegram Bot!
 
-> **46 документов** | **Последнее обновление**: 22 января 2026
+> **47 документов** | **Последнее обновление**: 25 января 2026
 
 ---
 
@@ -125,7 +125,8 @@
 | [ANTHROPIC_INTEGRATION_ANALYSIS.md](ANTHROPIC_INTEGRATION_ANALYSIS.md) | Prompt Engineering |
 | [CLICKHOUSE_INTEGRATION_ANALYSIS.md](CLICKHOUSE_INTEGRATION_ANALYSIS.md) | ClickHouse аналитика |
 | [PYTHON_DOCUMENTATION_TOOLS_GUIDE.md](PYTHON_DOCUMENTATION_TOOLS_GUIDE.md) | MkDocs, Sphinx |
+| **[SKILLSMP_IMPROVEMENTS_REPORT_2026.md](SKILLSMP_IMPROVEMENTS_REPORT_2026.md)** | 🆕 SkillsMP улучшения (Docker, Copilot, VS Code) |
 
 ---
 
-**Версия**: 5.0 | **Дата**: 22 января 2026 | **Документов**: 46
+**Версия**: 5.1 | **Дата**: 25 января 2026 | **Документов**: 47
