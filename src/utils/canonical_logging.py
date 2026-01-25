@@ -14,6 +14,7 @@ from collections.abc import MutableMapping
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any, Callable, Generator
 
 import structlog
@@ -201,11 +202,8 @@ def add_timing_processor(
 
     Adds timestamp and duration if start_time is present.
     """
-    import time
-    from datetime import datetime
-
-    # Add ISO timestamp
-    event_dict.setdefault("timestamp", datetime.utcnow().isoformat() + "Z")
+    # Add ISO timestamp (timezone-aware UTC)
+    event_dict.setdefault("timestamp", datetime.now(timezone.utc).isoformat())
 
     # Calculate duration if start_time present
     if "_start_time" in event_dict:
