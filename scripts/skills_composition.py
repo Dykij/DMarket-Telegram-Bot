@@ -9,7 +9,7 @@ Part of Phase 3 Week 3-4 implementation.
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+
 import yaml
 
 
@@ -21,11 +21,11 @@ class SkillDependency:
         self.version_constraint = version_constraint
         self.min_version, self.max_version = self._parse_constraint(version_constraint)
 
-    def _parse_constraint(self, constraint: str) -> Tuple[Optional[str], Optional[str]]:
+    def _parse_constraint(self, constraint: str) -> tuple[str | None, str | None]:
         """Parse semver constraint (e.g., '>=1.0.0', '^1.2.0', '~1.2.0')."""
         if constraint.startswith(">="):
             return constraint[2:], None
-        elif constraint.startswith("^"):
+        if constraint.startswith("^"):
             # ^1.2.3 means >=1.2.3 <2.0.0
             version = constraint[1:]
             parts = version.split(".")
@@ -49,6 +49,10 @@ class SkillDependency:
 
     def is_satisfied(self, version: str) -> bool:
         """Check if a version satisfies this dependency constraint."""
+        # For exact version (min == max), check equality
+        if self.min_version == self.max_version and self.min_version is not None:
+            return self._compare_versions(version, self.min_version) == 0
+
         if self.min_version and self._compare_versions(version, self.min_version) < 0:
             return False
         if self.max_version and self._compare_versions(version, self.max_version) >= 0:
@@ -70,7 +74,7 @@ class SkillDependency:
         for p1, p2 in zip(parts1, parts2):
             if p1 < p2:
                 return -1
-            elif p1 > p2:
+            if p1 > p2:
                 return 1
         return 0
 
@@ -80,7 +84,7 @@ class SkillCompositionManager:
 
     def __init__(self, skills_dir: Path = Path(".github/skills")):
         self.skills_dir = skills_dir
-        self.skills: Dict[str, Dict] = {}
+        self.skills: dict[str, dict] = {}
         self._load_skills()
 
     def _load_skills(self):
@@ -90,8 +94,7 @@ class SkillCompositionManager:
 
         for skill_path in self.skills_dir.rglob("SKILL.md"):
             try:
-                with open(skill_path, "r", encoding="utf-8") as f:
-                    content = f.read()
+                content = Path(skill_path).read_text(encoding="utf-8")
 
                 # Extract YAML frontmatter
                 match = re.match(r"^---\s*\n(.*?)\n---", content, re.DOTALL)
@@ -106,13 +109,13 @@ class SkillCompositionManager:
             except Exception as e:
                 print(f"⚠️ Error loading skill {skill_path}: {e}")
 
-    def get_dependencies(self, skill_name: str) -> List[SkillDependency]:
+    def get_dependencies(self, skill_name: str) -> list[SkillDependency]:
         """Get dependencies for a skill."""
         if skill_name not in self.skills:
             return []
 
         metadata = self.skills[skill_name]["metadata"]
-        depends_on = metadata.get("depends_on", [])
+        depends_on = metadata.get("depends_on") or []
 
         dependencies = []
         for dep in depends_on:
@@ -124,11 +127,11 @@ class SkillCompositionManager:
                     dependencies.append(SkillDependency(name, constraint or ">=0.0.0"))
         return dependencies
 
-    def check_circular_dependencies(self) -> List[List[str]]:
+    def check_circular_dependencies(self) -> list[list[str]]:
         """Check for circular dependencies. Returns list of cycles found."""
         cycles = []
 
-        def dfs(skill: str, path: Set[str], visited: Set[str]):
+        def dfs(skill: str, path: set[str], visited: set[str]):
             if skill in path:
                 # Found a cycle
                 cycle_start = list(path).index(skill)
@@ -153,9 +156,7 @@ class SkillCompositionManager:
 
         return cycles
 
-    def resolve_dependencies(
-        self, skill_name: str
-    ) -> Tuple[bool, List[str], List[str]]:
+    def resolve_dependencies(self, skill_name: str) -> tuple[bool, list[str], list[str]]:
         """
         Resolve all dependencies for a skill.
 
@@ -188,7 +189,7 @@ class SkillCompositionManager:
 
         return len(missing) == 0, resolved, missing
 
-    def validate_dependency_versions(self, skill_name: str) -> List[str]:
+    def validate_dependency_versions(self, skill_name: str) -> list[str]:
         """Validate that all dependency version constraints are satisfied."""
         errors = []
 
@@ -198,9 +199,7 @@ class SkillCompositionManager:
 
         for dep in self.get_dependencies(skill_name):
             if dep.name not in self.skills:
-                errors.append(
-                    f"Dependency '{dep.name}' required by '{skill_name}' not found"
-                )
+                errors.append(f"Dependency '{dep.name}' required by '{skill_name}' not found")
                 continue
 
             actual_version = self.skills[dep.name]["metadata"].get("version", "0.0.0")
@@ -274,7 +273,7 @@ def main():
                 version = manager.skills[skill]["metadata"].get("version", "0.0.0")
                 print(f"  - {skill} (v{version})")
         else:
-            print(f"\n❌ Failed to resolve. Missing skills:")
+            print("\n❌ Failed to resolve. Missing skills:")
             for skill in missing:
                 print(f"  - {skill}")
             sys.exit(1)

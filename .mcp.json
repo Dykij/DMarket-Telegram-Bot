@@ -15,7 +15,7 @@
       "args": [
         "-y",
         "@anthropic/mcp-server-postgres",
-        "postgresql://localhost/dmarket_bot"
+        "${DATABASE_URL:-postgresql://localhost/dmarket_bot}"
       ],
       "description": "PostgreSQL database for user data, trades, and analytics"
     },
@@ -24,7 +24,7 @@
       "args": [
         "-y",
         "@anthropic/mcp-server-redis",
-        "redis://localhost:6379"
+        "${REDIS_URL:-redis://localhost:6379}"
       ],
       "description": "Redis cache for market data and session management"
     },
@@ -33,7 +33,7 @@
       "args": [
         "-y",
         "@anthropic/mcp-server-filesystem",
-        "/home/runner/work/DMarket-Telegram-Bot/DMarket-Telegram-Bot"
+        "${WORKSPACE_PATH:-.}"
       ],
       "description": "File system access for logs, configs, and skills"
     },
