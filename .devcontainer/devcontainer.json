@@ -28,10 +28,6 @@
         "ghcr.io/devcontainers/features/node:1": {
             "version": "22"
         },
-        // Sentry CLI for error tracking
-        "ghcr.io/devcontainers/features/sentry-cli:1": {
-            "version": "latest"
-        },
         // Common utilities (curl, wget, etc.)
         "ghcr.io/devcontainers/features/common-utils:2": {
             "installZsh": true,
