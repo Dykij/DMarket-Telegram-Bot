@@ -403,12 +403,32 @@ finally:
     await lock.release_lock("resource", token)
 ```
 
-### 4. 🆕 Rate Limiting with Redis
-**Рекомендация**: Использовать Redis для rate limiting
+### 4. ✅ Sliding Window Rate Limiting - ВНЕДРЕНО
+**Статус**: Реализовано в `src/utils/redis_rate_limiter.py`
+
+**Возможности**:
+- Accurate rate limiting with sliding window algorithm
+- Distributed across multiple instances via Redis
+- Lua script for atomic operations
+- Configurable limits per key/endpoint
+- Fail-open behavior when Redis unavailable
+- Preset configurations for DMarket, Waxpeer, Telegram
 
 ```python
-# Уже частично реализовано в src/utils/rate_limiter.py
-# Рекомендация: добавить sliding window algorithm
+from src.utils.redis_rate_limiter import (
+    SlidingWindowRateLimiter,
+    RateLimitPresets,
+)
+
+limiter = SlidingWindowRateLimiter(redis_url="redis://localhost:6379")
+
+# Check if request is allowed
+if await limiter.is_allowed("user:123:api", **RateLimitPresets.DMARKET_MARKET):
+    await make_api_call()
+else:
+    # Rate limit exceeded
+    is_allowed, remaining, retry_after = await limiter.check_and_increment("user:123")
+    await asyncio.sleep(retry_after)
 ```
 
 ---
@@ -480,20 +500,30 @@ with profiler.profile_block("user_queries"):
 ### 3. Context Binding ✅ Внедрено
 **Текущий статус**: request_id, user_id binding
 
-### 4. 🆕 Canonical Log Lines
-**Рекомендация**: Минимизировать количество log lines
+### 4. ✅ Canonical Log Lines - ВНЕДРЕНО
+**Статус**: Реализовано в `src/utils/canonical_logging.py`
+
+**Возможности**:
+- Single comprehensive log entry per operation
+- Automatic timing and duration tracking
+- Counter aggregation (db_queries, cache_hits, api_calls)
+- Context variable for nested call support
+- structlog processor integration
 
 ```python
-# Вместо множества logs - один canonical log line:
-logger.info(
-    "request_complete",
-    method=request.method,
-    path=request.path,
-    status=response.status_code,
-    duration_ms=duration * 1000,
-    user_id=user_id,
-    # Все метрики в одной строке
-)
+from src.utils.canonical_logging import canonical_operation
+
+# Single canonical log line per operation
+async with canonical_operation("process_arbitrage", user_id=123) as log:
+    items = await fetch_items()
+    log.api_calls += 1
+
+    for item in items:
+        await process(item)
+        log.db_queries += 1
+
+    log.add_extra("items_processed", len(items))
+    # At end: single "process_arbitrage_complete" log with all context
 ```
 
 ---
@@ -548,11 +578,11 @@ npx skills-mcp --help
 | VS Code Insiders | 4/6 | 2 | 67% |
 | DevContainers | 4/5 | 1 | 80% |
 | CI/CD | **7/7** | 0 | **100%** ✅ |
-| Redis | **3/4** | 1 | **75%** |
+| Redis | **4/4** | 0 | **100%** ✅ |
 | PostgreSQL | **4/5** | 1 | **80%** |
-| Logging | 3/4 | 1 | 75% |
+| Logging | **4/4** | 0 | **100%** ✅ |
 | MCP Server | 4/6 | 2 | 67% |
-| **Итого** | **42/55** | **13** | **76%** |
+| **Итого** | **44/55** | **11** | **80%** |
 
 ### Внедрённые в этом обновлении
 
@@ -560,6 +590,8 @@ npx skills-mcp --help
 2. ✅ **Query Profiler** (`src/utils/query_profiler.py`)
 3. ✅ **Reusable Python Test Workflow** (`.github/workflows/reusable-python-test.yml`)
 4. ✅ **Reusable Docker Build Workflow** (`.github/workflows/reusable-docker-build.yml`)
+5. ✅ **Sliding Window Rate Limiter** (`src/utils/redis_rate_limiter.py`)
+6. ✅ **Canonical Log Lines** (`src/utils/canonical_logging.py`)
 
 ### Приоритет оставшихся рекомендаций
 
