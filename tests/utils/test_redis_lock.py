@@ -8,6 +8,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from src.utils.redis_lock import (
+    LockAcquisitionError,
+    RedisDistributedLock,
+    get_lock_manager,
+)
+
 
 class TestRedisDistributedLock:
     """Tests for RedisDistributedLock class."""
@@ -26,8 +32,6 @@ class TestRedisDistributedLock:
     @pytest.fixture
     def lock_manager(self, mock_redis):
         """Create lock manager with mock Redis."""
-        from src.utils.redis_lock import RedisDistributedLock
-
         manager = RedisDistributedLock(
             redis_client=mock_redis,
             prefix="test:lock:",
@@ -67,8 +71,6 @@ class TestRedisDistributedLock:
     @pytest.mark.asyncio
     async def test_acquire_lock_blocking_retry(self, lock_manager, mock_redis):
         """Test blocking lock acquisition with retries."""
-        from src.utils.redis_lock import LockAcquisitionError
-
         # Arrange - always fail to acquire
         mock_redis.set = AsyncMock(return_value=False)
         lock_name = "blocked-resource"
@@ -187,14 +189,14 @@ class TestGetLockManager:
 
     def test_get_lock_manager_creates_singleton(self):
         """Test singleton creation."""
-        from src.utils import redis_lock
+        from src.utils import redis_lock as redis_lock_module
 
         # Reset singleton
-        redis_lock._lock_manager = None
+        redis_lock_module._lock_manager = None
 
         # Act
-        manager1 = redis_lock.get_lock_manager(redis_url="redis://localhost:6379")
-        manager2 = redis_lock.get_lock_manager()
+        manager1 = get_lock_manager(redis_url="redis://localhost:6379")
+        manager2 = get_lock_manager()
 
         # Assert
         assert manager1 is manager2

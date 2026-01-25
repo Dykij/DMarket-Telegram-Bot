@@ -7,12 +7,17 @@ bot instances.
 Based on SkillsMP Redis Caching Skill recommendations.
 """
 
+from __future__ import annotations
+
 import asyncio
 import logging
 import time
 import uuid
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import TYPE_CHECKING, Any, AsyncGenerator
+
+if TYPE_CHECKING:
+    import redis.asyncio as aioredis
 
 try:
     import redis.asyncio as aioredis
@@ -20,7 +25,7 @@ try:
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
-    aioredis = None  # type: ignore[assignment]
+    aioredis: Any = None
 
 
 logger = logging.getLogger(__name__)
@@ -75,7 +80,7 @@ class RedisDistributedLock:
 
     def __init__(
         self,
-        redis_client: "aioredis.Redis | None" = None,
+        redis_client: aioredis.Redis | None = None,
         redis_url: str | None = None,
         prefix: str = "lock:",
         default_ttl: int = 30,

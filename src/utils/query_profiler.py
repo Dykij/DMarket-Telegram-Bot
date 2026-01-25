@@ -19,6 +19,10 @@ from sqlalchemy.engine import Engine
 
 logger = logging.getLogger(__name__)
 
+# Constants for query truncation
+QUERY_STATS_TRUNCATE_LENGTH = 200
+SLOW_QUERY_TRUNCATE_LENGTH = 500
+
 
 @dataclass
 class QueryStats:
@@ -43,7 +47,7 @@ class QueryStats:
         self.total_time_ms += time_ms
         self.min_time_ms = min(self.min_time_ms, time_ms)
         self.max_time_ms = max(self.max_time_ms, time_ms)
-        self.last_query = query[:200]  # Truncate for storage
+        self.last_query = query[:QUERY_STATS_TRUNCATE_LENGTH]
 
 
 @dataclass
@@ -211,14 +215,14 @@ class QueryProfiler:
             self._slow_queries.sort(key=lambda x: x[1])
             self._slow_queries.pop(0)
 
-        self._slow_queries.append((statement[:500], elapsed_ms))
+        self._slow_queries.append((statement[:SLOW_QUERY_TRUNCATE_LENGTH], elapsed_ms))
 
         if self._log_slow_queries:
             logger.warning(
                 "Slow query detected",
                 extra={
                     "elapsed_ms": round(elapsed_ms, 2),
-                    "query": statement[:200],
+                    "query": statement[:QUERY_STATS_TRUNCATE_LENGTH],
                 },
             )
 
