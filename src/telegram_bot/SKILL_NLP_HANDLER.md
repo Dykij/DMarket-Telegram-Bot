@@ -7,7 +7,12 @@ license: "MIT"
 category: "Data & AI"
 subcategories: ["NLP", "Chatbot", "Multilingual"]
 tags: ["nlp", "natural-language", "multilingual", "chatbot", "intent-recognition"]
-status: "active"
+status: "approved"
+team: "@ml-team"
+approver: "Dykij"
+approval_date: "2026-01-25"
+review_required: true
+last_review: "2026-01-25"
 python_version: ">=3.11"
 main_module: "nlp_handler.py"
 dependencies:

@@ -7,7 +7,12 @@ license: "MIT"
 category: "DevOps"
 subcategories: ["Development", "Tools", "Integration"]
 tags: ["skills-marketplace", "integration", "mcp-server", "ai-tools", "automation"]
-status: "documentation-only"
+status: "approved"
+team: "@core-team"
+approver: "Dykij"
+approval_date: "2026-01-25"
+review_required: true
+last_review: "2026-01-25"
 python_version: ">=3.11"
 main_module: null
 dependencies:

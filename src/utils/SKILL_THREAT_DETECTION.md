@@ -7,7 +7,12 @@ license: "MIT"
 category: "Security"
 subcategories: ["Testing & Security", "Data & AI"]
 tags: ["security", "threat-detection", "anomaly-detection", "ml", "protection"]
-status: "active"
+status: "approved"
+team: "@security-team"
+approver: "Dykij"
+approval_date: "2026-01-25"
+review_required: true
+last_review: "2026-01-25"
 python_version: ">=3.11"
 main_module: "ai_threat_detector.py"
 dependencies:

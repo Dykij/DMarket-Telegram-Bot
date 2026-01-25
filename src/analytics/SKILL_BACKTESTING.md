@@ -7,7 +7,12 @@ license: "MIT"
 category: "Business"
 subcategories: ["Research", "Data & AI", "Finance", "Testing"]
 tags: ["backtesting", "simulation", "trading-strategies", "ml", "analytics"]
-status: "active"
+status: "approved"
+team: "@trading-team"
+approver: "Dykij"
+approval_date: "2026-01-25"
+review_required: true
+last_review: "2026-01-25"
 python_version: ">=3.11"
 main_module: "ai_backtester.py"
 dependencies:

@@ -7,7 +7,12 @@ license: "MIT"
 category: "Business"
 subcategories: ["Finance", "Risk Management", "Data & AI"]
 tags: ["portfolio-management", "risk-assessment", "diversification", "ml", "finance"]
-status: "documentation-only"
+status: "approved"
+team: "@trading-team"
+approver: "Dykij"
+approval_date: "2026-01-25"
+review_required: true
+last_review: "2026-01-25"
 python_version: ">=3.11"
 main_module: null
 dependencies:
