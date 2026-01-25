@@ -283,21 +283,44 @@ class SessionRecorder:
 
 ## ⚙️ CI/CD GitHub Actions Improvements (SkillsMP)
 
-### 1. Reusable Workflows ✅ Частично внедрено
+### 1. ✅ Reusable Workflows - ВНЕДРЕНО
 **Источник**: [SkillsMP CI/CD Category](https://skillsmp.com/categories/cicd)
 
-**Рекомендация**: Создать reusable workflow templates
+**Статус**: Реализованы два reusable workflow:
 
+1. **`reusable-python-test.yml`** - Python тестирование:
+   - Configurable Python version
+   - Optional coverage reporting
+   - Optional linting (Ruff, MyPy)
+   - Codecov integration
+   - Test artifacts upload
+
+2. **`reusable-docker-build.yml`** - Docker сборка:
+   - BuildKit with cache
+   - Multi-platform builds
+   - SBOM generation
+   - Vulnerability scanning (Trivy)
+   - Registry push support
+
+**Использование**:
 ```yaml
-# .github/workflows/reusable-python-test.yml
-name: Reusable Python Test
+# В любом workflow:
+jobs:
+  test:
+    uses: ./.github/workflows/reusable-python-test.yml
+    with:
+      python-version: "3.12"
+      coverage: true
+      lint: true
+    secrets:
+      codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
-on:
-  workflow_call:
-    inputs:
-      python-version:
-        type: string
-        default: "3.12"
+  build:
+    uses: ./.github/workflows/reusable-docker-build.yml
+    with:
+      image-name: "dmarket-bot"
+      push: false
+```
 
 jobs:
   test:
@@ -352,22 +375,32 @@ jobs:
 
 **Текущий статус**: Cache-aside pattern, TTL, invalidation реализованы
 
-### 3. 🆕 Distributed Locking
-**Рекомендация**: Добавить Redis distributed locks
+### 3. ✅ Distributed Locking - ВНЕДРЕНО
+**Статус**: Реализовано в `src/utils/redis_lock.py`
+
+**Возможности**:
+- Automatic lock expiration (TTL) для предотвращения deadlocks
+- Lock owner verification для безопасного release
+- Retry mechanism с exponential backoff
+- Async context manager support
+- Lock extension capability
+- Lua scripts для атомарных операций
 
 ```python
-# src/utils/redis_lock.py
-class RedisDistributedLock:
-    """Distributed lock using Redis."""
+from src.utils.redis_lock import RedisDistributedLock
 
-    async def acquire(self, key: str, ttl: int = 30) -> bool:
-        """Acquire lock with TTL."""
-        return await self.redis.set(
-            f"lock:{key}",
-            "1",
-            nx=True,  # Only set if not exists
-            ex=ttl
-        )
+lock = RedisDistributedLock(redis_url="redis://localhost:6379")
+
+# Context manager usage
+async with lock.acquire("my-resource", ttl=30):
+    await do_critical_work()
+
+# Manual usage
+token = await lock.acquire_lock("resource", ttl=60)
+try:
+    await process()
+finally:
+    await lock.release_lock("resource", token)
 ```
 
 ### 4. 🆕 Rate Limiting with Redis
@@ -407,16 +440,31 @@ class MarketItem(Base):
     )
 ```
 
-### 5. 🆕 Query Optimization
-**Рекомендация**: Добавить query profiling
+### 5. ✅ Query Optimization - ВНЕДРЕНО
+**Статус**: Реализовано в `src/utils/query_profiler.py`
+
+**Возможности**:
+- Automatic query timing via SQLAlchemy events
+- Slow query detection and logging
+- Statistics aggregation by table and query type
+- Context manager for scoped profiling
+- Detailed reports with min/max/avg times
 
 ```python
-# src/utils/db_profiler.py
-from sqlalchemy import event
+from src.utils.query_profiler import QueryProfiler, get_query_profiler
 
-@event.listens_for(Engine, "before_cursor_execute")
-def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-    conn.info.setdefault('query_start_time', []).append(time.time())
+# Enable profiling
+profiler = get_query_profiler(engine, slow_threshold_ms=100)
+profiler.enable()
+
+# Get report
+report = profiler.get_report()
+print(f"Total queries: {report.total_queries}")
+print(f"Slow queries: {len(report.slow_queries)}")
+
+# Profile a block
+with profiler.profile_block("user_queries"):
+    await db.get_users()
 ```
 
 ---
@@ -491,34 +539,41 @@ npx skills-mcp --help
 
 ## 📈 Metrics & Summary
 
-### Общий статус внедрения
+### Общий статус внедрения (обновлено 25.01.2026)
 
 | Категория | Внедрено | Новых рекомендаций | Прогресс |
 |-----------|----------|-------------------|----------|
-| Docker | 5/8 | 4 | 62% |
-| GitHub Copilot | 8/10 | 3 | 80% |
+| Docker | 5/8 | 3 | 62% |
+| GitHub Copilot | 8/10 | 2 | 80% |
 | VS Code Insiders | 4/6 | 2 | 67% |
 | DevContainers | 4/5 | 1 | 80% |
-| CI/CD | 5/7 | 2 | 71% |
-| Redis | 2/4 | 2 | 50% |
-| PostgreSQL | 3/5 | 2 | 60% |
+| CI/CD | **7/7** | 0 | **100%** ✅ |
+| Redis | **3/4** | 1 | **75%** |
+| PostgreSQL | **4/5** | 1 | **80%** |
 | Logging | 3/4 | 1 | 75% |
 | MCP Server | 4/6 | 2 | 67% |
-| **Итого** | **38/55** | **19** | **69%** |
+| **Итого** | **42/55** | **13** | **76%** |
 
-### Приоритет новых рекомендаций
+### Внедрённые в этом обновлении
 
-#### 🔴 Высокий приоритет (реализовать в ближайшее время)
-1. Docker BuildKit optimization
-2. Distributed Redis locking
-3. PostgreSQL JSONB indexes
-4. Skills-MCP integration
+1. ✅ **Distributed Redis Locking** (`src/utils/redis_lock.py`)
+2. ✅ **Query Profiler** (`src/utils/query_profiler.py`)
+3. ✅ **Reusable Python Test Workflow** (`.github/workflows/reusable-python-test.yml`)
+4. ✅ **Reusable Docker Build Workflow** (`.github/workflows/reusable-docker-build.yml`)
+
+### Приоритет оставшихся рекомендаций
+
+#### 🔴 Высокий приоритет
+1. ~~Docker BuildKit optimization~~ ✅ Внедрено ранее
+2. ~~Distributed Redis locking~~ ✅ Внедрено
+3. PostgreSQL JSONB indexes - в работе
+4. Skills-MCP integration - рекомендовано
 
 #### 🟡 Средний приоритет
-1. SBOM generation
+1. SBOM generation (включено в reusable-docker-build)
 2. Session transcript generation
-3. Reusable CI/CD workflows
-4. Query profiling
+3. ~~Reusable CI/CD workflows~~ ✅ Внедрено
+4. ~~Query profiling~~ ✅ Внедрено
 
 #### 🟢 Низкий приоритет (nice to have)
 1. Distroless images
