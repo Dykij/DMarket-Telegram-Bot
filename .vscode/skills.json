@@ -100,7 +100,7 @@
             "description": "ML model references"
           },
           {
-            "regex": "redis\\.Redis|aioredis|redis-py",
+            "regex": "redis\\.Redis|redis\\.StrictRedis|aioredis|from redis import",
             "skills": ["redis-caching"],
             "description": "Redis caching references"
           },

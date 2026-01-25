@@ -37,12 +37,12 @@ FROM python:3.12-slim AS runtime
 LABEL org.opencontainers.image.title="DMarket Telegram Bot"
 LABEL org.opencontainers.image.description="Production-ready Telegram bot for DMarket trading and arbitrage"
 LABEL org.opencontainers.image.version="1.1.0"
-LABEL org.opencontainers.image.authors="DMarket Bot Team <example@example.com>"
+LABEL org.opencontainers.image.authors="DMarket Bot Team"
 LABEL org.opencontainers.image.source="https://github.com/Dykij/DMarket-Telegram-Bot"
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.base.name="python:3.12-slim"
 # Legacy labels for compatibility
-LABEL maintainer="DMarket Bot Team <example@example.com>"
+LABEL maintainer="https://github.com/Dykij/DMarket-Telegram-Bot"
 LABEL python.version="3.12"
 
 # Set environment variables

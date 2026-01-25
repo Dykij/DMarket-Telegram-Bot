@@ -472,9 +472,17 @@ logger.info(
 **Рекомендация**: Интегрировать skills-mcp для Claude compatibility
 
 ```bash
-# Добавить в проект:
-npx skills-mcp
+# Установить skills-mcp пакет (требует Node.js 18+):
+npm install -g skills-mcp
+
+# Или использовать через npx без глобальной установки:
+npx skills-mcp --help
+
+# Конфигурация в ~/.mcp.json или .mcp.json проекта
 ```
+
+**Примечание**: skills-mcp - это open-source реализация Skills pattern для MCP-compatible agents.
+Подробная документация: https://github.com/skills-mcp/skills-mcp
 
 ### 6. 🆕 OAuth Integration
 **Рекомендация**: Добавить OAuth для secure MCP connections
