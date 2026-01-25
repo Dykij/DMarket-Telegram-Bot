@@ -1,9 +1,9 @@
-# syntax=docker/dockerfile:1.7
+# syntax=docker/dockerfile:1.4
 # ============================================================================
 # Multi-stage Production-grade Dockerfile for DMarket Telegram Bot
 # Size reduction: ~70% vs single-stage | Security: non-root user | Health checks included
-# BuildKit optimizations: cache mounts, parallel builds
 # Last updated: January 2026
+# BuildKit optimizations: cache mounts, inline cache
 # ============================================================================
 
 # ============================================================================
@@ -13,18 +13,18 @@ FROM python:3.12-slim AS builder
 
 WORKDIR /build
 
-# Install build dependencies with cache mount
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update && apt-get install -y --no-install-recommends \
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
-    libpq-dev
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy only requirements first for better layer caching
 COPY requirements.txt .
 
-# Create wheels with pip cache mount for faster rebuilds
+# Create wheels for all dependencies with BuildKit cache mount
+# This caches pip downloads between builds, significantly speeding up rebuilds
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip wheel --wheel-dir /wheels -r requirements.txt
 
@@ -33,19 +33,17 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # ============================================================================
 FROM python:3.12-slim AS runtime
 
-LABEL maintainer="DMarket Bot Team <example@example.com>"
-LABEL description="Production-ready DMarket Telegram Bot"
-LABEL version="1.1.0"
-LABEL python.version="3.12"
+# OCI Image Spec labels (https://github.com/opencontainers/image-spec/blob/main/annotations.md)
+LABEL org.opencontainers.image.title="DMarket Telegram Bot"
+LABEL org.opencontainers.image.description="Production-ready Telegram bot for DMarket trading and arbitrage"
+LABEL org.opencontainers.image.version="1.1.0"
+LABEL org.opencontainers.image.authors="DMarket Bot Team"
 LABEL org.opencontainers.image.source="https://github.com/Dykij/DMarket-Telegram-Bot"
-
-# Repository structure:
-# /app/
-# ├── src/           - Application source code
-# ├── config/        - Configuration files (YAML, JSON, INI)
-# ├── alembic/       - Database migrations
-# ├── data/          - Runtime data (mounted volume)
-# └── logs/          - Application logs (mounted volume)
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.base.name="python:3.12-slim"
+# Legacy labels for compatibility
+LABEL maintainer="https://github.com/Dykij/DMarket-Telegram-Bot"
+LABEL python.version="3.12"
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -78,8 +76,7 @@ RUN pip install --no-cache-dir --user --no-index --find-links=/wheels -r /wheels
 
 # Copy application code (only needed files, not entire repo)
 COPY --chown=botuser:botuser src/ ./src/
-COPY --chown=botuser:botuser config/*.yaml ./config/
-COPY --chown=botuser:botuser config/*.json ./config/
+COPY --chown=botuser:botuser config/ ./config/
 COPY --chown=botuser:botuser alembic/ ./alembic/
 COPY --chown=botuser:botuser alembic.ini ./
 
