@@ -200,13 +200,32 @@ class SessionRecorder:
 
 **Текущий статус**: `.vscode/skills.json` настроен
 
-### 2. Enhanced Session Management 🆕
-**Описание**: Улучшенное управление chat sessions
+### 2. ✅ Session Transcript Generation - ВНЕДРЕНО
+**Статус**: Реализовано в `src/utils/session_transcript.py`
 
-**Рекомендация**: Использовать новые функции сессий:
-- Session grouping по проектам
-- Session archival
-- Session-based workflow retrieval
+**Возможности**:
+- Complete session recording with action timeline
+- Automatic metrics aggregation (files, commands, tests)
+- Export to JSON and Markdown formats
+- Success rate calculations
+- Error tracking with recovery actions
+
+```python
+from src.utils.session_transcript import SessionTranscriptGenerator, ActionType
+
+generator = SessionTranscriptGenerator()
+
+# Start a session
+session = generator.start_session("Feature implementation", tags=["feature", "arbitrage"])
+
+# Record actions
+generator.record_action(ActionType.FILE_CREATE, "Create module", files_affected=["src/new.py"])
+generator.record_action(ActionType.TEST_RUN, "Run tests", success=True, details={"passed": 15})
+
+# End and save transcript
+transcript = generator.end_session()
+print(transcript.to_markdown())
+```
 
 ### 3. Contextual Skills Loading ✅ Внедрено
 **Текущий статус**: Skills загружаются контекстно через `advanced_triggers`
@@ -544,23 +563,30 @@ async with canonical_operation("process_arbitrage", user_id=123) as log:
 ### 4. MCP Configuration ✅ Внедрено
 **Текущий статус**: `.mcp.json` настроен с 6 серверами
 
-### 5. 🆕 Skills-MCP Pattern
-**Источник**: [skills-mcp GitHub](https://github.com/skills-mcp/skills-mcp)
+### 5. ✅ SkillsMP Integration Client - ВНЕДРЕНО
+**Статус**: Реализовано в `src/mcp_server/skillsmp_client.py`
 
-**Рекомендация**: Интегрировать skills-mcp для Claude compatibility
+**Возможности**:
+- Discover skills from SkillsMP.com marketplace
+- Search by category, tags, or keywords
+- Install/uninstall/update skills
+- Track installed skills
+- Preset skill catalog with 10 skills
 
-```bash
-# Установить skills-mcp пакет (требует Node.js 18+):
-npm install -g skills-mcp
+```python
+from src.mcp_server.skillsmp_client import SkillsMPIntegration
 
-# Или использовать через npx без глобальной установки:
-npx skills-mcp --help
+client = SkillsMPIntegration()
 
-# Конфигурация в ~/.mcp.json или .mcp.json проекта
+# Discover skills
+skills = await client.discover_skills(category="Data & AI", min_stars=4)
+
+# Install a skill
+await client.install_skill("ai-arbitrage-predictor")
+
+# List installed
+installed = await client.list_installed_skills()
 ```
-
-**Примечание**: skills-mcp - это open-source реализация Skills pattern для MCP-compatible agents.
-Подробная документация: https://github.com/skills-mcp/skills-mcp
 
 ### 6. 🆕 OAuth Integration
 **Рекомендация**: Добавить OAuth для secure MCP connections
@@ -575,14 +601,14 @@ npx skills-mcp --help
 |-----------|----------|-------------------|----------|
 | Docker | 5/8 | 3 | 62% |
 | GitHub Copilot | 8/10 | 2 | 80% |
-| VS Code Insiders | 4/6 | 2 | 67% |
+| VS Code Insiders | **5/6** | 1 | **83%** |
 | DevContainers | 4/5 | 1 | 80% |
 | CI/CD | **7/7** | 0 | **100%** ✅ |
 | Redis | **4/4** | 0 | **100%** ✅ |
 | PostgreSQL | **4/5** | 1 | **80%** |
 | Logging | **4/4** | 0 | **100%** ✅ |
-| MCP Server | 4/6 | 2 | 67% |
-| **Итого** | **44/55** | **11** | **80%** |
+| MCP Server | **5/6** | 1 | **83%** |
+| **Итого** | **46/55** | **9** | **84%** |
 
 ### Внедрённые в этом обновлении
 
@@ -592,6 +618,8 @@ npx skills-mcp --help
 4. ✅ **Reusable Docker Build Workflow** (`.github/workflows/reusable-docker-build.yml`)
 5. ✅ **Sliding Window Rate Limiter** (`src/utils/redis_rate_limiter.py`)
 6. ✅ **Canonical Log Lines** (`src/utils/canonical_logging.py`)
+7. ✅ **SkillsMP Integration Client** (`src/mcp_server/skillsmp_client.py`)
+8. ✅ **Session Transcript Generator** (`src/utils/session_transcript.py`)
 
 ### Приоритет оставшихся рекомендаций
 
@@ -599,11 +627,11 @@ npx skills-mcp --help
 1. ~~Docker BuildKit optimization~~ ✅ Внедрено ранее
 2. ~~Distributed Redis locking~~ ✅ Внедрено
 3. PostgreSQL JSONB indexes - в работе
-4. Skills-MCP integration - рекомендовано
+4. ~~Skills-MCP integration~~ ✅ Внедрено
 
 #### 🟡 Средний приоритет
 1. SBOM generation (включено в reusable-docker-build)
-2. Session transcript generation
+2. ~~Session transcript generation~~ ✅ Внедрено
 3. ~~Reusable CI/CD workflows~~ ✅ Внедрено
 4. ~~Query profiling~~ ✅ Внедрено
 
