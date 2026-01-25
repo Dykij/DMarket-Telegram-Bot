@@ -1,61 +1,105 @@
 {
-  "mcpServers": {
-    "dmarket-api": {
-      "command": "uvx",
-      "args": ["mcp-server-fetch"],
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/specification/main/schema/mcp.schema.json",
+  "version": "1.0.0",
+  "name": "DMarket Telegram Bot MCP Configuration",
+  "description": "Model Context Protocol servers for AI-powered development. Copy to .vscode/mcp.json for VS Code.",
+  "servers": {
+    "github": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server:0.29.0"
+      ],
       "env": {
-        "DMARKET_PUBLIC_KEY": "${DMARKET_PUBLIC_KEY}",
-        "DMARKET_SECRET_KEY": "${DMARKET_SECRET_KEY}",
-        "DMARKET_API_URL": "https://api.dmarket.com"
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
       },
-      "description": "DMarket API integration for market data and trading"
+      "description": "GitHub integration for issues, PRs, and code search"
     },
-    "postgres": {
+    "context7": {
+      "type": "stdio",
       "command": "npx",
       "args": [
         "-y",
-        "@anthropic/mcp-server-postgres",
-        "${DATABASE_URL:-postgresql://localhost/dmarket_bot}"
+        "@upstash/context7-mcp"
       ],
-      "description": "PostgreSQL database for user data, trades, and analytics"
+      "description": "Up-to-date library documentation (httpx, pytest, pydantic, etc.)"
     },
-    "redis": {
+    "sqlite": {
+      "type": "stdio",
       "command": "npx",
       "args": [
         "-y",
-        "@anthropic/mcp-server-redis",
-        "${REDIS_URL:-redis://localhost:6379}"
+        "@modelcontextprotocol/server-sqlite",
+        "--db-path",
+        "./data/dmarket_bot.db"
       ],
-      "description": "Redis cache for market data and session management"
+      "description": "SQLite database for development and testing"
     },
     "filesystem": {
+      "type": "stdio",
       "command": "npx",
       "args": [
         "-y",
-        "@anthropic/mcp-server-filesystem",
-        "${WORKSPACE_PATH:-.}"
+        "@modelcontextprotocol/server-filesystem",
+        "."
       ],
       "description": "File system access for logs, configs, and skills"
     },
-    "github": {
+    "fetch": {
+      "type": "stdio",
       "command": "npx",
       "args": [
         "-y",
-        "@anthropic/mcp-server-github",
-        "--token",
-        "${GITHUB_TOKEN}"
+        "@modelcontextprotocol/server-fetch"
       ],
-      "description": "GitHub integration for issues, PRs, and workflows"
+      "description": "HTTP fetch for external APIs and documentation"
     },
-    "sentry": {
+    "memory": {
+      "type": "stdio",
       "command": "npx",
       "args": [
         "-y",
-        "@anthropic/mcp-server-sentry",
-        "--dsn",
-        "${SENTRY_DSN}"
+        "@modelcontextprotocol/server-memory"
       ],
-      "description": "Sentry error monitoring and alerting"
+      "description": "Persistent memory for context across sessions"
+    },
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "description": "Enhanced reasoning for complex algorithms"
+    },
+    "postgres": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres"
+      ],
+      "env": {
+        "POSTGRES_CONNECTION_STRING": "${DATABASE_URL}"
+      },
+      "description": "PostgreSQL for production database access"
     }
+  },
+  "skills": {
+    "configFile": ".vscode/skills.json",
+    "autoDiscovery": true,
+    "scanPaths": [
+      "src/**/SKILL_*.md",
+      ".github/skills/**/*.md"
+    ]
+  },
+  "hooks": {
+    "configFile": "config/hooks.yaml",
+    "enabled": true
   }
 }

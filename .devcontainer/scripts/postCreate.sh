@@ -121,6 +121,25 @@ pip install --quiet types-requests types-redis types-PyYAML 2>/dev/null || true
 success "Type stubs installed"
 
 # ============================================================================
+# SENTRY CLI (for error monitoring)
+# ============================================================================
+info "Installing Sentry CLI..."
+
+# Install via curl (official recommended method)
+if ! command -v sentry-cli &> /dev/null; then
+    curl -sL https://sentry.io/get-cli/ | SENTRY_CLI_VERSION="2.39.1" bash 2>/dev/null || {
+        warning "Could not install sentry-cli via curl, trying pip..."
+        pip install --quiet sentry-cli 2>/dev/null || warning "sentry-cli installation skipped"
+    }
+fi
+
+if command -v sentry-cli &> /dev/null; then
+    success "Sentry CLI installed: $(sentry-cli --version)"
+else
+    warning "Sentry CLI not installed (optional, for error monitoring)"
+fi
+
+# ============================================================================
 # VERIFY INSTALLATION
 # ============================================================================
 info "Verifying installation..."

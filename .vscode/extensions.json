@@ -58,7 +58,6 @@
         "ms-vsliveshare.vsliveshare", // Live Share for collaboration
         // ========== NEW: January 2026 Experimental Extensions ==========
         "ms-vscode.copilot-mcp", // Model Context Protocol for Copilot
-        "github.copilot-workspace", // Copilot Workspace (full project generation)
         "ms-vscode.vscode-copilot-vision", // Vision capabilities for Copilot
         "ms-vscode.remote-repositories", // Remote repositories without cloning
         "github.remotehub", // GitHub Remote Hub

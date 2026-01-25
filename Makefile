@@ -239,7 +239,7 @@ coverage: test-cov
 # Быстрые тесты (без покрытия, с таймаутом 10 сек)
 test-fast: $(VENV)
 	@echo Быстрые тесты (без coverage, timeout=10s)...
-	@poetry run pytest -c pytest-fast.ini tests/ -q --timeout=10 --no-cov -x
+	@poetry run pytest -c config/pytest-fast.ini tests/ -q --timeout=10 --no-cov -x
 
 # E2E тесты
 test-e2e: $(VENV)
@@ -372,10 +372,10 @@ debug-fast: $(VENV)
 	@$(VENV_PYTHON) -m ruff check src/ --output-format=concise --exit-zero 2>&1 | head -50 || true
 	@echo.
 	@echo [2/3] MyPy (минимальный, с кэшем)...
-	@$(VENV_PYTHON) -m mypy src/ --config-file=mypy-fast.ini --cache-dir=.mypy_cache 2>&1 | head -30 || true
+	@$(VENV_PYTHON) -m mypy src/ --config-file=config/mypy-fast.ini --cache-dir=.mypy_cache 2>&1 | head -30 || true
 	@echo.
 	@echo [3/3] Тесты (быстрые, 10 сек таймаут)...
-	@poetry run pytest tests/core/ tests/unit/ -c pytest-fast.ini -q --timeout=5 --no-cov -x 2>&1 | head -50 || true
+	@poetry run pytest tests/core/ tests/unit/ -c config/pytest-fast.ini -q --timeout=5 --no-cov -x 2>&1 | head -50 || true
 	@echo.
 	@echo ✅ Быстрая отладка завершена!
 
@@ -387,12 +387,12 @@ lint-fast: $(VENV)
 # Только типы с агрессивным кэшированием
 types-fast: $(VENV)
 	@echo === Быстрая проверка типов ===
-	@$(VENV_PYTHON) -m mypy src/ --config-file=mypy-fast.ini --cache-dir=.mypy_cache 2>&1 | head -50
+	@$(VENV_PYTHON) -m mypy src/ --config-file=config/mypy-fast.ini --cache-dir=.mypy_cache 2>&1 | head -50
 
 # Только core тесты (быстрее всего)
 test-core: $(VENV)
 	@echo === Core тесты (быстрые) ===
-	@poetry run pytest tests/core/ -c pytest-fast.ini -q --timeout=5 --no-cov
+	@poetry run pytest tests/core/ -c config/pytest-fast.ini -q --timeout=5 --no-cov
 
 # Полная отладка с ограничениями вывода (для IDE)
 debug-full: $(VENV)
@@ -405,10 +405,10 @@ debug-full: $(VENV)
 	@$(VENV_PYTHON) -m ruff check src/ --output-format=concise 2>&1 | head -50 || true
 	@echo.
 	@echo [3/4] Типы...
-	@$(VENV_PYTHON) -m mypy src/ --config-file=mypy-fast.ini 2>&1 | head -50 || true
+	@$(VENV_PYTHON) -m mypy src/ --config-file=config/mypy-fast.ini 2>&1 | head -50 || true
 	@echo.
 	@echo [4/4] Тесты (unit + core)...
-	@poetry run pytest tests/core/ tests/unit/ -c pytest-fast.ini -q --timeout=10 --no-cov 2>&1 | tail -30 || true
+	@poetry run pytest tests/core/ tests/unit/ -c config/pytest-fast.ini -q --timeout=10 --no-cov 2>&1 | tail -30 || true
 	@echo.
 	@echo ✅ Полная отладка завершена!
 
@@ -475,7 +475,7 @@ test-all-tools: $(VENV)
 @$(VENV_PYTHON) -m ruff check src/ --output-format=concise --exit-zero 2>&1 | head -20
 @echo.
 @echo [2/6] Проверка типов (MyPy)...
-@$(VENV_PYTHON) -m mypy src/ --config-file=mypy-fast.ini 2>&1 | head -20 || true
+@$(VENV_PYTHON) -m mypy src/ --config-file=config/mypy-fast.ini 2>&1 | head -20 || true
 @echo.
 @echo [3/6] Property-based тесты (Hypothesis)...
 @$(VENV_PYTHON) -m pytest tests/property_based/ -q --timeout=30 --no-cov 2>&1 | tail -10

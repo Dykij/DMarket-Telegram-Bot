@@ -40,6 +40,11 @@ ENV PYTHONUNBUFFERED=1 \
 # ============================================================================
 # SYSTEM DEPENDENCIES
 # ============================================================================
+# Remove expired Yarn GPG key/repository from base image
+RUN rm -f /etc/apt/sources.list.d/yarn.list 2>/dev/null || true && \
+    rm -f /etc/apt/keyrings/yarn.gpg 2>/dev/null || true && \
+    rm -f /usr/share/keyrings/yarn-keyring.gpg 2>/dev/null || true
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     # Build tools
     build-essential \

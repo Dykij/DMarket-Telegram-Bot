@@ -68,7 +68,14 @@ def run_types() -> tuple[str, bool, str, float]:
     """Run mypy type checking."""
     start = time.time()
     success, output = run_command(
-        ["python", "-m", "mypy", "src/", "--config-file=mypy-fast.ini", "--cache-dir=.mypy_cache"],
+        [
+            "python",
+            "-m",
+            "mypy",
+            "src/",
+            "--config-file=config/mypy-fast.ini",
+            "--cache-dir=.mypy_cache",
+        ],
         TYPES_TIMEOUT,
     )
     elapsed = time.time() - start
@@ -80,10 +87,17 @@ def run_tests() -> tuple[str, bool, str, float]:
     start = time.time()
     success, output = run_command(
         [
-            "python", "-m", "pytest",
-            "tests/core/", "tests/unit/",
-            "-c", "pytest-fast.ini",
-            "-q", "--timeout=10", "--no-cov", "-x",
+            "python",
+            "-m",
+            "pytest",
+            "tests/core/",
+            "tests/unit/",
+            "-c",
+            "config/pytest-fast.ini",
+            "-q",
+            "--timeout=10",
+            "--no-cov",
+            "-x",
         ],
         TESTS_TIMEOUT,
         max_lines=100,

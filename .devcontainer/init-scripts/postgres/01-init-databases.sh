@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # ============================================================================
 # PostgreSQL Initialization Script for DMarket Bot Development
 # ============================================================================
@@ -7,14 +7,14 @@
 
 set -e
 
-echo "🗄️ Initializing PostgreSQL for DMarket Bot..."
+echo "Initializing PostgreSQL for DMarket Bot..."
 
 # ============================================================================
 # CREATE ADDITIONAL DATABASES
 # ============================================================================
 
 # Create test database
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<EOSQL
     -- Create test database for pytest
     CREATE DATABASE test_db;
 
@@ -34,7 +34,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     SELECT 'DMarket Bot databases initialized successfully!' AS status;
 EOSQL
 
-echo "✅ PostgreSQL initialization complete!"
+echo "PostgreSQL initialization complete!"
 echo "   - Database: $POSTGRES_DB"
 echo "   - Test DB:  test_db"
 echo "   - n8n DB:   n8n"

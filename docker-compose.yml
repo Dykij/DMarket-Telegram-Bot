@@ -1,6 +1,20 @@
 # Docker Compose for DMarket Telegram Bot
 # Compose file format version: 3.8+ (Docker Compose v2)
 # Last updated: January 2026
+#
+# Repository Structure:
+# ├── src/          - Application source code
+# ├── config/       - Configuration files (YAML, JSON, hooks, Prometheus)
+# ├── data/         - Runtime data (volumes)
+# ├── logs/         - Application logs (volumes)
+# ├── alembic/      - Database migrations
+# ├── tests/        - Test suite
+# └── docs/         - Documentation
+#
+# Quick Start:
+#   docker-compose up -d          # Start all services
+#   docker-compose logs -f bot    # View bot logs
+#   docker-compose down           # Stop all services
 
 services:
   bot:
@@ -113,12 +127,11 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget --spider -q http://localhost:5678/healthz || exit 1"]
+      test: [ "CMD-SHELL", "wget --spider -q http://localhost:5678/healthz || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
-
   # Optional: Monitoring with Prometheus (uncomment if needed)
   # prometheus:
   #   image: prom/prometheus:latest

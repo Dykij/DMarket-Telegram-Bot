@@ -1,6 +1,7 @@
 # ============================================================================
 # .dockerignore - Exclude unnecessary files from Docker build context
 # Reduces image size by ~50%+ and speeds up builds
+# Updated: January 2026
 # ============================================================================
 
 # Git files
@@ -41,19 +42,23 @@ coverage.xml
 .dmypy.json
 dmypy.json
 
-# IDE
+# IDE and editor files
 .vscode/
 .idea/
+.cursor/
+.claude/
 *.swp
 *.swo
 *~
 .DS_Store
+.cursorrules
 
-# Documentation
+# Documentation (not needed in production image)
 docs/
+docs-site/
+docs-sphinx/
 *.md
-README.md
-LICENSE
+!README.md
 
 # CI/CD
 .github/
@@ -62,11 +67,21 @@ LICENSE
 
 # Development files
 tests/
-scripts/check_code.py
-scripts/validate_*.py
+scripts/
+examples/
 Makefile
 docker-compose.yml
 docker-compose.*.yml
+!Dockerfile
+!Dockerfile.dev
+
+# Config files not needed in production
+config/ecosystem.config.js
+config/hooks.yaml
+config/prometheus.yml
+config/mypy-fast.ini
+config/pytest-fast.ini
+config/.yamllint.yml
 
 # Build artifacts
 build/
@@ -77,15 +92,23 @@ dist/
 # Logs and data (copied at runtime via volumes)
 logs/
 data/
+backups/
 *.log
 *.db
 *.sqlite
 *.sqlite3
+bot_database.db*
 
 # Environment files (use Docker secrets instead)
 .env
 .env.*
 !.env.example
+
+# Kubernetes and monitoring configs
+k8s/
+grafana/
+nginx/
+n8n/
 
 # Temporary files
 tmp/
@@ -97,3 +120,7 @@ temp/
 # OS files
 Thumbs.db
 .DS_Store
+
+# Poetry/pip files (dependencies already in image)
+poetry.lock
+requirements.in
