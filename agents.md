@@ -1,5 +1,9 @@
 # agents.md
 
+> **⚠️ ПЕРВЫЙ ШАГ**: Перед началом любой задачи **ОБЯЗАТЕЛЬНО** изучите файл [`ВАЖНЕЙШИЕ.md`](./ВАЖНЕЙШИЕ.md) в корне проекта. Он содержит приоритетные улучшения и текущий roadmap.
+
+---
+
 Configuration for AI agents in DMarket Telegram Bot project.
 
 ## Overview
