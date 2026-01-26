@@ -51,7 +51,7 @@ jobs:
           cache: "pip"
 
       - name: Cache validation tools
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/skills-validation
           key: skills-validation-${{ hashFiles('scripts/validate_*.py') }}
